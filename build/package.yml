@@ -6,7 +6,7 @@ steps:
     displayName: 'dotnet publish web'
     inputs:
       command: publish
-      projects: '**/Microsoft.Health.Fhir.Web.csproj'
+      projects: '**/Microsoft.Health.Dicom.Web.csproj'
       arguments: '--runtime win10-x64 --output $(build.artifactStagingDirectory)/web --configuration $(buildConfiguration) --version-suffix $(build.buildnumber)'
       publishWebProjects: false
 
