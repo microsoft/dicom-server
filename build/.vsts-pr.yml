@@ -3,8 +3,7 @@
 # Add steps that publish symbols, save build artifacts, and more:
 # https://docs.microsoft.com/vsts/pipelines/languages/dotnet-core
 
-name: pr$(System.PullRequest.PullRequestId)-$(Date:yyyyMMdd)$(Rev:-r)
-
+name: pr$(system.pullRequest.pullRequestNumber)-$(Date:yyyyMMdd)$(Rev:-r)
 phases:
 - template: build.yml
   parameters:
