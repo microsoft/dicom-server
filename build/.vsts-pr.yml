@@ -4,6 +4,7 @@
 # https://docs.microsoft.com/vsts/pipelines/languages/dotnet-core
 
 name: pr$(system.pullRequest.pullRequestNumber)-$(Date:yyyyMMdd)$(Rev:-r)
+trigger: none
 phases:
 - template: build.yml
   parameters:
