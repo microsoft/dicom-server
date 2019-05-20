@@ -44,14 +44,8 @@ steps:
       artifactType: 'container'
 
   - task: PublishBuildArtifacts@1
-    displayName: 'publish samples'
-    inputs:
-      pathToPublish: './samples/'
-      artifactName: 'deploy'
-      artifactType: 'container'
-
-  - task: PublishBuildArtifacts@1
     displayName: 'publish testauthenvironment.json'
+    enabled: false
     inputs:
       pathToPublish: './testauthenvironment.json'
       artifactName: 'deploy'
@@ -59,6 +53,7 @@ steps:
       
   - task: PublishBuildArtifacts@1
     displayName: 'publish corstestconfiguration.json'
+    enabled: false
     inputs:
       pathToPublish: './corstestconfiguration.json'
       artifactName: 'deploy'
@@ -80,6 +75,7 @@ steps:
 
   - task: PublishBuildArtifacts@1
     displayName: 'publish Integration Tests'
+    enabled: false
     inputs:
       pathToPublish: '$(build.binariesdirectory)/IntegrationTests'
       artifactName: 'IntegrationTests'
