@@ -46,7 +46,6 @@ steps:
 
   - task: PublishBuildArtifacts@1
     displayName: 'publish testauthenvironment.json'
-    enabled: false
     inputs:
       pathToPublish: './testauthenvironment.json'
       artifactName: 'deploy'
