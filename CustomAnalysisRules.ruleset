@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="FHIR Analysis Rules" Description="The code analysis rules used for the FHIR server C# source projects." ToolsVersion="14.0">
+<RuleSet Name="DICOM Analysis Rules" Description="The code analysis rules used for the FHIR server C# source projects." ToolsVersion="14.0">
   <Include Path="minimumrecommendedrules.ruleset" Action="Default" />
   <Include Path="securityrules.ruleset" Action="Default" />
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">

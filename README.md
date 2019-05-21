@@ -1,4 +1,4 @@
-# DICOM-FHIR Server for Azure
+# DICOM Server for Azure
 
 A .NET Core implementation of the DICOM Web standard.
 
@@ -24,4 +24,4 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-FHIR&reg; is the registered trademark of HL7 and is used with the permission of HL7. 
+FHIR&reg; is the registered trademark of HL7 and is used with the permission of HL7.

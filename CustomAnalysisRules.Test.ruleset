@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="FHIR Analysis Rules for Test" Description="The code analysis rules used for the FHIR server C# test projects." ToolsVersion="14.0">
+<RuleSet Name="DICOM Analysis Rules for Test" Description="The code analysis rules used for the FHIR server C# test projects." ToolsVersion="14.0">
   <Include Path="CustomAnalysisRules.ruleset" Action="Default" />
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA1652" Action="None" />
