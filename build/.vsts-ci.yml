@@ -1,0 +1,20 @@
+# DESCRIPTION: 
+# Builds, tests and packages the solution for the CI build configuration.
+
+name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:-r)
+variables:
+  buildConfiguration: 'Release'
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - template: build.yml
+
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - template: build.yml
+    parameters:
+      packageArtifacts: false
