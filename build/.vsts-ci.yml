@@ -5,7 +5,7 @@
 
 name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:-r)
 
-phases:
+jobs:
 - template: cibuild.yml
   parameters:
     name: Windows
@@ -17,4 +17,3 @@ phases:
     name: Linux
     queue: 'Hosted Ubuntu 1604'
     packageArtifacts: false
-  

@@ -4,8 +4,8 @@ parameters:
   queue: 'Hosted VS2017'
   packageArtifacts: true
 
-phases:
-- phase: ${{ parameters.name }}
+jobs:
+- job: ${{ parameters.name }}
   queue: '${{ parameters.queue }}'
 
   variables:

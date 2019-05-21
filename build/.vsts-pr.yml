@@ -5,7 +5,7 @@
 
 name: pr$(system.pullRequest.pullRequestNumber)-$(Date:yyyyMMdd)$(Rev:-r)
 trigger: none
-phases:
+jobs:
 - template: build.yml
   parameters:
     name: Windows
