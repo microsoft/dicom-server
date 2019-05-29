@@ -8,7 +8,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		testauthenvironment.json = testauthenvironment.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Web", "src\Microsoft.Health.Dicom.Web\Microsoft.Health.Dicom.Web.csproj", "{BFB96311-9B1A-41C1-ABF1-4F6522660084}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Web", "src\Microsoft.Health.Dicom.Web\Microsoft.Health.Dicom.Web.csproj", "{BFB96311-9B1A-41C1-ABF1-4F6522660084}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8C9A0050-5D22-4398-9F93-DDCD80B3BA51}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Web.Tests.E2E", "test\Microsoft.Health.Dicom.Web.Tests.E2E\Microsoft.Health.Dicom.Web.Tests.E2E.csproj", "{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{176641B3-297C-4E04-A83D-8F80F80485E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,12 +26,20 @@ Global
 		{BFB96311-9B1A-41C1-ABF1-4F6522660084}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFB96311-9B1A-41C1-ABF1-4F6522660084}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BFB96311-9B1A-41C1-ABF1-4F6522660084}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BFB96311-9B1A-41C1-ABF1-4F6522660084} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1} = {8C9A0050-5D22-4398-9F93-DDCD80B3BA51}
+	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 		RESX_SortFileContentOnSave = True
+		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 	EndGlobalSection
 EndGlobal

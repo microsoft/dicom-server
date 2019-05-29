@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Health.Dicom.Web
 {
@@ -24,6 +25,8 @@ namespace Microsoft.Health.Dicom.Web
         public virtual void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            AddApplicationInsightsTelemetry(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,6 +44,20 @@ namespace Microsoft.Health.Dicom.Web
 
             app.UseHttpsRedirection();
             app.UseMvc();
+        }
+
+        /// <summary>
+        /// Adds ApplicationInsights for telemetry and logging.
+        /// </summary>
+        private void AddApplicationInsightsTelemetry(IServiceCollection services)
+        {
+            string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
+
+            if (!string.IsNullOrWhiteSpace(instrumentationKey))
+            {
+                services.AddApplicationInsightsTelemetry(instrumentationKey);
+                services.AddLogging(loggingBuilder => loggingBuilder.AddApplicationInsights(instrumentationKey));
+            }
         }
     }
 }
