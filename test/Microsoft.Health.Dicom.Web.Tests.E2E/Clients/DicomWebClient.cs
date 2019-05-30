@@ -15,8 +15,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
     public class DicomWebClient
     {
         private readonly HttpClient _httpClient;
-        private const string ApplicationDicom = "application/dicom";
-        private const string ApplicationDicomJson = "application/dicom+json";
+        private static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue("application/dicom");
+        private static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue("application/dicom+json");
 
         public DicomWebClient(HttpClient httpClient)
         {
@@ -25,14 +25,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         public async Task<HttpStatusCode> PostAsync(Stream[] streams, string studyInstanceUID = null)
         {
-            MultipartContent multiContent = GetMultipartContent(ApplicationDicom);
+            MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
 
             foreach (Stream stream in streams)
             {
-                var memory = new MemoryStream();
-                await stream.CopyToAsync(memory);
-                var byteContent = new ByteArrayContent(memory.ToArray());
-                byteContent.Headers.ContentType = new MediaTypeHeaderValue(ApplicationDicom);
+                byte[] content = await ConvertStreamToByteArrayAsync(stream);
+                var byteContent = new ByteArrayContent(content);
+                byteContent.Headers.ContentType = MediaTypeApplicationDicom;
                 multiContent.Add(byteContent);
             }
 
@@ -42,14 +41,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         private static MultipartContent GetMultipartContent(string mimeType)
         {
             var multiContent = new MultipartContent("related");
-            multiContent.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("type", "\"" + mimeType + "\""));
+            multiContent.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("type", $"\"{mimeType}\""));
             return multiContent;
         }
 
         private async Task<HttpStatusCode> PostContentAsync(MultipartContent multiContent, string requestUri)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
-            request.Headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse(ApplicationDicomJson));
+            request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
             request.Content = multiContent;
 
             using (HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
@@ -63,6 +62,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 }
 
                 return response.StatusCode;
+            }
+        }
+
+        private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream)
+        {
+            using (var memory = new MemoryStream())
+            {
+                await stream.CopyToAsync(memory);
+                return memory.ToArray();
             }
         }
     }

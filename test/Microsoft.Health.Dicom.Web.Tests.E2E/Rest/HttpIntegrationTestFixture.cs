@@ -17,8 +17,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
@@ -34,8 +32,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         protected HttpIntegrationTestFixture(string targetProjectParentDirectory)
         {
-            SetUpEnvironmentVariables();
-
             string environmentUrl = Environment.GetEnvironmentVariable("TestEnvironmentUrl");
 
             if (string.IsNullOrWhiteSpace(environmentUrl))
@@ -116,35 +112,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
 
             throw new Exception($"Project root could not be located for startup type {startupType.FullName}");
-        }
-
-        /// <summary>
-        /// Method to set up environment variables based on the project's defined environment variables.
-        /// These are used to target the http integration tests to a server that isn't hosted in memory.
-        /// For this method to function, the launchSettings.json file must be copied to the output directory of the project.
-        /// </summary>
-        private static void SetUpEnvironmentVariables()
-        {
-            var settingsPath = @"Properties\launchSettings.json";
-            if (File.Exists(settingsPath))
-            {
-                using (StreamReader streamReader = File.OpenText(settingsPath))
-                {
-                    using (var jsonReader = new JsonTextReader(streamReader))
-                    {
-                        var launchSettings = JObject.Load(jsonReader);
-                        var environmentVariables = (JObject)launchSettings.SelectToken("$.profiles.['Microsoft.Health.Fhir.Tests.Integration'].environmentVariables");
-
-                        if (environmentVariables != null)
-                        {
-                            foreach (KeyValuePair<string, JToken> environmentVariable in environmentVariables)
-                            {
-                                Environment.SetEnvironmentVariable(environmentVariable.Key, environmentVariable.Value.ToString());
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         private void StartInMemoryServer(string targetProjectParentDirectory)
