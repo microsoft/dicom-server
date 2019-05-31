@@ -60,8 +60,6 @@ namespace Microsoft.Health.Blob.Features.Health
         {
             try
             {
-                // Make a non-invasive query to make sure we can reach the data store.
-
                 await _testProvider.PerformTestAsync(_client.Value, _configuration, _blobContainerConfiguration);
 
                 return HealthCheckResult.Healthy("Successfully connected to the blob data store.");

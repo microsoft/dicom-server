@@ -14,7 +14,7 @@ using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class BlobContainerRegistrationExtensions
+    public static class BlobClientRegistrationExtensions
     {
         public const string BlobStoreConfigurationSectionName = "BlobStore";
 
