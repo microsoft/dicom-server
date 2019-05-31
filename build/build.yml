@@ -14,7 +14,7 @@ steps:
   displayName: 'dotnet test UnitTests'
   inputs:
     command: test
-    projects: '**/*UnitTests/*.csproj'
+    projects: '**\*Tests*.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
 - ${{ if eq(parameters.packageArtifacts, 'true') }}:
