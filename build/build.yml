@@ -10,7 +10,7 @@ steps:
 - script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror
   displayName: 'dotnet build $(buildConfiguration)'
 
-# To run the tests we install NPM to run the 'azurite' emulator.
+# To run the tests we install NPM to run the 'azurite' emulator (https://github.com/Azure/Azurite).
 # This allows us to test the blob storage providers without an Azure instance.
 - task: NodeTool@0
   displayName: 'Use Node 8.x'
@@ -18,10 +18,11 @@ steps:
     versionSpec: 8.x
     checkLatest: true
 
-- script: |
-  npm install -g azurite
-  azurite -s
-  displayName: 'Command Line Script'
+- script: npm install -g azurite
+  displayName: 'Install Storage Emulator'
+
+- script: azurite -s
+  displayName: 'Start Storage EMulator'
 
 - task: DotNetCoreCLI@2
   displayName: 'dotnet test UnitTests'
