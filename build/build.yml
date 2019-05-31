@@ -22,7 +22,7 @@ steps:
   displayName: 'Install Storage Emulator'
 
 - script: azurite -s
-  displayName: 'Start Storage EMulator'
+  displayName: 'Start Storage Emulator'
 
 - task: DotNetCoreCLI@2
   displayName: 'dotnet test UnitTests'
