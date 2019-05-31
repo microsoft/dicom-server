@@ -90,7 +90,8 @@ namespace Microsoft.Health.DicomTests.Integration.Persistence
                 Assert.Equal(fileLocation1, fileLocation2);
 
                 // Fail on exists
-                StorageException exception = await Assert.ThrowsAsync<StorageException>(() => _dicomBlobDataStore.AddFileAsStreamAsync(fileName, stream, overwriteIfExists: false));
+                StorageException exception = await Assert.ThrowsAsync<StorageException>(
+                                    () => _dicomBlobDataStore.AddFileAsStreamAsync(fileName, stream, overwriteIfExists: false));
                 Assert.Equal((int)HttpStatusCode.Conflict, exception.RequestInformation.HttpStatusCode);
             }
 

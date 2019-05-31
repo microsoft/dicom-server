@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         public async Task<Uri> AddFileAsStreamAsync(string blobName, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(buffer, nameof(buffer));
-            CloudBlockBlob cloudBlob = ValidateBlobName(blobName);
+            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
             _logger.LogDebug($"Adding blob resource: {blobName}. Overwrite mode: {overwriteIfExists}.");
 
             // Will throw if the provided resource identifier already exists.
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         /// <inheritdoc />
         public async Task<Stream> GetFileAsStreamAsync(string blobName, CancellationToken cancellationToken = default)
         {
-            CloudBlob cloudBlob = ValidateBlobName(blobName);
+            CloudBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
             _logger.LogDebug($"Opening read of blob resource: {blobName}");
 
             return await cloudBlob.OpenReadAsync(cancellationToken);
@@ -67,13 +67,13 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         /// <inheritdoc />
         public async Task DeleteFileIfExistsAsync(string blobName, CancellationToken cancellationToken = default)
         {
-            CloudBlob cloudBlob = ValidateBlobName(blobName);
+            CloudBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
             _logger.LogDebug($"Deleting blob resource: {blobName}");
 
             await cloudBlob.DeleteIfExistsAsync(cancellationToken);
         }
 
-        private CloudBlockBlob ValidateBlobName(string blobName)
+        private CloudBlockBlob GetBlockBlobAndValidateName(string blobName)
         {
             EnsureArg.IsNotNullOrWhiteSpace(blobName, nameof(blobName));
 

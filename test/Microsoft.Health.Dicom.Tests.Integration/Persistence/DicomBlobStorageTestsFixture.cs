@@ -48,7 +48,10 @@ namespace Microsoft.Health.DicomTests.Integration.Persistence
 
             var blobContainerInitializer = new BlobContainerInitializer(_blobContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
 
-            await blobClientInitializer.InitializeDataStoreAsync(_blobClient, _blobDataStoreConfiguration, new List<IBlobContainerInitializer> { blobContainerInitializer });
+            await blobClientInitializer.InitializeDataStoreAsync(
+                                            _blobClient,
+                                            _blobDataStoreConfiguration,
+                                            new List<IBlobContainerInitializer> { blobContainerInitializer });
 
             var blobClient = new NonDisposingScope(_blobClient);
 
