@@ -18,8 +18,8 @@ steps:
     versionSpec: 8.x
     checkLatest: true
 
-- script: npm install -g azurite
-  displayName: 'Install Storage Emulator'
+- script: npm install -g azurite@2.7.0
+  displayName: 'Install Azurite v2.7.0'
 
 - script: start azurite -s
   displayName: 'Start Storage Emulator'

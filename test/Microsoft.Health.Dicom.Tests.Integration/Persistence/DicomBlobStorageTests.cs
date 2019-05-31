@@ -65,15 +65,15 @@ namespace Microsoft.Health.DicomTests.Integration.Persistence
 
                 Assert.NotNull(fileLocation);
                 Assert.EndsWith(fileName, fileLocation.AbsoluteUri);
-
-                using (Stream resultStream = await _dicomBlobDataStore.GetFileAsStreamAsync(fileName))
-                {
-                    byte[] result = ConvertStreamToByteArray(resultStream);
-                    Assert.Equal(fileData, result);
-                }
-
-                await _dicomBlobDataStore.DeleteFileIfExistsAsync(fileName);
             }
+
+            using (Stream resultStream = await _dicomBlobDataStore.GetFileAsStreamAsync(fileName))
+            {
+                byte[] result = await ConvertStreamToByteArrayAsync(resultStream);
+                Assert.Equal(fileData, result);
+            }
+
+            await _dicomBlobDataStore.DeleteFileIfExistsAsync(fileName);
         }
 
         [Fact]
@@ -92,9 +92,9 @@ namespace Microsoft.Health.DicomTests.Integration.Persistence
                 // Fail on exists
                 StorageException exception = await Assert.ThrowsAsync<StorageException>(() => _dicomBlobDataStore.AddFileAsStreamAsync(fileName, stream, overwriteIfExists: false));
                 Assert.Equal((int)HttpStatusCode.Conflict, exception.RequestInformation.HttpStatusCode);
-
-                await _dicomBlobDataStore.DeleteFileIfExistsAsync(fileName);
             }
+
+            await _dicomBlobDataStore.DeleteFileIfExistsAsync(fileName);
         }
 
         [Fact]
@@ -112,11 +112,11 @@ namespace Microsoft.Health.DicomTests.Integration.Persistence
             await _dicomBlobDataStore.DeleteFileIfExistsAsync(fileName);
         }
 
-        private byte[] ConvertStreamToByteArray(Stream stream)
+        private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream)
         {
             using (var memoryStream = new MemoryStream())
             {
-                stream.CopyTo(memoryStream);
+                await stream.CopyToAsync(memoryStream);
                 return memoryStream.ToArray();
             }
         }
