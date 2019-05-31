@@ -21,7 +21,7 @@ steps:
 - script: npm install -g azurite
   displayName: 'Install Storage Emulator'
 
-- script: azurite -s
+- script: start azurite -s
   displayName: 'Start Storage Emulator'
 
 - task: DotNetCoreCLI@2
