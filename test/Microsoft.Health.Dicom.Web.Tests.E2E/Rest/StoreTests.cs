@@ -3,8 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.IO;
+using System.Collections.Generic;
 using System.Net;
+using Dicom;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Xunit;
 
@@ -22,8 +23,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async void GivenRandomContent_WhenStoring_TheServerShouldReturnOK()
         {
-            var stream = new MemoryStream();
-            HttpStatusCode response = await Client.PostAsync(new[] { stream });
+            IEnumerable<DicomFile> content = DicomSamples.GetSampleCTSeries();
+            HttpStatusCode response = await Client.PostAsync(content);
 
             Assert.Equal(HttpStatusCode.OK, response);
         }

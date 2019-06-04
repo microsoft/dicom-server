@@ -3,12 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Dicom;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 {
@@ -23,19 +25,33 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             _httpClient = httpClient;
         }
 
-        public async Task<HttpStatusCode> PostAsync(Stream[] streams, string studyInstanceUID = null)
+        public async Task<HttpStatusCode> PostAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUID = null)
         {
-            MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
+            var postContent = new List<byte[]>();
+
+            foreach (DicomFile dicomFile in dicomFiles)
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await dicomFile.SaveAsync(stream);
+                    postContent.Add(stream.ToArray());
+                }
+            }
+
+            return await PostAsync(postContent, studyInstanceUID);
+        }
+
+        public async Task<HttpStatusCode> PostAsync(IEnumerable<Stream> streams, string studyInstanceUID = null)
+        {
+            var postContent = new List<byte[]>();
 
             foreach (Stream stream in streams)
             {
                 byte[] content = await ConvertStreamToByteArrayAsync(stream);
-                var byteContent = new ByteArrayContent(content);
-                byteContent.Headers.ContentType = MediaTypeApplicationDicom;
-                multiContent.Add(byteContent);
+                postContent.Add(content);
             }
 
-            return await PostContentAsync(multiContent, $"studies/{studyInstanceUID}");
+            return await PostAsync(streams, studyInstanceUID);
         }
 
         private static MultipartContent GetMultipartContent(string mimeType)
@@ -43,6 +59,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("type", $"\"{mimeType}\""));
             return multiContent;
+        }
+
+        private async Task<HttpStatusCode> PostAsync(IEnumerable<byte[]> postContent, string studyInstanceUID)
+        {
+            MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
+
+            foreach (byte[] content in postContent)
+            {
+                var byteContent = new ByteArrayContent(content);
+                byteContent.Headers.ContentType = MediaTypeApplicationDicom;
+                multiContent.Add(byteContent);
+            }
+
+            return await PostContentAsync(multiContent, $"studies/{studyInstanceUID}");
         }
 
         private async Task<HttpStatusCode> PostContentAsync(MultipartContent multiContent, string requestUri)
