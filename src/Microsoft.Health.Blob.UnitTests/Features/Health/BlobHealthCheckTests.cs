@@ -33,7 +33,7 @@ namespace Microsoft.Health.Blob.UnitTests.Features.Health
             optionsSnapshot.Get(TestBlobHealthCheck.TestBlobHealthCheckName).Returns(_containerConfiguration);
 
             _healthCheck = new TestBlobHealthCheck(
-                new NonDisposingScope(_client),
+                _client,
                 _configuration,
                 optionsSnapshot,
                 _testProvider,

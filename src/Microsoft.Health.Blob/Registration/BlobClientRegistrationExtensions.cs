@@ -49,10 +49,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsService<IStartable>() // so that it starts initializing ASAP
                 .AsService<IRequireInitializationOnFirstRequest>(); // so that web requests block on its initialization.
 
-            services.Add<IScoped<CloudBlobClient>>(sp => sp.GetService<BlobClientProvider>().CreateBlobClientScope())
-                .Transient()
-                .AsSelf()
-                .AsFactory();
+            services.Add(sp => sp.GetService<BlobClientProvider>().CreateBlobClient())
+                .Singleton()
+                .AsService<CloudBlobClient>();
 
             services.Add<BlobClientReadWriteTestProvider>()
                 .Singleton()

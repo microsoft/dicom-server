@@ -13,7 +13,6 @@ using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
@@ -23,7 +22,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         private readonly ILogger<DicomBlobDataStore> _logger;
 
         public DicomBlobDataStore(
-            IScoped<CloudBlobClient> client,
+            CloudBlobClient client,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             ILogger<DicomBlobDataStore> logger)
         {
@@ -33,7 +32,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
             BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
 
-            _container = client.Value.GetContainerReference(containerConfiguration.ContainerName);
+            _container = client.GetContainerReference(containerConfiguration.ContainerName);
             _logger = logger;
         }
 

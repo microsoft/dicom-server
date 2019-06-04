@@ -13,13 +13,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
-using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Blob.Features.Health
 {
     public class BlobHealthCheck : IHealthCheck
     {
-        private readonly IScoped<CloudBlobClient> _client;
+        private readonly CloudBlobClient _client;
         private readonly BlobDataStoreConfiguration _configuration;
         private readonly BlobContainerConfiguration _blobContainerConfiguration;
         private readonly IBlobClientTestProvider _testProvider;
@@ -35,7 +34,7 @@ namespace Microsoft.Health.Blob.Features.Health
         /// <param name="testProvider">The test provider.</param>
         /// <param name="logger">The logger.</param>
         public BlobHealthCheck(
-            IScoped<CloudBlobClient> client,
+            CloudBlobClient client,
             BlobDataStoreConfiguration configuration,
             IOptionsSnapshot<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             string containerConfigurationName,
@@ -60,7 +59,7 @@ namespace Microsoft.Health.Blob.Features.Health
         {
             try
             {
-                await _testProvider.PerformTestAsync(_client.Value, _configuration, _blobContainerConfiguration);
+                await _testProvider.PerformTestAsync(_client, _configuration, _blobContainerConfiguration);
 
                 return HealthCheckResult.Healthy("Successfully connected to the blob data store.");
             }

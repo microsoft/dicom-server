@@ -71,14 +71,14 @@ namespace Microsoft.Health.Blob.Features.Storage
             }
         }
 
-        public IScoped<CloudBlobClient> CreateBlobClientScope()
+        public CloudBlobClient CreateBlobClient()
         {
             if (!_initializationOperation.IsInitialized)
             {
                 _initializationOperation.EnsureInitialized().GetAwaiter().GetResult();
             }
 
-            return new NonDisposingScope(_blobClient);
+            return _blobClient;
         }
     }
 }

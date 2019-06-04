@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Health;
 using Microsoft.Health.Blob.Features.Storage;
-using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Blob.UnitTests.Features.Health
 {
@@ -18,7 +17,7 @@ namespace Microsoft.Health.Blob.UnitTests.Features.Health
         public const string TestBlobHealthCheckName = "TestBlobHealthCheck";
 
         public TestBlobHealthCheck(
-            IScoped<CloudBlobClient> client,
+            CloudBlobClient client,
             BlobDataStoreConfiguration configuration,
             IOptionsSnapshot<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             IBlobClientTestProvider testProvider,
