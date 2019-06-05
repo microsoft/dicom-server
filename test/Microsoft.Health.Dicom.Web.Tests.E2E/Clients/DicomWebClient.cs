@@ -4,28 +4,36 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Dicom;
+using Dicom.Serialization;
+using EnsureThat;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 {
     public class DicomWebClient
     {
-        private readonly HttpClient _httpClient;
-        private static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue("application/dicom");
-        private static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue("application/dicom+json");
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue("application/dicom");
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue("application/dicom+json");
+        private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         public DicomWebClient(HttpClient httpClient)
         {
-            _httpClient = httpClient;
+            EnsureArg.IsNotNull(httpClient, nameof(httpClient));
+
+            HttpClient = httpClient;
+
+            _jsonSerializerSettings = new JsonSerializerSettings();
+            _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
         }
 
-        public async Task<HttpStatusCode> PostAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUID = null)
+        public HttpClient HttpClient { get; }
+
+        public async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUID = null)
         {
             var postContent = new List<byte[]>();
 
@@ -41,7 +49,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             return await PostAsync(postContent, studyInstanceUID);
         }
 
-        public async Task<HttpStatusCode> PostAsync(IEnumerable<Stream> streams, string studyInstanceUID = null)
+        public async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<Stream> streams, string studyInstanceUID = null)
         {
             var postContent = new List<byte[]>();
 
@@ -61,7 +69,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             return multiContent;
         }
 
-        private async Task<HttpStatusCode> PostAsync(IEnumerable<byte[]> postContent, string studyInstanceUID)
+        private async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<byte[]> postContent, string studyInstanceUID)
         {
             MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
 
@@ -72,26 +80,26 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 multiContent.Add(byteContent);
             }
 
-            return await PostContentAsync(multiContent, $"studies/{studyInstanceUID}");
+            return await PostMultipartContentAsync(multiContent, $"studies/{studyInstanceUID}");
         }
 
-        private async Task<HttpStatusCode> PostContentAsync(MultipartContent multiContent, string requestUri)
+        internal async Task<HttpResult<DicomDataset>> PostMultipartContentAsync(MultipartContent multiContent, string requestUri)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
             request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
             request.Content = multiContent;
 
-            using (HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+            using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
             {
                 if (response.IsSuccessStatusCode)
                 {
                     var contentText = await response.Content.ReadAsStringAsync();
-                    Trace.WriteLine(contentText);
+                    DicomDataset dataset = JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
 
-                    return response.StatusCode;
+                    return new HttpResult<DicomDataset>(response.StatusCode, dataset);
                 }
 
-                return response.StatusCode;
+                return new HttpResult<DicomDataset>(response.StatusCode);
             }
         }
 

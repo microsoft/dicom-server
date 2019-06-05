@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Dicom;
 using Dicom.Serialization;
 using Newtonsoft.Json;
@@ -14,8 +15,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
 {
     public static class DicomSamples
     {
-        public static IEnumerable<DicomFile> GetSampleCTSeries()
-               => GetDicomFilesFromDirectory(@"TestCases\ProstateJson");
+        public static IReadOnlyCollection<DicomFile> GetSampleCTSeries()
+               => GetDicomFilesFromDirectory(@"TestCases\ProstateJson").ToList();
 
         private static IEnumerable<DicomFile> GetDicomFilesFromDirectory(string directory)
         {

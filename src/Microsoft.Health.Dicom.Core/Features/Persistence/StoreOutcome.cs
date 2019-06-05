@@ -3,23 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    public class StoreOutcome
+    internal class StoreOutcome
     {
-        public StoreOutcome(bool isStored, DicomIdentity dicomIdentity, Exception exception = null)
+        public StoreOutcome(DicomIdentity dicomIdentity, bool isStored)
         {
-            IsStored = isStored;
             DicomIdentity = dicomIdentity;
-            Exception = exception;
+            IsStored = isStored;
         }
-
-        public bool IsStored { get; }
 
         public DicomIdentity DicomIdentity { get; }
 
-        public Exception Exception { get; }
+        public bool IsStored { get; }
     }
 }

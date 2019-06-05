@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,40 +26,34 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             _blobDataStore = blobDataStore;
         }
 
-        public async Task<StoreOutcome> StoreDicomFileAsync(Stream stream, string studyInstanceUID = null, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task<bool> StoreDicomFileAsync(DicomFile dicomFile, string studyInstanceUID = null, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(stream, nameof(stream));
-            EnsureArg.IsTrue(stream.CanSeek, nameof(stream.CanSeek));
+            EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
-            DicomIdentity dicomIdentity = null;
+            var dicomIdentity = new DicomIdentity(dicomFile.Dataset);
 
-            try
+            bool isDicomIdentityValid =
+                !string.IsNullOrWhiteSpace(dicomIdentity.StudyInstanceUID) &&
+                !string.IsNullOrWhiteSpace(dicomIdentity.SeriesInstanceUID) &&
+                !string.IsNullOrWhiteSpace(dicomIdentity.SopInstanceUID) &&
+                !string.IsNullOrWhiteSpace(dicomIdentity.SopClassUID) &&
+                (studyInstanceUID == null || studyInstanceUID == dicomIdentity.StudyInstanceUID);
+
+            if (!isDicomIdentityValid)
             {
-                DicomFile dicomFile = await DicomFile.OpenAsync(stream);
-                dicomIdentity = new DicomIdentity(dicomFile.Dataset);
-
-                bool isDicomIdentityValid =
-                    !string.IsNullOrWhiteSpace(dicomIdentity.StudyInstanceUID) &&
-                    !string.IsNullOrWhiteSpace(dicomIdentity.SeriesInstanceUID) &&
-                    !string.IsNullOrWhiteSpace(dicomIdentity.SopInstanceUID) &&
-                    !string.IsNullOrWhiteSpace(dicomIdentity.SopClassUID) &&
-                    (studyInstanceUID == null || studyInstanceUID == dicomIdentity.StudyInstanceUID);
-
-                if (!isDicomIdentityValid)
-                {
-                    return new StoreOutcome(false, dicomIdentity);
-                }
-
-                string blobName = GetDicomRawBlobName(dicomIdentity);
-                stream.Seek(0, SeekOrigin.Begin);
-                await _blobDataStore.AddFileAsStreamAsync(blobName, stream, overwriteIfExists: OverwriteBlobs, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                return new StoreOutcome(false, dicomIdentity, ex);
+                return false;
             }
 
-            return new StoreOutcome(true, dicomIdentity);
+            string blobName = GetDicomRawBlobName(dicomIdentity);
+
+            using (var memoryStream = new MemoryStream())
+            {
+                await dicomFile.SaveAsync(memoryStream);
+                await _blobDataStore.AddFileAsStreamAsync(blobName, memoryStream, overwriteIfExists: OverwriteBlobs, cancellationToken);
+            }
+
+            return true;
         }
 
         private static string GetDicomRawBlobName(DicomIdentity dicomIdentity)

@@ -81,8 +81,7 @@ namespace Dicom.Serialization
         /// <returns>
         /// The object value.
         /// </returns>
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
-            JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             var dataset = new DicomDataset();
             if (reader.TokenType == JsonToken.Null)

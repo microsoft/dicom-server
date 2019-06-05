@@ -14,18 +14,18 @@ namespace Microsoft.Health.Dicom.Core
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            SopInstanceUID = dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SOPInstanceUID, null);
-            SeriesInstanceUID = dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SeriesInstanceUID, null);
             StudyInstanceUID = dicomDataset.GetSingleValueOrDefault<string>(DicomTag.StudyInstanceUID, null);
+            SeriesInstanceUID = dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SeriesInstanceUID, null);
+            SopInstanceUID = dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SOPInstanceUID, null);
             SopClassUID = dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID, null);
         }
 
-        public string SopClassUID { get; }
-
-        public string SopInstanceUID { get; }
+        public string StudyInstanceUID { get; }
 
         public string SeriesInstanceUID { get; }
 
-        public string StudyInstanceUID { get; }
+        public string SopInstanceUID { get; }
+
+        public string SopClassUID { get; }
     }
 }

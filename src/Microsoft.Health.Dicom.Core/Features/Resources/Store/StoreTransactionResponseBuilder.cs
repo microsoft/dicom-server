@@ -9,6 +9,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
 {
@@ -21,6 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
         private readonly DicomDataset _dataset;
         private readonly Uri _baseUri;
         private readonly IDicomRouteProvider _dicomRouteProvider;
+        private HttpStatusCode _responseStatusCode = HttpStatusCode.BadRequest;
         private bool _successAdded = false;
         private bool _failureAdded = false;
 
@@ -29,28 +31,33 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
             EnsureArg.IsNotNull(baseUri, nameof(baseUri));
             EnsureArg.IsNotNull(dicomRouteProvider, nameof(dicomRouteProvider));
 
-            string retrieveUrl = string.IsNullOrWhiteSpace(studyInstanceUID) ? null : _dicomRouteProvider.GetStudyUri(baseUri, studyInstanceUID).ToString();
+            Uri retrieveUri = string.IsNullOrWhiteSpace(studyInstanceUID) ? null : _dicomRouteProvider.GetStudyUri(baseUri, studyInstanceUID);
 
-            _dataset = new DicomDataset { { DicomTag.RetrieveURL, retrieveUrl } };
+            _dataset = new DicomDataset { { DicomTag.RetrieveURL, retrieveUri?.ToString() } };
             _baseUri = baseUri;
             _dicomRouteProvider = dicomRouteProvider;
         }
 
-        public HttpStatusCode StatusCode { get; private set; } = HttpStatusCode.BadRequest;
+        public StoreDicomResourcesResponse GetStoreResponse(bool hadAnyUnsupportedContentTypes)
+        {
+            if (_successAdded || _failureAdded)
+            {
+                return new StoreDicomResourcesResponse(_responseStatusCode, _dataset);
+            }
 
-        public DicomDataset GetResponseDataset() => _dataset;
+            // If nothing failed or added we should return no content or unsupported media type.
+            return new StoreDicomResourcesResponse(hadAnyUnsupportedContentTypes ? HttpStatusCode.UnsupportedMediaType : HttpStatusCode.NoContent);
+        }
 
         public void AddStoreOutcome(StoreOutcome storeOutcome)
         {
-            DicomIdentity dicomIdentity = storeOutcome.DicomIdentity;
-
             if (storeOutcome.IsStored)
             {
-                AddSuccess(dicomIdentity);
+                AddSuccess(storeOutcome.DicomIdentity);
             }
             else
             {
-                AddFailure(dicomIdentity);
+                AddFailure(storeOutcome.DicomIdentity);
             }
         }
 
@@ -58,26 +65,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
         {
             EnsureArg.IsNotNull(dicomIdentity);
 
-            string retrieveUrl = _dicomRouteProvider.GetInstanceUri(
-                                                                _baseUri,
-                                                                dicomIdentity.StudyInstanceUID,
-                                                                dicomIdentity.SeriesInstanceUID,
-                                                                dicomIdentity.SopInstanceUID).ToString();
-            var item = new DicomDataset()
-            {
-                { DicomTag.ReferencedSOPClassUID, dicomIdentity.SopClassUID },
-                { DicomTag.ReferencedSOPInstanceUID, dicomIdentity.SopInstanceUID },
-                { DicomTag.RetrieveURL, retrieveUrl },
-            };
+            Uri retrieveUri = _dicomRouteProvider.GetInstanceUri(
+                                    _baseUri, dicomIdentity.StudyInstanceUID, dicomIdentity.SeriesInstanceUID, dicomIdentity.SopInstanceUID);
 
             DicomSequence referencedSopSequence = _dataset.Contains(DicomTag.ReferencedSOPSequence) ?
                                                         _dataset.GetSequence(DicomTag.ReferencedSOPSequence) :
                                                         new DicomSequence(DicomTag.ReferencedSOPSequence);
 
-            referencedSopSequence.Items.Add(item);
+            referencedSopSequence.Items.Add(new DicomDataset()
+            {
+                { DicomTag.ReferencedSOPClassUID, dicomIdentity.SopClassUID },
+                { DicomTag.ReferencedSOPInstanceUID, dicomIdentity.SopInstanceUID },
+                { DicomTag.RetrieveURL, retrieveUri.ToString() },
+            });
 
             // If any failures when adding, we return Accepted, otherwise OK.
-            StatusCode = _failureAdded ? HttpStatusCode.Accepted : HttpStatusCode.OK;
+            _responseStatusCode = _failureAdded ? HttpStatusCode.Accepted : HttpStatusCode.OK;
 
             _dataset.AddOrUpdate(referencedSopSequence);
             _successAdded = true;
@@ -86,10 +89,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
         private void AddFailure(DicomIdentity dicomIdentity)
         {
             // If we have added any successfully we return Accepted, otherwise a specific status code.
-            StatusCode = _successAdded ? HttpStatusCode.Accepted : HttpStatusCode.Conflict;
+            _responseStatusCode = _successAdded ? HttpStatusCode.Accepted : HttpStatusCode.Conflict;
             _failureAdded = true;
 
-            DicomSequence failedSopSequence = GetFailedSopSequence();
+            DicomSequence failedSopSequence = _dataset.Contains(DicomTag.FailedSOPSequence) ?
+                                                    _dataset.GetSequence(DicomTag.FailedSOPSequence) :
+                                                    new DicomSequence(DicomTag.FailedSOPSequence);
 
             if (dicomIdentity != null &&
                 !string.IsNullOrWhiteSpace(dicomIdentity.SopInstanceUID) &&
@@ -102,15 +107,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
                     { DicomTag.FailureReason, ProcessingFailure },
                 });
             }
+            else
+            {
+                failedSopSequence.Items.Add(new DicomDataset());
+            }
 
             _dataset.AddOrUpdate(failedSopSequence);
-        }
-
-        private DicomSequence GetFailedSopSequence()
-        {
-            return _dataset.Contains(DicomTag.FailedSOPSequence) ?
-                                            _dataset.GetSequence(DicomTag.FailedSOPSequence) :
-                                            new DicomSequence(DicomTag.FailedSOPSequence);
         }
     }
 }

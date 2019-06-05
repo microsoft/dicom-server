@@ -27,16 +27,21 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         public DicomWebController(IMediator mediator, ILogger<DicomWebController> logger)
         {
-            _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            EnsureArg.IsNotNull(logger, nameof(logger));
+
+            _mediator = mediator;
+            _logger = logger;
         }
 
         [DisableRequestSizeLimit]
         [AcceptContentFilter(ApplicationDicomJson)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType((int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
         [Route("studies/{studyInstanceUID?}")]
         public async Task<IActionResult> PostAsync(string studyInstanceUID = null)

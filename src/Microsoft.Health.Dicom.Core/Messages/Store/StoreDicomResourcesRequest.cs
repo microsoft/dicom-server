@@ -21,7 +21,6 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
         {
             EnsureArg.IsNotNull(requestBaseUri, nameof(requestBaseUri));
             EnsureArg.IsNotNull(requestBody, nameof(requestBody));
-            EnsureArg.IsNotNullOrWhiteSpace(requestContentType, nameof(requestContentType));
 
             StudyInstanceUID = studyInstanceUID;
             RequestBaseUri = requestBaseUri;

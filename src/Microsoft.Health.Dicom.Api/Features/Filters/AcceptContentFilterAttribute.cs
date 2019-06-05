@@ -14,9 +14,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
     public class AcceptContentFilterAttribute : ActionFilterAttribute
     {
-        private readonly string _acceptHeaders;
+        private readonly string[] _acceptHeaders;
 
-        public AcceptContentFilterAttribute(string acceptHeaders)
+        public AcceptContentFilterAttribute(params string[] acceptHeaders)
         {
             _acceptHeaders = acceptHeaders;
         }
@@ -24,8 +24,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             var isValid = context.HttpContext.Request.Headers.TryGetValue(HeaderNames.Accept, out StringValues acceptHeaderValue);
+            var containsAcceptHeader = _acceptHeaders.Any(x => acceptHeaderValue.Contains(x));
 
-            if (!isValid || !acceptHeaderValue.Contains(_acceptHeaders))
+            if (!isValid || !containsAcceptHeader)
             {
                 context.Result = new StatusCodeResult((int)HttpStatusCode.NotAcceptable);
             }
