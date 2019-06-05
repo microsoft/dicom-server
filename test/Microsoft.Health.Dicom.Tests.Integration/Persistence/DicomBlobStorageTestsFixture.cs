@@ -23,7 +23,6 @@ namespace Microsoft.Health.DicomTests.Integration.Persistence
         private readonly BlobDataStoreConfiguration _blobDataStoreConfiguration;
         private readonly BlobContainerConfiguration _blobContainerConfiguration;
         private CloudBlobClient _blobClient;
-        private IDicomBlobDataStore _dicomBlobDataStore;
 
         public DicomBlobStorageTestsFixture()
         {
@@ -34,7 +33,7 @@ namespace Microsoft.Health.DicomTests.Integration.Persistence
             };
         }
 
-        public IDicomBlobDataStore DicomBlobDataStore => _dicomBlobDataStore;
+        public IDicomBlobDataStore DicomBlobDataStore { get; private set; }
 
         public async Task InitializeAsync()
         {
@@ -53,9 +52,7 @@ namespace Microsoft.Health.DicomTests.Integration.Persistence
                                             _blobDataStoreConfiguration,
                                             new List<IBlobContainerInitializer> { blobContainerInitializer });
 
-            var blobClient = new NonDisposingScope(_blobClient);
-
-            _dicomBlobDataStore = new DicomBlobDataStore(blobClient, optionsMonitor, NullLogger<DicomBlobDataStore>.Instance);
+            DicomBlobDataStore = new DicomBlobDataStore(_blobClient, optionsMonitor, NullLogger<DicomBlobDataStore>.Instance);
         }
 
         public async Task DisposeAsync()

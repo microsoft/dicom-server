@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Health;
 using Microsoft.Health.Blob.Features.Storage;
-using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Health
 {
@@ -27,7 +26,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Health
         /// <param name="testProvider">The test provider.</param>
         /// <param name="logger">The logger.</param>
         public DicomBlobHealthCheck(
-            IScoped<CloudBlobClient> client,
+            CloudBlobClient client,
             BlobDataStoreConfiguration configuration,
             IOptionsSnapshot<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             IBlobClientTestProvider testProvider,
