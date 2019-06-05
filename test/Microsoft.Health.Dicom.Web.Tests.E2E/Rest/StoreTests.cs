@@ -132,7 +132,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-            ValidateResponseDataset(response.Value, new[] { validFile }, 1);
+            ValidateResponseDataset(response.Value, new[] { validFile }, 0);
         }
 
         [Fact]
@@ -149,28 +149,53 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.NotNull(response.Value);
 
             ValidateResponseDataset(response.Value, expectedSucceeded: content.SkipLast(1), expectedFailedCount: 1);
+            ValidateFailedResponseSequence(response.Value, expectedFailed: new[] { invalidFile });
+        }
 
-            DicomDataset failedDataset = response.Value.GetSequence(DicomTag.FailedSOPSequence).Items.First();
+        [Fact]
+        public async void GivenAValidSeriesWithOneDifferentStudyId_WhenStoringWithStudyId_TheServerShouldReturnAccepted()
+        {
+            IList<DicomFile> content = DicomSamples.GetSampleCTSeries().ToList();
 
-            Assert.Equal(
-                invalidFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
-                failedDataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID));
-            Assert.Equal(
-                invalidFile.Dataset.GetSingleValue<string>(DicomTag.SOPClassUID),
-                failedDataset.GetSingleValue<string>(DicomTag.ReferencedSOPClassUID));
-            Assert.Equal(272, failedDataset.GetSingleValue<ushort>(DicomTag.FailureReason));
+            DicomFile invalidFile = content.Last();
+            string currentStudyInstanceUID = invalidFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            invalidFile.Dataset.AddOrUpdate(DicomTag.StudyInstanceUID, Guid.NewGuid().ToString());
+
+            HttpResult<DicomDataset> response = await Client.PostAsync(content, studyInstanceUID: currentStudyInstanceUID);
+
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+            Assert.NotNull(response.Value);
+
+            ValidateResponseDataset(response.Value, expectedSucceeded: content.SkipLast(1), expectedFailedCount: 1);
+            ValidateFailedResponseSequence(response.Value, expectedFailed: new[] { invalidFile });
         }
 
         [Fact]
         public async void GivenValidCTSeries_WhenStoring_TheServerShouldReturnOK()
         {
             IEnumerable<DicomFile> content = DicomSamples.GetSampleCTSeries();
-            HttpResult<DicomDataset> response = await Client.PostAsync(content);
+            string studyInstanceUID = content.First().Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            HttpResult<DicomDataset> response = await Client.PostAsync(content, studyInstanceUID);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(response.Value);
 
             ValidateResponseDataset(response.Value, expectedSucceeded: content);
+            Assert.EndsWith(
+                $"/studies/{studyInstanceUID}",
+                response.Value.GetSingleValue<string>(DicomTag.RetrieveURL));
+        }
+
+        [Fact]
+        public async void GivenValidCTSeries_WhenStoringWithInvalidStudyInstanceUID_TheServerShouldReturnConflict()
+        {
+            IEnumerable<DicomFile> content = DicomSamples.GetSampleCTSeries();
+            HttpResult<DicomDataset> response = await Client.PostAsync(content, studyInstanceUID: Guid.NewGuid().ToString());
+
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.NotNull(response.Value);
+
+            ValidateFailedResponseSequence(response.Value, expectedFailed: content);
         }
 
         private void ValidateResponseDataset(DicomDataset responseDataset, IEnumerable<DicomFile> expectedSucceeded = null, int expectedFailedCount = 0)
@@ -188,8 +213,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                         x.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID) == referencedSopInstanceUID &&
                         x.Dataset.GetSingleValue<string>(DicomTag.SOPClassUID) == referencedSopClassUID);
 
-                Assert.NotNull(referencedDicomFile);
-
                 var referencedStudyInstanceUID = referencedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
                 var referencedSeriesInstanceUID = referencedDicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
                 Assert.EndsWith($"/studies/{referencedStudyInstanceUID}/series/{referencedSeriesInstanceUID}/instances/{referencedSopInstanceUID}", retrieveUrl);
@@ -197,6 +220,24 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             responseDataset.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence failedSequence);
             Assert.Equal(expectedFailedCount, failedSequence?.Count() ?? 0);
+        }
+
+        private void ValidateFailedResponseSequence(DicomDataset responseDataset, IEnumerable<DicomFile> expectedFailed)
+        {
+            responseDataset.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence failedSequence);
+            Assert.Equal(expectedFailed?.Count() ?? 0, failedSequence?.Count() ?? 0);
+
+            foreach (DicomDataset dataset in failedSequence)
+            {
+                var referencedSopClassUID = dataset.GetSingleValue<string>(DicomTag.ReferencedSOPClassUID);
+                var referencedSopInstanceUID = dataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID);
+
+                DicomFile referencedDicomFile = expectedFailed.First(x =>
+                        x.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID) == referencedSopInstanceUID &&
+                        x.Dataset.GetSingleValue<string>(DicomTag.SOPClassUID) == referencedSopClassUID);
+
+                Assert.Equal(272, dataset.GetSingleValue<ushort>(DicomTag.FailureReason));
+            }
         }
     }
 }

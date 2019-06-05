@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -91,7 +92,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
             using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
             {
-                if (response.IsSuccessStatusCode)
+                if (response.StatusCode == HttpStatusCode.OK ||
+                    response.StatusCode == HttpStatusCode.Accepted ||
+                    response.StatusCode == HttpStatusCode.Conflict)
                 {
                     var contentText = await response.Content.ReadAsStringAsync();
                     DicomDataset dataset = JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);

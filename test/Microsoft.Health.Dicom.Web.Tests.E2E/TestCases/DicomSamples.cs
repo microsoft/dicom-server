@@ -15,12 +15,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
 {
     public static class DicomSamples
     {
-        public static IReadOnlyCollection<DicomFile> GetSampleCTSeries()
-               => GetDicomFilesFromDirectory(@"TestCases\ProstateJson").ToList();
+        public static IReadOnlyCollection<DicomFile> GetSampleCTSeries(bool randomiseUIDs = true)
+               => GetDicomFilesFromDirectory(@"TestCases\ProstateJson", randomiseUIDs).ToList();
 
-        private static IEnumerable<DicomFile> GetDicomFilesFromDirectory(string directory)
+        private static IEnumerable<DicomFile> GetDicomFilesFromDirectory(string directory, bool randomiseUIDs)
         {
-            var mapping = new Dictionary<string, string>();
+            var randomMapping = new Dictionary<string, string>();
 
             foreach (var path in Directory.EnumerateFiles(directory, "*.*", SearchOption.AllDirectories))
             {
@@ -31,13 +31,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 DicomDataset dicomDataset = JsonConvert.DeserializeObject<DicomDataset>(jsonDicomFile, serializationSettings);
 
                 // Consistently randomise the study/ series/ instance identifiers.
-                AddOrUpdateIdentifierIfNotNull(dicomDataset, DicomTag.StudyInstanceUID, mapping);
-                AddOrUpdateIdentifierIfNotNull(dicomDataset, DicomTag.SeriesInstanceUID, mapping);
-                AddOrUpdateIdentifierIfNotNull(dicomDataset, DicomTag.SOPInstanceUID, mapping);
-
-                // Set valid study date times/ patient birth dates.
-                dicomDataset.AddOrUpdate(new DicomDateTime(DicomTag.StudyDate, DateTime.Today.AddDays(-1)));
-                dicomDataset.AddOrUpdate(new DicomDateTime(DicomTag.PatientBirthDate, DateTime.Today.AddYears(-29)));
+                if (randomiseUIDs)
+                {
+                    AddOrUpdateIdentifierIfNotNull(dicomDataset, DicomTag.StudyInstanceUID, randomMapping);
+                    AddOrUpdateIdentifierIfNotNull(dicomDataset, DicomTag.SeriesInstanceUID, randomMapping);
+                    AddOrUpdateIdentifierIfNotNull(dicomDataset, DicomTag.SOPInstanceUID, randomMapping);
+                }
 
                 yield return new DicomFile(dicomDataset);
             }

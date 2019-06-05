@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
             EnsureArg.IsNotNull(baseUri, nameof(baseUri));
             EnsureArg.IsNotNull(dicomRouteProvider, nameof(dicomRouteProvider));
 
-            Uri retrieveUri = string.IsNullOrWhiteSpace(studyInstanceUID) ? null : _dicomRouteProvider.GetStudyUri(baseUri, studyInstanceUID);
+            Uri retrieveUri = string.IsNullOrWhiteSpace(studyInstanceUID) ? null : dicomRouteProvider.GetStudyUri(baseUri, studyInstanceUID);
 
             _dataset = new DicomDataset { { DicomTag.RetrieveURL, retrieveUri?.ToString() } };
             _baseUri = baseUri;
@@ -106,10 +106,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
                     { DicomTag.ReferencedSOPInstanceUID, dicomIdentity.SopInstanceUID },
                     { DicomTag.FailureReason, ProcessingFailure },
                 });
-            }
-            else
-            {
-                failedSopSequence.Items.Add(new DicomDataset());
             }
 
             _dataset.AddOrUpdate(failedSopSequence);
