@@ -23,7 +23,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Api\Microsoft.Health.Dicom.Api.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Blob\Microsoft.Health.Dicom.Blob.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.CosmosDb\Microsoft.Health.Dicom.CosmosDb.csproj" />
   </ItemGroup>
 
 </Project>

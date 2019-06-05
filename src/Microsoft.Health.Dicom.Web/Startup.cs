@@ -22,8 +22,9 @@ namespace Microsoft.Health.Dicom.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public virtual void ConfigureServices(IServiceCollection services)
         {
-            services.AddDicomServer(Configuration);
-            services.AddDicomServerBlob(Configuration);
+            services.AddDicomServer()
+                .AddBlobStorageDataStore(Configuration)
+                .AddCosmosDbDataStore(Configuration);
 
             AddApplicationInsightsTelemetry(services);
         }

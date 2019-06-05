@@ -4,16 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
@@ -22,16 +20,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
     public class StoreDicomResourcesHandler : IRequestHandler<StoreDicomResourcesRequest, StoreDicomResourcesResponse>
     {
         private const string ApplicationDicom = "application/dicom";
-        private const bool OverwriteFiles = false;
-        private readonly IDicomBlobDataStore _dicomBlobDataStore;
+        private readonly IDicomDataStore _dicomDataStore;
         private readonly IDicomRouteProvider _dicomRouteProvider;
 
         public StoreDicomResourcesHandler(
-            IDicomBlobDataStore dicomBlobDataStore,
+            IDicomDataStore dicomDataStore,
             IDicomRouteProvider dicomRouteProvider)
         {
-            _dicomBlobDataStore = EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
-            _dicomRouteProvider = EnsureArg.IsNotNull(dicomRouteProvider, nameof(dicomRouteProvider));
+            EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
+            EnsureArg.IsNotNull(dicomRouteProvider, nameof(dicomRouteProvider));
+
+            _dicomDataStore = dicomDataStore;
+            _dicomRouteProvider = dicomRouteProvider;
         }
 
         public async Task<StoreDicomResourcesResponse> Handle(StoreDicomResourcesRequest message, CancellationToken cancellationToken)
@@ -43,14 +43,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
                 return new StoreDicomResourcesResponse(HttpStatusCode.UnsupportedMediaType);
             }
 
-            var responseBuilder = new WadoStoreResponseBuilder(message.BaseAddress, _dicomRouteProvider, message.StudyInstanceUID);
+            var responseBuilder = new StoreTransactionResponseBuilder(message.RequestBaseUri, _dicomRouteProvider, message.StudyInstanceUID);
 
             MultipartReader reader = message.GetMultipartReader();
             MultipartSection section = await reader.ReadNextSectionAsync(cancellationToken);
 
             while (section?.Body != null)
             {
-                // TODO: We should delete any stored items if this is true at any point.
                 if (section.ContentType == null || !section.ContentType.Equals(ApplicationDicom, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return new StoreDicomResourcesResponse(HttpStatusCode.UnsupportedMediaType);
@@ -58,7 +57,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
 
                 using (Stream stream = GetReadableStream(section.Body))
                 {
-                    await ProcessPartAsync(message.BaseAddress, responseBuilder, stream, cancellationToken);
+                    section.Body.Dispose();
+
+                    StoreOutcome storeOutcome = await _dicomDataStore.StoreDicomFileAsync(stream, message.StudyInstanceUID, cancellationToken);
+                    responseBuilder.AddStoreOutcome(storeOutcome);
                 }
 
                 section = await reader.ReadNextSectionAsync(cancellationToken);
@@ -79,40 +81,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
             inputStream.CopyTo(memoryStream);
             memoryStream.Seek(0, SeekOrigin.Begin);
             return memoryStream;
-        }
-
-        private static string GetUniqueBlobName(DicomIdentity dicomIdentity)
-            => $"{dicomIdentity.StudyInstanceUID}\\{dicomIdentity.SeriesInstanceUID}\\{Guid.NewGuid().ToString("n", CultureInfo.InvariantCulture)}";
-
-        private async Task ProcessPartAsync(string host, WadoStoreResponseBuilder responseBuilder, Stream stream, CancellationToken cancellationToken)
-        {
-            DicomIdentity dicomIdentity = null;
-
-            try
-            {
-                DicomFile dicomFile = await DicomFile.OpenAsync(stream);
-                dicomIdentity = new DicomIdentity(dicomFile.Dataset);
-
-                // Check the DICOM identity is valid
-                if (dicomIdentity.IsValid)
-                {
-                    string blobName = GetUniqueBlobName(dicomIdentity);
-
-                    // Re-seek and save the original content.
-                    stream.Seek(0, SeekOrigin.Begin);
-                    await _dicomBlobDataStore.AddFileAsStreamAsync(blobName, stream, overwriteIfExists: OverwriteFiles, cancellationToken);
-
-                    responseBuilder.AddResult(host, dicomIdentity);
-                }
-                else
-                {
-                    responseBuilder.AddFailure(dicomIdentity);
-                }
-            }
-            catch
-            {
-                responseBuilder.AddFailure(dicomIdentity);
-            }
         }
     }
 }

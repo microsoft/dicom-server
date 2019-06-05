@@ -4,18 +4,40 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Routing
 {
     public sealed class DicomRouteProvider : IDicomRouteProvider
     {
-        public Uri GetStudyUri(string baseAddress, string studyInstanceUID)
-            => new Uri($"{baseAddress}/studies/{studyInstanceUID}");
+        /// <inheritdoc />
+        public Uri GetStudyUri(Uri baseUri, string studyInstanceUID)
+        {
+            EnsureArg.IsNotNull(baseUri, nameof(baseUri));
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
 
-        public Uri GetSeriesUri(string baseAddress, string studyInstanceUID, string seriesInstanceUID)
-            => new Uri($"{baseAddress}/studies/{studyInstanceUID}/series/{seriesInstanceUID}");
+            return new Uri(baseUri, $"/studies/{studyInstanceUID}");
+        }
 
-        public Uri GetInstanceUri(string baseAddress, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
-            => new Uri($"{baseAddress}/studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}");
+        /// <inheritdoc />
+        public Uri GetSeriesUri(Uri baseUri, string studyInstanceUID, string seriesInstanceUID)
+        {
+            EnsureArg.IsNotNull(baseUri, nameof(baseUri));
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
+
+            return new Uri(baseUri, $"/studies/{studyInstanceUID}/series/{seriesInstanceUID}");
+        }
+
+        /// <inheritdoc />
+        public Uri GetInstanceUri(Uri baseUri, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+        {
+            EnsureArg.IsNotNull(baseUri, nameof(baseUri));
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
+            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUID, nameof(sopInstanceUID));
+
+            return new Uri(baseUri, $"/studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}");
+        }
     }
 }

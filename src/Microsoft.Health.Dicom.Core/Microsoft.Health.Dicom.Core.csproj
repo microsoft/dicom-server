@@ -10,10 +10,8 @@
     <PackageReference Include="MediatR" Version="7.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Health.Dicom.Blob\Microsoft.Health.Dicom.Blob.csproj" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20190514-1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 
 </Project>

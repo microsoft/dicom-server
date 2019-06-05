@@ -17,20 +17,21 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
         private const string MutipartRelated = "multipart/related";
         private readonly MultipartReader _multipartReader;
 
-        public StoreDicomResourcesRequest(string baseAddress, Stream requestBody, string requestContentType, string studyInstanceUID = null)
+        public StoreDicomResourcesRequest(Uri requestBaseUri, Stream requestBody, string requestContentType, string studyInstanceUID = null)
         {
+            EnsureArg.IsNotNull(requestBaseUri, nameof(requestBaseUri));
             EnsureArg.IsNotNull(requestBody, nameof(requestBody));
             EnsureArg.IsNotNullOrWhiteSpace(requestContentType, nameof(requestContentType));
 
             StudyInstanceUID = studyInstanceUID;
-            BaseAddress = baseAddress;
+            RequestBaseUri = requestBaseUri;
 
             if (!MediaTypeHeaderValue.TryParse(requestContentType, out MediaTypeHeaderValue media))
             {
                 return;
             }
 
-            var isMultipartRelated = CheckIsMultipartRelated(media);
+            var isMultipartRelated = media.MediaType.Equals(MutipartRelated, StringComparison.InvariantCultureIgnoreCase);
             var boundary = HeaderUtilities.RemoveQuotes(media.Boundary).ToString();
 
             if (!isMultipartRelated || string.IsNullOrWhiteSpace(boundary))
@@ -45,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
 
         public string StudyInstanceUID { get; }
 
-        public string BaseAddress { get; }
+        public Uri RequestBaseUri { get; }
 
         public MultipartReader GetMultipartReader()
         {
@@ -56,8 +57,5 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
 
             return _multipartReader;
         }
-
-        private static bool CheckIsMultipartRelated(MediaTypeHeaderValue mediaType)
-            => mediaType.MediaType.Equals(MutipartRelated, StringComparison.InvariantCultureIgnoreCase);
     }
 }

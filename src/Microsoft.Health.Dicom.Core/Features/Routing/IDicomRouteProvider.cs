@@ -9,10 +9,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Routing
 {
     public interface IDicomRouteProvider
     {
-        Uri GetStudyUri(string baseAddress, string studyInstanceUID);
+        Uri GetStudyUri(Uri baseUri, string studyInstanceUID);
 
-        Uri GetSeriesUri(string baseAddress, string studyInstanceUID, string seriesInstanceUID);
+        Uri GetSeriesUri(Uri baseUri, string studyInstanceUID, string seriesInstanceUID);
 
-        Uri GetInstanceUri(string baseAddress, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID);
+        Uri GetInstanceUri(Uri baseUri, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID);
     }
 }

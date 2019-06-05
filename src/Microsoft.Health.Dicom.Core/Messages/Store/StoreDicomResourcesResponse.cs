@@ -14,7 +14,9 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
         public StoreDicomResourcesResponse(HttpStatusCode statusCode, DicomDataset responseDataset)
             : base(statusCode)
         {
-            ResponseDataset = EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
+            EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
+
+            ResponseDataset = responseDataset;
         }
 
         public StoreDicomResourcesResponse(HttpStatusCode statusCode)

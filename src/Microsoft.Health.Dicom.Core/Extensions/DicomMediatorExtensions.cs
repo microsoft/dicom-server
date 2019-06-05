@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +15,9 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     public static class DicomMediatorExtensions
     {
         public static Task<StoreDicomResourcesResponse> StoreDicomResourcesAsync(
-            this IMediator mediator, string baseAddress, Stream requestBody, string requestContentType, string studyInstanceUID, CancellationToken cancellationToken = default)
+            this IMediator mediator, Uri requestBaseUri, Stream requestBody, string requestContentType, string studyInstanceUID, CancellationToken cancellationToken = default)
         {
-            return mediator.Send(new StoreDicomResourcesRequest(baseAddress, requestBody, requestContentType, studyInstanceUID), cancellationToken);
+            return mediator.Send(new StoreDicomResourcesRequest(requestBaseUri, requestBody, requestContentType, studyInstanceUID), cancellationToken);
         }
     }
 }

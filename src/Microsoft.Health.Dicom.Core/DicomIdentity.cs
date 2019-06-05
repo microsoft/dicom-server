@@ -8,7 +8,7 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core
 {
-    internal class DicomIdentity
+    public class DicomIdentity
     {
         public DicomIdentity(DicomDataset dicomDataset)
         {
@@ -27,15 +27,5 @@ namespace Microsoft.Health.Dicom.Core
         public string SeriesInstanceUID { get; }
 
         public string StudyInstanceUID { get; }
-
-        public bool IsValid =>
-            !string.IsNullOrWhiteSpace(SopInstanceUID) &&
-            !string.IsNullOrWhiteSpace(SeriesInstanceUID) &&
-            !string.IsNullOrWhiteSpace(StudyInstanceUID);
-
-        /// <summary>
-        /// It contains the ids required to refer to the dicom file
-        /// </summary>
-        public bool IsIdentifiable => SopInstanceUID != null && SopClassUID != null;
     }
 }

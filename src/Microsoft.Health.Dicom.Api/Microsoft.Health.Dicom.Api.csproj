@@ -9,6 +9,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20190514-1" />
   </ItemGroup>
 
   <ItemGroup>
