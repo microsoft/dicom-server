@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -16,7 +15,6 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 {
     public class DicomDataStore : IDicomDataStore
     {
-        private const bool OverwriteBlobs = false;
         private readonly IDicomBlobDataStore _blobDataStore;
 
         public DicomDataStore(IDicomBlobDataStore blobDataStore)
@@ -27,7 +25,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<bool> StoreDicomFileAsync(DicomFile dicomFile, string studyInstanceUID = null, CancellationToken cancellationToken = default)
+        public Task<bool> StoreDicomFileAsync(DicomFile dicomFile, string studyInstanceUID = null, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
@@ -42,24 +40,11 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 
             if (!isDicomIdentityValid)
             {
-                return false;
+                return Task.FromResult(false);
             }
 
-            string blobName = GetDicomRawBlobName(dicomIdentity);
-
-            using (var memoryStream = new MemoryStream())
-            {
-                await dicomFile.SaveAsync(memoryStream);
-                await _blobDataStore.AddFileAsStreamAsync(blobName, memoryStream, overwriteIfExists: OverwriteBlobs, cancellationToken);
-            }
-
-            return true;
-        }
-
-        private static string GetDicomRawBlobName(DicomIdentity dicomIdentity)
-        {
-            EnsureArg.IsNotNull(dicomIdentity);
-            return $"{dicomIdentity.StudyInstanceUID}\\{dicomIdentity.SeriesInstanceUID}\\{dicomIdentity.SopInstanceUID}";
+            // TODO: Store the provided DICOM file and index it.
+            return Task.FromResult(true);
         }
     }
 }

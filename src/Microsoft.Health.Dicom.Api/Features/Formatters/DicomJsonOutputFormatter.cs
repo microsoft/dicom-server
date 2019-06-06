@@ -4,11 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -38,13 +38,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
                 return false;
             }
 
-            // Check if the type is a collection and check we can convert the collection item type.
-            if (typeof(ICollection).IsAssignableFrom(type))
-            {
-                return _jsonDicomConverter.CanConvert(GetEnumeratedType(type));
-            }
-
-            return _jsonDicomConverter.CanConvert(type);
+            return _jsonDicomConverter.CanConvert(type) || typeof(IEnumerable<DicomDataset>).IsAssignableFrom(type);
         }
 
         public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
@@ -62,7 +56,5 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
 
             return Task.CompletedTask;
         }
-
-        private static Type GetEnumeratedType(Type type) => type.GetElementType() ?? type.GenericTypeArguments.Single();
     }
 }

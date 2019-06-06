@@ -25,6 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Routing
             EnsureArg.IsNotNull(baseUri, nameof(baseUri));
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
+            EnsureArg.IsFalse(studyInstanceUID == seriesInstanceUID);
 
             return new Uri(baseUri, $"/studies/{studyInstanceUID}/series/{seriesInstanceUID}");
         }
@@ -36,6 +37,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Routing
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
             EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUID, nameof(sopInstanceUID));
+            EnsureArg.IsFalse(studyInstanceUID == seriesInstanceUID);
+            EnsureArg.IsFalse(seriesInstanceUID == sopInstanceUID);
+            EnsureArg.IsFalse(studyInstanceUID == sopInstanceUID);
 
             return new Uri(baseUri, $"/studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}");
         }
