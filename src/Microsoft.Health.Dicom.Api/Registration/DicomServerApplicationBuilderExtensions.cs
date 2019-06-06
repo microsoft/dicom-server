@@ -18,7 +18,6 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IApplicationBuilder UseDicomServer(this IApplicationBuilder app)
         {
             EnsureArg.IsNotNull(app, nameof(app));
-            app.UseStaticFiles();
             app.UseMvc();
             return app;
         }

@@ -3,18 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.Persistence
+using EnsureThat;
+using Microsoft.Health.Dicom.Api.Features.Exceptions;
+
+namespace Microsoft.AspNetCore.Builder
 {
-    internal class StoreOutcome
+    public static class ExceptionHandlingMiddlewareExtensions
     {
-        public StoreOutcome(DicomIdentity dicomIdentity, bool isStored)
+        public static IApplicationBuilder UseExceptionHandling(this IApplicationBuilder builder)
         {
-            DicomIdentity = dicomIdentity;
-            IsStored = isStored;
+            EnsureArg.IsNotNull(builder);
+            return builder.UseMiddleware<ExceptionHandlingMiddleware>();
         }
-
-        public DicomIdentity DicomIdentity { get; }
-
-        public bool IsStored { get; }
     }
 }

@@ -6,14 +6,12 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
-using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
@@ -21,7 +19,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 {
     public class DicomWebController : Controller
     {
-        private const string ApplicationDicomJson = DicomJsonOutputFormatter.ApplicationDicomJson;
+        private const string ApplicationDicomJson = "application/dicom+json";
         private readonly IMediator _mediator;
         private readonly ILogger<DicomWebController> _logger;
 
@@ -36,11 +34,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [DisableRequestSizeLimit]
         [AcceptContentFilter(ApplicationDicomJson)]
-        [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
         [Route("studies/{studyInstanceUID?}")]
@@ -52,7 +48,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             StoreDicomResourcesResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
                                             requestBaseUri, Request.Body, Request.ContentType, studyInstanceUID, HttpContext.RequestAborted);
 
-            return StatusCode(storeResponse.StatusCode, storeResponse.ResponseDataset);
+            return StatusCode(storeResponse.StatusCode);
         }
 
         private static Uri GetRequestBaseUri(HttpRequest request)

@@ -20,15 +20,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Update="TestCases\ProstateJson\1.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestCases\ProstateJson\2.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestCases\ProstateJson\3.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="xunit.runner.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -40,10 +31,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Web\Microsoft.Health.Dicom.Web.csproj" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="TestCases\ProstateJson\" />
   </ItemGroup>
 
   <Target Name="VerifyExactSdkVersion" BeforeTargets="Build">

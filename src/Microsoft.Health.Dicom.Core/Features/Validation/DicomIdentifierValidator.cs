@@ -12,9 +12,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     /// Validates a unique identifer conforms to the rules from http://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html
     /// </summary>
     /// <seealso cref="RegularExpressionValidator" />
-    public class UniqueIdentifierValidator : RegularExpressionValidator
+    public class DicomIdentifierValidator : RegularExpressionValidator
     {
-        public UniqueIdentifierValidator()
+        public DicomIdentifierValidator()
             : base("^[A-Za-z0-9\\-\\.]{1,64}$", RegexOptions.Singleline | RegexOptions.Compiled)
         {
         }

@@ -15,8 +15,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
         {
             // Only validate the study instance UID when provided.
             RuleFor(x => x.StudyInstanceUID)
-                .SetValidator(new UniqueIdentifierValidator())
+                .SetValidator(new DicomIdentifierValidator())
                 .When(x => x.StudyInstanceUID != null);
+
+            RuleFor(x => x.RequestBaseUri)
+                .NotNull();
         }
     }
 }

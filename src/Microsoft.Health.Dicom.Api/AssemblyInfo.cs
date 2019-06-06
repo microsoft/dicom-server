@@ -3,15 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net;
+using System.Resources;
+using System.Runtime.CompilerServices;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Store
-{
-    public sealed class StoreDicomResourcesResponse : BaseStatusCodeResponse
-    {
-        public StoreDicomResourcesResponse(HttpStatusCode statusCode)
-            : base(statusCode)
-        {
-        }
-    }
-}
+[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Api.UnitTests")]
+[assembly: NeutralResourcesLanguage("en-us")]
