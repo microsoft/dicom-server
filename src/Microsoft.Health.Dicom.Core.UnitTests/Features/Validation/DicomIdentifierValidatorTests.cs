@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("1_1")]
         [InlineData("11|")]
         [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
-        public void GivenAnInvalidId_WhenProcessingAResource_ThenAValidationMessageIsCreated(string id)
+        public void GivenAnInvalidDicomId_WhenProcessingARequest_ThenAValidationMessageIsCreated(string id)
         {
             var request = new StoreDicomResourcesRequest(ValidUri, Substitute.For<Stream>(), "test", id);
             IEnumerable<ValidationFailure> result = GetValidationFailures(request);
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("a94060e6-038e-411b-a64b-38c2c3ff0fb7")]
         [InlineData("AF30C45C-94AC-4DE3-89D8-9A20BB2A973F")]
         [InlineData("0000000000000000000000000000000000000000000000000000000000000064")]
-        public void GivenAValidId_WhenProcessingAResource_ThenAValidationMessageIsCreated(string id)
+        public void GivenAValidDicomId_WhenProcessingARequest_ThenAValidationMessageIsNotCreated(string id)
         {
             var request = new StoreDicomResourcesRequest(ValidUri, Substitute.For<Stream>(), "test", id);
             IEnumerable<ValidationFailure> result = GetValidationFailures(request);

@@ -25,17 +25,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenRandomContent_WhenStoring_TheServerShouldReturnOK()
         {
-            var stream = new MemoryStream();
-            HttpStatusCode response = await Client.PostAsync(new[] { stream });
-            Assert.Equal(HttpStatusCode.OK, response);
+            using (var stream = new MemoryStream())
+            {
+                HttpStatusCode response = await Client.PostAsync(new[] { stream });
+                Assert.Equal(HttpStatusCode.OK, response);
+            }
         }
 
         [Fact]
         public async Task GivenARequestWithInvalidStudyInstanceUID_WhenStoring_TheServerShouldReturnBadRequest()
         {
-            var stream = new MemoryStream();
-            HttpStatusCode response = await Client.PostAsync(new[] { stream }, studyInstanceUID: new string('b', 65));
-            Assert.Equal(HttpStatusCode.BadRequest, response);
+            using (var stream = new MemoryStream())
+            {
+                HttpStatusCode response = await Client.PostAsync(new[] { stream }, studyInstanceUID: new string('b', 65));
+                Assert.Equal(HttpStatusCode.BadRequest, response);
+            }
         }
 
         [Theory]

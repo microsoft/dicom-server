@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         [InlineData("application/dicom+json+something", (int)HttpStatusCode.NotAcceptable)]
         [InlineData("application/dicom", (int)HttpStatusCode.NotAcceptable)]
         [InlineData("application/xml", (int)HttpStatusCode.NotAcceptable)]
-        public void GivenARequestWithAValidFormatQuerystring_WhenValidatingTheContentType_ThenNoExceptionShouldBeThrown(string supportedMediaType, int? expectedStatusCode)
+        public void GivenARequestWithAValidFormatQuerystring_WhenValidatingTheContentType_ThenCorrectStatusCodeShouldBeReturned(string supportedMediaType, int? expectedStatusCode)
         {
             AcceptContentFilterAttribute filter = CreateFilter(supportedMediaType);
             ActionExecutingContext context = CreateContext();
