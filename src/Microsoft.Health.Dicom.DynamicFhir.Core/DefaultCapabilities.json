@@ -1,0 +1,156 @@
+{
+    "resourceType": "CapabilityStatement",
+    "id": "#metadata",
+    "url": "/metadata",
+    "version": "1.0.0.0",
+    "name": "Microsoft DICOM Dyanmic FHIR Server Capability Statement",
+    "status": "draft",
+    "experimental": true,
+    "publisher": "Microsoft Corporation",
+    "contact": [
+        {
+            "telecom": [
+                {
+                    "system": "url",
+                    "value": "http://www.microsoft.com"
+                }
+            ]
+        }
+    ],
+    "description": "This is the Microsoft DICOM Dyanmic FHIR Server implementation base capability statement.",
+    "kind": "capability",
+    "software": {
+        "name": "Microsoft FHIR Server",
+        "version": "1.0.0.0"
+    },
+    "date": "2017-10-01",
+    "fhirVersion": "3.0.1",
+    "acceptUnknown": "both",
+    "format": [
+        "json"
+    ],
+    "rest": [
+        {
+            "mode": "server",
+            "documentation": "Microsoft implementation of the FHIR Specification",
+            "resource": [
+                {
+                    "type": "Bundle",
+                    "profile": {
+                        "reference": "http://hl7.org/fhir/StructureDefinition/Bundle"
+                    },
+                    "interaction": [
+                        {
+                            "code": "read",
+                            "documentation": "Implemented per the specification"
+                        }
+                    ],
+                    "readHistory": false,
+                    "updateCreate": false,
+                    "versioning": "no-version",
+                    "conditionalCreate": false,
+                    "conditionalRead": "not-supported",
+                    "conditionalUpdate": false,
+                    "conditionalDelete": "not-supported"
+                },
+                {
+                    "type": "CapabilityStatement",
+                    "profile": {
+                        "reference": "http://hl7.org/fhir/StructureDefinition/CapabilityStatement"
+                    },
+                    "interaction": [
+                        {
+                            "code": "read",
+                            "documentation": "Implemented per the specification"
+                        }
+                    ],
+                    "readHistory": false,
+                    "updateCreate": false,
+                    "versioning": "no-version",
+                    "conditionalCreate": false,
+                    "conditionalRead": "not-supported",
+                    "conditionalUpdate": false,
+                    "conditionalDelete": "not-supported"
+                },
+                {
+                    "type": "CompartmentDefinition",
+                    "profile": {
+                        "reference": "http://hl7.org/fhir/StructureDefinition/CompartmentDefinition"
+                    },
+                    "interaction": [
+                        {
+                            "code": "read",
+                            "documentation": "Implemented per the specification"
+                        }
+                    ],
+                    "readHistory": false,
+                    "updateCreate": false,
+                    "versioning": "no-version",
+                    "conditionalCreate": false,
+                    "conditionalRead": "not-supported",
+                    "conditionalUpdate": false,
+                    "conditionalDelete": "not-supported"
+                },
+                {
+                    "type": "Endpoint",
+                    "profile": {
+                        "reference": "http://hl7.org/fhir/StructureDefinition/Endpoint"
+                    },
+                    "interaction": [
+                        {
+                            "code": "read",
+                            "documentation": "Implemented per the specification"
+                        }
+                    ],
+                    "readHistory": false,
+                    "updateCreate": false,
+                    "versioning": "no-version",
+                    "conditionalCreate": false,
+                    "conditionalRead": "not-supported",
+                    "conditionalUpdate": false,
+                    "conditionalDelete": "not-supported"
+                },
+                {
+                    "type": "ImagingStudy",
+                    "profile": {
+                        "reference": "http://hl7.org/fhir/StructureDefinition/ImagingStudy"
+                    },
+                    "interaction": [
+                        {
+                            "code": "read",
+                            "documentation": "Implemented per the specification"
+                        }
+                    ],
+                    "readHistory": false,
+                    "updateCreate": false,
+                    "versioning": "no-version",
+                    "conditionalCreate": false,
+                    "conditionalRead": "not-supported",
+                    "conditionalUpdate": false,
+                    "conditionalDelete": "not-supported"
+                },
+                {
+                    "type": "Patient",
+                    "profile": {
+                        "reference": "http://hl7.org/fhir/StructureDefinition/Patient"
+                    },
+                    "interaction": [
+                        {
+                            "code": "read",
+                            "documentation": "Implemented per the specification"
+                        }
+                    ],
+                    "readHistory": false,
+                    "updateCreate": false,
+                    "versioning": "no-version",
+                    "conditionalCreate": false,
+                    "conditionalRead": "not-supported",
+                    "conditionalUpdate": false,
+                    "conditionalDelete": "not-supported"
+                }
+            ],
+            "interaction": [
+            ]
+        }
+    ]
+}

@@ -1,0 +1,38 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:53727/",
+      "sslPort": 44348
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "development",
+        "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json"
+      }
+    },
+    "Microsoft.Health.Dicom.DynamicFhir.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "development",
+            "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json"
+        },
+      "applicationUrl": "https://localhost:44348/"
+    },
+    "ExternallyDefinedAuth": {
+      "commandName": "Project",
+      "launchBrowser": true,
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "development"
+        },
+      "applicationUrl": "https://localhost:44348/"
+    }
+
+  }
+}
