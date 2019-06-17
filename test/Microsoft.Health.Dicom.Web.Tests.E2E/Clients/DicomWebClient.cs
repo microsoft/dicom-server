@@ -3,39 +3,41 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 {
     public class DicomWebClient
     {
-        private readonly HttpClient _httpClient;
-        private static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue("application/dicom");
-        private static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue("application/dicom+json");
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue("application/dicom");
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue("application/dicom+json");
 
         public DicomWebClient(HttpClient httpClient)
         {
-            _httpClient = httpClient;
+            EnsureArg.IsNotNull(httpClient, nameof(httpClient));
+
+            HttpClient = httpClient;
         }
 
-        public async Task<HttpStatusCode> PostAsync(Stream[] streams, string studyInstanceUID = null)
+        public HttpClient HttpClient { get; }
+
+        public async Task<HttpStatusCode> PostAsync(IEnumerable<Stream> streams, string studyInstanceUID = null)
         {
-            MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
+            var postContent = new List<byte[]>();
 
             foreach (Stream stream in streams)
             {
                 byte[] content = await ConvertStreamToByteArrayAsync(stream);
-                var byteContent = new ByteArrayContent(content);
-                byteContent.Headers.ContentType = MediaTypeApplicationDicom;
-                multiContent.Add(byteContent);
+                postContent.Add(content);
             }
 
-            return await PostContentAsync(multiContent, $"studies/{studyInstanceUID}");
+            return await PostAsync(postContent, studyInstanceUID);
         }
 
         private static MultipartContent GetMultipartContent(string mimeType)
@@ -45,22 +47,28 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             return multiContent;
         }
 
-        private async Task<HttpStatusCode> PostContentAsync(MultipartContent multiContent, string requestUri)
+        private async Task<HttpStatusCode> PostAsync(IEnumerable<byte[]> postContent, string studyInstanceUID)
+        {
+            MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
+
+            foreach (byte[] content in postContent)
+            {
+                var byteContent = new ByteArrayContent(content);
+                byteContent.Headers.ContentType = MediaTypeApplicationDicom;
+                multiContent.Add(byteContent);
+            }
+
+            return await PostMultipartContentAsync(multiContent, $"studies/{studyInstanceUID}");
+        }
+
+        internal async Task<HttpStatusCode> PostMultipartContentAsync(MultipartContent multiContent, string requestUri)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
             request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
             request.Content = multiContent;
 
-            using (HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+            using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    var contentText = await response.Content.ReadAsStringAsync();
-                    Trace.WriteLine(contentText);
-
-                    return response.StatusCode;
-                }
-
                 return response.StatusCode;
             }
         }

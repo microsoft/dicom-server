@@ -12,7 +12,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -128,10 +127,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     serviceCollection
                         .AddHttpClient(Options.DefaultName)
                         .ConfigurePrimaryHttpMessageHandler(() => _messageHandler);
-
-                    serviceCollection.PostConfigure<JwtBearerOptions>(
-                        JwtBearerDefaults.AuthenticationScheme,
-                        options => options.BackchannelHttpHandler = _messageHandler);
                 });
 
             Server = new TestServer(builder);

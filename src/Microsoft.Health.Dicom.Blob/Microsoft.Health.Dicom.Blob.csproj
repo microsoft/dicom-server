@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Blob\Microsoft.Health.Blob.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
 
 </Project>

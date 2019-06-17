@@ -3,30 +3,60 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Net;
+using System.Threading.Tasks;
 using EnsureThat;
+using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Features.Filters;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Messages.Store;
 
-namespace Microsoft.Health.Dicom.Web.Controllers
+namespace Microsoft.Health.Dicom.Api.Controllers
 {
     public class DicomWebController : Controller
     {
+        private const string ApplicationDicomJson = "application/dicom+json";
+        private readonly IMediator _mediator;
         private readonly ILogger<DicomWebController> _logger;
 
-        public DicomWebController(ILogger<DicomWebController> logger)
+        public DicomWebController(IMediator mediator, ILogger<DicomWebController> logger)
         {
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            EnsureArg.IsNotNull(logger, nameof(logger));
+
+            _mediator = mediator;
+            _logger = logger;
         }
 
         [DisableRequestSizeLimit]
+        [AcceptContentFilter(ApplicationDicomJson)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
         [Route("studies/{studyInstanceUID?}")]
-        public IActionResult Post(string studyInstanceUID = null)
+        public async Task<IActionResult> PostAsync(string studyInstanceUID = null)
         {
             _logger.LogInformation($"DICOM Web STOW-RS request received, with study instance UID '{studyInstanceUID}'.");
-            return Ok();
+
+            Uri requestBaseUri = GetRequestBaseUri(Request);
+            StoreDicomResourcesResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
+                                            requestBaseUri, Request.Body, Request.ContentType, studyInstanceUID, HttpContext.RequestAborted);
+
+            return StatusCode(storeResponse.StatusCode);
+        }
+
+        private static Uri GetRequestBaseUri(HttpRequest request)
+        {
+            EnsureArg.IsNotNull(request, nameof(request));
+            EnsureArg.IsTrue(request.Host.HasValue, nameof(request.Host));
+
+            return new Uri($"{request.Scheme}://{request.Host.Value}/");
         }
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -21,36 +22,38 @@ namespace Microsoft.Extensions.DependencyInjection
         private static readonly string DicomServerBlobConfigurationSectionName = $"DicomWeb:{BlobClientRegistrationExtensions.BlobStoreConfigurationSectionName}";
 
         /// <summary>
-        /// Add blob as the data store for the DICOM server.
+        /// Adds the blob data store for the DICOM server.
         /// </summary>
-        /// <param name="serviceCollection">The service collection.</param>
+        /// <param name="serverBuilder">The DICOM server builder instance.</param>
         /// <param name="configuration">The configuration for the server.</param>
-        /// <returns>The collection of services.</returns>
-        public static IServiceCollection AddDicomServerBlob(this IServiceCollection serviceCollection, IConfiguration configuration)
+        /// <returns>The server builder.</returns>
+        public static IDicomServerBuilder AddBlobStorageDataStore(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
         {
-            EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
+            EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            return serviceCollection
+            return serverBuilder
                         .AddBlobPersistence(configuration)
                         .AddBlobHealthCheck();
         }
 
-        private static IServiceCollection AddBlobPersistence(this IServiceCollection serviceCollection, IConfiguration configuration)
+        private static IDicomServerBuilder AddBlobPersistence(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
         {
-            serviceCollection.AddBlobDataStore();
+            IServiceCollection services = serverBuilder.Services;
 
-            serviceCollection.Configure<BlobContainerConfiguration>(
+            services.AddBlobDataStore();
+
+            services.Configure<BlobContainerConfiguration>(
                 Constants.ContainerConfigurationName,
                 containerConfiguration => configuration.GetSection(DicomServerBlobConfigurationSectionName)
                     .Bind(containerConfiguration));
 
-            serviceCollection.Add<DicomBlobDataStore>()
+            services.Add<DicomBlobDataStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            serviceCollection.Add(sp =>
+            services.Add(sp =>
                 {
                     ILoggerFactory loggerFactory = sp.GetService<ILoggerFactory>();
                     IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfiguration = sp.GetService<IOptionsMonitor<BlobContainerConfiguration>>();
@@ -63,13 +66,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsService<IBlobContainerInitializer>();
 
-            return serviceCollection;
+            return serverBuilder;
         }
 
-        private static IServiceCollection AddBlobHealthCheck(this IServiceCollection serviceCollection)
+        private static IDicomServerBuilder AddBlobHealthCheck(this IDicomServerBuilder serverBuilder)
         {
-            serviceCollection.AddHealthChecks().AddCheck<DicomBlobHealthCheck>(name: nameof(DicomBlobHealthCheck));
-            return serviceCollection;
+            serverBuilder.Services.AddHealthChecks().AddCheck<DicomBlobHealthCheck>(name: nameof(DicomBlobHealthCheck));
+            return serverBuilder;
         }
     }
 }
