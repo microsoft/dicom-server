@@ -13,10 +13,11 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.DicomTests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
     public class DicomBlobStorageTestsFixture : IAsyncLifetime
     {

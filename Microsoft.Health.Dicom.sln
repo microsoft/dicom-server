@@ -28,9 +28,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Api", "src\Microsoft.Health.Dicom.Api\Microsoft.Health.Dicom.Api.csproj", "{B0570D75-E376-44AC-870B-87ECB54F0AE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Api.UnitTests", "src\Microsoft.Health.Dicom.Api.UnitTests\Microsoft.Health.Dicom.Api.UnitTests.csproj", "{D7B538E5-8B3B-487C-8F6A-475F80C50DFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Api.UnitTests", "src\Microsoft.Health.Dicom.Api.UnitTests\Microsoft.Health.Dicom.Api.UnitTests.csproj", "{D7B538E5-8B3B-487C-8F6A-475F80C50DFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Core.UnitTests", "src\Microsoft.Health.Dicom.Core.UnitTests\Microsoft.Health.Dicom.Core.UnitTests.csproj", "{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core.UnitTests", "src\Microsoft.Health.Dicom.Core.UnitTests\Microsoft.Health.Dicom.Core.UnitTests.csproj", "{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.CosmosDb", "src\Microsoft.Health.Dicom.CosmosDb\Microsoft.Health.Dicom.CosmosDb.csproj", "{E78AB378-6CF4-442A-BC34-81A1B7431ECD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.CosmosDb.UnitTests", "src\Microsoft.Health.Dicom.CosmosDb.UnitTests\Microsoft.Health.Dicom.CosmosDb.UnitTests.csproj", "{FA0B32A4-E623-4B24-902D-BFDC6E42E612}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -78,6 +82,14 @@ Global
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E78AB378-6CF4-442A-BC34-81A1B7431ECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E78AB378-6CF4-442A-BC34-81A1B7431ECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E78AB378-6CF4-442A-BC34-81A1B7431ECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E78AB378-6CF4-442A-BC34-81A1B7431ECD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,6 +105,8 @@ Global
 		{B0570D75-E376-44AC-870B-87ECB54F0AE3} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{D7B538E5-8B3B-487C-8F6A-475F80C50DFE} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{E78AB378-6CF4-442A-BC34-81A1B7431ECD} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{FA0B32A4-E623-4B24-902D-BFDC6E42E612} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_SortFileContentOnSave = True
