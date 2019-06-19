@@ -10,6 +10,18 @@ namespace Microsoft.Health.Dicom.CosmosDb.Config
 {
     public class DicomCosmosConfiguration
     {
-        public IEnumerable<DicomTag> QueryAttributes { get; } = new[] { DicomTag.PatientName, DicomTag.ReferringPhysicianName, DicomTag.Modality };
+        /// <summary>
+        /// Gets the DICOM tags that should be indexed and made queryable.
+        /// The StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID will be indexed automatically.
+        /// </summary>
+        public IEnumerable<DicomTag> QueryAttributes { get; } = new[]
+        {
+            DicomTag.PatientName,
+            DicomTag.PatientID,
+            DicomTag.AccessionNumber,
+            DicomTag.Modality,
+            DicomTag.ReferringPhysicianName,
+            DicomTag.StudyDate,
+        };
     }
 }

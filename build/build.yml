@@ -29,6 +29,10 @@ steps:
   condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
   displayName: 'Start Azurite Storage Emulator (Windows)'
 
+  # We also install the Cosmos database emulator to run tests against Cosmos.
+- task: azure-cosmosdb.emulator-public-preview.run-cosmosdbemulatorcontainer.CosmosDbEmulator@2
+  displayName: 'Run Azure Cosmos DB Emulator container'
+
 - task: DotNetCoreCLI@2
   displayName: 'dotnet test UnitTests'
   inputs:
