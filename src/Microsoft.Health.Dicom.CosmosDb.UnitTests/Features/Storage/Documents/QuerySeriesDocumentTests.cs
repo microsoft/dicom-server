@@ -18,12 +18,16 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
         {
             Assert.Throws<ArgumentNullException>(() => new QuerySeriesDocument(null, Guid.NewGuid().ToString()));
             Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(string.Empty, Guid.NewGuid().ToString()));
+            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(new string('a', 65), Guid.NewGuid().ToString()));
+            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument("?...", Guid.NewGuid().ToString()));
             Assert.Throws<ArgumentNullException>(() => new QuerySeriesDocument(Guid.NewGuid().ToString(), null));
             Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(Guid.NewGuid().ToString(), string.Empty));
             Assert.Throws<ArgumentException>(() => new QuerySeriesDocument("sameid", "sameid"));
 
             Assert.Throws<ArgumentNullException>(() => QuerySeriesDocument.GetDocumentId(null, Guid.NewGuid().ToString()));
             Assert.Throws<ArgumentException>(() => QuerySeriesDocument.GetDocumentId(string.Empty, Guid.NewGuid().ToString()));
+            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(Guid.NewGuid().ToString(), new string('a', 65)));
+            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(Guid.NewGuid().ToString(), "?..."));
             Assert.Throws<ArgumentNullException>(() => QuerySeriesDocument.GetDocumentId(Guid.NewGuid().ToString(), null));
             Assert.Throws<ArgumentException>(() => QuerySeriesDocument.GetDocumentId(Guid.NewGuid().ToString(), string.Empty));
             Assert.Throws<ArgumentException>(() => QuerySeriesDocument.GetDocumentId("sameid", "sameid"));

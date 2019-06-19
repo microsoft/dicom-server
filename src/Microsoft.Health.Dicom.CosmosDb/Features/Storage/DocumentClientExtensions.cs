@@ -70,6 +70,9 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(documentClient, nameof(documentClient));
+            EnsureArg.IsNotNullOrWhiteSpace(databaseId, nameof(databaseId));
+            EnsureArg.IsNotNullOrWhiteSpace(collectionId, nameof(collectionId));
+            EnsureArg.IsNotNullOrWhiteSpace(documentId, nameof(documentId));
 
             try
             {
@@ -94,13 +97,16 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(documentClient, nameof(documentClient));
+            EnsureArg.IsNotNullOrWhiteSpace(databaseId, nameof(databaseId));
+            EnsureArg.IsNotNullOrWhiteSpace(collectionId, nameof(collectionId));
+            EnsureArg.IsNotNullOrWhiteSpace(documentId, nameof(documentId));
 
             try
             {
                 Uri collectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, collectionId);
                 ResourceResponse<Document> result = await documentClient.CreateDocumentAsync(collectionUri, defaultValue, requestOptions, disableAutomaticIdGeneration: true, cancellationToken: cancellationToken);
 
-                return JsonConvert.DeserializeObject<T>(result.Resource.ToString(), requestOptions.JsonSerializerSettings);
+                return JsonConvert.DeserializeObject<T>(result.Resource.ToString(), requestOptions?.JsonSerializerSettings);
             }
             catch (DocumentClientException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
             {

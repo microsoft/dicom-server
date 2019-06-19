@@ -40,10 +40,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
+            // Note: Here we 'GetSingleValueOrDefault' and let the constructor validate the identifier.
             return new DicomIdentity(
-                dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID),
-                dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
-                dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID));
+                dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
+                dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
+                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty));
         }
     }
 }

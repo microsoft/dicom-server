@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Versioning
 
             collectionVersionWrappers.AsDocumentQuery().ExecuteNextAsync<CollectionVersion>().Returns(new FeedResponse<CollectionVersion>(new List<CollectionVersion>()));
 
-            var updaters = new IDicomCollectionUpdater[] { };
+            var updaters = new IDicomCollectionUpdater[] { new DicomCollectionSettingsUpdater(_cosmosDataStoreConfiguration, optionsMonitor, NullLogger<DicomCollectionSettingsUpdater>.Instance) };
             _manager = new DicomCollectionUpgradeManager(updaters, _cosmosDataStoreConfiguration, optionsMonitor, factory, NullLogger<DicomCollectionUpgradeManager>.Instance);
         }
 

@@ -27,7 +27,6 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 {
     internal class DicomCosmosDataStore : IDicomIndexDataStore
     {
-        private const string PreConditionFailedExceptionMessage = "one of the specified pre-condition is not met";
         private readonly IDocumentClient _documentClient;
         private readonly Uri _collectionUri;
         private readonly DicomCosmosConfiguration _dicomConfiguration;
@@ -64,12 +63,12 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 
             RequestOptions requestOptions = CreateRequestOptions(defaultDocument.PartitionKey);
 
-            // Retry when the pre-condition fails on replace.
+            // Retry when the pre-condition fails on replace (ETag check).
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
             await _documentClient.ThrowIndexDataStoreException(
                 async (documentClient) =>
                 {
-                    QuerySeriesDocument document = await _documentClient.GetorCreateDocumentAsync(_databaseId, _collectionId, defaultDocument.Id, requestOptions, defaultDocument, cancellationToken);
+                    QuerySeriesDocument document = await documentClient.GetorCreateDocumentAsync(_databaseId, _collectionId, defaultDocument.Id, requestOptions, defaultDocument, cancellationToken);
 
                     var instance = QueryInstance.Create(dicomDataset, _dicomConfiguration.QueryAttributes);
 
@@ -78,10 +77,10 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                         throw new IndexDataStoreException(HttpStatusCode.Conflict);
                     }
 
-                    // Note, we do a replace in-case the document was deleted. The entire read and replace should be retried on ETag check failed.
+                    // Note, we do a replace (rather than upsert) in case the document is deleted.
                     requestOptions.AccessCondition = new AccessCondition() { Condition = document.ETag, Type = AccessConditionType.IfMatch };
 
-                    var documentUri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, document.Id);
+                    Uri documentUri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, document.Id);
                     await documentClient.ReplaceDocumentAsync(documentUri, document, requestOptions, cancellationToken: cancellationToken);
                 },
                 retryPolicy);
@@ -103,18 +102,8 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             return await _documentClient.ThrowIndexDataStoreException(
                 async (documentClient) =>
                 {
-                    DocumentResponse<QuerySeriesDocument> response;
-
-                    try
-                    {
-                        // Read document to work-out which instances are about to be removed.
-                        response = await documentClient.ReadDocumentAsync<QuerySeriesDocument>(documentUri, requestOptions, cancellationToken: cancellationToken);
-                    }
-                    catch (DocumentClientException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-                    {
-                        // Do nothing when the series document does not exist; must be deleted.
-                        return Array.Empty<DicomIdentity>();
-                    }
+                    DocumentResponse<QuerySeriesDocument> response =
+                            await documentClient.ReadDocumentAsync<QuerySeriesDocument>(documentUri, requestOptions, cancellationToken: cancellationToken);
 
                     // Update the ETag check on the request options.
                     requestOptions.AccessCondition = new AccessCondition() { Condition = response.Document.ETag, Type = AccessConditionType.IfMatch };
@@ -140,13 +129,12 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                 _databaseId, _collectionId, QuerySeriesDocument.GetDocumentId(studyInstanceUID, seriesInstanceUID));
             RequestOptions requestOptions = CreateRequestOptions(QuerySeriesDocument.GetPartitionKey(studyInstanceUID));
 
-            DocumentResponse<QuerySeriesDocument> response;
-
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
             await _documentClient.ThrowIndexDataStoreException(
                 async (documentClient) =>
                 {
-                    response = await documentClient.ReadDocumentAsync<QuerySeriesDocument>(documentUri, requestOptions, cancellationToken: cancellationToken);
+                    DocumentResponse<QuerySeriesDocument> response =
+                            await documentClient.ReadDocumentAsync<QuerySeriesDocument>(documentUri, requestOptions, cancellationToken: cancellationToken);
 
                     // If the instance does not exist, throw not found exception.
                     if (!response.Document.RemoveInstance(sopInstanceUID))
@@ -156,7 +144,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 
                     requestOptions.AccessCondition = new AccessCondition() { Condition = response.Document.ETag, Type = AccessConditionType.IfMatch };
 
-                    // On delete or replace we should retry the entire read and delete.
+                    // Delete the entire series if no more instances, otherwise replace.
                     if (response.Document.Instances.Count == 0)
                     {
                         await documentClient.DeleteDocumentAsync(documentUri, requestOptions, cancellationToken);
@@ -190,7 +178,13 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                         results.AddRange(nextResults);
                     }
 
-                    return results;
+                    if (results.Any())
+                    {
+                        return results;
+                    }
+
+                    // If no results, this study does not exist.
+                    throw new IndexDataStoreException(HttpStatusCode.NotFound);
                 });
         }
 
@@ -224,7 +218,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 
         private static IAsyncPolicy CreatePreConditionFailedRetryPolicy()
             => Policy
-                    .Handle<DocumentClientException>(ex => ex.StatusCode == HttpStatusCode.BadRequest && ex.Message.Contains(PreConditionFailedExceptionMessage, StringComparison.InvariantCultureIgnoreCase))
+                    .Handle<DocumentClientException>(ex => ex.StatusCode == HttpStatusCode.PreconditionFailed)
                     .RetryForeverAsync();
     }
 }

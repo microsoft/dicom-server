@@ -28,7 +28,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly CosmosDataStoreConfiguration _cosmosDataStoreConfiguration;
         private readonly CosmosCollectionConfiguration _cosmosCollectionConfiguration;
         private readonly DicomCosmosConfiguration _dicomCosmosConfiguration;
-        private IDocumentClient _documentClient;
 
         public DicomCosmosDataStoreTestsFixture()
         {
@@ -51,6 +50,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IDicomIndexDataStore DicomIndexDataStore { get; private set; }
 
+        public IDocumentClient DocumentClient { get; private set; }
+
+        public string DatabaseId => _cosmosDataStoreConfiguration.DatabaseId;
+
+        public string CollectionId => _cosmosCollectionConfiguration.CollectionId;
+
         public async Task InitializeAsync()
         {
             IOptionsMonitor<CosmosCollectionConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<CosmosCollectionConfiguration>>();
@@ -65,7 +70,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             IDocumentClientTestProvider testProvider = new DocumentClientReadWriteTestProvider();
 
             var documentClientInitializer = new DicomDocumentClientInitializer(testProvider, NullLogger<DicomDocumentClientInitializer>.Instance);
-            _documentClient = documentClientInitializer.CreateDocumentClient(_cosmosDataStoreConfiguration);
+            DocumentClient = documentClientInitializer.CreateDocumentClient(_cosmosDataStoreConfiguration);
             var collectionInitializer = new CollectionInitializer(_cosmosCollectionConfiguration.CollectionId, _cosmosDataStoreConfiguration, _cosmosCollectionConfiguration.InitialCollectionThroughput, upgradeManager, NullLogger<CollectionInitializer>.Instance);
 
             // Cosmos DB emulators throws errors when multiple collections are initialized concurrently.
@@ -74,14 +79,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             try
             {
-                await documentClientInitializer.InitializeDataStore(_documentClient, _cosmosDataStoreConfiguration, new List<ICollectionInitializer> { collectionInitializer });
+                await documentClientInitializer.InitializeDataStore(DocumentClient, _cosmosDataStoreConfiguration, new List<ICollectionInitializer> { collectionInitializer });
             }
             finally
             {
                 CollectionInitializationSemaphore.Release();
             }
 
-            var documentClient = new NonDisposingScope(_documentClient);
+            var documentClient = new NonDisposingScope(DocumentClient);
 
             DicomIndexDataStore = new DicomCosmosDataStore(
                 documentClient,
@@ -92,9 +97,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public async Task DisposeAsync()
         {
-            using (_documentClient as IDisposable)
+            using (DocumentClient as IDisposable)
             {
-                await _documentClient?.DeleteDocumentCollectionAsync(_cosmosDataStoreConfiguration.GetRelativeCollectionUri(_cosmosCollectionConfiguration.CollectionId));
+                await DocumentClient?.DeleteDocumentCollectionAsync(_cosmosDataStoreConfiguration.GetRelativeCollectionUri(_cosmosCollectionConfiguration.CollectionId));
             }
         }
     }
