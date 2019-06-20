@@ -31,8 +31,8 @@ steps:
       projects: '**/*UnitTests/*.csproj'
       arguments: '--configuration $(buildConfiguration)'
 
-  - include: test.yml
-    when: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
+  - template: test.yml
+    condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
 
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
