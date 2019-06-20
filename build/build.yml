@@ -32,7 +32,6 @@ steps:
       arguments: '--configuration $(buildConfiguration)'
 
   - template: test.yml
-    condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
 
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
