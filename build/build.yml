@@ -3,36 +3,36 @@ parameters:
 
 steps:
 
-- task: NuGetToolInstaller@0
-  displayName: 'Use NuGet 4.7.1'
-  inputs:
-    versionSpec: 4.7.1
-    checkLatest: true
+  - task: NuGetToolInstaller@0
+    displayName: 'Use NuGet 4.7.1'
+    inputs:
+      versionSpec: 4.7.1
+      checkLatest: true
 
-- task: DotNetCoreInstaller@0
-  inputs:
-    version: '2.2.103' 
+  - task: DotNetCoreInstaller@0
+    inputs:
+      version: '2.2.103' 
 
-- task:  DotNetCoreCLI@2
-  displayName: 'donet restore'
-  inputs:
-    command: restore
-    restoreSolution: '**\*.sln'
-    feedsToUse: config
-    nugetConfigPath: nuget.config
+  - task:  DotNetCoreCLI@2
+    displayName: 'donet restore'
+    inputs:
+      command: restore
+      restoreSolution: '**\*.sln'
+      feedsToUse: config
+      nugetConfigPath: nuget.config
 
-- script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror
-  displayName: 'dotnet build $(buildConfiguration)'
+  - script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror
+    displayName: 'dotnet build $(buildConfiguration)'
 
-- task: DotNetCoreCLI@2
-  displayName: 'dotnet test UnitTests'
-  inputs:
-    command: test
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet test UnitTests'
+    inputs:
+      command: test
       projects: '**/*UnitTests/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+      arguments: '--configuration $(buildConfiguration)'
 
-- template: test.yml
-  condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
+  - include: test.yml
+    when: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
 
-- ${{ if eq(parameters.packageArtifacts, 'true') }}:
-  - template: package.yml
+  - ${{ if eq(parameters.packageArtifacts, 'true') }}:
+    - template: package.yml
