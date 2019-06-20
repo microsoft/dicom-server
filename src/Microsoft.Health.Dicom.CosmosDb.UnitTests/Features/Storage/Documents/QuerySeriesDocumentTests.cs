@@ -6,7 +6,9 @@
 using System;
 using System.Linq;
 using Dicom;
+using Microsoft.Health.Dicom.CosmosDb.Features.Storage;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
@@ -54,12 +56,45 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
             Assert.True(document.AddInstance(instanceDocument1));
             Assert.False(document.AddInstance(instanceDocument2));
 
-            Assert.Equal(testPatientName, document.DistinctIndexedAttributes[DicomTag.PatientName].First());
+            Assert.Equal(testPatientName, document.DistinctIndexedAttributes[DicomTagSerializer.Serialize(DicomTag.PatientName)].First());
 
             Assert.Throws<ArgumentNullException>(() => document.RemoveInstance(null));
             Assert.Throws<ArgumentException>(() => document.RemoveInstance(string.Empty));
             Assert.True(document.RemoveInstance(sopInstanceUID));
             Assert.False(document.RemoveInstance(sopInstanceUID));
+        }
+
+        [Fact]
+        public void GivenSeriesDocument_WhenSerialized_IsDeserializedCorrectly()
+        {
+            var document = new QuerySeriesDocument(Guid.NewGuid().ToString(), Guid.NewGuid().ToString())
+            {
+                ETag = Guid.NewGuid().ToString(),
+            };
+
+            var dataset = new DicomDataset();
+            var sopInstanceUID = Guid.NewGuid().ToString();
+            var testPatientName = Guid.NewGuid().ToString();
+            dataset.Add(DicomTag.SOPInstanceUID, sopInstanceUID);
+            dataset.Add(DicomTag.PatientName, testPatientName);
+
+            var instanceDocument = QueryInstance.Create(dataset, new[] { DicomTag.PatientName });
+            document.AddInstance(instanceDocument);
+
+            var serialized = JsonConvert.SerializeObject(document);
+            QuerySeriesDocument deserialized = JsonConvert.DeserializeObject<QuerySeriesDocument>(serialized);
+
+            Assert.Equal(document.Id, deserialized.Id);
+            Assert.Equal(document.PartitionKey, deserialized.PartitionKey);
+            Assert.Equal(document.ETag, deserialized.ETag);
+            Assert.Equal(document.StudyInstanceUID, deserialized.StudyInstanceUID);
+            Assert.Equal(document.SeriesInstanceUID, deserialized.SeriesInstanceUID);
+            Assert.Equal(document.Instances.Count, deserialized.Instances.Count);
+
+            QueryInstance deserializedFirstInstance = deserialized.Instances.First();
+            Assert.Equal(deserializedFirstInstance.SopInstanceUID, deserializedFirstInstance.SopInstanceUID);
+            Assert.Equal(deserializedFirstInstance.IndexedAttributes.Count, deserializedFirstInstance.IndexedAttributes.Count);
+            Assert.Equal(deserializedFirstInstance.IndexedAttributes[DicomTagSerializer.Serialize(DicomTag.PatientName)], deserializedFirstInstance.IndexedAttributes[DicomTagSerializer.Serialize(DicomTag.PatientName)]);
         }
     }
 }

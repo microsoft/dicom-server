@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
     internal class QueryInstance
     {
         [JsonConstructor]
-        public QueryInstance(string sopInstanceUID, IDictionary<DicomTag, object> indexedAttributes)
+        public QueryInstance(string sopInstanceUID, IDictionary<string, object> indexedAttributes)
             : this(sopInstanceUID)
         {
             EnsureArg.IsNotNull(indexedAttributes, nameof(indexedAttributes));
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
         public string SopInstanceUID { get; }
 
-        public IDictionary<DicomTag, object> IndexedAttributes { get; } = new Dictionary<DicomTag, object>();
+        public IDictionary<string, object> IndexedAttributes { get; } = new Dictionary<string, object>();
 
         public override int GetHashCode()
         {
@@ -60,14 +60,14 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
             if (indexTags != null)
             {
-                foreach (DicomTag tag in indexTags)
+                foreach (DicomTag dicomTag in indexTags)
                 {
                     // All indexed tags must have a value multiplicty of 1.
-                    EnsureArg.IsTrue(tag.DictionaryEntry.ValueMultiplicity.Multiplicity == 1);
+                    EnsureArg.IsTrue(dicomTag.DictionaryEntry.ValueMultiplicity.Multiplicity == 1);
 
-                    if (dicomDataset.TryGetSingleValue(tag, out object value))
+                    if (dicomDataset.TryGetSingleValue(dicomTag, out object value))
                     {
-                        result.IndexedAttributes[tag] = value;
+                        result.IndexedAttributes[DicomTagSerializer.Serialize(dicomTag)] = value;
                     }
                 }
             }

@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Dicom;
 using EnsureThat;
 using Microsoft.Health.CosmosDb.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -48,15 +47,15 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
         public HashSet<QueryInstance> Instances { get; } = new HashSet<QueryInstance>();
 
-        public Dictionary<DicomTag, HashSet<object>> DistinctIndexedAttributes
+        public Dictionary<string, HashSet<object>> DistinctIndexedAttributes
         {
             get
             {
-                var result = new Dictionary<DicomTag, HashSet<object>>();
+                var result = new Dictionary<string, HashSet<object>>();
 
                 foreach (QueryInstance instance in Instances)
                 {
-                    foreach ((DicomTag key, object value) in instance.IndexedAttributes)
+                    foreach ((string key, object value) in instance.IndexedAttributes)
                     {
                         if (!result.ContainsKey(key))
                         {

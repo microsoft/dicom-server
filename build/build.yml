@@ -1,43 +1,46 @@
 parameters:
+  # Default values
+  name: Windows
+  queue: 'Hosted VS2017'
   packageArtifacts: true
 
+phases:
+- phase: ${{ parameters.name }}
+  queue: '${{ parameters.queue }}'
+
+  variables:
+    solution: '**/*.sln'
+    buildPlatform: 'Any CPU'
+    buildConfiguration: 'Release'
+
 steps:
+
+- task: NuGetToolInstaller@0
+  displayName: 'Use NuGet 4.7.1'
+  inputs:
+    versionSpec: 4.7.1
+    checkLatest: true
+
 - task: DotNetCoreInstaller@0
   inputs:
     version: '2.2.103' 
 
+- task:  DotNetCoreCLI@2
+  displayName: 'donet restore'
+  inputs:
+    command: restore
+    restoreSolution: '**\*.sln'
+    feedsToUse: config
+    nugetConfigPath: nuget.config
+
 - script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror
   displayName: 'dotnet build $(buildConfiguration)'
-
-# To run the tests we install NPM to run the 'azurite' emulator (https://github.com/Azure/Azurite).
-# This allows us to test the blob storage providers without an Azure instance.
-- task: NodeTool@0
-  displayName: 'Use Node 8.x'
-  inputs:
-    versionSpec: 8.x
-    checkLatest: true
-
-- script: npm install -g azurite@2.7.0
-  displayName: 'Install Azurite v2.7.0'
-
-# We start the Azurite as a separate process as the start call is blocking.
-- script: azurite -s &
-  condition: and(succeeded(), eq( variables['Agent.OS'], 'Linux' ))
-  displayName: 'Start Azurite Storage Emulator (Linux)'
-
-- script: start azurite -s
-  condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
-  displayName: 'Start Azurite Storage Emulator (Windows)'
-
-  # We also install the Cosmos database emulator to run tests against Cosmos.
-- task: azure-cosmosdb.emulator-public-preview.run-cosmosdbemulatorcontainer.CosmosDbEmulator@2
-  displayName: 'Run Azure Cosmos DB Emulator container'
 
 - task: DotNetCoreCLI@2
   displayName: 'dotnet test UnitTests'
   inputs:
     command: test
-    projects: '**\*Tests*.csproj'
+      projects: '**/*UnitTests/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
 - ${{ if eq(parameters.packageArtifacts, 'true') }}:

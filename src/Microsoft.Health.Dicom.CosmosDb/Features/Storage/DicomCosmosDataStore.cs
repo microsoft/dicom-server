@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -30,8 +31,10 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         private readonly IDocumentClient _documentClient;
         private readonly Uri _collectionUri;
         private readonly DicomCosmosConfiguration _dicomConfiguration;
+        private readonly CosmosQueryBuilder _queryBuilder;
         private readonly string _databaseId;
         private readonly string _collectionId;
+        private readonly Random _random = new Random();
 
         public DicomCosmosDataStore(
             IScoped<IDocumentClient> documentClient,
@@ -51,6 +54,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             _databaseId = configuration.DatabaseId;
             _collectionId = cosmosCollectionConfiguration.CollectionId;
             _dicomConfiguration = dicomConfiguration;
+            _queryBuilder = new CosmosQueryBuilder(dicomConfiguration);
         }
 
         /// <inheritdoc />
@@ -87,14 +91,39 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         }
 
         /// <inheritdoc />
+        public async Task<IEnumerable<DicomIdentity>> QueryInstancesAsync(
+            int offset,
+            int limit,
+            string studyInstanceUID = null,
+            IEnumerable<(DicomTag Attribute, string Value)> query = null,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsTrue(offset >= 0, nameof(offset));
+            EnsureArg.IsTrue(limit > 0, nameof(limit));
+
+            // If the study instance UID is provided we can run the query against a specific partition.
+            FeedOptions feedOptions = string.IsNullOrWhiteSpace(studyInstanceUID) ? CreateCrossPartitionFeedOptions() : CreateFeedOptions(studyInstanceUID);
+            SqlQuerySpec sqlQuerySpec = _queryBuilder.BuildInstanceQuerySpec(offset, limit, query);
+
+            IDocumentQuery<QuerySeriesDocument> instanceQuery = _documentClient
+                                    .CreateDocumentQuery<QuerySeriesDocument>(_collectionUri, sqlQuerySpec, feedOptions)
+                                    .AsDocumentQuery();
+
+            return await _documentClient.ThrowIndexDataStoreException(
+                async (documentClient) =>
+                {
+                    return await instanceQuery.ExecuteQueryUntilCompleteAsync<QuerySeriesDocument, DicomIdentity>(cancellationToken);
+                });
+        }
+
+        /// <inheritdoc />
         public async Task<IEnumerable<DicomIdentity>> DeleteSeriesIndexAsync(
             string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
 
-            Uri documentUri = UriFactory.CreateDocumentUri(
-                _databaseId, _collectionId, QuerySeriesDocument.GetDocumentId(studyInstanceUID, seriesInstanceUID));
+            Uri documentUri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, QuerySeriesDocument.GetDocumentId(studyInstanceUID, seriesInstanceUID));
             RequestOptions requestOptions = CreateRequestOptions(QuerySeriesDocument.GetPartitionKey(studyInstanceUID));
 
             // Retry when the pre-condition fails on delete.
@@ -125,8 +154,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
             EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUID, nameof(sopInstanceUID));
 
-            Uri documentUri = UriFactory.CreateDocumentUri(
-                _databaseId, _collectionId, QuerySeriesDocument.GetDocumentId(studyInstanceUID, seriesInstanceUID));
+            Uri documentUri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, QuerySeriesDocument.GetDocumentId(studyInstanceUID, seriesInstanceUID));
             RequestOptions requestOptions = CreateRequestOptions(QuerySeriesDocument.GetPartitionKey(studyInstanceUID));
 
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
@@ -214,11 +242,25 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             => new RequestOptions() { PartitionKey = new PartitionKey(partitionKey) };
 
         private FeedOptions CreateFeedOptions(string partitionKey)
-            => new FeedOptions() { PartitionKey = new PartitionKey(partitionKey) };
+        {
+            EnsureArg.IsNotNull(partitionKey, nameof(partitionKey));
+            return new FeedOptions() { PartitionKey = new PartitionKey(partitionKey), EnableCrossPartitionQuery = false };
+        }
 
-        private static IAsyncPolicy CreatePreConditionFailedRetryPolicy()
+        private FeedOptions CreateCrossPartitionFeedOptions()
+        {
+            var feedOptions = new FeedOptions() { EnableCrossPartitionQuery = true };
+
+            // TODO: This is a reflection hack to enable cross partition skip and take. This will be in the latest SDK soon.
+            PropertyInfo propertyInfo = feedOptions.GetType().GetProperty("EnableCrossPartitionSkipTake", BindingFlags.NonPublic | BindingFlags.Instance);
+            propertyInfo.SetValue(feedOptions, Convert.ChangeType(true, propertyInfo.PropertyType));
+
+            return feedOptions;
+        }
+
+        private IAsyncPolicy CreatePreConditionFailedRetryPolicy()
             => Policy
-                    .Handle<DocumentClientException>(ex => ex.StatusCode == HttpStatusCode.PreconditionFailed)
-                    .RetryForeverAsync();
+                    .Handle<DocumentClientException>(ex => ex.StatusCode == HttpStatusCode.PreconditionFailed || ex.StatusCode == HttpStatusCode.TooManyRequests)
+                    .WaitAndRetryForeverAsync(retryIndex => TimeSpan.FromMilliseconds((retryIndex - 1) * _random.Next(200, 500)));
     }
 }

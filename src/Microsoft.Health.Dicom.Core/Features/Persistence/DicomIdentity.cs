@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Text.RegularExpressions;
 using Dicom;
 using EnsureThat;
@@ -13,6 +14,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public class DicomIdentity
     {
+        private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
+
         [JsonConstructor]
         public DicomIdentity(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
         {
@@ -46,5 +49,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty));
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is DicomIdentity identity)
+            {
+                return StudyInstanceUID.Equals(identity.StudyInstanceUID, EqualsStringComparison) &&
+                        SeriesInstanceUID.Equals(identity.SeriesInstanceUID, EqualsStringComparison) &&
+                        SopInstanceUID.Equals(identity.SopInstanceUID, EqualsStringComparison);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+            => (StudyInstanceUID + SeriesInstanceUID + SopInstanceUID).GetHashCode(EqualsStringComparison);
     }
 }

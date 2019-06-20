@@ -4,12 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Documents.Linq;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Newtonsoft.Json;
 using Polly;
@@ -58,6 +60,19 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             {
                 throw new IndexDataStoreException(e.StatusCode, e);
             }
+        }
+
+        public static async Task<IEnumerable<TResult>> ExecuteQueryUntilCompleteAsync<T, TResult>(this IDocumentQuery<T> documentQuery, CancellationToken cancellationToken)
+        {
+            var results = new List<TResult>();
+
+            while (documentQuery.HasMoreResults)
+            {
+                FeedResponse<TResult> nextResults = await documentQuery.ExecuteNextAsync<TResult>(cancellationToken);
+                results.AddRange(nextResults);
+            }
+
+            return results;
         }
 
         public static async Task<T> GetorCreateDocumentAsync<T>(

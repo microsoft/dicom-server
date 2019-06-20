@@ -135,27 +135,80 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(HttpStatusCode.NotFound, getSeriesInstancesException.StatusCode);
         }
 
+        [Fact]
+        public async Task GivenIndexedInstance_WhenQueryingByPatientName_InstancesIsRetrieved()
+        {
+            string studyInstanceUID = Guid.NewGuid().ToString();
+            string seriesInstanceUID = Guid.NewGuid().ToString();
+            string referringPhysicianName = Guid.NewGuid().ToString();
+
+            DicomDataset testInstance = CreateTestInstanceDicomDataset(studyInstanceUID, seriesInstanceUID);
+            testInstance.Add(DicomTag.ReferringPhysicianName, referringPhysicianName);
+
+            await _indexDataStore.IndexInstanceAsync(testInstance);
+
+            var sopInstanceUID = testInstance.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+            IEnumerable<DicomIdentity> instances = await _indexDataStore.QueryInstancesAsync(0, 10, query: new[] { (DicomTag.ReferringPhysicianName, referringPhysicianName) });
+            Assert.Single(instances);
+            Assert.Equal(new DicomIdentity(studyInstanceUID, seriesInstanceUID, sopInstanceUID), instances.First());
+        }
+
+        [Fact]
+        public async Task GivenIndexedSeries_WhenQueryingWithPaging_PagesReturnedCorrectly()
+        {
+            const int numberOfInstances = 20;
+            Assert.Equal(0, numberOfInstances % 2);
+            string studyInstanceUID = Guid.NewGuid().ToString();
+            string seriesInstanceUID = Guid.NewGuid().ToString();
+
+            IList<DicomDataset> instances = await CreateSeriesInParallelAsync(studyInstanceUID, seriesInstanceUID, numberOfInstances);
+            var instanceUIDs = new HashSet<string>(instances.Select(x => x.GetSingleValue<string>(DicomTag.SOPInstanceUID)));
+
+            // End of page
+            IEnumerable<DicomIdentity> queryInstances1 = await _indexDataStore.QueryInstancesAsync(numberOfInstances, numberOfInstances, studyInstanceUID);
+            Assert.Empty(queryInstances1);
+
+            // First 5 items
+            IEnumerable<DicomIdentity> queryInstances2 = await _indexDataStore.QueryInstancesAsync(0, numberOfInstances / 2, studyInstanceUID);
+            Assert.Equal(numberOfInstances / 2, queryInstances2.Count());
+
+            foreach (DicomIdentity item in queryInstances2)
+            {
+                Assert.True(instanceUIDs.Remove(item.SopInstanceUID));
+            }
+
+            // Last 5 items
+            IEnumerable<DicomIdentity> queryInstances3 = await _indexDataStore.QueryInstancesAsync(numberOfInstances / 2, numberOfInstances, studyInstanceUID);
+            Assert.Equal(numberOfInstances / 2, queryInstances3.Count());
+
+            foreach (DicomIdentity item in queryInstances3)
+            {
+                Assert.True(instanceUIDs.Remove(item.SopInstanceUID));
+            }
+
+            Assert.Empty(instanceUIDs);
+        }
+
         private static DicomDataset CreateTestInstanceDicomDataset(string studyInstanceUID, string seriesInstanceUID)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID);
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID);
 
-            var result = new DicomDataset();
-            result.Add(DicomTag.StudyInstanceUID, studyInstanceUID);
-            result.Add(DicomTag.SeriesInstanceUID, seriesInstanceUID);
-            result.Add(DicomTag.SOPInstanceUID, Guid.NewGuid().ToString());
+            var result = new DicomDataset
+            {
+                { DicomTag.StudyInstanceUID, studyInstanceUID },
+                { DicomTag.SeriesInstanceUID, seriesInstanceUID },
+                { DicomTag.SOPInstanceUID, Guid.NewGuid().ToString() },
+                { DicomTag.PatientName, Guid.NewGuid().ToString() },
+            };
             return result;
         }
 
         private async Task<IList<DicomDataset>> CreateSeriesInParallelAsync(string studyInstanceUID, string seriesInstanceUID, int numberOfItemsInSeries)
         {
-            IList<DicomDataset> instances = new List<DicomDataset>();
-
-            for (var i = 0; i < numberOfItemsInSeries; i++)
-            {
-                instances.Add(CreateTestInstanceDicomDataset(studyInstanceUID, seriesInstanceUID));
-            }
-
+            IList<DicomDataset> instances = Enumerable.Range(0, numberOfItemsInSeries)
+                                                        .Select(_ => CreateTestInstanceDicomDataset(studyInstanceUID, seriesInstanceUID))
+                                                        .ToList();
             await Task.WhenAll(instances.Select(x => _indexDataStore.IndexInstanceAsync(x)));
             return instances;
         }
