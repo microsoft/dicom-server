@@ -24,11 +24,14 @@ steps:
   # Currently the Cosmos DB Emulator only runs on Windows. Therefore all end to end testing
   # if performed on windows.
   - task: azure-cosmosdb.emulator-public-preview.run-cosmosdbemulatorcontainer.CosmosDbEmulator@2
-    displayName: 'Run Azure Cosmos DB Emulator container'
+    displayName: 'Start Azure Cosmos DB Emulator (Windows)'
     condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
+
+  - powershell: |
+     $env:CosmosDb:Host = "$(CosmosDbEmulator.Endpoint)"
   
   - task: DotNetCoreCLI@2
-    displayName: 'dotnet test UnitTests'
+    displayName: 'Run all tests (Windows)'
     condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
     inputs:
       command: test
