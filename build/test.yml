@@ -1,15 +1,3 @@
-
-- task: DownloadBuildArtifacts@0
-  displayName: 'Download Build Artifacts - deploy'
-  inputs:
-    artifactName: deploy
-    downloadPath: '$(System.ArtifactsDirectory)'
-    
-- powershell: |
-   $env:CosmosDb:Host = "$(DataStore--Host)"
-   $env:CosmosDb:Key = "$(DataStore--Key)"
-   displayName: 'Setup Environment Variables'
-
 # To run the tests we install NPM to run the 'azurite' emulator (https://github.com/Azure/Azurite).
 # This allows us to test the blob storage providers without an Azure instance.
 - task: NodeTool@0
@@ -29,9 +17,16 @@
 - script: start azurite -s
   condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
   displayName: 'Start Azurite Storage Emulator (Windows)'
+  
+# Currently the Cosmos DB Emulator only runs on Windows. Therefore all end to end testing
+# if performed on windows.
+- task: azure-cosmosdb.emulator-public-preview.run-cosmosdbemulatorcontainer.CosmosDbEmulator@2
+  displayName: 'Run Azure Cosmos DB Emulator container'
+  condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
 
 - task: DotNetCoreCLI@2
   displayName: 'dotnet test UnitTests'
+  condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
   inputs:
     command: test
     projects: '**\*Tests*.csproj'

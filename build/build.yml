@@ -1,17 +1,5 @@
 parameters:
-  # Default values
-  name: Windows
-  queue: 'Hosted VS2017'
   packageArtifacts: true
-
-phases:
-- phase: ${{ parameters.name }}
-  queue: '${{ parameters.queue }}'
-
-  variables:
-    solution: '**/*.sln'
-    buildPlatform: 'Any CPU'
-    buildConfiguration: 'Release'
 
 steps:
 
@@ -42,6 +30,9 @@ steps:
     command: test
       projects: '**/*UnitTests/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
+
+- template: test.yml
+  condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
 
 - ${{ if eq(parameters.packageArtifacts, 'true') }}:
   - template: package.yml
