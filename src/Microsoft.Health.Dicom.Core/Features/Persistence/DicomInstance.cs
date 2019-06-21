@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Text.RegularExpressions;
 using Dicom;
 using EnsureThat;
@@ -12,39 +11,29 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    public class DicomIdentity
+    public class DicomInstance : DicomSeries
     {
-        private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
-
         [JsonConstructor]
-        public DicomIdentity(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+        public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+            : base(studyInstanceUID, seriesInstanceUID)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
-            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
-            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUID, nameof(sopInstanceUID));
-
             // Run the instance identifiers through the regular expression check.
-            EnsureArg.IsTrue(Regex.IsMatch(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex));
-            EnsureArg.IsTrue(Regex.IsMatch(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex));
+            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUID, nameof(sopInstanceUID));
             EnsureArg.IsTrue(Regex.IsMatch(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex));
+            EnsureArg.IsNotEqualTo(sopInstanceUID, studyInstanceUID);
+            EnsureArg.IsNotEqualTo(sopInstanceUID, seriesInstanceUID);
 
-            StudyInstanceUID = studyInstanceUID;
-            SeriesInstanceUID = seriesInstanceUID;
             SopInstanceUID = sopInstanceUID;
         }
 
-        public string StudyInstanceUID { get; }
-
-        public string SeriesInstanceUID { get; }
-
         public string SopInstanceUID { get; }
 
-        public static DicomIdentity Create(DicomDataset dicomDataset)
+        public static DicomInstance Create(DicomDataset dicomDataset)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
             // Note: Here we 'GetSingleValueOrDefault' and let the constructor validate the identifier.
-            return new DicomIdentity(
+            return new DicomInstance(
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty));
@@ -52,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
         public override bool Equals(object obj)
         {
-            if (obj is DicomIdentity identity)
+            if (obj is DicomInstance identity)
             {
                 return StudyInstanceUID.Equals(identity.StudyInstanceUID, EqualsStringComparison) &&
                         SeriesInstanceUID.Equals(identity.SeriesInstanceUID, EqualsStringComparison) &&

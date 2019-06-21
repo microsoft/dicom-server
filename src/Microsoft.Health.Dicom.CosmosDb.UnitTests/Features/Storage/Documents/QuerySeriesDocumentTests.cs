@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
             Assert.True(document.AddInstance(instanceDocument1));
             Assert.False(document.AddInstance(instanceDocument2));
 
-            Assert.Equal(testPatientName, document.DistinctIndexedAttributes[DicomTagSerializer.Serialize(DicomTag.PatientName)].First());
+            Assert.Equal(testPatientName, document.DistinctIndexedAttributes[DicomTagSerializer.Serialize(DicomTag.PatientName)].Values.First());
 
             Assert.Throws<ArgumentNullException>(() => document.RemoveInstance(null));
             Assert.Throws<ArgumentException>(() => document.RemoveInstance(string.Empty));

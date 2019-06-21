@@ -20,7 +20,9 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         private const string OffsetParameterName = "@offset";
         private const string LimitParameterName = "@limit";
         private const string ItemParameterNameFormat = "@item{0}";
-        private const string InstanceSqlQuerySearchFormat = "SELECT value {{ \"StudyInstanceUID\": c.StudyInstanceUID, \"SeriesInstanceUID\": c.SeriesInstanceUID, \"SOPInstanceUID\": f.SopInstanceUID }} FROM c JOIN f in c.Instances {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
+        private const string StudySqlQuerySearchFormat = "SELECT DISTINCT c.StudyInstanceUID FROM c {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
+        private const string SeriesSqlQuerySearchFormat = "SELECT VALUE {{ \"StudyInstanceUID\": c.StudyInstanceUID, \"SeriesInstanceUID\": c.SeriesInstanceUID }} FROM c {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
+        private const string InstanceSqlQuerySearchFormat = "SELECT VALUE {{ \"StudyInstanceUID\": c.StudyInstanceUID, \"SeriesInstanceUID\": c.SeriesInstanceUID, \"SOPInstanceUID\": f.SopInstanceUID }} FROM c JOIN f in c.Instances {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
         private readonly DicomCosmosConfiguration _dicomConfiguration;
         private readonly IFormatProvider _stringFormatProvider;
 
@@ -32,38 +34,79 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             _stringFormatProvider = CultureInfo.InvariantCulture;
         }
 
+        public SqlQuerySpec BuildStudyQuerySpec(
+            int offset, int limit, IEnumerable<(DicomTag Attribute, string Value)> query = null)
+                => BuildSeriesLevelQuerySpec(StudySqlQuerySearchFormat, offset, limit, query);
+
+        public SqlQuerySpec BuildSeriesQuerySpec(
+            int offset, int limit, IEnumerable<(DicomTag Attribute, string Value)> query = null)
+                => BuildSeriesLevelQuerySpec(SeriesSqlQuerySearchFormat, offset, limit, query);
+
         public SqlQuerySpec BuildInstanceQuerySpec(
-            int offset,
-            int limit,
-            IEnumerable<(DicomTag Attribute, string Value)> query = null)
+            int offset, int limit, IEnumerable<(DicomTag Attribute, string Value)> query = null)
         {
             // As 'OFFSET' and 'LIMIT' are not supported in Linq, all queries must be run using SQL syntax.
-            var sqlParameterCollection = new SqlParameterCollection()
+            SqlParameterCollection sqlParameterCollection = CreateQueryParameterCollection(offset, limit);
+
+            string whereClause = GenerateWhereClause(
+                query,
+                (tag, parameter) =>
+                {
+                    sqlParameterCollection.Add(parameter);
+                    return $"f.{nameof(QueryInstance.IndexedAttributes)}[\"{DicomTagSerializer.Serialize(tag)}\"] = {parameter.Name}";
+                });
+
+            return new SqlQuerySpec(string.Format(_stringFormatProvider, InstanceSqlQuerySearchFormat, whereClause.ToString(_stringFormatProvider)), sqlParameterCollection);
+        }
+
+        private SqlQuerySpec BuildSeriesLevelQuerySpec(
+            string querySearchFormat, int offset, int limit, IEnumerable<(DicomTag Attribute, string Value)> query)
+        {
+            // As 'OFFSET' and 'LIMIT' are not supported in Linq, all queries must be run using SQL syntax.
+            SqlParameterCollection sqlParameterCollection = CreateQueryParameterCollection(offset, limit);
+
+            string whereClause = GenerateWhereClause(
+                query,
+                (tag, parameter) =>
+                {
+                    sqlParameterCollection.Add(parameter);
+                    return $"ARRAY_CONTAINS(c.{nameof(QuerySeriesDocument.DistinctIndexedAttributes)}[\"{DicomTagSerializer.Serialize(tag)}\"].{nameof(AttributeValues.Values)}, {parameter.Name})";
+                });
+
+            return new SqlQuerySpec(string.Format(_stringFormatProvider, querySearchFormat, whereClause.ToString(_stringFormatProvider)), sqlParameterCollection);
+        }
+
+        private string GenerateWhereClause(IEnumerable<(DicomTag Attribute, string Value)> query, Func<DicomTag, SqlParameter, string> createQueryItem)
+        {
+            // If a null or empty query collection we should provide an empty string for the WHERE clause.
+            if (query == null || !query.Any())
+            {
+                return string.Empty;
+            }
+
+            var parameterNameIndex = 1;
+            var queryItems = new List<string>();
+
+            foreach ((DicomTag attribute, string value) in query.Where(x => _dicomConfiguration.QueryAttributes.Contains(x.Attribute)))
+            {
+                var parameterName = string.Format(_stringFormatProvider, ItemParameterNameFormat, parameterNameIndex++);
+                queryItems.Add(createQueryItem(attribute, new SqlParameter { Name = parameterName, Value = value }));
+            }
+
+            // Now construct the WHERE query joining each item with an AND.
+            return $"WHERE {string.Join(" AND ", queryItems)}";
+        }
+
+        private static SqlParameterCollection CreateQueryParameterCollection(int offset, int limit)
+        {
+            EnsureArg.IsTrue(offset >= 0, nameof(offset));
+            EnsureArg.IsTrue(limit > 0, nameof(limit));
+
+            return new SqlParameterCollection()
             {
                 new SqlParameter { Name = OffsetParameterName, Value = offset },
                 new SqlParameter { Name = LimitParameterName, Value = limit },
             };
-
-            // If a null or empty query collection we should provide an empty string for the WHERE clause.
-            var whereClause = string.Empty;
-
-            if (query != null && query.Any())
-            {
-                var parameterNameIndex = 1;
-                var whereItems = new List<string>();
-
-                foreach ((DicomTag attribute, string value) in query.Where(x => _dicomConfiguration.QueryAttributes.Contains(x.Attribute)))
-                {
-                    var parameterName = string.Format(_stringFormatProvider, ItemParameterNameFormat, parameterNameIndex++);
-                    sqlParameterCollection.Add(new SqlParameter { Name = parameterName, Value = value });
-                    whereItems.Add($"f.{nameof(QueryInstance.IndexedAttributes)}[\"{DicomTagSerializer.Serialize(attribute)}\"] = {parameterName}");
-                }
-
-                // Now construct the WHERE query joining each item with an AND.
-                whereClause = $"WHERE {string.Join(" AND ", whereItems)}";
-            }
-
-            return new SqlQuerySpec(string.Format(_stringFormatProvider, InstanceSqlQuerySearchFormat, whereClause.ToString(_stringFormatProvider)), sqlParameterCollection);
         }
     }
 }

@@ -14,16 +14,30 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
     {
         Task IndexInstanceAsync(DicomDataset dicomDataset, CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<DicomIdentity>> QueryInstancesAsync(
+        Task<IEnumerable<DicomStudy>> QueryStudiesAsync(
             int offset,
             int limit,
             string studyInstanceUID = null,
             IEnumerable<(DicomTag Attribute, string Value)> query = null,
             CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<DicomIdentity>> GetInstancesInStudyAsync(string studyInstanceUID, CancellationToken cancellationToken = default);
+        Task<IEnumerable<DicomSeries>> QuerySeriesAsync(
+            int offset,
+            int limit,
+            string studyInstanceUID = null,
+            IEnumerable<(DicomTag Attribute, string Value)> query = null,
+            CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<DicomIdentity>> GetInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default);
+        Task<IEnumerable<DicomInstance>> QueryInstancesAsync(
+            int offset,
+            int limit,
+            string studyInstanceUID = null,
+            IEnumerable<(DicomTag Attribute, string Value)> query = null,
+            CancellationToken cancellationToken = default);
+
+        Task<IEnumerable<DicomInstance>> GetInstancesInStudyAsync(string studyInstanceUID, CancellationToken cancellationToken = default);
+
+        Task<IEnumerable<DicomInstance>> GetInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Delete the provided series index.
@@ -32,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         /// <param name="seriesInstanceUID">The series instance unique identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The collection of instances that were deleted from this series.</returns>
-        Task<IEnumerable<DicomIdentity>> DeleteSeriesIndexAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default);
+        Task<IEnumerable<DicomInstance>> DeleteSeriesIndexAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default);
 
         Task DeleteInstanceIndexAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken = default);
     }
