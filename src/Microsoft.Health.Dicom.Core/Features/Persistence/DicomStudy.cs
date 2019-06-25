@@ -19,8 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         public DicomStudy(string studyInstanceUID)
         {
             // Run the instance identifiers through the regular expression check.
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
-            EnsureArg.IsTrue(Regex.IsMatch(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex));
+            EnsureArg.IsTrue(Regex.IsMatch(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex), nameof(studyInstanceUID));
 
             StudyInstanceUID = studyInstanceUID;
         }

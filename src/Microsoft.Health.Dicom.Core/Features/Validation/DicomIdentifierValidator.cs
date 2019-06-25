@@ -9,7 +9,8 @@ using FluentValidation.Validators;
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     /// <summary>
-    /// Validates a unique identifer conforms to the rules from http://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html
+    /// Validates a unique identifer conforms to the character rules from http://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html.
+    /// This validator does not validate the format of the identifier.
     /// </summary>
     /// <seealso cref="RegularExpressionValidator" />
     public class DicomIdentifierValidator : RegularExpressionValidator
