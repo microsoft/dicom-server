@@ -15,10 +15,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     /// <seealso cref="RegularExpressionValidator" />
     public class DicomIdentifierValidator : RegularExpressionValidator
     {
-        public const string IdentifierRegex = "^[A-Za-z0-9\\-\\.]{1,64}$";
+        public static readonly Regex IdentifierRegex = new Regex("^[A-Za-z0-9\\-\\.]{1,64}$", RegexOptions.Singleline | RegexOptions.Compiled);
 
         public DicomIdentifierValidator()
-            : base(IdentifierRegex, RegexOptions.Singleline | RegexOptions.Compiled)
+            : base(IdentifierRegex)
         {
         }
     }

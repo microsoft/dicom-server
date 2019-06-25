@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Text.RegularExpressions;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -18,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             : base(studyInstanceUID, seriesInstanceUID)
         {
             // Run the instance identifiers through the regular expression check.
-            EnsureArg.IsTrue(Regex.IsMatch(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex), nameof(sopInstanceUID));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(sopInstanceUID), nameof(sopInstanceUID));
             EnsureArg.IsNotEqualTo(sopInstanceUID, studyInstanceUID, nameof(sopInstanceUID));
             EnsureArg.IsNotEqualTo(sopInstanceUID, seriesInstanceUID, nameof(sopInstanceUID));
 

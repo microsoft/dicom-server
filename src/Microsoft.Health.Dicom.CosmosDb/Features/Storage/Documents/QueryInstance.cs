@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
@@ -27,7 +26,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
         private QueryInstance(string sopInstanceUID)
         {
-            EnsureArg.IsTrue(Regex.IsMatch(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex), nameof(sopInstanceUID));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(sopInstanceUID), nameof(sopInstanceUID));
 
             SopInstanceUID = sopInstanceUID;
         }

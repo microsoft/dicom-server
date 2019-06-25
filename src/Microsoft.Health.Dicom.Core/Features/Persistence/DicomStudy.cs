@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Text.RegularExpressions;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Newtonsoft.Json;
@@ -19,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         public DicomStudy(string studyInstanceUID)
         {
             // Run the instance identifiers through the regular expression check.
-            EnsureArg.IsTrue(Regex.IsMatch(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex), nameof(studyInstanceUID));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyInstanceUID), nameof(studyInstanceUID));
 
             StudyInstanceUID = studyInstanceUID;
         }

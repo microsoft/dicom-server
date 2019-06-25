@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
         /// Lists the characters that are not valid for a Cosmos resource identifier.
         /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.documents.resource.id?view=azure-dotnet
         /// </summary>
-        private const string DocumentIdRegex = "[^?/\\#]";
+        private static readonly Regex DocumentIdRegex = new Regex("[^?/\\#]", RegexOptions.Singleline | RegexOptions.Compiled);
 
         public QuerySeriesDocument(string studyInstanceUID, string seriesInstanceUID)
         {
@@ -75,25 +75,21 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
         public static string GetDocumentId(string studyInstanceUID, string seriesInstanceUID)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
-            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
             EnsureArg.IsFalse(studyInstanceUID == seriesInstanceUID);
-
-            EnsureArg.IsTrue(Regex.IsMatch(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex));
-            EnsureArg.IsTrue(Regex.IsMatch(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyInstanceUID));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID));
 
             string documentId = studyInstanceUID + seriesInstanceUID;
 
             // Double safety for the document identifier. If the study and series are valid identifiers, the document ID 'should' conform.
-            EnsureArg.IsTrue(Regex.IsMatch(documentId, DocumentIdRegex));
+            EnsureArg.IsTrue(DocumentIdRegex.IsMatch(documentId));
 
             return documentId;
         }
 
         public static string GetPartitionKey(string studyInstanceUID)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
-            EnsureArg.IsTrue(Regex.IsMatch(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyInstanceUID));
 
             return studyInstanceUID;
         }
