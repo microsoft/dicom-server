@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenAValidInstance_WhenIndexing_CanBeRetrieved()
+        public async Task GivenAValidInstance_WhenIndexing_CanBeQueried()
         {
             string studyInstanceUID = Guid.NewGuid().ToString();
             string seriesInstanceUID = Guid.NewGuid().ToString();
@@ -35,15 +35,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _indexDataStore.IndexInstanceAsync(testInstance);
 
-            IEnumerable<DicomInstance> instancesInStudy = await _indexDataStore.GetInstancesInStudyAsync(studyInstanceUID);
+            QueryResult<DicomInstance> instancesInStudy = await _indexDataStore.QueryInstancesAsync(0, 10, studyInstanceUID);
+            Assert.Single(instancesInStudy.Results);
+            Assert.False(instancesInStudy.HasMoreResults);
+            Assert.True(testInstance.GetSingleValue<string>(DicomTag.SOPInstanceUID) == instancesInStudy.Results.First().SopInstanceUID);
 
-            Assert.Single(instancesInStudy);
-            Assert.True(testInstance.GetSingleValue<string>(DicomTag.SOPInstanceUID) == instancesInStudy.First().SopInstanceUID);
-
-            IEnumerable<DicomInstance> instancesInSeries = await _indexDataStore.GetInstancesInSeriesAsync(studyInstanceUID, seriesInstanceUID);
-
-            Assert.Single(instancesInSeries);
-            Assert.True(testInstance.GetSingleValue<string>(DicomTag.SOPInstanceUID) == instancesInSeries.First().SopInstanceUID);
+            QueryResult<DicomSeries> seriesInStudy = await _indexDataStore.QuerySeriesAsync(0, 10, studyInstanceUID);
+            Assert.False(seriesInStudy.HasMoreResults);
+            Assert.Single(seriesInStudy.Results);
+            Assert.True(seriesInstanceUID == seriesInStudy.Results.First().SeriesInstanceUID);
 
             IEnumerable<DicomInstance> deletedInstances = await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUID, seriesInstanceUID);
 
@@ -61,16 +61,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             IList<DicomDataset> instances = await CreateSeriesInParallelAsync(studyInstanceUID, seriesInstanceUID, numberOfInstancesToIndex);
             IList<string> sopInstanceUIDs = instances.Select(x => x.GetSingleValue<string>(DicomTag.SOPInstanceUID)).ToList();
 
-            IEnumerable<DicomInstance> instancesInStudy = await _indexDataStore.GetInstancesInStudyAsync(studyInstanceUID);
-            Assert.Equal(numberOfInstancesToIndex, instancesInStudy.Count());
-            instancesInStudy.Each(x => Assert.True(sopInstanceUIDs.Contains(x.SopInstanceUID)));
+            QueryResult<DicomInstance> instancesInStudy = await _indexDataStore.QueryInstancesAsync(0, 10, studyInstanceUID);
+            Assert.False(instancesInStudy.HasMoreResults);
+            Assert.Equal(numberOfInstancesToIndex, instancesInStudy.Results.Count());
+            instancesInStudy.Results.Each(x => Assert.True(sopInstanceUIDs.Contains(x.SopInstanceUID)));
 
-            IEnumerable<DicomInstance> instancesInSeries = await _indexDataStore.GetInstancesInSeriesAsync(studyInstanceUID, seriesInstanceUID);
-            Assert.Equal(numberOfInstancesToIndex, instancesInSeries.Count());
-            instancesInSeries.Each(x => Assert.True(sopInstanceUIDs.Contains(x.SopInstanceUID)));
+            QueryResult<DicomSeries> seriesInStudy = await _indexDataStore.QuerySeriesAsync(0, 10, studyInstanceUID);
+            Assert.Single(seriesInStudy.Results);
+            Assert.False(seriesInStudy.HasMoreResults);
+            Assert.True(seriesInstanceUID == seriesInStudy.Results.First().SeriesInstanceUID);
 
             IEnumerable<DicomInstance> deletedInstances = await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUID, seriesInstanceUID);
-            Assert.Equal(numberOfInstancesToIndex, instancesInSeries.Count());
+            Assert.Equal(numberOfInstancesToIndex, deletedInstances.Count());
             deletedInstances.Each(x => Assert.True(sopInstanceUIDs.Contains(x.SopInstanceUID)));
         }
 
@@ -87,8 +89,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUID, seriesInstanceUID, firstSopInstanceUID);
 
-            IEnumerable<DicomInstance> instancesInStudy = await _indexDataStore.GetInstancesInStudyAsync(studyInstanceUID);
-            Assert.Equal(numberOfInstancesToIndex - 1, instancesInStudy.Count());
+            QueryResult<DicomInstance> instancesInStudy = await _indexDataStore.QueryInstancesAsync(0, 10, studyInstanceUID);
+            Assert.False(instancesInStudy.HasMoreResults);
+            Assert.Equal(numberOfInstancesToIndex - 1, instancesInStudy.Results.Count());
 
             IEnumerable<DicomInstance> deletedInstances = await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUID, seriesInstanceUID);
             deletedInstances.Each(x => Assert.True(otherSopInstanceUIDs.Contains(x.SopInstanceUID)));
@@ -114,25 +117,29 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenNonExistentInstancesOrSeries_WhenDeleting_IndexDataStoreExceptionIsThrownWithNotFoundStatusCode()
         {
-            IndexDataStoreException deleteInstanceException = await Assert.ThrowsAsync<IndexDataStoreException>(
+            DataStoreException deleteInstanceException = await Assert.ThrowsAsync<DataStoreException>(
                 () => _indexDataStore.DeleteInstanceIndexAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
-            Assert.Equal(HttpStatusCode.NotFound, deleteInstanceException.StatusCode);
+            Assert.Equal((int)HttpStatusCode.NotFound, deleteInstanceException.StatusCode);
 
-            IndexDataStoreException deleteSeriesException = await Assert.ThrowsAsync<IndexDataStoreException>(
+            DataStoreException deleteSeriesException = await Assert.ThrowsAsync<DataStoreException>(
                 () => _indexDataStore.DeleteSeriesIndexAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
-            Assert.Equal(HttpStatusCode.NotFound, deleteSeriesException.StatusCode);
+            Assert.Equal((int)HttpStatusCode.NotFound, deleteSeriesException.StatusCode);
         }
 
         [Fact]
-        public async Task GivenNonExistentSeriesOrStudy_WhenFetchingInstances_IndexDataStoreExceptionIsThrownWithNotFoundStatusCode()
+        public async Task GivenNonExistentStudy_WhenQuerying_NoExceptionIsThrown()
         {
-            IndexDataStoreException getStudyInstancesException = await Assert.ThrowsAsync<IndexDataStoreException>(
-                () => _indexDataStore.GetInstancesInStudyAsync(Guid.NewGuid().ToString()));
-            Assert.Equal(HttpStatusCode.NotFound, getStudyInstancesException.StatusCode);
+            QueryResult<DicomStudy> studyResults = await _indexDataStore.QueryStudiesAsync(0, 10, Guid.NewGuid().ToString());
+            Assert.Empty(studyResults.Results);
+            Assert.False(studyResults.HasMoreResults);
 
-            IndexDataStoreException getSeriesInstancesException = await Assert.ThrowsAsync<IndexDataStoreException>(
-                () => _indexDataStore.GetInstancesInSeriesAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
-            Assert.Equal(HttpStatusCode.NotFound, getSeriesInstancesException.StatusCode);
+            QueryResult<DicomSeries> seriesResults = await _indexDataStore.QuerySeriesAsync(0, 10, Guid.NewGuid().ToString());
+            Assert.Empty(seriesResults.Results);
+            Assert.False(studyResults.HasMoreResults);
+
+            QueryResult<DicomInstance> instanceResults = await _indexDataStore.QueryInstancesAsync(0, 10, Guid.NewGuid().ToString());
+            Assert.Empty(instanceResults.Results);
+            Assert.False(studyResults.HasMoreResults);
         }
 
         [Fact]
@@ -140,8 +147,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             DicomDataset testInstance = CreateTestInstanceDicomDataset(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
             await _indexDataStore.IndexInstanceAsync(testInstance);
-            IndexDataStoreException dataStoreException = await Assert.ThrowsAsync<IndexDataStoreException>(() => _indexDataStore.IndexInstanceAsync(testInstance));
-            Assert.Equal(HttpStatusCode.Conflict, dataStoreException.StatusCode);
+            DataStoreException dataStoreException = await Assert.ThrowsAsync<DataStoreException>(() => _indexDataStore.IndexInstanceAsync(testInstance));
+            Assert.Equal((int)HttpStatusCode.Conflict, dataStoreException.StatusCode);
 
             await DeleteInstancesAsync(testInstance);
         }
@@ -174,19 +181,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.IndexInstanceAsync(testInstance2);
 
             var dicomInstance = DicomInstance.Create(testInstance1);
-            (DicomTag, string)[] queryTags = new[] { (supportedDicomTag, testInstance1PatientName), (unsupportedDicomTag, "test") };
+            (DicomAttributeId, string)[] queryAttributes = new[] { (new DicomAttributeId(supportedDicomTag), testInstance1PatientName), (new DicomAttributeId(unsupportedDicomTag), "test") };
 
-            IEnumerable<DicomStudy> studyResults = await _indexDataStore.QueryStudiesAsync(0, 10, studyInstanceUID, query: queryTags);
-            Assert.Single(studyResults);
-            Assert.Equal(new DicomStudy(dicomInstance.StudyInstanceUID), studyResults.First());
+            QueryResult<DicomStudy> studyResults = await _indexDataStore.QueryStudiesAsync(0, 10, studyInstanceUID, query: queryAttributes);
+            Assert.Single(studyResults.Results);
+            Assert.False(studyResults.HasMoreResults);
+            Assert.Equal(new DicomStudy(dicomInstance.StudyInstanceUID), studyResults.Results.First());
 
-            IEnumerable<DicomSeries> seriesResults = await _indexDataStore.QuerySeriesAsync(0, 10, studyInstanceUID, query: queryTags);
-            Assert.Single(seriesResults);
-            Assert.Equal(new DicomSeries(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID), seriesResults.First());
+            QueryResult<DicomSeries> seriesResults = await _indexDataStore.QuerySeriesAsync(0, 10, studyInstanceUID, query: queryAttributes);
+            Assert.Single(seriesResults.Results);
+            Assert.False(seriesResults.HasMoreResults);
+            Assert.Equal(new DicomSeries(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID), seriesResults.Results.First());
 
-            IEnumerable<DicomInstance> instanceResults = await _indexDataStore.QueryInstancesAsync(0, 10, studyInstanceUID, query: queryTags);
-            Assert.Single(instanceResults);
-            Assert.Equal(dicomInstance, instanceResults.First());
+            QueryResult<DicomInstance> instanceResults = await _indexDataStore.QueryInstancesAsync(0, 10, studyInstanceUID, query: queryAttributes);
+            Assert.Single(instanceResults.Results);
+            Assert.False(instanceResults.HasMoreResults);
+            Assert.Equal(dicomInstance, instanceResults.Results.First());
 
             await DeleteInstancesAsync(testInstance1, testInstance2);
         }
@@ -204,9 +214,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.IndexInstanceAsync(testInstance);
 
             var sopInstanceUID = testInstance.GetSingleValue<string>(DicomTag.SOPInstanceUID);
-            IEnumerable<DicomInstance> instances = await _indexDataStore.QueryInstancesAsync(0, 10, query: new[] { (DicomTag.ReferringPhysicianName, referringPhysicianName) });
-            Assert.Single(instances);
-            Assert.Equal(new DicomInstance(studyInstanceUID, seriesInstanceUID, sopInstanceUID), instances.First());
+            QueryResult<DicomInstance> instances = await _indexDataStore.QueryInstancesAsync(0, 10, query: new[] { (new DicomAttributeId(DicomTag.ReferringPhysicianName), referringPhysicianName) });
+            Assert.Single(instances.Results);
+            Assert.False(instances.HasMoreResults);
+            Assert.Equal(new DicomInstance(studyInstanceUID, seriesInstanceUID, sopInstanceUID), instances.Results.First());
 
             await DeleteInstancesAsync(testInstance);
         }
@@ -223,23 +234,26 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var instanceUIDs = new HashSet<string>(instances.Select(x => x.GetSingleValue<string>(DicomTag.SOPInstanceUID)));
 
             // End of page
-            IEnumerable<DicomInstance> queryInstances1 = await _indexDataStore.QueryInstancesAsync(numberOfInstances, numberOfInstances, studyInstanceUID);
-            Assert.Empty(queryInstances1);
+            QueryResult<DicomInstance> queryInstances1 = await _indexDataStore.QueryInstancesAsync(numberOfInstances, numberOfInstances, studyInstanceUID);
+            Assert.Empty(queryInstances1.Results);
+            Assert.False(queryInstances1.HasMoreResults);
 
-            // First 5 items
-            IEnumerable<DicomInstance> queryInstances2 = await _indexDataStore.QueryInstancesAsync(0, numberOfInstances / 2, studyInstanceUID);
-            Assert.Equal(numberOfInstances / 2, queryInstances2.Count());
+            // First half of items items
+            QueryResult<DicomInstance> queryInstances2 = await _indexDataStore.QueryInstancesAsync(0, numberOfInstances / 2, studyInstanceUID);
+            Assert.Equal(numberOfInstances / 2, queryInstances2.Results.Count());
+            Assert.False(queryInstances2.HasMoreResults);
 
-            foreach (DicomInstance item in queryInstances2)
+            foreach (DicomInstance item in queryInstances2.Results)
             {
                 Assert.True(instanceUIDs.Remove(item.SopInstanceUID));
             }
 
-            // Last 5 items
-            IEnumerable<DicomInstance> queryInstances3 = await _indexDataStore.QueryInstancesAsync(numberOfInstances / 2, numberOfInstances, studyInstanceUID);
-            Assert.Equal(numberOfInstances / 2, queryInstances3.Count());
+            // Last half of items
+            QueryResult<DicomInstance> queryInstances3 = await _indexDataStore.QueryInstancesAsync(numberOfInstances / 2, numberOfInstances, studyInstanceUID);
+            Assert.Equal(numberOfInstances / 2, queryInstances3.Results.Count());
+            Assert.False(queryInstances3.HasMoreResults);
 
-            foreach (DicomInstance item in queryInstances3)
+            foreach (DicomInstance item in queryInstances3.Results)
             {
                 Assert.True(instanceUIDs.Remove(item.SopInstanceUID));
             }
@@ -274,26 +288,32 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
 
             // Validate Study Searching
-            IEnumerable<DicomStudy> queryStudiesResults1 = await _indexDataStore.QueryStudiesAsync(0, totalItems + 1);
-            Assert.Equal(studyInstanceUIDs.Length, queryStudiesResults1.Count());
-            queryStudiesResults1.Each(x => Assert.Contains(x.StudyInstanceUID, studyInstanceUIDs));
+            QueryResult<DicomStudy> queryStudiesResults1 = await _indexDataStore.QueryStudiesAsync(0, totalItems + 1);
+            Assert.Equal(studyInstanceUIDs.Length, queryStudiesResults1.Results.Count());
+            Assert.False(queryStudiesResults1.HasMoreResults);
+            queryStudiesResults1.Results.Each(x => Assert.Contains(x.StudyInstanceUID, studyInstanceUIDs));
 
-            IEnumerable<DicomStudy> queryStudiesResults2 = await _indexDataStore.QueryStudiesAsync(0, totalItems + 1, studyInstanceUIDs[0]);
-            Assert.Single(queryStudiesResults2);
+            QueryResult<DicomStudy> queryStudiesResults2 = await _indexDataStore.QueryStudiesAsync(0, totalItems + 1, studyInstanceUIDs[0]);
+            Assert.Single(queryStudiesResults2.Results);
+            Assert.False(queryStudiesResults2.HasMoreResults);
 
-            IEnumerable<DicomStudy> queryStudiesResults3 = await _indexDataStore.QueryStudiesAsync(0, totalItems + 1, Guid.NewGuid().ToString());
-            Assert.Empty(queryStudiesResults3);
+            QueryResult<DicomStudy> queryStudiesResults3 = await _indexDataStore.QueryStudiesAsync(0, totalItems + 1, Guid.NewGuid().ToString());
+            Assert.Empty(queryStudiesResults3.Results);
+            Assert.False(queryStudiesResults3.HasMoreResults);
 
             // Validate Series Searching
-            IEnumerable<DicomSeries> querySeriesResults1 = await _indexDataStore.QuerySeriesAsync(0, totalItems + 1);
-            Assert.Equal(dicomSeries.Count, querySeriesResults1.Count());
-            querySeriesResults1.Each(x => Assert.Contains(x, dicomSeries));
+            QueryResult<DicomSeries> querySeriesResults1 = await _indexDataStore.QuerySeriesAsync(0, totalItems + 1);
+            Assert.Equal(dicomSeries.Count, querySeriesResults1.Results.Count());
+            Assert.False(querySeriesResults1.HasMoreResults);
+            querySeriesResults1.Results.Each(x => Assert.Contains(x, dicomSeries));
 
-            IEnumerable<DicomSeries> querySeriesResults2 = await _indexDataStore.QuerySeriesAsync(0, totalItems + 1, studyInstanceUIDs[0]);
-            Assert.Equal(seriesPerStudy, querySeriesResults2.Count());
+            QueryResult<DicomSeries> querySeriesResults2 = await _indexDataStore.QuerySeriesAsync(0, totalItems + 1, studyInstanceUIDs[0]);
+            Assert.Equal(seriesPerStudy, querySeriesResults2.Results.Count());
+            Assert.False(querySeriesResults2.HasMoreResults);
 
-            IEnumerable<DicomSeries> querySeriesResults3 = await _indexDataStore.QuerySeriesAsync(0, totalItems + 1, Guid.NewGuid().ToString());
-            Assert.Empty(querySeriesResults3);
+            QueryResult<DicomSeries> querySeriesResults3 = await _indexDataStore.QuerySeriesAsync(0, totalItems + 1, Guid.NewGuid().ToString());
+            Assert.Empty(querySeriesResults3.Results);
+            Assert.False(querySeriesResults3.HasMoreResults);
 
             foreach (DicomSeries series in dicomSeries)
             {
@@ -312,12 +332,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _indexDataStore.IndexInstanceAsync(testInstance);
 
-            IEnumerable<DicomInstance> queryInstances1 = await _indexDataStore.QueryInstancesAsync(0, 10, studyInstanceUID);
-            Assert.Single(queryInstances1);
-            Assert.Equal(DicomInstance.Create(testInstance), queryInstances1.First());
+            QueryResult<DicomInstance> queryInstances1 = await _indexDataStore.QueryInstancesAsync(0, 10, studyInstanceUID);
+            Assert.False(queryInstances1.HasMoreResults);
+            Assert.Single(queryInstances1.Results);
+            Assert.Equal(DicomInstance.Create(testInstance), queryInstances1.Results.First());
 
-            IEnumerable<DicomInstance> queryInstances2 = await _indexDataStore.QueryInstancesAsync(0, 10, studyInstanceUID, new[] { (DicomTag.PatientName, " AND f.IndexedAttributes[\"0010,0010\"] = \"invalid\"") });
-            Assert.Empty(queryInstances2);
+            QueryResult<DicomInstance> queryInstances2 = await _indexDataStore.QueryInstancesAsync(0, 10, studyInstanceUID, new[] { (new DicomAttributeId(DicomTag.PatientName), " AND f.IndexedAttributes[\"0010,0010\"] = \"invalid\"") });
+            Assert.False(queryInstances2.HasMoreResults);
+            Assert.Empty(queryInstances2.Results);
 
             await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUID, seriesInstanceUID);
         }
@@ -338,20 +360,24 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 await _indexDataStore.IndexInstanceAsync(dataset);
             }
 
-            IEnumerable<DicomStudy> queryStudies1 = await _indexDataStore.QueryStudiesAsync(0, 10);
-            Assert.Single(queryStudies1);
-            Assert.Equal(studyInstanceUID, queryStudies1.First().StudyInstanceUID);
+            QueryResult<DicomStudy> queryStudies1 = await _indexDataStore.QueryStudiesAsync(0, 10);
+            Assert.False(queryStudies1.HasMoreResults);
+            Assert.Single(queryStudies1.Results);
+            Assert.Equal(studyInstanceUID, queryStudies1.Results.First().StudyInstanceUID);
 
-            IEnumerable<DicomStudy> queryStudies2 = await _indexDataStore.QueryStudiesAsync(0, 10, query: new[] { (DicomTag.PatientName, patientNames[numberOfItemsToInsert / 2]) });
-            Assert.Single(queryStudies2);
-            Assert.Equal(studyInstanceUID, queryStudies2.First().StudyInstanceUID);
+            QueryResult<DicomStudy> queryStudies2 = await _indexDataStore.QueryStudiesAsync(0, 10, query: new[] { (new DicomAttributeId(DicomTag.PatientName), patientNames[numberOfItemsToInsert / 2]) });
+            Assert.Single(queryStudies2.Results);
+            Assert.False(queryStudies2.HasMoreResults);
+            Assert.Equal(studyInstanceUID, queryStudies2.Results.First().StudyInstanceUID);
 
-            IEnumerable<DicomSeries> querySeries1 = await _indexDataStore.QuerySeriesAsync(0, 10);
-            Assert.Single(querySeries1);
-            Assert.Equal(seriesInstanceUID, querySeries1.First().SeriesInstanceUID);
+            QueryResult<DicomSeries> querySeries1 = await _indexDataStore.QuerySeriesAsync(0, 10);
+            Assert.False(querySeries1.HasMoreResults);
+            Assert.Single(querySeries1.Results);
+            Assert.Equal(seriesInstanceUID, querySeries1.Results.First().SeriesInstanceUID);
 
-            IEnumerable<DicomSeries> queryInstances1 = await _indexDataStore.QueryInstancesAsync(0, numberOfItemsToInsert + 1);
-            Assert.Equal(numberOfItemsToInsert, queryInstances1.Count());
+            QueryResult<DicomInstance> queryInstances1 = await _indexDataStore.QueryInstancesAsync(0, numberOfItemsToInsert + 1);
+            Assert.False(queryInstances1.HasMoreResults);
+            Assert.Equal(numberOfItemsToInsert, queryInstances1.Results.Count());
 
             await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUID, seriesInstanceUID);
         }

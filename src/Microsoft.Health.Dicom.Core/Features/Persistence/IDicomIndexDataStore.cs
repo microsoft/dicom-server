@@ -14,30 +14,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
     {
         Task IndexInstanceAsync(DicomDataset dicomDataset, CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<DicomStudy>> QueryStudiesAsync(
+        Task<QueryResult<DicomStudy>> QueryStudiesAsync(
             int offset,
             int limit,
             string studyInstanceUID = null,
-            IEnumerable<(DicomTag Attribute, string Value)> query = null,
+            IEnumerable<(DicomAttributeId Attribute, string Value)> query = null,
             CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<DicomSeries>> QuerySeriesAsync(
+        Task<QueryResult<DicomSeries>> QuerySeriesAsync(
             int offset,
             int limit,
             string studyInstanceUID = null,
-            IEnumerable<(DicomTag Attribute, string Value)> query = null,
+            IEnumerable<(DicomAttributeId Attribute, string Value)> query = null,
             CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<DicomInstance>> QueryInstancesAsync(
+        Task<QueryResult<DicomInstance>> QueryInstancesAsync(
             int offset,
             int limit,
             string studyInstanceUID = null,
-            IEnumerable<(DicomTag Attribute, string Value)> query = null,
+            IEnumerable<(DicomAttributeId Attribute, string Value)> query = null,
             CancellationToken cancellationToken = default);
-
-        Task<IEnumerable<DicomInstance>> GetInstancesInStudyAsync(string studyInstanceUID, CancellationToken cancellationToken = default);
-
-        Task<IEnumerable<DicomInstance>> GetInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Delete the provided series index.

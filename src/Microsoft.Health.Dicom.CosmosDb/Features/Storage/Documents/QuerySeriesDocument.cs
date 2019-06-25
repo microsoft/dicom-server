@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
         public HashSet<QueryInstance> Instances { get; } = new HashSet<QueryInstance>();
 
-        public Dictionary<string, AttributeValues> DistinctIndexedAttributes
+        public IDictionary<string, AttributeValues> DistinctIndexedAttributes
         {
             get
             {
@@ -55,14 +55,17 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
                 foreach (QueryInstance instance in Instances)
                 {
-                    foreach ((string key, object value) in instance.IndexedAttributes)
+                    foreach ((string key, object[] values) in instance.IndexedAttributes)
                     {
                         if (!result.ContainsKey(key))
                         {
                             result[key] = new AttributeValues();
                         }
 
-                        result[key].Add(value);
+                        foreach (object value in values)
+                        {
+                            result[key].Add(value);
+                        }
                     }
                 }
 

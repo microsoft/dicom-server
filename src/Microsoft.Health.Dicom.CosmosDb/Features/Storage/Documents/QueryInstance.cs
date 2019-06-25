@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Newtonsoft.Json;
 
@@ -16,7 +17,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
     internal class QueryInstance
     {
         [JsonConstructor]
-        public QueryInstance(string sopInstanceUID, IDictionary<string, object> indexedAttributes)
+        public QueryInstance(string sopInstanceUID, IDictionary<string, object[]> indexedAttributes)
             : this(sopInstanceUID)
         {
             EnsureArg.IsNotNull(indexedAttributes, nameof(indexedAttributes));
@@ -26,18 +27,19 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
         private QueryInstance(string sopInstanceUID)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUID, nameof(sopInstanceUID));
-            EnsureArg.IsTrue(Regex.IsMatch(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex));
+            EnsureArg.IsTrue(Regex.IsMatch(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex), nameof(sopInstanceUID));
 
             SopInstanceUID = sopInstanceUID;
         }
 
         public string SopInstanceUID { get; }
 
-        public IDictionary<string, object> IndexedAttributes { get; } = new Dictionary<string, object>();
+        public IDictionary<string, object[]> IndexedAttributes { get; } = new Dictionary<string, object[]>();
 
         public override int GetHashCode()
         {
+            // Note: We override Equals() and GetHashCode() so if this class is added to a HashSet
+            // we only compare on SopInstanceUID.
             return SopInstanceUID.GetHashCode(StringComparison.Ordinal);
         }
 
@@ -51,24 +53,19 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
             return false;
         }
 
-        public static QueryInstance Create(DicomDataset dicomDataset, IEnumerable<DicomTag> indexTags)
+        public static QueryInstance Create(DicomDataset dicomDataset, IEnumerable<DicomAttributeId> indexableAttributes)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(indexableAttributes, nameof(indexableAttributes));
 
             var sopInstanceUID = dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty);
             var result = new QueryInstance(sopInstanceUID);
 
-            if (indexTags != null)
+            foreach (DicomAttributeId attribute in indexableAttributes)
             {
-                foreach (DicomTag dicomTag in indexTags)
+                if (dicomDataset.TryGetValues(attribute, out object[] values))
                 {
-                    // All indexed tags must have a value multiplicty of 1.
-                    EnsureArg.IsTrue(dicomTag.DictionaryEntry.ValueMultiplicity.Multiplicity == 1);
-
-                    if (dicomDataset.TryGetSingleValue(dicomTag, out object value))
-                    {
-                        result.IndexedAttributes[DicomTagSerializer.Serialize(dicomTag)] = value;
-                    }
+                    result.IndexedAttributes[attribute.AttributeId] = values;
                 }
             }
 

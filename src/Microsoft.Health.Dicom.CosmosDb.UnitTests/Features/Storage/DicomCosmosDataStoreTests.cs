@@ -48,14 +48,6 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage
             await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.DeleteInstanceIndexAsync(Guid.NewGuid().ToString(), string.Empty, Guid.NewGuid().ToString()));
             await Assert.ThrowsAsync<ArgumentNullException>(() => _indexDataStore.DeleteInstanceIndexAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), null));
             await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.DeleteInstanceIndexAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), string.Empty));
-
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _indexDataStore.GetInstancesInStudyAsync(null));
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.GetInstancesInStudyAsync(string.Empty));
-
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _indexDataStore.GetInstancesInSeriesAsync(null, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.GetInstancesInSeriesAsync(string.Empty, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _indexDataStore.GetInstancesInSeriesAsync(Guid.NewGuid().ToString(), null));
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.GetInstancesInSeriesAsync(Guid.NewGuid().ToString(), string.Empty));
         }
     }
 }

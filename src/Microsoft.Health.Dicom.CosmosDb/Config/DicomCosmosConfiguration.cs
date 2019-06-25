@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
 
 namespace Microsoft.Health.Dicom.CosmosDb.Config
 {
@@ -14,14 +15,14 @@ namespace Microsoft.Health.Dicom.CosmosDb.Config
         /// Gets the DICOM tags that should be indexed and made queryable.
         /// The StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID will be indexed automatically.
         /// </summary>
-        public IEnumerable<DicomTag> QueryAttributes { get; } = new[]
+        public IEnumerable<DicomAttributeId> QueryAttributes { get; } = new[]
         {
-            DicomTag.PatientName,
-            DicomTag.PatientID,
-            DicomTag.AccessionNumber,
-            DicomTag.Modality,
-            DicomTag.ReferringPhysicianName,
-            DicomTag.StudyDate,
+            new DicomAttributeId(DicomTag.PatientName),
+            new DicomAttributeId(DicomTag.PatientID),
+            new DicomAttributeId(DicomTag.AccessionNumber),
+            new DicomAttributeId(DicomTag.Modality),
+            new DicomAttributeId(DicomTag.ReferringPhysicianName),
+            new DicomAttributeId(DicomTag.StudyDate),
         };
     }
 }

@@ -6,7 +6,7 @@
 using System;
 using System.Linq;
 using Dicom;
-using Microsoft.Health.Dicom.CosmosDb.Features.Storage;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents;
 using Newtonsoft.Json;
 using Xunit;
@@ -49,14 +49,15 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
             dataset.Add(DicomTag.SOPInstanceUID, sopInstanceUID);
             dataset.Add(DicomTag.PatientName, testPatientName);
 
-            var instanceDocument1 = QueryInstance.Create(dataset, new[] { DicomTag.PatientName });
-            var instanceDocument2 = QueryInstance.Create(dataset, new[] { DicomTag.PatientName });
+            var patientNameAttributeId = new DicomAttributeId(DicomTag.PatientName);
+            var instanceDocument1 = QueryInstance.Create(dataset, new[] { patientNameAttributeId });
+            var instanceDocument2 = QueryInstance.Create(dataset, new[] { patientNameAttributeId });
 
             Assert.Throws<ArgumentNullException>(() => document.AddInstance(null));
             Assert.True(document.AddInstance(instanceDocument1));
             Assert.False(document.AddInstance(instanceDocument2));
 
-            Assert.Equal(testPatientName, document.DistinctIndexedAttributes[DicomTagSerializer.Serialize(DicomTag.PatientName)].Values.First());
+            Assert.Equal(testPatientName, document.DistinctIndexedAttributes[patientNameAttributeId.AttributeId].Values.First());
 
             Assert.Throws<ArgumentNullException>(() => document.RemoveInstance(null));
             Assert.Throws<ArgumentException>(() => document.RemoveInstance(string.Empty));
@@ -78,7 +79,8 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
             dataset.Add(DicomTag.SOPInstanceUID, sopInstanceUID);
             dataset.Add(DicomTag.PatientName, testPatientName);
 
-            var instanceDocument = QueryInstance.Create(dataset, new[] { DicomTag.PatientName });
+            var patientNameAttributeId = new DicomAttributeId(DicomTag.PatientName);
+            var instanceDocument = QueryInstance.Create(dataset, new[] { patientNameAttributeId });
             document.AddInstance(instanceDocument);
 
             var serialized = JsonConvert.SerializeObject(document);
@@ -94,7 +96,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
             QueryInstance deserializedFirstInstance = deserialized.Instances.First();
             Assert.Equal(deserializedFirstInstance.SopInstanceUID, deserializedFirstInstance.SopInstanceUID);
             Assert.Equal(deserializedFirstInstance.IndexedAttributes.Count, deserializedFirstInstance.IndexedAttributes.Count);
-            Assert.Equal(deserializedFirstInstance.IndexedAttributes[DicomTagSerializer.Serialize(DicomTag.PatientName)], deserializedFirstInstance.IndexedAttributes[DicomTagSerializer.Serialize(DicomTag.PatientName)]);
+            Assert.Equal(deserializedFirstInstance.IndexedAttributes[patientNameAttributeId.AttributeId], deserializedFirstInstance.IndexedAttributes[patientNameAttributeId.AttributeId]);
         }
     }
 }

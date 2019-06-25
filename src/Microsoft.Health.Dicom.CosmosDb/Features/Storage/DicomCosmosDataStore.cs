@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 
             // Retry when the pre-condition fails on replace (ETag check).
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            await _documentClient.ThrowIndexDataStoreException(
+            await _documentClient.ThrowDataStoreException(
                 async (documentClient) =>
                 {
                     QuerySeriesDocument document = await documentClient.GetorCreateDocumentAsync(_databaseId, _collectionId, defaultDocument.Id, requestOptions, defaultDocument, cancellationToken);
@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 
                     if (!document.AddInstance(instance))
                     {
-                        throw new IndexDataStoreException(HttpStatusCode.Conflict);
+                        throw new DataStoreException(HttpStatusCode.Conflict);
                     }
 
                     // Note, we do a replace (rather than upsert) in case the document is deleted.
@@ -91,24 +91,24 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<DicomStudy>> QueryStudiesAsync(
-            int offset, int limit, string studyInstanceUID = null, IEnumerable<(DicomTag Attribute, string Value)> query = null, CancellationToken cancellationToken = default)
+        public async Task<QueryResult<DicomStudy>> QueryStudiesAsync(
+            int offset, int limit, string studyInstanceUID = null, IEnumerable<(DicomAttributeId Attribute, string Value)> query = null, CancellationToken cancellationToken = default)
         {
             SqlQuerySpec sqlQuerySpec = _queryBuilder.BuildStudyQuerySpec(offset, limit, query);
             return await ExecuteQueryAsync<DicomStudy>(sqlQuerySpec, studyInstanceUID, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<DicomSeries>> QuerySeriesAsync(
-            int offset, int limit, string studyInstanceUID = null, IEnumerable<(DicomTag Attribute, string Value)> query = null, CancellationToken cancellationToken = default)
+        public async Task<QueryResult<DicomSeries>> QuerySeriesAsync(
+            int offset, int limit, string studyInstanceUID = null, IEnumerable<(DicomAttributeId Attribute, string Value)> query = null, CancellationToken cancellationToken = default)
         {
             SqlQuerySpec sqlQuerySpec = _queryBuilder.BuildSeriesQuerySpec(offset, limit, query);
             return await ExecuteQueryAsync<DicomSeries>(sqlQuerySpec, studyInstanceUID, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<DicomInstance>> QueryInstancesAsync(
-            int offset, int limit, string studyInstanceUID = null, IEnumerable<(DicomTag Attribute, string Value)> query = null, CancellationToken cancellationToken = default)
+        public async Task<QueryResult<DicomInstance>> QueryInstancesAsync(
+            int offset, int limit, string studyInstanceUID = null, IEnumerable<(DicomAttributeId Attribute, string Value)> query = null, CancellationToken cancellationToken = default)
         {
             SqlQuerySpec sqlQuerySpec = _queryBuilder.BuildInstanceQuerySpec(offset, limit, query);
             return await ExecuteQueryAsync<DicomInstance>(sqlQuerySpec, studyInstanceUID, cancellationToken);
@@ -126,7 +126,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 
             // Retry when the pre-condition fails on delete.
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            return await _documentClient.ThrowIndexDataStoreException(
+            return await _documentClient.ThrowDataStoreException(
                 async (documentClient) =>
                 {
                     DocumentResponse<QuerySeriesDocument> response =
@@ -156,7 +156,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             RequestOptions requestOptions = CreateRequestOptions(QuerySeriesDocument.GetPartitionKey(studyInstanceUID));
 
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            await _documentClient.ThrowIndexDataStoreException(
+            await _documentClient.ThrowDataStoreException(
                 async (documentClient) =>
                 {
                     DocumentResponse<QuerySeriesDocument> response =
@@ -165,7 +165,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                     // If the instance does not exist, throw not found exception.
                     if (!response.Document.RemoveInstance(sopInstanceUID))
                     {
-                        throw new IndexDataStoreException(HttpStatusCode.NotFound);
+                        throw new DataStoreException(HttpStatusCode.NotFound);
                     }
 
                     requestOptions.AccessCondition = new AccessCondition() { Condition = response.Document.ETag, Type = AccessConditionType.IfMatch };
@@ -181,59 +181,6 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                     }
                 },
                 retryPolicy);
-        }
-
-        /// <inheritdoc />
-        public async Task<IEnumerable<DicomInstance>> GetInstancesInStudyAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
-
-            FeedOptions feedOptions = CreateFeedOptions(studyInstanceUID);
-            var identityQuery = _documentClient.CreateDocumentQuery<QuerySeriesDocument>(_collectionUri, feedOptions)
-                    .SelectMany(x => x.Instances.Select(y => new { x.StudyInstanceUID, x.SeriesInstanceUID, y.SopInstanceUID }))
-                    .AsDocumentQuery();
-
-            return await _documentClient.ThrowIndexDataStoreException(
-                async (documentClient) =>
-                {
-                    var results = new List<DicomInstance>();
-
-                    while (identityQuery.HasMoreResults)
-                    {
-                        FeedResponse<DicomInstance> nextResults = await identityQuery.ExecuteNextAsync<DicomInstance>(cancellationToken);
-                        results.AddRange(nextResults);
-                    }
-
-                    if (results.Count > 0)
-                    {
-                        return results;
-                    }
-
-                    // If no results, this study does not exist.
-                    throw new IndexDataStoreException(HttpStatusCode.NotFound);
-                });
-        }
-
-        /// <inheritdoc />
-        public async Task<IEnumerable<DicomInstance>> GetInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
-            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
-
-            string documentId = QuerySeriesDocument.GetDocumentId(studyInstanceUID, seriesInstanceUID);
-            RequestOptions requestOptions = CreateRequestOptions(QuerySeriesDocument.GetPartitionKey(studyInstanceUID));
-
-            return await _documentClient.ThrowIndexDataStoreException(
-                async (documentClient) =>
-                {
-                    DocumentResponse<QuerySeriesDocument> response = await documentClient.ReadDocumentAsync<QuerySeriesDocument>(
-                                                        UriFactory.CreateDocumentUri(_databaseId, _collectionId, documentId),
-                                                        requestOptions,
-                                                        cancellationToken: cancellationToken);
-
-                    return response.Document.Instances.Select(
-                        x => new DicomInstance(response.Document.StudyInstanceUID, response.Document.SeriesInstanceUID, x.SopInstanceUID));
-                });
         }
 
         private RequestOptions CreateRequestOptions(string partitionKey)
@@ -256,7 +203,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             return feedOptions;
         }
 
-        private async Task<IEnumerable<T>> ExecuteQueryAsync<T>(SqlQuerySpec sqlQuerySpec, string studyInstanceUID, CancellationToken cancellationToken)
+        private async Task<QueryResult<T>> ExecuteQueryAsync<T>(SqlQuerySpec sqlQuerySpec, string studyInstanceUID, CancellationToken cancellationToken)
         {
             // If the study instance UID is provided we can run the query against a specific partition.
             FeedOptions feedOptions = string.IsNullOrWhiteSpace(studyInstanceUID) ? CreateCrossPartitionFeedOptions() : CreateFeedOptions(studyInstanceUID);
@@ -264,10 +211,11 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                                     .CreateDocumentQuery<QuerySeriesDocument>(_collectionUri, sqlQuerySpec, feedOptions)
                                     .AsDocumentQuery();
 
-            return await _documentClient.ThrowIndexDataStoreException(
+            return await _documentClient.ThrowDataStoreException(
                 async (documentClient) =>
                 {
-                    return await documentQuery.ExecuteQueryUntilCompleteAsync<QuerySeriesDocument, T>(cancellationToken);
+                    IEnumerable<T> results = await documentQuery.ExecuteQueryUntilCompleteAsync<QuerySeriesDocument, T>(cancellationToken);
+                    return new QueryResult<T>(documentQuery.HasMoreResults, results.ToArray());
                 });
         }
 
