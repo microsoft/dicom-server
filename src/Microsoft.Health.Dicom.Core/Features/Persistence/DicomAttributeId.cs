@@ -63,13 +63,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         [JsonIgnore]
         public int Length => _dicomTags.Length;
 
+        /// <summary>
+        /// Gets the non-sequence DICOM tag.
+        /// </summary>
         [JsonIgnore]
-        public DicomTag LeafDicomTag => _dicomTags[Length - 1];
+        public DicomTag InstanceDicomTag => _dicomTags[Length - 1];
 
-        public DicomTag GetDicomTag(int index = -1)
+        public DicomTag GetDicomTag(int index)
         {
+            EnsureArg.IsGte(index, 0, nameof(index));
             EnsureArg.IsLt(index, _dicomTags.Length, nameof(index));
-            return index < 0 ? _dicomTags[Length - 1] : _dicomTags[index];
+            return _dicomTags[index];
         }
 
         public override int GetHashCode()
@@ -87,7 +91,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             return false;
         }
 
-        public static DicomTag[] DeserializeAttributeId(string attributeId)
+        private static DicomTag[] DeserializeAttributeId(string attributeId)
         {
             EnsureArg.IsNotNullOrWhiteSpace(attributeId, nameof(attributeId));
 
@@ -133,7 +137,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
                 EnsureArg.IsTrue(_dicomTags[i].DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ));
             }
 
-            EnsureArg.IsFalse(LeafDicomTag.DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ));
+            EnsureArg.IsFalse(InstanceDicomTag.DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ));
         }
 
         private class KeywordComparer : IEqualityComparer<DicomTag>

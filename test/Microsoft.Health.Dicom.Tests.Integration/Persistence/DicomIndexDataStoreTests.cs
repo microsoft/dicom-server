@@ -156,12 +156,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenIndexDataStoreQuery_WhenQueryingWithInvalidParameters_ArgumentExceptionThrown()
         {
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.QueryStudiesAsync(-1, 10));
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.QueryStudiesAsync(0, 0));
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.QuerySeriesAsync(-1, 10));
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.QuerySeriesAsync(0, 0));
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.QueryInstancesAsync(-1, 10));
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.QueryInstancesAsync(0, 0));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _indexDataStore.QueryStudiesAsync(-1, 10));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _indexDataStore.QueryStudiesAsync(0, 0));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _indexDataStore.QuerySeriesAsync(-1, 10));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _indexDataStore.QuerySeriesAsync(0, 0));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _indexDataStore.QueryInstancesAsync(-1, 10));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _indexDataStore.QueryInstancesAsync(0, 0));
         }
 
         [Fact]

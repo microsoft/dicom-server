@@ -25,6 +25,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Persistence
             Assert.Throws<ArgumentException>(() => new DicomAttributeId(string.Empty));
             Assert.Throws<ArgumentException>(() => new DicomAttributeId("INVALID"));
             Assert.Throws<ArgumentException>(() => new DicomAttributeId("INVALID.INVALID"));
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => new DicomAttributeId(DicomTag.StudyDate).GetDicomTag(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new DicomAttributeId(DicomTag.StudyDate).GetDicomTag(1));
         }
 
         [Fact]

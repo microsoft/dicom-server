@@ -23,13 +23,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             if (startAttributeIndex == attributeId.Length - 1)
             {
                 // Now first validate this DICOM tag exists in the dataset
-                if (dicomDataset.TryGetValue(attributeId.LeafDicomTag, 0, out TItem firstItem))
+                if (dicomDataset.TryGetValue(attributeId.InstanceDicomTag, 0, out TItem firstItem))
                 {
                     nestedValues.Add(firstItem);
 
-                    for (int i = 1; i < dicomDataset.GetValueCount(attributeId.LeafDicomTag); i++)
+                    for (int i = 1; i < dicomDataset.GetValueCount(attributeId.InstanceDicomTag); i++)
                     {
-                        if (dicomDataset.TryGetValue(attributeId.LeafDicomTag, i, out TItem value))
+                        if (dicomDataset.TryGetValue(attributeId.InstanceDicomTag, i, out TItem value))
                         {
                             nestedValues.Add(value);
                         }

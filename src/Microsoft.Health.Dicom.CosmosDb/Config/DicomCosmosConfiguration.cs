@@ -14,6 +14,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Config
         /// <summary>
         /// Gets the DICOM tags that should be indexed and made queryable.
         /// The StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID will be indexed automatically.
+        /// TODO: We should validate that the attributes defined here have a sensible value representation.
         /// </summary>
         public IEnumerable<DicomAttributeId> QueryAttributes { get; } = new[]
         {
