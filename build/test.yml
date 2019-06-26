@@ -22,7 +22,7 @@ steps:
     displayName: 'Start Azurite Storage Emulator (Windows)'
     
   # Currently the Cosmos DB Emulator only runs on Windows. Therefore all end to end testing
-  # if performed on windows.
+  # is performed on windows.
   - powershell: |
       $cosmosemulator=[Environment]::GetEnvironmentVariable("ProgramFiles") + "\Azure Cosmos DB Emulator\CosmosDB.Emulator.exe"
       & $cosmosemulator /noui
