@@ -4,14 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Newtonsoft.Json;
 using Polly;
@@ -62,20 +60,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             }
         }
 
-        public static async Task<IEnumerable<TResult>> ExecuteQueryUntilCompleteAsync<T, TResult>(this IDocumentQuery<T> documentQuery, CancellationToken cancellationToken)
-        {
-            var results = new List<TResult>();
-
-            while (documentQuery.HasMoreResults)
-            {
-                FeedResponse<TResult> nextResults = await documentQuery.ExecuteNextAsync<TResult>(cancellationToken);
-                results.AddRange(nextResults);
-            }
-
-            return results;
-        }
-
-        public static async Task<T> GetorCreateDocumentAsync<T>(
+        public static async Task<T> GetOrCreateDocumentAsync<T>(
             this IDocumentClient documentClient,
             string databaseId,
             string collectionId,
@@ -126,7 +111,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             catch (DocumentClientException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
             {
                 // Attempt to read the document as it already exists.
-                return await documentClient.GetorCreateDocumentAsync(databaseId, collectionId, documentId, requestOptions, defaultValue, cancellationToken);
+                return await documentClient.GetOrCreateDocumentAsync(databaseId, collectionId, documentId, requestOptions, defaultValue, cancellationToken);
             }
         }
     }

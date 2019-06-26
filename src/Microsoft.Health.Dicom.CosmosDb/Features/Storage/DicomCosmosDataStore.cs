@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             await _documentClient.ThrowDataStoreException(
                 async (documentClient) =>
                 {
-                    QuerySeriesDocument document = await documentClient.GetorCreateDocumentAsync(_databaseId, _collectionId, defaultDocument.Id, requestOptions, defaultDocument, cancellationToken);
+                    QuerySeriesDocument document = await documentClient.GetOrCreateDocumentAsync(_databaseId, _collectionId, defaultDocument.Id, requestOptions, defaultDocument, cancellationToken);
 
                     var instance = QueryInstance.Create(dicomDataset, _dicomConfiguration.QueryAttributes);
 
@@ -203,7 +203,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             return feedOptions;
         }
 
-        private async Task<QueryResult<T>> ExecuteQueryAsync<T>(SqlQuerySpec sqlQuerySpec, string studyInstanceUID, CancellationToken cancellationToken)
+        private async Task<QueryResult<TResult>> ExecuteQueryAsync<TResult>(SqlQuerySpec sqlQuerySpec, string studyInstanceUID, CancellationToken cancellationToken)
         {
             // If the study instance UID is provided we can run the query against a specific partition.
             FeedOptions feedOptions = string.IsNullOrWhiteSpace(studyInstanceUID) ? CreateCrossPartitionFeedOptions() : CreateFeedOptions(studyInstanceUID);
@@ -211,12 +211,19 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                                     .CreateDocumentQuery<QuerySeriesDocument>(_collectionUri, sqlQuerySpec, feedOptions)
                                     .AsDocumentQuery();
 
-            return await _documentClient.ThrowDataStoreException(
-                async (documentClient) =>
-                {
-                    IEnumerable<T> results = await documentQuery.ExecuteQueryUntilCompleteAsync<QuerySeriesDocument, T>(cancellationToken);
-                    return new QueryResult<T>(documentQuery.HasMoreResults, results.ToArray());
-                });
+            var results = new List<TResult>();
+            while (documentQuery.HasMoreResults)
+            {
+                // Each loop has its own retry handler so we don't retry the entire query on failure.
+                await _documentClient.ThrowDataStoreException(
+                    async (documentClient) =>
+                    {
+                        FeedResponse<TResult> nextResults = await documentQuery.ExecuteNextAsync<TResult>(cancellationToken);
+                        results.AddRange(nextResults);
+                    });
+            }
+
+            return new QueryResult<TResult>(documentQuery.HasMoreResults, results);
         }
 
         private IAsyncPolicy CreatePreConditionFailedRetryPolicy()

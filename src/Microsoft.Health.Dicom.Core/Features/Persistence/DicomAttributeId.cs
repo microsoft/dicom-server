@@ -31,6 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         private const char Seperator = '.';
         private const string GroupElementStringFormat = "X4";
         private const NumberStyles GroupElementNumberStyles = NumberStyles.HexNumber;
+        private const StringComparison _stringComparison = StringComparison.InvariantCulture;
         private static readonly IFormatProvider FormatProvider = CultureInfo.InvariantCulture;
         private readonly bool _writeTagsAsKeywords = false;
         private readonly DicomTag[] _dicomTags;
@@ -38,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             typeof(DicomTag).GetFields(BindingFlags.Static | BindingFlags.Public)
                 .Select(x => x.GetValue(null) as DicomTag)
                 .Where(x => !string.IsNullOrWhiteSpace(x?.DictionaryEntry?.Keyword))
-                .Distinct(new KeywordComparer())
+                .Distinct(new KeywordComparer(_stringComparison))
                 .ToDictionary(x => x.DictionaryEntry.Keyword, x => x);
 
         [JsonConstructor]
@@ -78,14 +79,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
         public override int GetHashCode()
         {
-            return AttributeId.GetHashCode(StringComparison.Ordinal);
+            return AttributeId.GetHashCode(_stringComparison);
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is DicomAttributeId instance)
+            if (obj is DicomAttributeId instance && instance.Length == Length)
             {
-                return AttributeId.Equals(instance.AttributeId, StringComparison.Ordinal);
+                // Validate all the DICOM tag keywords are the same
+                for (var i = 0; i < _dicomTags.Length; i++)
+                {
+                    if (!string.Equals(_dicomTags[i].DictionaryEntry.Keyword, instance._dicomTags[i].DictionaryEntry.Keyword, _stringComparison))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             return false;
@@ -106,12 +116,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
                     ushort.TryParse(split[i].Substring(4, 4), GroupElementNumberStyles, FormatProvider, out ushort element))
                 {
                     result[i] = new DicomTag(group, element);
-                    continue;
                 }
-
-                // Otherwise, attempt to look-up the DICOM tag keyword.
-                EnsureArg.IsTrue(KnownKeywordDicomTags.ContainsKey(split[i]), split[i]);
-                result[i] = KnownKeywordDicomTags[split[i]];
+                else if (KnownKeywordDicomTags.TryGetValue(split[i], out DicomTag dicomTag))
+                {
+                    result[i] = dicomTag;
+                }
+                else
+                {
+                    throw new FormatException($"Could not fromat the attribute '{split[i]}' from the provided attribute string '{attributeId}' to a known DICOM tag.");
+                }
             }
 
             return result;
@@ -134,22 +147,35 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             // Validate all but the leaf tag are sequence elements
             for (var i = 0; i < Length - 1; i++)
             {
-                EnsureArg.IsTrue(_dicomTags[i].DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ));
+                if (!_dicomTags[i].DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ))
+                {
+                    throw new FormatException($"All tags but the last must be sequence elements. The provided DICOM tag {_dicomTags[i].DictionaryEntry.Keyword} does not have a 'sequence' value type.");
+                }
             }
 
-            EnsureArg.IsFalse(InstanceDicomTag.DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ));
+            if (InstanceDicomTag.DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ))
+            {
+                throw new FormatException($"The last DICOM tag must not have the value representation 'sequence'. The provided DICOM tag {InstanceDicomTag.DictionaryEntry.Keyword} is known as having a 'sequence' value type.");
+            }
         }
 
         private class KeywordComparer : IEqualityComparer<DicomTag>
         {
+            private readonly StringComparison _comparisonType;
+
+            public KeywordComparer(StringComparison comparisonType)
+            {
+                _comparisonType = comparisonType;
+            }
+
             public bool Equals(DicomTag dicomTag1, DicomTag dicomTag2)
             {
-                return dicomTag1.DictionaryEntry.Keyword == dicomTag2.DictionaryEntry.Keyword;
+                return string.Equals(dicomTag1.DictionaryEntry.Keyword, dicomTag2.DictionaryEntry.Keyword, _comparisonType);
             }
 
             public int GetHashCode(DicomTag dicomTag)
             {
-                return dicomTag.DictionaryEntry.Keyword.GetHashCode(StringComparison.InvariantCulture);
+                return dicomTag.DictionaryEntry.Keyword.GetHashCode(_comparisonType);
             }
         }
     }

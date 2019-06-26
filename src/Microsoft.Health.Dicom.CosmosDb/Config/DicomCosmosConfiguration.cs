@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Config
         /// The StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID will be indexed automatically.
         /// TODO: We should validate that the attributes defined here have a sensible value representation.
         /// </summary>
-        public IEnumerable<DicomAttributeId> QueryAttributes { get; } = new[]
+        public HashSet<DicomAttributeId> QueryAttributes { get; } = new HashSet<DicomAttributeId>()
         {
             new DicomAttributeId(DicomTag.PatientName),
             new DicomAttributeId(DicomTag.PatientID),

@@ -17,14 +17,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Persistence
         {
             Assert.Throws<ArgumentNullException>(() => new DicomAttributeId((DicomTag[])null));
             Assert.Throws<ArgumentException>(() => new DicomAttributeId(Array.Empty<DicomTag>()));
-            Assert.Throws<ArgumentException>(() => new DicomAttributeId(DicomTag.RightImageSequence));
-            Assert.Throws<ArgumentException>(() => new DicomAttributeId(DicomTag.RightImageSequence, DicomTag.ROIContourSequence));
-            Assert.Throws<ArgumentException>(() => new DicomAttributeId(DicomTag.StudyDate, DicomTag.RightLensSequence));
+            Assert.Throws<FormatException>(() => new DicomAttributeId(DicomTag.RightImageSequence));
+            Assert.Throws<FormatException>(() => new DicomAttributeId(DicomTag.RightImageSequence, DicomTag.ROIContourSequence));
+            Assert.Throws<FormatException>(() => new DicomAttributeId(DicomTag.StudyDate, DicomTag.RightLensSequence));
 
             Assert.Throws<ArgumentNullException>(() => new DicomAttributeId((string)null));
             Assert.Throws<ArgumentException>(() => new DicomAttributeId(string.Empty));
-            Assert.Throws<ArgumentException>(() => new DicomAttributeId("INVALID"));
-            Assert.Throws<ArgumentException>(() => new DicomAttributeId("INVALID.INVALID"));
+            Assert.Throws<FormatException>(() => new DicomAttributeId("0020000D.0020000D"));
+            Assert.Throws<FormatException>(() => new DicomAttributeId("INVALID"));
+            Assert.Throws<FormatException>(() => new DicomAttributeId("INVALID.INVALID"));
 
             Assert.Throws<ArgumentOutOfRangeException>(() => new DicomAttributeId(DicomTag.StudyDate).GetDicomTag(-1));
             Assert.Throws<ArgumentOutOfRangeException>(() => new DicomAttributeId(DicomTag.StudyDate).GetDicomTag(1));

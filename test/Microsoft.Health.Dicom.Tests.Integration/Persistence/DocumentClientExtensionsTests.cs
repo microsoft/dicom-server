@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var expectedDocument = new TestDocument() { Id = Guid.NewGuid().ToString(), PartitionKey = Guid.NewGuid().ToString() };
             var requestOptions = new RequestOptions() { PartitionKey = new PartitionKey(expectedDocument.PartitionKey) };
 
-            TestDocument actualDocument = await _documentClient.GetorCreateDocumentAsync(
+            TestDocument actualDocument = await _documentClient.GetOrCreateDocumentAsync(
                                             _fixture.DatabaseId,
                                             _fixture.CollectionId,
                                             expectedDocument.Id,
