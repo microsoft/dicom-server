@@ -36,6 +36,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Cosm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.CosmosDb.UnitTests", "src\Microsoft.Health.Dicom.CosmosDb.UnitTests\Microsoft.Health.Dicom.CosmosDb.UnitTests.csproj", "{FA0B32A4-E623-4B24-902D-BFDC6E42E612}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Metadata", "src\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj", "{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,6 +92,10 @@ Global
 		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -107,6 +113,7 @@ Global
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{E78AB378-6CF4-442A-BC34-81A1B7431ECD} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{FA0B32A4-E623-4B24-902D-BFDC6E42E612} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_SortFileContentOnSave = True
