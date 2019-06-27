@@ -874,12 +874,148 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         [Fact]
         public static void TestJsonEscapeCharacters()
         {
+            var unlimitedTextValue = "Multi\nLine\ttab\"quoted\"formfeed\f";
+
             var ds = new DicomDataset
             {
-                { DicomTag.StrainAdditionalInformation, "Multi\nLine\ttab\"quoted\"" },
+                { DicomTag.StrainAdditionalInformation, unlimitedTextValue },
             };
 
             var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
+            JObject.Parse(json);
+            var ds2 = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+            var recoveredString = ds2.GetValue<string>(DicomTag.StrainAdditionalInformation, 0);
+
+            Assert.Equal(unlimitedTextValue, recoveredString);
+        }
+
+        [Fact]
+        public static void TestJsonUnicode()
+        {
+            var unlimitedTextValue = "⚽";
+
+            var ds = new DicomDataset
+            {
+                { DicomTag.SpecificCharacterSet, "ISO_IR 192" }
+                { DicomTag.StrainAdditionalInformation, unlimitedTextValue },
+            };
+
+            var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
+            JObject.Parse(json);
+            var ds2 = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+            var recoveredString = ds2.GetValue<string>(DicomTag.StrainAdditionalInformation, 0);
+
+            Assert.Equal(unlimitedTextValue, recoveredString);
+        }
+
+        [Fact]
+        public static void TestBase64BufferEncodingOB()
+        {
+            var pixelData = Enumerable.Range(0, 1 << 8).Select(v => (byte)v).ToArray();
+            var ds = new DicomDataset
+            {
+                { DicomTag.PixelData, pixelData },
+            };
+
+            var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
+            JObject.Parse(json);
+            var ds2 = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+
+            var recoveredPixelData = ds2.GetValues<byte>(DicomTag.PixelData);
+
+            Assert.Equal(pixelData, recoveredPixelData);
+        }
+
+        [Fact]
+        public static void TestBase64BufferEncodingOW()
+        {
+            var pixelData = Enumerable.Range(0, 1 << 16).Select(v => (ushort)v).ToArray();
+            var ds = new DicomDataset
+            {
+                new DicomOtherWord(DicomTag.PixelData, pixelData),
+            };
+
+            var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
+            JObject.Parse(json);
+            var ds2 = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+
+            var recoveredPixelData = ds2.GetValues<ushort>(DicomTag.PixelData);
+
+            Assert.Equal(pixelData, recoveredPixelData);
+        }
+
+        [Fact]
+        public static void TestExceptionWhenInvalidDicomJson()
+        {
+            const string json = @"
+{
+  ""00081030"": {
+    ""VR"": ""LO"",
+    ""Value"": [ ""Study1"" ]
+  }
+}
+";
+            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
+        }
+
+        [Fact]
+        public static void TestExceptionWhenInvalidVR()
+        {
+            const string json = @"
+{
+  ""00081030"": {
+    ""vr"": ""BADVR"",
+    ""Value"": [ ""Study1"" ]
+  }
+}
+";
+            Assert.Throws<NotSupportedException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
+        }
+
+        [Fact]
+        public static void TestExceptionWhenInvalidNumberEncoding()
+        {
+            const string json = @"
+{
+  ""00081030"": {
+    ""vr"": ""IS"",
+    ""Value"": [ ""0"" ]
+  }
+}
+";
+            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
+        }
+
+        [Fact(Skip = "Expecting this to throw but it does not, leaving here as behavioural note")]
+        public static void TestExceptionWhenInvalidVRForTag()
+        {
+            const string json = @"
+{
+  ""00081030"": {
+    ""vr"": ""IS"",
+    ""Value"": [ 0 ]
+  }
+}
+";
+            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
+        }
+
+        [Fact(Skip = "Expecting this to throw but it does not, leaving here as behavioural note")]
+        public static void TestExceptionWhenMultipleTags()
+        {
+            const string json = @"
+{
+  ""00081030"": {
+    ""vr"": ""LO"",
+    ""Value"": [ ""Study1"" ]
+  },
+  ""00081030"": {
+    ""vr"": ""LO"",
+    ""Value"": [ ""Study2"" ]
+  }
+}
+";
+            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
         }
     }
 }
