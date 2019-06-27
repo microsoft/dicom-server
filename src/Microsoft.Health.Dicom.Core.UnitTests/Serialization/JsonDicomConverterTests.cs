@@ -896,7 +896,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 
             var ds = new DicomDataset
             {
-                { DicomTag.SpecificCharacterSet, "ISO_IR 192" }
+                { DicomTag.SpecificCharacterSet, "ISO_IR 192" },
                 { DicomTag.StrainAdditionalInformation, unlimitedTextValue },
             };
 
