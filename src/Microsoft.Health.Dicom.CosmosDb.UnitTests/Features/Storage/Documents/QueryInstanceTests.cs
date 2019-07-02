@@ -57,12 +57,12 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
                 dicomDataset, new[] { patientNameAttribute, studyDateAttribute, referringPhysicianNameAttribute, studyTimeAttribute });
 
             Assert.NotNull(instance);
-            Assert.Equal(dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID), instance.SopInstanceUID);
+            Assert.Equal(dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID), instance.InstanceUID);
 
-            Assert.Equal(3, instance.IndexedAttributes.Count);
-            Assert.Equal(dicomDataset.GetSingleValue<string>(DicomTag.PatientName), instance.IndexedAttributes[patientNameAttribute.AttributeId][0]);
-            Assert.Equal(dicomDataset.GetSingleValue<DateTime>(DicomTag.StudyDate), instance.IndexedAttributes[studyDateAttribute.AttributeId][0]);
-            Assert.Equal(referringPhysicianName, instance.IndexedAttributes[referringPhysicianNameAttribute.AttributeId][0]);
+            Assert.Equal(3, instance.Attributes.Count);
+            Assert.Equal(dicomDataset.GetSingleValue<string>(DicomTag.PatientName), instance.Attributes[patientNameAttribute.AttributeId][0]);
+            Assert.Equal(dicomDataset.GetSingleValue<DateTime>(DicomTag.StudyDate), instance.Attributes[studyDateAttribute.AttributeId][0]);
+            Assert.Equal(referringPhysicianName, instance.Attributes[referringPhysicianNameAttribute.AttributeId][0]);
         }
     }
 }

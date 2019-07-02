@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 
             // Retry when the pre-condition fails on replace (ETag check).
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            await _documentClient.ThrowDataStoreException(
+            await _documentClient.CatchClientExceptionAndThrowDataStoreException(
                 async (documentClient) =>
                 {
                     QuerySeriesDocument document = await documentClient.GetOrCreateDocumentAsync(_databaseId, _collectionId, defaultDocument.Id, requestOptions, defaultDocument, cancellationToken);
@@ -126,7 +126,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 
             // Retry when the pre-condition fails on delete.
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            return await _documentClient.ThrowDataStoreException(
+            return await _documentClient.CatchClientExceptionAndThrowDataStoreException(
                 async (documentClient) =>
                 {
                     DocumentResponse<QuerySeriesDocument> response =
@@ -139,7 +139,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                     await documentClient.DeleteDocumentAsync(documentUri, requestOptions, cancellationToken);
 
                     return response.Document.Instances
-                                            .Select(x => new DicomInstance(response.Document.StudyInstanceUID, response.Document.SeriesInstanceUID, x.SopInstanceUID))
+                                            .Select(x => new DicomInstance(response.Document.StudyUID, response.Document.SeriesUID, x.InstanceUID))
                                             .ToArray();
                 },
                 retryPolicy);
@@ -156,7 +156,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             RequestOptions requestOptions = CreateRequestOptions(QuerySeriesDocument.GetPartitionKey(studyInstanceUID));
 
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            await _documentClient.ThrowDataStoreException(
+            await _documentClient.CatchClientExceptionAndThrowDataStoreException(
                 async (documentClient) =>
                 {
                     DocumentResponse<QuerySeriesDocument> response =
@@ -215,7 +215,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             while (documentQuery.HasMoreResults)
             {
                 // Each loop has its own retry handler so we don't retry the entire query on failure.
-                await _documentClient.ThrowDataStoreException(
+                await _documentClient.CatchClientExceptionAndThrowDataStoreException(
                     async (documentClient) =>
                     {
                         FeedResponse<TResult> nextResults = await documentQuery.ExecuteNextAsync<TResult>(cancellationToken);

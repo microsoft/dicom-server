@@ -15,21 +15,26 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
     internal class QuerySeriesDocument
     {
         /// <summary>
+        /// The seperator between the Study and Series instance identifiers when creating the document identifier.
+        /// </summary>
+        private const char DocumentIdSeperator = '_';
+
+        /// <summary>
         /// Lists the characters that are not valid for a Cosmos resource identifier.
         /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.documents.resource.id?view=azure-dotnet
         /// </summary>
         private static readonly Regex DocumentIdRegex = new Regex("[^?/\\#]", RegexOptions.Singleline | RegexOptions.Compiled);
 
-        public QuerySeriesDocument(string studyInstanceUID, string seriesInstanceUID)
+        public QuerySeriesDocument(string studyUID, string seriesUID)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
-            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
-            EnsureArg.IsFalse(studyInstanceUID == seriesInstanceUID, nameof(seriesInstanceUID));
+            EnsureArg.IsNotNullOrWhiteSpace(studyUID, nameof(studyUID));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesUID, nameof(seriesUID));
+            EnsureArg.IsFalse(studyUID == seriesUID, nameof(seriesUID));
 
-            StudyInstanceUID = studyInstanceUID;
-            SeriesInstanceUID = seriesInstanceUID;
-            Id = GetDocumentId(studyInstanceUID, seriesInstanceUID);
-            PartitionKey = GetPartitionKey(studyInstanceUID);
+            StudyUID = studyUID;
+            SeriesUID = seriesUID;
+            Id = GetDocumentId(studyUID, seriesUID);
+            PartitionKey = GetPartitionKey(studyUID);
         }
 
         [JsonProperty(KnownDocumentProperties.Id)]
@@ -41,9 +46,9 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
         [JsonProperty(KnownDocumentProperties.ETag)]
         public string ETag { get; set; }
 
-        public string StudyInstanceUID { get; }
+        public string StudyUID { get; }
 
-        public string SeriesInstanceUID { get; }
+        public string SeriesUID { get; }
 
         public HashSet<QueryInstance> Instances { get; } = new HashSet<QueryInstance>();
 
@@ -55,7 +60,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
                 foreach (QueryInstance instance in Instances)
                 {
-                    foreach ((string key, object[] values) in instance.IndexedAttributes)
+                    foreach ((string key, object[] values) in instance.Attributes)
                     {
                         if (!result.ContainsKey(key))
                         {
@@ -73,13 +78,13 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
             }
         }
 
-        public static string GetDocumentId(string studyInstanceUID, string seriesInstanceUID)
+        public static string GetDocumentId(string studyUID, string seriesUID)
         {
-            EnsureArg.IsFalse(studyInstanceUID == seriesInstanceUID);
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyInstanceUID));
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID));
+            EnsureArg.IsFalse(studyUID == seriesUID);
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyUID));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesUID));
 
-            string documentId = studyInstanceUID + seriesInstanceUID;
+            string documentId = $"{studyUID}{DocumentIdSeperator}{seriesUID}";
 
             // Double safety for the document identifier. If the study and series are valid identifiers, the document ID 'should' conform.
             EnsureArg.IsTrue(DocumentIdRegex.IsMatch(documentId));
@@ -87,11 +92,11 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
             return documentId;
         }
 
-        public static string GetPartitionKey(string studyInstanceUID)
+        public static string GetPartitionKey(string studyUID)
         {
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyInstanceUID));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyUID));
 
-            return studyInstanceUID;
+            return studyUID;
         }
 
         public bool AddInstance(QueryInstance instance)
@@ -103,7 +108,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
         public bool RemoveInstance(string sopInstanceUID)
         {
             EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUID, nameof(sopInstanceUID));
-            return Instances.RemoveWhere(x => x.SopInstanceUID == sopInstanceUID) > 0;
+            return Instances.RemoveWhere(x => x.InstanceUID == sopInstanceUID) > 0;
         }
     }
 }

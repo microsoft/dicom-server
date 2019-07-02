@@ -44,8 +44,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
         [JsonConstructor]
         public DicomAttributeId(string attributeId)
-            : this(DeserializeAttributeId(attributeId))
         {
+            _dicomTags = DeserializeAttributeId(attributeId);
+            Validate();
+
+            AttributeId = attributeId;
         }
 
         public DicomAttributeId(params DicomTag[] dicomTags)

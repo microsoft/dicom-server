@@ -89,14 +89,14 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
             Assert.Equal(document.Id, deserialized.Id);
             Assert.Equal(document.PartitionKey, deserialized.PartitionKey);
             Assert.Equal(document.ETag, deserialized.ETag);
-            Assert.Equal(document.StudyInstanceUID, deserialized.StudyInstanceUID);
-            Assert.Equal(document.SeriesInstanceUID, deserialized.SeriesInstanceUID);
+            Assert.Equal(document.StudyUID, deserialized.StudyUID);
+            Assert.Equal(document.SeriesUID, deserialized.SeriesUID);
             Assert.Equal(document.Instances.Count, deserialized.Instances.Count);
 
             QueryInstance deserializedFirstInstance = deserialized.Instances.First();
-            Assert.Equal(deserializedFirstInstance.SopInstanceUID, deserializedFirstInstance.SopInstanceUID);
-            Assert.Equal(deserializedFirstInstance.IndexedAttributes.Count, deserializedFirstInstance.IndexedAttributes.Count);
-            Assert.Equal(deserializedFirstInstance.IndexedAttributes[patientNameAttributeId.AttributeId], deserializedFirstInstance.IndexedAttributes[patientNameAttributeId.AttributeId]);
+            Assert.Equal(deserializedFirstInstance.InstanceUID, deserializedFirstInstance.InstanceUID);
+            Assert.Equal(deserializedFirstInstance.Attributes.Count, deserializedFirstInstance.Attributes.Count);
+            Assert.Equal(deserializedFirstInstance.Attributes[patientNameAttributeId.AttributeId], deserializedFirstInstance.Attributes[patientNameAttributeId.AttributeId]);
         }
     }
 }

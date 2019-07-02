@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 {
     public static class DocumentClientExtensions
     {
-        public static async Task<T> ThrowDataStoreException<T>(this IDocumentClient documentClient, Func<IDocumentClient, Task<T>> action, IAsyncPolicy retryPolicy = null)
+        public static async Task<T> CatchClientExceptionAndThrowDataStoreException<T>(this IDocumentClient documentClient, Func<IDocumentClient, Task<T>> action, IAsyncPolicy retryPolicy = null)
         {
             EnsureArg.IsNotNull(documentClient, nameof(documentClient));
             EnsureArg.IsNotNull(action, nameof(action));
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             }
         }
 
-        public static async Task ThrowDataStoreException(this IDocumentClient documentClient, Func<IDocumentClient, Task> action, IAsyncPolicy retryPolicy = null)
+        public static async Task CatchClientExceptionAndThrowDataStoreException(this IDocumentClient documentClient, Func<IDocumentClient, Task> action, IAsyncPolicy retryPolicy = null)
         {
             EnsureArg.IsNotNull(documentClient, nameof(documentClient));
             EnsureArg.IsNotNull(action, nameof(action));
