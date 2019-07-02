@@ -31,8 +31,10 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
             InstanceUID = instanceUID;
         }
 
+        [JsonProperty(DocumentProperties.SopInstanceUID)]
         public string InstanceUID { get; }
 
+        [JsonProperty(DocumentProperties.Attributes)]
         public IDictionary<string, object[]> Attributes { get; } = new Dictionary<string, object[]>();
 
         public override int GetHashCode()

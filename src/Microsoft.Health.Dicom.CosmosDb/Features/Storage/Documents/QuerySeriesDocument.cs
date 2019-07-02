@@ -46,13 +46,17 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
         [JsonProperty(KnownDocumentProperties.ETag)]
         public string ETag { get; set; }
 
+        [JsonProperty(DocumentProperties.StudyInstanceUID)]
         public string StudyUID { get; }
 
+        [JsonProperty(DocumentProperties.SeriesInstanceUID)]
         public string SeriesUID { get; }
 
+        [JsonProperty(DocumentProperties.Instances)]
         public HashSet<QueryInstance> Instances { get; } = new HashSet<QueryInstance>();
 
-        public IDictionary<string, AttributeValues> DistinctIndexedAttributes
+        [JsonProperty(DocumentProperties.DistinctAttributes)]
+        public IDictionary<string, AttributeValues> DistinctAttributes
         {
             get
             {

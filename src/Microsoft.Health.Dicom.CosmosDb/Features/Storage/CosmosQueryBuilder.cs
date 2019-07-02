@@ -20,9 +20,9 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         private const string OffsetParameterName = "@offset";
         private const string LimitParameterName = "@limit";
         private const string ItemParameterNameFormat = "@item{0}";
-        private const string StudySqlQuerySearchFormat = "SELECT DISTINCT VALUE {{ \"" + nameof(DicomStudy.StudyInstanceUID) + "\": c." + nameof(QuerySeriesDocument.StudyUID) + " }} FROM c {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
-        private const string SeriesSqlQuerySearchFormat = "SELECT VALUE {{ \"" + nameof(DicomSeries.StudyInstanceUID) + "\": c." + nameof(QuerySeriesDocument.StudyUID) + ", \"" + nameof(DicomSeries.SeriesInstanceUID) + "\": c." + nameof(QuerySeriesDocument.SeriesUID) + " }} FROM c {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
-        private const string InstanceSqlQuerySearchFormat = "SELECT VALUE {{ \"" + nameof(DicomInstance.StudyInstanceUID) + "\": c." + nameof(QuerySeriesDocument.StudyUID) + ", \"" + nameof(DicomInstance.SeriesInstanceUID) + "\": c." + nameof(QuerySeriesDocument.SeriesUID) + ", \"" + nameof(DicomInstance.SopInstanceUID) + "\": f." + nameof(QueryInstance.InstanceUID) + " }} FROM c JOIN f in c." + nameof(QuerySeriesDocument.Instances) + " {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
+        private const string StudySqlQuerySearchFormat = "SELECT DISTINCT VALUE {{ \"" + nameof(DicomStudy.StudyInstanceUID) + "\": c." + DocumentProperties.StudyInstanceUID + " }} FROM c {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
+        private const string SeriesSqlQuerySearchFormat = "SELECT VALUE {{ \"" + nameof(DicomSeries.StudyInstanceUID) + "\": c." + DocumentProperties.StudyInstanceUID + ", \"" + nameof(DicomSeries.SeriesInstanceUID) + "\": c." + DocumentProperties.SeriesInstanceUID + " }} FROM c {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
+        private const string InstanceSqlQuerySearchFormat = "SELECT VALUE {{ \"" + nameof(DicomInstance.StudyInstanceUID) + "\": c." + DocumentProperties.StudyInstanceUID + ", \"" + nameof(DicomInstance.SeriesInstanceUID) + "\": c." + DocumentProperties.SeriesInstanceUID + ", \"" + nameof(DicomInstance.SopInstanceUID) + "\": f." + DocumentProperties.SopInstanceUID + " }} FROM c JOIN f in c." + DocumentProperties.Instances + " {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
         private readonly DicomCosmosConfiguration _dicomConfiguration;
         private readonly IFormatProvider _stringFormatProvider;
 
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                 offset,
                 limit,
                 query,
-                (tag, parameter) => $"ARRAY_CONTAINS(f.{nameof(QueryInstance.Attributes)}[\"{tag.AttributeId}\"], {parameter.Name})");
+                (tag, parameter) => $"ARRAY_CONTAINS(f.{DocumentProperties.Attributes}[\"{tag.AttributeId}\"], {parameter.Name})");
         }
 
         private SqlQuerySpec BuildSeriesLevelQuerySpec(
@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                 offset,
                 limit,
                 query,
-                (tag, parameter) => $"ARRAY_CONTAINS(c.{nameof(QuerySeriesDocument.DistinctIndexedAttributes)}[\"{tag.AttributeId}\"].{nameof(AttributeValues.Values)}, {parameter.Name})");
+                (tag, parameter) => $"ARRAY_CONTAINS(c.{DocumentProperties.DistinctAttributes}[\"{tag.AttributeId}\"][\"{DocumentProperties.Values}\"], {parameter.Name})");
         }
 
         private SqlQuerySpec GenerateQuerySpec(
