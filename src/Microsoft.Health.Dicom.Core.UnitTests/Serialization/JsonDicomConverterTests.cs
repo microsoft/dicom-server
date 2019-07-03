@@ -614,7 +614,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         {
             File.WriteAllText("test.txt", "xxx!");
             var path = Path.GetFullPath("test.txt");
-            var bulkData = new BulkDataUriByteBuffer("file:" + path);
+
+            _output.WriteLine(path);
+            var bulkData = new BulkDataUriByteBuffer("file://" + path);
 
             Assert.Throws<InvalidOperationException>(() => bulkData.Data);
             Assert.Throws<InvalidOperationException>(() => bulkData.Size);
