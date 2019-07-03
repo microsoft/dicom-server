@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using Dicom;
 using EnsureThat;
 using Newtonsoft.Json;
@@ -35,17 +34,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         private static readonly IFormatProvider FormatProvider = CultureInfo.InvariantCulture;
         private readonly bool _writeTagsAsKeywords = false;
         private readonly DicomTag[] _dicomTags;
-        private static readonly IDictionary<string, DicomTag> KnownKeywordDicomTags =
-            typeof(DicomTag).GetFields(BindingFlags.Static | BindingFlags.Public)
-                .Select(x => x.GetValue(null) as DicomTag)
-                .Where(x => !string.IsNullOrWhiteSpace(x?.DictionaryEntry?.Keyword))
-                .Distinct(new KeywordComparer(_stringComparison))
-                .ToDictionary(x => x.DictionaryEntry.Keyword, x => x);
+        private static readonly IDictionary<string, DicomTag> KnownKeywordDicomTags = DicomDictionary.Default.ToDictionary(x => x.Keyword, x => x.Tag);
 
         [JsonConstructor]
         public DicomAttributeId(string attributeId)
-            : this(DeserializeAttributeId(attributeId))
         {
+            _dicomTags = DeserializeAttributeId(attributeId);
+            Validate();
+
+            AttributeId = attributeId;
         }
 
         public DicomAttributeId(params DicomTag[] dicomTags)
@@ -156,26 +153,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             if (InstanceDicomTag.DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ))
             {
                 throw new FormatException($"The last DICOM tag must not have the value representation 'sequence'. The provided DICOM tag {InstanceDicomTag.DictionaryEntry.Keyword} is known as having a 'sequence' value type.");
-            }
-        }
-
-        private class KeywordComparer : IEqualityComparer<DicomTag>
-        {
-            private readonly StringComparison _comparisonType;
-
-            public KeywordComparer(StringComparison comparisonType)
-            {
-                _comparisonType = comparisonType;
-            }
-
-            public bool Equals(DicomTag dicomTag1, DicomTag dicomTag2)
-            {
-                return string.Equals(dicomTag1.DictionaryEntry.Keyword, dicomTag2.DictionaryEntry.Keyword, _comparisonType);
-            }
-
-            public int GetHashCode(DicomTag dicomTag)
-            {
-                return dicomTag.DictionaryEntry.Keyword.GetHashCode(_comparisonType);
             }
         }
     }

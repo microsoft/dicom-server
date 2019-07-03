@@ -10,14 +10,23 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Persistence
 {
-    public class DicomAttributeIdExtensions
+    public class DicomAttributeIdExtensionsTests
     {
         [Fact]
         public void GivenDatasetAndInvalidParameters_WhenFetchedAttributeValues_ArgumentExceptionIsThrown()
         {
             var dicomDataset = new DicomDataset();
             Assert.Throws<ArgumentNullException>(() => dicomDataset.TryGetValues((DicomAttributeId)null, out object[] values));
-            Assert.Throws<ArgumentOutOfRangeException>(() => dicomDataset.TryGetValues(new DicomAttributeId(DicomTag.StudyDate), out object[] values, -1));
+        }
+
+        [Fact]
+        public void GivenDataset_WhenFetchingMissingAttribute_FalseIsReturned()
+        {
+            var dicomDataset = new DicomDataset();
+            var result = dicomDataset.TryGetValues(new DicomAttributeId(DicomTag.PatientName), out object[] values);
+
+            Assert.False(result);
+            Assert.Null(values);
         }
 
         [Fact]

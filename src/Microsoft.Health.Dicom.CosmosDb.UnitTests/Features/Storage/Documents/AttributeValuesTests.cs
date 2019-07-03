@@ -32,8 +32,8 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
 
             Assert.True(attributeValues.Add(maxDateTime));
 
-            Assert.Equal(minDateTime, attributeValues.MinDateTimeValue);
-            Assert.Equal(maxDateTime, attributeValues.MaxDateTimeValue);
+            Assert.Equal(minDateTime, attributeValues.MinDateTime);
+            Assert.Equal(maxDateTime, attributeValues.MaxDateTime);
         }
 
         [Fact]
@@ -47,14 +47,14 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
             Assert.True(attributeValues.Add("HelloWorld"));
             Assert.False(attributeValues.Add("HelloWorld"));
 
-            Assert.Null(new AttributeValues().MinDateTimeValue);
-            Assert.Null(new AttributeValues().MaxDateTimeValue);
+            Assert.Null(new AttributeValues().MinDateTime);
+            Assert.Null(new AttributeValues().MaxDateTime);
 
             Assert.True(attributeValues.Add(new DateTime(2019, 6, 22)));
             Assert.False(attributeValues.Add(new DateTime(2019, 6, 22)));
 
-            Assert.NotNull(attributeValues.MinDateTimeValue);
-            Assert.NotNull(attributeValues.MaxDateTimeValue);
+            Assert.NotNull(attributeValues.MinDateTime);
+            Assert.NotNull(attributeValues.MaxDateTime);
 
             Assert.False(attributeValues.Add(null));
         }
@@ -64,8 +64,8 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
         {
             Assert.Throws<ArgumentNullException>(() => new AttributeValues(null));
             Assert.NotNull(new AttributeValues().Values);
-            Assert.Null(new AttributeValues().MinDateTimeValue);
-            Assert.Null(new AttributeValues().MaxDateTimeValue);
+            Assert.Null(new AttributeValues().MinDateTime);
+            Assert.Null(new AttributeValues().MaxDateTime);
         }
 
         [Fact]
@@ -86,8 +86,8 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
             var json = JsonConvert.SerializeObject(attributeValues);
             AttributeValues deserialized = JsonConvert.DeserializeObject<AttributeValues>(json);
 
-            Assert.Equal(attributeValues.MinDateTimeValue, deserialized.MinDateTimeValue);
-            Assert.Equal(attributeValues.MaxDateTimeValue, deserialized.MaxDateTimeValue);
+            Assert.Equal(attributeValues.MinDateTime, deserialized.MinDateTime);
+            Assert.Equal(attributeValues.MaxDateTime, deserialized.MaxDateTime);
         }
     }
 }
