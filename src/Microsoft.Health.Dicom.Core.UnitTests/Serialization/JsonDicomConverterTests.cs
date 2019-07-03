@@ -1,12 +1,10 @@
-﻿// -------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
-// -------------------------------------------------------------------------------------------------
-
+﻿#pragma warning disable
 // Copyright (c) 2012-2019 fo-dicom contributors.
 // Licensed under the Microsoft Public License (MS-PL).
+// Note: This is a copy of fo-dicom:4.01/Tests/Desktop/Serialization/JsonDicomConverterTest.cs
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -45,6 +43,91 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
             VerifyJsonTripleTrip(target);
         }
 
+        private double TimeCall(int numCalls, Action call)
+        {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+
+            for (int i = 0; i < numCalls; i++)
+                call();
+
+            stopWatch.Stop();
+
+            var totalElapsedMilliseconds = stopWatch.ElapsedMilliseconds;
+            var millisecondsPerCall = totalElapsedMilliseconds / (double)numCalls;
+
+            return millisecondsPerCall;
+        }
+
+        [Fact]
+        public void ParseEmptyValues()
+        {
+            var json = @"
+            {
+                ""00082111"": {
+                    ""vr"": ""ST""
+                 }
+            } ";
+            var header = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+            Assert.NotNull(header.GetDicomItem<DicomShortText>(DicomTag.DerivationDescription));
+        }
+
+        [Fact]
+        public void TimeParseTag()
+        {
+            var millisecondsPerCallA = TimeCall(100, () =>
+            {
+                foreach (var kw in DicomDictionary.Default.Select(dde => dde.Keyword))
+                {
+                    var tag = DicomDictionary.Default[kw];
+                    Assert.NotNull(tag);
+                }
+            });
+
+            var millisecondsPerCallB = TimeCall(3, () =>
+            {
+                foreach (var kw in DicomDictionary.Default.Select(dde => dde.Keyword))
+                {
+                    var tag = DicomDictionary.Default.FirstOrDefault(dde => dde.Keyword == kw);
+                    Assert.NotNull(tag);
+                }
+            });
+
+            var millisecondsPerCallC = TimeCall(100, () =>
+            {
+                var dict = DicomDictionary.Default.ToDictionary(dde => dde.Keyword, dde => dde.Tag);
+                foreach (var kw in DicomDictionary.Default.Select(dde => dde.Keyword))
+                {
+                    var tag = dict[kw];
+                    Assert.NotNull(tag);
+                }
+            });
+
+            var millisecondsPerCallD = TimeCall(100, () =>
+            {
+                foreach (var kw in DicomDictionary.Default.Select(dde => dde.Keyword))
+                {
+                    var tag = JsonDicomConverter.ParseTag(kw);
+                    Assert.NotNull(tag);
+                }
+            });
+
+            _output.WriteLine(
+                $"Looking up keyword with pre-built dictionary: {millisecondsPerCallA} ms for {DicomDictionary.Default.Count()} tests");
+
+            _output.WriteLine(
+                $"Looking up keyword with LINQ: {millisecondsPerCallB} ms for {DicomDictionary.Default.Count()} tests");
+
+            _output.WriteLine(
+                $"Looking up keyword with one dictionary built for all calls: {millisecondsPerCallC} ms for {DicomDictionary.Default.Count()} tests");
+
+            _output.WriteLine(
+                $"Parsing tag with JsonDicomConverter.ParseTag: {millisecondsPerCallD} ms for {DicomDictionary.Default.Count()} tests");
+
+            Assert.InRange(millisecondsPerCallD / (1 + millisecondsPerCallC), 0, 20);
+
+        }
+
         /// <summary>
         /// Tests a "triple trip" test of serializing, de-serializing and re-serializing for a DICOM dataset containing attributes with all VRs.
         /// </summary>
@@ -74,10 +157,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         [Fact]
         public void DecimalStringValuesShouldPass()
         {
-            var originalDataset = new DicomDataset
-            {
+            var originalDataset = new DicomDataset {
                 { DicomTag.ImagePositionPatient, new[] { "1.0000", "0.00", "0" } },
-                { DicomTag.ImageOrientationPatient, new[] { "1e-3096", "1", "0.0000000", ".03", "-.03", "-0" } },
+                { DicomTag.ImageOrientationPatient, new[] { "1e-3096", "1", "0.0000000", ".03", "-.03", "-0" } }
             };
 
             var json = JsonConvert.SerializeObject(originalDataset, new JsonDicomConverter());
@@ -115,15 +197,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
                 item =>
                 {
                     if ((item.Tag.Element & 0xff00) != 0)
-                    {
                         Assert.False(string.IsNullOrWhiteSpace(item.Tag.PrivateCreator?.Creator));
-                    }
-
                     Assert.NotNull(item.Tag.DictionaryEntry);
                     if (item.ValueRepresentation == DicomVR.SQ)
-                    {
                         Assert.All(((DicomSequence)item).Items, ds => ValidatePrivateCreatorsExist_(ds));
-                    }
                 });
         }
 
@@ -135,6 +212,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         {
             var ds = new DicomDataset();
 
+            // have to turn off validation, since we want to add invalid DS values
             ds.Add(new DicomDecimalString(DicomTag.ImagePositionPatient, new[] { "   001 ", " +13 ", "+000000.0000E+00", "-000000.0000E+00" }));
             var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
             dynamic obj = JObject.Parse(json);
@@ -154,13 +232,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         public void EmptyStringsShouldSerializeAsNull()
         {
             var ds = new DicomDataset();
-
-            ds.Add(new DicomAgeString(DicomTag.PatientAge, new[] { "1Y", string.Empty, "3Y" }));
+            // have to turn off validation, since DicomTag.PatientAge has Value Multiplicity 1, so
+            // this dataset cannot be constructed without validation exception
+            ds.Add(new DicomAgeString(DicomTag.PatientAge, new[] { "1Y", "", "3Y" }));
             var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
             dynamic obj = JObject.Parse(json);
             Assert.Equal("1Y", (string)obj["00101010"].Value[0]);
             Assert.Null((string)obj["00101010"].Value[1]);
-            Assert.NotEqual(string.Empty, (string)obj["00101010"].Value[1]);
+            Assert.NotEqual("", (string)obj["00101010"].Value[1]);
             Assert.Equal("3Y", (string)obj["00101010"].Value[2]);
         }
 
@@ -190,7 +269,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.PixelData, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.PixelData);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -210,7 +289,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorDSValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorDSValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -230,7 +309,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorFDValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorFDValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -250,7 +329,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorFLValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorFLValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -270,7 +349,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorISValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorISValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -290,7 +369,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorLTValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorLTValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -310,7 +389,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorSLValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorSLValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -330,7 +409,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorSSValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorSSValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -350,7 +429,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorSTValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorSTValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -370,7 +449,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorUCValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorUCValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -390,7 +469,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorULValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorULValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -410,7 +489,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorUSValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorUSValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -430,7 +509,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 }
 ";
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var buffer = reconstituated.GetValue<IBulkDataUriByteBuffer>(DicomTag.SelectorUTValue, 0);
+            var buffer = reconstituated.Get<IBulkDataUriByteBuffer>(DicomTag.SelectorUTValue);
             Assert.NotNull(buffer);
             Assert.Equal("http://www.example.com/testdicom.dcm", buffer.BulkDataUri);
         }
@@ -458,8 +537,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 ]";
 
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset[]>(json, new JsonDicomConverter());
-            Assert.Equal("1.2.392.200036.9116.2.2.2.1762893313.1029997326.945873", reconstituated[0].GetValue<DicomUID>(0x0020000d, 0).UID);
-            Assert.Equal("1.2.392.200036.9116.2.2.2.2162893313.1029997326.945876", reconstituated[1].GetValue<DicomUID>(0x0020000d, 0).UID);
+            Assert.Equal("1.2.392.200036.9116.2.2.2.1762893313.1029997326.945873", reconstituated[0].Get<DicomUID>(0x0020000d).UID);
+            Assert.Equal("1.2.392.200036.9116.2.2.2.2162893313.1029997326.945876", reconstituated[1].Get<DicomUID>(0x0020000d).UID);
         }
 
         /// <summary>
@@ -485,8 +564,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 ]";
 
             var reconstituated = JsonConvert.DeserializeObject<DicomDataset[]>(json, new JsonDicomConverter());
-            Assert.Equal("1.2.392.200036.9116.2.2.2.1762893313.1029997326.945873", reconstituated[0].GetValue<DicomUID>(0x0020000d, 0).UID);
-            Assert.Equal("1.2.392.200036.9116.2.2.2.2162893313.1029997326.945876", reconstituated[1].GetValue<DicomUID>(0x0020000d, 0).UID);
+            Assert.Equal("1.2.392.200036.9116.2.2.2.1762893313.1029997326.945873", reconstituated[0].Get<DicomUID>(0x0020000d).UID);
+            Assert.Equal("1.2.392.200036.9116.2.2.2.2162893313.1029997326.945876", reconstituated[1].Get<DicomUID>(0x0020000d).UID);
         }
 
         /// <summary>
@@ -497,7 +576,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         {
             var target = new DicomDataset
             {
-                new DicomOtherWord(DicomTag.PixelData, new BulkDataUriByteBuffer("http://www.example.com/bulk.dcm")),
+                new DicomOtherWord(DicomTag.PixelData, new BulkDataUriByteBuffer("http://www.example.com/bulk.dcm"))
+            };
+            VerifyJsonTripleTrip(target);
+        }
+
+        /// <summary>
+        /// Test round-tripping a dicom dataset containing a bulk uri byte buffer.
+        /// </summary>
+        [Fact]
+        public void EncodedTextRoundTrip()
+        {
+            var target = new DicomDataset
+            {
+                new DicomCodeString(DicomTag.SpecificCharacterSet, "ISO_IR 192"),
+                new DicomLongText(DicomTag.StudyDescription, Encoding.UTF8, "Label®")
             };
             VerifyJsonTripleTrip(target);
         }
@@ -532,7 +625,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
             var json2 = JsonConvert.SerializeObject(reconstituated, Formatting.Indented, new JsonDicomConverter());
             Assert.Equal(json, json2);
 
-            DownloadBulkData(reconstituated.GetValue<BulkDataUriByteBuffer>(DicomTag.PixelData, 0));
+            DownloadBulkData(reconstituated.Get<BulkDataUriByteBuffer>(DicomTag.PixelData));
             DownloadBulkData(bulkData);
 
             Assert.True(ValueEquals(target, reconstituated));
@@ -541,95 +634,64 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 
             File.Delete("test.txt");
 
-            Assert.Equal(target.GetValue<IByteBuffer>(DicomTag.PixelData, 0).Size, (uint)expectedPixelData.Length);
-            Assert.True(target.GetValues<byte>(DicomTag.PixelData).SequenceEqual(expectedPixelData));
-            Assert.Equal(reconstituated.GetValue<IByteBuffer>(DicomTag.PixelData, 0).Size, (uint)expectedPixelData.Length);
-            Assert.True(reconstituated.GetValues<byte>(DicomTag.PixelData).SequenceEqual(expectedPixelData));
+            Assert.Equal(target.Get<IByteBuffer>(DicomTag.PixelData).Size, (uint)expectedPixelData.Length);
+            Assert.True(target.Get<byte[]>(DicomTag.PixelData).SequenceEqual(expectedPixelData));
+            Assert.Equal(reconstituated.Get<IByteBuffer>(DicomTag.PixelData).Size, (uint)expectedPixelData.Length);
+            Assert.True(reconstituated.Get<byte[]>(DicomTag.PixelData).SequenceEqual(expectedPixelData));
         }
 
         private static bool ValueEquals(DicomDataset a, DicomDataset b)
         {
             if (a == null || b == null)
-            {
                 return a == b;
-            }
             else if (a == b)
-            {
                 return true;
-            }
             else
-            {
                 return a.Zip(b, ValueEquals).All(x => x);
-            }
         }
 
         private static bool ValueEquals(DicomItem a, DicomItem b)
         {
             if (a == null || b == null)
-            {
                 return a == b;
-            }
             else if (a == b)
-            {
                 return true;
-            }
             else if (a.ValueRepresentation != b.ValueRepresentation || (uint)a.Tag != (uint)b.Tag)
-            {
                 return false;
-            }
-            else if (a is DicomElement)
+            else if (a is DicomElement elementA)
             {
-                if (b is DicomElement == false)
-                {
+                if (!(b is DicomElement elementB))
                     return false;
-                }
-                else if (b is DicomStringElement && a is DicomDecimalString)
-                {
-                    return ((DicomDecimalString)a).Get<decimal[]>().SequenceEqual(((DicomDecimalString)b).Get<decimal[]>());
-                }
+                else if (b is DicomDecimalString decimalStringB
+                    && a is DicomDecimalString decimalStringA)
+                    return decimalStringA.Get<decimal[]>().SequenceEqual(decimalStringB.Get<decimal[]>());
                 else
-                {
-                    return ValueEquals(((DicomElement)a).Buffer, ((DicomElement)b).Buffer);
-                }
+                    return ValueEquals(elementA.Buffer, elementB.Buffer);
             }
-            else if (a is DicomSequence)
+            else if (a is DicomSequence sequenceA)
             {
-                if (b is DicomSequence == false)
-                {
+                if (!(b is DicomSequence sequenceB))
                     return false;
-                }
                 else
-                {
-                    return ((DicomSequence)a).Items.Zip(((DicomSequence)b).Items, ValueEquals).All(x => x);
-                }
+                    return sequenceA.Items.Zip(sequenceB.Items, ValueEquals).All(x => x);
             }
-            else if (a is DicomFragmentSequence)
+            else if (a is DicomFragmentSequence fragmentSequenceA)
             {
-                if (b is DicomFragmentSequence == false)
-                {
+                if (!(b is DicomFragmentSequence fragmentSequenceB))
                     return false;
-                }
                 else
-                {
-                    return ((DicomFragmentSequence)a).Fragments.Zip(((DicomFragmentSequence)b).Fragments, ValueEquals).All(x => x);
-                }
+                    return fragmentSequenceA.Fragments.Zip(fragmentSequenceB.Fragments, ValueEquals).All(x => x);
             }
             else
-            {
                 return a.Equals(b);
-            }
         }
 
         private static bool ValueEquals(IByteBuffer a, IByteBuffer b)
         {
             if (a == null || b == null)
-            {
                 return a == b;
-            }
             else if (a == b)
-            {
                 return true;
-            }
             else if (a.IsMemory)
             {
                 return b.IsMemory && a.Data.SequenceEqual(b.Data);
@@ -637,22 +699,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
             else if (a is IBulkDataUriByteBuffer bufferA)
             {
                 if (b is IBulkDataUriByteBuffer bufferB)
-                {
                     return bufferA.BulkDataUri == bufferB.BulkDataUri;
-                }
                 else
-                {
                     return false;
-                }
             }
             else if (a is EmptyBuffer && b is EmptyBuffer)
-            {
                 return true;
-            }
-            else if (a is StreamByteBuffer && b is StreamByteBuffer)
+            else if (a is StreamByteBuffer asbb && b is StreamByteBuffer bsbb)
             {
-                var asbb = (StreamByteBuffer)a;
-                var bsbb = (StreamByteBuffer)b;
                 if (asbb.Stream == null || bsbb.Stream == null)
                 {
                     return asbb.Stream == bsbb.Stream;
@@ -662,9 +716,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
                     return asbb.Position == bsbb.Position && asbb.Size == bsbb.Size && asbb.Stream.Equals(bsbb.Stream);
                 }
             }
-            else if (a is CompositeByteBuffer && b is CompositeByteBuffer)
+            else if (a is CompositeByteBuffer acbb && b is CompositeByteBuffer bcbb)
             {
-                return ((CompositeByteBuffer)a).Buffers.Zip(((CompositeByteBuffer)b).Buffers, ValueEquals).All(x => x);
+                return acbb.Buffers.Zip(bcbb.Buffers, ValueEquals).All(x => x);
             }
             else
             {
@@ -750,52 +804,52 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         private static DicomDataset BuildAllTypesNullDataset_()
         {
             var privateCreator = DicomDictionary.Default.GetPrivateCreator("TEST");
-            return new DicomDataset
-            {
-                new DicomApplicationEntity(new DicomTag(3, 0x1002, privateCreator)),
-                new DicomAgeString(new DicomTag(3, 0x1003, privateCreator)),
-                new DicomAttributeTag(new DicomTag(3, 0x1004, privateCreator)),
-                new DicomCodeString(new DicomTag(3, 0x1005, privateCreator)),
-                new DicomDate(new DicomTag(3, 0x1006, privateCreator), new string[0]),
-                new DicomDecimalString(new DicomTag(3, 0x1007, privateCreator), new string[0]),
-                new DicomDateTime(new DicomTag(3, 0x1008, privateCreator), new string[0]),
-                new DicomFloatingPointSingle(new DicomTag(3, 0x1009, privateCreator)),
-                new DicomFloatingPointDouble(new DicomTag(3, 0x100a, privateCreator)),
-                new DicomIntegerString(new DicomTag(3, 0x100b, privateCreator), new string[0]),
-                new DicomLongString(new DicomTag(3, 0x100c, privateCreator)),
-                new DicomLongText(new DicomTag(3, 0x100d, privateCreator), null),
-                new DicomOtherByte(new DicomTag(3, 0x100e, privateCreator), new byte[0]),
-                new DicomOtherDouble(new DicomTag(3, 0x100f, privateCreator), new double[0]),
-                new DicomOtherFloat(new DicomTag(3, 0x1010, privateCreator), new float[0]),
-                new DicomOtherLong(new DicomTag(3, 0x1014, privateCreator), new uint[0]),
-                new DicomOtherWord(new DicomTag(3, 0x1011, privateCreator), new ushort[0]),
-                new DicomPersonName(new DicomTag(3, 0x1012, privateCreator)),
-                new DicomShortString(new DicomTag(3, 0x1013, privateCreator)),
-                new DicomSignedLong(new DicomTag(3, 0x1001, privateCreator)),
-                new DicomSequence(new DicomTag(3, 0x1015, privateCreator)),
-                new DicomSignedShort(new DicomTag(3, 0x1017, privateCreator)),
-                new DicomShortText(new DicomTag(3, 0x1018, privateCreator), null),
-                new DicomTime(new DicomTag(3, 0x1019, privateCreator), new string[0]),
-                new DicomUnlimitedCharacters(new DicomTag(3, 0x101a, privateCreator), (string)null),
-                new DicomUniqueIdentifier(new DicomTag(3, 0x101b, privateCreator), new string[0]),
-                new DicomUnsignedLong(new DicomTag(3, 0x101c, privateCreator)),
-                new DicomUnknown(new DicomTag(3, 0x101d, privateCreator)),
-                new DicomUniversalResource(new DicomTag(3, 0x101e, privateCreator), null),
-                new DicomUnsignedShort(new DicomTag(3, 0x101f, privateCreator)),
-                new DicomUnlimitedText(new DicomTag(3, 0x1020, privateCreator), null),
-            };
+            return new DicomDataset {
+                           new DicomApplicationEntity(new DicomTag(3, 0x1002, privateCreator)),
+                           new DicomAgeString(new DicomTag(3, 0x1003, privateCreator)),
+                           new DicomAttributeTag(new DicomTag(3, 0x1004, privateCreator)),
+                           new DicomCodeString(new DicomTag(3, 0x1005, privateCreator)),
+                           new DicomDate(new DicomTag(3, 0x1006, privateCreator), new string[0]),
+                           new DicomDecimalString(new DicomTag(3, 0x1007, privateCreator), new string[0]),
+                           new DicomDateTime(new DicomTag(3, 0x1008, privateCreator), new string[0]),
+                           new DicomFloatingPointSingle(new DicomTag(3, 0x1009, privateCreator)),
+                           new DicomFloatingPointDouble(new DicomTag(3, 0x100a, privateCreator)),
+                           new DicomIntegerString(new DicomTag(3, 0x100b, privateCreator), new string[0]),
+                           new DicomLongString(new DicomTag(3, 0x100c, privateCreator)),
+                           new DicomLongText(new DicomTag(3, 0x100d, privateCreator), null),
+                           new DicomOtherByte(new DicomTag(3, 0x100e, privateCreator), new byte[0]),
+                           new DicomOtherDouble(new DicomTag(3, 0x100f, privateCreator), new double[0]),
+                           new DicomOtherFloat(new DicomTag(3, 0x1010, privateCreator), new float[0]),
+                           new DicomOtherLong(new DicomTag(3, 0x1014, privateCreator), new uint[0]),
+                           new DicomOtherWord(new DicomTag(3, 0x1011, privateCreator), new ushort[0]),
+                           new DicomPersonName(new DicomTag(3, 0x1012, privateCreator)),
+                           new DicomShortString(new DicomTag(3, 0x1013, privateCreator)),
+                           new DicomSignedLong(new DicomTag(3, 0x1001, privateCreator)),
+                           new DicomSequence(new DicomTag(3, 0x1015, privateCreator)),
+                           new DicomSignedShort(new DicomTag(3, 0x1017, privateCreator)),
+                           new DicomShortText(new DicomTag(3, 0x1018, privateCreator), null),
+                           new DicomTime(new DicomTag(3, 0x1019, privateCreator), new string[0]),
+                           new DicomUnlimitedCharacters(new DicomTag(3, 0x101a, privateCreator), (string)null),
+                           new DicomUniqueIdentifier(new DicomTag(3, 0x101b, privateCreator), new string[0]),
+                           new DicomUnsignedLong(new DicomTag(3, 0x101c, privateCreator)),
+                           new DicomUnknown(new DicomTag(3, 0x101d, privateCreator)),
+                           new DicomUniversalResource(new DicomTag(3, 0x101e, privateCreator), null),
+                           new DicomUnsignedShort(new DicomTag(3, 0x101f, privateCreator)),
+                           new DicomUnlimitedText(new DicomTag(3, 0x1020, privateCreator), null)
+                         };
         }
+
 
         private static DicomDataset BuildZooDataset()
         {
             var target = new DicomDataset
-            {
-                new DicomPersonName(DicomTag.PatientName, new[] { "Anna^Pelle", null, "Olle^Jöns^Pyjamas" }),
-                { DicomTag.SOPClassUID, DicomUID.RTPlanStorage },
-                { DicomTag.SOPInstanceUID, DicomUIDGenerator.GenerateDerivedFromUUID() },
-                { DicomTag.SeriesInstanceUID, new DicomUID[] { } },
-                { DicomTag.DoseType, new[] { "HEJ" } },
-            };
+                           {
+                             new DicomPersonName(DicomTag.PatientName, new[] { "Anna^Pelle", null, "Olle^Jöns^Pyjamas" }),
+                             { DicomTag.SOPClassUID, DicomUID.RTPlanStorage },
+                             { DicomTag.SOPInstanceUID, DicomUIDGenerator.GenerateNew() },
+                             { DicomTag.SeriesInstanceUID, new DicomUID[] { } },
+                             { DicomTag.DoseType, new[] { "HEJ" } },
+                           };
 
             target.Add(DicomTag.ControlPointSequence, (DicomSequence[])null);
             var beams = new[] { 1, 2, 3 }.Select(beamNumber =>
@@ -803,7 +857,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
                 var beam = new DicomDataset
                 {
                     { DicomTag.BeamNumber, beamNumber },
-                    { DicomTag.BeamName, $"Beam #{beamNumber}" },
+                    { DicomTag.BeamName, $"Beam #{beamNumber}" }
                 };
                 return beam;
             }).ToList();
@@ -835,11 +889,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
                          new DicomLongString(new DicomTag(3, 0x0010, privateCreator), privateCreator.Creator),
                          new DicomApplicationEntity(new DicomTag(3, 0x1002, privateCreator), "AETITLE"),
                          new DicomUnknown(new DicomTag(3, 0x1003, privateCreator), Encoding.ASCII.GetBytes("WHATISTHIS")),
-                         new DicomDecimalString(DicomTag.GantryAngle, 36),
+                         new DicomDecimalString(DicomTag.GantryAngle, 36)
                      };
             var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter(writeTagsAsKeywords: true));
-            Assert.Equal(
-                "{\"00030010\":{\"vr\":\"LO\",\"Value\":[\"TEST\"]},\"00031002\":{\"vr\":\"AE\",\"Value\":[\"AETITLE\"]},\"00031003\":{\"vr\":\"UN\",\"InlineBinary\":\"V0hBVElTVEhJUw==\"},\"00031010\":{\"vr\":\"LO\",\"Value\":[\"TEST\"]},\"GantryAngle\":{\"vr\":\"DS\",\"Value\":[36]}}",
+            Assert.Equal("{\"00030010\":{\"vr\":\"LO\",\"Value\":[\"TEST\"]},\"00031002\":{\"vr\":\"AE\",\"Value\":[\"AETITLE\"]},\"00031003\":{\"vr\":\"UN\",\"InlineBinary\":\"V0hBVElTVEhJUw==\"},\"00031010\":{\"vr\":\"LO\",\"Value\":[\"TEST\"]},\"GantryAngle\":{\"vr\":\"DS\",\"Value\":[36]}}",
                 json);
         }
 
@@ -849,6 +902,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
             var x = BuildAllTypesNullDataset_();
             VerifyJsonTripleTrip(x);
         }
+
 
         [Fact]
         public static void TestPrivateTagsDeserialization()
@@ -867,156 +921,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
             var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
             var ds2 = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
 
-            Assert.Equal(ds.GetValue<string>(privTag1, 0), ds2.GetValue<string>(privTag1, 0));
-            Assert.Equal(ds.GetValue<string>(privTag2, 0), ds2.GetValue<string>(privTag2, 0));
-        }
-
-        [Fact]
-        public static void TestJsonEscapeCharacters()
-        {
-            var unlimitedTextValue = "Multi\nLine\ttab\"quoted\"formfeed\f";
-
-            var ds = new DicomDataset
-            {
-                { DicomTag.StrainAdditionalInformation, unlimitedTextValue },
-            };
-
-            var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
-            JObject.Parse(json);
-            var ds2 = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var recoveredString = ds2.GetValue<string>(DicomTag.StrainAdditionalInformation, 0);
-
-            Assert.Equal(unlimitedTextValue, recoveredString);
-        }
-
-        [Fact]
-        public static void TestJsonUnicode()
-        {
-            var unlimitedTextValue = "⚽";
-
-            var ds = new DicomDataset { { DicomTag.StrainAdditionalInformation, Encoding.UTF8, unlimitedTextValue }, };
-
-            var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
-            JObject.Parse(json);
-
-            DicomDataset ds2 = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-            var recoveredString = ds2.GetValue<string>(DicomTag.StrainAdditionalInformation, 0);
-
-            Assert.Equal(unlimitedTextValue, recoveredString);
-        }
-
-        [Fact]
-        public static void TestBase64BufferEncodingOB()
-        {
-            var pixelData = Enumerable.Range(0, 1 << 8).Select(v => (byte)v).ToArray();
-            var ds = new DicomDataset
-            {
-                { DicomTag.PixelData, pixelData },
-            };
-
-            var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
-            JObject.Parse(json);
-            var ds2 = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-
-            var recoveredPixelData = ds2.GetValues<byte>(DicomTag.PixelData);
-
-            Assert.Equal(pixelData, recoveredPixelData);
-        }
-
-        [Fact]
-        public static void TestBase64BufferEncodingOW()
-        {
-            var pixelData = Enumerable.Range(0, 1 << 16).Select(v => (ushort)v).ToArray();
-            var ds = new DicomDataset
-            {
-                new DicomOtherWord(DicomTag.PixelData, pixelData),
-            };
-
-            var json = JsonConvert.SerializeObject(ds, new JsonDicomConverter());
-            JObject.Parse(json);
-            var ds2 = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-
-            var recoveredPixelData = ds2.GetValues<ushort>(DicomTag.PixelData);
-
-            Assert.Equal(pixelData, recoveredPixelData);
-        }
-
-        [Fact]
-        public static void TestExceptionWhenInvalidDicomJson()
-        {
-            const string json = @"
-{
-  ""00081030"": {
-    ""VR"": ""LO"",
-    ""Value"": [ ""Study1"" ]
-  }
-}
-";
-            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
-        }
-
-        [Fact]
-        public static void TestExceptionWhenInvalidVR()
-        {
-            const string json = @"
-{
-  ""00081030"": {
-    ""vr"": ""BADVR"",
-    ""Value"": [ ""Study1"" ]
-  }
-}
-";
-            Assert.Throws<NotSupportedException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
-        }
-
-        [Fact]
-        public static void TestExceptionWhenInvalidNumberEncoding()
-        {
-            const string json = @"
-            {
-              ""00081030"": {
-                ""vr"": ""IS"",
-                ""Value"": [ ""0"" ]
-              }
-            }
-            ";
-            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
-        }
-
-        [Fact(Skip = "Expecting this to throw but it does not, leaving here as behavioural note; it appears the value representation is ignored.")]
-        public static void TestExceptionWhenInvalidVRForTag()
-        {
-            const string json = @"
-            {
-              ""00081030"": {
-                ""vr"": ""IS"",
-                ""Value"": [ 0 ]
-              }
-            }
-            ";
-            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
-        }
-
-        [Fact]
-        public static void TestExceptionWhenMultipleTags()
-        {
-            const string json = @"
-            {
-              ""00081030"": {
-                ""vr"": ""LO"",
-                ""Value"": [ ""Study1"" ]
-              },
-              ""00081030"": {
-                ""vr"": ""LO"",
-                ""Value"": [ ""Study2"" ]
-              }
-            }
-            ";
-            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(
-                json,
-                new JsonDicomConverter(
-                    writeTagsAsKeywords: false,
-                    new JsonLoadSettings() { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error })));
+            Assert.Equal(ds.Get<string>(privTag1), ds2.Get<string>(privTag1));
+            Assert.Equal(ds.Get<string>(privTag2), ds2.Get<string>(privTag2));
         }
     }
 }
+#pragma warning enable

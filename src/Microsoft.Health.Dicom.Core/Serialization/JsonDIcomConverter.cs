@@ -1,14 +1,8 @@
-﻿// -------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
-// -------------------------------------------------------------------------------------------------
-
-// Note this is a refactored copy of fo-dicom:4.01/Serialization/Json/JsonDicomConverter.cs
-
+﻿#pragma warning disable
 // Copyright (c) 2012-2019 fo-dicom contributors.
 // Licensed under the Microsoft Public License (MS-PL).
+// Note: This is a copy of fo-dicom:4.01/Serialization/Json/JsonDicomConverter.cs
 
-#pragma warning disable
 using System;
 using System.Collections.Generic;
 using System.Globalization;
