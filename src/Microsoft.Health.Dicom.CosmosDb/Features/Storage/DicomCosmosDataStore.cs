@@ -229,6 +229,18 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         private IAsyncPolicy CreatePreConditionFailedRetryPolicy()
             => Policy
                     .Handle<DocumentClientException>(ex => ex.StatusCode == HttpStatusCode.PreconditionFailed || ex.StatusCode == HttpStatusCode.TooManyRequests)
-                    .WaitAndRetryForeverAsync(retryIndex => TimeSpan.FromMilliseconds((retryIndex - 1) * _random.Next(200, 500)));
+                    .WaitAndRetryForeverAsync(
+                            (retryIndex, ex, context) =>
+                            {
+                                // Use RetryAfter header when TooManyRequests response is returned.
+                                if (ex is DocumentClientException doc && doc.StatusCode == HttpStatusCode.TooManyRequests)
+                                {
+                                    return doc.RetryAfter;
+                                }
+
+                                // Otherwise, delay retry with some randomness.
+                                return TimeSpan.FromMilliseconds((retryIndex - 1) * _random.Next(200, 500));
+                            },
+                            (exception, retryIndex, timespan, context) => Task.CompletedTask);
     }
 }

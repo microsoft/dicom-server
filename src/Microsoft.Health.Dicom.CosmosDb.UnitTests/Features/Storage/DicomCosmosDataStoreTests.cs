@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.CosmosDb.Configs;
 using Microsoft.Health.Dicom.CosmosDb.Config;
@@ -48,6 +50,19 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage
             await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.DeleteInstanceIndexAsync(Guid.NewGuid().ToString(), string.Empty, Guid.NewGuid().ToString()));
             await Assert.ThrowsAsync<ArgumentNullException>(() => _indexDataStore.DeleteInstanceIndexAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), null));
             await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.DeleteInstanceIndexAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), string.Empty));
+        }
+
+        [Fact]
+        public void GivenDocumentClient_WhenEnablingCrossPartitionQuery_RequiresReflection()
+        {
+            // When the feed options natively supports this, remove this test and the extra code in the DicomCosmosDataStore for this hack.
+            var feedOptions = new FeedOptions();
+
+            PropertyInfo propertyInfo = feedOptions.GetType().GetProperty("EnableCrossPartitionSkipTake", BindingFlags.NonPublic | BindingFlags.Instance);
+            propertyInfo.SetValue(feedOptions, Convert.ChangeType(true, propertyInfo.PropertyType));
+
+            Assert.NotNull(propertyInfo);
+            Assert.True((bool)propertyInfo.GetValue(feedOptions));
         }
     }
 }
