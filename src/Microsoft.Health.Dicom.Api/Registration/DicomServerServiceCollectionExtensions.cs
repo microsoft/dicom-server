@@ -6,7 +6,9 @@
 using System;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -30,6 +32,7 @@ namespace Microsoft.AspNetCore.Builder
                 options.RespectBrowserAcceptHeader = true;
             });
 
+            services.AddSingleton<TextOutputFormatter>(new DicomJsonOutputFormatter());
             services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
