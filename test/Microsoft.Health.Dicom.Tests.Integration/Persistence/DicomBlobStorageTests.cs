@@ -8,10 +8,10 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Storage;
-using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Xunit;
 
-namespace Microsoft.Health.DicomTests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
     public class DicomBlobStorageTests : IClassFixture<DicomBlobStorageTestsFixture>
     {

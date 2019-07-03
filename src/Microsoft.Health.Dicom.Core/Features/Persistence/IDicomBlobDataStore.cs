@@ -8,7 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Blob.Features.Storage
+namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public interface IDicomBlobDataStore
     {

@@ -2,39 +2,36 @@ parameters:
   packageArtifacts: true
 
 steps:
-- task: DotNetCoreInstaller@0
-  inputs:
-    version: '2.2.103' 
 
-- script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror
-  displayName: 'dotnet build $(buildConfiguration)'
+  - task: NuGetToolInstaller@0
+    displayName: 'Use NuGet 4.7.1'
+    inputs:
+      versionSpec: 4.7.1
+      checkLatest: true
 
-# To run the tests we install NPM to run the 'azurite' emulator (https://github.com/Azure/Azurite).
-# This allows us to test the blob storage providers without an Azure instance.
-- task: NodeTool@0
-  displayName: 'Use Node 8.x'
-  inputs:
-    versionSpec: 8.x
-    checkLatest: true
+  - task: DotNetCoreInstaller@0
+    inputs:
+      version: '2.2.103' 
 
-- script: npm install -g azurite@2.7.0
-  displayName: 'Install Azurite v2.7.0'
+  - task:  DotNetCoreCLI@2
+    displayName: 'donet restore'
+    inputs:
+      command: restore
+      restoreSolution: '**\*.sln'
+      feedsToUse: config
+      nugetConfigPath: nuget.config
 
-# We start the Azurite as a separate process as the start call is blocking.
-- script: azurite -s &
-  condition: and(succeeded(), eq( variables['Agent.OS'], 'Linux' ))
-  displayName: 'Start Azurite Storage Emulator (Linux)'
+  - script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror
+    displayName: 'dotnet build $(buildConfiguration)'
 
-- script: start azurite -s
-  condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))
-  displayName: 'Start Azurite Storage Emulator (Windows)'
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet test UnitTests'
+    inputs:
+      command: test
+      projects: '**/*UnitTests/*.csproj'
+      arguments: '--configuration $(buildConfiguration)'
 
-- task: DotNetCoreCLI@2
-  displayName: 'dotnet test UnitTests'
-  inputs:
-    command: test
-    projects: '**\*Tests*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+  - template: test.yml
 
-- ${{ if eq(parameters.packageArtifacts, 'true') }}:
-  - template: package.yml
+  - ${{ if eq(parameters.packageArtifacts, 'true') }}:
+    - template: package.yml

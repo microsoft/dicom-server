@@ -13,6 +13,7 @@ using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
