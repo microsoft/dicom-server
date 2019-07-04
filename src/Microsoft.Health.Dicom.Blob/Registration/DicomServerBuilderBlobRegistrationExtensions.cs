@@ -19,7 +19,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomServerBuilderBlobRegistrationExtensions
     {
-        private static readonly string DicomServerBlobConfigurationSectionName = $"DicomWeb:{BlobClientRegistrationExtensions.BlobStoreConfigurationSectionName}";
+        private static readonly string DicomServerBlobConfigurationSectionName = $"DicomWeb:DicomStore";
 
         /// <summary>
         /// Adds the blob data store for the DICOM server.

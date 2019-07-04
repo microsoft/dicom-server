@@ -11,6 +11,7 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Metadata;
+using Microsoft.Health.Dicom.Metadata.Config;
 using Microsoft.Health.Dicom.Metadata.Features.Health;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -19,7 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomServerBuilderMetadataRegistrationExtensions
     {
-        private static readonly string DicomServerBlobConfigurationSectionName = $"DicomWeb:{BlobClientRegistrationExtensions.BlobStoreConfigurationSectionName}";
+        private static readonly string DicomServerBlobConfigurationSectionName = $"DicomWeb:MetadataStore";
 
         /// <summary>
         /// Adds the metadata store for the DICOM server.
@@ -48,10 +49,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 containerConfiguration => configuration.GetSection(DicomServerBlobConfigurationSectionName)
                     .Bind(containerConfiguration));
 
-            services.Add<DicomMetadataStore>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
+            // Add the metadata configuration; this is not loaded from the settings configuration for now.
+            services.Add<DicomMetadataConfiguration>()
+                .Singleton()
+                .AsSelf();
 
             services.Add(sp =>
                 {
@@ -65,6 +66,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 })
                 .Singleton()
                 .AsService<IBlobContainerInitializer>();
+
+            services.Add<DicomMetadataStore>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             return serverBuilder;
         }

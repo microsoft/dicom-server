@@ -23,7 +23,9 @@ namespace Microsoft.Health.Dicom.Web
         public virtual void ConfigureServices(IServiceCollection services)
         {
             services.AddDicomServer()
-                .AddBlobStorageDataStore(Configuration);
+                .AddBlobStorageDataStore(Configuration)
+                .AddMetadataStorageDataStore(Configuration)
+                .AddDicomCosmosDbIndexing(Configuration);
 
             AddApplicationInsightsTelemetry(services);
         }

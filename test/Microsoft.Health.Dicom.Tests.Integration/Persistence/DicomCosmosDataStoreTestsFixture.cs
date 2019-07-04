@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private static readonly SemaphoreSlim CollectionInitializationSemaphore = new SemaphoreSlim(1, 1);
         private readonly CosmosDataStoreConfiguration _cosmosDataStoreConfiguration;
         private readonly CosmosCollectionConfiguration _cosmosCollectionConfiguration;
-        private readonly DicomCosmosConfiguration _dicomCosmosConfiguration;
+        private readonly DicomIndexingConfiguration _dicomIndexingConfiguration;
 
         public DicomCosmosDataStoreTestsFixture()
         {
@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 CollectionId = Guid.NewGuid().ToString(),
             };
 
-            _dicomCosmosConfiguration = new DicomCosmosConfiguration();
+            _dicomIndexingConfiguration = new DicomIndexingConfiguration();
         }
 
         public IDicomIndexDataStore DicomIndexDataStore { get; private set; }
@@ -92,7 +92,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 documentClient,
                 _cosmosDataStoreConfiguration,
                 optionsMonitor,
-                _dicomCosmosConfiguration);
+                _dicomIndexingConfiguration);
         }
 
         public async Task DisposeAsync()

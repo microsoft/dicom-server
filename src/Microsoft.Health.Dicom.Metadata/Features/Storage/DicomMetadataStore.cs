@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
             // Retry when the pre-condition fails on replace (ETag check).
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            await cloudBlockBlob.ThrowDataStoreException(
+            await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
                 async (blockBlob) =>
                 {
                     _logger.LogDebug($"Storing Instance: {identity.StudyInstanceUID}.{identity.SopInstanceUID}.{identity.SopInstanceUID}");
@@ -83,7 +83,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         {
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
-            return await cloudBlockBlob.ThrowDataStoreException(
+            return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
                 async (blockBlob) =>
                 {
                     _logger.LogDebug($"Getting Instances in Study: {studyInstanceUID}");
@@ -98,7 +98,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
-            return await cloudBlockBlob.ThrowDataStoreException(
+            return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
                 async (blockBlob) =>
                 {
                     _logger.LogDebug($"Getting Instances in Series: {seriesInstanceUID}, Study: {studyInstanceUID}");
@@ -120,7 +120,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
             // Retry when the pre-condition fails on replace (ETag check).
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            return await cloudBlockBlob.ThrowDataStoreException(
+            return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
                 async (blockBlob) =>
                 {
                     DicomStudyMetadata metadata = await ReadMetadataAsync(blockBlob, cancellationToken);
@@ -144,7 +144,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
             // Retry when the pre-condition fails on replace (ETag check).
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            return await cloudBlockBlob.ThrowDataStoreException(
+            return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
                 async (blockBlob) =>
                 {
                     DicomStudyMetadata metadata = await ReadMetadataAsync(blockBlob, cancellationToken);
@@ -184,7 +184,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
             // Retry when the pre-condition fails on replace (ETag check).
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            await cloudBlockBlob.ThrowDataStoreException(
+            await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
                 async (blockBlob) =>
                 {
                     DicomStudyMetadata metadata = await ReadMetadataAsync(blockBlob, cancellationToken);

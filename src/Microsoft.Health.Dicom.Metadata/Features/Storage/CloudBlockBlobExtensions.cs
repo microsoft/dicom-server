@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 {
     public static class CloudBlockBlobExtensions
     {
-        public static async Task<T> ThrowDataStoreException<T>(this CloudBlockBlob cloudBlockBlob, Func<CloudBlockBlob, Task<T>> action, IAsyncPolicy retryPolicy = null)
+        public static async Task<T> CatchStorageExceptionAndThrowDataStoreException<T>(this CloudBlockBlob cloudBlockBlob, Func<CloudBlockBlob, Task<T>> action, IAsyncPolicy retryPolicy = null)
         {
             EnsureArg.IsNotNull(cloudBlockBlob, nameof(cloudBlockBlob));
             EnsureArg.IsNotNull(action, nameof(action));
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             }
         }
 
-        public static async Task ThrowDataStoreException(this CloudBlockBlob documentClient, Func<CloudBlockBlob, Task> action, IAsyncPolicy retryPolicy = null)
+        public static async Task CatchStorageExceptionAndThrowDataStoreException(this CloudBlockBlob documentClient, Func<CloudBlockBlob, Task> action, IAsyncPolicy retryPolicy = null)
         {
             EnsureArg.IsNotNull(documentClient, nameof(documentClient));
             EnsureArg.IsNotNull(action, nameof(action));
