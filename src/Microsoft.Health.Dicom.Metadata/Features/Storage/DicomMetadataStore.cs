@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -73,8 +74,113 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                         metadata = await ReadMetadataAsync(blockBlob, cancellationToken);
                     }
 
-                    metadata.AddInstance(instance, _metadataConfiguration.MetadataAttributes);
+                    metadata.AddDicomInstance(instance, _metadataConfiguration.StudySeriesMetadataAttributes);
                     await UpdateMetadataAsync(blockBlob, metadata, cancellationToken);
+                },
+                retryPolicy);
+        }
+
+        /// <inheritdoc />
+        public async Task<DicomDataset> GetStudyDicomMetadataAsync(
+            string studyInstanceUID,
+            HashSet<DicomAttributeId> optionalAttributes = null,
+            CancellationToken cancellationToken = default)
+        {
+            var result = new DicomDataset();
+            CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
+
+            return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
+                async (blockBlob) =>
+                {
+                    _logger.LogDebug($"Reading Study Metadata for Study: {studyInstanceUID}");
+
+                    DicomStudyMetadata studyMetadata = await ReadMetadataAsync(blockBlob, cancellationToken);
+
+                    // Add the Study specific Query Transaction attributes
+                    result.Add(DicomTag.NumberOfStudyRelatedSeries, studyMetadata.SeriesMetadata.Count);
+                    result.Add(DicomTag.NumberOfStudyRelatedInstances, studyMetadata.SeriesMetadata.Sum(x => x.Value.Instances.Count));
+                    result.Add(DicomTag.StudyInstanceUID, studyInstanceUID);
+
+                    // Now append the fetched metadata attributes.
+                    HashSet<DicomAttributeId> attributes = _metadataConfiguration.StudyRequiredMetadataAttributes;
+                    if (optionalAttributes != null)
+                    {
+                        optionalAttributes.Each(x => attributes.Add(x));
+                    }
+
+                    foreach (DicomAttributeId seriesAttributeId in attributes)
+                    {
+                        foreach (DicomSeriesMetadata seriesMetadata in studyMetadata.SeriesMetadata.Values)
+                        {
+                            // Just add the first DICOM item; we might want to do something more clever in the future.
+                            AttributeValue attributeValue = seriesMetadata.AttributeValues.FirstOrDefault(x => x.DicomItem.Tag == seriesAttributeId.InstanceDicomTag);
+                            if (attributeValue != null)
+                            {
+                                result.Add(attributeValue.DicomItem);
+                                break;
+                            }
+                        }
+                    }
+
+                    return result;
+                });
+        }
+
+        public async Task<DicomDataset> GetSeriesDicomMetadataWithAllOptionalAsync(
+            string studyInstanceUID,
+            string seriesInstanceUID,
+            CancellationToken cancellationToken = default)
+        {
+            return await GetSeriesDicomMetadataAsync(
+                studyInstanceUID, seriesInstanceUID, _metadataConfiguration.SeriesOptionalMetadataAttributes, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public async Task<DicomDataset> GetSeriesDicomMetadataAsync(
+            string studyInstanceUID,
+            string seriesInstanceUID,
+            HashSet<DicomAttributeId> optionalAttributes = null,
+            CancellationToken cancellationToken = default)
+        {
+            var result = new DicomDataset();
+            CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
+
+            return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
+                async (blockBlob) =>
+                {
+                    _logger.LogDebug($"Reading Series Metadata for Study: {studyInstanceUID} and Series: {seriesInstanceUID}");
+                    DicomStudyMetadata metadata = await ReadMetadataAsync(blockBlob, cancellationToken);
+
+                    if (!metadata.SeriesMetadata.ContainsKey(seriesInstanceUID))
+                    {
+                        throw new DataStoreException(HttpStatusCode.NotFound);
+                    }
+
+                    DicomSeriesMetadata seriesMetadata = metadata.SeriesMetadata[seriesInstanceUID];
+
+                    // Add the Series specific Query Transaction attributes
+                    result.Add(DicomTag.NumberOfSeriesRelatedInstances, seriesMetadata.Instances.Count);
+                    result.Add(DicomTag.SeriesInstanceUID, seriesInstanceUID);
+
+                    // Now append the fetched metadata attributes.
+                    HashSet<DicomAttributeId> attributes = _metadataConfiguration.SeriesRequiredMetadataAttributes;
+                    if (optionalAttributes != null)
+                    {
+                        optionalAttributes.Each(x => attributes.Add(x));
+                    }
+
+                    foreach (DicomAttributeId seriesAttributeId in attributes)
+                    {
+                        // Just add the first DICOM item; we might want to do something more clever in the future.
+                        AttributeValue attributeValue = seriesMetadata.AttributeValues.FirstOrDefault(x => x.DicomItem.Tag == seriesAttributeId.InstanceDicomTag);
+                        if (attributeValue != null)
+                        {
+                            result.Add(attributeValue.DicomItem);
+                            break;
+                        }
+                    }
+
+                    return result;
                 });
         }
 
@@ -190,22 +296,12 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                     DicomStudyMetadata metadata = await ReadMetadataAsync(blockBlob, cancellationToken);
 
                     // Validate the Series & Study is in the fetched metadata.
-                    if (!metadata.SeriesMetadata.ContainsKey(seriesInstanceUID) ||
-                        !metadata.SeriesMetadata[seriesInstanceUID].SopInstances.ContainsKey(sopInstanceUID))
+                    if (!metadata.TryRemoveInstance(new DicomInstance(studyInstanceUID, seriesInstanceUID, sopInstanceUID)))
                     {
                         throw new DataStoreException(HttpStatusCode.NotFound);
                     }
 
-                    _logger.LogDebug($"Deleting Instance Metadata: {seriesInstanceUID}");
-
-                    var seriesMetadata = metadata.SeriesMetadata[seriesInstanceUID];
-                    seriesMetadata.RemoveInstance(sopInstanceUID);
-
-                    // Check if this was the last instance in the series.
-                    if (seriesMetadata.SopInstances.Count == 0)
-                    {
-                        metadata.SeriesMetadata.Remove(seriesInstanceUID);
-                    }
+                    _logger.LogDebug($"Deleting Instance Metadata for SOP instance '{sopInstanceUID}'");
 
                     // If this instance was also the last instance in the entire study, we should delete the file, otherwise update.
                     if (metadata.SeriesMetadata.Count == 0)

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using Dicom;
 using EnsureThat;
 
@@ -11,49 +12,52 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public static class DicomAttributeIdExtensions
     {
+        public static bool TryGetDicomItems(this DicomDataset dicomDataset, DicomAttributeId attributeId, out DicomItem[] dicomItems)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(attributeId, nameof(attributeId));
+
+            var result = new List<DicomItem>();
+            dicomDataset.TryAppendValuesToList(result, attributeId);
+
+            dicomItems = result.Count > 0 ? result.ToArray() : null;
+            return result.Count > 0;
+        }
+
         public static bool TryGetValues<TItem>(this DicomDataset dicomDataset, DicomAttributeId attributeId, out TItem[] values)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(attributeId, nameof(attributeId));
 
             var result = new List<TItem>();
-            dicomDataset.TryAppendValuesToList(result, attributeId);
+            if (dicomDataset.TryGetDicomItems(attributeId, out DicomItem[] dicomItems))
+            {
+                IEnumerable<DicomElement> elements = dicomItems.Where(x => x is DicomElement).Select(x => (DicomElement)x);
+                result.AddRange(elements.SelectMany(x => Enumerable.Range(0, x.Count).Select(y => x.Get<TItem>(y))));
+            }
 
             values = result.Count > 0 ? result.ToArray() : null;
             return result.Count > 0;
         }
 
-        private static void TryAppendValuesToList<TItem>(
-            this DicomDataset dicomDataset,
-            List<TItem> list,
-            DicomAttributeId attributeId,
-            int startAttributeIndex = 0)
+        private static void TryAppendValuesToList(
+           this DicomDataset dicomDataset,
+           List<DicomItem> list,
+           DicomAttributeId attributeId,
+           int attributeIndex = 0)
         {
-            EnsureArg.IsGte(startAttributeIndex, 0, nameof(startAttributeIndex));
+            EnsureArg.IsGte(attributeIndex, 0, nameof(attributeIndex));
+            DicomTag currentDicomTag = attributeId.GetDicomTag(attributeIndex);
 
-            // Handle for now sequence elements (last item in attribute ID).
-            if (startAttributeIndex == attributeId.Length - 1)
+            if (attributeIndex + 1 == attributeId.Length)
             {
-                // Now first validate this DICOM tag exists in the dataset.
-                // Note: GetValueCount throws exception when the tag does not exist.
-                if (dicomDataset.TryGetValue(attributeId.InstanceDicomTag, 0, out TItem firstItem))
-                {
-                    list.Add(firstItem);
-
-                    for (int i = 1; i < dicomDataset.GetValueCount(attributeId.InstanceDicomTag); i++)
-                    {
-                        if (dicomDataset.TryGetValue(attributeId.InstanceDicomTag, i, out TItem value))
-                        {
-                            list.Add(value);
-                        }
-                    }
-                }
+                list.AddRange(dicomDataset.Where(x => x.Tag == currentDicomTag));
             }
-            else if (dicomDataset.TryGetSequence(attributeId.GetDicomTag(startAttributeIndex), out DicomSequence dicomSequence))
+            else if (dicomDataset.TryGetSequence(currentDicomTag, out DicomSequence dicomSequence))
             {
                 foreach (DicomDataset sequenceDataset in dicomSequence.Items)
                 {
-                    sequenceDataset.TryAppendValuesToList(list, attributeId, startAttributeIndex + 1);
+                    sequenceDataset.TryAppendValuesToList(list, attributeId, attributeIndex + 1);
                 }
             }
         }

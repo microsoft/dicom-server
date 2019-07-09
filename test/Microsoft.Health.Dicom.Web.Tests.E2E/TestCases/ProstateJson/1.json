@@ -1,0 +1,223 @@
+﻿{
+    "SpecificCharacterSet": {
+        "vr": "CS",
+        "Value": [ "ISO_IR 100" ]
+    },
+    "ImageType": {
+        "vr": "CS",
+        "Value": [ "ORIGINAL", "PRIMARY", "AXIAL" ]
+    },
+    "SOPClassUID": {
+        "vr": "UI",
+        "Value": [ "1.2.840.10008.5.1.4.1.1.2" ]
+    },
+    "SOPInstanceUID": {
+        "vr": "LO",
+        "Value": [ "bf719201b70e98ca816763fff992f5437dc427576f4ceeacc340923bb7f9cdbe" ]
+    },
+    "StudyDate": { "vr": "DA" },
+    "SeriesDate": { "vr": "DA" },
+    "AcquisitionDate": { "vr": "DA" },
+    "ContentDate": { "vr": "DA" },
+    "StudyTime": {
+        "vr": "TM",
+        "Value": [ "031005" ]
+    },
+    "SeriesTime": {
+        "vr": "TM",
+        "Value": [ "031259" ]
+    },
+    "AcquisitionTime": {
+        "vr": "TM",
+        "Value": [ "031320" ]
+    },
+    "ContentTime": {
+        "vr": "TM",
+        "Value": [ "031515" ]
+    },
+    "Modality": {
+        "vr": "CS",
+        "Value": [ "CT" ]
+    },
+    "Manufacturer": {
+        "vr": "LO",
+        "Value": [ "GE MEDICAL SYSTEMS" ]
+    },
+    "PatientID": {
+        "vr": "LO",
+        "Value": [ "a59d25be05ecb3fa57f483fc8b7051e4e46ca3d3c01129238cc7279ba53eb44b" ]
+    },
+    "PatientBirthDate": { "vr": "DA" },
+    "PatientSex": {
+        "vr": "CS",
+        "Value": [ "M" ]
+    },
+    "PatientIdentityRemoved": {
+        "vr": "CS",
+        "Value": [ "YES" ]
+    },
+    "DeidentificationMethod": {
+        "vr": "LO",
+        "Value": [ "Microsoft Radiomics SDK 1.0.0.0: ba48bbb1-6348-4a4b-b84d-f1bfc35359c6" ]
+    },
+    "BodyPartExamined": {
+        "vr": "CS",
+        "Value": [ "PELVIS" ]
+    },
+    "ScanOptions": {
+        "vr": "CS",
+        "Value": [ "HELICAL MODE" ]
+    },
+    "SliceThickness": {
+        "vr": "DS",
+        "Value": [ 3 ]
+    },
+    "KVP": {
+        "vr": "DS",
+        "Value": [ 120 ]
+    },
+    "DataCollectionDiameter": {
+        "vr": "DS",
+        "Value": [ 500 ]
+    },
+    "ReconstructionDiameter": {
+        "vr": "DS",
+        "Value": [ 500 ]
+    },
+    "DistanceSourceToDetector": {
+        "vr": "DS",
+        "Value": [ 949.075 ]
+    },
+    "DistanceSourceToPatient": {
+        "vr": "DS",
+        "Value": [ 541 ]
+    },
+    "GantryDetectorTilt": {
+        "vr": "DS",
+        "Value": [ 0 ]
+    },
+    "TableHeight": {
+        "vr": "DS",
+        "Value": [ -183 ]
+    },
+    "RotationDirection": {
+        "vr": "CS",
+        "Value": [ "CW" ]
+    },
+    "ExposureTime": {
+        "vr": "IS",
+        "Value": [ 700 ]
+    },
+    "XRayTubeCurrent": {
+        "vr": "IS",
+        "Value": [ 150 ]
+    },
+    "GeneratorPower": {
+        "vr": "IS",
+        "Value": [ 18 ]
+    },
+    "FocalSpots": {
+        "vr": "DS",
+        "Value": [ 1.2 ]
+    },
+    "ConvolutionKernel": {
+        "vr": "SH",
+        "Value": [ "SOFT" ]
+    },
+    "PatientPosition": {
+        "vr": "CS",
+        "Value": [ "HFS" ]
+    },
+    "StudyInstanceUID": {
+        "vr": "LO",
+        "Value": [ "774645c5cc053b8a7f0bded5546ef93e48a9cba3555e76810fd7d4e23d14db10" ]
+    },
+    "SeriesInstanceUID": {
+        "vr": "LO",
+        "Value": [ "13067dfa0ceb519718707c83d7e56b99e119d7d2e89b98c856d75d301d1d0410" ]
+    },
+    "ImagePositionPatient": {
+        "vr": "DS",
+        "Value": [ -250, -250, 32 ]
+    },
+    "ImageOrientationPatient": {
+        "vr": "DS",
+        "Value": [ 1, 0, 0, 0, 1, 0 ]
+    },
+    "FrameOfReferenceUID": {
+        "vr": "LO",
+        "Value": [ "9c5489408ec90ea922f178647102c1c593b94f990a0844593e48c06ff252382f" ]
+    },
+    "PositionReferenceIndicator": {
+        "vr": "LO",
+        "Value": [ "IC" ]
+    },
+    "SliceLocation": {
+        "vr": "DS",
+        "Value": [ 32 ]
+    },
+    "SamplesPerPixel": {
+        "vr": "US",
+        "Value": [ 1 ]
+    },
+    "PhotometricInterpretation": {
+        "vr": "CS",
+        "Value": [ "MONOCHROME2" ]
+    },
+    "NumberOfFrames": {
+        "vr": "IS",
+        "Value": [ 1 ]
+    },
+    "Rows": {
+        "vr": "US",
+        "Value": [ 512 ]
+    },
+    "Columns": {
+        "vr": "US",
+        "Value": [ 512 ]
+    },
+    "PixelSpacing": {
+        "vr": "DS",
+        "Value": [ 0.9765625, 0.9765625 ]
+    },
+    "BitsAllocated": {
+        "vr": "US",
+        "Value": [ 16 ]
+    },
+    "BitsStored": {
+        "vr": "US",
+        "Value": [ 16 ]
+    },
+    "HighBit": {
+        "vr": "US",
+        "Value": [ 15 ]
+    },
+    "PixelRepresentation": {
+        "vr": "US",
+        "Value": [ 1 ]
+    },
+    "PixelPaddingValue": {
+        "vr": "US",
+        "Value": [ 32767 ]
+    },
+    "LongitudinalTemporalInformationModified": {
+        "vr": "CS",
+        "Value": [ "MODIFIED" ]
+    },
+    "WindowCenter": {
+        "vr": "DS",
+        "Value": [ 40 ]
+    },
+    "WindowWidth": {
+        "vr": "DS",
+        "Value": [ 400 ]
+    },
+    "RescaleIntercept": {
+        "vr": "DS",
+        "Value": [ 0 ]
+    },
+    "RescaleSlope": {
+        "vr": "DS",
+        "Value": [ 1 ]
+    }
+}

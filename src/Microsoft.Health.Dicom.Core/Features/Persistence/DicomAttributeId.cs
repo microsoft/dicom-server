@@ -141,19 +141,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
         private void Validate()
         {
-            // Validate all but the leaf tag are sequence elements
+            // Validate all the tags but the last has a value representation of sequence.
             for (var i = 0; i < Length - 1; i++)
             {
                 if (!_dicomTags[i].DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ))
                 {
-                    throw new FormatException($"All tags but the last must be sequence elements. The provided DICOM tag {_dicomTags[i].DictionaryEntry.Keyword} does not have a 'sequence' value type.");
+                    throw new FormatException($"All tags other than the last must have a value representation of 'sequence'. The provided DICOM tag {_dicomTags[i].DictionaryEntry.Keyword} does not have a 'sequence' value type.");
                 }
             }
 
-            if (InstanceDicomTag.DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ))
-            {
-                throw new FormatException($"The last DICOM tag must not have the value representation 'sequence'. The provided DICOM tag {InstanceDicomTag.DictionaryEntry.Keyword} is known as having a 'sequence' value type.");
-            }
+            // Note: The last tag can have any value representation including sequence.
         }
     }
 }

@@ -14,6 +14,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
     {
         Task AddStudySeriesDicomMetadataAsync(DicomDataset instance, CancellationToken cancellationToken = default);
 
+        Task<DicomDataset> GetStudyDicomMetadataAsync(string studyInstanceUID, HashSet<DicomAttributeId> optionalAttributes = null, CancellationToken cancellationToken = default);
+
+        Task<DicomDataset> GetSeriesDicomMetadataAsync(
+            string studyInstanceUID, string seriesInstanceUID, HashSet<DicomAttributeId> optionalAttributes = null, CancellationToken cancellationToken = default);
+
         Task<IEnumerable<DicomInstance>> GetInstancesInStudyAsync(string studyInstanceUID, CancellationToken cancellationToken = default);
 
         Task<IEnumerable<DicomInstance>> GetInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default);
