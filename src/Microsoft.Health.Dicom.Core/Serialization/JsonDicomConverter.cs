@@ -842,7 +842,7 @@ namespace Dicom.Serialization
         #endregion
     }
 
-    public static class JsonDicomConverterExtensions
+    internal static class JsonDicomConverterExtensions
     {
         public static string[] AsStringArray(this object data) => (string[])data;
 
