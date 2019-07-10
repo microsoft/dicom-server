@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenRandomContent_WhenStoring_TheServerShouldReturnOK()
         {
-            using (var stream = new MemoryStream(new byte[5]))
+            using (var stream = new MemoryStream())
             {
                 HttpStatusCode response = await Client.PostAsync(new[] { stream });
                 Assert.Equal(HttpStatusCode.OK, response);
