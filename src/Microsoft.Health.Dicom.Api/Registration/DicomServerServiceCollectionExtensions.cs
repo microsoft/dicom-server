@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Builder
                 options.RespectBrowserAcceptHeader = true;
             });
 
-            services.AddSingleton<TextOutputFormatter>(new DicomJsonOutputFormatter());
+            services.AddSingleton<TextOutputFormatter, DicomJsonOutputFormatter>();
             services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
