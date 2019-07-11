@@ -69,15 +69,17 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 {
                     _logger.LogDebug($"Storing Instance: {identity.StudyInstanceUID}.{identity.SopInstanceUID}.{identity.SopInstanceUID}");
 
-                    if (await blockBlob.ExistsAsync())
-                    {
-                        metadata = await ReadMetadataAsync(blockBlob, cancellationToken);
-                    }
-
+                    metadata = await TryReadMetadataAsync(blockBlob, metadata, cancellationToken);
                     metadata.AddDicomInstance(instance, _metadataConfiguration.StudySeriesMetadataAttributes);
                     await UpdateMetadataAsync(blockBlob, metadata, cancellationToken);
                 },
                 retryPolicy);
+        }
+
+        /// <inheritdoc />
+        public Task<DicomDataset> GetStudyDicomMetadataWithAllOptionalAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
+        {
+            return GetStudyDicomMetadataAsync(studyInstanceUID, _metadataConfiguration.StudyOptionalMetadataAttributes, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -86,7 +88,6 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             HashSet<DicomAttributeId> optionalAttributes = null,
             CancellationToken cancellationToken = default)
         {
-            var result = new DicomDataset();
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
             return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
@@ -97,16 +98,16 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                     DicomStudyMetadata studyMetadata = await ReadMetadataAsync(blockBlob, cancellationToken);
 
                     // Add the Study specific Query Transaction attributes
-                    result.Add(DicomTag.NumberOfStudyRelatedSeries, studyMetadata.SeriesMetadata.Count);
-                    result.Add(DicomTag.NumberOfStudyRelatedInstances, studyMetadata.SeriesMetadata.Sum(x => x.Value.Instances.Count));
-                    result.Add(DicomTag.StudyInstanceUID, studyInstanceUID);
+                    var result = new DicomDataset
+                    {
+                        { DicomTag.NumberOfStudyRelatedSeries, studyMetadata.SeriesMetadata.Count },
+                        { DicomTag.NumberOfStudyRelatedInstances, studyMetadata.SeriesMetadata.Sum(x => x.Value.Instances.Count) },
+                        { DicomTag.StudyInstanceUID, studyInstanceUID },
+                    };
 
                     // Now append the fetched metadata attributes.
                     HashSet<DicomAttributeId> attributes = _metadataConfiguration.StudyRequiredMetadataAttributes;
-                    if (optionalAttributes != null)
-                    {
-                        optionalAttributes.Each(x => attributes.Add(x));
-                    }
+                    optionalAttributes?.Each(x => attributes.Add(x));
 
                     foreach (DicomAttributeId seriesAttributeId in attributes)
                     {
@@ -126,13 +127,10 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 });
         }
 
-        public async Task<DicomDataset> GetSeriesDicomMetadataWithAllOptionalAsync(
-            string studyInstanceUID,
-            string seriesInstanceUID,
-            CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public Task<DicomDataset> GetSeriesDicomMetadataWithAllOptionalAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
         {
-            return await GetSeriesDicomMetadataAsync(
-                studyInstanceUID, seriesInstanceUID, _metadataConfiguration.SeriesOptionalMetadataAttributes, cancellationToken);
+            return GetSeriesDicomMetadataAsync(studyInstanceUID, seriesInstanceUID, _metadataConfiguration.SeriesOptionalMetadataAttributes, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -142,7 +140,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             HashSet<DicomAttributeId> optionalAttributes = null,
             CancellationToken cancellationToken = default)
         {
-            var result = new DicomDataset();
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID), nameof(seriesInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
             return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
@@ -159,15 +157,15 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                     DicomSeriesMetadata seriesMetadata = metadata.SeriesMetadata[seriesInstanceUID];
 
                     // Add the Series specific Query Transaction attributes
-                    result.Add(DicomTag.NumberOfSeriesRelatedInstances, seriesMetadata.Instances.Count);
-                    result.Add(DicomTag.SeriesInstanceUID, seriesInstanceUID);
+                    var result = new DicomDataset
+                    {
+                        { DicomTag.NumberOfSeriesRelatedInstances, seriesMetadata.Instances.Count },
+                        { DicomTag.SeriesInstanceUID, seriesInstanceUID },
+                    };
 
                     // Now append the fetched metadata attributes.
                     HashSet<DicomAttributeId> attributes = _metadataConfiguration.SeriesRequiredMetadataAttributes;
-                    if (optionalAttributes != null)
-                    {
-                        optionalAttributes.Each(x => attributes.Add(x));
-                    }
+                    optionalAttributes?.Each(x => attributes.Add(x));
 
                     foreach (DicomAttributeId seriesAttributeId in attributes)
                     {
@@ -176,7 +174,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                         if (attributeValue != null)
                         {
                             result.Add(attributeValue.DicomItem);
-                            break;
+                            continue;
                         }
                     }
 
@@ -201,7 +199,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         /// <inheritdoc />
         public async Task<IEnumerable<DicomInstance>> GetInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID), nameof(seriesInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
             return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
@@ -245,7 +243,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         /// <inheritdoc />
         public async Task<IEnumerable<DicomInstance>> DeleteSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID), nameof(seriesInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
             // Retry when the pre-condition fails on replace (ETag check).
@@ -284,8 +282,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         /// <inheritdoc />
         public async Task DeleteInstanceAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
-            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUID, nameof(sopInstanceUID));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID), nameof(seriesInstanceUID));
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(sopInstanceUID), nameof(sopInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
             // Retry when the pre-condition fails on replace (ETag check).
@@ -318,7 +316,9 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
         private static IAsyncPolicy CreatePreConditionFailedRetryPolicy()
            => Policy
-                   .Handle<StorageException>(ex => ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed || ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.TooManyRequests)
+                   .Handle<StorageException>(ex => ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed ||
+                                                    ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.TooManyRequests ||
+                                                    ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.BadRequest)
                    .RetryForeverAsync();
 
         private CloudBlockBlob GetStudyMetadataBlockBlobAndValidateId(string studyInstanceUID)
@@ -332,6 +332,18 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             NameValidator.ValidateBlobName(blobName);
 
             return _container.GetBlockBlobReference(blobName);
+        }
+
+        private async Task<DicomStudyMetadata> TryReadMetadataAsync(CloudBlockBlob cloudBlockBlob, DicomStudyMetadata defaultValue, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await ReadMetadataAsync(cloudBlockBlob, cancellationToken);
+            }
+            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            {
+                return defaultValue;
+            }
         }
 
         private async Task<DicomStudyMetadata> ReadMetadataAsync(CloudBlockBlob cloudBlockBlob, CancellationToken cancellationToken)
