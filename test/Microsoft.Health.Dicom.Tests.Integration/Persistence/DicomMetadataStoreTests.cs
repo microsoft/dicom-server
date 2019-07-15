@@ -61,23 +61,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenAStudy_WhenAddingAndDeletingMetadataInParallel_IsAddedAndRetriedCorrectly()
+        public async Task GivenAStudy_WhenAddingAndDeletingMultipleMetadataInstances_IsAddedAndDeletedCorrectly()
         {
             string studyInstanceUID = Guid.NewGuid().ToString();
-            IList<DicomDataset> study = CreateStudyDataset(studyInstanceUID, DateTime.UtcNow, numberOfInstancesInSeries: 1).ToList();
+            IList<DicomDataset> study = CreateStudyDataset(studyInstanceUID, DateTime.UtcNow, numberOfInstancesInSeries: 2).ToList();
             IList<DicomInstance> expectedInstances = study.Select(x => DicomInstance.Create(x)).ToList();
 
-            await Task.WhenAll(study.Select(x => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(x)));
+            await _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(study);
 
             // Validate all instances added correctly.
             IEnumerable<DicomInstance> instances = await _dicomMetadataStore.GetInstancesInStudyAsync(studyInstanceUID);
             Assert.Equal(study.Count, instances.Count());
-            foreach (DicomInstance instance in instances)
-            {
-                Assert.True(expectedInstances.Contains(instance));
-            }
+            instances.Each(x => Assert.True(expectedInstances.Contains(x)));
 
-            await Task.WhenAll(expectedInstances.Select(x => _dicomMetadataStore.DeleteInstanceAsync(x.StudyInstanceUID, x.SeriesInstanceUID, x.SopInstanceUID)));
+            foreach (DicomInstance dicomInstance in expectedInstances)
+            {
+                await _dicomMetadataStore.DeleteInstanceAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
+            }
 
             DataStoreException exception1 = await Assert.ThrowsAsync<DataStoreException>(() => _dicomMetadataStore.GetInstancesInStudyAsync(studyInstanceUID));
             Assert.Equal((int)HttpStatusCode.NotFound, exception1.StatusCode);

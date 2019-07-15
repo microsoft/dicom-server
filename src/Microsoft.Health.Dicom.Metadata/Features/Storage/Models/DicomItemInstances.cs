@@ -52,23 +52,19 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
         }
 
         public override int GetHashCode()
-        {
-            return _jsonItem.GetHashCode(_stringComparison);
-        }
+            => _jsonItem.GetHashCode(_stringComparison);
 
         public override bool Equals(object obj)
         {
-            if (obj is DicomItemInstances attributeValue)
+            if (obj is DicomItemInstances dicomItemInstances)
             {
-                return SerializeDicomItem(attributeValue.DicomItem).Equals(_jsonItem, _stringComparison);
+                return dicomItemInstances._jsonItem.Equals(_jsonItem, _stringComparison);
             }
 
             return false;
         }
 
         private string SerializeDicomItem(DicomItem dicomItem)
-        {
-            return JsonConvert.SerializeObject(new DicomDataset(dicomItem), _jsonDicomConverter);
-        }
+            => JsonConvert.SerializeObject(new DicomDataset(dicomItem), _jsonDicomConverter);
     }
 }
