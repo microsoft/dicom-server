@@ -11,25 +11,32 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
 {
     internal class DicomSeriesMetadata
     {
+        [JsonProperty("currentInstanceId")]
+        private int _currentInstanceId;
+
         [JsonConstructor]
-        public DicomSeriesMetadata(int currentInstanceId, IDictionary<string, int> instances, HashSet<AttributeValue> attributeValues)
+        public DicomSeriesMetadata(int currentInstanceId, IDictionary<string, int> instances, HashSet<DicomItemInstances> dicomItems)
         {
             EnsureArg.IsTrue(currentInstanceId >= 0, nameof(currentInstanceId));
             EnsureArg.IsNotNull(instances, nameof(instances));
-            EnsureArg.IsNotNull(attributeValues, nameof(attributeValues));
+            EnsureArg.IsNotNull(dicomItems, nameof(dicomItems));
 
-            CurrentInstanceId = currentInstanceId;
+            _currentInstanceId = currentInstanceId;
             Instances = instances;
-            AttributeValues = attributeValues;
+            DicomItems = dicomItems;
         }
-
-        [JsonProperty("currentInstanceId")]
-        public int CurrentInstanceId { get; set; }
 
         [JsonProperty("instances")]
         public IDictionary<string, int> Instances { get; }
 
         [JsonProperty("values")]
-        public HashSet<AttributeValue> AttributeValues { get; }
+        public HashSet<DicomItemInstances> DicomItems { get; }
+
+        public int AddSopInstanceUID(string sopInstanceUID)
+        {
+            var instanceId = _currentInstanceId++;
+            Instances.Add(sopInstanceUID, instanceId);
+            return instanceId;
+        }
     }
 }

@@ -51,5 +51,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
         public override int GetHashCode()
             => (StudyInstanceUID + SeriesInstanceUID + SopInstanceUID).GetHashCode(EqualsStringComparison);
+
+        public override string ToString()
+            => $"Study Instance UID: {StudyInstanceUID}, Series Instance UID: {SeriesInstanceUID}, SOP Instance UID {SopInstanceUID}";
     }
 }

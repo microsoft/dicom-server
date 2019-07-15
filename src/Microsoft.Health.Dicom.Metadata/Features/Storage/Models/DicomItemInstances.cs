@@ -13,17 +13,14 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
 {
-    /// <summary>
-    /// Class for keeping a collection of the DicomItems and the instances that created the item.
-    /// </summary>
-    internal class AttributeValue
+    internal class DicomItemInstances
     {
         [JsonProperty("jsonItem")]
         private readonly string _jsonItem;
         private readonly StringComparison _stringComparison = StringComparison.InvariantCultureIgnoreCase;
         private readonly JsonDicomConverter _jsonDicomConverter = new JsonDicomConverter();
 
-        public AttributeValue(DicomItem dicomItem, HashSet<int> instances)
+        public DicomItemInstances(DicomItem dicomItem, HashSet<int> instances)
         {
             DicomItem = EnsureArg.IsNotNull(dicomItem, nameof(dicomItem));
             Instances = EnsureArg.IsNotNull(instances, nameof(instances));
@@ -32,7 +29,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
         }
 
         [JsonConstructor]
-        public AttributeValue(string jsonItem, HashSet<int> instances)
+        public DicomItemInstances(string jsonItem, HashSet<int> instances)
         {
             _jsonItem = EnsureArg.IsNotNullOrWhiteSpace(jsonItem, nameof(jsonItem));
             Instances = EnsureArg.IsNotNull(instances, nameof(instances));
@@ -46,12 +43,12 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
         [JsonIgnore]
         public DicomItem DicomItem { get; }
 
-        public static AttributeValue Create(DicomItem dicomItem, int instance)
+        public static DicomItemInstances Create(DicomItem dicomItem, int instance)
         {
             EnsureArg.IsGte(instance, 0, nameof(instance));
             EnsureArg.IsNotNull(dicomItem, nameof(dicomItem));
 
-            return new AttributeValue(dicomItem, new HashSet<int>() { instance });
+            return new DicomItemInstances(dicomItem, new HashSet<int>() { instance });
         }
 
         public override int GetHashCode()
@@ -61,7 +58,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
 
         public override bool Equals(object obj)
         {
-            if (obj is AttributeValue attributeValue)
+            if (obj is DicomItemInstances attributeValue)
             {
                 return SerializeDicomItem(attributeValue.DicomItem).Equals(_jsonItem, _stringComparison);
             }

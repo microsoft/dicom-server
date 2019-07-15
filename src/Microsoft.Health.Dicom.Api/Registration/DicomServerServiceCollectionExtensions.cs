@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Builder
     public static class DicomServerServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds services for enabling a FHIR server.
+        /// Adds services for enabling a DICOM server.
         /// </summary>
         /// <param name="services">The services collection.</param>
         /// <returns>A <see cref="IDicomServerBuilder"/> object.</returns>

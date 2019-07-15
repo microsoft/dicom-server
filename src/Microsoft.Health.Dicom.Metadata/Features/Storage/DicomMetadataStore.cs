@@ -56,21 +56,37 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         public async Task AddStudySeriesDicomMetadataAsync(DicomDataset instance, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
+            await AddStudySeriesDicomMetadataAsync(new[] { instance }, cancellationToken);
+        }
 
-            var identity = DicomInstance.Create(instance);
-            var metadata = new DicomStudyMetadata(identity.StudyInstanceUID);
+        /// <inheritdoc />
+        public async Task AddStudySeriesDicomMetadataAsync(IEnumerable<DicomDataset> instances, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(instances, nameof(instances));
 
-            CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(identity.StudyInstanceUID);
+            DicomDataset[] instancesArray = instances.ToArray();
+            EnsureArg.IsGt(instancesArray.Length, 0, nameof(instances));
+
+            var referenceDicomInstance = DicomInstance.Create(instancesArray[0]);
+
+            // TODO: Validate all part of same study
+            var metadata = new DicomStudyMetadata(referenceDicomInstance.StudyInstanceUID);
+
+            CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(referenceDicomInstance.StudyInstanceUID);
 
             // Retry when the pre-condition fails on replace (ETag check).
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
             await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
                 async (blockBlob) =>
                 {
-                    _logger.LogDebug($"Storing Instance: {identity.StudyInstanceUID}.{identity.SopInstanceUID}.{identity.SopInstanceUID}");
-
                     metadata = await TryReadMetadataAsync(blockBlob, metadata, cancellationToken);
-                    metadata.AddDicomInstance(instance, _metadataConfiguration.StudySeriesMetadataAttributes);
+
+                    instancesArray.Each(x =>
+                    {
+                        metadata.AddDicomInstance(x, _metadataConfiguration.StudySeriesMetadataAttributes);
+                        _logger.LogDebug($"Storing Instance: {x}");
+                    });
+
                     await UpdateMetadataAsync(blockBlob, metadata, cancellationToken);
                 },
                 retryPolicy);
@@ -114,7 +130,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                         foreach (DicomSeriesMetadata seriesMetadata in studyMetadata.SeriesMetadata.Values)
                         {
                             // Just add the first DICOM item; we might want to do something more clever in the future.
-                            AttributeValue attributeValue = seriesMetadata.AttributeValues.FirstOrDefault(x => x.DicomItem.Tag == seriesAttributeId.InstanceDicomTag);
+                            DicomItemInstances attributeValue = seriesMetadata.DicomItems.FirstOrDefault(x => x.DicomItem.Tag == seriesAttributeId.InstanceDicomTag);
                             if (attributeValue != null)
                             {
                                 result.Add(attributeValue.DicomItem);
@@ -170,7 +186,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                     foreach (DicomAttributeId seriesAttributeId in attributes)
                     {
                         // Just add the first DICOM item; we might want to do something more clever in the future.
-                        AttributeValue attributeValue = seriesMetadata.AttributeValues.FirstOrDefault(x => x.DicomItem.Tag == seriesAttributeId.InstanceDicomTag);
+                        DicomItemInstances attributeValue = seriesMetadata.DicomItems.FirstOrDefault(x => x.DicomItem.Tag == seriesAttributeId.InstanceDicomTag);
                         if (attributeValue != null)
                         {
                             result.Add(attributeValue.DicomItem);
