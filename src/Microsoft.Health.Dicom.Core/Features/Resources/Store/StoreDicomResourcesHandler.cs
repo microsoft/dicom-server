@@ -13,6 +13,7 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
@@ -123,20 +124,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
                     if (dicomFile != null)
                     {
                         // Now Validate if the StudyInstanceUID is provided, it matches the provided file
+                        var dicomInstance = DicomInstance.Create(dicomFile.Dataset);
                         if (string.IsNullOrWhiteSpace(studyInstanceUID) ||
-                            studyInstanceUID.Equals(dicomFile.Dataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty), DicomStudy.EqualsStringComparison))
+                            studyInstanceUID.Equals(dicomInstance.StudyInstanceUID, DicomStudy.EqualsStringComparison))
                         {
-                            await _dicomBlobDataStore.AddFileAsStreamAsync(string.Empty, seekStream, cancellationToken: cancellationToken);
+                            await _dicomBlobDataStore.AddFileAsStreamAsync(GetBlobStorageName(dicomInstance), seekStream, cancellationToken: cancellationToken);
                             transactionResponseBuilder.AddSuccess(dicomFile.Dataset);
                             return dicomFile.Dataset;
                         }
                         else
                         {
-                            transactionResponseBuilder.AddFailure(dicomFile.Dataset, StoreTransactionResponseBuilder.MismatchStudyInstanceUID);
+                            transactionResponseBuilder.AddFailure(dicomFile.Dataset, StoreTransactionResponseBuilder.MismatchStudyInstanceUIDFailureCode);
                             return null;
                         }
                     }
                 }
+            }
+            catch (DataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.Conflict)
+            {
+                transactionResponseBuilder.AddFailure(dicomFile.Dataset, StoreTransactionResponseBuilder.SopInstanceAlredyExistsFailureCode);
+                return null;
             }
             catch
             {
@@ -145,5 +152,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
             transactionResponseBuilder.AddFailure(dicomFile?.Dataset);
             return null;
         }
+
+        private static string GetBlobStorageName(DicomInstance dicomInstance)
+            => $"{dicomInstance.StudyInstanceUID}/{dicomInstance.SeriesInstanceUID}/{dicomInstance.SopInstanceUID}";
     }
 }

@@ -44,33 +44,45 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
             _logger.LogDebug($"Adding blob resource: {blobName}. Overwrite mode: {overwriteIfExists}.");
 
-            // Will throw if the provided resource identifier already exists.
-            await cloudBlob.UploadFromStreamAsync(
-                buffer,
-                overwriteIfExists ? AccessCondition.GenerateEmptyCondition() : AccessCondition.GenerateIfNotExistsCondition(),
-                new BlobRequestOptions(),
-                new OperationContext(),
-                cancellationToken);
+            return await cloudBlob.CatchStorageExceptionAndThrowDataStoreException(
+                async (blockBlob) =>
+                {
+                    // Will throw if the provided resource identifier already exists.
+                    await blockBlob.UploadFromStreamAsync(
+                            buffer,
+                            overwriteIfExists ? AccessCondition.GenerateEmptyCondition() : AccessCondition.GenerateIfNotExistsCondition(),
+                            new BlobRequestOptions(),
+                            new OperationContext(),
+                            cancellationToken);
 
-            return cloudBlob.Uri;
+                    return blockBlob.Uri;
+                });
         }
 
         /// <inheritdoc />
         public async Task<Stream> GetFileAsStreamAsync(string blobName, CancellationToken cancellationToken = default)
         {
-            CloudBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
+            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
             _logger.LogDebug($"Opening read of blob resource: {blobName}");
 
-            return await cloudBlob.OpenReadAsync(cancellationToken);
+            return await cloudBlob.CatchStorageExceptionAndThrowDataStoreException(
+                async (blockBlob) =>
+                {
+                    return await blockBlob.OpenReadAsync(cancellationToken);
+                });
         }
 
         /// <inheritdoc />
         public async Task DeleteFileIfExistsAsync(string blobName, CancellationToken cancellationToken = default)
         {
-            CloudBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
+            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
             _logger.LogDebug($"Deleting blob resource: {blobName}");
 
-            await cloudBlob.DeleteIfExistsAsync(cancellationToken);
+            await cloudBlob.CatchStorageExceptionAndThrowDataStoreException(
+                async (blockBlob) =>
+                {
+                    await blockBlob.DeleteIfExistsAsync(cancellationToken);
+                });
         }
 
         private CloudBlockBlob GetBlockBlobAndValidateName(string blobName)
