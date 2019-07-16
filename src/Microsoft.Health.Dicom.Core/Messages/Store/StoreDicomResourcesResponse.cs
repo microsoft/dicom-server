@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Net;
+using Dicom;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Store
 {
@@ -13,5 +15,15 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
             : base(statusCode)
         {
         }
+
+        public StoreDicomResourcesResponse(HttpStatusCode statusCode, DicomDataset responseDataset)
+            : base(statusCode)
+        {
+            EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
+
+            Dataset = responseDataset;
+        }
+
+        public DicomDataset Dataset { get; }
     }
 }

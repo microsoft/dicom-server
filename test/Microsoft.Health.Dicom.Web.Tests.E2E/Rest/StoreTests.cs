@@ -3,10 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Dicom;
+using Microsoft.Health.Dicom.Core.Features.Resources.Store;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Microsoft.Net.Http.Headers;
 using Xunit;
@@ -23,12 +28,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         protected DicomWebClient Client { get; set; }
 
         [Fact]
-        public async Task GivenRandomContent_WhenStoring_TheServerShouldReturnOK()
+        public async Task GivenRandomContent_WhenStoring_TheServerShouldReturnConflict()
         {
             using (var stream = new MemoryStream())
             {
-                HttpStatusCode response = await Client.PostAsync(new[] { stream });
-                Assert.Equal(HttpStatusCode.OK, response);
+                HttpResult<DicomDataset> response = await Client.PostAsync(new[] { stream });
+                Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             }
         }
 
@@ -37,8 +42,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             using (var stream = new MemoryStream())
             {
-                HttpStatusCode response = await Client.PostAsync(new[] { stream }, studyInstanceUID: new string('b', 65));
-                Assert.Equal(HttpStatusCode.BadRequest, response);
+                HttpResult<DicomDataset> response = await Client.PostAsync(new[] { stream }, studyInstanceUID: new string('b', 65));
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
         }
 
@@ -66,6 +71,40 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
             {
                 Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
+            }
+        }
+
+        [Fact]
+        public async void GivenAllDifferentStudyInstanceUIDs_WhenStoringWithProvidedStudyInstanceUID_TheServerShouldReturnConflict()
+        {
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFile();
+            DicomFile dicomFile2 = Samples.CreateRandomDicomFile();
+
+            var studyInstanceUID = Guid.NewGuid().ToString();
+            HttpResult<DicomDataset> response = await Client.PostAsync(
+                new[] { dicomFile1, dicomFile2 }, studyInstanceUID);
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.NotNull(response.Value);
+            Assert.True(response.Value.Count() == 2);
+
+            Assert.EndsWith($"studies/{studyInstanceUID}", response.Value.GetSingleValue<string>(DicomTag.RetrieveURL));
+
+            DicomSequence failures = response.Value.GetSequence(DicomTag.FailedSOPSequence);
+            Assert.True(failures.Count() == 2);
+
+            foreach (DicomDataset failedDataset in failures)
+            {
+                Assert.True(failedDataset.Count() == 3);
+                Assert.Equal(StoreTransactionResponseBuilder.MismatchStudyInstanceUID, failedDataset.GetSingleValue<ushort>(DicomTag.FailureReason));
+
+                var referencedSopClassUID = failedDataset.GetSingleValue<string>(DicomTag.ReferencedSOPClassUID);
+                var referencedSopInstanceUID = failedDataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID);
+                Assert.True(
+                    dicomFile1.Dataset.GetSingleValue<string>(DicomTag.SOPClassUID) == referencedSopClassUID ||
+                    dicomFile2.Dataset.GetSingleValue<string>(DicomTag.SOPClassUID) == referencedSopClassUID);
+                Assert.True(
+                    dicomFile1.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID) == referencedSopInstanceUID ||
+                    dicomFile2.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID) == referencedSopInstanceUID);
             }
         }
     }

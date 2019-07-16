@@ -6,10 +6,10 @@
 using System;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
 
@@ -30,9 +30,10 @@ namespace Microsoft.AspNetCore.Builder
             services.AddMvc(options =>
             {
                 options.RespectBrowserAcceptHeader = true;
+                options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
             });
 
-            services.AddSingleton<TextOutputFormatter, DicomJsonOutputFormatter>();
+            services.AddSingleton<IDicomRouteProvider, DicomRouteProvider>();
             services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 

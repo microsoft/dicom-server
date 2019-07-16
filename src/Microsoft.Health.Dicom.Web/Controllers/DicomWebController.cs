@@ -6,6 +6,7 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
+using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -34,9 +35,11 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [DisableRequestSizeLimit]
         [AcceptContentFilter(ApplicationDicomJson)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType((int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
         [Route("studies/{studyInstanceUID?}")]
@@ -48,7 +51,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             StoreDicomResourcesResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
                                             requestBaseUri, Request.Body, Request.ContentType, studyInstanceUID, HttpContext.RequestAborted);
 
-            return StatusCode(storeResponse.StatusCode);
+            return StatusCode(storeResponse.StatusCode, storeResponse.Dataset);
         }
 
         private static Uri GetRequestBaseUri(HttpRequest request)

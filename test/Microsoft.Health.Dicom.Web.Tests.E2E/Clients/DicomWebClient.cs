@@ -9,7 +9,10 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Dicom;
+using Dicom.Serialization;
 using EnsureThat;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 {
@@ -17,20 +20,37 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
     {
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue("application/dicom");
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue("application/dicom+json");
+        private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         public DicomWebClient(HttpClient httpClient)
         {
             EnsureArg.IsNotNull(httpClient, nameof(httpClient));
 
             HttpClient = httpClient;
+            _jsonSerializerSettings = new JsonSerializerSettings();
+            _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
         }
 
         public HttpClient HttpClient { get; }
 
-        public async Task<HttpStatusCode> PostAsync(IEnumerable<Stream> streams, string studyInstanceUID = null)
+        public async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUID = null)
         {
             var postContent = new List<byte[]>();
+            foreach (DicomFile dicomFile in dicomFiles)
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await dicomFile.SaveAsync(stream);
+                    postContent.Add(stream.ToArray());
+                }
+            }
 
+            return await PostAsync(postContent, studyInstanceUID);
+        }
+
+        public async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<Stream> streams, string studyInstanceUID = null)
+        {
+            var postContent = new List<byte[]>();
             foreach (Stream stream in streams)
             {
                 byte[] content = await ConvertStreamToByteArrayAsync(stream);
@@ -47,7 +67,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             return multiContent;
         }
 
-        private async Task<HttpStatusCode> PostAsync(IEnumerable<byte[]> postContent, string studyInstanceUID)
+        private async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<byte[]> postContent, string studyInstanceUID)
         {
             MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
 
@@ -61,7 +81,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             return await PostMultipartContentAsync(multiContent, $"studies/{studyInstanceUID}");
         }
 
-        internal async Task<HttpStatusCode> PostMultipartContentAsync(MultipartContent multiContent, string requestUri)
+        internal async Task<HttpResult<DicomDataset>> PostMultipartContentAsync(MultipartContent multiContent, string requestUri)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
             request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
@@ -69,7 +89,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
             using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
             {
-                return response.StatusCode;
+                if (response.StatusCode == HttpStatusCode.OK ||
+                       response.StatusCode == HttpStatusCode.Accepted ||
+                       response.StatusCode == HttpStatusCode.Conflict)
+                {
+                    var contentText = await response.Content.ReadAsStringAsync();
+                    DicomDataset dataset = JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
+
+                    return new HttpResult<DicomDataset>(response.StatusCode, dataset);
+                }
+
+                return new HttpResult<DicomDataset>(response.StatusCode);
             }
         }
 
