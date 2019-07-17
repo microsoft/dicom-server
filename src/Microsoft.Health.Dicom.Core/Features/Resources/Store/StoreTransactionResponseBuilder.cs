@@ -18,8 +18,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
     /// </summary>
     internal class StoreTransactionResponseBuilder
     {
-        public const ushort SopInstanceAlredyExistsFailureCode = 274;
-        public const ushort MismatchStudyInstanceUIDFailureCode = 273;
+        // If any of the failure codes are modified, please check they match the DICOM conformance statement.
+        public const ushort SopInstanceAlredyExistsFailureCode = 45070;
+        public const ushort MismatchStudyInstanceUIDFailureCode = 43265;
         private const ushort ProcessingFailureCode = 272;
         private readonly DicomDataset _dataset;
         private readonly Uri _baseUri;
