@@ -37,6 +37,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AcceptContentFilter(ApplicationDicomJson)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
@@ -45,7 +46,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [Route("studies/{studyInstanceUID?}")]
         public async Task<IActionResult> PostAsync(string studyInstanceUID = null)
         {
-            _logger.LogInformation($"DICOM Web STOW-RS request received, with study instance UID '{studyInstanceUID}'.");
+            _logger.LogInformation($"DICOM Web Store Transaction request received, with study instance UID '{studyInstanceUID}'.");
 
             Uri requestBaseUri = GetRequestBaseUri(Request);
             StoreDicomResourcesResponse storeResponse = await _mediator.StoreDicomResourcesAsync(

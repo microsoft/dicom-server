@@ -46,8 +46,8 @@ The response payload will populate a DICOM dataset with the following elements:
 Tag|Name|Description
 ----------|----------|----------
 (0008, 1190)|RetrieveURL|The Retrieve URL of the study if the StudyInstanceUID was provided in the store request.
-(0008,1198)|FailedSOPSequence|The DICOM sequence of instances that failed to store.
-(0008, 1199)|ReferencedSOPSequence|The DICOM sequence of stored instances. Each item in this sequence will have the following elements:<br/><br/>-ReferencedSOPClassUID<br/>-ReferencedSOPInstanceUID<br/>-RetrieveURL
+(0008,1198)|FailedSOPSequence|The sequence of instances that failed to store.
+(0008, 1199)|ReferencedSOPSequence|The sequence of stored instances.
 
 Each dataset in the `FailedSOPSequence` will have the following elements (if the DICOM file attempting to be stored could be read):
 Tag|Name|Description
@@ -63,7 +63,7 @@ Tag|Name|Description
 (0008, 1150)|ReferencedSOPInstanceUID|The SOP instance unique identifier of the instance that failed to store.
 (0008,1190)|RetrieveURL|The retrieve URL of this instance on the DICOM server.
 
-An example response with Accept `application/dicom+json`:
+An example response with `Accept` header `application/dicom+json`:
 
 ```json
 {
@@ -121,6 +121,6 @@ An example response with Accept `application/dicom+json`:
 ### Failure Reason Codes
 Code|Description
 ----------|----------
-272|The Studies Store Transaction did not store the instance because of a general failure in processing the operation.
-43265|The provided instance to not match the specified StudyInstanceUID in the store request.
-45070|A DICOM file with the same StudyInstanceUID, SeriesInstanceUID and SopInstanceUID has already been stored. If you wish to over-write the contents, delete this instance first.
+272|The store transaction did not store the instance because of a general failure in processing the operation.
+43265|The provided instance StudyInstanceUID did not match the specified StudyInstanceUID in the store request.
+45070|A DICOM file with the same StudyInstanceUID, SeriesInstanceUID and SopInstanceUID has already been stored. If you wish to update the contents, delete this instance first.

@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
         // If any of the failure codes are modified, please check they match the DICOM conformance statement.
         public const ushort SopInstanceAlredyExistsFailureCode = 45070;
         public const ushort MismatchStudyInstanceUIDFailureCode = 43265;
-        private const ushort ProcessingFailureCode = 272;
+        public const ushort ProcessingFailureCode = 272;
         private readonly DicomDataset _dataset;
         private readonly Uri _baseUri;
         private readonly IDicomRouteProvider _dicomRouteProvider;
