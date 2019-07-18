@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -32,6 +34,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         private readonly DicomMetadataConfiguration _metadataConfiguration;
         private readonly ILogger<DicomMetadataStore> _logger;
         private readonly Encoding _metadataEncoding;
+        private readonly JsonSerializer _jsonSerializer;
 
         public DicomMetadataStore(
             CloudBlobClient client,
@@ -49,14 +52,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             _container = client.GetContainerReference(containerConfiguration.ContainerName);
             _metadataConfiguration = metadataConfiguration;
             _logger = logger;
-            _metadataEncoding = Encoding.Unicode;
-        }
-
-        /// <inheritdoc />
-        public async Task AddStudySeriesDicomMetadataAsync(DicomDataset instance, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-            await AddStudySeriesDicomMetadataAsync(new[] { instance }, cancellationToken);
+            _metadataEncoding = Encoding.UTF8;
+            _jsonSerializer = new JsonSerializer();
         }
 
         /// <inheritdoc />
@@ -67,11 +64,17 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             DicomDataset[] instancesArray = instances.ToArray();
             EnsureArg.IsGt(instancesArray.Length, 0, nameof(instances));
 
+            // Validate all the instances belong to the same study.
             var referenceDicomInstance = DicomInstance.Create(instancesArray[0]);
+            for (var i = 1; i < instancesArray.Length; i++)
+            {
+                if (DicomInstance.Create(instancesArray[i]).StudyInstanceUID != referenceDicomInstance.StudyInstanceUID)
+                {
+                    throw new ArgumentException("Not all of the provided instances belong to the same study.", nameof(instances));
+                }
+            }
 
-            // TODO: Validate all part of same study
             var metadata = new DicomStudyMetadata(referenceDicomInstance.StudyInstanceUID);
-
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(referenceDicomInstance.StudyInstanceUID);
 
             // Retry when the pre-condition fails on replace (ETag check).
@@ -125,15 +128,12 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                     HashSet<DicomAttributeId> attributes = _metadataConfiguration.StudyRequiredMetadataAttributes;
                     optionalAttributes?.Each(x => attributes.Add(x));
 
-                    foreach (DicomAttributeId seriesAttributeId in attributes)
+                    foreach (DicomAttributeId attributeId in attributes)
                     {
                         foreach (DicomSeriesMetadata seriesMetadata in studyMetadata.SeriesMetadata.Values)
                         {
-                            // Just add the first DICOM item; we might want to do something more clever in the future.
-                            DicomItemInstances attributeValue = seriesMetadata.DicomItems.FirstOrDefault(x => x.DicomItem.Tag == seriesAttributeId.InstanceDicomTag);
-                            if (attributeValue != null)
+                            if (TryAddDicomItem(result, seriesMetadata, attributeId))
                             {
-                                result.Add(attributeValue.DicomItem);
                                 break;
                             }
                         }
@@ -185,13 +185,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
                     foreach (DicomAttributeId seriesAttributeId in attributes)
                     {
-                        // Just add the first DICOM item; we might want to do something more clever in the future.
-                        DicomItemInstances attributeValue = seriesMetadata.DicomItems.FirstOrDefault(x => x.DicomItem.Tag == seriesAttributeId.InstanceDicomTag);
-                        if (attributeValue != null)
-                        {
-                            result.Add(attributeValue.DicomItem);
-                            continue;
-                        }
+                        TryAddDicomItem(result, seriesMetadata, seriesAttributeId);
                     }
 
                     return result;
@@ -366,13 +360,12 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         {
             EnsureArg.IsNotNull(cloudBlockBlob, nameof(cloudBlockBlob));
 
-            var json = await cloudBlockBlob.DownloadTextAsync(
-                                            _metadataEncoding,
-                                            new AccessCondition(),
-                                            new BlobRequestOptions(),
-                                            new OperationContext(),
-                                            cancellationToken);
-            return JsonConvert.DeserializeObject<DicomStudyMetadata>(json);
+            using (Stream stream = await cloudBlockBlob.OpenReadAsync(cancellationToken))
+            using (var streamReader = new StreamReader(stream, _metadataEncoding))
+            using (var jsonTextReader = new JsonTextReader(streamReader))
+            {
+                return _jsonSerializer.Deserialize<DicomStudyMetadata>(jsonTextReader);
+            }
         }
 
         private async Task UpdateMetadataAsync(CloudBlockBlob cloudBlockBlob, DicomStudyMetadata metadata, CancellationToken cancellationToken)
@@ -382,14 +375,17 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             EnsureArg.IsNotNull(metadata, nameof(metadata));
             EnsureArg.IsGt(metadata.SeriesMetadata.Count, 0, nameof(metadata));
 
-            var json = JsonConvert.SerializeObject(metadata);
-            await cloudBlockBlob.UploadTextAsync(
-                json,
-                _metadataEncoding,
-                accessCondition: AccessCondition.GenerateIfMatchCondition(cloudBlockBlob.Properties.ETag),
-                new BlobRequestOptions(),
-                new OperationContext(),
-                cancellationToken);
+            using (CloudBlobStream stream = await cloudBlockBlob.OpenWriteAsync(
+                                        AccessCondition.GenerateIfMatchCondition(cloudBlockBlob.Properties.ETag),
+                                        new BlobRequestOptions(),
+                                        new OperationContext(),
+                                        cancellationToken))
+            using (var streamWriter = new StreamWriter(stream, _metadataEncoding))
+            using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+            {
+                _jsonSerializer.Serialize(jsonTextWriter, metadata);
+                jsonTextWriter.Flush();
+            }
         }
 
         private async Task DeleteCloudBlockBlobAsync(CloudBlockBlob cloudBlockBlob, CancellationToken cancellationToken)
@@ -401,6 +397,26 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 new BlobRequestOptions(),
                 new OperationContext(),
                 cancellationToken);
+        }
+
+        private bool TryAddDicomItem(DicomDataset dicomDataset, DicomSeriesMetadata seriesMetadata, DicomAttributeId attributeId)
+        {
+            IList<DicomItemInstances> attributeValues = seriesMetadata.DicomItems.Where(
+                x => x.DicomItem.Tag == attributeId.FinalDicomTag).ToList();
+
+            if (attributeValues.Count > 1)
+            {
+                _logger.LogInformation($"Found more than one DICOM item for DICOM tag: {attributeId.FinalDicomTag}. The metadata results will have coalesced results.");
+            }
+
+            if (attributeValues.Count > 0)
+            {
+                // Just add the first DICOM item; we might want to do something more clever in the future.
+                dicomDataset.Add(attributeId, attributeValues[0].DicomItem);
+                return true;
+            }
+
+            return false;
         }
     }
 }

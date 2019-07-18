@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Azure.Storage.Blob;
@@ -37,28 +36,28 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage
         public async Task GivenInvalidArguments_WhenAddingInstanceMetadata_ArgumentExceptionIsThrown()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync((DicomDataset)null));
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync((IEnumerable<DicomDataset>)null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(null));
 
             // Missing Study Instance UID
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(new DicomDataset()
-            {
-                { DicomTag.SeriesInstanceUID, Guid.NewGuid().ToString() },
-                { DicomTag.SOPInstanceUID, Guid.NewGuid().ToString() },
-            }));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(
+                CreateRandomInstanceDataset(studyInstanceUID: null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString())));
 
             // Missing Series Instance UID
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(new DicomDataset()
-            {
-                { DicomTag.StudyInstanceUID, Guid.NewGuid().ToString() },
-                { DicomTag.SOPInstanceUID, Guid.NewGuid().ToString() },
-            }));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(
+                CreateRandomInstanceDataset(Guid.NewGuid().ToString(), seriesInstanceUID: null, Guid.NewGuid().ToString())));
 
             // Missing SOP Instance UID
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(new DicomDataset()
-            {
-                { DicomTag.StudyInstanceUID, Guid.NewGuid().ToString() },
-                { DicomTag.SeriesInstanceUID, Guid.NewGuid().ToString() },
-            }));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(
+                CreateRandomInstanceDataset(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), sopInstanceUID: null)));
+
+            // Different Study Instance UIDs
+            await Assert.ThrowsAsync<ArgumentException>(
+                () => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(
+                    new[]
+                    {
+                        CreateRandomInstanceDataset(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                        CreateRandomInstanceDataset(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                    }));
         }
 
         [Fact]
@@ -121,6 +120,26 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage
             await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteInstanceAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), null));
             await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), string.Empty));
             await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), new string('a', 65)));
+        }
+
+        private static DicomDataset CreateRandomInstanceDataset(
+            string studyInstanceUID,
+            string seriesInstanceUID,
+            string sopInstanceUID)
+        {
+            var result = new DicomDataset();
+            AddIfNotNull(result, DicomTag.StudyInstanceUID, studyInstanceUID);
+            AddIfNotNull(result, DicomTag.SeriesInstanceUID, seriesInstanceUID);
+            AddIfNotNull(result, DicomTag.SOPInstanceUID, sopInstanceUID);
+            return result;
+        }
+
+        private static void AddIfNotNull(DicomDataset dicomDataset, DicomTag dicomTag, string value)
+        {
+            if (value != null)
+            {
+                dicomDataset.Add(dicomTag, value);
+            }
         }
     }
 }

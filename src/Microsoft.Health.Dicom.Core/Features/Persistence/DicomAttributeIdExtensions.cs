@@ -12,6 +12,35 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public static class DicomAttributeIdExtensions
     {
+        public static void Add(this DicomDataset dicomDataset, DicomAttributeId attributeId, DicomItem dicomItem)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(attributeId, nameof(attributeId));
+            EnsureArg.IsNotNull(dicomItem, nameof(dicomItem));
+            EnsureArg.IsTrue(attributeId.FinalDicomTag == dicomItem.Tag);
+
+            DicomDataset currentDataset = dicomDataset;
+            for (var i = 0; i < attributeId.Length; i++)
+            {
+                DicomTag dicomTag = attributeId.GetDicomTag(i);
+                if (i == attributeId.Length - 1)
+                {
+                    currentDataset.Add(dicomItem);
+                }
+                else
+                {
+                    if (!currentDataset.TryGetSequence(dicomTag, out DicomSequence dicomSequence))
+                    {
+                        dicomSequence = new DicomSequence(dicomTag);
+                        currentDataset.Add(dicomSequence);
+                    }
+
+                    currentDataset = new DicomDataset();
+                    dicomSequence.Items.Add(currentDataset);
+                }
+            }
+        }
+
         public static bool TryGetDicomItems(this DicomDataset dicomDataset, DicomAttributeId attributeId, out DicomItem[] dicomItems)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -32,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             var result = new List<TItem>();
             if (dicomDataset.TryGetDicomItems(attributeId, out DicomItem[] dicomItems))
             {
-                IEnumerable<DicomElement> elements = dicomItems.Where(x => x is DicomElement).Select(x => (DicomElement)x);
+                IEnumerable<DicomElement> elements = dicomItems.OfType<DicomElement>();
                 result.AddRange(elements.SelectMany(x => Enumerable.Range(0, x.Count).Select(y => x.Get<TItem>(y))));
             }
 

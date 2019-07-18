@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
+using Microsoft.Health.Dicom.Metadata.Features.Storage;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
