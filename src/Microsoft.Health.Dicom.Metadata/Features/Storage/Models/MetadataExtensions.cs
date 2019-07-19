@@ -41,9 +41,9 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
             string studyInstanceUID = dicomStudyMetadata.StudyInstanceUID;
             foreach (KeyValuePair<string, DicomSeriesMetadata> series in dicomStudyMetadata.SeriesMetadata)
             {
-                foreach (KeyValuePair<string, int> instance in series.Value.Instances)
+                foreach (string instance in series.Value.Instances)
                 {
-                    yield return new DicomInstance(studyInstanceUID, series.Key, instance.Key);
+                    yield return new DicomInstance(studyInstanceUID, series.Key, instance);
                 }
             }
         }
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
             string studyInstanceUID = dicomStudyMetadata.StudyInstanceUID;
             if (dicomStudyMetadata.SeriesMetadata.TryGetValue(seriesInstanceUID, out DicomSeriesMetadata seriesMetadata))
             {
-                return seriesMetadata.Instances.Select(x => new DicomInstance(studyInstanceUID, seriesInstanceUID, x.Key));
+                return seriesMetadata.Instances.Select(x => new DicomInstance(studyInstanceUID, seriesInstanceUID, x));
             }
 
             throw new ArgumentException($"The provided series instance identifier does not exist: {seriesInstanceUID}", nameof(seriesInstanceUID));
@@ -70,11 +70,12 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
 
             // Attempt to find the series and the instance (return false if it does not exist)
             if (!dicomStudyMetadata.SeriesMetadata.TryGetValue(dicomInstance.SeriesInstanceUID, out DicomSeriesMetadata dicomSeriesMetadata) ||
-                !dicomSeriesMetadata.Instances.TryGetValue(dicomInstance.SopInstanceUID, out int instanceId))
+                !dicomSeriesMetadata.Instances.Contains(dicomInstance.SopInstanceUID))
             {
                 return false;
             }
 
+            var instanceId = dicomSeriesMetadata.CreateOrGetInstanceIdentifier(dicomInstance.SopInstanceUID);
             var attributesToRemove = new List<DicomItemInstances>();
             foreach (DicomItemInstances attributeValue in dicomSeriesMetadata.DicomItems)
             {
@@ -85,7 +86,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
             }
 
             attributesToRemove.Each(x => dicomSeriesMetadata.DicomItems.Remove(x));
-            dicomSeriesMetadata.Instances.Remove(dicomInstance.SopInstanceUID);
+            dicomSeriesMetadata.RemoveInstance(dicomInstance.SopInstanceUID);
 
             if (dicomSeriesMetadata.Instances.Count == 0)
             {
@@ -100,12 +101,9 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
             var sopInstanceUID = dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty);
             EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(sopInstanceUID));
 
-            if (!dicomSeriesMetadata.Instances.TryGetValue(sopInstanceUID, out int instanceId))
-            {
-                instanceId = dicomSeriesMetadata.AddSopInstanceUID(sopInstanceUID);
-            }
-
+            int instanceId = dicomSeriesMetadata.CreateOrGetInstanceIdentifier(sopInstanceUID);
             HashSet<DicomItemInstances> attributeValues = dicomSeriesMetadata.DicomItems;
+
             foreach (DicomAttributeId attribute in indexableAttributes)
             {
                 if (dicomDataset.TryGetDicomItems(attribute, out DicomItem[] dicomItems))

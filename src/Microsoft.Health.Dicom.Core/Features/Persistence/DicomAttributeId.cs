@@ -62,10 +62,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         public int Length => _dicomTags.Length;
 
         /// <summary>
-        /// Gets the non-sequence DICOM tag.
+        /// Gets the last DICOM tag.
         /// </summary>
         [JsonIgnore]
-        public DicomTag InstanceDicomTag => _dicomTags[Length - 1];
+        public DicomTag FinalDicomTag => _dicomTags[Length - 1];
 
         public DicomTag GetDicomTag(int index)
         {

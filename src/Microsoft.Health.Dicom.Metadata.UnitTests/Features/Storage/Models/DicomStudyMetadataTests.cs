@@ -73,14 +73,14 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
         private void AssertEqual(DicomSeriesMetadata expected, DicomSeriesMetadata actual)
         {
             Assert.Equal(expected.Instances.Count, actual.Instances.Count);
-            Assert.Equal(expected.Instances.Keys, actual.Instances.Keys);
+            Assert.Equal(expected.Instances.Count, actual.Instances.Count);
 
-            foreach (var key in expected.Instances.Keys)
+            foreach (var instance in expected.Instances)
             {
-                Assert.Equal(expected.Instances[key], actual.Instances[key]);
+                Assert.Equal(expected.CreateOrGetInstanceIdentifier(instance), actual.CreateOrGetInstanceIdentifier(instance));
             }
 
-            Assert.Equal(expected.AddSopInstanceUID(Guid.NewGuid().ToString()), actual.AddSopInstanceUID(Guid.NewGuid().ToString()));
+            Assert.Equal(expected.CreateOrGetInstanceIdentifier(Guid.NewGuid().ToString()), actual.CreateOrGetInstanceIdentifier(Guid.NewGuid().ToString()));
 
             for (var i = 0; i < expected.DicomItems.Count; i++)
             {
