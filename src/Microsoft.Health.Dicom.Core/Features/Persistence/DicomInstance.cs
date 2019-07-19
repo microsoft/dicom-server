@@ -23,6 +23,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             EnsureArg.IsNotEqualTo(sopInstanceUID, studyInstanceUID, nameof(sopInstanceUID));
             EnsureArg.IsNotEqualTo(sopInstanceUID, seriesInstanceUID, nameof(sopInstanceUID));
 
+            StudyInstanceUID = studyInstanceUID;
+            SeriesInstanceUID = seriesInstanceUID;
             SopInstanceUID = sopInstanceUID;
         }
 

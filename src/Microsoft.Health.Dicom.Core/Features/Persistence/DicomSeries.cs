@@ -19,6 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID), nameof(seriesInstanceUID));
             EnsureArg.IsNotEqualTo(studyInstanceUID, seriesInstanceUID, nameof(seriesInstanceUID));
 
+            StudyInstanceUID = studyInstanceUID;
             SeriesInstanceUID = seriesInstanceUID;
         }
 
