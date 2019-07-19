@@ -9,18 +9,20 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    public class DicomSeries : DicomStudy
+    public class DicomSeries : IDicomResource
     {
         [JsonConstructor]
         public DicomSeries(string studyInstanceUID, string seriesInstanceUID)
-            : base(studyInstanceUID)
         {
             // Run the instance identifiers through the regular expression check.
+            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyInstanceUID), nameof(studyInstanceUID));
             EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID), nameof(seriesInstanceUID));
             EnsureArg.IsNotEqualTo(studyInstanceUID, seriesInstanceUID, nameof(seriesInstanceUID));
 
             SeriesInstanceUID = seriesInstanceUID;
         }
+
+        public string StudyInstanceUID { get; }
 
         public string SeriesInstanceUID { get; }
 
@@ -28,14 +30,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         {
             if (obj is DicomSeries identity)
             {
-                return StudyInstanceUID.Equals(identity.StudyInstanceUID, EqualsStringComparison) &&
-                        SeriesInstanceUID.Equals(identity.SeriesInstanceUID, EqualsStringComparison);
+                return StudyInstanceUID.Equals(identity.StudyInstanceUID, DicomStudy.EqualsStringComparison) &&
+                        SeriesInstanceUID.Equals(identity.SeriesInstanceUID, DicomStudy.EqualsStringComparison);
             }
 
             return false;
         }
 
         public override int GetHashCode()
-            => (StudyInstanceUID + SeriesInstanceUID).GetHashCode(EqualsStringComparison);
+            => (StudyInstanceUID + SeriesInstanceUID).GetHashCode(DicomStudy.EqualsStringComparison);
     }
 }

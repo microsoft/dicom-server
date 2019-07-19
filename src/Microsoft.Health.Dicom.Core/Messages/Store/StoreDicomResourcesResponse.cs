@@ -12,12 +12,12 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
     public sealed class StoreDicomResourcesResponse : BaseStatusCodeResponse
     {
         public StoreDicomResourcesResponse(HttpStatusCode statusCode)
-            : base(statusCode)
+            : base((int)statusCode)
         {
         }
 
         public StoreDicomResourcesResponse(HttpStatusCode statusCode, DicomDataset responseDataset)
-            : base(statusCode)
+            : base((int)statusCode)
         {
             EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
 

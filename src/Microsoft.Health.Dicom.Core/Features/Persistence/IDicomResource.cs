@@ -3,15 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Messages
+namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    public abstract class BaseStatusCodeResponse
+    public interface IDicomResource
     {
-        protected BaseStatusCodeResponse(int statusCode)
-        {
-            StatusCode = statusCode;
-        }
-
-        public int StatusCode { get; }
+        string StudyInstanceUID { get; }
     }
 }
