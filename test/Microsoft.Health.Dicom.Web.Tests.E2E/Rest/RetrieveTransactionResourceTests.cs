@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var studyInstanceUID = Guid.NewGuid().ToString();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);
-            DicomInstance dicomInstance = DicomInstance.Create(dicomFile1.Dataset);
+            var dicomInstance = DicomInstance.Create(dicomFile1.Dataset);
             HttpResult<DicomDataset> response = await Client.PostAsync(new[] { dicomFile1 }, studyInstanceUID);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             DicomSequence successSequence = response.Value.GetSequence(DicomTag.ReferencedSOPSequence);

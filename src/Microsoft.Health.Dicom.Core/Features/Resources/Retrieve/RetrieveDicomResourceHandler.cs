@@ -109,7 +109,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
             else
             {
-                tempDicomFile = tempDicomFile.Clone(requestedTransferSyntax);
+                var transcoder = new DicomTranscoder(tempDicomFile.Dataset.InternalTransferSyntax, requestedTransferSyntax);
+                tempDicomFile = transcoder.Transcode(tempDicomFile);
 
                 var resultStream = new MemoryStream();
                 tempDicomFile.Save(resultStream);
@@ -121,7 +122,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
         }
 
-        private static Stream GetFrame(DicomFile dicomFile, int frame, DicomTransferSyntax dicomTransferSyntax)
+        private static Stream GetFrame(DicomFile dicomFile, int frame, DicomTransferSyntax requestedTransferSyntax)
         {
             DicomDataset dataset = dicomFile.Dataset;
             IByteBuffer resultByteBuffer;
@@ -129,10 +130,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             if (dataset.InternalTransferSyntax.IsEncapsulated)
             {
                 // Decompress single frame from source dataset
-                var transcoder = new DicomTranscoder(
-                    inputSyntax: dataset.InternalTransferSyntax,
-                    outputSyntax: dicomTransferSyntax);
-
+                var transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, requestedTransferSyntax);
                 resultByteBuffer = transcoder.DecodeFrame(dataset, frame);
             }
             else
@@ -163,7 +161,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 throw new DataStoreException(HttpStatusCode.NotFound);
             }
 
-            // Pull uncompressed frame from source pixel data
             var pixelData = DicomPixelData.Create(dataset);
             var missingFrames = frames.Where(x => x >= pixelData.NumberOfFrames).ToList();
 
