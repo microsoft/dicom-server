@@ -13,6 +13,50 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Persistence
     public class DicomAttributeIdExtensionsTests
     {
         [Fact]
+        public void GivenDatasetAndInvalidParameters_WhenAddingAttributeValues_ArgumentExceptionIsThrown()
+        {
+            var dicomDataset = new DicomDataset();
+            var testAttributeId = new DicomAttributeId(DicomTag.ReferencedStudySequence, DicomTag.StudyInstanceUID);
+            var testDicomItem = new DicomLongString(DicomTag.StudyInstanceUID, Guid.NewGuid().ToString());
+            Assert.Throws<ArgumentNullException>(() => dicomDataset.Add((DicomAttributeId)null, testDicomItem));
+            Assert.Throws<ArgumentNullException>(() => dicomDataset.Add(testAttributeId, null));
+            Assert.Throws<ArgumentNullException>(() => DicomAttributeIdExtensions.Add(null, testAttributeId, testDicomItem));
+            Assert.Throws<ArgumentException>(() => dicomDataset.Add(testAttributeId, new DicomLongString(DicomTag.SeriesInstanceUID, Guid.NewGuid().ToString())));
+        }
+
+        [Fact]
+        public void GivenDicomAttributeIdWithSequenceElements_WhenAddingDicomItemToDataset_IsAddedCorrectly()
+        {
+            var dicomDataset = new DicomDataset();
+            var testStudyId = Guid.NewGuid().ToString();
+            dicomDataset.Add(
+                new DicomAttributeId(DicomTag.ReferencedStudySequence, DicomTag.StudyInstanceUID),
+                new DicomLongString(DicomTag.StudyInstanceUID, testStudyId));
+
+            Assert.True(dicomDataset.TryGetSequence(DicomTag.ReferencedStudySequence, out DicomSequence referencedStudySequence));
+            Assert.Single(referencedStudySequence.Items);
+            Assert.Single(referencedStudySequence.Items[0]);
+            Assert.Equal(testStudyId, referencedStudySequence.Items[0].GetSingleValue<string>(DicomTag.StudyInstanceUID));
+        }
+
+        [Fact]
+        public void GivenDicomAttributeIdWithSequenceElements_WhenAddingSequenceDicomItemToDataset_IsAddedCorrectly()
+        {
+            var dicomDataset = new DicomDataset();
+            var resultSequence = new DicomSequence(
+                DicomTag.ReferencedSeriesSequence,
+                new DicomDataset() { { DicomTag.SeriesInstanceUID, Guid.NewGuid().ToString() } },
+                new DicomDataset() { { DicomTag.SeriesDescription, "TestDescription" } });
+            dicomDataset.Add(
+                new DicomAttributeId(DicomTag.ReferencedStudySequence, resultSequence.Tag), resultSequence);
+
+            Assert.True(dicomDataset.TryGetSequence(DicomTag.ReferencedStudySequence, out DicomSequence referencedStudySequence));
+            Assert.Single(referencedStudySequence.Items);
+            Assert.Single(referencedStudySequence.Items[0]);
+            Assert.Equal(resultSequence, referencedStudySequence.Items[0].GetSequence(resultSequence.Tag));
+        }
+
+        [Fact]
         public void GivenDatasetAndInvalidParameters_WhenFetchedAttributeValues_ArgumentExceptionIsThrown()
         {
             var dicomDataset = new DicomDataset();

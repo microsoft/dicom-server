@@ -10,7 +10,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.CosmosDb.Configs;
 using Microsoft.Health.CosmosDb.Features.Storage;
 using Microsoft.Health.CosmosDb.Features.Storage.Versioning;
+using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.CosmosDb;
+using Microsoft.Health.Dicom.CosmosDb.Config;
 using Microsoft.Health.Dicom.CosmosDb.Features.Health;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Versioning;
@@ -20,34 +22,50 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomCosmosDbRegistrationExtensions
     {
-        public static IServiceCollection AddDicomCosmosDb(this IServiceCollection services, IConfiguration configuration)
+        private static readonly string DicomServerCosmosDbConfigurationSectionName = $"DicomWeb:CosmosDb";
+
+        public static IDicomServerBuilder AddDicomCosmosDbIndexing(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
         {
-            EnsureArg.IsNotNull(services, nameof(services));
+            EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
+
+            return serverBuilder
+                        .AddCosmosDbIndexingPersistence(configuration)
+                        .AddCosmosDbHealthCheck();
+        }
+
+        public static IDicomServerBuilder AddCosmosDbIndexingPersistence(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
+        {
+            IServiceCollection services = serverBuilder.Services;
 
             services.AddCosmosDb();
 
             services
                 .Configure<CosmosCollectionConfiguration>(
                     Constants.CollectionConfigurationName,
-                    cosmosCollectionConfiguration => configuration.GetSection("DicomWeb:CosmosDb")
+                    cosmosCollectionConfiguration => configuration.GetSection(DicomServerCosmosDbConfigurationSectionName)
                 .Bind(cosmosCollectionConfiguration));
 
-            services.Add(sp =>
-            {
-                CosmosDataStoreConfiguration config = sp.GetService<CosmosDataStoreConfiguration>();
-                DicomCollectionUpgradeManager upgradeManager = sp.GetService<DicomCollectionUpgradeManager>();
-                ILoggerFactory loggerFactory = sp.GetService<ILoggerFactory>();
-                IOptionsMonitor<CosmosCollectionConfiguration> namedCosmosCollectionConfiguration = sp.GetService<IOptionsMonitor<CosmosCollectionConfiguration>>();
-                CosmosCollectionConfiguration cosmosCollectionConfiguration = namedCosmosCollectionConfiguration.Get(Constants.CollectionConfigurationName);
+            // Add the indexing configuration; this is not loaded from the settings configuration for now.
+            services.Add<DicomIndexingConfiguration>()
+                .Singleton()
+                .AsSelf();
 
-                return new CollectionInitializer(
-                    cosmosCollectionConfiguration.CollectionId,
-                    config,
-                    cosmosCollectionConfiguration.InitialCollectionThroughput,
-                    upgradeManager,
-                    loggerFactory.CreateLogger<CollectionInitializer>());
-            })
+            services.Add(sp =>
+                {
+                    CosmosDataStoreConfiguration config = sp.GetService<CosmosDataStoreConfiguration>();
+                    DicomCollectionUpgradeManager upgradeManager = sp.GetService<DicomCollectionUpgradeManager>();
+                    ILoggerFactory loggerFactory = sp.GetService<ILoggerFactory>();
+                    IOptionsMonitor<CosmosCollectionConfiguration> namedCosmosCollectionConfiguration = sp.GetService<IOptionsMonitor<CosmosCollectionConfiguration>>();
+                    CosmosCollectionConfiguration cosmosCollectionConfiguration = namedCosmosCollectionConfiguration.Get(Constants.CollectionConfigurationName);
+
+                    return new CollectionInitializer(
+                        cosmosCollectionConfiguration.CollectionId,
+                        config,
+                        cosmosCollectionConfiguration.InitialCollectionThroughput,
+                        upgradeManager,
+                        loggerFactory.CreateLogger<CollectionInitializer>());
+                })
                 .Singleton()
                 .AsService<ICollectionInitializer>();
 
@@ -65,10 +83,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsService<IUpgradeManager>();
 
-            services.AddHealthChecks()
-                .AddCheck<DicomCosmosHealthCheck>(name: nameof(DicomCosmosHealthCheck));
+            return serverBuilder;
+        }
 
-            return services;
+        private static IDicomServerBuilder AddCosmosDbHealthCheck(this IDicomServerBuilder serverBuilder)
+        {
+            serverBuilder.Services.AddHealthChecks().AddCheck<DicomCosmosHealthCheck>(name: nameof(DicomCosmosHealthCheck));
+            return serverBuilder;
         }
     }
 }

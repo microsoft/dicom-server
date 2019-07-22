@@ -9,7 +9,7 @@ using Microsoft.Health.Dicom.Core.Features.Persistence;
 
 namespace Microsoft.Health.Dicom.CosmosDb.Config
 {
-    public class DicomCosmosConfiguration
+    public class DicomIndexingConfiguration
     {
         /// <summary>
         /// Gets the DICOM tags that should be indexed and made queryable.

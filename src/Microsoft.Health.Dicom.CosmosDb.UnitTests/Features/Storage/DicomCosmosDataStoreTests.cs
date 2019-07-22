@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage
                 Substitute.For<IScoped<IDocumentClient>>(),
                 new CosmosDataStoreConfiguration(),
                 namedCosmosCollectionConfigurationAccessor,
-                new DicomCosmosConfiguration());
+                new DicomIndexingConfiguration());
         }
 
         [Fact]

@@ -23,10 +23,10 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         private const string StudySqlQuerySearchFormat = "SELECT DISTINCT VALUE {{ \"" + nameof(DicomStudy.StudyInstanceUID) + "\": c." + DocumentProperties.StudyInstanceUID + " }} FROM c {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
         private const string SeriesSqlQuerySearchFormat = "SELECT VALUE {{ \"" + nameof(DicomSeries.StudyInstanceUID) + "\": c." + DocumentProperties.StudyInstanceUID + ", \"" + nameof(DicomSeries.SeriesInstanceUID) + "\": c." + DocumentProperties.SeriesInstanceUID + " }} FROM c {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
         private const string InstanceSqlQuerySearchFormat = "SELECT VALUE {{ \"" + nameof(DicomInstance.StudyInstanceUID) + "\": c." + DocumentProperties.StudyInstanceUID + ", \"" + nameof(DicomInstance.SeriesInstanceUID) + "\": c." + DocumentProperties.SeriesInstanceUID + ", \"" + nameof(DicomInstance.SopInstanceUID) + "\": f." + DocumentProperties.SopInstanceUID + " }} FROM c JOIN f in c." + DocumentProperties.Instances + " {0} OFFSET " + OffsetParameterName + " LIMIT " + LimitParameterName;
-        private readonly DicomCosmosConfiguration _dicomConfiguration;
+        private readonly DicomIndexingConfiguration _dicomConfiguration;
         private readonly IFormatProvider _stringFormatProvider;
 
-        public CosmosQueryBuilder(DicomCosmosConfiguration dicomConfiguration)
+        public CosmosQueryBuilder(DicomIndexingConfiguration dicomConfiguration)
         {
             EnsureArg.IsNotNull(dicomConfiguration, nameof(dicomConfiguration));
 

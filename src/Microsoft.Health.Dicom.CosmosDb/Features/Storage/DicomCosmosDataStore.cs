@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
     {
         private readonly IDocumentClient _documentClient;
         private readonly Uri _collectionUri;
-        private readonly DicomCosmosConfiguration _dicomConfiguration;
+        private readonly DicomIndexingConfiguration _dicomConfiguration;
         private readonly CosmosQueryBuilder _queryBuilder;
         private readonly string _databaseId;
         private readonly string _collectionId;
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             IScoped<IDocumentClient> documentClient,
             CosmosDataStoreConfiguration configuration,
             IOptionsMonitor<CosmosCollectionConfiguration> namedCosmosCollectionConfigurationAccessor,
-            DicomCosmosConfiguration dicomConfiguration)
+            DicomIndexingConfiguration dicomConfiguration)
         {
             EnsureArg.IsNotNull(documentClient?.Value, nameof(documentClient));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
