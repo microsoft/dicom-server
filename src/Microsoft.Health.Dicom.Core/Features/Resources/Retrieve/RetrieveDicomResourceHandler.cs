@@ -76,12 +76,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
                 if (message.DicomResource is DicomFrames dicomFrames)
                 {
+                    // We first validate the file has the requested frames, then pass the frame for lazy encoding.
+                    var dicomFile = DicomFile.Open(resultStreams.Single());
+                    ValidateHasFrames(dicomFile, dicomFrames.Frames);
+
                     resultStreams = dicomFrames.Frames.Select(
-                        x => new LazyTransformStreamStream(resultStreams[0], y => GetUncompressedFrame(y, x, parsedDicomTransferSyntax))).ToArray();
+                        x => new LazyTransformStream<DicomFile>(dicomFile, y => GetFrame(y, x, parsedDicomTransferSyntax)))
+                        .ToArray();
                 }
                 else
                 {
-                    resultStreams = resultStreams.Select(x => new LazyTransformStreamStream(x, y => EncodeDicomFile(y, parsedDicomTransferSyntax))).ToArray();
+                    resultStreams = resultStreams.Select(x => new LazyTransformStream<Stream>(x, y => EncodeDicomFile(y, parsedDicomTransferSyntax))).ToArray();
                 }
 
                 return new RetrieveDicomResourceResponse(HttpStatusCode.OK, resultStreams);
@@ -116,11 +121,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
         }
 
-        private static Stream GetUncompressedFrame(Stream stream, int frame, DicomTransferSyntax dicomTransferSyntax)
+        private static Stream GetFrame(DicomFile dicomFile, int frame, DicomTransferSyntax dicomTransferSyntax)
         {
-            var tempDicomFile = DicomFile.Open(stream);
-
-            DicomDataset dataset = tempDicomFile.Dataset;
+            DicomDataset dataset = dicomFile.Dataset;
             IByteBuffer resultByteBuffer;
 
             if (dataset.InternalTransferSyntax.IsEncapsulated)
@@ -136,7 +139,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             {
                 // Pull uncompressed frame from source pixel data
                 var pixelData = DicomPixelData.Create(dataset);
-
                 if (frame >= pixelData.NumberOfFrames)
                 {
                     throw new DataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame '{frame}' does not exist.", nameof(frame)));
@@ -146,6 +148,29 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
 
             return new MemoryStream(resultByteBuffer.Data);
+        }
+
+        private static void ValidateHasFrames(DicomFile dicomFile, IEnumerable<int> frames)
+        {
+            DicomDataset dataset = dicomFile.Dataset;
+
+            // Validate the dataset has the correct DICOM tags (validating the pixel data last)
+            if (!dataset.TryGetSingleValue(DicomTag.BitsAllocated, out ushort _) ||
+                !dataset.TryGetSingleValue(DicomTag.Columns, out ushort _) ||
+                !dataset.TryGetSingleValue(DicomTag.Rows, out ushort _) ||
+                !dataset.TryGetValues(DicomTag.PixelData, out byte[] _))
+            {
+                throw new DataStoreException(HttpStatusCode.NotFound);
+            }
+
+            // Pull uncompressed frame from source pixel data
+            var pixelData = DicomPixelData.Create(dataset);
+            var missingFrames = frames.Where(x => x >= pixelData.NumberOfFrames).ToList();
+
+            if (missingFrames.Count > 0)
+            {
+                throw new DataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frames '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
+            }
         }
     }
 }

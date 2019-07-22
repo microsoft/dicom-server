@@ -128,6 +128,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
                         if (string.IsNullOrWhiteSpace(studyInstanceUID) ||
                             studyInstanceUID.Equals(dicomInstance.StudyInstanceUID, DicomStudy.EqualsStringComparison))
                         {
+                            seekStream.Seek(0, SeekOrigin.Begin);
                             await _dicomBlobDataStore.AddFileAsStreamAsync(GetBlobStorageName(dicomInstance), seekStream, cancellationToken: cancellationToken);
                             transactionResponseBuilder.AddSuccess(dicomFile.Dataset);
                             return dicomFile.Dataset;

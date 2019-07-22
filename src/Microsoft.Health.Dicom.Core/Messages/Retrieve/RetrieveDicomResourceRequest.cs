@@ -19,9 +19,10 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         public RetrieveDicomResourceRequest(IDicomResource dicomResource, string requestedTransferSyntax = null)
         {
             DicomResource = dicomResource;
-            RequestedTransferSyntax =
-                requestedTransferSyntax.Equals(OriginalTransferSyntaxRequest, StringComparison.InvariantCultureIgnoreCase) ?
-                    null : requestedTransferSyntax;
+            RequestedTransferSyntax = string.IsNullOrWhiteSpace(requestedTransferSyntax) ?
+                                        null :
+                                        requestedTransferSyntax.Equals(OriginalTransferSyntaxRequest, StringComparison.InvariantCultureIgnoreCase) ?
+                                            null : requestedTransferSyntax;
         }
 
         public IDicomResource DicomResource { get; }

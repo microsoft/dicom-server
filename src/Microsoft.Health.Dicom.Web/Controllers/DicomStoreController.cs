@@ -18,13 +18,13 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    public class DicomWebController : Controller
+    public class DicomStoreController : Controller
     {
         private const string ApplicationDicomJson = "application/dicom+json";
         private readonly IMediator _mediator;
-        private readonly ILogger<DicomWebController> _logger;
+        private readonly ILogger<DicomStoreController> _logger;
 
-        public DicomWebController(IMediator mediator, ILogger<DicomWebController> logger)
+        public DicomStoreController(IMediator mediator, ILogger<DicomStoreController> logger)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             EnsureArg.IsNotNull(logger, nameof(logger));

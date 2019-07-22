@@ -47,8 +47,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}'.");
 
             RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomResourcesAsync(studyInstanceUID, transferSyntax, HttpContext.RequestAborted);
-            return new MultipartResult(
-                response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(ApplicationDicom, x)).ToList());
+            return ConvertToActionResult(response);
         }
 
         [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
@@ -64,10 +63,8 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}'.");
 
             RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomResourcesAsync(
-                studyInstanceUID, seriesInstanceUID, transferSyntax, HttpContext.RequestAborted);
-
-            return new MultipartResult(
-                response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(ApplicationDicom, x)).ToList());
+                                studyInstanceUID, seriesInstanceUID, transferSyntax, HttpContext.RequestAborted);
+            return ConvertToActionResult(response);
         }
 
         [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
@@ -84,10 +81,8 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}', instance: '{sopInstanceUID}'.");
 
             RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomResourceAsync(
-                studyInstanceUID, seriesInstanceUID, sopInstanceUID, transferSyntax, HttpContext.RequestAborted);
-
-            return new MultipartResult(
-                response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(ApplicationDicom, x)).ToList());
+                            studyInstanceUID, seriesInstanceUID, sopInstanceUID, transferSyntax, HttpContext.RequestAborted);
+            return ConvertToActionResult(response);
         }
 
         [AcceptContentFilter(ApplicationOctetStream)]
@@ -105,10 +100,18 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}', instance: '{sopInstanceUID}'.");
 
             RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
-                studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, transferSyntax, HttpContext.RequestAborted);
+                            studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, transferSyntax, HttpContext.RequestAborted);
+            return ConvertToActionResult(response);
+        }
 
-            return new MultipartResult(
-                response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(ApplicationDicom, x)).ToList());
+        private IActionResult ConvertToActionResult(RetrieveDicomResourceResponse response)
+        {
+            if (response.ResponseStreams == null)
+            {
+                return StatusCode(response.StatusCode);
+            }
+
+            return new MultipartResult(response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(ApplicationDicom, x)).ToList());
         }
     }
 }

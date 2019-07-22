@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
 
             foreach (MultipartItem item in _multipartItems)
             {
-                content.Add(content);
+                content.Add(item.Content);
 
                 if (item.Disposable != null)
                 {

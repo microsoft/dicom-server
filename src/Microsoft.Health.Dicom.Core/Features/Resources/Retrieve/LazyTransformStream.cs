@@ -9,20 +9,19 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
-    public class LazyTransformStreamStream : Stream
+    internal class LazyTransformStream<T> : Stream
     {
         private readonly object _lockObject = new object();
-        private readonly Func<Stream, Stream> _transformStreamFunction;
-        private readonly Stream _baseStream;
+        private readonly Func<T, Stream> _transformFunction;
+        private readonly T _transformInput;
         private Stream _outputStream;
 
-        public LazyTransformStreamStream(Stream baseStream, Func<Stream, Stream> transformStreamFunction)
+        public LazyTransformStream(T transformInput, Func<T, Stream> transformFunction)
         {
-            EnsureArg.IsNotNull(baseStream, nameof(baseStream));
-            EnsureArg.IsNotNull(transformStreamFunction, nameof(transformStreamFunction));
+            EnsureArg.IsNotNull(transformFunction, nameof(transformFunction));
 
-            _baseStream = baseStream;
-            _transformStreamFunction = transformStreamFunction;
+            _transformInput = transformInput;
+            _transformFunction = transformFunction;
         }
 
         public override bool CanRead => true;
@@ -53,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 {
                     if (_outputStream == null)
                     {
-                        _outputStream = _transformStreamFunction(_baseStream);
+                        _outputStream = _transformFunction(_transformInput);
                     }
                 }
             }
