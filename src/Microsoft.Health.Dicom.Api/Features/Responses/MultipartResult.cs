@@ -28,6 +28,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
 
         public async override Task ExecuteResultAsync(ActionContext context)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
             var content = new MultipartContent(MultipartContentSubType);
 
             foreach (MultipartItem item in _multipartItems)

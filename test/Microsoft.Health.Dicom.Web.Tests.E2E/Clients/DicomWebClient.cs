@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         public Task<HttpResult<IReadOnlyList<DicomFile>>> GetInstanceAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null)
             => GetInstancesAsync(new Uri(string.Format(BaseRetrieveInstanceUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID), UriKind.Relative), dicomTransferSyntax);
 
-        public async Task<HttpResult<Stream>> GetFramesAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null, params int[] frames)
+        public async Task<HttpResult<IReadOnlyList<Stream>>> GetFramesAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null, params int[] frames)
         {
             var requestUri = new Uri(string.Format(BaseRetrieveFramesUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, string.Join(",", frames)), UriKind.Relative);
 
@@ -64,10 +64,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                     if (response.IsSuccessStatusCode)
                     {
                         IEnumerable<Stream> responseStreams = await response.Content.ReadMultipartResponseAsStreamsAsync();
-                        return new HttpResult<Stream>(response.StatusCode, responseStreams.Single());
+                        return new HttpResult<IReadOnlyList<Stream>>(response.StatusCode, responseStreams.ToList());
                     }
 
-                    return new HttpResult<Stream>(response.StatusCode);
+                    return new HttpResult<IReadOnlyList<Stream>>(response.StatusCode);
                 }
             }
         }

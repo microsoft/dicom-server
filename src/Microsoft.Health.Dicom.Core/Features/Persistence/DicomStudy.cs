@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    public class DicomStudy : IDicomResource
+    public class DicomStudy
     {
         public const StringComparison EqualsStringComparison = StringComparison.Ordinal;
 

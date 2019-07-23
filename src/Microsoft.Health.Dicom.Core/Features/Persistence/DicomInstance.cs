@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    public class DicomInstance : IDicomResource
+    public class DicomInstance
     {
         [JsonConstructor]
         public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)

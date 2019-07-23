@@ -3,10 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.Persistence
+namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
-    public interface IDicomResource
+    public enum ResourceType
     {
-        string StudyInstanceUID { get; }
+        Study,
+        Series,
+        Instance,
+        Frames,
     }
 }

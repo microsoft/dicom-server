@@ -47,22 +47,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
             try
             {
-                switch (message.DicomResource)
+                switch (message.ResourceType)
                 {
-                    case DicomFrames dicomInstance:
-                        instancesToRetrieve = new[] { dicomInstance.Instance };
+                    case ResourceType.Frames:
+                    case ResourceType.Instance:
+                        instancesToRetrieve = new[] { new DicomInstance(message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID) };
                         break;
-                    case DicomInstance dicomInstance:
-                        instancesToRetrieve = new[] { dicomInstance };
+                    case ResourceType.Series:
+                        instancesToRetrieve = await _dicomMetadataStore.GetInstancesInSeriesAsync(message.StudyInstanceUID, message.SeriesInstanceUID, cancellationToken);
                         break;
-                    case DicomSeries dicomSeries:
-                        instancesToRetrieve = await _dicomMetadataStore.GetInstancesInSeriesAsync(dicomSeries.StudyInstanceUID, dicomSeries.SeriesInstanceUID, cancellationToken);
-                        break;
-                    case DicomStudy dicomStudy:
-                        instancesToRetrieve = await _dicomMetadataStore.GetInstancesInStudyAsync(dicomStudy.StudyInstanceUID, cancellationToken);
+                    case ResourceType.Study:
+                        instancesToRetrieve = await _dicomMetadataStore.GetInstancesInStudyAsync(message.StudyInstanceUID, cancellationToken);
                         break;
                     default:
-                        throw new ArgumentException($"Unkown message type: {message.DicomResource.GetType()}", nameof(message));
+                        throw new ArgumentException($"Unkown retrieve transaction type: {message.ResourceType}", nameof(message));
                 }
 
                 Stream[] resultStreams = await Task.WhenAll(
@@ -74,13 +72,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                                                     DefaultTransferSyntax :
                                                     DicomTransferSyntax.Parse(message.RequestedTransferSyntax);
 
-                if (message.DicomResource is DicomFrames dicomFrames)
+                if (message.ResourceType == ResourceType.Frames)
                 {
                     // We first validate the file has the requested frames, then pass the frame for lazy encoding.
                     var dicomFile = DicomFile.Open(resultStreams.Single());
-                    ValidateHasFrames(dicomFile, dicomFrames.Frames);
+                    ValidateHasFrames(dicomFile, message.Frames);
 
-                    resultStreams = dicomFrames.Frames.Select(
+                    resultStreams = message.Frames.Select(
                         x => new LazyTransformStream<DicomFile>(dicomFile, y => GetFrame(y, x, parsedDicomTransferSyntax)))
                         .ToArray();
                 }
@@ -152,21 +150,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         {
             DicomDataset dataset = dicomFile.Dataset;
 
-            // Validate the dataset has the correct DICOM tags (validating the pixel data last)
-            if (!dataset.TryGetSingleValue(DicomTag.BitsAllocated, out ushort _) ||
-                !dataset.TryGetSingleValue(DicomTag.Columns, out ushort _) ||
-                !dataset.TryGetSingleValue(DicomTag.Rows, out ushort _) ||
-                !dataset.TryGetValues(DicomTag.PixelData, out byte[] _))
+            // Validate the dataset has the correct DICOM tags.
+            if (!dataset.Contains(DicomTag.BitsAllocated) ||
+                !dataset.Contains(DicomTag.Columns) ||
+                !dataset.Contains(DicomTag.Rows) ||
+                !dataset.Contains(DicomTag.PixelData))
             {
                 throw new DataStoreException(HttpStatusCode.NotFound);
             }
 
             var pixelData = DicomPixelData.Create(dataset);
-            var missingFrames = frames.Where(x => x >= pixelData.NumberOfFrames).ToList();
+            var missingFrames = frames.Where(x => x >= pixelData.NumberOfFrames || x < 0).ToArray();
 
-            if (missingFrames.Count > 0)
+            // If any missing frames, throw not found exception for the specific frames not found.
+            if (missingFrames.Length > 0)
             {
-                throw new DataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frames '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
+                throw new DataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame(s) '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
             }
         }
     }
