@@ -12,7 +12,7 @@ This transaction uses the POST method to Store representations of Studies, Serie
 Method|Path|Description
 ----------|----------|----------
 POST|../studies|Store instances.
-POST|../studies/{studyInstanceUID}|Store instances for a specific study. If any instance does not belong to the provided identifier, it will be rejected.
+POST|../studies/{studyInstanceUID}|Store instances for a specific study. If an instance does not belong to the provided study identifier, that specific instance will be rejected with a '`43265`' warning code.
 
 The following `'Accept'` headers for the response are supported:
 - `application/dicom+json`
@@ -40,7 +40,7 @@ Code|Description
 204 (No Content)|No content was provided in the store transaction request.
 400 (Bad Request)|The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format.
 406 (Not Acceptable)|The specified `Accept` header is not supported.
-409 (Conflict) |When none of the instances in the request have been stored but some have not.
+409 (Conflict) |When none of the instances in the store transaction request have been stored.
 415 (Unsupported Media Type)|The provided `Content-Type` is not supported.
 
 ### Response Payload
@@ -54,6 +54,7 @@ Tag|Name|Description
 (0008, 1199)|ReferencedSOPSequence|The sequence of stored instances.
 
 Each dataset in the `FailedSOPSequence` will have the following elements (if the DICOM file attempting to be stored could be read):
+
 Tag|Name|Description
 ----------|----------|----------
 (0008, 1150)|ReferencedSOPClassUID|The SOP class unique identifier of the instance that failed to store.
@@ -61,6 +62,7 @@ Tag|Name|Description
 (0008,1197)|FailureReason|The reason code why this instance failed to store
 
 Each dataset in the `ReferencedSOPSequence` will have the following elements:
+
 Tag|Name|Description
 ----------|----------|----------
 (0008, 1150)|ReferencedSOPClassUID|The SOP class unique identifier of the instance that failed to store.
@@ -123,6 +125,7 @@ An example response with `Accept` header `application/dicom+json`:
 ```
 
 ### Failure Reason Codes
+
 Code|Description
 ----------|----------
 272|The store transaction did not store the instance because of a general failure in processing the operation.
