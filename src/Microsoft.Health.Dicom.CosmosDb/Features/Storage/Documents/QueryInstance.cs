@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
         private QueryInstance(string instanceUID)
         {
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(instanceUID), nameof(instanceUID));
+            EnsureArg.Matches(instanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(instanceUID));
 
             InstanceUID = instanceUID;
         }

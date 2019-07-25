@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -13,10 +12,10 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 {
     public interface IDicomInstanceMetadataStore
     {
-        Task AddInstanceMetadataAsync(IEnumerable<DicomDataset> instances, CancellationToken cancellationToken = default);
+        Task AddInstanceMetadataAsync(DicomDataset instanceMetadata, CancellationToken cancellationToken = default);
 
-        Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken);
+        Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default);
 
-        Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken);
+        Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default);
     }
 }
