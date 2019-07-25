@@ -36,7 +36,7 @@ Code|Description
 202 (Accepted) |When some instances in the request have been stored but others have failed.
 400 (Bad Request)|The request was badly formatted.
 406 (Not Acceptable)|The specified `Accept` header is not supported.
-409 (Conflict) |When none of the instances in the request have been stored but some have not.
+409 (Conflict) |When none of the instances in the store transaction request have been stored.
 415 (Unsupported Media Type)|The provided `Content-Type` is not supported.
 
 ### Response Payload
@@ -50,6 +50,7 @@ Tag|Name|Description
 (0008, 1199)|ReferencedSOPSequence|The sequence of stored instances.
 
 Each dataset in the `FailedSOPSequence` will have the following elements (if the DICOM file attempting to be stored could be read):
+
 Tag|Name|Description
 ----------|----------|----------
 (0008, 1150)|ReferencedSOPClassUID|The SOP class unique identifier of the instance that failed to store.
@@ -57,6 +58,7 @@ Tag|Name|Description
 (0008,1197)|FailureReason|The reason code why this instance failed to store
 
 Each dataset in the `ReferencedSOPSequence` will have the following elements:
+
 Tag|Name|Description
 ----------|----------|----------
 (0008, 1150)|ReferencedSOPClassUID|The SOP class unique identifier of the instance that failed to store.
@@ -119,6 +121,7 @@ An example response with `Accept` header `application/dicom+json`:
 ```
 
 ### Failure Reason Codes
+
 Code|Description
 ----------|----------
 272|The store transaction did not store the instance because of a general failure in processing the operation.

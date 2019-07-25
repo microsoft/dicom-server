@@ -158,7 +158,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                StoreTransactionResponseBuilder.MismatchStudyInstanceUIDFailureCode,
+                StoreFailureCodes.MismatchStudyInstanceUIDFailureCode,
                 dicomFile1.Dataset,
                 dicomFile2.Dataset);
         }
@@ -181,7 +181,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
             ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                StoreTransactionResponseBuilder.MismatchStudyInstanceUIDFailureCode,
+                StoreFailureCodes.MismatchStudyInstanceUIDFailureCode,
                 dicomFile2.Dataset);
         }
 
@@ -195,7 +195,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                StoreTransactionResponseBuilder.ProcessingFailureCode,
+                StoreFailureCodes.ProcessingFailureCode,
                 dicomFile1.Dataset);
         }
 
@@ -212,7 +212,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.Conflict, response2.StatusCode);
             ValidateFailureSequence(
                 response2.Value.GetSequence(DicomTag.FailedSOPSequence),
-                StoreTransactionResponseBuilder.SopInstanceAlredyExistsFailureCode,
+                StoreFailureCodes.SopInstanceAlredyExistsFailureCode,
                 dicomFile1.Dataset);
         }
 

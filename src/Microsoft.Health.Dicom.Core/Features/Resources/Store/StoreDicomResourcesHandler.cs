@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -12,6 +13,7 @@ using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -22,19 +24,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
     public class StoreDicomResourcesHandler : IRequestHandler<StoreDicomResourcesRequest, StoreDicomResourcesResponse>
     {
         private const string ApplicationDicom = "application/dicom";
+        private readonly ILogger<StoreDicomResourcesHandler> _logger;
         private readonly IDicomRouteProvider _dicomRouteProvider;
         private readonly IDicomBlobDataStore _dicomBlobDataStore;
         private readonly IDicomMetadataStore _dicomMetadataStore;
 
         public StoreDicomResourcesHandler(
+            ILogger<StoreDicomResourcesHandler> logger,
             IDicomRouteProvider dicomRouteProvider,
             IDicomBlobDataStore dicomBlobDataStore,
             IDicomMetadataStore dicomMetadataStore)
         {
+            EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(dicomRouteProvider, nameof(dicomRouteProvider));
             EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
             EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
 
+            _logger = logger;
             _dicomRouteProvider = dicomRouteProvider;
             _dicomBlobDataStore = dicomBlobDataStore;
             _dicomMetadataStore = dicomMetadataStore;
@@ -118,7 +124,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
                     stream.Dispose();
 
                     seekStream.Seek(0, SeekOrigin.Begin);
-
                     dicomFile = await DicomFile.OpenAsync(seekStream);
 
                     if (dicomFile != null)
@@ -134,7 +139,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
                         }
                         else
                         {
-                            transactionResponseBuilder.AddFailure(dicomFile.Dataset, StoreTransactionResponseBuilder.MismatchStudyInstanceUIDFailureCode);
+                            transactionResponseBuilder.AddFailure(dicomFile.Dataset, StoreFailureCodes.MismatchStudyInstanceUIDFailureCode);
                             return null;
                         }
                     }
@@ -142,11 +147,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
             }
             catch (DataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.Conflict)
             {
-                transactionResponseBuilder.AddFailure(dicomFile.Dataset, StoreTransactionResponseBuilder.SopInstanceAlredyExistsFailureCode);
+                transactionResponseBuilder.AddFailure(dicomFile.Dataset, StoreFailureCodes.SopInstanceAlredyExistsFailureCode);
                 return null;
             }
-            catch
+            catch (Exception e)
             {
+                _logger.LogError(e, "Exception when store an instance.");
             }
 
             transactionResponseBuilder.AddFailure(dicomFile?.Dataset);
