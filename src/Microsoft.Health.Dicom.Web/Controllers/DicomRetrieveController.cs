@@ -40,6 +40,8 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/")]
         public async Task<IActionResult> GetStudyAsync([FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax, string studyInstanceUID)
@@ -53,6 +55,8 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}")]
         public async Task<IActionResult> GetSeriesAsync(
@@ -70,6 +74,8 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}")]
         public async Task<IActionResult> GetInstanceAsync(
@@ -88,6 +94,8 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [AcceptContentFilter(ApplicationOctetStream)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}/frames/{frames}")]
         public async Task<IActionResult> GetFrameAsync(
@@ -97,7 +105,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             string sopInstanceUID,
             int[] frames)
         {
-            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}', instance: '{sopInstanceUID}'.");
+            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}', instance: '{sopInstanceUID}', frames: '{string.Join(", ", frames)}'.");
 
             RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
                             studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, transferSyntax, HttpContext.RequestAborted);

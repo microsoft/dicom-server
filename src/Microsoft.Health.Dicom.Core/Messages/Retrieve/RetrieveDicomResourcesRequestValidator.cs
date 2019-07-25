@@ -13,11 +13,17 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "Follows validator naming convention.")]
     public class RetrieveDicomResourcesRequestValidator : AbstractValidator<RetrieveDicomResourceRequest>
     {
+        private const string UnknownDicomTransferSyntaxName = "Unknown";
+
         public RetrieveDicomResourcesRequestValidator()
         {
             // Only validate the requested transfer syntax when provided.
             RuleFor(x => x.RequestedTransferSyntax)
-                .Must(x => DicomTransferSyntax.Parse(x) != null)
+                .Must(x =>
+                {
+                    var transferSyntax = DicomTransferSyntax.Parse(x);
+                    return transferSyntax?.UID != null && transferSyntax.UID.Name != UnknownDicomTransferSyntaxName;
+                })
                 .When(x => x.RequestedTransferSyntax != null);
 
             // Check the frames has at least one when requested, and all requested frames are > 0.

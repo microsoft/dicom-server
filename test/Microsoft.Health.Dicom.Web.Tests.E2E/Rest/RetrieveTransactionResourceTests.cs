@@ -139,7 +139,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Theory]
         [InlineData("application/data")]
         [InlineData("application/json")]
-        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingStudy_BadRequestIsReturned(string acceptHeader)
+        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingStudy_NotAcceptableIsReturned(string acceptHeader)
         {
             await ValidateNotAcceptableResponseAsync(
                 string.Format(DicomWebClient.BaseRetrieveStudyUriFormat, Guid.NewGuid().ToString()),
@@ -149,7 +149,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Theory]
         [InlineData("application/data")]
         [InlineData("application/json")]
-        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingSeries_BadRequestIsReturned(string acceptHeader)
+        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingSeries_NotAcceptableIsReturned(string acceptHeader)
         {
             await ValidateNotAcceptableResponseAsync(
                 string.Format(DicomWebClient.BaseRetrieveSeriesUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
@@ -159,7 +159,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Theory]
         [InlineData("application/data")]
         [InlineData("application/json")]
-        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingInstance_BadRequestIsReturned(string acceptHeader)
+        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingInstance_NotAcceptableIsReturned(string acceptHeader)
         {
             await ValidateNotAcceptableResponseAsync(
                 string.Format(DicomWebClient.BaseRetrieveInstanceUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
@@ -167,9 +167,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
+        [InlineData("application/dicom")]
         [InlineData("application/data")]
         [InlineData("application/json")]
-        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingFrames_BadRequestIsReturned(string acceptHeader)
+        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingFrames_NotAcceptableIsReturned(string acceptHeader)
         {
             await ValidateNotAcceptableResponseAsync(
                 string.Format(DicomWebClient.BaseRetrieveFramesUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), 1),
