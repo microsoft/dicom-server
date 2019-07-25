@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public class DicomStudy
     {
-        protected const StringComparison EqualsStringComparison = StringComparison.Ordinal;
+        internal const StringComparison EqualsStringComparison = StringComparison.Ordinal;
 
         [JsonConstructor]
         public DicomStudy(string studyInstanceUID)

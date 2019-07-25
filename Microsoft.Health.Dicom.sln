@@ -40,6 +40,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Meta
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Metadata.UnitTests", "src\Microsoft.Health.Dicom.Metadata.UnitTests\Microsoft.Health.Dicom.Metadata.UnitTests.csproj", "{C66FAF73-02E3-41E0-8794-594F2E38E36F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Tests.Common", "src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj", "{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -102,6 +104,10 @@ Global
 		{C66FAF73-02E3-41E0-8794-594F2E38E36F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C66FAF73-02E3-41E0-8794-594F2E38E36F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C66FAF73-02E3-41E0-8794-594F2E38E36F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -121,6 +127,7 @@ Global
 		{FA0B32A4-E623-4B24-902D-BFDC6E42E612} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{C66FAF73-02E3-41E0-8794-594F2E38E36F} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}

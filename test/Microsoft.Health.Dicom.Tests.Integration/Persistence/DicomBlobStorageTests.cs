@@ -7,8 +7,8 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -90,9 +90,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 Assert.Equal(fileLocation1, fileLocation2);
 
                 // Fail on exists
-                StorageException exception = await Assert.ThrowsAsync<StorageException>(
+                DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(
                                     () => _dicomBlobDataStore.AddFileAsStreamAsync(fileName, stream, overwriteIfExists: false));
-                Assert.Equal((int)HttpStatusCode.Conflict, exception.RequestInformation.HttpStatusCode);
+                Assert.Equal((int)HttpStatusCode.Conflict, exception.StatusCode);
             }
 
             await _dicomBlobDataStore.DeleteFileIfExistsAsync(fileName);
@@ -102,8 +102,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenANonExistentFile_WhenFetched_ThrowsNotFoundException()
         {
             var fileName = Guid.NewGuid().ToString();
-            StorageException exception = await Assert.ThrowsAsync<StorageException>(() => _dicomBlobDataStore.GetFileAsStreamAsync(fileName));
-            Assert.Equal((int)HttpStatusCode.NotFound, exception.RequestInformation.HttpStatusCode);
+            DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(() => _dicomBlobDataStore.GetFileAsStreamAsync(fileName));
+            Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]

@@ -11,7 +11,7 @@ using Microsoft.Azure.Storage.Blob;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Polly;
 
-namespace Microsoft.Health.Dicom.Metadata.Features.Storage
+namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
     public static class CloudBlockBlobExtensions
     {
@@ -35,20 +35,20 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             }
         }
 
-        public static async Task CatchStorageExceptionAndThrowDataStoreException(this CloudBlockBlob documentClient, Func<CloudBlockBlob, Task> action, IAsyncPolicy retryPolicy = null)
+        public static async Task CatchStorageExceptionAndThrowDataStoreException(this CloudBlockBlob cloudBlockBlob, Func<CloudBlockBlob, Task> action, IAsyncPolicy retryPolicy = null)
         {
-            EnsureArg.IsNotNull(documentClient, nameof(documentClient));
+            EnsureArg.IsNotNull(cloudBlockBlob, nameof(cloudBlockBlob));
             EnsureArg.IsNotNull(action, nameof(action));
 
             try
             {
                 if (retryPolicy != null)
                 {
-                    await retryPolicy.ExecuteAsync(() => action(documentClient));
+                    await retryPolicy.ExecuteAsync(() => action(cloudBlockBlob));
                 }
                 else
                 {
-                    await action(documentClient);
+                    await action(cloudBlockBlob);
                 }
             }
             catch (StorageException e)
