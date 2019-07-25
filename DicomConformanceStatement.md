@@ -11,7 +11,7 @@ This transaction uses the POST method to Store representations of Studies, Serie
 Method|Path|Description
 ----------|----------|----------
 POST|../studies|Store instances.
-POST|../studies/{studyInstanceUID}|Store instances for a specific study. If any instance does not belong to the provided identifier, it will be rejected.
+POST|../studies/{studyInstanceUID}|Store instances for a specific study. If an instance does not belong to the provided study identifier, that specific instance will be rejected with a '`43265`' warning code.
 
 The following `'Accept'` headers for the response are supported:
 - `application/dicom+json`
@@ -26,7 +26,7 @@ The following DICOM elements are required to be present in every DICOM file atte
 - SeriesInstanceUID
 - SopInstanceUID
 
-Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned in the result if a file with the same identifiers exists.
+Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code '`45070`' will be returned in the result if a file with the same identifiers exists.
 
 ### Response Status Codes
 
