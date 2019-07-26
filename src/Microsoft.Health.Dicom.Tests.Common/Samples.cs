@@ -4,6 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Dicom;
 using EnsureThat;
 
@@ -11,6 +14,13 @@ namespace Microsoft.Health.Dicom.Tests.Common
 {
     public static class Samples
     {
+        public static IEnumerable<DicomFile> GetDicomFilesForTranscoding()
+        {
+            var directory = @"TranscodingSamples";
+            return Directory.EnumerateFiles(directory, "*.dcm", SearchOption.AllDirectories).Select(
+                path => DicomFile.Open(path));
+        }
+
         public static void AppendRandomPixelData(int rows, int columns, params DicomFile[] dicomFiles)
         {
             EnsureArg.IsGte(rows, 0, nameof(rows));

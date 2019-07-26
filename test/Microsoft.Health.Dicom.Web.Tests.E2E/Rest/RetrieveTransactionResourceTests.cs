@@ -137,6 +137,85 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
+        [InlineData("1.2.840.10008.1.2.4.100")] // Unsupported conversion - a video codec
+        [InlineData("Bogus TS")] // Not supported by FO-dicom for these particular images
+        public async Task GivenAnUnsupportedTransferSyntax_WhenRetrievingStudy_NotAcceptableIsReturned(string transferSyntax)
+        {
+            var dicomFiles = Samples.GetDicomFilesForTranscoding();
+            var dicomFile = dicomFiles.First();
+
+            HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+
+            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
+            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+
+            var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            var sopInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+
+            var getResponse = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, transferSyntax);
+            Assert.Equal(HttpStatusCode.NotAcceptable, getResponse.StatusCode);
+        }
+
+        public static IEnumerable<object[]> GetTranscoderCombos()
+        {
+            var fromList = new List<string>
+             {
+                "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
+                "JPEG2000Lossless", "JPEG2000Lossy", "JPEGProcess1", "JPEGProcess2_4", "RLELossless",
+             };
+
+            var toList = fromList;
+
+            return from x in fromList from y in toList select new[] { x, y };
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTranscoderCombos))]
+        public async Task GivenSupportedTransferSyntax_WhenRetrievingStudyAndAskingForConversion_OKIsReturned(
+            string tsFrom,
+            string tsTo)
+        {
+            var dicomFiles = Samples.GetDicomFilesForTranscoding();
+            var dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == tsFrom));
+
+            HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+
+            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
+            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+
+            var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            var sopInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+            var expectedTransferSyntax = (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(tsTo).GetValue(null);
+
+            var getResponse = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, expectedTransferSyntax.UID.UID);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("1.2.840.10008.1.2.4.81")] // JPEG-LS Lossy - should work, but doesn't for this particular image
+        public async Task GivenAnExceptionDuringTranscoding_WhenRetrievingStudy_BadRequestIsReturned(string transferSyntax)
+        {
+            var dicomFiles = Samples.GetDicomFilesForTranscoding();
+            var dicomFile = dicomFiles.First();
+
+            HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+
+            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
+            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+
+            var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            var sopInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+
+            var getResponse = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, transferSyntax);
+
+            // TODO: should this be a 5xx (server side error) or 4xx (user error)?
+            Assert.Equal(HttpStatusCode.BadRequest, getResponse.StatusCode);
+        }
+
+        [Theory]
         [InlineData("application/data")]
         [InlineData("application/json")]
         public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingStudy_NotAcceptableIsReturned(string acceptHeader)
