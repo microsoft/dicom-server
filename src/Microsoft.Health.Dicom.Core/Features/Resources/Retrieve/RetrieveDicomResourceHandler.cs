@@ -29,6 +29,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         private readonly IDicomMetadataStore _dicomMetadataStore;
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
 
+        // "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
+        // "JPEG2000Lossless", "JPEG2000Lossy", "JPEGProcess1", "JPEGProcess2_4", "RLELossless",
+        private static DicomTransferSyntax[] _supportedTransferSyntaxes = new[]
+        {
+            DicomTransferSyntax.DeflatedExplicitVRLittleEndian,
+            DicomTransferSyntax.ExplicitVRBigEndian,
+            DicomTransferSyntax.ExplicitVRLittleEndian,
+            DicomTransferSyntax.ImplicitVRLittleEndian,
+            DicomTransferSyntax.JPEG2000Lossless,
+            DicomTransferSyntax.JPEG2000Lossy,
+            DicomTransferSyntax.JPEGProcess1,
+            DicomTransferSyntax.JPEGProcess2_4,
+            DicomTransferSyntax.RLELossless,
+        };
+
         public RetrieveDicomResourceHandler(
             IDicomBlobDataStore dicomBlobDataStore,
             IDicomMetadataStore dicomMetadataStore)
@@ -38,6 +53,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
             _dicomBlobDataStore = dicomBlobDataStore;
             _dicomMetadataStore = dicomMetadataStore;
+        }
+
+        private bool CanTranscodeDataset(DicomDataset ds, DicomTransferSyntax transferSyntax)
+        {
+            var bpp = ds.GetSingleValue<int>(DicomTag.BitsAllocated);
+
+            if (bpp > 8 && (transferSyntax == DicomTransferSyntax.JPEGProcess1 ||
+                            transferSyntax == DicomTransferSyntax.JPEGProcess2_4))
+            {
+                return false;
+            }
+
+            if (_supportedTransferSyntaxes.Contains(transferSyntax))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public async Task<RetrieveDicomResourceResponse> Handle(
@@ -60,7 +93,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                         instancesToRetrieve = await _dicomMetadataStore.GetInstancesInStudyAsync(message.StudyInstanceUID, cancellationToken);
                         break;
                     default:
-                        throw new ArgumentException($"Unkown retrieve transaction type: {message.ResourceType}", nameof(message));
+                        throw new ArgumentException($"Unknown retrieve transaction type: {message.ResourceType}", nameof(message));
                 }
 
                 Stream[] resultStreams = await Task.WhenAll(
@@ -111,7 +144,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
             else
             {
-                var transcoder = new DicomTranscoder(tempDicomFile.Dataset.InternalTransferSyntax, requestedTransferSyntax);
+                var transcoder = new DicomTranscoder(tempDicomFile.Dataset.InternalTransferSyntax, DicomTransferSyntax.ExplicitVRLittleEndian);
+                tempDicomFile = transcoder.Transcode(tempDicomFile);
+
+                transcoder = new DicomTranscoder(tempDicomFile.Dataset.InternalTransferSyntax, requestedTransferSyntax);
                 tempDicomFile = transcoder.Transcode(tempDicomFile);
 
                 var resultStream = new MemoryStream();
