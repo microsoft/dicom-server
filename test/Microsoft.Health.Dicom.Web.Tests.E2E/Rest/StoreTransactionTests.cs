@@ -123,7 +123,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             byteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
             multiContent.Add(byteContent);
 
-            DicomFile validFile = Samples.CreateRandomDicomFile();
+            string studyInstanceUID = Guid.NewGuid().ToString();
+            DicomFile validFile = Samples.CreateRandomDicomFile(studyInstanceUID);
 
             using (var stream = new MemoryStream())
             {
@@ -139,6 +140,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
             ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
+
+            // Clearup
+            await Client.DeleteAsync(studyInstanceUID);
         }
 
         [Fact]
@@ -166,23 +170,28 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async void GivenOneDifferentStudyInstanceUID_WhenStoringWithProvidedStudyInstanceUID_TheServerShouldReturnAccepted()
         {
-            var studyInstanceUID = Guid.NewGuid().ToString();
-            DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID);
-            DicomFile dicomFile2 = Samples.CreateRandomDicomFile();
+            var studyInstanceUID1 = Guid.NewGuid().ToString();
+            var studyInstanceUID2 = Guid.NewGuid().ToString();
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID1);
+            DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID2);
 
             HttpResult<DicomDataset> response = await Client.PostAsync(
-                new[] { dicomFile1, dicomFile2 }, studyInstanceUID);
+                new[] { dicomFile1, dicomFile2 }, studyInstanceUID1);
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
             Assert.NotNull(response.Value);
             Assert.True(response.Value.Count() == 3);
 
-            Assert.EndsWith($"studies/{studyInstanceUID}", response.Value.GetSingleValue<string>(DicomTag.RetrieveURL));
+            Assert.EndsWith($"studies/{studyInstanceUID1}", response.Value.GetSingleValue<string>(DicomTag.RetrieveURL));
 
             ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
             ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
                 StoreFailureCodes.MismatchStudyInstanceUIDFailureCode,
                 dicomFile2.Dataset);
+
+            // Cleanup
+            await Client.DeleteAsync(studyInstanceUID1);
+            await Client.DeleteAsync(studyInstanceUID2);
         }
 
         [Fact]
@@ -202,7 +211,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async void GivenExistingDataset_WhenStoring_TheServerShouldReturnConflict()
         {
-            DicomFile dicomFile1 = Samples.CreateRandomDicomFile();
+            var studyInstanceUID = Guid.NewGuid().ToString();
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);
             HttpResult<DicomDataset> response1 = await Client.PostAsync(new[] { dicomFile1 });
             Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
             ValidateSuccessSequence(response1.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
@@ -214,6 +224,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 response2.Value.GetSequence(DicomTag.FailedSOPSequence),
                 StoreFailureCodes.SopInstanceAlredyExistsFailureCode,
                 dicomFile1.Dataset);
+
+            // Cleanup
+            await Client.DeleteAsync(studyInstanceUID);
         }
 
         private void ValidateFailureSequence(DicomSequence dicomSequence, ushort expectedFailureCode, params DicomDataset[] expectedFailedDatasets)

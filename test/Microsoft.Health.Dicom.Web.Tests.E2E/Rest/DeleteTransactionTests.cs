@@ -4,14 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
-using Microsoft.Net.Http.Headers;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -48,16 +46,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Create and upload file
             var studyInstanceUID = Guid.NewGuid().ToString();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID);
-            await StoreFile(dicomFile);
+            await Client.PostAsync(new[] { dicomFile });
 
             // Send the delete request
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"studies/{studyInstanceUID}");
-            request.Content = new StringContent("Some Body Content");
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri($"studies/{studyInstanceUID}", UriKind.Relative),
+                Content = new StringContent("Some Body Content"),
+            };
 
             using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
             {
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
+
+            // Cleanup
+            await Client.DeleteAsync(studyInstanceUID);
         }
 
         [Fact]
@@ -67,16 +72,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var studyInstanceUID = Guid.NewGuid().ToString();
             var seriesUID = Guid.NewGuid().ToString();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID);
-            await StoreFile(dicomFile);
+            await Client.PostAsync(new[] { dicomFile });
 
             // Send the delete request
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"studies/{studyInstanceUID}/series/{seriesUID}");
-            request.Content = new StringContent("Some Body Content");
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri($"studies/{studyInstanceUID}/series/{seriesUID}", UriKind.Relative),
+                Content = new StringContent("Some Body Content"),
+            };
 
             using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
             {
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
+
+            // Cleanup
+            await Client.DeleteAsync(studyInstanceUID);
         }
 
         [Fact]
@@ -87,40 +99,45 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var seriesUID = Guid.NewGuid().ToString();
             var instanceUID = Guid.NewGuid().ToString();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID, sopInstanceUID: instanceUID);
-            await StoreFile(dicomFile);
+            await Client.PostAsync(new[] { dicomFile });
 
             // Send the delete request
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"studies/{studyInstanceUID}/series/{seriesUID}/instances/{instanceUID}");
-            request.Content = new StringContent("Some Body Content");
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri($"studies/{studyInstanceUID}/series/{seriesUID}/instances/{instanceUID}", UriKind.Relative),
+                Content = new StringContent("Some Body Content"),
+            };
 
             using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
             {
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
+
+            // Cleanup
+            await Client.DeleteAsync(studyInstanceUID);
         }
 
         [Fact]
         public async void GivenValidStudyId_WhenDeletingStudy_TheServerShouldReturnOK()
         {
             // Add 10 series with 10 instances each to a single study
+            var files = new DicomFile[100];
             var studyInstanceUID = Guid.NewGuid().ToString();
             for (int i = 0; i < 10; i++)
             {
                 var seriesUID = Guid.NewGuid().ToString();
                 for (int j = 0; j < 10; j++)
                 {
-                    DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID);
-                    await StoreFile(dicomFile);
+                    files[i + (j * 10)] = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID);
                 }
             }
 
-            // Send the delete request
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"studies/{studyInstanceUID}");
+            await Client.PostAsync(files);
 
-            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
-            {
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            }
+            // Send the delete request
+            HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Fact]
@@ -129,19 +146,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Store series with 10 instances
             var studyInstanceUID = Guid.NewGuid().ToString();
             var seriesUID = Guid.NewGuid().ToString();
+            var files = new DicomFile[10];
             for (int i = 0; i < 10; i++)
             {
-                DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID);
-                await StoreFile(dicomFile);
+                files[i] = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID);
             }
+
+            await Client.PostAsync(files);
 
             // Send the delete request
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"studies/{studyInstanceUID}/series/{seriesUID}");
-
-            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
-            {
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            }
+            HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Fact]
@@ -152,41 +167,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var seriesUID = Guid.NewGuid().ToString();
             var instanceUID = Guid.NewGuid().ToString();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID, sopInstanceUID: instanceUID);
-            await StoreFile(dicomFile);
+            await Client.PostAsync(new[] { dicomFile });
 
             // Send the delete request
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"studies/{studyInstanceUID}/series/{seriesUID}/instances/{instanceUID}");
-
-            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
-            {
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            }
-        }
-
-        private async Task StoreFile(DicomFile file)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, "studies");
-            request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
-
-            var multiContent = new MultipartContent("related");
-            multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
-
-            var byteContent = new ByteArrayContent(Array.Empty<byte>());
-            byteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
-            multiContent.Add(byteContent);
-
-            using (var stream = new MemoryStream())
-            {
-                await file.SaveAsync(stream);
-
-                var validByteContent = new ByteArrayContent(stream.ToArray());
-                validByteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
-                multiContent.Add(validByteContent);
-            }
-
-            request.Content = multiContent;
-
-            HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
+            HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesUID, instanceUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
     }
 }
