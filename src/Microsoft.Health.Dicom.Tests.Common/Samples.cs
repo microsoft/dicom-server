@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Dicom;
 using Dicom.Imaging;
 using Dicom.Imaging.Codec;
@@ -46,7 +45,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             return result;
         }
 
-        private static byte[] GenerateByteArrayFor16bit(int rows, int cols)
+        private static byte[] GenerateByteArrayFor16Bit(int rows, int cols)
         {
             // var random = new Random();
             var pixelDataSize = rows * cols;
@@ -78,29 +77,34 @@ namespace Microsoft.Health.Dicom.Tests.Common
             EnsureArg.IsGte(columns, 0, nameof(columns));
             EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
 
-            var result = GenerateByteArray(rows, columns);
+            var bytes = GenerateByteArray(rows, columns);
 
             dicomFiles.Each(x =>
             {
-                x.Dataset.Add(DicomTag.PixelData, result);
-                x.Dataset.AddOrUpdate(DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value);
-                x.Dataset.AddOrUpdate(DicomTag.SamplesPerPixel, (ushort)1);
-                x.Dataset.AddOrUpdate(DicomTag.PixelRepresentation, (ushort)PixelRepresentation.Unsigned);
-                x.Dataset.AddOrUpdate(DicomTag.BitsAllocated, (ushort)8);
-                x.Dataset.AddOrUpdate(DicomTag.BitsStored, (ushort)8);
-                x.Dataset.AddOrUpdate(DicomTag.HighBit, (ushort)7);
                 x.Dataset.AddOrUpdate(DicomTag.Rows, (ushort)rows);
                 x.Dataset.AddOrUpdate(DicomTag.Columns, (ushort)columns);
+                x.Dataset.AddOrUpdate(DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value);
+                x.Dataset.AddOrUpdate(DicomTag.BitsAllocated, (ushort)8);
+
+                var pixelData = DicomPixelData.Create(x.Dataset, true);
+
+                pixelData.SamplesPerPixel = 1;
+                pixelData.BitsStored = 8;
+                pixelData.HighBit = 7;
+                pixelData.PixelRepresentation = PixelRepresentation.Unsigned;
+
+                var buffer = new MemoryByteBuffer(bytes);
+                pixelData.AddFrame(buffer);
             });
         }
 
-        public static void AppendRandom16bitPixelData(int rows, int columns, params DicomFile[] dicomFiles)
+        public static void AppendRandom16BitPixelData(int rows, int columns, params DicomFile[] dicomFiles)
         {
             EnsureArg.IsGte(rows, 0, nameof(rows));
             EnsureArg.IsGte(columns, 0, nameof(columns));
             EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
 
-            var result = GenerateByteArrayFor16bit(rows, columns);
+            var result = GenerateByteArrayFor16Bit(rows, columns);
 
             // MemoryByteBuffer buffer = new MemoryByteBuffer(result);
 
@@ -139,7 +143,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             return dicomFile;
         }
 
-        public static DicomFile CreateRandomDicomFileWith16bitPixelData(
+        public static DicomFile CreateRandomDicomFileWith16BitPixelData(
             string studyInstanceUID = null,
             string seriesInstanceUID = null,
             string sopInstanceUID = null,
@@ -148,7 +152,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             string transferSyntax = "1.2.840.10008.1.2.1") // Explicit VR Little Endian
         {
             var dicomFile = new DicomFile(CreateRandomInstanceDataset(studyInstanceUID, seriesInstanceUID, sopInstanceUID));
-            AppendRandom16bitPixelData(rows, columns, dicomFile);
+            AppendRandom16BitPixelData(rows, columns, dicomFile);
 
             if (transferSyntax != DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID)
             {

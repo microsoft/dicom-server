@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -261,7 +260,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 try
                 {
-                    var dicomFile = Samples.CreateRandomDicomFileWith16bitPixelData(transferSyntax: ts.transferSyntax.UID.UID);
+                    var dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ts.transferSyntax.UID.UID);
                     await dicomFile.SaveAsync($"genFiles16/{ts.name}.dcm");
 
                     filesGenerated++;
@@ -288,6 +287,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             output.WriteLine($"Converting from {fromTransferSyntax}({fromTransferSyntax.UID.UID}) to {toTransferSyntax}({toTransferSyntax.UID.UID})");
 
             var dicomFile = Samples.CreateRandomDicomFileWithPixelData(transferSyntax: fromTransferSyntax.UID.UID);
+
+            // var dicomFile = Samples.CreateRandomDicomFileWith16bitPixelData(transferSyntax: fromTransferSyntax.UID.UID);
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
