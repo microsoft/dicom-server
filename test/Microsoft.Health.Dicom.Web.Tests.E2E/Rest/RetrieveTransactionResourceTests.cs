@@ -99,7 +99,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var studyInstanceUID = Guid.NewGuid().ToString();
             var seriesInstanceUID = Guid.NewGuid().ToString();
             var sopInstanceUID = Guid.NewGuid().ToString();
-            DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFileWith8BitPixelData(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
             HttpResult<DicomDataset> storeResponse = await Client.PostAsync(new[] { dicomFile1 }, studyInstanceUID);
             ValidationHelpers.ValidateSuccessSequence(storeResponse.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
 
@@ -169,17 +169,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var seriesInstanceUID = DicomUID.Generate();
             var studyInstanceUID = DicomUID.Generate();
 
-            var dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(
+            var dicomFile1 = Samples.CreateRandomDicomFileWith8BitPixelData(
                 studyInstanceUID.UID,
                 seriesInstanceUID.UID,
                 transferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
 
-            var dicomFile2 = Samples.CreateRandomDicomFileWithPixelData(
+            var dicomFile2 = Samples.CreateRandomDicomFileWith8BitPixelData(
                 studyInstanceUID.UID,
                 seriesInstanceUID.UID,
                 transferSyntax: DicomTransferSyntax.JPEG2000Lossy.UID.UID);
 
-            var dicomFile3 = Samples.CreateRandomDicomFileWithPixelData(
+            var dicomFile3 = Samples.CreateRandomDicomFileWith8BitPixelData(
                 studyInstanceUID.UID,
                 seriesInstanceUID.UID,
                 transferSyntax: DicomTransferSyntax.ImplicitVRLittleEndian.UID.UID);
@@ -211,69 +211,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             return from x in fromList from y in toList select new[] { x, y };
         }
 
-        [Fact]
-        public async Task GenerateRandomSamples()
-        {
-            var fromList = new List<string>
-            {
-                "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
-                "JPEG2000Lossless", "JPEG2000Lossy", "JPEGProcess1", "JPEGProcess2_4", "RLELossless",
-            };
-
-            var fromTsList = fromList.Select(x =>
-                (name: x, transferSyntax: (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(x).GetValue(null)));
-
-            var filesGenerated = 0;
-
-            foreach (var ts in fromTsList)
-            {
-                try
-                {
-                    var dicomFile = Samples.CreateRandomDicomFileWithPixelData(transferSyntax: ts.transferSyntax.UID.UID);
-                    await dicomFile.SaveAsync($"genFiles/{ts.name}.dcm");
-
-                    filesGenerated++;
-                }
-                catch (Exception e)
-                {
-                    output.WriteLine(e.ToString());
-                }
-            }
-
-            Assert.Equal(fromList.Count, filesGenerated);
-        }
-
-        [Fact]
-        public async Task GenerateRandom16BitSamples()
-        {
-            var fromList = new List<string>
-            {
-                "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
-                "JPEG2000Lossless", "JPEG2000Lossy", "JPEGProcess1", "JPEGProcess2_4", "RLELossless",
-            };
-            var fromTsList = fromList.Select(x =>
-                (name: x, transferSyntax: (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(x).GetValue(null)));
-
-            var filesGenerated = 0;
-
-            foreach (var ts in fromTsList)
-            {
-                try
-                {
-                    var dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ts.transferSyntax.UID.UID);
-                    await dicomFile.SaveAsync($"genFiles16/{ts.name}.dcm");
-
-                    filesGenerated++;
-                }
-                catch (Exception e)
-                {
-                    output.WriteLine(e.ToString());
-                }
-            }
-
-            Assert.Equal(fromList.Count, filesGenerated);
-        }
-
         // [InlineData("ExplicitVRBigEndian", "JPEGProcess2_4")]
         [Theory]
         [MemberData(nameof(GetTranscoderCombos))]
@@ -286,7 +223,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             output.WriteLine($"Converting from {fromTransferSyntax}({fromTransferSyntax.UID.UID}) to {toTransferSyntax}({toTransferSyntax.UID.UID})");
 
-            var dicomFile = Samples.CreateRandomDicomFileWithPixelData(transferSyntax: fromTransferSyntax.UID.UID);
+            var dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(transferSyntax: fromTransferSyntax.UID.UID);
 
             // var dicomFile = Samples.CreateRandomDicomFileWith16bitPixelData(transferSyntax: fromTransferSyntax.UID.UID);
 
