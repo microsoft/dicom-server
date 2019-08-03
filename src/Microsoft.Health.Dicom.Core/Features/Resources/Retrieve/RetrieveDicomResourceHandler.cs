@@ -126,10 +126,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             {
                 return new RetrieveDicomResourceResponse(e.StatusCode);
             }
-            catch (DicomCodecException)
-            {
-                return new RetrieveDicomResourceResponse((int)HttpStatusCode.NotAcceptable);
-            }
         }
 
         private static Stream EncodeDicomFile(Stream stream, DicomTransferSyntax requestedTransferSyntax)
