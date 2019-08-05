@@ -24,26 +24,27 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 {
     internal class DicomInstanceMetadataStore : IDicomInstanceMetadataStore
     {
+        private static readonly Encoding _metadataEncoding = Encoding.UTF8;
         private readonly CloudBlobContainer _container;
-        private readonly ILogger<DicomMetadataStore> _logger;
-        private readonly Encoding _metadataEncoding;
         private readonly JsonSerializer _jsonSerializer;
+        private readonly ILogger<DicomInstanceMetadataStore> _logger;
 
         public DicomInstanceMetadataStore(
             CloudBlobClient client,
+            JsonSerializer jsonSerializer,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            ILogger<DicomMetadataStore> logger)
+            ILogger<DicomInstanceMetadataStore> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
+            EnsureArg.IsNotNull(jsonSerializer, nameof(jsonSerializer));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
 
             _container = client.GetContainerReference(containerConfiguration.ContainerName);
+            _jsonSerializer = jsonSerializer;
             _logger = logger;
-            _metadataEncoding = Encoding.UTF8;
-            _jsonSerializer = new JsonSerializer();
         }
 
         public async Task AddInstanceMetadataAsync(DicomDataset instanceMetadata, CancellationToken cancellationToken = default)
@@ -59,22 +60,26 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 {
                     _logger.LogDebug($"Storing Instance Metadata: {dicomInstance}");
 
-                    using (CloudBlobStream stream = await cloudBlockBlob.OpenWriteAsync(
-                                                AccessCondition.GenerateIfExistsCondition(),
-                                                new BlobRequestOptions(),
-                                                new OperationContext(),
-                                                cancellationToken))
+                    using (Stream stream = new MemoryStream())
                     using (var streamWriter = new StreamWriter(stream, _metadataEncoding))
                     using (var jsonTextWriter = new JsonTextWriter(streamWriter))
                     {
                         _jsonSerializer.Serialize(jsonTextWriter, instanceMetadata);
                         jsonTextWriter.Flush();
+
+                        stream.Seek(0, SeekOrigin.Begin);
+                        await blockBlob.UploadFromStreamAsync(
+                               stream,
+                               AccessCondition.GenerateIfNotExistsCondition(),
+                               new BlobRequestOptions(),
+                               new OperationContext(),
+                               cancellationToken);
                     }
                 },
                 retryPolicy);
         }
 
-        public async Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken)
+        public async Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(instance);
 
@@ -83,19 +88,12 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 async (blockBlob) =>
                 {
                     _logger.LogDebug($"Deleting Instance Metadata: {instance}");
-
-                    // Attempt to delete, validating ETag
-                    await cloudBlockBlob.DeleteAsync(
-                        DeleteSnapshotsOption.IncludeSnapshots,
-                        accessCondition: AccessCondition.GenerateIfExistsCondition(),
-                        new BlobRequestOptions(),
-                        new OperationContext(),
-                        cancellationToken);
+                    await cloudBlockBlob.DeleteAsync(cancellationToken);
                 },
                 retryPolicy);
         }
 
-        public async Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken)
+        public async Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(instance);
 

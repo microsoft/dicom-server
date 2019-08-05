@@ -14,63 +14,33 @@ using Dicom;
 using Dicom.Imaging;
 using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
-using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Resources.Store;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
-    public class RetrieveDicomResourceHandler : IRequestHandler<RetrieveDicomResourceRequest, RetrieveDicomResourceResponse>
+    public class RetrieveDicomResourceHandler : BaseRetrieveDicomResourceHandler, IRequestHandler<RetrieveDicomResourceRequest, RetrieveDicomResourceResponse>
     {
-        private readonly IDicomBlobDataStore _dicomBlobDataStore;
-        private readonly IDicomMetadataStore _dicomMetadataStore;
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
 
-        public RetrieveDicomResourceHandler(
-            IDicomBlobDataStore dicomBlobDataStore,
-            IDicomMetadataStore dicomMetadataStore)
+        public RetrieveDicomResourceHandler(DicomDataStore dicomDataStore)
+            : base(dicomDataStore)
         {
-            EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
-            EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
-
-            _dicomBlobDataStore = dicomBlobDataStore;
-            _dicomMetadataStore = dicomMetadataStore;
         }
 
         public async Task<RetrieveDicomResourceResponse> Handle(
             RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
         {
-            IEnumerable<DicomInstance> instancesToRetrieve;
+            DicomTransferSyntax parsedDicomTransferSyntax = string.IsNullOrWhiteSpace(message.RequestedTransferSyntax) ?
+                                                DefaultTransferSyntax :
+                                                DicomTransferSyntax.Parse(message.RequestedTransferSyntax);
 
             try
             {
-                switch (message.ResourceType)
-                {
-                    case ResourceType.Frames:
-                    case ResourceType.Instance:
-                        instancesToRetrieve = new[] { new DicomInstance(message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID) };
-                        break;
-                    case ResourceType.Series:
-                        instancesToRetrieve = await _dicomMetadataStore.GetInstancesInSeriesAsync(message.StudyInstanceUID, message.SeriesInstanceUID, cancellationToken);
-                        break;
-                    case ResourceType.Study:
-                        instancesToRetrieve = await _dicomMetadataStore.GetInstancesInStudyAsync(message.StudyInstanceUID, cancellationToken);
-                        break;
-                    default:
-                        throw new ArgumentException($"Unkown retrieve transaction type: {message.ResourceType}", nameof(message));
-                }
-
-                Stream[] resultStreams = await Task.WhenAll(
-                                                    instancesToRetrieve.Select(
-                                                        x => _dicomBlobDataStore.GetFileAsStreamAsync(
-                                                            StoreDicomResourcesHandler.GetBlobStorageName(x), cancellationToken)));
-
-                DicomTransferSyntax parsedDicomTransferSyntax = string.IsNullOrWhiteSpace(message.RequestedTransferSyntax) ?
-                                                    DefaultTransferSyntax :
-                                                    DicomTransferSyntax.Parse(message.RequestedTransferSyntax);
+                IEnumerable<DicomInstance> retrieveInstances = await GetInstancesToRetrieve(message, cancellationToken);
+                Stream[] resultStreams = await Task.WhenAll(retrieveInstances.Select(x => DicomDataStore.GetDicomDataStreamAsync(x, cancellationToken)));
 
                 if (message.ResourceType == ResourceType.Frames)
                 {

@@ -157,7 +157,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             HashSet<DicomAttributeId> optionalAttributes = null,
             CancellationToken cancellationToken = default)
         {
-            EnsureArg.Matches(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
+            EnsureArg.Matches(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
             return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
