@@ -25,11 +25,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         [Theory]
         [InlineData("studies")]
+        [InlineData("studies/")]
         [InlineData("studies/invalidStudyId")]
         [InlineData("studies/invalidStudyId/series")]
+        [InlineData("studies/invalidStudyId/series/")]
         [InlineData("studies/invalidStudyId/series/invalidSeriesId")]
         [InlineData("studies/invalidStudyId/series/invalidSeriesId/instances")]
+        [InlineData("studies/invalidStudyId/series/invalidSeriesId/instances/")]
         [InlineData("studies/invalidStudyId/series/invalidSeriesId/instances/invalidInstanceId")]
+        [InlineData("studies//series/invalidSeriesId")]
+        [InlineData("studies/invalidStudyId/series//instances/invalidInstanceId")]
         public async Task GivenInvalidUID_WhenDeleting_TheServerShouldReturnNotFound(string url)
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -37,6 +42,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
             {
                 Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            }
+        }
+
+        [Theory]
+        [InlineData("studies/&^%")]
+        [InlineData("studies/123/series/&^%")]
+        [InlineData("studies/123/series/456/instances/&^%")]
+        public async Task GivenBadUIDFormats_WhenDeleting_TheServerShouldReturnBadRequest(string url)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Delete, url);
+
+            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
+            {
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
         }
 

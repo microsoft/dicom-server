@@ -48,11 +48,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
         {
             EnsureArg.IsNotNull(message, nameof(message));
 
-            if (string.IsNullOrEmpty(message.StudyInstanceUID))
-            {
-                return new DeleteDicomResourcesResponse(HttpStatusCode.BadRequest);
-            }
-
             switch (message.ResourceType)
             {
                 case ResourceType.Study:
