@@ -33,19 +33,50 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         [Route("studies/{studyInstanceUID}")]
-        [Route("studies/{studyInstanceUID}/series/{seriesUID}")]
-        [Route("studies/{studyInstanceUID}/series/{seriesUID}/instances/{instanceUID}")]
-        public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUID = null, string seriesUID = null, string instanceUID = null)
+        public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUID)
         {
-            _logger.LogInformation($"DICOM Web Delete Study request received, with study instance UID '{studyInstanceUID}', series UID '{seriesUID}' and instance UID '{instanceUID}'.");
+            _logger.LogInformation($"DICOM Web Delete Study request received, with study instance UID '{studyInstanceUID}'.");
 
             Uri requestBaseUri = GetRequestBaseUri(Request);
 
             DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
-                requestBaseUri, Request.Body, Request.ContentType, studyInstanceUID, seriesUID, instanceUID, cancellationToken: HttpContext.RequestAborted).ConfigureAwait(false);
+                studyInstanceUID, cancellationToken: HttpContext.RequestAborted);
+
+            return StatusCode(deleteResponse.StatusCode);
+        }
+
+        [HttpDelete]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+        [Route("studies/{studyInstanceUID}/series/{seriesUID}")]
+        public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUID, string seriesUID)
+        {
+            _logger.LogInformation($"DICOM Web Delete Series request received, with study instance UID '{studyInstanceUID}' and series UID '{seriesUID}'.");
+
+            Uri requestBaseUri = GetRequestBaseUri(Request);
+
+            DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
+                studyInstanceUID, seriesUID, cancellationToken: HttpContext.RequestAborted);
+
+            return StatusCode(deleteResponse.StatusCode);
+        }
+
+        [HttpDelete]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+        [Route("studies/{studyInstanceUID}/series/{seriesUID}/instances/{instanceUID}")]
+        public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUID, string seriesUID, string instanceUID)
+        {
+            _logger.LogInformation($"DICOM Web Delete Instance request received, with study instance UID '{studyInstanceUID}', series UID '{seriesUID}' and instance UID '{instanceUID}'.");
+
+            Uri requestBaseUri = GetRequestBaseUri(Request);
+
+            DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
+                studyInstanceUID, seriesUID, instanceUID, cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(deleteResponse.StatusCode);
         }

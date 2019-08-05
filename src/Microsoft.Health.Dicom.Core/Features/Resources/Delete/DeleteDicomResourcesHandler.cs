@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,24 +48,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
         {
             EnsureArg.IsNotNull(message, nameof(message));
 
-            if ((!message.IsBodyEmpty) || string.IsNullOrEmpty(message.StudyInstanceUID))
+            if (string.IsNullOrEmpty(message.StudyInstanceUID))
             {
                 return new DeleteDicomResourcesResponse(HttpStatusCode.BadRequest);
             }
 
-            if (string.IsNullOrEmpty(message.SeriesUID) && string.IsNullOrEmpty(message.InstanceUID))
+            switch (message.ResourceType)
             {
-                return await HandleDeleteStudy(message, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (!string.IsNullOrEmpty(message.SeriesUID) && string.IsNullOrEmpty(message.InstanceUID))
-            {
-                return await HandleDeleteSeries(message, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (!string.IsNullOrEmpty(message.SeriesUID) && !string.IsNullOrEmpty(message.InstanceUID))
-            {
-                return await HandleDeleteInstance(message, cancellationToken).ConfigureAwait(false);
+                case ResourceType.Study:
+                    return await HandleDeleteStudy(message, cancellationToken);
+                case ResourceType.Series:
+                    return await HandleDeleteSeries(message, cancellationToken);
+                case ResourceType.Instance:
+                    return await HandleDeleteInstance(message, cancellationToken);
             }
 
             return new DeleteDicomResourcesResponse(HttpStatusCode.BadRequest);
@@ -72,11 +68,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
 
         private async Task<DeleteDicomResourcesResponse> HandleDeleteStudy(DeleteDicomResourcesRequest message, CancellationToken cancellationToken)
         {
-            // Get Instances in the study
+            // Delete metadata and retrieve list of instances
             IEnumerable<DicomInstance> instances;
             try
             {
-                instances = await _dicomMetadataStore.GetInstancesInStudyAsync(message.StudyInstanceUID, cancellationToken).ConfigureAwait(false);
+                instances = await _dicomMetadataStore.DeleteStudyAsync(message.StudyInstanceUID, cancellationToken);
             }
             catch (DataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
             {
@@ -84,19 +80,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception when retreiving instances from study.");
+                _logger.LogError(e, "Exception when deleting study metadata.");
                 return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
             }
 
-            // Delete from Blob & Metadata
+            // Delete the blob for each instance
             try
             {
-                foreach (DicomInstance instance in instances)
-                {
-                    await _dicomBlobDataStore.DeleteFileIfExistsAsync(GetBlobStorageName(instance), cancellationToken).ConfigureAwait(false);
-                }
-
-                await _dicomMetadataStore.DeleteStudyAsync(message.StudyInstanceUID, cancellationToken).ConfigureAwait(false);
+                await Task.WhenAll(instances.Select(x => _dicomBlobDataStore.DeleteFileIfExistsAsync(GetBlobStorageName(x), cancellationToken)));
             }
             catch (Exception e)
             {
@@ -109,11 +100,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
 
         private async Task<DeleteDicomResourcesResponse> HandleDeleteSeries(DeleteDicomResourcesRequest message, CancellationToken cancellationToken)
         {
-            // Get Instances in the series
+            // Delete metadata and retrieve list of instances
             IEnumerable<DicomInstance> instances;
             try
             {
-                instances = await _dicomMetadataStore.GetInstancesInSeriesAsync(message.StudyInstanceUID, message.SeriesUID, cancellationToken).ConfigureAwait(false);
+                instances = await _dicomMetadataStore.DeleteSeriesAsync(message.StudyInstanceUID, message.SeriesUID, cancellationToken);
             }
             catch (DataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
             {
@@ -121,19 +112,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception when retreiving instances from series.");
+                _logger.LogError(e, "Exception when deleting series metadata.");
                 return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
             }
 
-            // Delete the instances
+            // Delete the blob for each instance
             try
             {
-                foreach (DicomInstance instance in instances)
-                {
-                    await _dicomBlobDataStore.DeleteFileIfExistsAsync(GetBlobStorageName(instance), cancellationToken).ConfigureAwait(false);
-                }
-
-                await _dicomMetadataStore.DeleteSeriesAsync(message.StudyInstanceUID, message.SeriesUID, cancellationToken).ConfigureAwait(false);
+                await Task.WhenAll(instances.Select(x => _dicomBlobDataStore.DeleteFileIfExistsAsync(GetBlobStorageName(x), cancellationToken)));
             }
             catch (Exception e)
             {
@@ -146,23 +132,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
 
         private async Task<DeleteDicomResourcesResponse> HandleDeleteInstance(DeleteDicomResourcesRequest message, CancellationToken cancellationToken)
         {
-            // Check instance is part of the series (and series exists)
-            DicomInstance instanceToDelete = null;
+            // Delete metadata if the instance exists
             try
             {
-                IEnumerable<DicomInstance> instances = await _dicomMetadataStore.GetInstancesInSeriesAsync(message.StudyInstanceUID, message.SeriesUID, cancellationToken).ConfigureAwait(false);
-                foreach (DicomInstance instance in instances)
-                {
-                    if (instance.SopInstanceUID == message.InstanceUID)
-                    {
-                        instanceToDelete = instance;
-                    }
-                }
-
-                if (instanceToDelete == null)
-                {
-                    return new DeleteDicomResourcesResponse(HttpStatusCode.NotFound);
-                }
+                await _dicomMetadataStore.DeleteInstanceAsync(message.StudyInstanceUID, message.SeriesUID, message.InstanceUID, cancellationToken);
             }
             catch (DataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
             {
@@ -170,15 +143,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception when retreiving instances from series.");
+                _logger.LogError(e, "Exception when deleting instance metadata.");
                 return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
             }
 
-            // Delete the instance
+            // Delete the instance blob
             try
             {
-                await _dicomBlobDataStore.DeleteFileIfExistsAsync(GetBlobStorageName(instanceToDelete)).ConfigureAwait(false);
-                await _dicomMetadataStore.DeleteInstanceAsync(message.StudyInstanceUID, message.SeriesUID, message.InstanceUID, cancellationToken).ConfigureAwait(false);
+                await _dicomBlobDataStore.DeleteFileIfExistsAsync(GetBlobStorageName(new DicomInstance(message.StudyInstanceUID, message.SeriesUID, message.InstanceUID)));
             }
             catch (Exception e)
             {
