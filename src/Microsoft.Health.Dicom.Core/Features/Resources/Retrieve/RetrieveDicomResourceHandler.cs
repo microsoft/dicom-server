@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -87,21 +86,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 {
                     case ResourceType.Frames:
                     case ResourceType.Instance:
-                        // instancesToRetrieve = new[] { new DicomInstance(message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID) };
+                        instancesToRetrieve = new[] { new DicomInstance(message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID) };
 
-                        // instanceMetadata =
-                        //    await _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(
-                        //        message.StudyInstanceUID, message.SeriesInstanceUID, cancellationToken);
-                        // break;
+                        break;
                     case ResourceType.Series:
-                        instancesToRetrieve = await _dicomMetadataStore.GetInstancesInSeriesWithExtraItemsAsync(
+                        instancesToRetrieve = await _dicomMetadataStore.GetInstancesInSeriesAsync(
                             message.StudyInstanceUID,
                             message.SeriesInstanceUID,
-                            new HashSet<DicomTag>
-                            {
-                                DicomTag.TransferSyntaxUID,
-                                DicomTag.BitsAllocated,
-                            },
                             cancellationToken);
                         break;
                     case ResourceType.Study:
@@ -111,14 +102,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                         throw new ArgumentException($"Unknown retrieve transaction type: {message.ResourceType}", nameof(message));
                 }
 
-                long totalBytesOfMemoryUsedAtStart = Process.GetCurrentProcess().WorkingSet64;
-
                 Stream[] resultStreams = await Task.WhenAll(
                                                     instancesToRetrieve.Select(
                                                         x => _dicomBlobDataStore.GetFileAsStreamAsync(
                                                             StoreDicomResourcesHandler.GetBlobStorageName(x), cancellationToken)));
-
-                long totalBytesOfMemoryUsedAtStreamRead = Process.GetCurrentProcess().WorkingSet64;
 
                 var dataList = new List<string>();
 
@@ -129,11 +116,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
                     stream.Seek(0, SeekOrigin.Begin);
                 }
-
-                // var file = await DicomFile.OpenAsync(resultStreams.Single());
-                // resultStreams.Single().Seek(0, SeekOrigin.Begin);
-
-                long totalBytesOfMemoryUsedAtFinish = Process.GetCurrentProcess().WorkingSet64;
 
                 DicomTransferSyntax parsedDicomTransferSyntax = string.IsNullOrWhiteSpace(message.RequestedTransferSyntax) ?
                                                     DefaultTransferSyntax :

@@ -193,7 +193,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 });
         }
 
-        public async Task<IEnumerable<DicomInstance>> GetInstancesInStudyWithExtraItems(string studyInstanceUID, IEnumerable<DicomTag> extraItems, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task<IEnumerable<DicomInstance>> GetInstancesInStudyAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
         {
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
@@ -202,17 +203,12 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 {
                     _logger.LogDebug($"Getting Instances in Study: {studyInstanceUID}");
                     DicomStudyMetadata metadata = await ReadMetadataAsync(blockBlob, cancellationToken);
-                    return metadata.GetDicomInstances(extraItems);
+                    return metadata.GetDicomInstances();
                 });
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<DicomInstance>> GetInstancesInStudyAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
-        {
-            return await GetInstancesInStudyWithExtraItems(studyInstanceUID, null, cancellationToken);
-        }
-
-        public async Task<IEnumerable<DicomInstance>> GetInstancesInSeriesWithExtraItemsAsync(string studyInstanceUID, string seriesInstanceUID, IEnumerable<DicomTag> extraItems, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<DicomInstance>> GetInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
         {
             EnsureArg.Matches(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
@@ -230,12 +226,6 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
                     return metadata.GetDicomInstances(seriesInstanceUID);
                 });
-        }
-
-        /// <inheritdoc />
-        public async Task<IEnumerable<DicomInstance>> GetInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
-        {
-            return await GetInstancesInSeriesWithExtraItemsAsync(studyInstanceUID, seriesInstanceUID, null, cancellationToken);
         }
 
         /// <inheritdoc />

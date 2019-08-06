@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
     public class DicomInstance
     {
         [JsonConstructor]
-        public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, DicomDataset extraData = null)
+        public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
         {
             // Run the instance identifiers through the regular expression check.
             EnsureArg.Matches(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyInstanceUID));
@@ -26,11 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             StudyInstanceUID = studyInstanceUID;
             SeriesInstanceUID = seriesInstanceUID;
             SopInstanceUID = sopInstanceUID;
-
-            ExtraMetadata = extraData;
         }
-
-        public DicomDataset ExtraMetadata { get; }
 
         public string StudyInstanceUID { get; }
 
@@ -65,6 +61,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             => (StudyInstanceUID + SeriesInstanceUID + SopInstanceUID).GetHashCode(DicomStudy.EqualsStringComparison);
 
         public override string ToString()
-            => $"Study Instance UID: {StudyInstanceUID}, Series Instance UID: {SeriesInstanceUID}, SOP Instance UID {SopInstanceUID}, Has extra itmes: {ExtraMetadata != null}";
+            => $"Study Instance UID: {StudyInstanceUID}, Series Instance UID: {SeriesInstanceUID}, SOP Instance UID {SopInstanceUID}";
     }
 }

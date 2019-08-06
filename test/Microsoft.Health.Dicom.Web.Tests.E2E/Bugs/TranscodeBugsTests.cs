@@ -5,14 +5,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
-using Dicom.Imaging;
 using Dicom.Imaging.Codec;
-using Dicom.Imaging.Render;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 using Xunit;
@@ -25,72 +22,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
     {
         private readonly ITestOutputHelper output;
 
-        private static readonly string[] SizeSuffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
-
         public TranscodeBugsTests(ITestOutputHelper output)
         {
             this.output = output;
         }
 
-        public static string SizeSuffix(long value, int decimalPlaces = 1)
-        {
-            if (value < 0)
-            {
-                return "-" + SizeSuffix(-value);
-            }
-
-            int i = 0;
-            decimal dValue = value;
-            while (Math.Round(dValue, decimalPlaces) >= 1000)
-            {
-                dValue /= 1024;
-                i++;
-            }
-
-            return string.Format("{0:n" + decimalPlaces + "} {1}", dValue, SizeSuffixes[i]);
-        }
-
-        [Fact]
-        public async Task GenerateBigFile()
-        {
-            var file = DicomImageGenerator.GenerateDicomFile(
-                null,
-                null,
-                null,
-                null,
-                5000,
-                5000,
-                TestFileBitDepth.SixteenBit,
-                DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
-
-            await file.SaveAsync(@"D:\tmp\dicommemtest\5000.dcm");
-        }
-
-        [Theory]
-        [InlineData(50)]
-        public async Task OpenBigFiles(int iterations)
-        {
-            long totalBytesOfMemoryUsedAtStart = Process.GetCurrentProcess().WorkingSet64;
-
-            var files = new List<DicomFile>();
-            for (var i = 0; i < iterations; i++)
-            {
-                var stream = File.OpenRead(@"D:\tmp\dicommemtest\5000.dcm");
-                var file = await DicomFile.OpenAsync(stream, FileReadOption.SkipLargeTags);
-
-                stream.Close();
-
-                // files.Append(file);
-                output.WriteLine(file.FileMetaInfo.TransferSyntax.UID.UID);
-
-                // var pixelData = PixelDataFactory.Create(DicomPixelData.Create(file.Dataset, false), 0);
-
-                // output.WriteLine($"Pixel at 500,800: {pixelData.GetPixel(500, 800)}");
-            }
-
-            output.WriteLine($"Total memory used: {SizeSuffix(Process.GetCurrentProcess().WorkingSet64 - totalBytesOfMemoryUsedAtStart)}");
-        }
-
+        /// <summary>
+        /// This test will start failing when a bug with JPEG transcoding is fixed in future
+        /// versions of fo-dicom.
+        /// </summary>
         [Fact]
         public async Task GivenValidJpegFile_WhenTranscodeIsCalled_CorruptedFileIsGenerated()
         {
@@ -191,8 +131,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
         }
 
         /// <summary>
-        /// Currently there is a bug with fo-dicom 4.0.1 where some transcodings fail and some produce garbage.
-        /// This test will fail until that is fixed.
+        /// Currently there is a bug with fo-dicom 4.0.1 where some transcodings will produce garbage. The test will pass
+        /// but some images will be corrupted.
         /// </summary>
         [Fact]
         public async Task Gen_GivenValid16BitSampleData_WhenTranscodingRequested_ShouldConvertDataWithSupportedEncodings()
@@ -290,7 +230,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
 
         /// <summary>
         /// Due to a bug in 4.0.1 (see isolated test above), this will not generate JPEGP1 ↔ JPEGP2_4 transcodings
-        /// Also, transcodings from those JPEG images will be garbled upon visual inspection.
+        /// Also, transcodings from those JPEG images will be garbled upon visual inspection. This test will
+        /// start failing when the issue is fixed (a good thing!)
         /// </summary>
         /// <param name="tsFrom">Transfer syntax to convert from</param>
         /// <param name="tsTo">Transfer syntax to convert to</param>

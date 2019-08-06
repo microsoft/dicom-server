@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -14,7 +13,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Tests.Common;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Bugs;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Microsoft.Net.Http.Headers;
 using Xunit;
@@ -166,46 +164,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateRetrieveTransaction(instanceRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, dicomFile1);
         }
 
-        [Fact]
-        public async Task TryWriteLargeFiles()
-        {
-            long totalBytesOfMemoryUsedAtStart = Process.GetCurrentProcess().WorkingSet64;
-            var seriesInstanceUID = DicomUID.Generate();
-            var studyInstanceUID = DicomUID.Generate();
-
-            var filesNum = 10;
-
-            var files = new List<DicomFile>();
-
-            for (int i = 0; i < filesNum; i++)
-            {
-                files.Add(
-                    DicomImageGenerator.GenerateDicomFile(
-                        studyInstanceUID.UID,
-                        seriesInstanceUID.UID,
-                        null,
-                        null,
-                        5000,
-                        5000,
-                        TestFileBitDepth.SixteenBit,
-                        DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID));
-            }
-
-            output.WriteLine($"Total memory used before posting: {TranscodeBugsTests.SizeSuffix(Process.GetCurrentProcess().WorkingSet64 - totalBytesOfMemoryUsedAtStart)}");
-
-            HttpResult<DicomDataset> postResponse = await Client.PostAsync(files.ToArray());
-
-            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
-
-            var getResponse = await Client.GetSeriesAsync(
-                studyInstanceUID.UID,
-                seriesInstanceUID.UID);
-            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-            Assert.Equal(filesNum, getResponse.Value.Count);
-
-            output.WriteLine($"Total memory used: {TranscodeBugsTests.SizeSuffix(Process.GetCurrentProcess().WorkingSet64 - totalBytesOfMemoryUsedAtStart)}");
-        }
-
         [Theory]
         [InlineData("1.2.840.10008.1.2.4.100")] // Unsupported conversion - a video codec
         [InlineData("Bogus TS")] // A non-existent codec
@@ -228,7 +186,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         // TODO: test that 16bit jpeg is not supported
-        // TODO: test that if no TS specified, we return the original TS w/o transcoding
+
+        // TODO: test that if no TS specified, we return the original TS w/o transcoding -
+        // http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_8.7.3.5.2:S
+        // The wildcard value "*" indicates that the user agent will accept any Transfer Syntax.
+        // This allows, for example, the origin server to respond without needing to transcode an
+        // existing representation to a new Transfer Syntax, or to respond with the
+        // Explicit VR Little Endian Transfer Syntax regardless of the Transfer Syntax stored.
 
         [Fact]
         public async Task GivenAMixOfTransferSyntaxes_WhenSomeAreSupported_PartialIsReturned()
