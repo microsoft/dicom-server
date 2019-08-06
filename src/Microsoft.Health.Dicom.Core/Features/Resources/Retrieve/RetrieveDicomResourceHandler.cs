@@ -80,12 +80,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
             try
             {
+                // DicomDataset instanceMetadata;
+
                 switch (message.ResourceType)
                 {
                     case ResourceType.Frames:
                     case ResourceType.Instance:
-                        instancesToRetrieve = new[] { new DicomInstance(message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID) };
-                        break;
+                        // instancesToRetrieve = new[] { new DicomInstance(message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID) };
+
+                        // instanceMetadata =
+                        //    await _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(
+                        //        message.StudyInstanceUID, message.SeriesInstanceUID, cancellationToken);
+                        // break;
                     case ResourceType.Series:
                         instancesToRetrieve = await _dicomMetadataStore.GetInstancesInSeriesAsync(message.StudyInstanceUID, message.SeriesInstanceUID, cancellationToken);
                         break;
@@ -100,6 +106,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                                                     instancesToRetrieve.Select(
                                                         x => _dicomBlobDataStore.GetFileAsStreamAsync(
                                                             StoreDicomResourcesHandler.GetBlobStorageName(x), cancellationToken)));
+
+                var file = await DicomFile.OpenAsync(resultStreams.Single());
+                resultStreams.Single().Seek(0, SeekOrigin.Begin);
 
                 DicomTransferSyntax parsedDicomTransferSyntax = string.IsNullOrWhiteSpace(message.RequestedTransferSyntax) ?
                                                     DefaultTransferSyntax :

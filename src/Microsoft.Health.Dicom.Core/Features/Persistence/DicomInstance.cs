@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
     public class DicomInstance
     {
         [JsonConstructor]
-        public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+        public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string transferSyntax = "", ushort bitsAllocated = 0)
         {
             // Run the instance identifiers through the regular expression check.
             EnsureArg.Matches(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyInstanceUID));
@@ -26,7 +26,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             StudyInstanceUID = studyInstanceUID;
             SeriesInstanceUID = seriesInstanceUID;
             SopInstanceUID = sopInstanceUID;
+
+            TransferSyntax = transferSyntax;
+            BitsAllocated = bitsAllocated;
         }
+
+        public string TransferSyntax { get; }
+
+        public ushort BitsAllocated { get; }
 
         public string StudyInstanceUID { get; }
 
@@ -42,7 +49,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             return new DicomInstance(
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
-                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty));
+                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
+                dicomDataset.GetSingleValueOrDefault(DicomTag.TransferSyntaxUID, string.Empty),
+                dicomDataset.GetSingleValueOrDefault(DicomTag.BitsAllocated, (ushort)0));
         }
 
         public override bool Equals(object obj)
@@ -61,6 +70,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             => (StudyInstanceUID + SeriesInstanceUID + SopInstanceUID).GetHashCode(DicomStudy.EqualsStringComparison);
 
         public override string ToString()
-            => $"Study Instance UID: {StudyInstanceUID}, Series Instance UID: {SeriesInstanceUID}, SOP Instance UID {SopInstanceUID}";
+            => $"Study Instance UID: {StudyInstanceUID}, Series Instance UID: {SeriesInstanceUID}, SOP Instance UID {SopInstanceUID}, Transfer Syntax {TransferSyntax}, BitsAllocated {BitsAllocated}";
     }
 }

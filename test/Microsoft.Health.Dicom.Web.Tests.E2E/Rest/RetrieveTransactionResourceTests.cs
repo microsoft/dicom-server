@@ -43,8 +43,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             "ExplicitVRBigEndian",
             "ExplicitVRLittleEndian",
             "ImplicitVRLittleEndian",
-            "JPEG2000Lossless",
-            "JPEG2000Lossy",
             "RLELossless",
         };
 
@@ -259,7 +257,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenAnExceptionDuringTranscoding_WhenRetrievingStudy_BadRequestIsReturned(string transferSyntax)
         {
             var dicomFiles = Samples.GetDicomFilesForTranscoding();
-            var dicomFile = dicomFiles.First();
+
+            // var dicomFile = dicomFiles.First();
+            var dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == "RLELossless"));
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 

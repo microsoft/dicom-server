@@ -282,7 +282,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
         }
 
         /// <summary>
-        /// All transcodings work here, but some J2K-J2K transcodings produce corrupted images.
+        /// All transcodings work here, but some J2K-J2K transcodings produce corrupted images. Note that J2K is not officially supported by
+        /// fo-dicom 4.0.1
         /// </summary>
         /// <param name="tsFrom">Transfer syntax to convert from</param>
         /// <param name="tsTo">Transfer syntax to convert to</param>
