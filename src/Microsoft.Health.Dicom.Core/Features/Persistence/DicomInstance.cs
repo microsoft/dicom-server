@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -13,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
     public class DicomInstance
     {
         [JsonConstructor]
-        public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string transferSyntax = "", ushort bitsAllocated = 0)
+        public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, DicomDataset extraData = null)
         {
             // Run the instance identifiers through the regular expression check.
             EnsureArg.Matches(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyInstanceUID));
@@ -27,13 +28,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             SeriesInstanceUID = seriesInstanceUID;
             SopInstanceUID = sopInstanceUID;
 
-            TransferSyntax = transferSyntax;
-            BitsAllocated = bitsAllocated;
+            ExtraMetadata = extraData;
         }
 
-        public string TransferSyntax { get; }
-
-        public ushort BitsAllocated { get; }
+        public DicomDataset ExtraMetadata { get; }
 
         public string StudyInstanceUID { get; }
 
@@ -49,9 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             return new DicomInstance(
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
-                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
-                dicomDataset.GetSingleValueOrDefault(DicomTag.TransferSyntaxUID, string.Empty),
-                dicomDataset.GetSingleValueOrDefault(DicomTag.BitsAllocated, (ushort)0));
+                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty));
         }
 
         public override bool Equals(object obj)
@@ -70,6 +66,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             => (StudyInstanceUID + SeriesInstanceUID + SopInstanceUID).GetHashCode(DicomStudy.EqualsStringComparison);
 
         public override string ToString()
-            => $"Study Instance UID: {StudyInstanceUID}, Series Instance UID: {SeriesInstanceUID}, SOP Instance UID {SopInstanceUID}, Transfer Syntax {TransferSyntax}, BitsAllocated {BitsAllocated}";
+            => $"Study Instance UID: {StudyInstanceUID}, Series Instance UID: {SeriesInstanceUID}, SOP Instance UID {SopInstanceUID}, Has extra itmes: {ExtraMetadata != null}";
     }
 }

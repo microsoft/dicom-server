@@ -44,6 +44,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             "ExplicitVRLittleEndian",
             "ImplicitVRLittleEndian",
             "RLELossless",
+            "JPEG2000Lossless",
+            "JPEG2000Lossy",
         };
 
         public RetrieveTransactionResourceTests(HttpIntegrationTestFixture<Startup> fixture, ITestOutputHelper output)

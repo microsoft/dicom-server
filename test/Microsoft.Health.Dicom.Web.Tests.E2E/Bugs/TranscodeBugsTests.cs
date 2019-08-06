@@ -63,7 +63,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
 
             var transcoder = new DicomTranscoder(
                 dicomFile.Dataset.InternalTransferSyntax,
-                tsTo);
+                tsTo,
+                outputCodecParams: new DicomJpegParams());
 
             dicomFile = transcoder.Transcode(dicomFile);
 

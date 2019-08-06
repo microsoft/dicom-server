@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
             AddInstance(seriesMetadata, instance, indexableAttributes);
         }
 
-        public static IEnumerable<DicomInstance> GetDicomInstances(this DicomStudyMetadata dicomStudyMetadata)
+        public static IEnumerable<DicomInstance> GetDicomInstances(this DicomStudyMetadata dicomStudyMetadata, IEnumerable<DicomTag> extraItemsRequested = null)
         {
             EnsureArg.IsNotNull(dicomStudyMetadata, nameof(dicomStudyMetadata));
 
@@ -43,12 +43,13 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
             {
                 foreach (string instance in series.Value.Instances)
                 {
+                    extraItemsRequested = null;
                     yield return new DicomInstance(studyInstanceUID, series.Key, instance);
                 }
             }
         }
 
-        public static IEnumerable<DicomInstance> GetDicomInstances(this DicomStudyMetadata dicomStudyMetadata, string seriesInstanceUID)
+        public static IEnumerable<DicomInstance> GetDicomInstances(this DicomStudyMetadata dicomStudyMetadata, string seriesInstanceUID, IEnumerable<DicomTag> extraItemsRequested = null)
         {
             EnsureArg.IsNotNull(dicomStudyMetadata, nameof(dicomStudyMetadata));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
@@ -56,6 +57,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
             string studyInstanceUID = dicomStudyMetadata.StudyInstanceUID;
             if (dicomStudyMetadata.SeriesMetadata.TryGetValue(seriesInstanceUID, out DicomSeriesMetadata seriesMetadata))
             {
+                extraItemsRequested = null;
                 return seriesMetadata.Instances.Select(x => new DicomInstance(studyInstanceUID, seriesInstanceUID, x));
             }
 
