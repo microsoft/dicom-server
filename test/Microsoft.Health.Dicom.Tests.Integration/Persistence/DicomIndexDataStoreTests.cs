@@ -10,9 +10,14 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Client;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.CosmosDb.Features;
+using Microsoft.Health.Dicom.CosmosDb.Features.Storage;
+using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents;
+using Microsoft.Health.Dicom.CosmosDb.Features.Transactions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -20,10 +25,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public class DicomIndexDataStoreTests : IClassFixture<DicomCosmosDataStoreTestsFixture>
     {
         private readonly IDicomIndexDataStore _indexDataStore;
+        private readonly DicomCosmosDataStoreTestsFixture _fixture;
 
         public DicomIndexDataStoreTests(DicomCosmosDataStoreTestsFixture fixture)
         {
             _indexDataStore = fixture.DicomIndexDataStore;
+            _fixture = fixture;
         }
 
         [Fact]
@@ -383,6 +390,61 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUID, seriesInstanceUID);
         }
 
+        [Fact]
+        public async Task GivenIndexedStudyWithMultipleSeries_WhenDeletingStudy_AllSeriesAreDeleted()
+        {
+            const int numberOfSeriesPerStudy = 2;
+            const int numberOfInstancesPerSeries = 100;
+            IEnumerable<DicomDataset> study = await CreateStudyAsync(numberOfStudies: 1, numberOfSeriesPerStudy, numberOfInstancesPerSeries);
+            DicomInstance[] dicomInstances = study.Select(x => DicomInstance.Create(x)).ToArray();
+
+            var studyToDelete = dicomInstances[0].StudyInstanceUID;
+            QueryResult<DicomSeries> querySeries = await _indexDataStore.QuerySeriesAsync(0, int.MaxValue, studyInstanceUID: studyToDelete);
+            Assert.Equal(numberOfSeriesPerStudy, querySeries.Results.Count());
+
+            IEnumerable<DicomInstance> deletedInstances = await _indexDataStore.DeleteStudyIndexAsync(studyToDelete);
+            Assert.Equal(numberOfInstancesPerSeries * numberOfSeriesPerStudy, deletedInstances.Count());
+            var expectedDeletedInstances = new HashSet<DicomInstance>(dicomInstances.Where(x => x.StudyInstanceUID == studyToDelete));
+
+            foreach (DicomInstance deletedInstance in deletedInstances)
+            {
+                Assert.Contains(deletedInstance, expectedDeletedInstances);
+            }
+
+            querySeries = await _indexDataStore.QuerySeriesAsync(0, int.MaxValue, studyInstanceUID: studyToDelete);
+            Assert.Empty(querySeries.Results);
+        }
+
+        [Fact]
+        public async Task GivenValidDocumentAndMissingDocument_WhenDeletingUsingATransaction_EntireTransactionFailsAndNothingDeleted()
+        {
+            var validDocument = new QuerySeriesDocument(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            var requestOptions = new RequestOptions() { PartitionKey = new PartitionKey(validDocument.PartitionKey) };
+            validDocument = await _fixture.DocumentClient.GetOrCreateDocumentAsync(_fixture.DatabaseId, _fixture.CollectionId, validDocument.Id, requestOptions, validDocument);
+
+            // Missing document
+            using (ITransaction transaction = _fixture.DocumentClient.CreateTransaction(_fixture.DatabaseId, _fixture.CollectionId, requestOptions))
+            {
+                transaction.DeleteDocument(validDocument.Id, validDocument.ETag);
+                transaction.DeleteDocument(Guid.NewGuid().ToString(), validDocument.ETag);
+                await Assert.ThrowsAnyAsync<DocumentClientException>(() => transaction.CommitAsync());
+            }
+
+            // Invalid ETag
+            using (ITransaction transaction = _fixture.DocumentClient.CreateTransaction(_fixture.DatabaseId, _fixture.CollectionId, requestOptions))
+            {
+                transaction.DeleteDocument(validDocument.Id, Guid.NewGuid().ToString());
+                await Assert.ThrowsAnyAsync<DocumentClientException>(() => transaction.CommitAsync());
+            }
+
+            // Check initial document still exists.
+            Uri documentUri = UriFactory.CreateDocumentUri(_fixture.DatabaseId, _fixture.CollectionId, validDocument.Id);
+            DocumentResponse<QuerySeriesDocument> documentResponse = await _fixture.DocumentClient.ReadDocumentAsync<QuerySeriesDocument>(documentUri, requestOptions);
+
+            Assert.NotNull(documentResponse.Document);
+            Assert.Equal(validDocument.ETag, documentResponse.Document.ETag);
+        }
+
         private static DicomDataset CreateTestInstanceDicomDataset(string studyInstanceUID, string seriesInstanceUID, string patientName = "Patient Test")
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID);
@@ -397,6 +459,27 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 { DicomTag.StudyDate, new DateTime(2019, 6, 21) },
             };
             return result;
+        }
+
+        private async Task<IEnumerable<DicomDataset>> CreateStudyAsync(
+            int numberOfStudies = 1, int numberOfSeriesPerStudy = 1, int numberOfInstancesPerSeries = 100)
+        {
+            var indexedDatasets = new List<DicomDataset>(numberOfStudies * numberOfSeriesPerStudy * numberOfInstancesPerSeries);
+            for (var studyIndex = 0; studyIndex < numberOfStudies; studyIndex++)
+            {
+                var studyInstanceUID = Guid.NewGuid().ToString();
+                for (var seriesIndex = 0; seriesIndex < numberOfSeriesPerStudy; seriesIndex++)
+                {
+                    var seriesInstanceUID = Guid.NewGuid().ToString();
+                    var series = Enumerable.Range(0, numberOfInstancesPerSeries)
+                                    .Select(x => CreateTestInstanceDicomDataset(studyInstanceUID, seriesInstanceUID)).ToArray();
+                    await _indexDataStore.IndexSeriesAsync(series);
+
+                    indexedDatasets.AddRange(series);
+                }
+            }
+
+            return indexedDatasets;
         }
 
         private async Task<IList<DicomDataset>> CreateSeriesInParallelAsync(string studyInstanceUID, string seriesInstanceUID, int numberOfItemsInSeries)

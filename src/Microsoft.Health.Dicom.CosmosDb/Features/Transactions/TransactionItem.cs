@@ -17,14 +17,14 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Transactions
 
             Operation = operation;
             DocumentETag = documentETag;
-            DocumentLink = documentLink;
+            DocumentLink = documentLink.OriginalString;
         }
 
         public Operation Operation { get; }
 
         public string DocumentETag { get; }
 
-        public Uri DocumentLink { get; }
+        public string DocumentLink { get; }
 
         public static TransactionItem CreateDeleteTransactionItem(Uri documentLink, string documentETag)
             => new TransactionItem(Operation.Delete, documentLink, documentETag);

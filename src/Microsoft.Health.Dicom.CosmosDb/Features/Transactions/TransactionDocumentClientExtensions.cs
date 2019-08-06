@@ -18,11 +18,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Transactions
         public const string TransactionProperty = "_isTransaction";
         private const string StoredProcedureBodyFileName = "Features\\Transactions\\TransactionStoredProcedure.js";
 
-        public static ITransaction CreateTransaction(
-            this IDocumentClient documentClient,
-            string databaseId,
-            string collectionId,
-            RequestOptions requestOptions = null)
+        public static ITransaction CreateTransaction(this IDocumentClient documentClient, string databaseId, string collectionId, RequestOptions requestOptions)
         {
             EnsureArg.IsNotNull(documentClient);
             return new Transaction(documentClient, databaseId, collectionId, requestOptions);

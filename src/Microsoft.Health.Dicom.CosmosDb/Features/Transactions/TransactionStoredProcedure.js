@@ -1,6 +1,6 @@
-﻿function commit(items) {
-    var context = getContext();
-    var collection = context.getCollection();
+﻿function commit(itemsString) {
+    var collection = getContext().getCollection();
+    var items = JSON.parse(itemsString);
 
     items.forEach(function (item) {
         switch (item.Operation) {

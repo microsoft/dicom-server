@@ -49,12 +49,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     ValidateHasFrames(dicomFile, message.Frames);
 
                     resultStreams = message.Frames.Select(
-                        x => new LazyTransformStream<DicomFile>(dicomFile, y => GetFrame(y, x, parsedDicomTransferSyntax)))
+                        x => new LazyTransformReadOnlyStream<DicomFile>(dicomFile, y => GetFrame(y, x, parsedDicomTransferSyntax)))
                         .ToArray();
                 }
                 else
                 {
-                    resultStreams = resultStreams.Select(x => new LazyTransformStream<Stream>(x, y => EncodeDicomFile(y, parsedDicomTransferSyntax))).ToArray();
+                    resultStreams = resultStreams.Select(x => new LazyTransformReadOnlyStream<Stream>(x, y => EncodeDicomFile(y, parsedDicomTransferSyntax))).ToArray();
                 }
 
                 return new RetrieveDicomResourceResponse(HttpStatusCode.OK, resultStreams);

@@ -133,14 +133,14 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
 
-            FeedOptions feedOptions = CreateFeedOptions(QuerySeriesDocument.GetPartitionKey(studyInstanceUID));
-            IDocumentQuery<QuerySeriesDocument> studyQuery = _documentClient.CreateDocumentQuery<QuerySeriesDocument>(_collectionUri, feedOptions)
+            string partitionKey = QuerySeriesDocument.GetPartitionKey(studyInstanceUID);
+            IDocumentQuery<QuerySeriesDocument> studyQuery = _documentClient.CreateDocumentQuery<QuerySeriesDocument>(_collectionUri, CreateFeedOptions(partitionKey))
                                                                             .AsDocumentQuery();
             var deletedInstances = new List<DicomInstance>();
 
             // Retry when the pre-condition fails on delete.
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
-            using (ITransaction transaction = _documentClient.CreateTransaction(_databaseId, _databaseId))
+            using (ITransaction transaction = _documentClient.CreateTransaction(_databaseId, _collectionId, CreateRequestOptions(partitionKey)))
             {
                 while (studyQuery.HasMoreResults)
                 {
