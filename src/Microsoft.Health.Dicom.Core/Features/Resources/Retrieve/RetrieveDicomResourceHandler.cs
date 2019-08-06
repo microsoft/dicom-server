@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -110,13 +111,29 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                         throw new ArgumentException($"Unknown retrieve transaction type: {message.ResourceType}", nameof(message));
                 }
 
+                long totalBytesOfMemoryUsedAtStart = Process.GetCurrentProcess().WorkingSet64;
+
                 Stream[] resultStreams = await Task.WhenAll(
                                                     instancesToRetrieve.Select(
                                                         x => _dicomBlobDataStore.GetFileAsStreamAsync(
                                                             StoreDicomResourcesHandler.GetBlobStorageName(x), cancellationToken)));
 
+                long totalBytesOfMemoryUsedAtStreamRead = Process.GetCurrentProcess().WorkingSet64;
+
+                var dataList = new List<string>();
+
+                foreach (var stream in resultStreams)
+                {
+                    var dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.SkipLargeTags);
+                    dataList.Add(dicomFile.Dataset.GetString(DicomTag.BitsAllocated));
+
+                    stream.Seek(0, SeekOrigin.Begin);
+                }
+
                 // var file = await DicomFile.OpenAsync(resultStreams.Single());
                 // resultStreams.Single().Seek(0, SeekOrigin.Begin);
+
+                long totalBytesOfMemoryUsedAtFinish = Process.GetCurrentProcess().WorkingSet64;
 
                 DicomTransferSyntax parsedDicomTransferSyntax = string.IsNullOrWhiteSpace(message.RequestedTransferSyntax) ?
                                                     DefaultTransferSyntax :

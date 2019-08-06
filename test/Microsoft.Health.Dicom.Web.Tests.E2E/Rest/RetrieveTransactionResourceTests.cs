@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Bugs;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Microsoft.Net.Http.Headers;
 using Xunit;
@@ -162,6 +164,46 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateRetrieveTransaction(seriesRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, dicomFile1);
             HttpResult<IReadOnlyList<DicomFile>> instanceRetrieve = await Client.GetInstanceAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
             ValidateRetrieveTransaction(instanceRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, dicomFile1);
+        }
+
+        [Fact]
+        public async Task TryWriteLargeFiles()
+        {
+            long totalBytesOfMemoryUsedAtStart = Process.GetCurrentProcess().WorkingSet64;
+            var seriesInstanceUID = DicomUID.Generate();
+            var studyInstanceUID = DicomUID.Generate();
+
+            var filesNum = 10;
+
+            var files = new List<DicomFile>();
+
+            for (int i = 0; i < filesNum; i++)
+            {
+                files.Add(
+                    DicomImageGenerator.GenerateDicomFile(
+                        studyInstanceUID.UID,
+                        seriesInstanceUID.UID,
+                        null,
+                        null,
+                        5000,
+                        5000,
+                        TestFileBitDepth.SixteenBit,
+                        DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID));
+            }
+
+            output.WriteLine($"Total memory used before posting: {TranscodeBugsTests.SizeSuffix(Process.GetCurrentProcess().WorkingSet64 - totalBytesOfMemoryUsedAtStart)}");
+
+            HttpResult<DicomDataset> postResponse = await Client.PostAsync(files.ToArray());
+
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
+
+            var getResponse = await Client.GetSeriesAsync(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            Assert.Equal(filesNum, getResponse.Value.Count);
+
+            output.WriteLine($"Total memory used: {TranscodeBugsTests.SizeSuffix(Process.GetCurrentProcess().WorkingSet64 - totalBytesOfMemoryUsedAtStart)}");
         }
 
         [Theory]
