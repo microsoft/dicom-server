@@ -63,8 +63,6 @@ namespace Microsoft.Health.Dicom.Metadata.Config
             new DicomAttributeId(DicomTag.PerformedProcedureStepStartDate),
             new DicomAttributeId(DicomTag.PerformedProcedureStepStartTime),
             new DicomAttributeId(DicomTag.RequestAttributesSequence),
-            new DicomAttributeId(DicomTag.BitsAllocated),
-            new DicomAttributeId(DicomTag.TransferSyntaxUID),
         };
 
         public HashSet<DicomAttributeId> SeriesOptionalMetadataAttributes { get; } = new HashSet<DicomAttributeId>()

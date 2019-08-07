@@ -43,9 +43,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             "ExplicitVRBigEndian",
             "ExplicitVRLittleEndian",
             "ImplicitVRLittleEndian",
+            "JPEGProcess1",
             "RLELossless",
-            "JPEG2000Lossless",
-            "JPEG2000Lossy",
         };
 
         public RetrieveTransactionResourceTests(HttpIntegrationTestFixture<Startup> fixture, ITestOutputHelper output)
@@ -208,7 +207,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomFile2 = Samples.CreateRandomDicomFileWith8BitPixelData(
                 studyInstanceUID.UID,
                 seriesInstanceUID.UID,
-                transferSyntax: DicomTransferSyntax.JPEG2000Lossy.UID.UID);
+                transferSyntax: DicomTransferSyntax.JPEGProcess1.UID.UID);
 
             var dicomFile3 = Samples.CreateRandomDicomFileWith8BitPixelData(
                 studyInstanceUID.UID,
@@ -223,7 +222,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var getResponse = await Client.GetSeriesAsync(
                 studyInstanceUID.UID,
                 seriesInstanceUID.UID,
-                DicomTransferSyntax.JPEGProcess1.UID.UID);
+                DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
 
             Assert.Equal(HttpStatusCode.PartialContent, getResponse.StatusCode);
             Assert.Single(getResponse.Value);

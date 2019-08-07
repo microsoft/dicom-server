@@ -29,9 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         private readonly IDicomMetadataStore _dicomMetadataStore;
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
 
-        // "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
-        // "JPEG2000Lossless", "JPEG2000Lossy", "JPEGProcess1", "JPEGProcess2_4", "RLELossless",
-        private static DicomTransferSyntax[] _supportedTransferSyntaxes = new[]
+        private static DicomTransferSyntax[] _supportedTransferSyntaxes8bit = new[]
         {
             DicomTransferSyntax.DeflatedExplicitVRLittleEndian,
             DicomTransferSyntax.ExplicitVRBigEndian,
@@ -41,6 +39,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             DicomTransferSyntax.JPEG2000Lossy,
             DicomTransferSyntax.JPEGProcess1,
             DicomTransferSyntax.JPEGProcess2_4,
+            DicomTransferSyntax.RLELossless,
+        };
+
+        private static DicomTransferSyntax[] _supportedTransferSyntaxesOver8bit = new[]
+        {
+            DicomTransferSyntax.DeflatedExplicitVRLittleEndian,
+            DicomTransferSyntax.ExplicitVRBigEndian,
+            DicomTransferSyntax.ExplicitVRLittleEndian,
+            DicomTransferSyntax.ImplicitVRLittleEndian,
+            DicomTransferSyntax.JPEGProcess1,
             DicomTransferSyntax.RLELossless,
         };
 
@@ -57,15 +65,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
         private bool CanTranscodeDataset(DicomDataset ds, DicomTransferSyntax transferSyntax)
         {
-            var bpp = ds.GetSingleValue<int>(DicomTag.BitsAllocated);
+            if (transferSyntax == null)
+            {
+               return true;
+            }
 
-            if (bpp > 8 && (transferSyntax == DicomTransferSyntax.JPEGProcess1 ||
-                            transferSyntax == DicomTransferSyntax.JPEGProcess2_4))
+            var bpp = ds.GetSingleValue<ushort>(DicomTag.BitsAllocated);
+            var photometricInterpretation = ds.GetString(DicomTag.PhotometricInterpretation);
+
+            // Bug in fo-dicom 4.0.1
+            if (transferSyntax == DicomTransferSyntax.JPEGProcess1 &&
+                ((photometricInterpretation == PhotometricInterpretation.Monochrome2.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.Monochrome1.Value)))
             {
                 return false;
             }
 
-            if (_supportedTransferSyntaxes.Contains(transferSyntax))
+            if (((bpp > 8) && _supportedTransferSyntaxesOver8bit.Contains(transferSyntax)) ||
+                 ((bpp == 8) && _supportedTransferSyntaxes8bit.Contains(transferSyntax)))
             {
                 return true;
             }
@@ -107,19 +124,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                                                         x => _dicomBlobDataStore.GetFileAsStreamAsync(
                                                             StoreDicomResourcesHandler.GetBlobStorageName(x), cancellationToken)));
 
-                var dataList = new List<string>();
-
-                foreach (var stream in resultStreams)
-                {
-                    var dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.SkipLargeTags);
-                    dataList.Add(dicomFile.Dataset.GetString(DicomTag.BitsAllocated));
-
-                    stream.Seek(0, SeekOrigin.Begin);
-                }
-
                 DicomTransferSyntax parsedDicomTransferSyntax = string.IsNullOrWhiteSpace(message.RequestedTransferSyntax) ?
                                                     DefaultTransferSyntax :
                                                     DicomTransferSyntax.Parse(message.RequestedTransferSyntax);
+
+                var responseCode = HttpStatusCode.OK;
 
                 if (message.ResourceType == ResourceType.Frames)
                 {
@@ -127,16 +136,41 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     var dicomFile = DicomFile.Open(resultStreams.Single());
                     ValidateHasFrames(dicomFile, message.Frames);
 
+                    if (!CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax))
+                    {
+                        throw new DataStoreException(HttpStatusCode.NotAcceptable);
+                    }
+
                     resultStreams = message.Frames.Select(
                         x => new LazyTransformStream<DicomFile>(dicomFile, y => GetFrame(y, x, parsedDicomTransferSyntax)))
                         .ToArray();
                 }
                 else
                 {
+                    resultStreams = resultStreams.Where(x =>
+                    {
+                        var dicomFile = DicomFile.Open(x, FileReadOption.SkipLargeTags);
+                        var canTranscode = CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax);
+                        x.Seek(0, SeekOrigin.Begin);
+
+                        // If some of the instances are not transcodeable, Partial Content should be returned
+                        if (!canTranscode)
+                        {
+                            responseCode = HttpStatusCode.PartialContent;
+                        }
+
+                        return canTranscode;
+                    }).ToArray();
+
+                    if (resultStreams.Length == 0)
+                    {
+                        throw new DataStoreException(HttpStatusCode.NotAcceptable);
+                    }
+
                     resultStreams = resultStreams.Select(x => new LazyTransformStream<Stream>(x, y => EncodeDicomFile(y, parsedDicomTransferSyntax))).ToArray();
                 }
 
-                return new RetrieveDicomResourceResponse(HttpStatusCode.OK, resultStreams);
+                return new RetrieveDicomResourceResponse(responseCode, resultStreams);
             }
             catch (DataStoreException e)
             {
