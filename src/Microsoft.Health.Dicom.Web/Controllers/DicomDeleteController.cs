@@ -33,7 +33,6 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         [Route("studies/{studyInstanceUID}")]
         public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUID)
         {
@@ -49,7 +48,6 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         [Route("studies/{studyInstanceUID}/series/{seriesUID}")]
         public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUID, string seriesUID)
         {
@@ -65,7 +63,6 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         [Route("studies/{studyInstanceUID}/series/{seriesUID}/instances/{instanceUID}")]
         public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUID, string seriesUID, string instanceUID)
         {

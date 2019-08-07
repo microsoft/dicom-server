@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -67,14 +66,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
                         break;
                 }
             }
-            catch (DataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
+            catch (DataStoreException e)
             {
-                return new DeleteDicomResourcesResponse(HttpStatusCode.NotFound);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Exception when deleting metadata.");
-                return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
+                return new DeleteDicomResourcesResponse((HttpStatusCode)e.StatusCode);
             }
 
             // Delete instance blobs
@@ -82,10 +76,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
             {
                 await Task.WhenAll(instancesToDelete.Select(x => _dicomBlobDataStore.DeleteFileIfExistsAsync(StoreDicomResourcesHandler.GetBlobStorageName(x), cancellationToken)));
             }
-            catch (Exception e)
+            catch (DataStoreException e)
             {
-                _logger.LogError(e, "Exception when deleting instances.");
-                return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
+                return new DeleteDicomResourcesResponse((HttpStatusCode)e.StatusCode);
             }
 
             return new DeleteDicomResourcesResponse(HttpStatusCode.OK);
