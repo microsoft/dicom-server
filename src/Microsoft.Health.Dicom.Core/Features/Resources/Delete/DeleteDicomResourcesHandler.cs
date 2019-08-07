@@ -14,6 +14,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Resources.Store;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 
@@ -48,26 +49,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
         {
             EnsureArg.IsNotNull(message, nameof(message));
 
-            switch (message.ResourceType)
-            {
-                case ResourceType.Study:
-                    return await HandleDeleteStudy(message, cancellationToken);
-                case ResourceType.Series:
-                    return await HandleDeleteSeries(message, cancellationToken);
-                case ResourceType.Instance:
-                    return await HandleDeleteInstance(message, cancellationToken);
-            }
-
-            return new DeleteDicomResourcesResponse(HttpStatusCode.BadRequest);
-        }
-
-        private async Task<DeleteDicomResourcesResponse> HandleDeleteStudy(DeleteDicomResourcesRequest message, CancellationToken cancellationToken)
-        {
             // Delete metadata and retrieve list of instances
-            IEnumerable<DicomInstance> instances;
+            IEnumerable<DicomInstance> instancesToDelete = null;
             try
             {
-                instances = await _dicomMetadataStore.DeleteStudyAsync(message.StudyInstanceUID, cancellationToken);
+                switch (message.ResourceType)
+                {
+                    case DeleteResourceType.Study:
+                        instancesToDelete = await _dicomMetadataStore.DeleteStudyAsync(message.StudyInstanceUID, cancellationToken);
+                        break;
+                    case DeleteResourceType.Series:
+                        instancesToDelete = await _dicomMetadataStore.DeleteSeriesAsync(message.StudyInstanceUID, message.SeriesUID, cancellationToken);
+                        break;
+                    case DeleteResourceType.Instance:
+                        await _dicomMetadataStore.DeleteInstanceAsync(message.StudyInstanceUID, message.SeriesUID, message.InstanceUID, cancellationToken);
+                        instancesToDelete = new DicomInstance[] { new DicomInstance(message.StudyInstanceUID, message.SeriesUID, message.InstanceUID) };
+                        break;
+                }
             }
             catch (DataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
             {
@@ -75,88 +73,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception when deleting study metadata.");
+                _logger.LogError(e, "Exception when deleting metadata.");
                 return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
             }
 
-            // Delete the blob for each instance
+            // Delete instance blobs
             try
             {
-                await Task.WhenAll(instances.Select(x => _dicomBlobDataStore.DeleteFileIfExistsAsync(GetBlobStorageName(x), cancellationToken)));
+                await Task.WhenAll(instancesToDelete.Select(x => _dicomBlobDataStore.DeleteFileIfExistsAsync(StoreDicomResourcesHandler.GetBlobStorageName(x), cancellationToken)));
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception when deleting a study.");
+                _logger.LogError(e, "Exception when deleting instances.");
                 return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
             }
 
             return new DeleteDicomResourcesResponse(HttpStatusCode.OK);
         }
-
-        private async Task<DeleteDicomResourcesResponse> HandleDeleteSeries(DeleteDicomResourcesRequest message, CancellationToken cancellationToken)
-        {
-            // Delete metadata and retrieve list of instances
-            IEnumerable<DicomInstance> instances;
-            try
-            {
-                instances = await _dicomMetadataStore.DeleteSeriesAsync(message.StudyInstanceUID, message.SeriesUID, cancellationToken);
-            }
-            catch (DataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
-            {
-                return new DeleteDicomResourcesResponse(HttpStatusCode.NotFound);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Exception when deleting series metadata.");
-                return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
-            }
-
-            // Delete the blob for each instance
-            try
-            {
-                await Task.WhenAll(instances.Select(x => _dicomBlobDataStore.DeleteFileIfExistsAsync(GetBlobStorageName(x), cancellationToken)));
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Exception when deleting a series.");
-                return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
-            }
-
-            return new DeleteDicomResourcesResponse(HttpStatusCode.OK);
-        }
-
-        private async Task<DeleteDicomResourcesResponse> HandleDeleteInstance(DeleteDicomResourcesRequest message, CancellationToken cancellationToken)
-        {
-            // Delete metadata if the instance exists
-            try
-            {
-                await _dicomMetadataStore.DeleteInstanceAsync(message.StudyInstanceUID, message.SeriesUID, message.InstanceUID, cancellationToken);
-            }
-            catch (DataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
-            {
-                return new DeleteDicomResourcesResponse(HttpStatusCode.NotFound);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Exception when deleting instance metadata.");
-                return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
-            }
-
-            // Delete the instance blob
-            try
-            {
-                await _dicomBlobDataStore.DeleteFileIfExistsAsync(GetBlobStorageName(new DicomInstance(message.StudyInstanceUID, message.SeriesUID, message.InstanceUID)));
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Exception when deleting the instance.");
-                return new DeleteDicomResourcesResponse(HttpStatusCode.InternalServerError);
-            }
-
-            return new DeleteDicomResourcesResponse(HttpStatusCode.OK);
-        }
-
-        private static string GetBlobStorageName(DicomInstance dicomInstance)
-            => $"{dicomInstance.StudyInstanceUID}/{dicomInstance.SeriesInstanceUID}/{dicomInstance.SopInstanceUID}";
     }
 }

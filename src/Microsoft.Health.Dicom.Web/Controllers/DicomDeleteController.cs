@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -40,8 +39,6 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         {
             _logger.LogInformation($"DICOM Web Delete Study request received, with study instance UID '{studyInstanceUID}'.");
 
-            Uri requestBaseUri = GetRequestBaseUri(Request);
-
             DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
                 studyInstanceUID, cancellationToken: HttpContext.RequestAborted);
 
@@ -57,8 +54,6 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUID, string seriesUID)
         {
             _logger.LogInformation($"DICOM Web Delete Series request received, with study instance UID '{studyInstanceUID}' and series UID '{seriesUID}'.");
-
-            Uri requestBaseUri = GetRequestBaseUri(Request);
 
             DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
                 studyInstanceUID, seriesUID, cancellationToken: HttpContext.RequestAborted);
@@ -76,20 +71,10 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         {
             _logger.LogInformation($"DICOM Web Delete Instance request received, with study instance UID '{studyInstanceUID}', series UID '{seriesUID}' and instance UID '{instanceUID}'.");
 
-            Uri requestBaseUri = GetRequestBaseUri(Request);
-
             DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
                 studyInstanceUID, seriesUID, instanceUID, cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(deleteResponse.StatusCode);
-        }
-
-        private static Uri GetRequestBaseUri(HttpRequest request)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
-            EnsureArg.IsTrue(request.Host.HasValue, nameof(request.Host));
-
-            return new Uri($"{request.Scheme}://{request.Host.Value}/");
         }
     }
 }

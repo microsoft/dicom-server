@@ -19,11 +19,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Delete
 
             RuleFor(x => x.SeriesUID)
                 .SetValidator(new DicomIdentifierValidator())
-                .When(x => x.ResourceType != ResourceType.Study);
+                .When(x => x.ResourceType != DeleteResourceType.Study);
 
             RuleFor(x => x.InstanceUID)
                 .SetValidator(new DicomIdentifierValidator())
-                .When(x => x.ResourceType == ResourceType.Instance);
+                .When(x => x.ResourceType == DeleteResourceType.Instance);
         }
     }
 }

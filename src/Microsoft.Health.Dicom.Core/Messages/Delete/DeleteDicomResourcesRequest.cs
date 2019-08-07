@@ -14,23 +14,23 @@ namespace Microsoft.Health.Dicom.Core.Messages.Delete
             StudyInstanceUID = studyInstanceUID;
             SeriesUID = seriesUID;
             InstanceUID = instanceUID;
-            ResourceType = ResourceType.Instance;
+            ResourceType = DeleteResourceType.Instance;
         }
 
         public DeleteDicomResourcesRequest(string studyInstanceUID, string seriesUID)
         {
             StudyInstanceUID = studyInstanceUID;
             SeriesUID = seriesUID;
-            ResourceType = ResourceType.Series;
+            ResourceType = DeleteResourceType.Series;
         }
 
         public DeleteDicomResourcesRequest(string studyInstanceUID)
         {
             StudyInstanceUID = studyInstanceUID;
-            ResourceType = ResourceType.Study;
+            ResourceType = DeleteResourceType.Study;
         }
 
-        public ResourceType ResourceType { get; }
+        public DeleteResourceType ResourceType { get; }
 
         public string StudyInstanceUID { get; }
 

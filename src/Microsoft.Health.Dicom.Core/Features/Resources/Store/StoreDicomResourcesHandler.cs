@@ -159,7 +159,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
             return null;
         }
 
-        private static string GetBlobStorageName(DicomInstance dicomInstance)
+        public static string GetBlobStorageName(DicomInstance dicomInstance)
             => $"{dicomInstance.StudyInstanceUID}/{dicomInstance.SeriesInstanceUID}/{dicomInstance.SopInstanceUID}";
     }
 }

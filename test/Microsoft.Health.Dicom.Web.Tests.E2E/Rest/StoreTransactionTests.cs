@@ -141,7 +141,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
             ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
 
-            // Clearup
             await Client.DeleteAsync(studyInstanceUID);
         }
 
@@ -189,7 +188,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 StoreFailureCodes.MismatchStudyInstanceUIDFailureCode,
                 dicomFile2.Dataset);
 
-            // Cleanup
             await Client.DeleteAsync(studyInstanceUID1);
             await Client.DeleteAsync(studyInstanceUID2);
         }
@@ -225,7 +223,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 StoreFailureCodes.SopInstanceAlredyExistsFailureCode,
                 dicomFile1.Dataset);
 
-            // Cleanup
             await Client.DeleteAsync(studyInstanceUID);
         }
 

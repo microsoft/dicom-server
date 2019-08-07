@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Dicom.Core.Messages.Delete
 {
-    public enum ResourceType
+    public enum DeleteResourceType
     {
         Study,
         Series,
