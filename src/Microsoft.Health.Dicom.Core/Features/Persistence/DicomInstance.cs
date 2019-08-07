@@ -10,19 +10,27 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    public class DicomInstance : DicomSeries
+    public class DicomInstance
     {
         [JsonConstructor]
         public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
-            : base(studyInstanceUID, seriesInstanceUID)
         {
             // Run the instance identifiers through the regular expression check.
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(sopInstanceUID), nameof(sopInstanceUID));
+            EnsureArg.Matches(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyInstanceUID));
+            EnsureArg.Matches(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
+            EnsureArg.Matches(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(sopInstanceUID));
+            EnsureArg.IsNotEqualTo(studyInstanceUID, seriesInstanceUID, nameof(seriesInstanceUID));
             EnsureArg.IsNotEqualTo(sopInstanceUID, studyInstanceUID, nameof(sopInstanceUID));
             EnsureArg.IsNotEqualTo(sopInstanceUID, seriesInstanceUID, nameof(sopInstanceUID));
 
+            StudyInstanceUID = studyInstanceUID;
+            SeriesInstanceUID = seriesInstanceUID;
             SopInstanceUID = sopInstanceUID;
         }
+
+        public string StudyInstanceUID { get; }
+
+        public string SeriesInstanceUID { get; }
 
         public string SopInstanceUID { get; }
 
@@ -41,16 +49,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         {
             if (obj is DicomInstance identity)
             {
-                return StudyInstanceUID.Equals(identity.StudyInstanceUID, EqualsStringComparison) &&
-                        SeriesInstanceUID.Equals(identity.SeriesInstanceUID, EqualsStringComparison) &&
-                        SopInstanceUID.Equals(identity.SopInstanceUID, EqualsStringComparison);
+                return StudyInstanceUID.Equals(identity.StudyInstanceUID, DicomStudy.EqualsStringComparison) &&
+                        SeriesInstanceUID.Equals(identity.SeriesInstanceUID, DicomStudy.EqualsStringComparison) &&
+                        SopInstanceUID.Equals(identity.SopInstanceUID, DicomStudy.EqualsStringComparison);
             }
 
             return false;
         }
 
         public override int GetHashCode()
-            => (StudyInstanceUID + SeriesInstanceUID + SopInstanceUID).GetHashCode(EqualsStringComparison);
+            => (StudyInstanceUID + SeriesInstanceUID + SopInstanceUID).GetHashCode(DicomStudy.EqualsStringComparison);
 
         public override string ToString()
             => $"Study Instance UID: {StudyInstanceUID}, Series Instance UID: {SeriesInstanceUID}, SOP Instance UID {SopInstanceUID}";
