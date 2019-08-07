@@ -21,5 +21,15 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features
 
             await indexDataStore.IndexSeriesAsync(new[] { dicomDataset }, cancellationToken);
         }
+
+        public static async Task DeleteInstanceIndexAsync(
+            this IDicomIndexDataStore indexDataStore, DicomInstance dicomInstance, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
+            EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
+
+            await indexDataStore.DeleteInstanceIndexAsync(
+                dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, cancellationToken);
+        }
     }
 }
