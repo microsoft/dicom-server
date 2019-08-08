@@ -28,18 +28,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         protected DicomWebClient Client { get; set; }
 
-        [Fact]
-        public async Task GivenARequestWithFrameLessThanOrEqualTo0_WhenRetrievingFrames_TheServerShouldReturnBadRequest()
+        [Theory]
+        [InlineData(new int[] { 0 })]
+        [InlineData(new int[] { -1 })]
+        [InlineData(new int[] { 1, 2, -1 })]
+        public async Task GivenARequestWithFrameLessThanOrEqualTo0_WhenRetrievingFrames_TheServerShouldReturnBadRequest(int[] frames)
         {
-            var studyInstanceUID = Guid.NewGuid().ToString();
-            var seriesInstanceUID = Guid.NewGuid().ToString();
-            var sopInstanceUID = Guid.NewGuid().ToString();
-
-            HttpResult<IReadOnlyList<Stream>> response = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 0);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            response = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: -1);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            response = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: new[] { 1, 2, -1 });
+            HttpResult<IReadOnlyList<Stream>> response = await Client.GetFramesAsync(
+                studyInstanceUID: Guid.NewGuid().ToString(),
+                seriesInstanceUID: Guid.NewGuid().ToString(),
+                sopInstanceUID: Guid.NewGuid().ToString(),
+                frames: frames);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 

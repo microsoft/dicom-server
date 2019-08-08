@@ -18,9 +18,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
         public void GivenIncorrectTransferSyntax_OnValidationOfRetrieveRequest_ErrorReturned(string transferSyntax)
         {
-            var expectedErrorMessage = "The specified condition was not met for 'Requested Transfer Syntax'.";
-            var validStudyInstanceUID = Guid.NewGuid().ToString();
-            var request = new RetrieveDicomResourceRequest(validStudyInstanceUID, transferSyntax);
+            const string expectedErrorMessage = "The specified condition was not met for 'Requested Transfer Syntax'.";
+            var request = new RetrieveDicomResourceRequest(transferSyntax, Guid.NewGuid().ToString());
 
             ValidateHasError(request, expectedErrorMessage);
         }
@@ -31,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData(-234)]
         public void GivenInvalidFrameNumber_OnValidationOfRetrieveRequest_ErrorReturned(int frame)
         {
-            var expectedErrorMessage = "The specified condition was not met for 'Frames'.";
+            const string expectedErrorMessage = "The specified condition was not met for 'Frames'.";
             var request = new RetrieveDicomResourceRequest(
                 studyInstanceUID: Guid.NewGuid().ToString(),
                 seriesInstanceUID: Guid.NewGuid().ToString(),
@@ -41,23 +40,17 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
             ValidateHasError(request, expectedErrorMessage);
         }
 
-        [Fact]
-        public void GivenNoFrames_OnValidationOfRetrieveRequest_ErrorReturned()
+        [Theory]
+        [InlineData(null)]
+        [InlineData(new int[0])]
+        public void GivenNoFrames_OnValidationOfRetrieveRequest_ErrorReturned(int[] frames)
         {
-            var expectedErrorMessage = "The specified condition was not met for 'Frames'.";
+            const string expectedErrorMessage = "The specified condition was not met for 'Frames'.";
             var request = new RetrieveDicomResourceRequest(
                 studyInstanceUID: Guid.NewGuid().ToString(),
                 seriesInstanceUID: Guid.NewGuid().ToString(),
                 sopInstanceUID: Guid.NewGuid().ToString(),
-                frames: Array.Empty<int>(),
-                requestedTransferSyntax: "*");
-            ValidateHasError(request, expectedErrorMessage);
-
-            request = new RetrieveDicomResourceRequest(
-                studyInstanceUID: Guid.NewGuid().ToString(),
-                seriesInstanceUID: Guid.NewGuid().ToString(),
-                sopInstanceUID: Guid.NewGuid().ToString(),
-                frames: null,
+                frames: frames,
                 requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
         }
@@ -66,14 +59,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("1", "1", "2")]
         [InlineData("1", "2", "1")]
         [InlineData("1", "2", "2")]
-        public void GivenRepeatedIdentifiers_OnValidationOfRetrieveRequest_ErrorReturned(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+        public void GivenRepeatedIdentifiers_OnValidationOfRetrieveRequest_ErrorReturned(
+            string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
         {
-            var expectedErrorMessage = "The specified condition was not met for ''.";
+            const string expectedErrorMessage = "The specified condition was not met for ''.";
             var request = new RetrieveDicomResourceRequest(
                 studyInstanceUID: studyInstanceUID,
                 seriesInstanceUID: seriesInstanceUID,
                 sopInstanceUID: sopInstanceUID,
-                frames: new[] { 1 },
                 requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
 
@@ -81,6 +74,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 studyInstanceUID: studyInstanceUID,
                 seriesInstanceUID: seriesInstanceUID,
                 sopInstanceUID: sopInstanceUID,
+                frames: new int[] { 1 },
                 requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
         }

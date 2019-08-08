@@ -14,6 +14,7 @@ using Dicom;
 using Dicom.Imaging;
 using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
+using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
@@ -24,10 +25,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
     public class RetrieveDicomResourceHandler : BaseRetrieveDicomResourceHandler, IRequestHandler<RetrieveDicomResourceRequest, RetrieveDicomResourceResponse>
     {
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
+        private readonly DicomDataStore _dicomDataStore;
 
-        public RetrieveDicomResourceHandler(DicomDataStore dicomDataStore)
-            : base(dicomDataStore)
+        public RetrieveDicomResourceHandler(IDicomMetadataStore dicomMetadataStore, DicomDataStore dicomDataStore)
+            : base(dicomMetadataStore)
         {
+            EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
+
+            _dicomDataStore = dicomDataStore;
         }
 
         public async Task<RetrieveDicomResourceResponse> Handle(
@@ -39,8 +44,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
             try
             {
-                IEnumerable<DicomInstance> retrieveInstances = await GetInstancesToRetrieve(message, cancellationToken);
-                Stream[] resultStreams = await Task.WhenAll(retrieveInstances.Select(x => DicomDataStore.GetDicomDataStreamAsync(x, cancellationToken)));
+                IEnumerable<DicomInstance> retrieveInstances = await GetInstancesToRetrieve(
+                    message.ResourceType, message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID, cancellationToken);
+                Stream[] resultStreams = await Task.WhenAll(retrieveInstances.Select(x => _dicomDataStore.GetDicomDataStreamAsync(x, cancellationToken)));
 
                 if (message.ResourceType == ResourceType.Frames)
                 {

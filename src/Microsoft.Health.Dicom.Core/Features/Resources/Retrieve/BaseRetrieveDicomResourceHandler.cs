@@ -15,32 +15,33 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
     public abstract class BaseRetrieveDicomResourceHandler
     {
-        public BaseRetrieveDicomResourceHandler(DicomDataStore dicomDataStore)
-        {
-            EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
+        private readonly IDicomMetadataStore _dicomMetadataStore;
 
-            DicomDataStore = dicomDataStore;
+        public BaseRetrieveDicomResourceHandler(IDicomMetadataStore dicomMetadataStore)
+        {
+            EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
+
+            _dicomMetadataStore = dicomMetadataStore;
         }
 
-        protected DicomDataStore DicomDataStore { get; }
-
-        public async Task<IEnumerable<DicomInstance>> GetInstancesToRetrieve(RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
+        protected async Task<IEnumerable<DicomInstance>> GetInstancesToRetrieve(
+            ResourceType resourceType, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken)
         {
             IEnumerable<DicomInstance> retrieveInstances;
-            switch (message.ResourceType)
+            switch (resourceType)
             {
                 case ResourceType.Frames:
                 case ResourceType.Instance:
-                    retrieveInstances = new[] { new DicomInstance(message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID) };
+                    retrieveInstances = new[] { new DicomInstance(studyInstanceUID, seriesInstanceUID, sopInstanceUID) };
                     break;
                 case ResourceType.Series:
-                    retrieveInstances = await DicomDataStore.GetInstancesInSeriesAsync(message.StudyInstanceUID, message.SeriesInstanceUID, cancellationToken);
+                    retrieveInstances = await _dicomMetadataStore.GetInstancesInSeriesAsync(studyInstanceUID, seriesInstanceUID, cancellationToken);
                     break;
                 case ResourceType.Study:
-                    retrieveInstances = await DicomDataStore.GetInstancesInStudyAsync(message.StudyInstanceUID, cancellationToken);
+                    retrieveInstances = await _dicomMetadataStore.GetInstancesInStudyAsync(studyInstanceUID, cancellationToken);
                     break;
                 default:
-                    throw new ArgumentException($"Unkown retrieve transaction type: {message.ResourceType}", nameof(message));
+                    throw new ArgumentException($"Unkown retrieve transaction type: {resourceType}", nameof(resourceType));
             }
 
             return retrieveInstances;

@@ -140,15 +140,34 @@ The **Azure for Health** API supports the following methods:
 
 Method|Path|Description
 ----------|----------|----------
-GET|../study/{studyInstanceUID}|Retrieves an entire study.
-GET|../study/{studyInstanceUID}/series/{seriesInstanceUID}|Retrieves an series.
-GET|../study/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{instance}|Retrieves a single instance.
-GET|../study/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{instance}/frames/{frames}|Retrieves one or many frames from a single instance.
+GET|../study/{study}|Retrieves an entire study.
+GET|../study/{study}/metadata|Retrieves all the metadata for every instance in the study.
+GET|../study/{study}/series/{series}|Retrieves an series.
+GET|../study/{study}/series/{series}/metadata|Retrieves all the metadata for every instance in the series.
+GET|../study/{study}/series/{series}/instances/{instance}|Retrieves a single instance.
+GET|../study/{study}/series/{series}/instances/{instance}/metadata|Retrieves the metadata for a single instance.
+GET|../study/{study}/series/{series}/instances/{instance}/frames/{frames}|Retrieves one or many frames from a single instance.
 
 ### Retrieve Study or Series
 The following `'Accept'` headers are supported for retrieving study or series:
 - `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.1 (default)`
 - `multipart/related; type="application/dicom"; transfer-syntax=*`
+
+### Retrieve Metadata (for Study/ Series/ or Instance)
+The following `'Accept'` headers are supported for retrieving metadata for a study, series or single instance:
+
+Retrieving metadata will not return attributes with the following value representations:
+VR Name|Full
+----------|----------
+OB|Other Byte
+OD|Other Double
+OF|Other Float
+OL|Other Long
+OV|Other Long
+OV|Other 64-Bit Very Long
+OW|Other Word
+UN|Unkown
+
 
 ### Retrieve Frames
 The following `'Accept'` headers are supported for retrieving frames:
@@ -161,6 +180,6 @@ The following `'Accept'` headers are supported for retrieving frames:
 
 Code|Description
 ----------|----------
-200 (OK)|All instances/ frames have been retrieved.
+200 (OK)|All requested data has been retrieved.
 400 (Bad Request)|The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported.
-404 (Not Found)|The specified DICOM reference could not be found.
+404 (Not Found)|The specified DICOM resource could not be found.
