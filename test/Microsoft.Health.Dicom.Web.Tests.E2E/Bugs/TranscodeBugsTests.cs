@@ -52,7 +52,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
                 512,
                 512,
                 TestFileBitDepth.EightBit,
-                tsFrom.UID.UID);
+                tsFrom.UID.UID,
+                true);
 
             if (!Directory.Exists(dirName))
             {
@@ -190,7 +191,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
         }
 
         /// <summary>
-        /// Test all possible transcodings between supported transfer syntaxes for a real US image.
+        /// Test all possible transcodings between supported transfer syntaxes for a real US image (RGB).
         /// All of these convert without exceptions, but results for some conversions from JPEG2K
         /// are not quite right upon visual inspection
         /// </summary>

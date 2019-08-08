@@ -48,7 +48,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             DicomTransferSyntax.ExplicitVRBigEndian,
             DicomTransferSyntax.ExplicitVRLittleEndian,
             DicomTransferSyntax.ImplicitVRLittleEndian,
-            DicomTransferSyntax.JPEGProcess1,
             DicomTransferSyntax.RLELossless,
         };
 
@@ -63,26 +62,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             _dicomMetadataStore = dicomMetadataStore;
         }
 
-        private bool CanTranscodeDataset(DicomDataset ds, DicomTransferSyntax transferSyntax)
+        private bool CanTranscodeDataset(DicomDataset ds, DicomTransferSyntax toTransferSyntax)
         {
-            if (transferSyntax == null)
+            if (toTransferSyntax == null)
             {
                return true;
             }
 
+            var fromTs = ds.InternalTransferSyntax;
             var bpp = ds.GetSingleValue<ushort>(DicomTag.BitsAllocated);
             var photometricInterpretation = ds.GetString(DicomTag.PhotometricInterpretation);
 
             // Bug in fo-dicom 4.0.1
-            if (transferSyntax == DicomTransferSyntax.JPEGProcess1 &&
+            if ((toTransferSyntax == DicomTransferSyntax.JPEGProcess1 || toTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
                 ((photometricInterpretation == PhotometricInterpretation.Monochrome2.Value) ||
                  (photometricInterpretation == PhotometricInterpretation.Monochrome1.Value)))
             {
                 return false;
             }
 
-            if (((bpp > 8) && _supportedTransferSyntaxesOver8bit.Contains(transferSyntax)) ||
-                 ((bpp == 8) && _supportedTransferSyntaxes8bit.Contains(transferSyntax)))
+            if (((bpp > 8) && _supportedTransferSyntaxesOver8bit.Contains(toTransferSyntax) && _supportedTransferSyntaxesOver8bit.Contains(fromTs)) ||
+                 ((bpp == 8) && _supportedTransferSyntaxes8bit.Contains(toTransferSyntax) && _supportedTransferSyntaxes8bit.Contains(fromTs)))
             {
                 return true;
             }
@@ -93,11 +93,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         public async Task<RetrieveDicomResourceResponse> Handle(
             RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
         {
-            IEnumerable<DicomInstance> instancesToRetrieve;
-
             try
             {
-                // DicomDataset instanceMetadata;
+                IEnumerable<DicomInstance> instancesToRetrieve;
 
                 switch (message.ResourceType)
                 {
@@ -149,8 +147,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 {
                     resultStreams = resultStreams.Where(x =>
                     {
-                        var dicomFile = DicomFile.Open(x, FileReadOption.SkipLargeTags);
-                        var canTranscode = CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax);
+                        var canTranscode = false;
+
+                        try
+                        {
+                            var dicomFile = DicomFile.Open(x, FileReadOption.ReadLargeOnDemand);
+                            canTranscode = CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax);
+                        }
+                        catch (DicomFileException)
+                        {
+                            canTranscode = false;
+                        }
+
                         x.Seek(0, SeekOrigin.Begin);
 
                         // If some of the instances are not transcodeable, Partial Content should be returned
@@ -190,15 +198,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
             else
             {
-                var transcoder = new DicomTranscoder(tempDicomFile.Dataset.InternalTransferSyntax, DicomTransferSyntax.ExplicitVRLittleEndian);
-                tempDicomFile = transcoder.Transcode(tempDicomFile);
+                try
+                {
+                    var transcoder = new DicomTranscoder(
+                        tempDicomFile.Dataset.InternalTransferSyntax,
+                        requestedTransferSyntax);
+                    tempDicomFile = transcoder.Transcode(tempDicomFile);
+                }
 
-                transcoder = new DicomTranscoder(tempDicomFile.Dataset.InternalTransferSyntax, requestedTransferSyntax);
-                tempDicomFile = transcoder.Transcode(tempDicomFile);
+                // We catch all here as Transcoder can throw a wide variety of things.
+                // Basically this means codec failure - a quite extraordinary situation, but not impossible
+                catch
+                {
+                    tempDicomFile = null;
+                }
 
                 var resultStream = new MemoryStream();
-                tempDicomFile.Save(resultStream);
-                resultStream.Seek(0, SeekOrigin.Begin);
+
+                if (tempDicomFile != null)
+                {
+                    tempDicomFile.Save(resultStream);
+                    resultStream.Seek(0, SeekOrigin.Begin);
+                }
 
                 // We can dispose of the base stream as this is not needed.
                 stream.Dispose();

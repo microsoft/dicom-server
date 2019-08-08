@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
 
         public MultipartResult(int statusCode, IEnumerable<MultipartItem> multipartItems)
         {
-            EnsureArg.IsGte(200, statusCode, nameof(statusCode));
+            EnsureArg.IsGte(statusCode, 100, nameof(statusCode));
             EnsureArg.IsNotNull(multipartItems, nameof(multipartItems));
 
             _statusCode = statusCode;

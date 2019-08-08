@@ -69,10 +69,18 @@ namespace Microsoft.Health.Dicom.Tests.Common
             int rows,
             int cols,
             TestFileBitDepth bitDepth,
-            string transferSyntax)
+            string transferSyntax,
+            bool encode)
         {
+            var initialTs = DicomTransferSyntax.ExplicitVRLittleEndian;
+
+            if (!encode)
+            {
+                initialTs = DicomTransferSyntax.Parse(transferSyntax);
+            }
+
             var dicomFile = new DicomFile(
-                new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
+                new DicomDataset(initialTs)
                 {
                     { DicomTag.StudyInstanceUID, studyInstanceUID ?? DicomUID.Generate().UID },
                     { DicomTag.SeriesInstanceUID, seriesInstanceUID ?? DicomUID.Generate().UID },
@@ -97,10 +105,12 @@ namespace Microsoft.Health.Dicom.Tests.Common
 
             pixelData.AddFrame(buffer);
 
-            if (transferSyntax != DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID)
+            if (encode && transferSyntax != DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID)
             {
                 var transcoder =
-                    new DicomTranscoder(dicomFile.Dataset.InternalTransferSyntax, DicomTransferSyntax.Parse(transferSyntax));
+                    new DicomTranscoder(
+                        dicomFile.Dataset.InternalTransferSyntax,
+                        DicomTransferSyntax.Parse(transferSyntax));
                 dicomFile = transcoder.Transcode(dicomFile);
             }
 

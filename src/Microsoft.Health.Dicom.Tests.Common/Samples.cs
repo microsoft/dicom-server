@@ -19,13 +19,32 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 path => DicomFile.Open(path));
         }
 
+        public static IEnumerable<DicomFile> GetSampleDicomFiles()
+        {
+            var directory = @"ImageSamples";
+            return Directory.EnumerateFiles(directory, "*.dcm", SearchOption.AllDirectories).Select(
+                path => DicomFile.Open(path));
+        }
+
+        /// <summary>
+        /// Will generate a file with valid 8bit pixel data representing a monochrome pattern.
+        /// </summary>
+        /// <param name="studyInstanceUID">Study UID (will generate new if null)</param>
+        /// <param name="seriesInstanceUID">Series UID (will generate new if null)</param>
+        /// <param name="sopInstanceUID">Instance UID (will generate new if null)</param>
+        /// <param name="rows">width</param>
+        /// <param name="columns">height</param>
+        /// <param name="transferSyntax">Transfer Syntax</param>
+        /// <param name="encode">Whether to encode image according to the supplied transfer syntax. False might result in invalid images</param>
+        /// <returns>DicomFile</returns>
         public static DicomFile CreateRandomDicomFileWith8BitPixelData(
             string studyInstanceUID = null,
             string seriesInstanceUID = null,
             string sopInstanceUID = null,
             int rows = 512,
             int columns = 512,
-            string transferSyntax = "1.2.840.10008.1.2.1") // Explicit VR Little Endian
+            string transferSyntax = "1.2.840.10008.1.2.1",  // Explicit VR Little Endian
+            bool encode = true)
         {
             var dicomFile = DicomImageGenerator.GenerateDicomFile(
                 studyInstanceUID,
@@ -35,18 +54,31 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 rows,
                 columns,
                 TestFileBitDepth.EightBit,
-                transferSyntax);
+                transferSyntax,
+                encode);
 
             return dicomFile;
         }
 
+        /// <summary>
+        /// Will generate a file with valid 16bit pixel data representing a monochrome pattern.
+        /// </summary>
+        /// <param name="studyInstanceUID">Study UID (will generate new if null)</param>
+        /// <param name="seriesInstanceUID">Series UID (will generate new if null)</param>
+        /// <param name="sopInstanceUID">Instance UID (will generate new if null)</param>
+        /// <param name="rows">width</param>
+        /// <param name="columns">height</param>
+        /// <param name="transferSyntax">Transfer Syntax</param>
+        /// <param name="encode">Whether to encode image according to the supplied transfer syntax. False might result in invalid images</param>
+        /// <returns>DicomFile</returns>
         public static DicomFile CreateRandomDicomFileWith16BitPixelData(
             string studyInstanceUID = null,
             string seriesInstanceUID = null,
             string sopInstanceUID = null,
             int rows = 512,
             int columns = 512,
-            string transferSyntax = "1.2.840.10008.1.2.1") // Explicit VR Little Endian
+            string transferSyntax = "1.2.840.10008.1.2.1", // Explicit VR Little Endian
+            bool encode = true)
         {
             var dicomFile = DicomImageGenerator.GenerateDicomFile(
                 studyInstanceUID,
@@ -56,7 +88,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 rows,
                 columns,
                 TestFileBitDepth.SixteenBit,
-                transferSyntax);
+                transferSyntax,
+                encode);
 
             return dicomFile;
         }
