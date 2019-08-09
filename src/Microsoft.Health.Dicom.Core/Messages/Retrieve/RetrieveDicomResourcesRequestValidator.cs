@@ -36,11 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 
             // Check the frames has at least one when requested, and all requested frames are > 0.
             RuleFor(x => x.Frames)
-                .Must(x =>
-                {
-                    var ret = x != null && x.Any() && x.Any(y => y <= 0) == false;
-                    return ret;
-                })
+                .Must(x => x != null && x.Any() && x.Any(y => y <= 0) == false)
                 .When(x => x.ResourceType == ResourceType.Frames);
 
             // Validate the provided identifiers conform correctly.

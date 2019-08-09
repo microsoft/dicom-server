@@ -48,10 +48,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
         }
 
         /// <summary>
-        /// Seems like a bug with SkipLargeTags option
+        /// This is a bug with SkipLargeTags option
+        /// https://github.com/fo-dicom/fo-dicom/issues/893
+        /// TODO: this might start failing with future versions of fo-dicom - there should be no failed reads of these two files.
+        /// this wold mean the bug is fixed, in that case, review all uses of FileReadOption throughout the project, consider
+        /// replacing with SkipLargeTags
         /// </summary>
-        [Fact(Skip = "To be verified with fo-dicom community")]
-        public async Task GivenValidFile_OpenWithKeep_Fails()
+        [Fact]
+        public async Task GivenValidFile_WhenOpenWithKeepOption_Fails()
         {
             var dicomFilePath = @"ImageSamples/XRJPEGProcess1.dcm";
             var genFilePath = @"ImageSamples/genFile.dcm";
@@ -65,8 +69,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
 
             File.Delete(genFilePath);
 
-            Assert.DoesNotContain(ret, x => x.Value == false);
-            Assert.DoesNotContain(ret2, x => x.Value == false);
+            Assert.Equal(1,  ret.Count(x => x.Value == false));
+            Assert.Equal(FileReadOption.SkipLargeTags, ret.Single(x => x.Value == false).Key);
+
+            Assert.Equal(1, ret2.Count(x => x.Value == false));
+            Assert.Equal(FileReadOption.SkipLargeTags, ret2.Single(x => x.Value == false).Key);
         }
 
         /// <summary>
