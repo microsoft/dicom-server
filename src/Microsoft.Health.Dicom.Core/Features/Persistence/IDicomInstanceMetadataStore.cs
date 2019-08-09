@@ -6,9 +6,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
 
-namespace Microsoft.Health.Dicom.Metadata.Features.Storage
+namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public interface IDicomInstanceMetadataStore
     {

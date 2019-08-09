@@ -5,6 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Features\Transactions\TransactionStoredProcedure.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Features\Transactions\TransactionStoredProcedure.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="fo-dicom" Version="4.0.1" />
     <PackageReference Include="Microsoft.Health.CosmosDb" Version="1.0.0-master-20190514-1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
@@ -13,6 +23,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Features\Transactions\TransactionStoredProcedure.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

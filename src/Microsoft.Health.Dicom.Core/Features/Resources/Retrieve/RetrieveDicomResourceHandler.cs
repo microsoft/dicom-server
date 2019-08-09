@@ -18,16 +18,14 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Resources.Store;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
-    public class RetrieveDicomResourceHandler : IRequestHandler<RetrieveDicomResourceRequest, RetrieveDicomResourceResponse>
+    public class RetrieveDicomResourceHandler : BaseRetrieveDicomResourceHandler, IRequestHandler<RetrieveDicomResourceRequest, RetrieveDicomResourceResponse>
     {
-        private readonly IDicomBlobDataStore _dicomBlobDataStore;
-        private readonly IDicomMetadataStore _dicomMetadataStore;
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
+        private readonly DicomDataStore _dicomDataStore;
 
         private static DicomTransferSyntax[] _supportedTransferSyntaxes8bit = new[]
         {
@@ -51,15 +49,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             DicomTransferSyntax.RLELossless,
         };
 
-        public RetrieveDicomResourceHandler(
-            IDicomBlobDataStore dicomBlobDataStore,
-            IDicomMetadataStore dicomMetadataStore)
+        public RetrieveDicomResourceHandler(IDicomMetadataStore dicomMetadataStore, DicomDataStore dicomDataStore)
+            : base(dicomMetadataStore)
         {
-            EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
-            EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
+            EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
 
-            _dicomBlobDataStore = dicomBlobDataStore;
-            _dicomMetadataStore = dicomMetadataStore;
+            _dicomDataStore = dicomDataStore;
         }
 
         private bool CanTranscodeDataset(DicomDataset ds, DicomTransferSyntax toTransferSyntax)
@@ -98,41 +93,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         public async Task<RetrieveDicomResourceResponse> Handle(
             RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
         {
+            DicomTransferSyntax parsedDicomTransferSyntax =
+                message.OriginalTransferSyntaxRequested() ?
+                    null :
+                    string.IsNullOrWhiteSpace(message.RequestedTransferSyntax) ?
+                        DefaultTransferSyntax :
+                        DicomTransferSyntax.Parse(message.RequestedTransferSyntax);
+
             try
             {
-                IEnumerable<DicomInstance> instancesToRetrieve;
-
-                switch (message.ResourceType)
-                {
-                    case ResourceType.Frames:
-                    case ResourceType.Instance:
-                        instancesToRetrieve = new[] { new DicomInstance(message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID) };
-
-                        break;
-                    case ResourceType.Series:
-                        instancesToRetrieve = await _dicomMetadataStore.GetInstancesInSeriesAsync(
-                            message.StudyInstanceUID,
-                            message.SeriesInstanceUID,
-                            cancellationToken);
-                        break;
-                    case ResourceType.Study:
-                        instancesToRetrieve = await _dicomMetadataStore.GetInstancesInStudyAsync(message.StudyInstanceUID, cancellationToken);
-                        break;
-                    default:
-                        throw new ArgumentException($"Unknown retrieve transaction type: {message.ResourceType}", nameof(message));
-                }
-
-                Stream[] resultStreams = await Task.WhenAll(
-                                                    instancesToRetrieve.Select(
-                                                        x => _dicomBlobDataStore.GetFileAsStreamAsync(
-                                                            StoreDicomResourcesHandler.GetBlobStorageName(x), cancellationToken)));
-
-                DicomTransferSyntax parsedDicomTransferSyntax =
-                                                    message.OriginalTransferSyntaxRequested() ?
-                                                    null :
-                                                    string.IsNullOrWhiteSpace(message.RequestedTransferSyntax) ?
-                                                    DefaultTransferSyntax :
-                                                    DicomTransferSyntax.Parse(message.RequestedTransferSyntax);
+                IEnumerable<DicomInstance> retrieveInstances = await GetInstancesToRetrieve(
+                    message.ResourceType, message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID, cancellationToken);
+                Stream[] resultStreams = await Task.WhenAll(retrieveInstances.Select(x => _dicomDataStore.GetDicomDataStreamAsync(x, cancellationToken)));
 
                 var responseCode = HttpStatusCode.OK;
 
@@ -148,9 +120,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     }
 
                     // Note that per DICOMWeb spec (http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_9.5.1.2.1)
-                    // frame number in the UIR is 1-based, unlike fo-dicom representation
+                    // frame number in the URI is 1-based, unlike fo-dicom representation
                     resultStreams = message.Frames.Select(
-                        x => new LazyTransformStream<DicomFile>(dicomFile, y => GetFrame(y, x - 1, parsedDicomTransferSyntax)))
+                        x => new LazyTransformReadOnlyStream<DicomFile>(dicomFile, y => GetFrame(y, x - 1, parsedDicomTransferSyntax)))
                         .ToArray();
                 }
                 else
@@ -188,7 +160,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                         throw new DataStoreException(HttpStatusCode.NotAcceptable);
                     }
 
-                    resultStreams = resultStreams.Select(x => new LazyTransformStream<Stream>(x, y => EncodeDicomFile(y, parsedDicomTransferSyntax))).ToArray();
+                    resultStreams = resultStreams.Select(x => new LazyTransformReadOnlyStream<Stream>(x, y => EncodeDicomFile(y, parsedDicomTransferSyntax))).ToArray();
                 }
 
                 return new RetrieveDicomResourceResponse(responseCode, resultStreams);

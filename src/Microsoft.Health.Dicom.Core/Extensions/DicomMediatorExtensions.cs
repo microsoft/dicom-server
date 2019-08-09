@@ -21,33 +21,53 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new StoreDicomResourcesRequest(requestBaseUri, requestBody, requestContentType, studyInstanceUID), cancellationToken);
         }
 
-        public static Task<RetrieveDicomResourceResponse> RetrieveDicomResourcesAsync(
+        public static Task<RetrieveDicomResourceResponse> RetrieveDicomStudyAsync(
             this IMediator mediator, string studyInstanceUID, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
-            return mediator.Send(new RetrieveDicomResourceRequest(studyInstanceUID, requestedTransferSyntax), cancellationToken);
+            return mediator.Send(
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID),
+                cancellationToken);
         }
 
-        public static Task<RetrieveDicomResourceResponse> RetrieveDicomResourcesAsync(
+        public static Task<RetrieveDicomMetadataResponse> RetrieveDicomStudyMetadataAsync(
+            this IMediator mediator, string studyInstanceUID, CancellationToken cancellationToken)
+        {
+            return mediator.Send(new RetrieveDicomMetadataRequest(studyInstanceUID), cancellationToken);
+        }
+
+        public static Task<RetrieveDicomResourceResponse> RetrieveDicomSeriesAsync(
             this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(studyInstanceUID, seriesInstanceUID, requestedTransferSyntax),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID),
                 cancellationToken);
         }
 
-        public static Task<RetrieveDicomResourceResponse> RetrieveDicomResourceAsync(
+        public static Task<RetrieveDicomMetadataResponse> RetrieveDicomSeriesMetadataAsync(
+            this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken)
+        {
+            return mediator.Send(new RetrieveDicomMetadataRequest(studyInstanceUID, seriesInstanceUID), cancellationToken);
+        }
+
+        public static Task<RetrieveDicomResourceResponse> RetrieveDicomInstanceAsync(
             this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(studyInstanceUID, seriesInstanceUID, sopInstanceUID, requestedTransferSyntax),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID),
                 cancellationToken);
+        }
+
+        public static Task<RetrieveDicomMetadataResponse> RetrieveDicomInstanceMetadataAsync(
+            this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken)
+        {
+            return mediator.Send(new RetrieveDicomMetadataRequest(studyInstanceUID, seriesInstanceUID, sopInstanceUID), cancellationToken);
         }
 
         public static Task<RetrieveDicomResourceResponse> RetrieveDicomFramesAsync(
             this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, int[] frames, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, requestedTransferSyntax),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames),
                 cancellationToken);
         }
     }

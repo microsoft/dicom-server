@@ -3,19 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Messages
+namespace Microsoft.Health.Dicom.CosmosDb.Features.Transactions
 {
-    public abstract class BaseStatusCodeResponse
+    public interface ITransaction : IDisposable
     {
-        public BaseStatusCodeResponse(int statusCode)
-        {
-            EnsureArg.IsGte(statusCode, 100, nameof(statusCode));
+        Task CommitAsync(CancellationToken cancellationToken = default);
 
-            StatusCode = statusCode;
-        }
+        void Abort();
 
-        public int StatusCode { get; }
+        void DeleteDocument(string documentId, string documentETag);
     }
 }

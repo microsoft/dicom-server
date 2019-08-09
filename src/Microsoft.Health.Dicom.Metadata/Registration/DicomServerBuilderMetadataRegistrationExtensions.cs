@@ -72,6 +72,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.Add<DicomInstanceMetadataStore>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             return serverBuilder;
         }
 

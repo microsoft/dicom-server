@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
         public static string GetDocumentId(string studyUID, string seriesUID)
         {
-            EnsureArg.IsFalse(studyUID == seriesUID, nameof(seriesUID));
+            EnsureArg.IsNotEqualTo(seriesUID, studyUID, nameof(seriesUID));
             EnsureArg.Matches(studyUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyUID));
             EnsureArg.Matches(seriesUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesUID));
 
