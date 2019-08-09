@@ -38,8 +38,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
                     var dicomFile = await DicomFile.OpenAsync(path, option);
                     retDict[option] = true;
                 }
-                catch
+                catch (Exception e)
                 {
+                    output.WriteLine(e.Message);
                 }
             }
 
