@@ -70,8 +70,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
 
             var fromTs = ds.InternalTransferSyntax;
-            var bpp = ds.GetSingleValue<ushort>(DicomTag.BitsAllocated);
-            var photometricInterpretation = ds.GetString(DicomTag.PhotometricInterpretation);
+            ds.TryGetSingleValue(DicomTag.BitsAllocated, out ushort bpp);
+            ds.TryGetString(DicomTag.PhotometricInterpretation, out string photometricInterpretation);
 
             // Bug in fo-dicom 4.0.1
             if ((toTransferSyntax == DicomTransferSyntax.JPEGProcess1 || toTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
@@ -82,12 +82,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
 
             if (((bpp > 8) && _supportedTransferSyntaxesOver8bit.Contains(toTransferSyntax) && _supportedTransferSyntaxesOver8bit.Contains(fromTs)) ||
-                 ((bpp == 8) && _supportedTransferSyntaxes8bit.Contains(toTransferSyntax) && _supportedTransferSyntaxes8bit.Contains(fromTs)))
+                 ((bpp <= 8) && _supportedTransferSyntaxes8bit.Contains(toTransferSyntax) && _supportedTransferSyntaxes8bit.Contains(fromTs)))
             {
                 return true;
             }
 
             return false;
+        }
+
+        private bool IsOriginalTransferSyntaxRequested(string transferSyntax)
+        {
+            return transferSyntax.Equals("*", StringComparison.InvariantCultureIgnoreCase);
         }
 
         public async Task<RetrieveDicomResourceResponse> Handle(
@@ -122,7 +127,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                                                         x => _dicomBlobDataStore.GetFileAsStreamAsync(
                                                             StoreDicomResourcesHandler.GetBlobStorageName(x), cancellationToken)));
 
-                DicomTransferSyntax parsedDicomTransferSyntax = string.IsNullOrWhiteSpace(message.RequestedTransferSyntax) ?
+                DicomTransferSyntax parsedDicomTransferSyntax =
+                                                    message.OriginalTransferSyntaxRequested() ?
+                                                    null :
+                                                    string.IsNullOrWhiteSpace(message.RequestedTransferSyntax) ?
                                                     DefaultTransferSyntax :
                                                     DicomTransferSyntax.Parse(message.RequestedTransferSyntax);
 
@@ -134,41 +142,46 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     var dicomFile = DicomFile.Open(resultStreams.Single());
                     ValidateHasFrames(dicomFile, message.Frames);
 
-                    if (!CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax))
+                    if (!message.OriginalTransferSyntaxRequested() && !CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax))
                     {
                         throw new DataStoreException(HttpStatusCode.NotAcceptable);
                     }
 
+                    // Note that per DICOMWeb spec (http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_9.5.1.2.1)
+                    // frame number in the UIR is 1-based, unlike fo-dicom representation
                     resultStreams = message.Frames.Select(
-                        x => new LazyTransformStream<DicomFile>(dicomFile, y => GetFrame(y, x, parsedDicomTransferSyntax)))
+                        x => new LazyTransformStream<DicomFile>(dicomFile, y => GetFrame(y, x - 1, parsedDicomTransferSyntax)))
                         .ToArray();
                 }
                 else
                 {
-                    resultStreams = resultStreams.Where(x =>
+                    if (!message.OriginalTransferSyntaxRequested())
                     {
-                        var canTranscode = false;
-
-                        try
+                        resultStreams = resultStreams.Where(x =>
                         {
-                            var dicomFile = DicomFile.Open(x, FileReadOption.ReadLargeOnDemand);
-                            canTranscode = CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax);
-                        }
-                        catch (DicomFileException)
-                        {
-                            canTranscode = false;
-                        }
+                            var canTranscode = false;
 
-                        x.Seek(0, SeekOrigin.Begin);
+                            try
+                            {
+                                var dicomFile = DicomFile.Open(x, FileReadOption.ReadLargeOnDemand);
+                                canTranscode = CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax);
+                            }
+                            catch (DicomFileException)
+                            {
+                                canTranscode = false;
+                            }
 
-                        // If some of the instances are not transcodeable, Partial Content should be returned
-                        if (!canTranscode)
-                        {
-                            responseCode = HttpStatusCode.PartialContent;
-                        }
+                            x.Seek(0, SeekOrigin.Begin);
 
-                        return canTranscode;
-                    }).ToArray();
+                            // If some of the instances are not transcodeable, Partial Content should be returned
+                            if (!canTranscode)
+                            {
+                                responseCode = HttpStatusCode.PartialContent;
+                            }
+
+                            return canTranscode;
+                        }).ToArray();
+                    }
 
                     if (resultStreams.Length == 0)
                     {
@@ -198,19 +211,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
             else
             {
-                try
+                if (requestedTransferSyntax != null)
                 {
-                    var transcoder = new DicomTranscoder(
-                        tempDicomFile.Dataset.InternalTransferSyntax,
-                        requestedTransferSyntax);
-                    tempDicomFile = transcoder.Transcode(tempDicomFile);
-                }
+                    try
+                    {
+                        var transcoder = new DicomTranscoder(
+                            tempDicomFile.Dataset.InternalTransferSyntax,
+                            requestedTransferSyntax);
+                        tempDicomFile = transcoder.Transcode(tempDicomFile);
+                    }
 
-                // We catch all here as Transcoder can throw a wide variety of things.
-                // Basically this means codec failure - a quite extraordinary situation, but not impossible
-                catch
-                {
-                    tempDicomFile = null;
+                    // We catch all here as Transcoder can throw a wide variety of things.
+                    // Basically this means codec failure - a quite extraordinary situation, but not impossible
+                    catch
+                    {
+                        tempDicomFile = null;
+                    }
                 }
 
                 var resultStream = new MemoryStream();
@@ -232,7 +248,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             DicomDataset dataset = dicomFile.Dataset;
             IByteBuffer resultByteBuffer;
 
-            if (dataset.InternalTransferSyntax.IsEncapsulated)
+            if (dataset.InternalTransferSyntax.IsEncapsulated && (requestedTransferSyntax != null))
             {
                 // Decompress single frame from source dataset
                 var transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, requestedTransferSyntax);
@@ -267,7 +283,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
 
             var pixelData = DicomPixelData.Create(dataset);
-            var missingFrames = frames.Where(x => x >= pixelData.NumberOfFrames || x < 0).ToArray();
+            var missingFrames = frames.Where(x => x > pixelData.NumberOfFrames || x < 0).ToArray();
 
             // If any missing frames, throw not found exception for the specific frames not found.
             if (missingFrames.Length > 0)

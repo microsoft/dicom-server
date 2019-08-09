@@ -32,11 +32,15 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
                         return false;
                     }
                 })
-                .When(x => x.RequestedTransferSyntax != null);
+                .When(x => !x.OriginalTransferSyntaxRequested() && x.RequestedTransferSyntax != null);
 
             // Check the frames has at least one when requested, and all requested frames are > 0.
             RuleFor(x => x.Frames)
-                .Must(x => x != null && x.Any() && x.Any(y => y <= 0) == false)
+                .Must(x =>
+                {
+                    var ret = x != null && x.Any() && x.Any(y => y <= 0) == false;
+                    return ret;
+                })
                 .When(x => x.ResourceType == ResourceType.Frames);
 
             // Validate the provided identifiers conform correctly.

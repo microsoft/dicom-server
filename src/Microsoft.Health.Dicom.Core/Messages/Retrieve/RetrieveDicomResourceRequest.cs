@@ -49,10 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         private RetrieveDicomResourceRequest(ResourceType type, string requestedTransferSyntax)
         {
             ResourceType = type;
-            RequestedTransferSyntax = string.IsNullOrWhiteSpace(requestedTransferSyntax) ?
-                                        null :
-                                        requestedTransferSyntax.Equals(OriginalTransferSyntaxRequest, StringComparison.InvariantCultureIgnoreCase) ?
-                                            null : requestedTransferSyntax;
+            RequestedTransferSyntax = string.IsNullOrWhiteSpace(requestedTransferSyntax) ? null : requestedTransferSyntax;
         }
 
         public ResourceType ResourceType { get; }
@@ -66,5 +63,10 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         public IEnumerable<int> Frames { get; }
 
         public string RequestedTransferSyntax { get; }
+
+        public bool OriginalTransferSyntaxRequested()
+        {
+            return RequestedTransferSyntax != null && RequestedTransferSyntax.Equals(OriginalTransferSyntaxRequest, StringComparison.InvariantCultureIgnoreCase);
+        }
     }
 }

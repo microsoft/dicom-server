@@ -130,7 +130,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             HttpResult<IReadOnlyList<DicomFile>> response6 = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, Guid.NewGuid().ToString());
             Assert.Equal(HttpStatusCode.NotFound, response6.StatusCode);
             HttpResult<IReadOnlyList<Stream>> response7 = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 1);
-            Assert.Equal(HttpStatusCode.NotFound, response7.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response7.StatusCode);
             HttpResult<IReadOnlyList<Stream>> response8 = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 2);
             Assert.Equal(HttpStatusCode.NotFound, response8.StatusCode);
         }
@@ -191,7 +191,47 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         // existing representation to a new Transfer Syntax, or to respond with the
         // Explicit VR Little Endian Transfer Syntax regardless of the Transfer Syntax stored.
         [Fact]
-        public async Task GivenAnUnsupportedTransferSyntax_WhenNoTsSpecified_OriginalImageReturned()
+        public async Task GivenAnUnsupportedTransferSyntax_WhenWildCardTsSpecified_OriginalImageReturned()
+        {
+            var seriesInstanceUID = DicomUID.Generate();
+            var studyInstanceUID = DicomUID.Generate();
+            var sopInstanceUID = DicomUID.Generate();
+
+            var dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID,
+                sopInstanceUID.UID,
+                transferSyntax: DicomTransferSyntax.HEVCH265Main10ProfileLevel51.UID.UID,
+                encode: false);
+
+            HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+
+            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
+            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+
+            // Check for series
+            var seriesResponse = await Client.GetSeriesAsync(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID,
+                "*");
+
+            Assert.Equal(HttpStatusCode.OK, seriesResponse.StatusCode);
+            Assert.Equal(DicomTransferSyntax.HEVCH265Main10ProfileLevel51, seriesResponse.Value.Single().Dataset.InternalTransferSyntax);
+
+            // Check for frame
+            var frameResponse = await Client.GetFramesAsync(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID,
+                sopInstanceUID.UID,
+                dicomTransferSyntax: "*",
+                frames: 1);
+
+            Assert.Equal(HttpStatusCode.OK, frameResponse.StatusCode);
+            Assert.NotEqual(0, frameResponse.Value.Single().Length);
+        }
+
+        [Fact]
+        public async Task GivenSupportedTransferSyntax_WhenNoTsSpecified_DefaultTsReturned()
         {
             var seriesInstanceUID = DicomUID.Generate();
             var studyInstanceUID = DicomUID.Generate();
@@ -199,8 +239,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
                 studyInstanceUID.UID,
                 seriesInstanceUID.UID,
-                transferSyntax: DicomTransferSyntax.HEVCH265Main10ProfileLevel51.UID.UID,
-                encode: false);
+                transferSyntax: DicomTransferSyntax.DeflatedExplicitVRLittleEndian.UID.UID);
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
@@ -212,7 +251,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 seriesInstanceUID.UID);
 
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-            Assert.Equal(DicomTransferSyntax.HEVCH265Main10ProfileLevel51, getResponse.Value.Single().Dataset.InternalTransferSyntax);
+            Assert.Equal(DicomTransferSyntax.ExplicitVRLittleEndian, getResponse.Value.Single().Dataset.InternalTransferSyntax);
         }
 
         [Fact]
@@ -288,6 +327,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var getResponse = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, expectedTransferSyntax.UID.UID);
             Assert.Equal(expectedTransferSyntax, getResponse.Value.Single().Dataset.InternalTransferSyntax);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            var framesResponse = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, expectedTransferSyntax.UID.UID, 1);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            Assert.NotEqual(0, framesResponse.Value.Single().Length);
         }
 
         [Theory]

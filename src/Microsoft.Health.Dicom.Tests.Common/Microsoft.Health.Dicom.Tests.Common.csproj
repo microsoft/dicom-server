@@ -23,9 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ImageSamples\CTSliceJPEG2000Lossy.dcm">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="ImageSamples\XRJPEGProcess1.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

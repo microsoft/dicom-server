@@ -27,6 +27,47 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
             this.output = output;
         }
 
+        private async Task<Dictionary<FileReadOption, bool>> TryOpenFile(string path)
+        {
+            var retDict = new Dictionary<FileReadOption, bool>();
+            foreach (var option in (FileReadOption[])Enum.GetValues(typeof(FileReadOption)))
+            {
+                retDict[option] = false;
+                try
+                {
+                    var dicomFile = await DicomFile.OpenAsync(path, option);
+                    retDict[option] = true;
+                }
+                catch
+                {
+                }
+            }
+
+            return retDict;
+        }
+
+        /// <summary>
+        /// Seems like a bug with SkipLargeTags option
+        /// </summary>
+        [Fact(Skip = "To be verified with fo-dicom community")]
+        public async Task GivenValidFile_OpenWithKeep_Fails()
+        {
+            var dicomFilePath = @"ImageSamples/XRJPEGProcess1.dcm";
+            var genFilePath = @"ImageSamples/genFile.dcm";
+
+            var ret = await TryOpenFile(dicomFilePath);
+
+            var genFile = Samples.CreateRandomDicomFileWith8BitPixelData(transferSyntax: DicomTransferSyntax.JPEGProcess1.UID.UID, encode: false);
+            await genFile.SaveAsync(genFilePath);
+
+            var ret2 = await TryOpenFile(genFilePath);
+
+            File.Delete(genFilePath);
+
+            Assert.DoesNotContain(ret, x => x.Value == false);
+            Assert.DoesNotContain(ret2, x => x.Value == false);
+        }
+
         /// <summary>
         /// This test will start failing when a bug with JPEG transcoding is fixed in future
         /// versions of fo-dicom.
