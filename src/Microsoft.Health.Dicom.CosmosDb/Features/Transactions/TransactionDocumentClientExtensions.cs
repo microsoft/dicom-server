@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.Documents;
@@ -34,10 +35,16 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Transactions
             Uri storedProcedureUri = UriFactory.CreateStoredProcedureUri(databaseId, collectionId, Transaction.StoredProcedureId);
             Uri collectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, collectionId);
 
+            var storedProcedureFileInfo = new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, StoredProcedureBodyFileName));
+            if (!storedProcedureFileInfo.Exists)
+            {
+                throw new InvalidOperationException($"Could not find the stored procedure file at location: '{storedProcedureFileInfo}'");
+            }
+
             var storedProcedure = new StoredProcedure()
             {
                 Id = Transaction.StoredProcedureId,
-                Body = File.ReadAllText(StoredProcedureBodyFileName),
+                Body = File.ReadAllText(storedProcedureFileInfo.FullName),
             };
 
             try
