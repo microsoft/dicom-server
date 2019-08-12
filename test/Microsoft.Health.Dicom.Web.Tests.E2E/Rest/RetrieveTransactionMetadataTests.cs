@@ -51,7 +51,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         [Theory]
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", " ")]
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "345%^&")]
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb2")]
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb1")]
@@ -102,7 +101,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenStoredDicomFile_WhenRetrievingInstanceMetadata_MetadataIsRetrievedCorrectly()
+        public async Task GivenStoredDicomFile_WhenRetrievingMetadata_MetadataIsRetrievedCorrectly()
         {
             DicomDataset storedInstance = await PostDicomFileAsync(new DicomDataset()
             {
@@ -118,7 +117,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var dicomInstance = DicomInstance.Create(storedInstance);
 
-            HttpResult<IReadOnlyList<DicomDataset>> metadata = await Client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
+            HttpResult<IReadOnlyList<DicomDataset>> metadata = await Client.GetStudyMetadataAsync(dicomInstance.StudyInstanceUID);
+            Assert.Single(metadata.Value);
+            ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
+
+            metadata = await Client.GetSeriesMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID);
+            Assert.Single(metadata.Value);
+            ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
+
+            metadata = await Client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
         }

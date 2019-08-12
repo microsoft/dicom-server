@@ -44,7 +44,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         [Theory]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData(" ")]
         [InlineData("345%^&")]
         public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingStudy_TheServerShouldReturnBadRequest(string studyInstanceUID)
         {
@@ -54,7 +53,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         [Theory]
         [InlineData("aaaa-bbbb", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("aaaa-bbbb", " ")]
         [InlineData("aaaa-bbbb", "345%^&")]
         [InlineData("aaaa-bbbb", "aaaa-bbbb")]
         public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingSeries_TheServerShouldReturnBadRequest(string studyInstanceUID, string seriesInstanceUID)
@@ -65,7 +63,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         [Theory]
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", " ")]
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "345%^&")]
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb2")]
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb1")]
@@ -79,7 +76,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         [Theory]
         [InlineData("unknown")]
-        [InlineData(" ")]
+        [InlineData("&&5")]
         public async Task GivenARequestWithInvalidTransferSyntax_WhenRetrievingResources_TheServerShouldReturnBadRequest(string transferSyntax)
         {
             HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetStudyAsync(Guid.NewGuid().ToString(), transferSyntax);

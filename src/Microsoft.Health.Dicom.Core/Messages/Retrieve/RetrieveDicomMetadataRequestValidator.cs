@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             // Validate the provided identifiers conform correctly.
             RuleFor(x => x.SopInstanceUID)
                 .SetValidator(new DicomIdentifierValidator())
-                .When(x => x.ResourceType == ResourceType.Frames || x.ResourceType == ResourceType.Instance);
+                .When(x => x.ResourceType == ResourceType.Instance);
             RuleFor(x => x.SeriesInstanceUID)
                 .SetValidator(new DicomIdentifierValidator())
                 .When(x => x.ResourceType != ResourceType.Study);

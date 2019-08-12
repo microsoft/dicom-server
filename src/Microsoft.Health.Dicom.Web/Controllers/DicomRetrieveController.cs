@@ -147,7 +147,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}/frames/{frames}")]
-        public async Task<IActionResult> GetFrameAsync(
+        public async Task<IActionResult> GetFramesAsync(
             [FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax,
             string studyInstanceUID,
             string seriesInstanceUID,
