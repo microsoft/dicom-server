@@ -49,6 +49,42 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
+        [Theory]
+        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", " ")]
+        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "345%^&")]
+        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb2")]
+        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb1")]
+        public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingInstanceMetadata_TheServerShouldReturnBadRequest(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+        {
+            HttpResult<IReadOnlyList<DicomDataset>> response = await Client.GetInstanceMetadataAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("application/data")]
+        [InlineData("application/json")]
+        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingResource_NotAcceptableIsReturned(string acceptHeader)
+        {
+            // Study
+            await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
+                Client,
+                string.Format(DicomWebClient.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid().ToString()),
+                acceptHeader);
+
+            // Series
+            await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
+                Client,
+                string.Format(DicomWebClient.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                acceptHeader);
+
+            // Instance
+            await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
+                Client,
+                string.Format(DicomWebClient.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                acceptHeader);
+        }
+
         [Fact]
         public async Task GivenInvalidInstanceIdentifer_WhenRetrievingInstanceSeriesStudyMetadata_NotFoundStatusCodeReturned()
         {
