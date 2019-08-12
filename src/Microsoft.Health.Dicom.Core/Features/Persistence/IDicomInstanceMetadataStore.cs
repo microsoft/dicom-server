@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -14,6 +15,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         Task AddInstanceMetadataAsync(DicomDataset instanceMetadata, CancellationToken cancellationToken = default);
 
         Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default);
+
+        Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, HashSet<DicomAttributeId> optionalAttributes = null, CancellationToken cancellationToken = default);
 
         Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default);
     }

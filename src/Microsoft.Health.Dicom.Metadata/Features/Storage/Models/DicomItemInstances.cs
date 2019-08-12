@@ -9,6 +9,7 @@ using System.Linq;
 using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
@@ -20,8 +21,9 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
         private readonly StringComparison _stringComparison = StringComparison.InvariantCultureIgnoreCase;
         private readonly JsonDicomConverter _jsonDicomConverter = new JsonDicomConverter();
 
-        public DicomItemInstances(DicomItem dicomItem, HashSet<int> instances)
+        public DicomItemInstances(DicomAttributeId attributeId, DicomItem dicomItem, HashSet<int> instances)
         {
+            AttributeId = EnsureArg.IsNotNull(attributeId, nameof(attributeId));
             DicomItem = EnsureArg.IsNotNull(dicomItem, nameof(dicomItem));
             Instances = EnsureArg.IsNotNull(instances, nameof(instances));
 
@@ -29,8 +31,9 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
         }
 
         [JsonConstructor]
-        public DicomItemInstances(string jsonItem, HashSet<int> instances)
+        public DicomItemInstances(DicomAttributeId attributeId, string jsonItem, HashSet<int> instances)
         {
+            AttributeId = EnsureArg.IsNotNull(attributeId, nameof(attributeId));
             _jsonItem = EnsureArg.IsNotNullOrWhiteSpace(jsonItem, nameof(jsonItem));
             Instances = EnsureArg.IsNotNull(instances, nameof(instances));
 
@@ -40,15 +43,18 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
         [JsonProperty("instances")]
         public HashSet<int> Instances { get; }
 
+        [JsonProperty("attributeId")]
+        public DicomAttributeId AttributeId { get; }
+
         [JsonIgnore]
         public DicomItem DicomItem { get; }
 
-        public static DicomItemInstances Create(DicomItem dicomItem, int instance)
+        public static DicomItemInstances Create(DicomAttributeId dicomAttributeId, DicomItem dicomItem, int instance)
         {
             EnsureArg.IsGte(instance, 0, nameof(instance));
             EnsureArg.IsNotNull(dicomItem, nameof(dicomItem));
 
-            return new DicomItemInstances(dicomItem, new HashSet<int>() { instance });
+            return new DicomItemInstances(dicomAttributeId, dicomItem, new HashSet<int>() { instance });
         }
 
         public override int GetHashCode()

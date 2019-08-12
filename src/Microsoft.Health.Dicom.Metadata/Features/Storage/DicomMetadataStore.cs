@@ -402,22 +402,21 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
         private bool TryAddDicomItem(DicomDataset dicomDataset, DicomSeriesMetadata seriesMetadata, DicomAttributeId attributeId)
         {
-            IList<DicomItemInstances> attributeValues = seriesMetadata.DicomItems.Where(
-                x => x.DicomItem.Tag == attributeId.FinalDicomTag).ToList();
+            DicomItemInstances[] attributeValues = seriesMetadata.DicomItems.Where(x => x.AttributeId == attributeId).ToArray();
 
-            if (attributeValues.Count > 1)
+            if (attributeValues.Length == 0)
+            {
+                return false;
+            }
+
+            if (attributeValues.Length > 1)
             {
                 _logger.LogInformation($"Found more than one DICOM item for DICOM tag: {attributeId.FinalDicomTag}. The metadata results will have coalesced results.");
             }
 
-            if (attributeValues.Count > 0)
-            {
-                // Just add the first DICOM item; we might want to do something more clever in the future.
-                dicomDataset.Add(attributeId, attributeValues[0].DicomItem);
-                return true;
-            }
-
-            return false;
+            // Just add the first DICOM item; we might want to do something more clever in the future.
+            dicomDataset.Add(attributeId, attributeValues[0].DicomItem);
+            return true;
         }
     }
 }

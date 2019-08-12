@@ -13,11 +13,11 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 {
     public static class IDicomMetadataStoreExtensions
     {
-        public static async Task AddStudySeriesDicomMetadataAsync(this IDicomMetadataStore metadataStore, DicomDataset instance, CancellationToken cancellationToken = default)
+        public static Task AddStudySeriesDicomMetadataAsync(this IDicomMetadataStore metadataStore, DicomDataset instance, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(instance, nameof(instance));
-            await metadataStore.AddStudySeriesDicomMetadataAsync(new[] { instance }, cancellationToken);
+            return metadataStore.AddStudySeriesDicomMetadataAsync(new[] { instance }, cancellationToken);
         }
     }
 }

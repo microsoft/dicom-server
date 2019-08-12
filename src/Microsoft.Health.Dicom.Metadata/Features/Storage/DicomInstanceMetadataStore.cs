@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -17,6 +18,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Metadata.Config;
 using Newtonsoft.Json;
 using Polly;
 
@@ -25,6 +27,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
     internal class DicomInstanceMetadataStore : IDicomInstanceMetadataStore
     {
         private static readonly Encoding _metadataEncoding = Encoding.UTF8;
+        private readonly DicomMetadataConfiguration _metadataConfiguration;
         private readonly CloudBlobContainer _container;
         private readonly JsonSerializer _jsonSerializer;
         private readonly ILogger<DicomInstanceMetadataStore> _logger;
@@ -47,6 +50,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task AddInstanceMetadataAsync(DicomDataset instanceMetadata, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(instanceMetadata, nameof(instanceMetadata));
@@ -79,6 +83,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 retryPolicy);
         }
 
+        /// <inheritdoc />
         public async Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(instance);
@@ -93,6 +98,28 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 retryPolicy);
         }
 
+        /// <inheritdoc />
+        public async Task<DicomDataset> GetInstanceMetadataAsync(
+            DicomInstance instance,
+            HashSet<DicomAttributeId> optionalAttributes = null,
+            CancellationToken cancellationToken = default)
+        {
+            DicomDataset instanceMetadata = await GetInstanceMetadataAsync(instance, cancellationToken);
+            var resultDataset = new DicomDataset();
+
+            // Create the collection of required attributes + requested attributes.
+            HashSet<DicomAttributeId> attributes = _metadataConfiguration.InstanceRequiredMetadataAttributes;
+            optionalAttributes?.Each(x => attributes.Add(x));
+
+            foreach (DicomAttributeId seriesAttributeId in attributes)
+            {
+                TryAddDicomItem(resultDataset, instanceMetadata, seriesAttributeId);
+            }
+
+            return resultDataset;
+        }
+
+        /// <inheritdoc />
         public async Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(instance);
@@ -127,6 +154,23 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             NameValidator.ValidateBlobName(blobName);
 
             return _container.GetBlockBlobReference(blobName);
+        }
+
+        private bool TryAddDicomItem(DicomDataset resultDataset, DicomDataset metadata, DicomAttributeId attributeId)
+        {
+            if (!metadata.TryGetDicomItems(attributeId, out DicomItem[] dicomItems))
+            {
+                return false;
+            }
+
+            if (dicomItems.Length > 1)
+            {
+                _logger.LogInformation($"Found more than one DICOM item for DICOM tag: {attributeId.FinalDicomTag}. The metadata results will have coalesced results.");
+            }
+
+            // Just add the first DICOM item; we might want to do something more clever in the future.
+            resultDataset.Add(attributeId, dicomItems[0]);
+            return true;
         }
     }
 }

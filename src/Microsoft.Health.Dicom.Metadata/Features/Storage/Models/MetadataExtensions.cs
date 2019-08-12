@@ -110,7 +110,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
                 {
                     foreach (DicomItem dicomItem in dicomItems)
                     {
-                        var attributeValue = DicomItemInstances.Create(dicomItem, instanceId);
+                        var attributeValue = DicomItemInstances.Create(attribute, dicomItem, instanceId);
 
                         if (attributeValues.TryGetValue(attributeValue, out DicomItemInstances actualValue))
                         {
