@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Dicom.Imaging;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -45,6 +47,9 @@ namespace Microsoft.AspNetCore.Builder
             var jsonSerializer = new JsonSerializer();
             jsonSerializer.Converters.Add(new JsonDicomConverter());
             services.AddSingleton(jsonSerializer);
+
+            // Register image renderer for fo-dicom
+            ImageManager.SetImplementation(NetCoreImageManager.Instance);
 
             return new DicomServerBuilder(services);
         }

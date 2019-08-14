@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     retrieveInstances = await _dicomMetadataStore.GetInstancesInStudyAsync(studyInstanceUID, cancellationToken);
                     break;
                 default:
-                    throw new ArgumentException($"Unkown retrieve transaction type: {resourceType}", nameof(resourceType));
+                    throw new ArgumentException($"Unknown retrieve transaction type: {resourceType}", nameof(resourceType));
             }
 
             return retrieveInstances;

@@ -26,7 +26,10 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         private const string ApplicationOctetStream = "application/octet-stream";
         private const string ApplicationDicom = "application/dicom";
         private const string ApplicationDicomJson = "application/dicom+json";
+        private const string ImageJpeg = "image/jpeg";
+        private const string ImagePng = "image/png";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
+        private const string AcceptHeaderName = "accept";
         private readonly IMediator _mediator;
         private readonly ILogger<DicomRetrieveController> _logger;
 
@@ -140,6 +143,26 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             RetrieveDicomMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
                 studyInstanceUID, seriesInstanceUID, sopInstanceUID, HttpContext.RequestAborted);
             return StatusCode(response.StatusCode, response.ResponseMetadata);
+        }
+
+        [AcceptContentFilter(ImageJpeg, ImagePng)]
+        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [HttpGet]
+        [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}/rendered")]
+        public async Task<IActionResult> GetInstanceRenderedAsync(
+            [FromHeader(Name = AcceptHeaderName)] string requestedFormat,
+            string studyInstanceUID,
+            string seriesInstanceUID,
+            string sopInstanceUID)
+        {
+            _logger.LogInformation($"DICOM Web Retrieve RenderedRequested request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}', instance: '{sopInstanceUID}'.");
+
+            RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomInstanceRenderedAsync(
+                studyInstanceUID, seriesInstanceUID, sopInstanceUID, requestedFormat, false, HttpContext.RequestAborted);
+            return ConvertToActionResult(response);
         }
 
         [AcceptContentFilter(ApplicationOctetStream)]

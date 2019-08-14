@@ -30,33 +30,43 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         }
 
         public RetrieveDicomResourceRequest(
-            string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+            string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, bool renderedRequested, bool thumbnailRequested)
             : this(ResourceType.Instance, requestedTransferSyntax)
         {
             StudyInstanceUID = studyInstanceUID;
             SeriesInstanceUID = seriesInstanceUID;
             SopInstanceUID = sopInstanceUID;
+
+            RenderedRequested = renderedRequested;
+            ThumbnailRequested = thumbnailRequested;
         }
 
         public RetrieveDicomResourceRequest(
-            string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, IEnumerable<int> frames)
+            string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, IEnumerable<int> frames, bool renderedRequested, bool thumbnailRequested)
             : this(ResourceType.Frames, requestedTransferSyntax)
         {
             StudyInstanceUID = studyInstanceUID;
             SeriesInstanceUID = seriesInstanceUID;
             SopInstanceUID = sopInstanceUID;
             Frames = frames;
+
+            RenderedRequested = renderedRequested;
+            ThumbnailRequested = thumbnailRequested;
         }
 
-        private RetrieveDicomResourceRequest(ResourceType resourceType, string requestedTransferSyntax)
+        private RetrieveDicomResourceRequest(ResourceType resourceType, string requestedRepresentation)
         {
             ResourceType = resourceType;
-            RequestedTransferSyntax = string.IsNullOrWhiteSpace(requestedTransferSyntax) ? null : requestedTransferSyntax;
+            RequestedRepresentation = string.IsNullOrWhiteSpace(requestedRepresentation) ? null : requestedRepresentation;
         }
+
+        public bool RenderedRequested { get; }
+
+        public bool ThumbnailRequested { get; }
 
         public ResourceType ResourceType { get; }
 
-        public string RequestedTransferSyntax { get; }
+        public string RequestedRepresentation { get; }
 
         public string StudyInstanceUID { get; }
 
@@ -68,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 
         public bool OriginalTransferSyntaxRequested()
         {
-            return RequestedTransferSyntax != null && RequestedTransferSyntax.Equals(OriginalTransferSyntaxRequest, StringComparison.InvariantCultureIgnoreCase);
+            return RequestedRepresentation != null && RequestedRepresentation.Equals(OriginalTransferSyntaxRequest, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

@@ -27,7 +27,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 requestedTransferSyntax: string.Empty,
                 Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString());
+                Guid.NewGuid().ToString(),
+                false,
+                false);
             Assert.Equal(ResourceType.Instance, request.ResourceType);
 
             request = new RetrieveDicomResourceRequest(
@@ -35,7 +37,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
-                new[] { 5 });
+                new[] { 5 },
+                false,
+                false);
             Assert.Equal(ResourceType.Frames, request.ResourceType);
         }
     }
