@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
         Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default);
 
-        Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, HashSet<DicomAttributeId> optionalAttributes = null, CancellationToken cancellationToken = default);
+        Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, HashSet<DicomAttributeId> optionalAttributes, CancellationToken cancellationToken = default);
 
         Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default);
     }

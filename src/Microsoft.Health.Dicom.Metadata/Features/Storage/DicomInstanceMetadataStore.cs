@@ -35,11 +35,13 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         public DicomInstanceMetadataStore(
             CloudBlobClient client,
             JsonSerializer jsonSerializer,
+            DicomMetadataConfiguration metadataConfiguration,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             ILogger<DicomInstanceMetadataStore> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(jsonSerializer, nameof(jsonSerializer));
+            EnsureArg.IsNotNull(metadataConfiguration, nameof(metadataConfiguration));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
@@ -47,6 +49,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
             _container = client.GetContainerReference(containerConfiguration.ContainerName);
             _jsonSerializer = jsonSerializer;
+            _metadataConfiguration = metadataConfiguration;
             _logger = logger;
         }
 
@@ -101,7 +104,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         /// <inheritdoc />
         public async Task<DicomDataset> GetInstanceMetadataAsync(
             DicomInstance instance,
-            HashSet<DicomAttributeId> optionalAttributes = null,
+            HashSet<DicomAttributeId> optionalAttributes,
             CancellationToken cancellationToken = default)
         {
             DicomDataset instanceMetadata = await GetInstanceMetadataAsync(instance, cancellationToken);

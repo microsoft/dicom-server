@@ -12,14 +12,14 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
 {
     public class QueryDicomResourcesResponse : BaseStatusCodeResponse
     {
-        public QueryDicomResourcesResponse(HttpStatusCode statusCode, params string[] warnings)
+        public QueryDicomResourcesResponse(HttpStatusCode statusCode, IList<string> warnings)
             : base((int)statusCode)
         {
             Warnings = warnings;
-            HasWarning = warnings.Length > 0;
+            HasWarning = warnings.Count > 0;
         }
 
-        public QueryDicomResourcesResponse(HttpStatusCode statusCode, IEnumerable<DicomDataset> responseMetadata, params string[] warnings)
+        public QueryDicomResourcesResponse(HttpStatusCode statusCode, IEnumerable<DicomDataset> responseMetadata, IList<string> warnings)
             : this(statusCode, warnings)
         {
             EnsureArg.IsNotNull(responseMetadata, nameof(responseMetadata));

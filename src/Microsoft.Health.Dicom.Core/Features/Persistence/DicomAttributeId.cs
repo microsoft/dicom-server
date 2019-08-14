@@ -40,8 +40,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         public DicomAttributeId(string attributeId)
         {
             _dicomTags = DeserializeAttributeId(attributeId);
-            Validate();
-
             AttributeId = attributeId;
         }
 
@@ -51,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             EnsureArg.IsTrue(dicomTags.Length > 0, nameof(dicomTags));
 
             _dicomTags = dicomTags;
-            Validate();
+            Validate(_dicomTags);
 
             AttributeId = string.Join(Seperator, dicomTags.Select(x => ConvertToString(x, _writeTagsAsKeywords)));
         }
@@ -98,6 +96,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             return false;
         }
 
+        public static bool IsValidAttributeId(string attributeId)
+        {
+            try
+            {
+                DeserializeAttributeId(attributeId);
+                return true;
+            }
+            catch (Exception e) when (e is FormatException || e is ArgumentException)
+            {
+                return false;
+            }
+        }
+
         private static DicomTag[] DeserializeAttributeId(string attributeId)
         {
             EnsureArg.IsNotNullOrWhiteSpace(attributeId, nameof(attributeId));
@@ -124,7 +135,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
                 }
             }
 
+            Validate(result);
             return result;
+        }
+
+        private static void Validate(DicomTag[] dicomTags)
+        {
+            // Validate all the tags but the last has a value representation of sequence.
+            for (var i = 0; i < dicomTags.Length - 1; i++)
+            {
+                if (!dicomTags[i].DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ))
+                {
+                    throw new FormatException($"All tags other than the last must have a value representation of 'sequence'. The provided DICOM tag {dicomTags[i].DictionaryEntry.Keyword} does not have a 'sequence' value type.");
+                }
+            }
+
+            // Note: The last tag can have any value representation including sequence.
         }
 
         private static string ConvertToString(DicomTag dicomTag, bool writeTagsAsKeywords)
@@ -137,20 +163,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             string groupString = dicomTag.Group.ToString(GroupElementStringFormat, FormatProvider);
             string elementString = dicomTag.Element.ToString(GroupElementStringFormat, FormatProvider);
             return groupString + elementString;
-        }
-
-        private void Validate()
-        {
-            // Validate all the tags but the last has a value representation of sequence.
-            for (var i = 0; i < Length - 1; i++)
-            {
-                if (!_dicomTags[i].DictionaryEntry.ValueRepresentations.Contains(DicomVR.SQ))
-                {
-                    throw new FormatException($"All tags other than the last must have a value representation of 'sequence'. The provided DICOM tag {_dicomTags[i].DictionaryEntry.Keyword} does not have a 'sequence' value type.");
-                }
-            }
-
-            // Note: The last tag can have any value representation including sequence.
         }
     }
 }

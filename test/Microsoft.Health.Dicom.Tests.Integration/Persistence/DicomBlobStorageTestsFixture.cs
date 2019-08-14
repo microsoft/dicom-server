@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomBlobDataStore = new DicomBlobDataStore(_blobClient, optionsMonitor, NullLogger<DicomBlobDataStore>.Instance);
             DicomMetadataStore = new DicomMetadataStore(_blobClient, optionsMonitor, new DicomMetadataConfiguration(), NullLogger<DicomMetadataStore>.Instance);
-            DicomInstanceMetadataStore = new DicomInstanceMetadataStore(_blobClient, jsonSerializer, optionsMonitor, NullLogger<DicomInstanceMetadataStore>.Instance);
+            DicomInstanceMetadataStore = new DicomInstanceMetadataStore(_blobClient, jsonSerializer, new DicomMetadataConfiguration(), optionsMonitor, NullLogger<DicomInstanceMetadataStore>.Instance);
         }
 
         public async Task DisposeAsync()

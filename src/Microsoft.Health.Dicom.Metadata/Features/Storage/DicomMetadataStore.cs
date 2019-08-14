@@ -97,13 +97,13 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         }
 
         /// <inheritdoc />
-        public Task<DicomDataset> GetStudyDicomMetadataWithAllOptionalAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
+        public Task<DicomMetadata> GetStudyDicomMetadataWithAllOptionalAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
         {
             return GetStudyDicomMetadataAsync(studyInstanceUID, _metadataConfiguration.StudyOptionalMetadataAttributes, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<DicomDataset> GetStudyDicomMetadataAsync(
+        public async Task<DicomMetadata> GetStudyDicomMetadataAsync(
             string studyInstanceUID,
             HashSet<DicomAttributeId> optionalAttributes = null,
             CancellationToken cancellationToken = default)
@@ -129,29 +129,27 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                     HashSet<DicomAttributeId> attributes = _metadataConfiguration.StudyRequiredMetadataAttributes;
                     optionalAttributes?.Each(x => attributes.Add(x));
 
+                    bool resultCoalesced = false;
+                    DicomItemInstances[] studyItemInstances = studyMetadata.SeriesMetadata.Values.SelectMany(x => x.DicomItems).ToArray();
+
                     foreach (DicomAttributeId attributeId in attributes)
                     {
-                        foreach (DicomSeriesMetadata seriesMetadata in studyMetadata.SeriesMetadata.Values)
-                        {
-                            if (TryAddDicomItem(result, seriesMetadata, attributeId))
-                            {
-                                break;
-                            }
-                        }
+                        TryAddDicomItem(result, studyItemInstances, attributeId, out bool coalescedResult);
+                        resultCoalesced |= coalescedResult;
                     }
 
-                    return result;
+                    return new DicomMetadata(result, resultCoalesced);
                 });
         }
 
         /// <inheritdoc />
-        public Task<DicomDataset> GetSeriesDicomMetadataWithAllOptionalAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
+        public Task<DicomMetadata> GetSeriesDicomMetadataWithAllOptionalAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
         {
             return GetSeriesDicomMetadataAsync(studyInstanceUID, seriesInstanceUID, _metadataConfiguration.SeriesOptionalMetadataAttributes, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<DicomDataset> GetSeriesDicomMetadataAsync(
+        public async Task<DicomMetadata> GetSeriesDicomMetadataAsync(
             string studyInstanceUID,
             string seriesInstanceUID,
             HashSet<DicomAttributeId> optionalAttributes = null,
@@ -184,12 +182,14 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                     HashSet<DicomAttributeId> attributes = _metadataConfiguration.SeriesRequiredMetadataAttributes;
                     optionalAttributes?.Each(x => attributes.Add(x));
 
-                    foreach (DicomAttributeId seriesAttributeId in attributes)
+                    bool resultCoalesced = false;
+                    foreach (DicomAttributeId attributeId in attributes)
                     {
-                        TryAddDicomItem(result, seriesMetadata, seriesAttributeId);
+                        TryAddDicomItem(result, seriesMetadata.DicomItems, attributeId, out bool coalescedResult);
+                        resultCoalesced |= coalescedResult;
                     }
 
-                    return result;
+                    return new DicomMetadata(result, resultCoalesced);
                 });
         }
 
@@ -400,16 +400,17 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 cancellationToken);
         }
 
-        private bool TryAddDicomItem(DicomDataset dicomDataset, DicomSeriesMetadata seriesMetadata, DicomAttributeId attributeId)
+        private bool TryAddDicomItem(DicomDataset dicomDataset, IEnumerable<DicomItemInstances> itemInstances, DicomAttributeId attributeId, out bool coalescedResult)
         {
-            DicomItemInstances[] attributeValues = seriesMetadata.DicomItems.Where(x => x.AttributeId == attributeId).ToArray();
+            DicomItemInstances[] attributeValues = itemInstances.Where(x => x.AttributeId == attributeId).ToArray();
+            coalescedResult = attributeValues.Length == 0;
 
             if (attributeValues.Length == 0)
             {
                 return false;
             }
 
-            if (attributeValues.Length > 1)
+            if (coalescedResult)
             {
                 _logger.LogInformation($"Found more than one DICOM item for DICOM tag: {attributeId.FinalDicomTag}. The metadata results will have coalesced results.");
             }

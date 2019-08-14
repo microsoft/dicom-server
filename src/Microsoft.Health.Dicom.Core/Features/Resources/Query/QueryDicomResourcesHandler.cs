@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Query
     {
         private const string MoreResultsWarningMessage = "299 {+service}: There are additional results that can be requested.";
         private const string FuzzyMatchingNotSupportedWarningMessage = "299 {+service}: The fuzzymatching parameter is not supported. Only literal matching has been performed.";
+        private const string ResultsCoalescedWarningMessage = "299 {+service}: The results of this query have been coalesced because the underlying data has inconsistencies across the queried instances.";
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
         private readonly IDicomMetadataStore _dicomMetadataStore;
         private readonly IDicomInstanceMetadataStore _dicomInstanceMetadataStore;
@@ -57,55 +58,55 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Query
 
         private async Task<QueryDicomResourcesResponse> HandleStudyQueryAsync(QueryDicomResourcesRequest message, CancellationToken cancellationToken)
         {
-            IEnumerable<DicomDataset> resultDatasets;
+            DicomMetadata[] resultMetadata;
             QueryResult<DicomStudy> queryResult = await _dicomIndexDataStore.QueryStudiesAsync(
-                message.Offset, message.Limit, message.StudyInstanceUID, message.Query, cancellationToken);
+                message.Offset, message.Limit, message.StudyInstanceUID, message.GetQueryAttributes(), cancellationToken);
 
             if (message.AllOptionalAttributesRequired)
             {
-                resultDatasets = await Task.WhenAll(
+                resultMetadata = await Task.WhenAll(
                     queryResult.Results.Select(
                         x => _dicomMetadataStore.GetStudyDicomMetadataWithAllOptionalAsync(x.StudyInstanceUID, cancellationToken)));
             }
             else
             {
-                resultDatasets = await Task.WhenAll(
+                resultMetadata = await Task.WhenAll(
                    queryResult.Results.Select(
-                       x => _dicomMetadataStore.GetStudyDicomMetadataAsync(x.StudyInstanceUID, message.OptionalAttributes, cancellationToken)));
+                       x => _dicomMetadataStore.GetStudyDicomMetadataAsync(x.StudyInstanceUID, message.GetOptionalAttributes(), cancellationToken)));
             }
 
-            string[] warnings = GetWarningMessages(queryResult.HasMoreResults, message.FuzzyMatching);
-            return new QueryDicomResourcesResponse(HttpStatusCode.OK, resultDatasets, warnings);
+            IList<string> warnings = GetWarningMessages(queryResult.HasMoreResults, resultMetadata.Any(x => x.ResultCoalesced), message.FuzzyMatching);
+            return new QueryDicomResourcesResponse(HttpStatusCode.OK, resultMetadata.Select(x => x.DicomDataset), warnings);
         }
 
         private async Task<QueryDicomResourcesResponse> HandleSeriesQueryAsync(QueryDicomResourcesRequest message, CancellationToken cancellationToken)
         {
-            IEnumerable<DicomDataset> resultDatasets;
+            DicomMetadata[] resultMetadata;
             QueryResult<DicomSeries> queryResult = await _dicomIndexDataStore.QuerySeriesAsync(
-                message.Offset, message.Limit, message.StudyInstanceUID, message.Query, cancellationToken);
+                message.Offset, message.Limit, message.StudyInstanceUID, message.GetQueryAttributes(), cancellationToken);
 
             if (message.AllOptionalAttributesRequired)
             {
-                resultDatasets = await Task.WhenAll(
+                resultMetadata = await Task.WhenAll(
                     queryResult.Results.Select(
                         x => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(x.StudyInstanceUID, x.SeriesInstanceUID, cancellationToken)));
             }
             else
             {
-                resultDatasets = await Task.WhenAll(
+                resultMetadata = await Task.WhenAll(
                    queryResult.Results.Select(
-                       x => _dicomMetadataStore.GetSeriesDicomMetadataAsync(x.StudyInstanceUID, x.SeriesInstanceUID, message.OptionalAttributes, cancellationToken)));
+                       x => _dicomMetadataStore.GetSeriesDicomMetadataAsync(x.StudyInstanceUID, x.SeriesInstanceUID, message.GetOptionalAttributes(), cancellationToken)));
             }
 
-            string[] warnings = GetWarningMessages(queryResult.HasMoreResults, message.FuzzyMatching);
-            return new QueryDicomResourcesResponse(HttpStatusCode.OK, resultDatasets, warnings);
+            IList<string> warnings = GetWarningMessages(queryResult.HasMoreResults, resultMetadata.Any(x => x.ResultCoalesced), message.FuzzyMatching);
+            return new QueryDicomResourcesResponse(HttpStatusCode.OK, resultMetadata.Select(x => x.DicomDataset), warnings);
         }
 
         private async Task<QueryDicomResourcesResponse> HandleInstanceQueryAsync(QueryDicomResourcesRequest message, CancellationToken cancellationToken)
         {
             IEnumerable<DicomDataset> resultDatasets;
             QueryResult<DicomInstance> queryResult = await _dicomIndexDataStore.QueryInstancesAsync(
-                message.Offset, message.Limit, message.StudyInstanceUID, message.Query, cancellationToken);
+                message.Offset, message.Limit, message.StudyInstanceUID, message.GetQueryAttributes(), cancellationToken);
 
             if (message.AllOptionalAttributesRequired)
             {
@@ -117,33 +118,36 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Query
             {
                 resultDatasets = await Task.WhenAll(
                    queryResult.Results.Select(
-                       x => _dicomInstanceMetadataStore.GetInstanceMetadataAsync(x, message.OptionalAttributes, cancellationToken)));
+                       x => _dicomInstanceMetadataStore.GetInstanceMetadataAsync(x, message.GetOptionalAttributes(), cancellationToken)));
             }
 
-            string[] warnings = GetWarningMessages(queryResult.HasMoreResults, message.FuzzyMatching);
+            // Note: The results of an instance query search can never have coalesced results so always set to false.
+            IList<string> warnings = GetWarningMessages(queryResult.HasMoreResults, coalescedResults: false, message.FuzzyMatching);
             return new QueryDicomResourcesResponse(HttpStatusCode.OK, resultDatasets, warnings);
         }
 
-        private static string[] GetWarningMessages(bool hasMoreResults, bool fuzzyMatching)
+        private static IList<string> GetWarningMessages(bool hasMoreResults, bool coalescedResults, bool fuzzyMatching)
         {
+            IList<string> warningMessages = new List<string>();
+
             // If we have more results, we need to let the caller know.
             if (hasMoreResults)
             {
-                if (fuzzyMatching)
-                {
-                    return new string[] { MoreResultsWarningMessage, FuzzyMatchingNotSupportedWarningMessage };
-                }
+                warningMessages.Add(MoreResultsWarningMessage);
+            }
 
-                return new string[] { MoreResultsWarningMessage };
+            if (coalescedResults)
+            {
+                warningMessages.Add(ResultsCoalescedWarningMessage);
             }
 
             // Currently we do not support fuzzy matching; must be absolute match.
             if (fuzzyMatching)
             {
-                return new string[] { FuzzyMatchingNotSupportedWarningMessage };
+                warningMessages.Add(FuzzyMatchingNotSupportedWarningMessage);
             }
 
-            return Array.Empty<string>();
+            return warningMessages;
         }
     }
 }

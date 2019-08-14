@@ -8,6 +8,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
@@ -69,6 +71,27 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(
                 new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames),
                 cancellationToken);
+        }
+
+        public static Task<QueryDicomResourcesResponse> QueryDicomStudiesAsync(
+            this IMediator mediator, string[] optionalAttributes, bool fuzzyMatching, int? limit, int offset)
+        {
+            return mediator.Send(
+                new QueryDicomResourcesRequest(ResourceType.Study, null, optionalAttributes, fuzzyMatching, limit, offset, studyInstanceUID: null, seriesInstanceUID: null));
+        }
+
+        public static Task<QueryDicomResourcesResponse> QueryDicomSeriesAsync(
+            this IMediator mediator, string[] optionalAttributes, bool fuzzyMatching, int? limit, int offset, string studyInstanceUID)
+        {
+            return mediator.Send(
+                new QueryDicomResourcesRequest(ResourceType.Series, null, optionalAttributes, fuzzyMatching, limit, offset, studyInstanceUID, seriesInstanceUID: null));
+        }
+
+        public static Task<QueryDicomResourcesResponse> QueryDicomInstancesAsync(
+            this IMediator mediator, string[] optionalAttributes, bool fuzzyMatching, int? limit, int offset, string studyInstanceUID, string seriesInstanceUID)
+        {
+            return mediator.Send(
+                new QueryDicomResourcesRequest(ResourceType.Instance, null, optionalAttributes, fuzzyMatching, limit, offset, studyInstanceUID, seriesInstanceUID));
         }
     }
 }
