@@ -139,25 +139,27 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(instance1);
             await _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(instance2);
 
-            DicomDataset studyMetadata1 = await _dicomMetadataStore.GetStudyDicomMetadataAsync(studyInstanceUID);
-            Assert.Equal(studyInstanceUID, studyMetadata1.GetSingleValue<string>(DicomTag.StudyInstanceUID));
-            Assert.Equal(1, studyMetadata1.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedSeries));
-            Assert.Equal(2, studyMetadata1.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedInstances));
-            Assert.Equal(instance1.GetSingleValue<string>(DicomTag.PatientName), studyMetadata1.GetSingleValue<string>(DicomTag.PatientName));
-            Assert.Equal(instance1.GetSingleValue<DateTime>(DicomTag.StudyDate), studyMetadata1.GetSingleValue<DateTime>(DicomTag.StudyDate));
-            Assert.Equal(instance1.GetSingleValue<DateTime>(DicomTag.StudyTime), studyMetadata1.GetSingleValue<DateTime>(DicomTag.StudyTime));
-            Assert.Equal(instance1.GetSingleValue<string>(DicomTag.ReferringPhysicianName), studyMetadata1.GetSingleValue<string>(DicomTag.ReferringPhysicianName));
+            DicomMetadata studyMetadata = await _dicomMetadataStore.GetStudyDicomMetadataAsync(studyInstanceUID);
+            Assert.True(studyMetadata.ResultCoalesced);
+            Assert.Equal(studyInstanceUID, studyMetadata.DicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
+            Assert.Equal(1, studyMetadata.DicomDataset.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedSeries));
+            Assert.Equal(2, studyMetadata.DicomDataset.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedInstances));
+            Assert.Equal(instance1.GetSingleValue<string>(DicomTag.PatientName), studyMetadata.DicomDataset.GetSingleValue<string>(DicomTag.PatientName));
+            Assert.Equal(instance1.GetSingleValue<DateTime>(DicomTag.StudyDate), studyMetadata.DicomDataset.GetSingleValue<DateTime>(DicomTag.StudyDate));
+            Assert.Equal(instance1.GetSingleValue<DateTime>(DicomTag.StudyTime), studyMetadata.DicomDataset.GetSingleValue<DateTime>(DicomTag.StudyTime));
+            Assert.Equal(instance1.GetSingleValue<string>(DicomTag.ReferringPhysicianName), studyMetadata.DicomDataset.GetSingleValue<string>(DicomTag.ReferringPhysicianName));
 
             await _dicomMetadataStore.DeleteInstanceAsync(studyInstanceUID, seriesInstanceUID, instance1.GetSingleValue<string>(DicomTag.SOPInstanceUID));
 
-            DicomDataset studyMetadata2 = await _dicomMetadataStore.GetStudyDicomMetadataAsync(studyInstanceUID);
-            Assert.Equal(studyInstanceUID, studyMetadata2.GetSingleValue<string>(DicomTag.StudyInstanceUID));
-            Assert.Equal(1, studyMetadata2.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedSeries));
-            Assert.Equal(1, studyMetadata2.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedInstances));
-            Assert.Equal(instance2.GetSingleValue<string>(DicomTag.PatientName), studyMetadata2.GetSingleValue<string>(DicomTag.PatientName));
-            Assert.Equal(instance2.GetSingleValue<DateTime>(DicomTag.StudyDate), studyMetadata2.GetSingleValue<DateTime>(DicomTag.StudyDate));
-            Assert.Equal(instance2.GetSingleValue<DateTime>(DicomTag.StudyTime), studyMetadata2.GetSingleValue<DateTime>(DicomTag.StudyTime));
-            Assert.False(studyMetadata2.Contains(DicomTag.ReferringPhysicianName));
+            studyMetadata = await _dicomMetadataStore.GetStudyDicomMetadataAsync(studyInstanceUID);
+            Assert.False(studyMetadata.ResultCoalesced);
+            Assert.Equal(studyInstanceUID, studyMetadata.DicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
+            Assert.Equal(1, studyMetadata.DicomDataset.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedSeries));
+            Assert.Equal(1, studyMetadata.DicomDataset.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedInstances));
+            Assert.Equal(instance2.GetSingleValue<string>(DicomTag.PatientName), studyMetadata.DicomDataset.GetSingleValue<string>(DicomTag.PatientName));
+            Assert.Equal(instance2.GetSingleValue<DateTime>(DicomTag.StudyDate), studyMetadata.DicomDataset.GetSingleValue<DateTime>(DicomTag.StudyDate));
+            Assert.Equal(instance2.GetSingleValue<DateTime>(DicomTag.StudyTime), studyMetadata.DicomDataset.GetSingleValue<DateTime>(DicomTag.StudyTime));
+            Assert.False(studyMetadata.DicomDataset.Contains(DicomTag.ReferringPhysicianName));
         }
 
         [Fact]
@@ -173,14 +175,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 await _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(dataset);
             }
 
-            DicomDataset studyMetadata = await _dicomMetadataStore.GetStudyDicomMetadataAsync(studyInstanceUID, new HashSet<DicomAttributeId>() { new DicomAttributeId(DicomTag.PatientName) });
+            DicomMetadata studyMetadata = await _dicomMetadataStore.GetStudyDicomMetadataAsync(studyInstanceUID, new HashSet<DicomAttributeId>() { new DicomAttributeId(DicomTag.PatientName) });
             Assert.NotNull(studyMetadata);
-            Assert.Equal(studyInstanceUID, studyMetadata.GetSingleValue<string>(DicomTag.StudyInstanceUID));
-            Assert.Equal(numberOfSeriesInStudy, studyMetadata.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedSeries));
-            Assert.Equal(numberOfSeriesInStudy * numberOfInstancesPerSeries, studyMetadata.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedInstances));
-            Assert.Equal(study[0].GetSingleValue<string>(DicomTag.PatientName), studyMetadata.GetSingleValue<string>(DicomTag.PatientName));
-            Assert.Equal(study[0].GetSingleValue<DateTime>(DicomTag.StudyDate), studyMetadata.GetSingleValue<DateTime>(DicomTag.StudyDate));
-            Assert.Equal(study[0].GetSingleValue<DateTime>(DicomTag.StudyTime), studyMetadata.GetSingleValue<DateTime>(DicomTag.StudyTime));
+            Assert.False(studyMetadata.ResultCoalesced);
+            Assert.Equal(studyInstanceUID, studyMetadata.DicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
+            Assert.Equal(numberOfSeriesInStudy, studyMetadata.DicomDataset.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedSeries));
+            Assert.Equal(numberOfSeriesInStudy * numberOfInstancesPerSeries, studyMetadata.DicomDataset.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedInstances));
+            Assert.Equal(study[0].GetSingleValue<string>(DicomTag.PatientName), studyMetadata.DicomDataset.GetSingleValue<string>(DicomTag.PatientName));
+            Assert.Equal(study[0].GetSingleValue<DateTime>(DicomTag.StudyDate), studyMetadata.DicomDataset.GetSingleValue<DateTime>(DicomTag.StudyDate));
+            Assert.Equal(study[0].GetSingleValue<DateTime>(DicomTag.StudyTime), studyMetadata.DicomDataset.GetSingleValue<DateTime>(DicomTag.StudyTime));
         }
 
         [Fact]
@@ -217,24 +220,25 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 DicomDataset referenceDataset = seriesDatasets[i].First();
                 string seriesInstanceUID = referenceDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
 
-                DicomDataset seriesMetadata = await _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(studyInstanceUID, seriesInstanceUID);
+                DicomMetadata seriesMetadata = await _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(studyInstanceUID, seriesInstanceUID);
                 Assert.NotNull(seriesMetadata);
+                Assert.False(seriesMetadata.ResultCoalesced);
 
                 // Required Attributes
-                Assert.Equal(seriesInstanceUID, seriesMetadata.GetSingleValue<string>(DicomTag.SeriesInstanceUID));
-                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.SpecificCharacterSet), seriesMetadata.GetSingleValue<string>(DicomTag.SpecificCharacterSet));
-                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.Modality), seriesMetadata.GetSingleValue<string>(DicomTag.Modality));
-                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.TimezoneOffsetFromUTC), seriesMetadata.GetSingleValue<string>(DicomTag.TimezoneOffsetFromUTC));
-                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.SeriesDescription), seriesMetadata.GetSingleValue<string>(DicomTag.SeriesDescription));
-                Assert.Equal(referenceDataset.GetSingleValue<DateTime>(DicomTag.PerformedProcedureStepStartDate), seriesMetadata.GetSingleValue<DateTime>(DicomTag.PerformedProcedureStepStartDate));
-                Assert.Equal(referenceDataset.GetSingleValue<DateTime>(DicomTag.PerformedProcedureStepStartTime), seriesMetadata.GetSingleValue<DateTime>(DicomTag.PerformedProcedureStepStartTime));
-                Assert.Equal(referenceDataset.GetSequence(DicomTag.RequestAttributesSequence), seriesMetadata.GetSequence(DicomTag.RequestAttributesSequence));
+                Assert.Equal(seriesInstanceUID, seriesMetadata.DicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID));
+                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.SpecificCharacterSet), seriesMetadata.DicomDataset.GetSingleValue<string>(DicomTag.SpecificCharacterSet));
+                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.Modality), seriesMetadata.DicomDataset.GetSingleValue<string>(DicomTag.Modality));
+                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.TimezoneOffsetFromUTC), seriesMetadata.DicomDataset.GetSingleValue<string>(DicomTag.TimezoneOffsetFromUTC));
+                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.SeriesDescription), seriesMetadata.DicomDataset.GetSingleValue<string>(DicomTag.SeriesDescription));
+                Assert.Equal(referenceDataset.GetSingleValue<DateTime>(DicomTag.PerformedProcedureStepStartDate), seriesMetadata.DicomDataset.GetSingleValue<DateTime>(DicomTag.PerformedProcedureStepStartDate));
+                Assert.Equal(referenceDataset.GetSingleValue<DateTime>(DicomTag.PerformedProcedureStepStartTime), seriesMetadata.DicomDataset.GetSingleValue<DateTime>(DicomTag.PerformedProcedureStepStartTime));
+                Assert.Equal(referenceDataset.GetSequence(DicomTag.RequestAttributesSequence), seriesMetadata.DicomDataset.GetSequence(DicomTag.RequestAttributesSequence));
 
                 // Optional Attributes
-                Assert.Equal(referenceDataset.GetSingleValue<int>(DicomTag.SeriesNumber), seriesMetadata.GetSingleValue<int>(DicomTag.SeriesNumber));
-                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.Laterality), seriesMetadata.GetSingleValue<string>(DicomTag.Laterality));
-                Assert.Equal(referenceDataset.GetSingleValue<DateTime>(DicomTag.SeriesDate), seriesMetadata.GetSingleValue<DateTime>(DicomTag.SeriesDate));
-                Assert.Equal(referenceDataset.GetSingleValue<DateTime>(DicomTag.SeriesTime), seriesMetadata.GetSingleValue<DateTime>(DicomTag.SeriesTime));
+                Assert.Equal(referenceDataset.GetSingleValue<int>(DicomTag.SeriesNumber), seriesMetadata.DicomDataset.GetSingleValue<int>(DicomTag.SeriesNumber));
+                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.Laterality), seriesMetadata.DicomDataset.GetSingleValue<string>(DicomTag.Laterality));
+                Assert.Equal(referenceDataset.GetSingleValue<DateTime>(DicomTag.SeriesDate), seriesMetadata.DicomDataset.GetSingleValue<DateTime>(DicomTag.SeriesDate));
+                Assert.Equal(referenceDataset.GetSingleValue<DateTime>(DicomTag.SeriesTime), seriesMetadata.DicomDataset.GetSingleValue<DateTime>(DicomTag.SeriesTime));
             }
         }
 

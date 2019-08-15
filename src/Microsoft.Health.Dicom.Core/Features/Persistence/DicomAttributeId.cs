@@ -65,6 +65,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         [JsonIgnore]
         public DicomTag FinalDicomTag => _dicomTags[Length - 1];
 
+        public static bool operator ==(DicomAttributeId obj1, DicomAttributeId obj2)
+        {
+            if (ReferenceEquals(obj1, obj2))
+            {
+                return true;
+            }
+
+            if (obj1 is null || obj2 is null)
+            {
+                return false;
+            }
+
+            return obj1.Equals(obj2);
+        }
+
+        public static bool operator !=(DicomAttributeId obj1, DicomAttributeId obj2)
+            => !(obj1 == obj2);
+
         public DicomTag GetDicomTag(int index)
         {
             EnsureArg.IsGte(index, 0, nameof(index));

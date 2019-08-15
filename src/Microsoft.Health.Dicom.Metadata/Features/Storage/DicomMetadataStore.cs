@@ -130,7 +130,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                     optionalAttributes?.Each(x => attributes.Add(x));
 
                     bool resultCoalesced = false;
-                    DicomItemInstances[] studyItemInstances = studyMetadata.SeriesMetadata.Values.SelectMany(x => x.DicomItems).ToArray();
+                    var studyItemInstances = new HashSet<DicomItemInstances>(studyMetadata.SeriesMetadata.Values.SelectMany(x => x.DicomItems));
 
                     foreach (DicomAttributeId attributeId in attributes)
                     {
@@ -400,10 +400,10 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 cancellationToken);
         }
 
-        private bool TryAddDicomItem(DicomDataset dicomDataset, IEnumerable<DicomItemInstances> itemInstances, DicomAttributeId attributeId, out bool coalescedResult)
+        private bool TryAddDicomItem(DicomDataset dicomDataset, HashSet<DicomItemInstances> itemInstances, DicomAttributeId attributeId, out bool coalescedResult)
         {
             DicomItemInstances[] attributeValues = itemInstances.Where(x => x.AttributeId == attributeId).ToArray();
-            coalescedResult = attributeValues.Length == 0;
+            coalescedResult = attributeValues.Length > 1;
 
             if (attributeValues.Length == 0)
             {
