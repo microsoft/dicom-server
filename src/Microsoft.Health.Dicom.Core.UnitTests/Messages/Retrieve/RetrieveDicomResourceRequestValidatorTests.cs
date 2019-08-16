@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
         public void GivenIncorrectTransferSyntax_OnValidationOfRetrieveRequest_ErrorReturned(string transferSyntax)
         {
-            const string expectedErrorMessage = "The specified condition was not met for 'Requested Transfer Syntax'.";
+            const string expectedErrorMessage = "The specified condition was not met for 'Requested Representation'.";
             var request = new RetrieveDicomResourceRequest(transferSyntax, Guid.NewGuid().ToString());
 
             ValidateHasError(request, expectedErrorMessage);
