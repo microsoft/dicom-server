@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         public async Task<HttpResult<IReadOnlyList<Stream>>> GetFramesAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null, params int[] frames)
         {
-            var requestUri = new Uri(string.Format(BaseRetrieveFramesUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, string.Join(",", frames)), UriKind.Relative);
+            var requestUri = new Uri(string.Format(BaseRetrieveFramesUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, string.Join("%2C", frames)), UriKind.Relative);
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {

@@ -29,10 +29,29 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         protected DicomWebClient Client { get; set; }
 
         [Theory]
-        [InlineData(new int[] { 0 })]
-        [InlineData(new int[] { -1 })]
-        [InlineData(new int[] { 1, 2, -1 })]
-        public async Task GivenARequestWithFrameLessThanOrEqualTo0_WhenRetrievingFrames_TheServerShouldReturnBadRequest(int[] frames)
+        [InlineData("test")]
+        [InlineData("0", "1", "invalid")]
+        [InlineData("0.6", "1")]
+        public async Task GivenARequestWithNonIntegerFrames_WhenRetrievingFrames_TheServerShouldReturnBadRequest(params string[] frames)
+        {
+            var requestUri = new Uri(string.Format(DicomWebClient.BaseRetrieveFramesUriFormat, DicomUID.Generate(), DicomUID.Generate(), DicomUID.Generate(), string.Join("%2C", frames)), UriKind.Relative);
+
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.Headers.Accept.Add(DicomWebClient.MediaTypeApplicationOctetStream);
+
+                using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(1, 2, -1)]
+        public async Task GivenARequestWithFrameLessThanOrEqualTo0_WhenRetrievingFrames_TheServerShouldReturnBadRequest(params int[] frames)
         {
             HttpResult<IReadOnlyList<Stream>> response = await Client.GetFramesAsync(
                 studyInstanceUID: Guid.NewGuid().ToString(),
