@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,24 +75,24 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<QueryDicomResourcesResponse> QueryDicomStudiesAsync(
-            this IMediator mediator, string[] optionalAttributes, bool fuzzyMatching, int? limit, int offset)
+            this IMediator mediator, IEnumerable<KeyValuePair<string, string>> queryAttributeValues, string[] optionalAttributes, bool fuzzyMatching, int? limit, int offset)
         {
             return mediator.Send(
-                new QueryDicomResourcesRequest(ResourceType.Study, null, optionalAttributes, fuzzyMatching, limit, offset, studyInstanceUID: null, seriesInstanceUID: null));
+                new QueryDicomResourcesRequest(ResourceType.Study, queryAttributeValues, optionalAttributes, fuzzyMatching, limit, offset, studyInstanceUID: null, seriesInstanceUID: null));
         }
 
         public static Task<QueryDicomResourcesResponse> QueryDicomSeriesAsync(
-            this IMediator mediator, string[] optionalAttributes, bool fuzzyMatching, int? limit, int offset, string studyInstanceUID)
+            this IMediator mediator, IEnumerable<KeyValuePair<string, string>> queryAttributeValues, string[] optionalAttributes, bool fuzzyMatching, int? limit, int offset, string studyInstanceUID)
         {
             return mediator.Send(
-                new QueryDicomResourcesRequest(ResourceType.Series, null, optionalAttributes, fuzzyMatching, limit, offset, studyInstanceUID, seriesInstanceUID: null));
+                new QueryDicomResourcesRequest(ResourceType.Series, queryAttributeValues, optionalAttributes, fuzzyMatching, limit, offset, studyInstanceUID, seriesInstanceUID: null));
         }
 
         public static Task<QueryDicomResourcesResponse> QueryDicomInstancesAsync(
-            this IMediator mediator, string[] optionalAttributes, bool fuzzyMatching, int? limit, int offset, string studyInstanceUID, string seriesInstanceUID)
+            this IMediator mediator, IEnumerable<KeyValuePair<string, string>> queryAttributeValues, string[] optionalAttributes, bool fuzzyMatching, int? limit, int offset, string studyInstanceUID, string seriesInstanceUID)
         {
             return mediator.Send(
-                new QueryDicomResourcesRequest(ResourceType.Instance, null, optionalAttributes, fuzzyMatching, limit, offset, studyInstanceUID, seriesInstanceUID));
+                new QueryDicomResourcesRequest(ResourceType.Instance, queryAttributeValues, optionalAttributes, fuzzyMatching, limit, offset, studyInstanceUID, seriesInstanceUID));
         }
     }
 }

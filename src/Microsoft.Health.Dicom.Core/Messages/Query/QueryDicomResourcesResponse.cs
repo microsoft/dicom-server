@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using Dicom;
@@ -12,18 +13,19 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
 {
     public class QueryDicomResourcesResponse : BaseStatusCodeResponse
     {
-        public QueryDicomResourcesResponse(HttpStatusCode statusCode, IList<string> warnings)
-            : base((int)statusCode)
+        public QueryDicomResourcesResponse(int statusCode)
+            : base(statusCode)
         {
-            Warnings = warnings;
-            HasWarning = warnings.Count > 0;
+            Warnings = Array.Empty<string>();
         }
 
         public QueryDicomResourcesResponse(HttpStatusCode statusCode, IEnumerable<DicomDataset> responseMetadata, IList<string> warnings)
-            : this(statusCode, warnings)
+            : base((int)statusCode)
         {
             EnsureArg.IsNotNull(responseMetadata, nameof(responseMetadata));
             ResponseMetadata = responseMetadata;
+            Warnings = warnings;
+            HasWarning = warnings.Count > 0;
         }
 
         public bool HasWarning { get; }

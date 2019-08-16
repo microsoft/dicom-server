@@ -13,6 +13,7 @@ using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Query
@@ -40,19 +41,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Query
 
         public async Task<QueryDicomResourcesResponse> Handle(QueryDicomResourcesRequest message, CancellationToken cancellationToken)
         {
-            switch (message.ResourceType)
+            try
             {
-                case Messages.ResourceType.Study:
-                    return await HandleStudyQueryAsync(message, cancellationToken);
+                switch (message.ResourceType)
+                {
+                    case Messages.ResourceType.Study:
+                        return await HandleStudyQueryAsync(message, cancellationToken);
 
-                case Messages.ResourceType.Series:
-                    return await HandleSeriesQueryAsync(message, cancellationToken);
+                    case Messages.ResourceType.Series:
+                        return await HandleSeriesQueryAsync(message, cancellationToken);
 
-                case Messages.ResourceType.Instance:
-                    return await HandleInstanceQueryAsync(message, cancellationToken);
+                    case Messages.ResourceType.Instance:
+                        return await HandleInstanceQueryAsync(message, cancellationToken);
 
-                default:
-                    throw new NotImplementedException();
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+            catch (DataStoreException e)
+            {
+                return new QueryDicomResourcesResponse(e.StatusCode);
             }
         }
 

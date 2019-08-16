@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -40,13 +41,14 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route("studies/")]
         public async Task<IActionResult> QueryStudiesAsync(string[] includeField = null, bool fuzzyMatching = false, int? limit = null, int offset = 0)
         {
             _logger.LogInformation($"DICOM Web Query Studies Transaction request received.");
 
-            QueryDicomResourcesResponse response = await _mediator.QueryDicomStudiesAsync(includeField, fuzzyMatching, limit, offset);
+            QueryDicomResourcesResponse response = await _mediator.QueryDicomStudiesAsync(GetQueryAttributes(), includeField, fuzzyMatching, limit, offset);
             return ConvertToActionResult(response);
         }
 
@@ -55,6 +57,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/series/")]
         [Route("series/")]
@@ -62,7 +65,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         {
             _logger.LogInformation($"DICOM Web Query Series Transaction request received.");
 
-            QueryDicomResourcesResponse response = await _mediator.QueryDicomSeriesAsync(includeField, fuzzyMatching, limit, offset, studyInstanceUID);
+            QueryDicomResourcesResponse response = await _mediator.QueryDicomSeriesAsync(GetQueryAttributes(), includeField, fuzzyMatching, limit, offset, studyInstanceUID);
             return ConvertToActionResult(response);
         }
 
@@ -71,16 +74,28 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/instances")]
         [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances")]
         [Route("instances/")]
-        public async Task<IActionResult> QueryInstancesAsync(string[] includeField = null, bool fuzzyMatching = false, int? limit = null, int offset = 0)
+        public async Task<IActionResult> QueryInstancesAsync(string[] includeField = null, bool fuzzyMatching = false, int? limit = null, int offset = 0, string studyInstanceUID = null, string seriesInstanceUID = null)
         {
             _logger.LogInformation($"DICOM Web Query Instances Transaction request received.");
 
-            QueryDicomResourcesResponse response = await _mediator.QueryDicomStudiesAsync(includeField, fuzzyMatching, limit, offset);
+            QueryDicomResourcesResponse response = await _mediator.QueryDicomInstancesAsync(GetQueryAttributes(), includeField, fuzzyMatching, limit, offset, studyInstanceUID, seriesInstanceUID);
             return ConvertToActionResult(response);
+        }
+
+        private IEnumerable<KeyValuePair<string, string>> GetQueryAttributes()
+        {
+            const StringComparison stringComparison = StringComparison.InvariantCultureIgnoreCase;
+            return Request.Query
+                .Where(x => !string.Equals(x.Key, "fuzzymatching", stringComparison) &&
+                            !string.Equals(x.Key, "limit", stringComparison) &&
+                            !string.Equals(x.Key, "offset", stringComparison) &&
+                            !string.Equals(x.Key, "includefield", stringComparison))
+                .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString()));
         }
 
         private IActionResult ConvertToActionResult(QueryDicomResourcesResponse response)

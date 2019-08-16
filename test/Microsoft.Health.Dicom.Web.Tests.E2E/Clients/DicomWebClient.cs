@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
@@ -48,19 +49,80 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 => GetInstancesAsync(new Uri(string.Format(BaseRetrieveStudyUriFormat, studyInstanceUID), UriKind.Relative), dicomTransferSyntax);
 
         public Task<HttpResult<IReadOnlyList<DicomDataset>>> GetStudyMetadataAsync(string studyInstanceUID)
-                => GetMetadataAsync(new Uri(string.Format(BaseRetrieveStudyMetadataUriFormat, studyInstanceUID), UriKind.Relative));
+                => ExecuteGetDicomDatasetCollectionRequestAsync(new Uri(string.Format(BaseRetrieveStudyMetadataUriFormat, studyInstanceUID), UriKind.Relative));
 
         public Task<HttpResult<IReadOnlyList<DicomFile>>> GetSeriesAsync(string studyInstanceUID, string seriesInstanceUID, string dicomTransferSyntax = null)
                 => GetInstancesAsync(new Uri(string.Format(BaseRetrieveSeriesUriFormat, studyInstanceUID, seriesInstanceUID), UriKind.Relative), dicomTransferSyntax);
 
         public Task<HttpResult<IReadOnlyList<DicomDataset>>> GetSeriesMetadataAsync(string studyInstanceUID, string seriesInstanceUID)
-                => GetMetadataAsync(new Uri(string.Format(BaseRetrieveSeriesMetadataUriFormat, studyInstanceUID, seriesInstanceUID), UriKind.Relative));
+                => ExecuteGetDicomDatasetCollectionRequestAsync(new Uri(string.Format(BaseRetrieveSeriesMetadataUriFormat, studyInstanceUID, seriesInstanceUID), UriKind.Relative));
 
         public Task<HttpResult<IReadOnlyList<DicomFile>>> GetInstanceAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null)
             => GetInstancesAsync(new Uri(string.Format(BaseRetrieveInstanceUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID), UriKind.Relative), dicomTransferSyntax);
 
         public Task<HttpResult<IReadOnlyList<DicomDataset>>> GetInstanceMetadataAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
-                => GetMetadataAsync(new Uri(string.Format(BaseRetrieveInstanceMetadataUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID), UriKind.Relative));
+                => ExecuteGetDicomDatasetCollectionRequestAsync(new Uri(string.Format(BaseRetrieveInstanceMetadataUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID), UriKind.Relative));
+
+        public async Task<HttpResult<IReadOnlyList<DicomDataset>>> QueryStudiesAsync(
+            IEnumerable<(DicomAttributeId DicomAttribute, string Value)> queryTags = null,
+            IEnumerable<DicomAttributeId> optionalDicomAttributes = null,
+            int offset = 0,
+            int limit = 100,
+            bool fuzzyMatching = false)
+        {
+            return await ExecuteQueryAsync("/studies", queryTags, optionalDicomAttributes, offset, limit, fuzzyMatching);
+        }
+
+        public async Task<HttpResult<IReadOnlyList<DicomDataset>>> QuerySeriesAsync(
+            string studyInstanceUID = null,
+            IEnumerable<(DicomAttributeId DicomAttribute, string Value)> queryTags = null,
+            IEnumerable<DicomAttributeId> optionalDicomAttributes = null,
+            int offset = 0,
+            int limit = 100,
+            bool fuzzyMatching = false)
+        {
+            if (studyInstanceUID != null)
+            {
+                return await ExecuteQueryAsync($"/studies/{studyInstanceUID}/series", queryTags, optionalDicomAttributes, offset, limit, fuzzyMatching);
+            }
+
+            return await ExecuteQueryAsync("/studies", queryTags, optionalDicomAttributes, offset, limit, fuzzyMatching);
+        }
+
+        public async Task<HttpResult<IReadOnlyList<DicomDataset>>> QueryInstancesAsync(
+            string studyInstanceUID = null,
+            string seriesInstanceUID = null,
+            IEnumerable<(DicomAttributeId DicomAttribute, string Value)> queryTags = null,
+            IEnumerable<DicomAttributeId> optionalDicomAttributes = null,
+            int offset = 0,
+            int limit = 100,
+            bool fuzzyMatching = false)
+        {
+            if (seriesInstanceUID != null)
+            {
+                return await ExecuteQueryAsync($"/studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances", queryTags, optionalDicomAttributes, offset, limit, fuzzyMatching);
+            }
+
+            if (studyInstanceUID != null)
+            {
+                return await ExecuteQueryAsync($"/studies/{studyInstanceUID}/instances", queryTags, optionalDicomAttributes, offset, limit, fuzzyMatching);
+            }
+
+            return await ExecuteQueryAsync("/instances", queryTags, optionalDicomAttributes, offset, limit, fuzzyMatching);
+        }
+
+        private async Task<HttpResult<IReadOnlyList<DicomDataset>>> ExecuteQueryAsync(
+            string requestUri,
+            IEnumerable<(DicomAttributeId DicomAttribute, string Value)> queryTags = null,
+            IEnumerable<DicomAttributeId> optionalDicomAttributes = null,
+            int offset = 0,
+            int limit = 100,
+            bool fuzzyMatching = false)
+        {
+            var query = string.Join(string.Empty, queryTags?.Select(x => $"&{x.DicomAttribute.AttributeId}={x.Value}") ?? Array.Empty<string>());
+            var optionalIncludeTags = string.Join(string.Empty, optionalDicomAttributes?.Select(x => $"@includeField={x.AttributeId}") ?? Array.Empty<string>());
+            return await ExecuteGetDicomDatasetCollectionRequestAsync(new Uri($"{requestUri}?offset={offset}&limit={limit}&fuzzyMatching={fuzzyMatching}{query}{optionalIncludeTags}", UriKind.Relative));
+        }
 
         public async Task<HttpResult<IReadOnlyList<Stream>>> GetFramesAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null, params int[] frames)
         {
@@ -104,7 +166,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
-        public async Task<HttpResult<IReadOnlyList<DicomDataset>>> GetMetadataAsync(Uri requestUri)
+        private async Task<HttpResult<IReadOnlyList<DicomDataset>>> ExecuteGetDicomDatasetCollectionRequestAsync(Uri requestUri)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
