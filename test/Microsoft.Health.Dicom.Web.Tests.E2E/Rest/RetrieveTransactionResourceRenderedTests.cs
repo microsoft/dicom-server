@@ -33,61 +33,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         protected DicomWebClient Client { get; set; }
-
-        [Fact]
-        public void Gen_GivenValid8BitSampleData_WhenRendering_ShoudlSaveProperly()
-        {
-            var dirName = "genRendered8bit";
-            if (!Directory.Exists(dirName))
-            {
-                Directory.CreateDirectory(dirName);
-            }
-
-            var fromList = new List<string>
-            {
-                "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
-                "JPEG2000Lossless", "JPEG2000Lossy", "JPEGProcess1", "JPEGProcess2_4", "RLELossless",
-            };
-
-            var fromTsList = fromList.Select(x =>
-                (name: x, transferSyntax: (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(x).GetValue(null)));
-
-            var filesGenerated = 0;
-
-            foreach (var ts in fromTsList)
-            {
-                try
-                {
-                    var dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(transferSyntax: ts.transferSyntax.UID.UID);
-
-                    using (var bmp = new DicomImage(dicomFile.Dataset).RenderImage().AsClonedBitmap())
-                    {
-                        bmp.Save(Path.Combine(dirName, $"{ts.name}.png"), ImageFormat.Png);
-
-                        var resizedSize = (100, 100);
-                        var bmpResized = new Bitmap(resizedSize.Item1, resizedSize.Item2);
-                        using (var graphics = Graphics.FromImage(bmpResized))
-                        {
-                            graphics.CompositingQuality = CompositingQuality.HighSpeed;
-                            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            graphics.CompositingMode = CompositingMode.SourceCopy;
-                            graphics.DrawImage(bmp, 0, 0, resizedSize.Item1, resizedSize.Item2);
-                            bmpResized.Save(Path.Combine(dirName, $"{ts.name}_thumb.png"), ImageFormat.Png);
-                        }
-                    }
-
-                    filesGenerated++;
-                }
-                catch (Exception e)
-                {
-                    output.WriteLine(e.ToString());
-                }
-            }
-
-            Assert.Equal(fromList.Count, filesGenerated);
-        }
-
-        [Fact]
+        
+        [Fact(Skip = "This validates ability to handle parallel processing. This is long running but may come in handy if issues are found in certain environments")]
         public void ConvertCanHandleParallelProcessing()
         {
             var maxFiles = 500;
@@ -120,68 +67,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     bmp.Save(ms, ImageFormat.Png);
                     Assert.NotEqual(0, ms.Length);
                 });
-        }
-
-        [Fact]
-        public async Task Gen_TryOutMultiFrame()
-        {
-            var dirName = "genMultiFrame8bit";
-            if (!Directory.Exists(dirName))
-            {
-                Directory.CreateDirectory(dirName);
-            }
-
-            var dicomFile = DicomImageGenerator.GenerateDicomFile(null, null, null, null, 512, 512, TestFileBitDepth.SixteenBit, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, true, 255);
-            var pixelData = DicomPixelData.Create(dicomFile.Dataset);
-            await dicomFile.SaveAsync(Path.Combine(dirName, $"out.dcm"));
-        }
-
-        [Fact]
-        public void Gen_GivenValid16BitSampleData_WhenRendering_ShoudlSaveProperly()
-        {
-            var dirName = "genRendered16bit";
-            if (!Directory.Exists(dirName))
-            {
-                Directory.CreateDirectory(dirName);
-            }
-
-            var fromList = new List<string>
-            {
-                "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
-                "JPEG2000Lossless", "JPEG2000Lossy", "RLELossless",
-
-                // "JPEGProcess1", "JPEGProcess2_4", <-- are not supported for 16bit data
-            };
-            var fromTsList = fromList.Select(x =>
-                (name: x, transferSyntax: (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(x).GetValue(null)));
-
-            var filesGenerated = 0;
-
-            foreach (var ts in fromTsList)
-            {
-                try
-                {
-                    var dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ts.transferSyntax.UID.UID);
-
-                    var image = new DicomImage(dicomFile.Dataset).RenderImage();
-
-                    var ici = ImageCodecInfo.GetImageEncoders().FirstOrDefault(x => x.MimeType == "image/jpeg");
-                    EncoderParameters ep =
-                        new EncoderParameters(1) { Param = { [0] = new EncoderParameter(Encoder.Quality, 1L) } };
-
-                    // image.AsClonedBitmap().Save(Path.Combine(dirName, $"{ts.name}.png"), ImageFormat.Png);
-
-                    image.AsClonedBitmap().Save(Path.Combine(dirName, $"{ts.name}.jpg"), ici, null);
-
-                    filesGenerated++;
-                }
-                catch (Exception e)
-                {
-                    output.WriteLine(e.ToString());
-                }
-            }
-
-            Assert.Equal(fromList.Count, filesGenerated);
         }
 
         [Fact]
