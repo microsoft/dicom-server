@@ -3,6 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Features\Storage\StoredProcedures\Delete\deleteStoredProcedure.js" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="Features\Transactions\TransactionStoredProcedure.js" />
@@ -23,12 +27,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Features\Transactions\TransactionStoredProcedure.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

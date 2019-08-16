@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 {
-    internal class QuerySeriesDocument
+    internal class QuerySeriesDocument : IDocument
     {
         /// <summary>
         /// The seperator between the Study and Series instance identifiers when creating the document identifier.

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -12,6 +13,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public class DicomInstance
     {
+        private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
+
         [JsonConstructor]
         public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
         {
@@ -49,16 +52,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         {
             if (obj is DicomInstance identity)
             {
-                return StudyInstanceUID.Equals(identity.StudyInstanceUID, DicomStudy.EqualsStringComparison) &&
-                        SeriesInstanceUID.Equals(identity.SeriesInstanceUID, DicomStudy.EqualsStringComparison) &&
-                        SopInstanceUID.Equals(identity.SopInstanceUID, DicomStudy.EqualsStringComparison);
+                return StudyInstanceUID.Equals(identity.StudyInstanceUID, EqualsStringComparison) &&
+                        SeriesInstanceUID.Equals(identity.SeriesInstanceUID, EqualsStringComparison) &&
+                        SopInstanceUID.Equals(identity.SopInstanceUID, EqualsStringComparison);
             }
 
             return false;
         }
 
         public override int GetHashCode()
-            => (StudyInstanceUID + SeriesInstanceUID + SopInstanceUID).GetHashCode(DicomStudy.EqualsStringComparison);
+            => (StudyInstanceUID + SeriesInstanceUID + SopInstanceUID).GetHashCode(EqualsStringComparison);
 
         public override string ToString()
             => $"Study Instance UID: {StudyInstanceUID}, Series Instance UID: {SeriesInstanceUID}, SOP Instance UID {SopInstanceUID}";
