@@ -36,6 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
         /// <param name="columns">height</param>
         /// <param name="transferSyntax">Transfer Syntax</param>
         /// <param name="encode">Whether to encode image according to the supplied transfer syntax. False might result in invalid images</param>
+        /// <param name="frames">Number of frames to generate</param>
         /// <returns>DicomFile</returns>
         public static DicomFile CreateRandomDicomFileWith8BitPixelData(
             string studyInstanceUID = null,
@@ -44,7 +45,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
             int rows = 512,
             int columns = 512,
             string transferSyntax = "1.2.840.10008.1.2.1",  // Explicit VR Little Endian
-            bool encode = true)
+            bool encode = true,
+            int frames = 1)
         {
             var dicomFile = DicomImageGenerator.GenerateDicomFile(
                 studyInstanceUID,
@@ -55,7 +57,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 columns,
                 TestFileBitDepth.EightBit,
                 transferSyntax,
-                encode);
+                encode,
+                frames);
 
             return dicomFile;
         }
@@ -70,6 +73,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
         /// <param name="columns">height</param>
         /// <param name="transferSyntax">Transfer Syntax</param>
         /// <param name="encode">Whether to encode image according to the supplied transfer syntax. False might result in invalid images</param>
+        /// /// <param name="frames">Number of frames to generate</param>
         /// <returns>DicomFile</returns>
         public static DicomFile CreateRandomDicomFileWith16BitPixelData(
             string studyInstanceUID = null,
@@ -78,7 +82,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
             int rows = 512,
             int columns = 512,
             string transferSyntax = "1.2.840.10008.1.2.1", // Explicit VR Little Endian
-            bool encode = true)
+            bool encode = true,
+            int frames = 1)
         {
             var dicomFile = DicomImageGenerator.GenerateDicomFile(
                 studyInstanceUID,
@@ -89,7 +94,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 columns,
                 TestFileBitDepth.SixteenBit,
                 transferSyntax,
-                encode);
+                encode,
+                frames);
 
             return dicomFile;
         }

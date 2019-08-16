@@ -360,7 +360,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         [Theory]
         [InlineData("1.2.840.10008.1.2.4.91")] // JPEG Process 1 - should work, but doesn't for this particular image. Not officially supported
-        public async Task GivenAnExceptionDuringTranscoding_WhenRetrievingStudy_BadRequestIsReturned(string transferSyntax)
+        public async Task GivenAnExceptionDuringTranscoding_WhenRetrievingStudy_EmptyStreamIsReturned(string transferSyntax)
         {
             var dicomFiles = Samples.GetSampleDicomFiles();
 

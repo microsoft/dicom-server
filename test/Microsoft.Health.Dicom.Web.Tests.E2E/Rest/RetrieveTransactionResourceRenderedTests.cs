@@ -123,6 +123,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        public async Task Gen_TryOutMultiFrame()
+        {
+            var dirName = "genMultiFrame8bit";
+            if (!Directory.Exists(dirName))
+            {
+                Directory.CreateDirectory(dirName);
+            }
+
+            var dicomFile = DicomImageGenerator.GenerateDicomFile(null, null, null, null, 512, 512, TestFileBitDepth.SixteenBit, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, true, 255);
+            var pixelData = DicomPixelData.Create(dicomFile.Dataset);
+            await dicomFile.SaveAsync(Path.Combine(dirName, $"out.dcm"));
+        }
+
+        [Fact]
         public void Gen_GivenValid16BitSampleData_WhenRendering_ShoudlSaveProperly()
         {
             var dirName = "genRendered16bit";
@@ -177,15 +191,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
                 "JPEG2000Lossless", "JPEG2000Lossy", "RLELossless",
-
-                // "JPEGProcess1", "JPEGProcess2_4", <-- are not supported for 16bit data
             };
             var fromTsList = fromList.Select(x =>
                 (name: x, transferSyntax: (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(x).GetValue(null)));
 
             foreach (var ts in fromTsList)
             {
-                var dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ts.transferSyntax.UID.UID);
+                var dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ts.transferSyntax.UID.UID, frames: 2);
 
                 HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
                 Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
@@ -200,10 +212,173 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 var img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
 
-                // TODO: get frames rendered
-                // TODO: check proper return content-type
+                getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", false);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
+                img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Png, img.RawFormat);
+
+                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", false, 1);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
+
+                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", false, 2);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
+
+                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", false, 1);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Png, img.RawFormat);
+
+                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", false, 2);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Png, img.RawFormat);
             }
+        }
+
+        [Fact]
+        public async Task GivenValidDicomFile_WhenRetrievingRenderedThumbnail_ShouldReturnValidImage()
+        {
+            var fromList = new List<string>
+            {
+                "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
+                "JPEG2000Lossless", "JPEG2000Lossy", "RLELossless",
+            };
+            var fromTsList = fromList.Select(x =>
+                (name: x, transferSyntax: (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(x).GetValue(null)));
+
+            foreach (var ts in fromTsList)
+            {
+                var dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ts.transferSyntax.UID.UID, frames: 2);
+
+                HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+                Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+
+                var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+                var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+                var sopInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+
+                var getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                var img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
+                Assert.Equal(100, img.Width);
+                Assert.Equal(100, img.Height);
+
+                getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Png, img.RawFormat);
+                Assert.Equal(100, img.Width);
+                Assert.Equal(100, img.Height);
+
+                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true, 1);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
+                Assert.Equal(100, img.Width);
+                Assert.Equal(100, img.Height);
+
+                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true, 2);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
+                Assert.Equal(100, img.Width);
+                Assert.Equal(100, img.Height);
+
+                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true, 1);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Png, img.RawFormat);
+                Assert.Equal(100, img.Width);
+                Assert.Equal(100, img.Height);
+
+                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true, 2);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                img = Image.FromStream(getResponse.Value.Single());
+                Assert.Equal(ImageFormat.Png, img.RawFormat);
+                Assert.Equal(100, img.Width);
+                Assert.Equal(100, img.Height);
+            }
+        }
+
+        [Fact]
+        public async Task GivenInvalidDicomFile_WhenRetrievingRendered_ShouldReturnEmptyStream()
+        {
+            var seriesInstanceUID = DicomUID.Generate();
+            var studyInstanceUID = DicomUID.Generate();
+            var sopInstanceUID = DicomUID.Generate();
+
+            var dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID,
+                sopInstanceUID.UID,
+                transferSyntax: DicomTransferSyntax.JPEG2000Lossless.UID.UID,
+                encode: false);
+
+            HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+
+            var getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/jpeg");
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            Assert.Equal(0, getResponse.Value.Single().Length);
+
+            getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/jpeg", false, 1);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            Assert.Equal(0, getResponse.Value.Single().Length);
+        }
+
+        [Fact]
+        public async Task GivenValidMultiFrameDicomFile_WhenRetrievingMultipleRenderedFrames_ShouldReturnBadRequest()
+        {
+            var seriesInstanceUID = DicomUID.Generate();
+            var studyInstanceUID = DicomUID.Generate();
+            var sopInstanceUID = DicomUID.Generate();
+
+            var dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID,
+                sopInstanceUID.UID,
+                frames: 2);
+
+            HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+
+            var getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/jpeg", false, 1, 2);
+            Assert.Equal(HttpStatusCode.BadRequest, getResponse.StatusCode);
+        }
+
+        [Fact]
+        public async Task GivenValidDicomFile_WhenRequestingUnsupportedMediaType_ShouldReturnBadRequest()
+        {
+            var seriesInstanceUID = DicomUID.Generate();
+            var studyInstanceUID = DicomUID.Generate();
+            var sopInstanceUID = DicomUID.Generate();
+
+            var dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID,
+                sopInstanceUID.UID);
+
+            HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+
+            var getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/tiff", false);
+            Assert.Equal(HttpStatusCode.NotAcceptable, getResponse.StatusCode);
         }
     }
 }

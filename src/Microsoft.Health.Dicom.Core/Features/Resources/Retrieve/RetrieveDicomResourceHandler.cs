@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -49,6 +51,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             DicomTransferSyntax.ImplicitVRLittleEndian,
             DicomTransferSyntax.RLELossless,
         };
+
+        private static readonly Size _thumbnailSize = new Size(100, 100);
 
         public RetrieveDicomResourceHandler(IDicomMetadataStore dicomMetadataStore, DicomDataStore dicomDataStore)
             : base(dicomMetadataStore)
@@ -124,7 +128,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                         resultStreams = message.Frames.Select(
                                 x => new LazyTransformReadOnlyStream<DicomFile>(
                                     dicomFile,
-                                    y => GetFrameAsImage(y, x - 1, imageRepresentation)))
+                                    y => GetFrameAsImage(y, x - 1, imageRepresentation, message.ThumbnailRequested)))
                             .ToArray();
                     }
                     else
@@ -151,7 +155,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                         resultStreams = resultStreams.Select(x =>
                             new LazyTransformReadOnlyStream<Stream>(
                                 x,
-                                y => EncodeDicomFileAsImage(y, imageRepresentation))).ToArray();
+                                y => EncodeDicomFileAsImage(y, imageRepresentation, message.ThumbnailRequested))).ToArray();
                     }
                     else
                     {
@@ -249,17 +253,41 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
         }
 
-        private static Stream EncodeDicomFileAsImage(Stream stream, ImageRepresentationModel imageRepresentation)
+        private static Stream EncodeDicomFileAsImage(Stream stream, ImageRepresentationModel imageRepresentation, bool thumbnail)
         {
             var tempDicomFile = DicomFile.Open(stream);
             var ms = new MemoryStream();
 
-            using (var image = new DicomImage(tempDicomFile.Dataset).RenderImage())
+            try
             {
-                image.AsClonedBitmap().Save(ms, imageRepresentation.CodecInfo, imageRepresentation.EncoderParameters);
+                using (var image = new DicomImage(tempDicomFile.Dataset).RenderImage().AsClonedBitmap())
+                {
+                    var bmp = image;
+                    if (thumbnail)
+                    {
+                        var bmpResized = new Bitmap(_thumbnailSize.Width, _thumbnailSize.Height);
+                        using (var graphics = Graphics.FromImage(bmpResized))
+                        {
+                            graphics.CompositingQuality = CompositingQuality.HighSpeed;
+                            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                            graphics.CompositingMode = CompositingMode.SourceCopy;
+                            graphics.DrawImage(image, 0, 0, _thumbnailSize.Width, _thumbnailSize.Height);
+                        }
+
+                        bmp = bmpResized;
+                    }
+
+                    bmp.Save(ms, imageRepresentation.CodecInfo, imageRepresentation.EncoderParameters);
+                }
+
+                ms.Seek(0, SeekOrigin.Begin);
+            }
+            catch
+            {
+                // We catch all here because rendering may throw for a variety of reasons.
+                // Most likely, this is a corrupt image
             }
 
-            ms.Seek(0, SeekOrigin.Begin);
             return ms;
         }
 
@@ -289,13 +317,38 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             return new MemoryStream(resultByteBuffer.Data);
         }
 
-        private static Stream GetFrameAsImage(DicomFile dicomFile, int frame, ImageRepresentationModel imageRepresentation)
+        private static Stream GetFrameAsImage(DicomFile dicomFile, int frame, ImageRepresentationModel imageRepresentation, bool thumbnail)
         {
             var ms = new MemoryStream();
 
-            using (var image = new DicomImage(dicomFile.Dataset).RenderImage(frame))
+            try
             {
-                image.AsClonedBitmap().Save(ms, imageRepresentation.CodecInfo, imageRepresentation.EncoderParameters);
+                using (var image = new DicomImage(dicomFile.Dataset).RenderImage(frame).AsClonedBitmap())
+                {
+                    var bmp = image;
+                    if (thumbnail)
+                    {
+                        var bmpResized = new Bitmap(_thumbnailSize.Width, _thumbnailSize.Height);
+                        using (var graphics = Graphics.FromImage(bmpResized))
+                        {
+                            graphics.CompositingQuality = CompositingQuality.HighSpeed;
+                            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                            graphics.CompositingMode = CompositingMode.SourceCopy;
+                            graphics.DrawImage(image, 0, 0, _thumbnailSize.Width, _thumbnailSize.Height);
+                        }
+
+                        bmp = bmpResized;
+                    }
+
+                    bmp.Save(ms, imageRepresentation.CodecInfo, imageRepresentation.EncoderParameters);
+                }
+
+                ms.Seek(0, SeekOrigin.Begin);
+            }
+            catch
+            {
+                // We catch all here because rendering may throw for a variety of reasons.
+                // Most likely, this is a corrupt image
             }
 
             return ms;

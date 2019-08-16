@@ -50,6 +50,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
                 })
                 .When(x => x.RenderedRequested);
 
+            // Only allow one frame if rendered frame requested
+            RuleFor(x => x.Frames)
+                .Must(x => x != null && x.Any() && x.Count() == 1)
+                .When(x => x.ResourceType == ResourceType.Frames && x.RenderedRequested);
+
             // Check the frames has at least one when requested, and all requested frames are > 0.
             RuleFor(x => x.Frames)
                 .Must(x => x != null && x.Any() && x.Any(y => y <= 0) == false)

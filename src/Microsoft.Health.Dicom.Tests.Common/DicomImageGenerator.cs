@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
 
     public class DicomImageGenerator
     {
-        private static byte[] GetBytesFor8BitImage(int rows, int cols)
+        private static byte[] GetBytesFor8BitImage(int rows, int cols, int seed = 0)
         {
             var pixelDataSize = rows * cols;
             var bytes = new byte[pixelDataSize];
@@ -29,16 +29,13 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 var x = i % rows;
                 var y = i / cols;
 
-                bytes[i] = (byte)Math.Clamp(
-                    16 * (Math.Round(16.0f * x / (rows + cols)) + Math.Round(16.0f * y * y / cols / (rows + cols))),
-                    0,
-                    255);
+                bytes[i] = (byte)(((16 * (Math.Round(16.0f * x / (rows + cols)) + Math.Round(16.0f * y * y / cols / (rows + cols)))) + (seed * 16)) % 255);
             }
 
             return bytes;
         }
 
-        private static byte[] GetBytesFor16BitImage(int rows, int cols)
+        private static byte[] GetBytesFor16BitImage(int rows, int cols, int seed = 0)
         {
             var pixelDataSize = rows * cols;
             var result = new byte[pixelDataSize * 2];
@@ -49,9 +46,9 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 var y = (i / 2) / cols;
 
                 // We want something with sharp gradients, full range and non-symmetric
-                ushort pixel = (ushort)Math.Clamp(
-                    4069.0f * (Math.Round(16.0f * x / (rows + cols)) + Math.Round(16.0f * y * y / cols / (rows + cols))),
-                    0,
+                ushort pixel = (ushort)(
+                    ((4096.0f * (Math.Round(16.0f * x / (rows + cols)) + Math.Round(16.0f * y * y / cols / (rows + cols)))) +
+                    (seed * 4096)) %
                     ushort.MaxValue);
 
                 result[i + 1] = (byte)(pixel >> 8);
@@ -70,7 +67,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
             int cols,
             TestFileBitDepth bitDepth,
             string transferSyntax,
-            bool encode)
+            bool encode,
+            int frames = 1)
         {
             var initialTs = DicomTransferSyntax.ExplicitVRLittleEndian;
 
@@ -98,12 +96,15 @@ namespace Microsoft.Health.Dicom.Tests.Common
             pixelData.HighBit = (ushort)(bitDepth - 1);
             pixelData.PixelRepresentation = PixelRepresentation.Unsigned;
 
-            var buffer = new MemoryByteBuffer(
-                (bitDepth == TestFileBitDepth.SixteenBit) ?
-                    GetBytesFor16BitImage(rows, cols) :
-                    GetBytesFor8BitImage(rows, cols));
+            for (int i = 0; i < frames; i++)
+            {
+                var buffer = new MemoryByteBuffer(
+                    (bitDepth == TestFileBitDepth.SixteenBit)
+                        ? GetBytesFor16BitImage(rows, cols, i)
+                        : GetBytesFor8BitImage(rows, cols, i));
 
-            pixelData.AddFrame(buffer);
+                pixelData.AddFrame(buffer);
+            }
 
             if (encode && transferSyntax != DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID)
             {
