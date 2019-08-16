@@ -19,9 +19,14 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.StoredProcedures.Dele
     internal class DeleteStoredProcedure : StoredProcedureBase, IDicomStoredProcedure
     {
         public Task<StoredProcedureResponse<IList<string>>> Execute(
-            IDocumentClient client, string databaseId, string collectionId, string partitionKey, IEnumerable<IDocument> documents, CancellationToken cancellationToken = default)
+            IDocumentClient client, string databaseId, string collectionId, string partitionKey, IReadOnlyCollection<IDocument> documents, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(client, nameof(client));
+            EnsureArg.IsNotNullOrWhiteSpace(databaseId, nameof(databaseId));
+            EnsureArg.IsNotNullOrWhiteSpace(collectionId, nameof(collectionId));
+            EnsureArg.IsNotNullOrWhiteSpace(partitionKey, nameof(partitionKey));
+            EnsureArg.HasItems(documents, nameof(documents));
+
             Uri collectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, collectionId);
             IEnumerable<DeleteItem> deleteItems = documents.Select(x => new DeleteItem(UriFactory.CreateDocumentUri(databaseId, collectionId, x.Id), x.ETag));
 

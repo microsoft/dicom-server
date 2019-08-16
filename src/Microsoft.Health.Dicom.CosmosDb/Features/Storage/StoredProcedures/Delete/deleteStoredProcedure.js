@@ -8,39 +8,30 @@
 
 function commit(items) {
     const response = getContext().getResponse();
-    var collection = getContext().getCollection();
+    const collection = getContext().getCollection();
 
     let deletedResourceIdList = new Array();
-    tryDelete(items);
 
-    function tryDelete(documents) {
-        if (documents.length > 0) {
-            deletedResourceIdList.push(documents[0].documentLink);
+    items.forEach(function (item) {
+        deletedResourceIdList.push(item.documentLink);
 
-            // Delete the first item.
-            var isAccepted = collection.deleteDocument(
-                documents[0].documentLink,
-                { etag: documents[0].documentETag },
-                function (err, resource) {
-                    if (err) {
-                        throw err;
-                    }
+        // Delete the first item.
+        var isAccepted = collection.deleteDocument(
+            item.documentLink,
+            { etag: item.documentETag },
+            function (err, resource) {
+                if (err) {
+                    throw err;
+                }
 
-                    // Successfully deleted the item, continue deleting.
-                    documents.shift();
-                    tryDelete(documents);
-                });
+                // Successfully deleted the item, continue deleting.
+            });
 
-            if (!isAccepted) {
-                // We ran out of time.
-                throwTooManyRequestsError();
-            }
-        } else {
-            response.setBody(deletedResourceIdList);
+        if (!isAccepted) {
+            // We ran out of time.
+            throw new Error(ErrorCodes.RequestEntityTooLarge, `The request could not be completed.`);
         }
-    }
+    });
 
-    function throwTooManyRequestsError() {
-        throw new Error(ErrorCodes.RequestEntityTooLarge, `The request could not be completed.`);
-    }
+    response.setBody(deletedResourceIdList);
 }
