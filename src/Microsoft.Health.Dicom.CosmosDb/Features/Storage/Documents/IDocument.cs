@@ -3,18 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Microsoft.Health.Dicom.CosmosDb.Features.Transactions
+namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 {
-    public interface ITransaction : IDisposable
+    public interface IDocument
     {
-        Task CommitAsync(CancellationToken cancellationToken = default);
+        string Id { get; }
 
-        void Abort();
-
-        void DeleteDocument(string documentId, string documentETag);
+        string ETag { get; set; }
     }
 }

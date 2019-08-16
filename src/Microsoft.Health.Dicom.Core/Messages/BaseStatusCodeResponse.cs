@@ -9,9 +9,11 @@ namespace Microsoft.Health.Dicom.Core.Messages
 {
     public abstract class BaseStatusCodeResponse
     {
+        private const int MinimumStatusCode = 100;
+
         public BaseStatusCodeResponse(int statusCode)
         {
-            EnsureArg.IsGte(statusCode, 100, nameof(statusCode));
+            EnsureArg.IsGte(statusCode, MinimumStatusCode, nameof(statusCode));
 
             StatusCode = statusCode;
         }
