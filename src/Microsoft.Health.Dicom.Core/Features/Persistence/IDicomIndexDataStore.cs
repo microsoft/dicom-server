@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public interface IDicomIndexDataStore
     {
-        Task IndexInstanceAsync(DicomDataset dicomDataset, CancellationToken cancellationToken = default);
+        Task IndexSeriesAsync(IReadOnlyCollection<DicomDataset> series, CancellationToken cancellationToken = default);
 
         Task<QueryResult<DicomStudy>> QueryStudiesAsync(
             int offset,
@@ -35,13 +35,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             IEnumerable<(DicomAttributeId Attribute, string Value)> query = null,
             CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Delete the provided series index.
-        /// </summary>
-        /// <param name="studyInstanceUID">The study instance unique identifier.</param>
-        /// <param name="seriesInstanceUID">The series instance unique identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The collection of instances that were deleted from this series.</returns>
+        Task<IEnumerable<DicomInstance>> DeleteStudyIndexAsync(string studyInstanceUID, CancellationToken cancellationToken = default);
+
         Task<IEnumerable<DicomInstance>> DeleteSeriesIndexAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default);
 
         Task DeleteInstanceIndexAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken = default);

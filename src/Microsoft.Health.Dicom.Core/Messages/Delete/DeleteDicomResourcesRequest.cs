@@ -9,33 +9,33 @@ namespace Microsoft.Health.Dicom.Core.Messages.Delete
 {
     public class DeleteDicomResourcesRequest : IRequest<DeleteDicomResourcesResponse>
     {
-        public DeleteDicomResourcesRequest(string studyInstanceUID, string seriesUID, string instanceUID)
-        {
-            StudyInstanceUID = studyInstanceUID;
-            SeriesUID = seriesUID;
-            InstanceUID = instanceUID;
-            ResourceType = DeleteResourceType.Instance;
-        }
-
-        public DeleteDicomResourcesRequest(string studyInstanceUID, string seriesUID)
-        {
-            StudyInstanceUID = studyInstanceUID;
-            SeriesUID = seriesUID;
-            ResourceType = DeleteResourceType.Series;
-        }
-
         public DeleteDicomResourcesRequest(string studyInstanceUID)
         {
             StudyInstanceUID = studyInstanceUID;
-            ResourceType = DeleteResourceType.Study;
+            ResourceType = ResourceType.Study;
         }
 
-        public DeleteResourceType ResourceType { get; }
+        public DeleteDicomResourcesRequest(string studyInstanceUID, string seriesInstanceUID)
+        {
+            StudyInstanceUID = studyInstanceUID;
+            SeriesInstanceUID = seriesInstanceUID;
+            ResourceType = ResourceType.Series;
+        }
+
+        public DeleteDicomResourcesRequest(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+        {
+            StudyInstanceUID = studyInstanceUID;
+            SeriesInstanceUID = seriesInstanceUID;
+            SopInstanceUID = sopInstanceUID;
+            ResourceType = ResourceType.Instance;
+        }
+
+        public ResourceType ResourceType { get; }
 
         public string StudyInstanceUID { get; }
 
-        public string SeriesUID { get; }
+        public string SeriesInstanceUID { get; }
 
-        public string InstanceUID { get; }
+        public string SopInstanceUID { get; }
     }
 }

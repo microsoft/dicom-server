@@ -3,12 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Messages.Delete
+namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 {
-    public enum DeleteResourceType
+    public interface IDocument
     {
-        Study,
-        Series,
-        Instance,
+        string Id { get; }
+
+        string ETag { get; set; }
     }
 }

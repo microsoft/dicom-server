@@ -13,17 +13,22 @@ namespace Microsoft.Health.Dicom.Core.Messages.Delete
     {
         public DeleteDicomResourcesRequestValidator()
         {
-            // Only validate the UIDs when provided.
+            // Validate the provided identifiers conform correctly.
+            RuleFor(x => x.SopInstanceUID)
+                .SetValidator(new DicomIdentifierValidator())
+                .When(x => x.ResourceType == ResourceType.Instance);
+            RuleFor(x => x.SeriesInstanceUID)
+                .SetValidator(new DicomIdentifierValidator())
+                .When(x => x.ResourceType != ResourceType.Study);
             RuleFor(x => x.StudyInstanceUID)
                 .SetValidator(new DicomIdentifierValidator());
 
-            RuleFor(x => x.SeriesUID)
-                .SetValidator(new DicomIdentifierValidator())
-                .When(x => x.ResourceType != DeleteResourceType.Study);
-
-            RuleFor(x => x.InstanceUID)
-                .SetValidator(new DicomIdentifierValidator())
-                .When(x => x.ResourceType == DeleteResourceType.Instance);
+            // Check for non-repeated identifiers.
+            RuleFor(x => x)
+                .Must(x => x.StudyInstanceUID != x.SeriesInstanceUID && x.StudyInstanceUID != x.SopInstanceUID);
+            RuleFor(x => x)
+                .Must(x => x.SeriesInstanceUID != x.SopInstanceUID)
+                .When(x => x.ResourceType != ResourceType.Study);
         }
     }
 }

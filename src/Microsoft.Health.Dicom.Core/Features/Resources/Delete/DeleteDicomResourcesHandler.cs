@@ -3,44 +3,27 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Resources.Store;
-using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
 {
     public class DeleteDicomResourcesHandler : IRequestHandler<DeleteDicomResourcesRequest, DeleteDicomResourcesResponse>
     {
-        private readonly ILogger<DeleteDicomResourcesHandler> _logger;
-        private readonly IDicomRouteProvider _dicomRouteProvider;
-        private readonly IDicomBlobDataStore _dicomBlobDataStore;
-        private readonly IDicomMetadataStore _dicomMetadataStore;
+        private readonly DicomDataStore _dicomDataStore;
 
-        public DeleteDicomResourcesHandler(
-            ILogger<DeleteDicomResourcesHandler> logger,
-            IDicomRouteProvider dicomRouteProvider,
-            IDicomBlobDataStore dicomBlobDataStore,
-            IDicomMetadataStore dicomMetadataStore)
+        public DeleteDicomResourcesHandler(DicomDataStore dicomDataStore)
         {
-            EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(dicomRouteProvider, nameof(dicomRouteProvider));
-            EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
-            EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
+            EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
 
-            _logger = logger;
-            _dicomRouteProvider = dicomRouteProvider;
-            _dicomBlobDataStore = dicomBlobDataStore;
-            _dicomMetadataStore = dicomMetadataStore;
+            _dicomDataStore = dicomDataStore;
         }
 
         /// <inheritdoc />
@@ -48,37 +31,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
         {
             EnsureArg.IsNotNull(message, nameof(message));
 
-            // Delete metadata and retrieve list of instances
-            IEnumerable<DicomInstance> instancesToDelete = null;
             try
             {
                 switch (message.ResourceType)
                 {
-                    case DeleteResourceType.Study:
-                        instancesToDelete = await _dicomMetadataStore.DeleteStudyAsync(message.StudyInstanceUID, cancellationToken);
+                    case ResourceType.Study:
+                        await _dicomDataStore.DeleteStudyAsync(message.StudyInstanceUID, cancellationToken);
                         break;
-                    case DeleteResourceType.Series:
-                        instancesToDelete = await _dicomMetadataStore.DeleteSeriesAsync(message.StudyInstanceUID, message.SeriesUID, cancellationToken);
+                    case ResourceType.Series:
+                        await _dicomDataStore.DeleteSeriesAsync(message.StudyInstanceUID, message.SeriesInstanceUID, cancellationToken);
                         break;
-                    case DeleteResourceType.Instance:
-                        await _dicomMetadataStore.DeleteInstanceAsync(message.StudyInstanceUID, message.SeriesUID, message.InstanceUID, cancellationToken);
-                        instancesToDelete = new DicomInstance[] { new DicomInstance(message.StudyInstanceUID, message.SeriesUID, message.InstanceUID) };
+                    case ResourceType.Instance:
+                        await _dicomDataStore.DeleteInstanceAsync(message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID, cancellationToken);
                         break;
+                    default:
+                        throw new ArgumentException($"Unkown delete transaction type: {message.ResourceType}", nameof(message));
                 }
             }
             catch (DataStoreException e)
             {
-                return new DeleteDicomResourcesResponse((HttpStatusCode)e.StatusCode);
-            }
-
-            // Delete instance blobs
-            try
-            {
-                await Task.WhenAll(instancesToDelete.Select(x => _dicomBlobDataStore.DeleteFileIfExistsAsync(StoreDicomResourcesHandler.GetBlobStorageName(x), cancellationToken)));
-            }
-            catch (DataStoreException e)
-            {
-                return new DeleteDicomResourcesResponse((HttpStatusCode)e.StatusCode);
+                return new DeleteDicomResourcesResponse(e.StatusCode);
             }
 
             return new DeleteDicomResourcesResponse(HttpStatusCode.OK);

@@ -12,13 +12,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public class DicomStudy
     {
-        internal const StringComparison EqualsStringComparison = StringComparison.Ordinal;
+        private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
 
         [JsonConstructor]
         public DicomStudy(string studyInstanceUID)
         {
             // Run the instance identifiers through the regular expression check.
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyInstanceUID), nameof(studyInstanceUID));
+            EnsureArg.Matches(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyInstanceUID));
 
             StudyInstanceUID = studyInstanceUID;
         }

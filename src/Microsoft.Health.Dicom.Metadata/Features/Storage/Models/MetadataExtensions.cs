@@ -99,7 +99,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage.Models
         private static void AddInstance(DicomSeriesMetadata dicomSeriesMetadata, DicomDataset dicomDataset, IEnumerable<DicomAttributeId> indexableAttributes)
         {
             var sopInstanceUID = dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty);
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(sopInstanceUID));
+            EnsureArg.Matches(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(sopInstanceUID));
 
             int instanceId = dicomSeriesMetadata.CreateOrGetInstanceIdentifier(sopInstanceUID);
             HashSet<DicomItemInstances> attributeValues = dicomSeriesMetadata.DicomItems;

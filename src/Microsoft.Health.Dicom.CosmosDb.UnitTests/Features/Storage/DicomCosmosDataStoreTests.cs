@@ -11,6 +11,7 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.CosmosDb.Configs;
 using Microsoft.Health.Dicom.CosmosDb.Config;
+using Microsoft.Health.Dicom.CosmosDb.Features;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage;
 using Microsoft.Health.Extensions.DependencyInjection;
 using NSubstitute;

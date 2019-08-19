@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -10,19 +11,29 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    public class DicomInstance : DicomSeries
+    public class DicomInstance
     {
+        private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
+
         [JsonConstructor]
         public DicomInstance(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
-            : base(studyInstanceUID, seriesInstanceUID)
         {
             // Run the instance identifiers through the regular expression check.
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(sopInstanceUID), nameof(sopInstanceUID));
+            EnsureArg.Matches(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyInstanceUID));
+            EnsureArg.Matches(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
+            EnsureArg.Matches(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(sopInstanceUID));
+            EnsureArg.IsNotEqualTo(studyInstanceUID, seriesInstanceUID, nameof(seriesInstanceUID));
             EnsureArg.IsNotEqualTo(sopInstanceUID, studyInstanceUID, nameof(sopInstanceUID));
             EnsureArg.IsNotEqualTo(sopInstanceUID, seriesInstanceUID, nameof(sopInstanceUID));
 
+            StudyInstanceUID = studyInstanceUID;
+            SeriesInstanceUID = seriesInstanceUID;
             SopInstanceUID = sopInstanceUID;
         }
+
+        public string StudyInstanceUID { get; }
+
+        public string SeriesInstanceUID { get; }
 
         public string SopInstanceUID { get; }
 

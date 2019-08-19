@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 {
-    internal class QuerySeriesDocument
+    internal class QuerySeriesDocument : IDocument
     {
         /// <summary>
         /// The seperator between the Study and Series instance identifiers when creating the document identifier.
@@ -84,21 +84,21 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
         public static string GetDocumentId(string studyUID, string seriesUID)
         {
-            EnsureArg.IsFalse(studyUID == seriesUID);
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyUID));
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesUID));
+            EnsureArg.IsNotEqualTo(seriesUID, studyUID, nameof(seriesUID));
+            EnsureArg.Matches(studyUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyUID));
+            EnsureArg.Matches(seriesUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesUID));
 
             string documentId = $"{studyUID}{DocumentIdSeperator}{seriesUID}";
 
             // Double safety for the document identifier. If the study and series are valid identifiers, the document ID 'should' conform.
-            EnsureArg.IsTrue(DocumentIdRegex.IsMatch(documentId));
+            EnsureArg.Matches(documentId, DocumentIdRegex, nameof(documentId));
 
             return documentId;
         }
 
         public static string GetPartitionKey(string studyUID)
         {
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyUID));
+            EnsureArg.Matches(studyUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyUID));
 
             return studyUID;
         }
