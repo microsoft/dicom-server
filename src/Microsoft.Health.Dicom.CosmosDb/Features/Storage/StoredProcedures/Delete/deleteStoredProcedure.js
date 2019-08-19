@@ -15,7 +15,6 @@ function commit(items) {
     items.forEach(function (item) {
         deletedResourceIdList.push(item.documentLink);
 
-        // Delete the first item.
         var isAccepted = collection.deleteDocument(
             item.documentLink,
             { etag: item.documentETag },
