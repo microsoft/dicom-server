@@ -55,8 +55,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     var dicomFile = DicomFile.Open(resultStreams.Single());
                     ValidateHasFrames(dicomFile, message.Frames);
 
+                    // Note: We subtract 1 from each frame, as frames are 0 based.
                     resultStreams = message.Frames.Select(
-                        x => new LazyTransformReadOnlyStream<DicomFile>(dicomFile, y => GetFrame(y, x, parsedDicomTransferSyntax)))
+                        x => new LazyTransformReadOnlyStream<DicomFile>(dicomFile, y => GetFrame(y, x - 1, parsedDicomTransferSyntax)))
                         .ToArray();
                 }
                 else
@@ -136,8 +137,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 throw new DataStoreException(HttpStatusCode.NotFound);
             }
 
+            // Note: We look for any frame value that is 0 or less, or greater than number of frames.
+            // As number of frames is 0 based, but incoming frame requests start at 1, we are converting in this check.
             var pixelData = DicomPixelData.Create(dataset);
-            var missingFrames = frames.Where(x => x >= pixelData.NumberOfFrames || x < 0).ToArray();
+            var missingFrames = frames.Where(x => x > pixelData.NumberOfFrames || x <= 0).ToArray();
 
             // If any missing frames, throw not found exception for the specific frames not found.
             if (missingFrames.Length > 0)
