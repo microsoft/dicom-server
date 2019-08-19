@@ -157,7 +157,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             HashSet<DicomAttributeId> optionalAttributes = null,
             CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID), nameof(seriesInstanceUID));
+            EnsureArg.Matches(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
             return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
@@ -210,7 +210,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         /// <inheritdoc />
         public async Task<IEnumerable<DicomInstance>> GetInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID), nameof(seriesInstanceUID));
+            EnsureArg.Matches(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
             return await cloudBlockBlob.CatchStorageExceptionAndThrowDataStoreException(
@@ -254,7 +254,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         /// <inheritdoc />
         public async Task<IEnumerable<DicomInstance>> DeleteSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID), nameof(seriesInstanceUID));
+            EnsureArg.Matches(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
             // Retry when the pre-condition fails on replace (ETag check).
@@ -293,8 +293,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         /// <inheritdoc />
         public async Task DeleteInstanceAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(seriesInstanceUID), nameof(seriesInstanceUID));
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(sopInstanceUID), nameof(sopInstanceUID));
+            EnsureArg.Matches(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
+            EnsureArg.Matches(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(sopInstanceUID));
             CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
 
             // Retry when the pre-condition fails on replace (ETag check).
@@ -334,7 +334,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
         private CloudBlockBlob GetStudyMetadataBlockBlobAndValidateId(string studyInstanceUID)
         {
-            EnsureArg.IsTrue(DicomIdentifierValidator.IdentifierRegex.IsMatch(studyInstanceUID), nameof(studyInstanceUID));
+            EnsureArg.Matches(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyInstanceUID));
 
             var blobName = $"{studyInstanceUID}_metadata";
 

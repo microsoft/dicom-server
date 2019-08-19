@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.CosmosDb.Config;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents;
+using Microsoft.Health.Dicom.CosmosDb.Features.Storage.StoredProcedures.Delete;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Polly;
 
@@ -58,13 +59,27 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task IndexInstanceAsync(DicomDataset dicomDataset, CancellationToken cancellationToken = default)
+        public async Task IndexSeriesAsync(IReadOnlyCollection<DicomDataset> instances, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(instances, nameof(instances));
+            EnsureArg.HasItems(instances, nameof(instances));
 
-            var dicomInstance = DicomInstance.Create(dicomDataset);
-            var defaultDocument = new QuerySeriesDocument(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID);
+            DicomInstance referenceInstance = null;
+            foreach (DicomDataset instance in instances)
+            {
+                var dicomInstance = DicomInstance.Create(instance);
+                if (referenceInstance == null)
+                {
+                    referenceInstance = dicomInstance;
+                }
+                else if (dicomInstance.StudyInstanceUID != referenceInstance.StudyInstanceUID ||
+                            dicomInstance.SeriesInstanceUID != referenceInstance.SeriesInstanceUID)
+                {
+                    throw new ArgumentException("Not all of the provided instances belong to the same study or series.", nameof(instances));
+                }
+            }
 
+            var defaultDocument = new QuerySeriesDocument(referenceInstance.StudyInstanceUID, referenceInstance.SeriesInstanceUID);
             RequestOptions requestOptions = CreateRequestOptions(defaultDocument.PartitionKey);
 
             // Retry when the pre-condition fails on replace (ETag check).
@@ -74,11 +89,14 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                 {
                     QuerySeriesDocument document = await documentClient.GetOrCreateDocumentAsync(_databaseId, _collectionId, defaultDocument.Id, requestOptions, defaultDocument, cancellationToken);
 
-                    var instance = QueryInstance.Create(dicomDataset, _dicomConfiguration.QueryAttributes);
-
-                    if (!document.AddInstance(instance))
+                    foreach (DicomDataset instance in instances)
                     {
-                        throw new DataStoreException(HttpStatusCode.Conflict);
+                        var queryInstance = QueryInstance.Create(instance, _dicomConfiguration.QueryAttributes);
+
+                        if (!document.AddInstance(queryInstance))
+                        {
+                            throw new DataStoreException(HttpStatusCode.Conflict);
+                        }
                     }
 
                     // Note, we do a replace (rather than upsert) in case the document is deleted.
@@ -112,6 +130,45 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
         {
             SqlQuerySpec sqlQuerySpec = _queryBuilder.BuildInstanceQuerySpec(offset, limit, query);
             return await ExecuteQueryAsync<DicomInstance>(sqlQuerySpec, studyInstanceUID, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<DicomInstance>> DeleteStudyIndexAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
+
+            string partitionKey = QuerySeriesDocument.GetPartitionKey(studyInstanceUID);
+            IDocumentQuery<QuerySeriesDocument> studyQuery = _documentClient.CreateDocumentQuery<QuerySeriesDocument>(_collectionUri, CreateFeedOptions(partitionKey))
+                                                                            .AsDocumentQuery();
+            var deletedInstances = new List<DicomInstance>();
+            var deleteDocuments = new List<IDocument>();
+
+            // Retry when the pre-condition fails on delete.
+            IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
+
+            while (studyQuery.HasMoreResults)
+            {
+                await _documentClient.CatchClientExceptionAndThrowDataStoreException(
+                    async (documentClient) =>
+                    {
+                        FeedResponse<QuerySeriesDocument> seriesDocuments = await studyQuery.ExecuteNextAsync<QuerySeriesDocument>(cancellationToken);
+
+                        foreach (QuerySeriesDocument seriesDocument in seriesDocuments)
+                        {
+                            deleteDocuments.Add(seriesDocument);
+                            deletedInstances.AddRange(seriesDocument.Instances.Select(x => new DicomInstance(seriesDocument.StudyUID, seriesDocument.SeriesUID, x.InstanceUID)));
+                        }
+                    },
+                    retryPolicy);
+            }
+
+            // Delete all the series using a stored procedure (single transaction).
+            var deleteStoredProcedure = new DeleteStoredProcedure();
+            await _documentClient.CatchClientExceptionAndThrowDataStoreException(
+                x => deleteStoredProcedure.Execute(x, _databaseId, _collectionId, partitionKey, deleteDocuments, cancellationToken),
+                retryPolicy);
+
+            return deletedInstances;
         }
 
         /// <inheritdoc />

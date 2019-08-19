@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dicom.Serialization;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -15,6 +16,7 @@ using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Metadata.Config;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
+using Newtonsoft.Json;
 using NSubstitute;
 using Xunit;
 using BlobConstants = Microsoft.Health.Dicom.Blob.Constants;
@@ -43,6 +45,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IDicomMetadataStore DicomMetadataStore { get; private set; }
 
+        public IDicomInstanceMetadataStore DicomInstanceMetadataStore { get; private set; }
+
         public async Task InitializeAsync()
         {
             IOptionsMonitor<BlobContainerConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
@@ -62,8 +66,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                                             _blobDataStoreConfiguration,
                                             new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
 
+            var jsonSerializer = new JsonSerializer();
+            jsonSerializer.Converters.Add(new JsonDicomConverter());
+
             DicomBlobDataStore = new DicomBlobDataStore(_blobClient, optionsMonitor, NullLogger<DicomBlobDataStore>.Instance);
             DicomMetadataStore = new DicomMetadataStore(_blobClient, optionsMonitor, new DicomMetadataConfiguration(), NullLogger<DicomMetadataStore>.Instance);
+            DicomInstanceMetadataStore = new DicomInstanceMetadataStore(_blobClient, jsonSerializer, optionsMonitor, NullLogger<DicomInstanceMetadataStore>.Instance);
         }
 
         public async Task DisposeAsync()

@@ -128,7 +128,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                         options);
                 }
 
-                foreach (var collectionInitializer in collectionInitializers)
+                foreach (ICollectionInitializer collectionInitializer in collectionInitializers)
                 {
                     await collectionInitializer.InitializeCollection(documentClient);
                 }

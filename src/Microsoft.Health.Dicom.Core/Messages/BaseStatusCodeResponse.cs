@@ -3,15 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages
 {
     public abstract class BaseStatusCodeResponse
     {
-        public BaseStatusCodeResponse(HttpStatusCode statusCode)
+        private const int MinimumStatusCode = 100;
+
+        public BaseStatusCodeResponse(int statusCode)
         {
-            StatusCode = (int)statusCode;
+            EnsureArg.IsGte(statusCode, MinimumStatusCode, nameof(statusCode));
+
+            StatusCode = statusCode;
         }
 
         public int StatusCode { get; }

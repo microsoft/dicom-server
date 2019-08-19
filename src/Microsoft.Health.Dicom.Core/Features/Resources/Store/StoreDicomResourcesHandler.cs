@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -16,6 +15,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Persistence.Store;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
@@ -24,26 +24,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
     public class StoreDicomResourcesHandler : IRequestHandler<StoreDicomResourcesRequest, StoreDicomResourcesResponse>
     {
         private const string ApplicationDicom = "application/dicom";
+        private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
         private readonly ILogger<StoreDicomResourcesHandler> _logger;
         private readonly IDicomRouteProvider _dicomRouteProvider;
-        private readonly IDicomBlobDataStore _dicomBlobDataStore;
-        private readonly IDicomMetadataStore _dicomMetadataStore;
+        private readonly DicomDataStore _dicomDataStore;
 
         public StoreDicomResourcesHandler(
             ILogger<StoreDicomResourcesHandler> logger,
             IDicomRouteProvider dicomRouteProvider,
-            IDicomBlobDataStore dicomBlobDataStore,
-            IDicomMetadataStore dicomMetadataStore)
+            DicomDataStore dicomDataStore)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(dicomRouteProvider, nameof(dicomRouteProvider));
-            EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
-            EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
+            EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
 
             _logger = logger;
             _dicomRouteProvider = dicomRouteProvider;
-            _dicomBlobDataStore = dicomBlobDataStore;
-            _dicomMetadataStore = dicomMetadataStore;
+            _dicomDataStore = dicomDataStore;
         }
 
         /// <inheritdoc />
@@ -58,58 +55,49 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
 
             var responseBuilder = new StoreTransactionResponseBuilder(message.RequestBaseUri, _dicomRouteProvider, message.StudyInstanceUID);
 
+            bool unsupportedContentInRequest = false;
             MultipartReader reader = message.GetMultipartReader();
             MultipartSection section = await reader.ReadNextSectionAsync(cancellationToken);
-            IList<DicomDataset> metadataInstances = new List<DicomDataset>();
 
-            bool unsupportedContentInRequest = false;
-
-            while (section?.Body != null)
+            using (StoreTransaction storeTransaction = _dicomDataStore.BeginStoreTransaction())
             {
-                if (section.ContentType != null)
+                while (section?.Body != null)
                 {
-                    DicomDataset metadataInstance = null;
-
-                    switch (section.ContentType)
+                    if (section.ContentType != null)
                     {
-                        case ApplicationDicom:
-                            metadataInstance = await StoreApplicationDicomContentAsync(
-                                                                    message.StudyInstanceUID, section.Body, responseBuilder, cancellationToken);
-                            break;
-                        default:
-                            unsupportedContentInRequest = true;
-                            break;
+                        switch (section.ContentType)
+                        {
+                            case ApplicationDicom:
+                                await StoreApplicationDicomContentAsync(
+                                                message.StudyInstanceUID, section.Body, storeTransaction, responseBuilder, cancellationToken);
+                                break;
+                            default:
+                                unsupportedContentInRequest = true;
+                                break;
+                        }
                     }
 
-                    if (metadataInstance != null)
+                    try
                     {
-                        metadataInstances.Add(metadataInstance);
+                        section = await reader.ReadNextSectionAsync(cancellationToken);
+                    }
+                    catch (IOException)
+                    {
+                        // Unexpected end of the stream; this happens when the request is multi-part but has no sections.
+                        section = null;
                     }
                 }
 
-                try
-                {
-                    section = await reader.ReadNextSectionAsync(cancellationToken);
-                }
-                catch (IOException)
-                {
-                    // Unexpected end of the stream; this happens when the request is multi-part but has no sections.
-                    section = null;
-                }
-            }
-
-            // Now store all the metadata and return the result.
-            if (metadataInstances.Count > 0)
-            {
-                await _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(metadataInstances, cancellationToken);
+                await storeTransaction.CommitAsync();
             }
 
             return responseBuilder.GetStoreResponse(unsupportedContentInRequest);
         }
 
-        private async Task<DicomDataset> StoreApplicationDicomContentAsync(
+        private async Task StoreApplicationDicomContentAsync(
             string studyInstanceUID,
             Stream stream,
+            StoreTransaction storeTransaction,
             StoreTransactionResponseBuilder transactionResponseBuilder,
             CancellationToken cancellationToken)
         {
@@ -129,37 +117,33 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
                     if (dicomFile != null)
                     {
                         // Now Validate if the StudyInstanceUID is provided, it matches the provided file
-                        var dicomInstance = DicomInstance.Create(dicomFile.Dataset);
+                        var dicomFileStudyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
                         if (string.IsNullOrWhiteSpace(studyInstanceUID) ||
-                            studyInstanceUID.Equals(dicomInstance.StudyInstanceUID, DicomStudy.EqualsStringComparison))
+                            studyInstanceUID.Equals(dicomFileStudyInstanceUID, EqualsStringComparison))
                         {
-                            await _dicomBlobDataStore.AddFileAsStreamAsync(GetBlobStorageName(dicomInstance), seekStream, cancellationToken: cancellationToken);
+                            await storeTransaction.StoreDicomFileAsync(seekStream, dicomFile, cancellationToken);
                             transactionResponseBuilder.AddSuccess(dicomFile.Dataset);
-                            return dicomFile.Dataset;
                         }
                         else
                         {
                             transactionResponseBuilder.AddFailure(dicomFile.Dataset, StoreFailureCodes.MismatchStudyInstanceUIDFailureCode);
-                            return null;
                         }
+
+                        return;
                     }
                 }
             }
             catch (DataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.Conflict)
             {
                 transactionResponseBuilder.AddFailure(dicomFile.Dataset, StoreFailureCodes.SopInstanceAlredyExistsFailureCode);
-                return null;
+                return;
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception when store an instance.");
+                _logger.LogError(e, "Exception when storing an instance.");
             }
 
             transactionResponseBuilder.AddFailure(dicomFile?.Dataset);
-            return null;
         }
-
-        private static string GetBlobStorageName(DicomInstance dicomInstance)
-            => $"{dicomInstance.StudyInstanceUID}/{dicomInstance.SeriesInstanceUID}/{dicomInstance.SopInstanceUID}";
     }
 }
