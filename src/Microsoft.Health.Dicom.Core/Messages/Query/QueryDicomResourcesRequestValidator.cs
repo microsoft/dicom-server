@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using FluentValidation;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -46,8 +47,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
             RuleForEach(x => x.QueryAttributeValues)
                 .Must(x => DicomAttributeId.IsValidAttributeId(x.Key));
 
+            // Check all optional attributes parse to an attribute ID or is 'all'.
             RuleForEach(x => x.OptionalAttributes)
-                .Must(x => DicomAttributeId.IsValidAttributeId(x));
+                .Must(x =>
+                    string.Equals(x, QueryDicomResourcesRequest.AllOptionalAttributesRequestedString, StringComparison.InvariantCultureIgnoreCase) ||
+                    DicomAttributeId.IsValidAttributeId(x));
         }
     }
 }

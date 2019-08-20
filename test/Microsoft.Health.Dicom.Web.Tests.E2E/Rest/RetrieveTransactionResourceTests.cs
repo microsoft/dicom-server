@@ -11,6 +11,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dicom;
+using Dicom.Imaging;
+using Dicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
@@ -28,11 +30,65 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         protected DicomWebClient Client { get; set; }
 
+        [Fact]
+        public async Task GivenADicomInstanceWithMultipleFrames_WhenRetrievingFrames_TheServerShouldReturnOK()
+        {
+            var studyInstanceUID = Guid.NewGuid().ToString();
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUID, frames: 2);
+            var dicomInstance = DicomInstance.Create(dicomFile1.Dataset);
+            HttpResult<DicomDataset> response = await Client.PostAsync(new[] { dicomFile1 }, studyInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            DicomSequence successSequence = response.Value.GetSequence(DicomTag.ReferencedSOPSequence);
+            ValidationHelpers.ValidateSuccessSequence(successSequence, dicomFile1.Dataset);
+
+            HttpResult<IReadOnlyList<Stream>> frames = await Client.GetFramesAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, frames: 1);
+            Assert.NotNull(frames);
+            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
+            Assert.Single(frames.Value);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
+
+            frames = await Client.GetFramesAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, frames: 2);
+            Assert.NotNull(frames);
+            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
+            Assert.Single(frames.Value);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(1), frames.Value[0]);
+
+            frames = await Client.GetFramesAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, frames: new[] { 1, 2 });
+            Assert.NotNull(frames);
+            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
+            Assert.Equal(2, frames.Value.Count);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(1), frames.Value[1]);
+
+            // Now check not found when 1 frame exists and the other doesn't.
+            frames = await Client.GetFramesAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, frames: new[] { 2, 3 });
+            Assert.Equal(HttpStatusCode.NotFound, frames.StatusCode);
+        }
+
         [Theory]
-        [InlineData(new int[] { 0 })]
-        [InlineData(new int[] { -1 })]
-        [InlineData(new int[] { 1, 2, -1 })]
-        public async Task GivenARequestWithFrameLessThanOrEqualTo0_WhenRetrievingFrames_TheServerShouldReturnBadRequest(int[] frames)
+        [InlineData("test")]
+        [InlineData("0", "1", "invalid")]
+        [InlineData("0.6", "1")]
+        public async Task GivenARequestWithNonIntegerFrames_WhenRetrievingFrames_TheServerShouldReturnBadRequest(params string[] frames)
+        {
+            var requestUri = new Uri(string.Format(DicomWebClient.BaseRetrieveFramesUriFormat, DicomUID.Generate(), DicomUID.Generate(), DicomUID.Generate(), string.Join("%2C", frames)), UriKind.Relative);
+
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.Headers.Accept.Add(DicomWebClient.MediaTypeApplicationOctetStream);
+
+                using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(1, 2, -1)]
+        public async Task GivenARequestWithFrameLessThanOrEqualTo0_WhenRetrievingFrames_TheServerShouldReturnBadRequest(params int[] frames)
         {
             HttpResult<IReadOnlyList<Stream>> response = await Client.GetFramesAsync(
                 studyInstanceUID: Guid.NewGuid().ToString(),
@@ -117,10 +173,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.NotFound, response5.StatusCode);
             HttpResult<IReadOnlyList<DicomFile>> response6 = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, Guid.NewGuid().ToString());
             Assert.Equal(HttpStatusCode.NotFound, response6.StatusCode);
-            HttpResult<IReadOnlyList<Stream>> response7 = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 1);
+            HttpResult<IReadOnlyList<Stream>> response7 = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 2);
             Assert.Equal(HttpStatusCode.NotFound, response7.StatusCode);
-            HttpResult<IReadOnlyList<Stream>> response8 = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 2);
-            Assert.Equal(HttpStatusCode.NotFound, response8.StatusCode);
         }
 
         [Fact]
@@ -239,6 +293,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 dicomFile.Save(memoryStream);
                 return memoryStream.ToArray();
+            }
+        }
+
+        private static void AssertPixelDataEqual(IByteBuffer expectedPixelData, Stream actualPixelData)
+        {
+            Assert.Equal(expectedPixelData.Size, actualPixelData.Length);
+            Assert.Equal(0, actualPixelData.Position);
+            for (var i = 0; i < expectedPixelData.Size; i++)
+            {
+                Assert.Equal(expectedPixelData.Data[i], actualPixelData.ReadByte());
             }
         }
     }

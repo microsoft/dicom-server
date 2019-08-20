@@ -5,10 +5,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Microsoft.Net.Http.Headers;
 using Xunit;
@@ -62,6 +65,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Empty(queryResponse.Value);
         }
 
+        [Theory]
+        [InlineData("19900215")]
+        public async Task GivenAnInstance_WhenQueryingUsingStudyDate_TheServerShouldReturnInstance(string queryValue)
+        {
+            await CreateRandomQueryDatasetAsync(optionalItems: new DicomDataset()
+            {
+                { DicomTag.StudyDate, new DateTime(1990, 2, 15) },
+            });
+
+            HttpResult<IReadOnlyList<DicomDataset>> queryResponse = await Client.QueryInstancesAsync(queryTags: new[] { (new DicomAttributeId(DicomTag.StudyDate), queryValue) }, optionalDicomAttributes: new[] { "all" });
+            Assert.Equal(HttpStatusCode.OK, queryResponse.StatusCode);
+            Assert.Single(queryResponse.Value);
+        }
+
         private async Task AssertQueryFailureStatusCodeAsync(string requestUri, HttpStatusCode expectedStatusCode, string acceptHeader = "application/dicom+json")
         {
             var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -71,6 +88,38 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 Assert.Equal(expectedStatusCode, response.StatusCode);
             }
+        }
+
+        private async Task<DicomDataset[]> CreateRandomQueryDatasetAsync(int numberOfInstances = 1, DicomDataset optionalItems = null)
+        {
+            var indexedAttributes = new DicomDataset()
+            {
+                { DicomTag.PatientName, Guid.NewGuid().ToString() },
+                { DicomTag.PatientID, Guid.NewGuid().ToString() },
+                { DicomTag.ReferringPhysicianName, Guid.NewGuid().ToString() },
+                { DicomTag.StudyDate, DateTime.UtcNow.AddDays(-5) },
+                { DicomTag.Modality, "CT" },
+            };
+
+            if (optionalItems != null)
+            {
+                indexedAttributes.AddOrUpdate(optionalItems);
+            }
+
+            DicomFile[] dicomFiles = Enumerable.Range(0, numberOfInstances).Select(_ =>
+            {
+                DicomFile dicomFile = Samples.CreateRandomDicomFile();
+                dicomFile.Dataset.AddOrUpdate(indexedAttributes);
+                return dicomFile;
+            }).ToArray();
+            var datasets = dicomFiles.Select(x => x.Dataset).ToArray();
+
+            HttpResult<DicomDataset> response = await Client.PostAsync(dicomFiles);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            DicomSequence successSequence = response.Value.GetSequence(DicomTag.ReferencedSOPSequence);
+            ValidationHelpers.ValidateSuccessSequence(successSequence, datasets);
+
+            return datasets;
         }
     }
 }

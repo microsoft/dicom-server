@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 {
-    internal class QuerySeriesDocument
+    internal class QuerySeriesDocument : IDocument
     {
         /// <summary>
         /// The seperator between the Study and Series instance identifiers when creating the document identifier.
@@ -64,14 +64,14 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 
                 foreach (QueryInstance instance in Instances)
                 {
-                    foreach ((string key, object[] values) in instance.Attributes)
+                    foreach ((string key, AttributeValues attributeValues) in instance.Attributes)
                     {
                         if (!result.ContainsKey(key))
                         {
                             result[key] = new AttributeValues();
                         }
 
-                        foreach (object value in values)
+                        foreach (object value in attributeValues.Values)
                         {
                             result[key].Add(value);
                         }

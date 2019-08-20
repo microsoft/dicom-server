@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
 {
     public class QueryDicomResourcesRequest : IRequest<QueryDicomResourcesResponse>
     {
-        private const string AllOptionalAttributesRequestedString = "all";
+        internal const string AllOptionalAttributesRequestedString = "all";
         private const int DefaultQueryStudySeriesLimit = 100;
         private const int DefaultQueryInstanceLimit = 1000;
 

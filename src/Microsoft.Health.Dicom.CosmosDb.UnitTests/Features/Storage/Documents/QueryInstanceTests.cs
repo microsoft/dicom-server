@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents;
@@ -17,10 +18,10 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
         [Fact]
         public void GivenInvalidParameters_WhenCreatingQueryInstance_ExceptionsThrown()
         {
-            Assert.Throws<ArgumentNullException>(() => new QueryInstance(null, new Dictionary<string, object[]>()));
-            Assert.Throws<ArgumentException>(() => new QueryInstance(string.Empty, new Dictionary<string, object[]>()));
-            Assert.Throws<ArgumentException>(() => new QueryInstance(new string('a', 65), new Dictionary<string, object[]>()));
-            Assert.Throws<ArgumentException>(() => new QueryInstance("AA#AA", new Dictionary<string, object[]>()));
+            Assert.Throws<ArgumentNullException>(() => new QueryInstance(null, new Dictionary<string, AttributeValues>()));
+            Assert.Throws<ArgumentException>(() => new QueryInstance(string.Empty, new Dictionary<string, AttributeValues>()));
+            Assert.Throws<ArgumentException>(() => new QueryInstance(new string('a', 65), new Dictionary<string, AttributeValues>()));
+            Assert.Throws<ArgumentException>(() => new QueryInstance("AA#AA", new Dictionary<string, AttributeValues>()));
             Assert.Throws<ArgumentNullException>(() => new QueryInstance(Guid.NewGuid().ToString(), null));
 
             Assert.Throws<ArgumentNullException>(() => QueryInstance.Create(null, null));
@@ -60,9 +61,9 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
             Assert.Equal(dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID), instance.InstanceUID);
 
             Assert.Equal(3, instance.Attributes.Count);
-            Assert.Equal(dicomDataset.GetSingleValue<string>(DicomTag.PatientName), instance.Attributes[patientNameAttribute.AttributeId][0]);
-            Assert.Equal(dicomDataset.GetSingleValue<DateTime>(DicomTag.StudyDate), instance.Attributes[studyDateAttribute.AttributeId][0]);
-            Assert.Equal(referringPhysicianName, instance.Attributes[referringPhysicianNameAttribute.AttributeId][0]);
+            Assert.Equal(dicomDataset.GetSingleValue<string>(DicomTag.PatientName), instance.Attributes[patientNameAttribute.AttributeId].Values.First());
+            Assert.Equal(dicomDataset.GetSingleValue<DateTime>(DicomTag.StudyDate), instance.Attributes[studyDateAttribute.AttributeId].Values.First());
+            Assert.Equal(referringPhysicianName, instance.Attributes[referringPhysicianNameAttribute.AttributeId].Values.First());
         }
     }
 }

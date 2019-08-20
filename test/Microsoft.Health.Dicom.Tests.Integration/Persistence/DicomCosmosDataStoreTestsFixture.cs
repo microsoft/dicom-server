@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
@@ -15,6 +16,7 @@ using Microsoft.Health.CosmosDb.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.CosmosDb.Config;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage;
+using Microsoft.Health.Dicom.CosmosDb.Features.Storage.StoredProcedures;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Versioning;
 using Microsoft.Health.Extensions.DependencyInjection;
 using NSubstitute;
@@ -62,7 +64,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             optionsMonitor.Get(CosmosDb.Constants.CollectionConfigurationName).Returns(_cosmosCollectionConfiguration);
 
-            var updaters = new IDicomCollectionUpdater[] { };
+            var dicomStoredProcs = typeof(IDicomStoredProcedure).Assembly
+                .GetTypes()
+                .Where(x => !x.IsAbstract && typeof(IDicomStoredProcedure).IsAssignableFrom(x))
+                .ToArray()
+                .Select(type => (IDicomStoredProcedure)Activator.CreateInstance(type));
+            var updaters = new IDicomCollectionUpdater[]
+            {
+                new DicomStoredProcedureInstaller(dicomStoredProcs),
+            };
 
             var dbLock = new CosmosDbDistributedLockFactory(Substitute.For<Func<IScoped<IDocumentClient>>>(), NullLogger<CosmosDbDistributedLock>.Instance);
 

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Dicom;
 using EnsureThat;
 using Microsoft.Azure.Documents;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
@@ -50,7 +51,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                 offset,
                 limit,
                 query,
-                (tag, parameter) => $"ARRAY_CONTAINS(f.{DocumentProperties.Attributes}[\"{tag.AttributeId}\"], {parameter.Name})");
+                CreateInstanceIndexAttributePath);
         }
 
         private SqlQuerySpec BuildSeriesLevelQuerySpec(
@@ -61,7 +62,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                 offset,
                 limit,
                 query,
-                (tag, parameter) => $"ARRAY_CONTAINS(c.{DocumentProperties.DistinctAttributes}[\"{tag.AttributeId}\"][\"{DocumentProperties.Values}\"], {parameter.Name})");
+                CreateStudySeriesIndexAttributePath);
         }
 
         private SqlQuerySpec GenerateQuerySpec(
@@ -69,7 +70,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             int offset,
             int limit,
             IEnumerable<(DicomAttributeId Attribute, string Value)> query,
-            Func<DicomAttributeId, SqlParameter, string> createQueryItem)
+            Func<DicomAttributeId, string> getAttributePath)
         {
             // As 'OFFSET' and 'LIMIT' are not supported in Linq, all queries must be run using SQL syntax.
             SqlParameterCollection sqlParameterCollection = CreateQueryParameterCollection(offset, limit);
@@ -77,15 +78,30 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             var parameterNameIndex = 1;
             var queryItems = new List<string>();
 
+            Func<string, SqlParameter> getSqlParameter = (string value) =>
+            {
+                var parameterName = string.Format(_stringFormatProvider, ItemParameterNameFormat, parameterNameIndex++);
+                var sqlParameter = new SqlParameter { Name = parameterName, Value = value };
+                sqlParameterCollection.Add(sqlParameter);
+
+                return sqlParameter;
+            };
+
             if (query != null && _dicomConfiguration.QueryAttributes != null)
             {
                 foreach ((DicomAttributeId attribute, string value) in query.Where(x => _dicomConfiguration.QueryAttributes.Contains(x.Attribute)))
                 {
-                    var parameterName = string.Format(_stringFormatProvider, ItemParameterNameFormat, parameterNameIndex++);
-                    var sqlParameter = new SqlParameter { Name = parameterName, Value = value };
+                    var attributePath = getAttributePath(attribute);
 
-                    sqlParameterCollection.Add(sqlParameter);
-                    queryItems.Add(createQueryItem(attribute, sqlParameter));
+                    if (attribute.FinalDicomTag.DictionaryEntry.ValueRepresentations.Contains(DicomVR.DA))
+                    {
+                        queryItems.AddRange(CreateDateTimeQueryItem(attribute, attributePath, value, getSqlParameter));
+                    }
+                    else
+                    {
+                        SqlParameter sqlParameter = getSqlParameter(value);
+                        queryItems.Add(CreateExactMatchQueryItem(attributePath, sqlParameter));
+                    }
                 }
             }
 
@@ -93,6 +109,45 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             var whereClause = queryItems.Count > 0 ? $"WHERE {string.Join(" AND ", queryItems)}" : string.Empty;
             return new SqlQuerySpec(string.Format(_stringFormatProvider, querySearchFormat, whereClause), sqlParameterCollection);
         }
+
+        private static string[] CreateDateTimeQueryItem(DicomAttributeId attribute, string attributePath, string value, Func<string, SqlParameter> getSqlParameter)
+        {
+            var splits = value.Split('-');
+            var item = new DicomDate(attribute.FinalDicomTag, splits);
+
+            // Note: Cosmos stores dates in ISO 8601 format, so all dates are converted to the correct string representation.
+            // https://docs.microsoft.com/en-us/azure/cosmos-db/working-with-dates
+            switch (splits.Length)
+            {
+                case 1:
+                    SqlParameter sqlParameter = getSqlParameter(string.Empty);
+                    sqlParameter.Value = item.Get<DateTime>().ToString("o", CultureInfo.InvariantCulture);
+
+                    return new[] { CreateExactMatchQueryItem(attributePath, sqlParameter) };
+                case 2:
+                    SqlParameter sqlParameter1 = getSqlParameter(string.Empty);
+                    sqlParameter1.Value = item.Get<DateTime>().ToString("o", CultureInfo.InvariantCulture);
+                    SqlParameter sqlParameter2 = getSqlParameter(string.Empty);
+                    sqlParameter2.Value = item.Get<DateTime>(1).ToString("o", CultureInfo.InvariantCulture);
+
+                    return new[]
+                    {
+                        $"{attributePath}[\"{DocumentProperties.MinimumDateTimeValue}\"] >= {sqlParameter1.Value}",
+                        $"{attributePath}[\"{DocumentProperties.MaximumDateTimeValue}\"] <= {sqlParameter2.Value}",
+                    };
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        private static string CreateInstanceIndexAttributePath(DicomAttributeId attribute)
+            => $"f.{DocumentProperties.Attributes}[\"{attribute.AttributeId}\"]";
+
+        private static string CreateStudySeriesIndexAttributePath(DicomAttributeId attribute)
+            => $"c.{DocumentProperties.DistinctAttributes}[\"{attribute.AttributeId}\"]";
+
+        private static string CreateExactMatchQueryItem(string attributePath, SqlParameter sqlParameter)
+            => $"ARRAY_CONTAINS({attributePath}[\"{DocumentProperties.Values}\"], {sqlParameter.Name})";
 
         private static SqlParameterCollection CreateQueryParameterCollection(int offset, int limit)
         {

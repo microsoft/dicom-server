@@ -65,7 +65,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         public async Task<HttpResult<IReadOnlyList<DicomDataset>>> QueryStudiesAsync(
             IEnumerable<(DicomAttributeId DicomAttribute, string Value)> queryTags = null,
-            IEnumerable<DicomAttributeId> optionalDicomAttributes = null,
+            IEnumerable<string> optionalDicomAttributes = null,
             int offset = 0,
             int limit = 100,
             bool fuzzyMatching = false)
@@ -76,7 +76,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         public async Task<HttpResult<IReadOnlyList<DicomDataset>>> QuerySeriesAsync(
             string studyInstanceUID = null,
             IEnumerable<(DicomAttributeId DicomAttribute, string Value)> queryTags = null,
-            IEnumerable<DicomAttributeId> optionalDicomAttributes = null,
+            IEnumerable<string> optionalDicomAttributes = null,
             int offset = 0,
             int limit = 100,
             bool fuzzyMatching = false)
@@ -93,7 +93,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             string studyInstanceUID = null,
             string seriesInstanceUID = null,
             IEnumerable<(DicomAttributeId DicomAttribute, string Value)> queryTags = null,
-            IEnumerable<DicomAttributeId> optionalDicomAttributes = null,
+            IEnumerable<string> optionalDicomAttributes = null,
             int offset = 0,
             int limit = 100,
             bool fuzzyMatching = false)
@@ -114,19 +114,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         private async Task<HttpResult<IReadOnlyList<DicomDataset>>> ExecuteQueryAsync(
             string requestUri,
             IEnumerable<(DicomAttributeId DicomAttribute, string Value)> queryTags = null,
-            IEnumerable<DicomAttributeId> optionalDicomAttributes = null,
+            IEnumerable<string> optionalDicomAttributes = null,
             int offset = 0,
             int limit = 100,
             bool fuzzyMatching = false)
         {
             var query = string.Join(string.Empty, queryTags?.Select(x => $"&{x.DicomAttribute.AttributeId}={x.Value}") ?? Array.Empty<string>());
-            var optionalIncludeTags = string.Join(string.Empty, optionalDicomAttributes?.Select(x => $"@includeField={x.AttributeId}") ?? Array.Empty<string>());
+            var optionalIncludeTags = string.Join(string.Empty, optionalDicomAttributes?.Select(x => $"&includeField={x}") ?? Array.Empty<string>());
             return await ExecuteGetDicomDatasetCollectionRequestAsync(new Uri($"{requestUri}?offset={offset}&limit={limit}&fuzzyMatching={fuzzyMatching}{query}{optionalIncludeTags}", UriKind.Relative));
         }
 
         public async Task<HttpResult<IReadOnlyList<Stream>>> GetFramesAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null, params int[] frames)
         {
-            var requestUri = new Uri(string.Format(BaseRetrieveFramesUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, string.Join(",", frames)), UriKind.Relative);
+            var requestUri = new Uri(string.Format(BaseRetrieveFramesUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, string.Join("%2C", frames)), UriKind.Relative);
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {

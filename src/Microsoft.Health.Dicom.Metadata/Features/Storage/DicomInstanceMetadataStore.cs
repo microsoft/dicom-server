@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -26,8 +27,10 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 {
     internal class DicomInstanceMetadataStore : IDicomInstanceMetadataStore
     {
+        private const int MaximumRetryFailedRequests = 5;
         private static readonly Encoding _metadataEncoding = Encoding.UTF8;
         private readonly DicomMetadataConfiguration _metadataConfiguration;
+        private readonly Random _random = new Random();
         private readonly CloudBlobContainer _container;
         private readonly JsonSerializer _jsonSerializer;
         private readonly ILogger<DicomInstanceMetadataStore> _logger;
@@ -141,11 +144,15 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 });
         }
 
-        private static IAsyncPolicy CreateTooManyRequestsRetryPolicy()
+        private IAsyncPolicy CreateTooManyRequestsRetryPolicy()
            => Policy
                    .Handle<StorageException>(ex => ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.TooManyRequests ||
                                                     ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.BadRequest)
-                   .RetryForeverAsync();
+                   .WaitAndRetryAsync(MaximumRetryFailedRequests, retryIndex =>
+                   {
+                       // Otherwise, delay retry with some randomness.
+                       return TimeSpan.FromMilliseconds((retryIndex - 1) * _random.Next(200, 500));
+                   });
 
         private CloudBlockBlob GetInstanceBlockBlob(DicomInstance instance)
         {

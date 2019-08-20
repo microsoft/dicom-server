@@ -9,12 +9,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.CosmosDb.Configs;
 using Microsoft.Health.CosmosDb.Features.Storage;
+using Microsoft.Health.CosmosDb.Features.Storage.StoredProcedures;
 using Microsoft.Health.CosmosDb.Features.Storage.Versioning;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.CosmosDb;
 using Microsoft.Health.Dicom.CosmosDb.Config;
 using Microsoft.Health.Dicom.CosmosDb.Features.Health;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage;
+using Microsoft.Health.Dicom.CosmosDb.Features.Storage.StoredProcedures;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Versioning;
 using Microsoft.Health.Extensions.DependencyInjection;
 
@@ -82,6 +84,16 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsSelf()
                 .AsService<IUpgradeManager>();
+
+            services.Add<DicomStoredProcedureInstaller>()
+                .Singleton()
+                .AsService<IDicomCollectionUpdater>();
+
+            services.TypesInSameAssemblyAs<IDicomStoredProcedure>()
+                .AssignableTo<IStoredProcedure>()
+                .Singleton()
+                .AsSelf()
+                .AsService<IDicomStoredProcedure>();
 
             return serverBuilder;
         }

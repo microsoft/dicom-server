@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
     internal class QueryInstance
     {
         [JsonConstructor]
-        public QueryInstance(string instanceUID, IDictionary<string, object[]> attributes)
+        public QueryInstance(string instanceUID, IDictionary<string, AttributeValues> attributes)
             : this(instanceUID)
         {
             EnsureArg.IsNotNull(attributes, nameof(attributes));
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
         public string InstanceUID { get; }
 
         [JsonProperty(DocumentProperties.Attributes)]
-        public IDictionary<string, object[]> Attributes { get; } = new Dictionary<string, object[]>();
+        public IDictionary<string, AttributeValues> Attributes { get; } = new Dictionary<string, AttributeValues>();
 
         public override int GetHashCode()
         {
@@ -66,7 +66,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
             {
                 if (dicomDataset.TryGetValues(attribute, out object[] values))
                 {
-                    result.Attributes[attribute.AttributeId] = values;
+                    result.Attributes[attribute.AttributeId] = new AttributeValues(new HashSet<object>(values));
                 }
             }
 
