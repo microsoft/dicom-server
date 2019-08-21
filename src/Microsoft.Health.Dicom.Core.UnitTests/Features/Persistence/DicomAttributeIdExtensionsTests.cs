@@ -18,10 +18,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Persistence
             var dicomDataset = new DicomDataset();
             var testAttributeId = new DicomAttributeId(DicomTag.ReferencedStudySequence, DicomTag.StudyInstanceUID);
             var testDicomItem = new DicomLongString(DicomTag.StudyInstanceUID, Guid.NewGuid().ToString());
+            Assert.Throws<ArgumentNullException>(() => dicomDataset.AddDicomItem(null, testDicomItem));
+            Assert.Throws<ArgumentNullException>(() => dicomDataset.AddDicomItem(testAttributeId, null));
+            Assert.Throws<ArgumentNullException>(() => DicomAttributeIdExtensions.AddDicomItem(null, testAttributeId, testDicomItem));
+            Assert.Throws<ArgumentException>(() => dicomDataset.AddDicomItem(testAttributeId, new DicomLongString(DicomTag.SeriesInstanceUID, Guid.NewGuid().ToString())));
+
             Assert.Throws<ArgumentNullException>(() => dicomDataset.Add((DicomAttributeId)null, testDicomItem));
-            Assert.Throws<ArgumentNullException>(() => dicomDataset.Add(testAttributeId, null));
             Assert.Throws<ArgumentNullException>(() => DicomAttributeIdExtensions.Add(null, testAttributeId, testDicomItem));
-            Assert.Throws<ArgumentException>(() => dicomDataset.Add(testAttributeId, new DicomLongString(DicomTag.SeriesInstanceUID, Guid.NewGuid().ToString())));
         }
 
         [Fact]
@@ -29,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Persistence
         {
             var dicomDataset = new DicomDataset();
             var testStudyId = Guid.NewGuid().ToString();
-            dicomDataset.Add(
+            dicomDataset.AddDicomItem(
                 new DicomAttributeId(DicomTag.ReferencedStudySequence, DicomTag.StudyInstanceUID),
                 new DicomLongString(DicomTag.StudyInstanceUID, testStudyId));
 
@@ -47,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Persistence
                 DicomTag.ReferencedSeriesSequence,
                 new DicomDataset() { { DicomTag.SeriesInstanceUID, Guid.NewGuid().ToString() } },
                 new DicomDataset() { { DicomTag.SeriesDescription, "TestDescription" } });
-            dicomDataset.Add(
+            dicomDataset.AddDicomItem(
                 new DicomAttributeId(DicomTag.ReferencedStudySequence, resultSequence.Tag), resultSequence);
 
             Assert.True(dicomDataset.TryGetSequence(DicomTag.ReferencedStudySequence, out DicomSequence referencedStudySequence));

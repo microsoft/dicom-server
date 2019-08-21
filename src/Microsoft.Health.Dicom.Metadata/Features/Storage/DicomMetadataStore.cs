@@ -416,7 +416,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             }
 
             // Just add the first DICOM item; we might want to do something more clever in the future.
-            dicomDataset.Add(attributeId, attributeValues[0].DicomItem);
+            dicomDataset.AddDicomItem(attributeId, attributeValues[0].DicomItem);
             return true;
         }
     }

@@ -111,7 +111,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             CancellationToken cancellationToken = default)
         {
             DicomDataset instanceMetadata = await GetInstanceMetadataAsync(instance, cancellationToken);
-            var resultDataset = new DicomDataset();
+            var resultDataset = new DicomDataset() { { DicomTag.SOPInstanceUID, instance.SopInstanceUID } };
 
             // Create the collection of required attributes + requested attributes.
             HashSet<DicomAttributeId> attributes = _metadataConfiguration.InstanceRequiredMetadataAttributes;
@@ -179,7 +179,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             }
 
             // Just add the first DICOM item; we might want to do something more clever in the future.
-            resultDataset.Add(attributeId, dicomItems[0]);
+            resultDataset.AddDicomItem(attributeId, dicomItems[0]);
             return true;
         }
     }

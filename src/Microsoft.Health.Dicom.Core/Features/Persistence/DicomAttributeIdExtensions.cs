@@ -12,33 +12,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public static class DicomAttributeIdExtensions
     {
-        public static void Add(this DicomDataset dicomDataset, DicomAttributeId attributeId, DicomItem dicomItem)
+        public static void Add<T>(this DicomDataset dicomDataset, DicomAttributeId attributeId, params T[] values)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(attributeId, nameof(attributeId));
+            EnsureArg.IsNotNull(values, nameof(values));
+
+            DicomDataset dataset = GetFinalTagDataset(dicomDataset, attributeId);
+            dataset.Add(attributeId.FinalDicomTag, values);
+        }
+
+        public static void AddDicomItem(this DicomDataset dicomDataset, DicomAttributeId attributeId, DicomItem dicomItem)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(attributeId, nameof(attributeId));
             EnsureArg.IsNotNull(dicomItem, nameof(dicomItem));
             EnsureArg.IsTrue(attributeId.FinalDicomTag == dicomItem.Tag);
 
-            DicomDataset currentDataset = dicomDataset;
-            for (var i = 0; i < attributeId.Length; i++)
-            {
-                DicomTag dicomTag = attributeId.GetDicomTag(i);
-                if (i == attributeId.Length - 1)
-                {
-                    currentDataset.Add(dicomItem);
-                }
-                else
-                {
-                    if (!currentDataset.TryGetSequence(dicomTag, out DicomSequence dicomSequence))
-                    {
-                        dicomSequence = new DicomSequence(dicomTag);
-                        currentDataset.Add(dicomSequence);
-                    }
-
-                    currentDataset = new DicomDataset();
-                    dicomSequence.Items.Add(currentDataset);
-                }
-            }
+            DicomDataset dataset = GetFinalTagDataset(dicomDataset, attributeId);
+            dataset.Add(dicomItem);
         }
 
         public static bool TryGetDicomItems(this DicomDataset dicomDataset, DicomAttributeId attributeId, out DicomItem[] dicomItems)
@@ -67,6 +59,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
             values = result.Count > 0 ? result.ToArray() : null;
             return result.Count > 0;
+        }
+
+        private static DicomDataset GetFinalTagDataset(this DicomDataset dicomDataset, DicomAttributeId attributeId)
+        {
+            DicomDataset currentDataset = dicomDataset;
+            for (var i = 0; i < attributeId.Length - 1; i++)
+            {
+                DicomTag dicomTag = attributeId.GetDicomTag(i);
+
+                if (!currentDataset.TryGetSequence(dicomTag, out DicomSequence dicomSequence))
+                {
+                    dicomSequence = new DicomSequence(dicomTag);
+                    currentDataset.Add(dicomSequence);
+                }
+
+                currentDataset = new DicomDataset();
+                dicomSequence.Items.Add(currentDataset);
+            }
+
+            return currentDataset;
         }
 
         private static void TryAppendValuesToList(
