@@ -216,6 +216,36 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 dicomFile1.Dataset);
         }
 
+        [Fact]
+        public async void GivenAValidXmlRequest_WhenStoring_TheServerShouldReturnValidXml()
+        {
+            DicomFile dicomFile = Samples.CreateRandomDicomFile();
+            dicomFile.Dataset.AddOrUpdate(DicomTag.PatientName, "Example Name");
+
+            var multiContent = new MultipartContent("related");
+            multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
+
+            using (var stream = new MemoryStream())
+            {
+                await dicomFile.SaveAsync(stream);
+                var byteContent = new ByteArrayContent(stream.ToArray());
+                byteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
+                multiContent.Add(byteContent);
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "studies");
+            request.Headers.Add(HeaderNames.Accept, "application/dicom+xml");
+            request.Content = multiContent;
+
+            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+            {
+                Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Accepted);
+                var contentText = await response.Content.ReadAsStringAsync();
+
+                Assert.Contains("<?xml version=\"1.0\" encoding=\"utf-8\"?>", contentText);
+            }
+        }
+
         private void ValidateFailureSequence(DicomSequence dicomSequence, ushort expectedFailureCode, params DicomDataset[] expectedFailedDatasets)
         {
             Assert.Equal(DicomTag.FailedSOPSequence, dicomSequence.Tag);

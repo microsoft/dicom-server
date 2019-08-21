@@ -34,6 +34,7 @@ namespace Microsoft.AspNetCore.Builder
             {
                 options.RespectBrowserAcceptHeader = true;
                 options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
+                options.OutputFormatters.Insert(1, new DicomXmlOutputFormatter());
             });
 
             services.AddSingleton<IDicomRouteProvider, DicomRouteProvider>();
