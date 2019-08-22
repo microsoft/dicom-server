@@ -7,14 +7,14 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
 {
     internal static class DocumentProperties
     {
-        public const string StudyInstanceUID = "studyUID";
-        public const string SeriesInstanceUID = "seriesUID";
-        public const string SopInstanceUID = "instanceUID";
+        public const string StudyInstanceUID = "study";
+        public const string SeriesInstanceUID = "series";
+        public const string SopInstanceUID = "uid";
         public const string Instances = "instances";
-        public const string Attributes = "attributes";
-        public const string DistinctAttributes = "distinctAttributes";
-        public const string Values = "values";
-        public const string MinimumDateTimeValue = "minDateTime";
-        public const string MaximumDateTimeValue = "maxDateTime";
+        public const string Attributes = "tags";
+        public const string DistinctAttributes = "distinct";
+        public const string Values = "v";
+        public const string MinimumDateTimeValue = "min";
+        public const string MaximumDateTimeValue = "max";
     }
 }
