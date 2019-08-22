@@ -108,6 +108,35 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
         }
 
+        [Fact]
+        public async Task GivenMultipleInstancesWithInconsistentAttributes_WhenQueryingSeries_TheServerShouldReturnSeries()
+        {
+            var date1 = "20190215";
+            var date2 = "20190219";
+            var studyInstanceUID = Guid.NewGuid().ToString();
+            var seriesInstanceUID = Guid.NewGuid().ToString();
+
+            // await CreateRandomQueryDatasetAsync(studyInstanceUID, seriesInstanceUID, numberOfInstances: 3000);
+            await CreateRandomQueryDatasetAsync(
+                studyInstanceUID,
+                seriesInstanceUID,
+                optionalItems: new DicomDataset { { DicomTag.StudyDate, date1 } });
+            await CreateRandomQueryDatasetAsync(
+                studyInstanceUID,
+                seriesInstanceUID,
+                optionalItems: new DicomDataset { { DicomTag.StudyDate, date2 } });
+
+            var queryAttribute = new DicomAttributeId(DicomTag.StudyDate);
+            HttpResult<IReadOnlyList<DicomDataset>> queryResponse = await Client.QuerySeriesAsync(
+                studyInstanceUID: studyInstanceUID, queryTags: new[] { (queryAttribute, date1) });
+            Assert.Equal(HttpStatusCode.OK, queryResponse.StatusCode);
+            Assert.Equal(1, queryResponse.Value.Count);
+
+            queryResponse = await Client.QuerySeriesAsync(studyInstanceUID: studyInstanceUID, queryTags: new[] { (queryAttribute, date2) });
+            Assert.Equal(HttpStatusCode.OK, queryResponse.StatusCode);
+            Assert.Equal(1, queryResponse.Value.Count);
+        }
+
         [Theory]
         [InlineData("00080020", "19900215")]
         [InlineData("00080020", "19900215", "19900214-19900216")]

@@ -20,6 +20,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 {
     public class DicomDocumentClientInitializer : IDocumentClientInitializer
     {
+        internal const string DateTimeFormat = "o";
         private readonly IDocumentClientTestProvider _testProvider;
         private readonly ILogger<DicomDocumentClientInitializer> _logger;
 
@@ -66,7 +67,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             {
                 NullValueHandling = NullValueHandling.Ignore,
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                DateParseHandling = DateParseHandling.DateTimeOffset,
+                DateParseHandling = DateParseHandling.DateTime,
                 DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind,
                 TypeNameHandling = TypeNameHandling.None,
             };
@@ -77,7 +78,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             // 'F' will omit the trailing digits if they are 0. You might end up getting something like '2018-02-07T20:04:49.97114+00:00'
             // where the fraction is actually 971140. Because the ordering is done as string,
             // if the values don't always have complete 7 digits, the comparison might not work properly.
-            serializerSettings.Converters.Add(new IsoDateTimeConverter { DateTimeFormat = "o" });
+            serializerSettings.Converters.Add(new IsoDateTimeConverter { DateTimeFormat = DateTimeFormat });
 
             return new DocumentClient(new Uri(configuration.Host), configuration.Key, serializerSettings, connectionPolicy, configuration.DefaultConsistencyLevel);
         }
