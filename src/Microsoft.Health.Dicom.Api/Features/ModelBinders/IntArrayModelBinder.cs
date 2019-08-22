@@ -18,6 +18,7 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
             if (value == null || string.IsNullOrEmpty(value.ToString()))
             {
                 bindingContext.Result = ModelBindingResult.Success(Array.Empty<int>());
+                return Task.CompletedTask;
             }
 
             var split = value.ToString().Split(',');
