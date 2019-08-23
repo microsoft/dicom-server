@@ -8,9 +8,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Dicom;
-using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Health.Dicom.Core;
 
 namespace Microsoft.Health.Dicom.Api.Features.Formatters
 {

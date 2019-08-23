@@ -20,6 +20,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
     {
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue("application/dicom");
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue("application/dicom+json");
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomXml = new MediaTypeWithQualityHeaderValue("application/dicom+xml");
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         public DicomWebClient(HttpClient httpClient)
@@ -31,9 +32,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
         }
 
+        public enum DicomMediaType
+        {
+            Json,
+            Xml,
+        }
+
         public HttpClient HttpClient { get; }
 
-        public async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUID = null)
+        public async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUID = null, DicomMediaType dicomMediaType = DicomMediaType.Json)
         {
             var postContent = new List<byte[]>();
             foreach (DicomFile dicomFile in dicomFiles)
@@ -45,10 +52,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 }
             }
 
-            return await PostAsync(postContent, studyInstanceUID);
+            return await PostAsync(postContent, studyInstanceUID, dicomMediaType);
         }
 
-        public async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<Stream> streams, string studyInstanceUID = null)
+        public async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<Stream> streams, string studyInstanceUID = null, DicomMediaType dicomMediaType = DicomMediaType.Json)
         {
             var postContent = new List<byte[]>();
             foreach (Stream stream in streams)
@@ -57,7 +64,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 postContent.Add(content);
             }
 
-            return await PostAsync(postContent, studyInstanceUID);
+            return await PostAsync(postContent, studyInstanceUID, dicomMediaType);
         }
 
         private static MultipartContent GetMultipartContent(string mimeType)
@@ -67,7 +74,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             return multiContent;
         }
 
-        private async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<byte[]> postContent, string studyInstanceUID)
+        private async Task<HttpResult<DicomDataset>> PostAsync(IEnumerable<byte[]> postContent, string studyInstanceUID, DicomMediaType dicomMediaType = DicomMediaType.Json)
         {
             MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
 
@@ -78,12 +85,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 multiContent.Add(byteContent);
             }
 
-            return await PostMultipartContentAsync(multiContent, $"studies/{studyInstanceUID}");
+            return await PostMultipartContentAsync(multiContent, $"studies/{studyInstanceUID}", dicomMediaType);
         }
 
-        internal async Task<HttpResult<DicomDataset>> PostMultipartContentAsync(MultipartContent multiContent, string requestUri)
+        internal async Task<HttpResult<DicomDataset>> PostMultipartContentAsync(MultipartContent multiContent, string requestUri, DicomMediaType dicomMediaType = DicomMediaType.Json)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+
+            switch (dicomMediaType)
+            {
+                case DicomMediaType.Json:
+                    request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
+                    break;
+                case DicomMediaType.Xml:
+                    request.Headers.Accept.Add(MediaTypeApplicationDicomXml);
+                    break;
+            }
+
             request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
             request.Content = multiContent;
 
@@ -94,7 +112,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                        response.StatusCode == HttpStatusCode.Conflict)
                 {
                     var contentText = await response.Content.ReadAsStringAsync();
-                    DicomDataset dataset = JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
+
+                    DicomDataset dataset = null;
+                    switch (dicomMediaType)
+                    {
+                        case DicomMediaType.Json:
+                            dataset = JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
+                            break;
+                        case DicomMediaType.Xml:
+                            dataset = Dicom.Core.DicomXML.ConvertXMLToDicom(contentText);
+                            break;
+                    }
 
                     return new HttpResult<DicomDataset>(response.StatusCode, dataset);
                 }
