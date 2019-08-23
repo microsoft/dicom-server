@@ -1,5 +1,5 @@
 ﻿#pragma warning disable
-// This is the combination of 2 file. The base file is from fo-dicom:
+// This is the combination of 2 files. The base file is from fo-dicom:
 //
 // Copyright (c) 2012-2019 fo-dicom contributors.
 // Licensed under the Microsoft Public License (MS-PL).
