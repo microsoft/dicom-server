@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         {
             var dataset = BuildSimpleDataset();
             var finalXml = BuildSimpleXml();
-            string xml = DicomXML.ConvertDicomToXML(dataset);
+            string xml = DicomXML.ConvertDicomToXML(dataset, Encoding.UTF8);
             Assert.True(!string.IsNullOrEmpty(xml));
             Assert.Equal(finalXml.ToString().Trim(), xml.Trim());
         }
@@ -37,35 +37,42 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         public void SerializeAndDeserializeZoo()
         {
             DicomDataset target = BuildZooDataset();
-            VerifyXmlTripleTrip(target);
+            VerifyXmlTripleTrip(target, Encoding.UTF8);
         }
 
-        [Fact]
-        public void SerializeAndDeserializeSimple()
+        [Theory]
+        [InlineData("utf-7")]
+        [InlineData("utf-8")]
+        [InlineData("utf-16")]
+        [InlineData("utf-32")]
+        [InlineData("us-ascii")]
+        [InlineData("utf-16BE")]
+        public void SerializeAndDeserializeSimple_VaryEncodings(string encodingString)
         {
+            Encoding encoding = Encoding.GetEncoding(encodingString);
             DicomDataset target = BuildZooDataset();
-            VerifyXmlTripleTrip(target);
+            VerifyXmlTripleTrip(target, encoding);
         }
 
         [Fact]
         public void SerializeAndDeserializeAllTypes()
         {
             DicomDataset target = BuildAllTypesDataset_();
-            VerifyXmlTripleTrip(target);
+            VerifyXmlTripleTrip(target, Encoding.UTF8);
         }
 
         [Fact]
         public void SerializeAndDeserializeAllTypesNull()
         {
             DicomDataset target = BuildAllTypesNullDataset_();
-            VerifyXmlTripleTrip(target);
+            VerifyXmlTripleTrip(target, Encoding.UTF8);
         }
 
-        private void VerifyXmlTripleTrip(DicomDataset dataset)
+        private void VerifyXmlTripleTrip(DicomDataset dataset, Encoding encoding)
         {
-            string xml = DicomXML.ConvertDicomToXML(dataset);
+            string xml = DicomXML.ConvertDicomToXML(dataset, encoding);
             DicomDataset dataset2 = DicomXML.ConvertXMLToDicom(xml);
-            string xml2 = DicomXML.ConvertDicomToXML(dataset2);
+            string xml2 = DicomXML.ConvertDicomToXML(dataset2, encoding);
 
             StreamWriter writer = new StreamWriter("xml.xml", false);
             writer.Write(xml.Trim());

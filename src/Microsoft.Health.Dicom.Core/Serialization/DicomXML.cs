@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core
         /// </summary>
         /// <param name="dataset">The DicomDataset that is converted to XML-String</param>
         /// <param name="settings">Settings for the XMLWriter.</param>
-        public static string ConvertDicomToXML(DicomDataset dataset, XmlWriterSettings settings = null)
+        public static string ConvertDicomToXML(DicomDataset dataset, Encoding selectedEncoding, XmlWriterSettings settings = null)
         {
             if (settings == null)
             {
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core
             }
 
             XmlSettings = settings;
-            string xmlString = DicomToXml(dataset);
+            string xmlString = DicomToXml(dataset, selectedEncoding);
             return xmlString;
         }
 
@@ -71,9 +71,9 @@ namespace Microsoft.Health.Dicom.Core
         /// </summary>
         /// <param name="dataset">Dataset to serialize.</param>
         /// <returns>An XML string.</returns>
-        public static string WriteToXml(this DicomDataset dataset)
+        public static string WriteToXml(this DicomDataset dataset, Encoding selectedEncoding)
         {
-            return ConvertDicomToXML(dataset);
+            return ConvertDicomToXML(dataset, selectedEncoding);
         }
 
         /// <summary>
@@ -81,19 +81,19 @@ namespace Microsoft.Health.Dicom.Core
         /// </summary>
         /// <param name="file">The DicomFile to convert to XML</param>
         /// <returns>An XML string.</returns>
-        public static string WriteToXml(this DicomFile file)
+        public static string WriteToXml(this DicomFile file, Encoding selectedEncoding)
         {
-            return ConvertDicomToXML(file.Dataset);
+            return ConvertDicomToXML(file.Dataset, selectedEncoding);
         }
 
         #endregion
 
         #region Private Methods
 
-        private static string DicomToXml(DicomDataset dataset)
+        private static string DicomToXml(DicomDataset dataset, Encoding selectedEncoding)
         {
             var xmlOutput = new StringBuilder();
-            xmlOutput.AppendLine(@"<?xml version=""1.0"" encoding=""utf-8""?>");
+            xmlOutput.AppendLine($@"<?xml version=""1.0"" encoding=""{selectedEncoding.BodyName}""?>");
             xmlOutput.AppendLine(@"<NativeDicomModel>");
 
             DicomDatasetToXml(xmlOutput, dataset);

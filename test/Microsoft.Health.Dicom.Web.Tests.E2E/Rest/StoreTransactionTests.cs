@@ -151,16 +151,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async void GivenAMultipartRequestWithAnInvalidMultipartSection_WhenStoring_TheServerShouldReturnAccepted(DicomWebClient.DicomMediaType dicomMediaType)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, "studies");
-            switch (dicomMediaType)
-            {
-                case DicomWebClient.DicomMediaType.Json:
-                    request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
-                    break;
-                case DicomWebClient.DicomMediaType.Xml:
-                    request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomXml.MediaType);
-                    break;
-            }
-
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
 
@@ -181,7 +171,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             request.Content = multiContent;
 
-            HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
+            HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies", dicomMediaType);
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
             ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
         }
@@ -267,6 +257,39 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 response2.Value.GetSequence(DicomTag.FailedSOPSequence),
                 StoreFailureCodes.SopInstanceAlredyExistsFailureCode,
                 dicomFile1.Dataset);
+        }
+
+        [Theory]
+        [InlineData(DicomWebClient.DicomMediaType.Xml, "utf-7")]
+        [InlineData(DicomWebClient.DicomMediaType.Xml, "utf-8")]
+        [InlineData(DicomWebClient.DicomMediaType.Xml, "utf-16")]
+        [InlineData(DicomWebClient.DicomMediaType.Xml, "utf-32")]
+        [InlineData(DicomWebClient.DicomMediaType.Xml, "us-ascii")]
+        [InlineData(DicomWebClient.DicomMediaType.Xml, "utf-16BE")]
+        [InlineData(DicomWebClient.DicomMediaType.Xml, "asdf")]
+        public async void GivenValidDatasetAndEncoding_WhenStoring_TheServerShouldReturnValidDataset(DicomWebClient.DicomMediaType dicomMediaType, string encodingString)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "studies");
+            var multiContent = new MultipartContent("related");
+            multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
+            multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("charset", $"\"{encodingString}\""));
+
+            DicomFile validFile = Samples.CreateRandomDicomFile();
+
+            using (var stream = new MemoryStream())
+            {
+                await validFile.SaveAsync(stream);
+
+                var validByteContent = new ByteArrayContent(stream.ToArray());
+                validByteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
+                multiContent.Add(validByteContent);
+            }
+
+            request.Content = multiContent;
+
+            HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies", dicomMediaType, encodingString);
+            Assert.True(response.StatusCode == HttpStatusCode.Accepted || response.StatusCode == HttpStatusCode.OK);
+            ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
         }
 
         private void ValidateFailureSequence(DicomSequence dicomSequence, ushort expectedFailureCode, params DicomDataset[] expectedFailedDatasets)

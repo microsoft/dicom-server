@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(selectedEncoding, nameof(selectedEncoding));
 
-            byte[] data = selectedEncoding.GetBytes(DicomXML.WriteToXml((DicomDataset)context.Object));
+            byte[] data = selectedEncoding.GetBytes(DicomXML.WriteToXml((DicomDataset)context.Object, selectedEncoding));
             context.HttpContext.Response.Body.Write(data, 0, data.Length);
 
             return Task.CompletedTask;
