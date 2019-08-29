@@ -270,12 +270,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("utf-16", "utf-16")]
         public async void GivenValidDatasetAndXmlEncoding_WhenStoring_TheServerShouldReturnValidDataset(string encodingString, string expectedResponseEncoding)
         {
-            // TODO: Add additional character sets which should work with XML
-            //       http://help.eclipse.org/kepler/index.jsp?topic=%2Forg.eclipse.wst.xmleditor.doc.user%2Ftopics%2Fcxmlenc.html
-
-            // TODO: Check the expectedResponseEncoding is actually being returned correctly
-            //       Check http header, read from body content using encoding & check XML header is set correctly
-
             var request = new HttpRequestMessage(HttpMethod.Post, "studies");
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
