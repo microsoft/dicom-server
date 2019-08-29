@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents
         public const string SopInstanceUID = "uid";
         public const string Instances = "instances";
         public const string Attributes = "tags";
-        public const string DistinctAttributes = "distinct";
+        public const string DistinctAttributes = "attributes";
         public const string Values = "v";
         public const string MinimumDateTimeValue = "min";
         public const string MaximumDateTimeValue = "max";
