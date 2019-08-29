@@ -260,15 +260,22 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(DicomWebClient.DicomMediaType.Xml, "utf-7")]
-        [InlineData(DicomWebClient.DicomMediaType.Xml, "utf-8")]
-        [InlineData(DicomWebClient.DicomMediaType.Xml, "utf-16")]
-        [InlineData(DicomWebClient.DicomMediaType.Xml, "utf-32")]
-        [InlineData(DicomWebClient.DicomMediaType.Xml, "us-ascii")]
-        [InlineData(DicomWebClient.DicomMediaType.Xml, "utf-16BE")]
-        [InlineData(DicomWebClient.DicomMediaType.Xml, "asdf")]
-        public async void GivenValidDatasetAndEncoding_WhenStoring_TheServerShouldReturnValidDataset(DicomWebClient.DicomMediaType dicomMediaType, string encodingString)
+        [InlineData("utf-7", "utf-8")]
+        [InlineData("utf-8", "utf-8")]
+        [InlineData("utf-32", "utf-8")]
+        [InlineData("us-ascii", "utf-8")]
+        [InlineData("utf-16BE", "utf-8")]
+        [InlineData("*", "utf-8")]
+        [InlineData("asdf", "utf-8")]
+        [InlineData("utf-16", "utf-16")]
+        public async void GivenValidDatasetAndXmlEncoding_WhenStoring_TheServerShouldReturnValidDataset(string encodingString, string expectedResponseEncoding)
         {
+            // TODO: Add additional character sets which should work with XML
+            //       http://help.eclipse.org/kepler/index.jsp?topic=%2Forg.eclipse.wst.xmleditor.doc.user%2Ftopics%2Fcxmlenc.html
+
+            // TODO: Check the expectedResponseEncoding is actually being returned correctly
+            //       Check http header, read from body content using encoding & check XML header is set correctly
+
             var request = new HttpRequestMessage(HttpMethod.Post, "studies");
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
@@ -286,10 +293,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
 
             request.Content = multiContent;
+            request.Headers.Accept.Add(DicomWebClient.MediaTypeApplicationDicomXml);
+            request.Headers.AcceptCharset.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue(encodingString));
 
-            HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies", dicomMediaType, encodingString);
-            Assert.True(response.StatusCode == HttpStatusCode.Accepted || response.StatusCode == HttpStatusCode.OK);
-            ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
+            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+            {
+                Assert.True(response.StatusCode == HttpStatusCode.Accepted || response.StatusCode == HttpStatusCode.OK);
+
+                string contentText = await response.Content.ReadAsStringAsync();
+                DicomDataset dataset = Dicom.Core.DicomXML.ConvertXMLToDicom(contentText);
+                ValidateSuccessSequence(dataset.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
+
+                Assert.Contains($@"<?xml version=""1.0"" encoding=""{expectedResponseEncoding}""?>", contentText);
+            }
         }
 
         private void ValidateFailureSequence(DicomSequence dicomSequence, ushort expectedFailureCode, params DicomDataset[] expectedFailedDatasets)

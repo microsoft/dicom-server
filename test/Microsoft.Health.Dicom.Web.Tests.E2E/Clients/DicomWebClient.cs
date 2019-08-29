@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             return await PostMultipartContentAsync(multiContent, $"studies/{studyInstanceUID}", dicomMediaType);
         }
 
-        internal async Task<HttpResult<DicomDataset>> PostMultipartContentAsync(MultipartContent multiContent, string requestUri, DicomMediaType dicomMediaType = DicomMediaType.Json, string encodingString = "utf-8")
+        internal async Task<HttpResult<DicomDataset>> PostMultipartContentAsync(MultipartContent multiContent, string requestUri, DicomMediaType dicomMediaType = DicomMediaType.Json)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
 
@@ -102,7 +102,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                     break;
             }
 
-            request.Headers.AcceptCharset.Add(new StringWithQualityHeaderValue(encodingString));
             request.Content = multiContent;
 
             using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
