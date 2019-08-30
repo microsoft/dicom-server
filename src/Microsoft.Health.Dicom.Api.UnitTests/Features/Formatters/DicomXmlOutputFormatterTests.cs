@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Formatters
 
             var result = formatter.CanWriteResult(
                 new OutputFormatterWriteContext(
-                    new DefaultHttpContext(),
+                    defaultHttpContext,
                     Substitute.For<Func<Stream, Encoding, TextWriter>>(),
                     modelType,
                     new object()));
