@@ -12,6 +12,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Features.ContentTypes;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -20,8 +21,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 {
     public class DicomStoreController : Controller
     {
-        private const string ApplicationDicomJson = "application/dicom+json";
-        private const string ApplicationDicomXml = "application/dicom+xml";
         private readonly IMediator _mediator;
         private readonly ILogger<DicomStoreController> _logger;
 
@@ -35,7 +34,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [DisableRequestSizeLimit]
-        [AcceptContentFilter(ApplicationDicomJson, ApplicationDicomXml)]
+        [AcceptContentFilter(KnownContentTypes.JsonContentType, KnownContentTypes.XmlContentType)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]

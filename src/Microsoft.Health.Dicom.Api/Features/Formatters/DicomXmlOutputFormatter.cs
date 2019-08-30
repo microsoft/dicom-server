@@ -5,24 +5,26 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Health.Dicom.Api.Features.ContentTypes;
 using Microsoft.Health.Dicom.Core;
 
 namespace Microsoft.Health.Dicom.Api.Features.Formatters
 {
     public class DicomXmlOutputFormatter : TextOutputFormatter
     {
-        internal const string ApplicationDicomXml = "application/dicom+xml";
-
         public DicomXmlOutputFormatter()
         {
-            SupportedMediaTypes.Add(ApplicationDicomXml);
             SupportedEncodings.Add(Encoding.UTF8);
             SupportedEncodings.Add(Encoding.Unicode);
+
+            SupportedMediaTypes.Add(KnownContentTypes.XmlContentType);
         }
 
         protected override bool CanWriteType(Type type)
@@ -40,8 +42,11 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(selectedEncoding, nameof(selectedEncoding));
 
-            byte[] data = selectedEncoding.GetBytes(DicomXML.WriteToXml((DicomDataset)context.Object, selectedEncoding));
-            context.HttpContext.Response.Body.Write(data, 0, data.Length);
+            HttpResponse response = context.HttpContext.Response;
+            using (TextWriter textWriter = context.WriterFactory(response.Body, selectedEncoding))
+            {
+                textWriter.Write(DicomXML.WriteToXml((DicomDataset)context.Object, selectedEncoding));
+            }
 
             return Task.CompletedTask;
         }
