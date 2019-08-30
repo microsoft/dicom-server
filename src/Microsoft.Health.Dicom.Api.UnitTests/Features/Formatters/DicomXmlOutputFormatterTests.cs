@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Dicom;
@@ -48,14 +47,14 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Formatters
         {
             var formatter = new DicomXmlOutputFormatter();
 
-            var dataset = BuildSimpleDataset();
+            DicomDataset dataset = BuildSimpleDataset();
 
             var defaultHttpContext = new DefaultHttpContext();
             defaultHttpContext.Request.ContentType = KnownContentTypes.XmlContentType;
             var responseBody = new MemoryStream();
             defaultHttpContext.Response.Body = responseBody;
 
-            var writerFactory = Substitute.For<Func<Stream, Encoding, TextWriter>>();
+            Func<Stream, Encoding, TextWriter> writerFactory = Substitute.For<Func<Stream, Encoding, TextWriter>>();
             writerFactory.Invoke(Arg.Any<Stream>(), Arg.Any<Encoding>()).Returns(p => new StreamWriter(p.ArgAt<Stream>(0), p.ArgAt<Encoding>(1)));
 
             await formatter.WriteResponseBodyAsync(
