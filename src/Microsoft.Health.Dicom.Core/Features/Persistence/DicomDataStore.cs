@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,6 +44,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         {
             _logger.LogDebug("Starting a new store transaction.");
             return new StoreTransaction(_dicomBlobDataStore, _dicomMetadataStore, _dicomInstanceMetadataStore, _dicomIndexDataStore);
+        }
+
+        public async Task<Stream> GetDicomDataStreamAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default)
+        {
+            var storageName = StoreTransaction.GetBlobStorageName(dicomInstance);
+            return await _dicomBlobDataStore.GetFileAsStreamAsync(storageName, cancellationToken);
         }
 
         public async Task DeleteStudyAsync(string studyInstanceUID, CancellationToken cancellationToken)

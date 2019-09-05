@@ -6,16 +6,13 @@
 using FluentValidation;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Delete
+namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "Follows validator naming convention.")]
-    public class DeleteDicomResourcesRequestValidator : AbstractValidator<DeleteDicomResourcesRequest>
+    public class RetrieveDicomMetadataRequestValidator : AbstractValidator<RetrieveDicomMetadataRequest>
     {
-        public DeleteDicomResourcesRequestValidator()
+        public RetrieveDicomMetadataRequestValidator()
         {
-            RuleFor(x => x.ResourceType)
-                .Must(x => x != ResourceType.Frames);
-
             // Validate the provided identifiers conform correctly.
             RuleFor(x => x.SopInstanceUID)
                 .SetValidator(new DicomIdentifierValidator())

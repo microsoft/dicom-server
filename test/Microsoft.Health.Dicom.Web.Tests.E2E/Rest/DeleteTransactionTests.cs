@@ -63,18 +63,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async void GivenValidStudyId_WhenDeletingStudy_TheServerShouldReturnOK()
         {
             // Add 10 series with 10 instances each to a single study
-            var files = new DicomFile[100];
+            const int numberOfStudies = 2;
             var studyInstanceUID = Guid.NewGuid().ToString();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < numberOfStudies; i++)
             {
+                var files = new DicomFile[10];
                 var seriesUID = Guid.NewGuid().ToString();
+
                 for (int j = 0; j < 10; j++)
                 {
-                    files[i + (j * 10)] = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID);
+                    files[j] = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID);
                 }
-            }
 
-            await Client.PostAsync(files);
+                await Client.PostAsync(files);
+            }
 
             // Send the delete request
             HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID);

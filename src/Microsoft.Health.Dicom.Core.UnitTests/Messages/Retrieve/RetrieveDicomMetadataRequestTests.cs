@@ -5,23 +5,23 @@
 
 using System;
 using Microsoft.Health.Dicom.Core.Messages;
-using Microsoft.Health.Dicom.Core.Messages.Delete;
+using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Delete
+namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
 {
-    public class DeleteDicomResourcesRequestTests
+    public class RetrieveDicomMetadataRequestTests
     {
         [Fact]
-        public void GivenRetrieveDicomResourcesRequest_OnConstruction_CorrectResourceTypeIsSet()
+        public void GivenRetrieveDicomMetadataRequest_OnConstruction_CorrectResourceTypeIsSet()
         {
-            var request = new DeleteDicomResourcesRequest(Guid.NewGuid().ToString());
+            var request = new RetrieveDicomMetadataRequest(Guid.NewGuid().ToString());
             Assert.Equal(ResourceType.Study, request.ResourceType);
 
-            request = new DeleteDicomResourcesRequest(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            request = new RetrieveDicomMetadataRequest(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
             Assert.Equal(ResourceType.Series, request.ResourceType);
 
-            request = new DeleteDicomResourcesRequest(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            request = new RetrieveDicomMetadataRequest(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
             Assert.Equal(ResourceType.Instance, request.ResourceType);
         }
     }

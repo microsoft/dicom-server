@@ -3,6 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Features\Transactions\**" />
+    <EmbeddedResource Remove="Features\Transactions\**" />
+    <None Remove="Features\Transactions\**" />
+  </ItemGroup>
   
   <ItemGroup>
     <EmbeddedResource Include="Features\Storage\StoredProcedures\Delete\deleteStoredProcedure.js" />
