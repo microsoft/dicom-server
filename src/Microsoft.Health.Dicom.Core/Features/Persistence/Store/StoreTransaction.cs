@@ -109,22 +109,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
         internal static string GetBlobStorageName(DicomInstance dicomInstance)
             => $"{dicomInstance.StudyInstanceUID}/{dicomInstance.SeriesInstanceUID}/{dicomInstance.SopInstanceUID}";
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                Task.WaitAll(AbortAsync());
-            }
-
-            _disposed = true;
-        }
-
-        private static void RemoveOtherAndUnknownValueRepresentations(DicomDataset dicomDataset)
+        internal static void RemoveOtherAndUnknownValueRepresentations(DicomDataset dicomDataset)
         {
             var tagsToRemove = new List<DicomTag>();
             foreach (DicomItem item in dicomDataset)
@@ -143,6 +128,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             }
 
             dicomDataset.Remove(tagsToRemove.ToArray());
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                Task.WaitAll(AbortAsync());
+            }
+
+            _disposed = true;
         }
     }
 }

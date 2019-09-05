@@ -4,14 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Resources.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
@@ -138,7 +136,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-            ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
+            ValidationHelpers.ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
         }
 
         [Fact]
@@ -156,7 +154,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.EndsWith($"studies/{studyInstanceUID}", response.Value.GetSingleValue<string>(DicomTag.RetrieveURL));
 
-            ValidateFailureSequence(
+            ValidationHelpers.ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
                 StoreFailureCodes.MismatchStudyInstanceUIDFailureCode,
                 dicomFile1.Dataset,
@@ -178,8 +176,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.EndsWith($"studies/{studyInstanceUID}", response.Value.GetSingleValue<string>(DicomTag.RetrieveURL));
 
-            ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
-            ValidateFailureSequence(
+            ValidationHelpers.ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
+            ValidationHelpers.ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
                 StoreFailureCodes.MismatchStudyInstanceUIDFailureCode,
                 dicomFile2.Dataset);
@@ -193,7 +191,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             HttpResult<DicomDataset> response = await Client.PostAsync(new[] { dicomFile1 });
             Assert.False(response.Value.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            ValidateFailureSequence(
+            ValidationHelpers.ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
                 StoreFailureCodes.ProcessingFailureCode,
                 dicomFile1.Dataset);
@@ -205,51 +203,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile();
             HttpResult<DicomDataset> response1 = await Client.PostAsync(new[] { dicomFile1 });
             Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
-            ValidateSuccessSequence(response1.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
+            ValidationHelpers.ValidateSuccessSequence(response1.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
             Assert.False(response1.Value.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence _));
 
             HttpResult<DicomDataset> response2 = await Client.PostAsync(new[] { dicomFile1 });
             Assert.Equal(HttpStatusCode.Conflict, response2.StatusCode);
-            ValidateFailureSequence(
+            ValidationHelpers.ValidateFailureSequence(
                 response2.Value.GetSequence(DicomTag.FailedSOPSequence),
                 StoreFailureCodes.SopInstanceAlredyExistsFailureCode,
                 dicomFile1.Dataset);
-        }
-
-        private void ValidateFailureSequence(DicomSequence dicomSequence, ushort expectedFailureCode, params DicomDataset[] expectedFailedDatasets)
-        {
-            Assert.Equal(DicomTag.FailedSOPSequence, dicomSequence.Tag);
-            Assert.True(dicomSequence.Count() == expectedFailedDatasets.Length);
-            var expectedSopClassUIDs = new HashSet<string>(expectedFailedDatasets.Select(x => x.GetSingleValueOrDefault(DicomTag.SOPClassUID, string.Empty)));
-            var expectedSopInstanceUIDs = new HashSet<string>(expectedFailedDatasets.Select(x => x.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty)));
-
-            foreach (DicomDataset dataset in dicomSequence)
-            {
-                Assert.True(dataset.Count() == 3);
-                Assert.Equal(expectedFailureCode, dataset.GetSingleValue<ushort>(DicomTag.FailureReason));
-                Assert.Contains(dataset.GetSingleValue<string>(DicomTag.ReferencedSOPClassUID), expectedSopClassUIDs);
-                Assert.Contains(dataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID), expectedSopInstanceUIDs);
-            }
-        }
-
-        private void ValidateSuccessSequence(DicomSequence dicomSequence, params DicomDataset[] expectedDatasets)
-        {
-            Assert.Equal(DicomTag.ReferencedSOPSequence, dicomSequence.Tag);
-            Assert.True(dicomSequence.Count() == expectedDatasets.Length);
-            var datasetsBySopInstanceUID = expectedDatasets.ToDictionary(x => x.GetSingleValue<string>(DicomTag.SOPInstanceUID), x => x);
-
-            foreach (DicomDataset dataset in dicomSequence)
-            {
-                Assert.True(dataset.Count() == 3);
-                var referencedSopInstanceUID = dataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID);
-                Assert.True(datasetsBySopInstanceUID.ContainsKey(referencedSopInstanceUID));
-                DicomDataset referenceDataset = datasetsBySopInstanceUID[referencedSopInstanceUID];
-                var dicomInstance = DicomInstance.Create(referenceDataset);
-                Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.SOPClassUID), dataset.GetSingleValue<string>(DicomTag.ReferencedSOPClassUID));
-                Assert.EndsWith(
-                    $"studies/{dicomInstance.StudyInstanceUID}/series/{dicomInstance.SeriesInstanceUID}/instances/{dicomInstance.SopInstanceUID}",
-                    dataset.GetSingleValue<string>(DicomTag.RetrieveURL));
-            }
         }
     }
 }
