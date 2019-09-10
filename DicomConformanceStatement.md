@@ -147,7 +147,7 @@ GET|../study/{study}/series/{series}|Retrieves an series.
 GET|../study/{study}/series/{series}/metadata|Retrieves all the metadata for every instance in the series.
 GET|../study/{study}/series/{series}/instances/{instance}|Retrieves a single instance.
 GET|../study/{study}/series/{series}/instances/{instance}/metadata|Retrieves the metadata for a single instance.
-GET|../study/{study}/series/{series}/instances/{instance}/frames/{frames}|Retrieves one or many frames from a single instance.
+GET|../study/{study}/series/{series}/instances/{instance}/frames/{frames}|Retrieves one or many frames from a single instance. To specify more than one frame, a comma seperate each frame to return, e.g. /study/1/series/2/instance/3/frames/4,5,6
 
 ### Retrieve Study or Series
 The following `'Accept'` headers are supported for retrieving study or series:
@@ -156,6 +156,7 @@ The following `'Accept'` headers are supported for retrieving study or series:
 
 ### Retrieve Metadata (for Study/ Series/ or Instance)
 The following `'Accept'` headers are supported for retrieving metadata for a study, series or single instance:
+- `application/dicom+json (default)`
 
 Retrieving metadata will not return attributes with the following value representations:
 VR Name|Full

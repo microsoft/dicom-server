@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -11,21 +12,24 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
 {
     public class IntArrayModelBinder : IModelBinder
     {
+        private readonly IFormatProvider _formatProvider = CultureInfo.InvariantCulture;
+
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
-            ValueProviderResult value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
+            string valueString = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).ToString();
 
-            if (value == null || string.IsNullOrEmpty(value.ToString()))
+            if (string.IsNullOrEmpty(valueString))
             {
                 bindingContext.Result = ModelBindingResult.Success(Array.Empty<int>());
+                return Task.CompletedTask;
             }
 
-            var split = value.ToString().Split(',');
+            var split = valueString.Split(',');
             var resultArray = new int[split.Length];
 
             for (var i = 0; i < split.Length; i++)
             {
-                if (!int.TryParse(split[i], out resultArray[i]))
+                if (!int.TryParse(split[i], NumberStyles.Any, _formatProvider, out resultArray[i]))
                 {
                     bindingContext.Result = ModelBindingResult.Failed();
                     return Task.CompletedTask;
