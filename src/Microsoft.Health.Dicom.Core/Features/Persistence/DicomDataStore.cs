@@ -79,8 +79,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
         public async Task DeleteInstanceMetadataAndBlobsAsync(params DicomInstance[] instances)
         {
-            await Task.WhenAll(instances.Select(x => _dicomInstanceMetadataStore.DeleteInstanceMetadataAsync(x)));
-            await Task.WhenAll(instances.Select(x => _dicomBlobDataStore.DeleteFileIfExistsAsync(StoreTransaction.GetBlobStorageName(x))));
+            await Task.WhenAll(instances.Select(async x =>
+            {
+                await _dicomInstanceMetadataStore.DeleteInstanceMetadataAsync(x);
+                await _dicomBlobDataStore.DeleteFileIfExistsAsync(StoreTransaction.GetBlobStorageName(x));
+            }));
         }
     }
 }

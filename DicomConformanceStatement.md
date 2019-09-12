@@ -199,16 +199,11 @@ DELETE|../studies/{study}|Delete all instances for a specific study.
 DELETE|../studies/{study}/series/{series}|Delete all instances for a specific series within a study.
 DELETE|../studies/{study}/series/{series}/instances/{instance}| Delete a specific instance within a series.
 
-Parameters `'study'`, `'series'` and `'instance'` correspond to the DICOM attributes StudyInstanceUID,  SeriesInstanceUID and SopInstanceUID respectively.
+Parameters `'study'`, `'series'` and `'instance'` correspond to the DICOM attributes StudyInstanceUID, SeriesInstanceUID and SopInstanceUID respectively.
 
 There are no restrictions on the request's `'Accept'` header, `'Content-Type'` header or body content.
 
 > Note: After a Delete transaction the deleted instances will not be recoverable.
-
-The following DICOM elements are required to be present in every DICOM file attempting to be stored:
-- StudyInstanceUID
-- SeriesInstanceUID
-- SopInstanceUID
 
 ### Response Status Codes
 
