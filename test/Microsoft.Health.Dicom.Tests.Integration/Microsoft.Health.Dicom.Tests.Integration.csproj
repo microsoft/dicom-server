@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Blob\Microsoft.Health.Dicom.Blob.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.CosmosDb\Microsoft.Health.Dicom.CosmosDb.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Transactional\Microsoft.Health.Dicom.Transactional.csproj" />
   </ItemGroup>
   
 </Project>

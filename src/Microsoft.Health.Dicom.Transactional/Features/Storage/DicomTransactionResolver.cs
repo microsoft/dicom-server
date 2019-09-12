@@ -4,20 +4,22 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Transaction;
 using Microsoft.Health.Dicom.Transactional.Features.Storage.Models;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Transactional.Features.Storage
 {
-    public class DicomTransactionResolver
+    internal class DicomTransactionResolver
     {
         private readonly CloudBlobContainer _container;
         private readonly IDicomBlobDataStore _dicomBlobDataStore;
@@ -29,21 +31,25 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
         private const int MinimumBlobAgeSeconds = 15;
 
         public DicomTransactionResolver(
-            CloudBlobContainer container,
+            CloudBlobClient client,
+            IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             IDicomIndexDataStore dicomIndexDataStore,
             IDicomMetadataStore dicomMetadataStore,
             IDicomInstanceMetadataStore dicomInstanceMetadataStore,
             IDicomBlobDataStore dicomBlobDataStore,
             ILogger<DicomTransactionService> logger)
         {
-            EnsureArg.IsNotNull(container, nameof(container));
+            EnsureArg.IsNotNull(client, nameof(client));
+            EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
             EnsureArg.IsNotNull(dicomIndexDataStore, nameof(dicomIndexDataStore));
             EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
             EnsureArg.IsNotNull(dicomInstanceMetadataStore, nameof(dicomInstanceMetadataStore));
             EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _container = container;
+            BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
+
+            _container = client.GetContainerReference(containerConfiguration.ContainerName);
             _dicomIndexDataStore = dicomIndexDataStore;
             _dicomMetadataStore = dicomMetadataStore;
             _dicomInstanceMetadataStore = dicomInstanceMetadataStore;
@@ -75,18 +81,26 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             while (failedTransactions.Length > 0);
         }
 
-        private async Task CleanUpTransaction(CloudBlockBlob cloudBlockBlob, CancellationToken cancellationToken)
+        private async Task CleanUpTransaction(CloudBlockBlob cloudBlob, CancellationToken cancellationToken)
         {
             try
             {
-                TransactionMessage transactionMessage = await ReadBlobTransactionAsync(cloudBlockBlob, cancellationToken);
+                TransactionMessage transactionMessage = await cloudBlob.ReadTransactionMessageAsync(cancellationToken);
 
-                using (var transaction = new DicomTransaction(cloudBlockBlob, TimeSpan.FromSeconds(15), _logger))
+                using (var transaction = new DicomTransaction(cloudBlob, transactionMessage, TimeSpan.FromSeconds(15), _logger))
                 {
                     try
                     {
-                        await transaction.BeginAsync(transactionMessage, cancellationToken);
-                        await ResolveTransactionAsync(transactionMessage, cancellationToken);
+                        await transaction.BeginAsync(overwriteMessage: false, _ => Task.CompletedTask, cancellationToken);
+
+                        await DeleteTransactionHelper.DeleteInstancesAsync(
+                            _dicomBlobDataStore,
+                            _dicomMetadataStore,
+                            _dicomInstanceMetadataStore,
+                            _dicomIndexDataStore,
+                            transactionMessage.DicomInstances,
+                            cancellationToken);
+
                         await transaction.CommitAsync(cancellationToken);
                     }
                     catch
@@ -97,39 +111,7 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             }
             catch (Exception e)
             {
-                _logger.LogError($"Error when trying to clean up failed transaction: {cloudBlockBlob.Name}. {e}");
-            }
-        }
-
-        private async Task<TransactionMessage> ReadBlobTransactionAsync(CloudBlockBlob cloudBlockBlob, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(cloudBlockBlob, nameof(cloudBlockBlob));
-
-            using (Stream stream = await cloudBlockBlob.OpenReadAsync(cancellationToken))
-            using (var streamReader = new StreamReader(stream, TransactionMessage.MessageEncoding))
-            using (var jsonTextReader = new JsonTextReader(streamReader))
-            {
-                return _jsonSerializer.Deserialize<TransactionMessage>(jsonTextReader);
-            }
-        }
-
-        private async Task ResolveTransactionAsync(TransactionMessage transactionMessage, CancellationToken cancellationToken)
-        {
-            // Group the instances by series UID.
-            foreach (IGrouping<string, DicomInstance> grouping in transactionMessage.DicomInstances.GroupBy(x => x.StudyInstanceUID + x.SeriesInstanceUID))
-            {
-                DicomInstance[] instances = grouping.ToArray();
-
-                // Attempt to delete the instance indexes and instance metadata.
-                await Task.WhenAll(
-                    _dicomIndexDataStore.DeleteInstancesIndexAsync(throwOnNotFound: false, cancellationToken, instances),
-                    _dicomMetadataStore.DeleteInstanceAsync(throwOnNotFound: false, cancellationToken, instances));
-
-                await Task.WhenAll(instances.Select(async x =>
-                {
-                    await _dicomInstanceMetadataStore.DeleteInstanceMetadataAsync(x, cancellationToken);
-                    await _dicomBlobDataStore.DeleteInstanceIfExistsAsync(x, cancellationToken);
-                }));
+                _logger.LogError($"Error when trying to clean up failed transaction: {cloudBlob.Name}. {e}");
             }
         }
     }

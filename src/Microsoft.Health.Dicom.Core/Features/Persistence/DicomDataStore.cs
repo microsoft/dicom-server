@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,43 +51,41 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             return new StoreTransaction(_transactionService, _dicomBlobDataStore, _dicomMetadataStore, _dicomInstanceMetadataStore, _dicomIndexDataStore);
         }
 
-        public async Task<Stream> GetDicomDataStreamAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default)
-        {
-            return await _dicomBlobDataStore.GetInstanceAsStreamAsync(dicomInstance, cancellationToken);
-        }
-
         public async Task DeleteStudyAsync(string studyInstanceUID, CancellationToken cancellationToken)
         {
-            DicomInstance[] deletedInstances = (await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUID, cancellationToken)).ToArray();
-            await _dicomMetadataStore.DeleteStudyAsync(studyInstanceUID);
-
-            await DeleteInstanceMetadataAndBlobsAsync(deletedInstances);
+            IEnumerable<DicomInstance> instances = await _dicomMetadataStore.GetInstancesInStudyAsync(studyInstanceUID, cancellationToken);
+            await DeleteInstancesAsync(instances, cancellationToken);
         }
 
         public async Task DeleteSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken)
         {
-            DicomInstance[] deletedInstances = (await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUID, seriesInstanceUID, cancellationToken)).ToArray();
-            await _dicomMetadataStore.DeleteSeriesAsync(studyInstanceUID, seriesInstanceUID);
-
-            await DeleteInstanceMetadataAndBlobsAsync(deletedInstances);
+            IEnumerable<DicomInstance> instances = await _dicomMetadataStore.GetInstancesInSeriesAsync(studyInstanceUID, seriesInstanceUID, cancellationToken);
+            await DeleteInstancesAsync(instances, cancellationToken);
         }
 
         public async Task DeleteInstanceAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken)
         {
             var dicomInstance = new DicomInstance(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
-            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, cancellationToken);
-            await _dicomMetadataStore.DeleteInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
-
-            await DeleteInstanceMetadataAndBlobsAsync(dicomInstance);
+            await DeleteInstancesAsync(new[] { dicomInstance }, cancellationToken);
         }
 
-        public async Task DeleteInstanceMetadataAndBlobsAsync(params DicomInstance[] instances)
+        private async Task DeleteInstancesAsync(IEnumerable<DicomInstance> instances, CancellationToken cancellationToken)
         {
-            await Task.WhenAll(instances.Select(async x =>
+            foreach (IGrouping<DicomSeries, DicomInstance> grouping in instances.GroupBy(x => new DicomSeries(x.StudyInstanceUID, x.SeriesInstanceUID)))
             {
-                await _dicomInstanceMetadataStore.DeleteInstanceMetadataAsync(x);
-                await _dicomBlobDataStore.DeleteInstanceIfExistsAsync(x);
-            }));
+                using (ITransaction transaction = await _transactionService.BeginTransactionAsync(grouping.Key, instances.ToArray(), cancellationToken))
+                {
+                    await DeleteTransactionHelper.DeleteInstancesAsync(
+                        _dicomBlobDataStore,
+                        _dicomMetadataStore,
+                        _dicomInstanceMetadataStore,
+                        _dicomIndexDataStore,
+                        instances,
+                        cancellationToken);
+
+                    await transaction.CommitAsync(cancellationToken);
+                }
+            }
         }
     }
 }

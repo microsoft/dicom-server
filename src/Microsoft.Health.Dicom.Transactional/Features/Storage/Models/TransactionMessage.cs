@@ -19,25 +19,26 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage.Models
         private readonly HashSet<DicomInstance> _dicomInstances;
 
         [JsonConstructor]
-        public TransactionMessage(HashSet<DicomInstance> dicomInstances)
+        public TransactionMessage(DicomSeries dicomSeries, HashSet<DicomInstance> dicomInstances)
         {
+            EnsureArg.IsNotNull(dicomSeries, nameof(dicomSeries));
             EnsureArg.IsNotNull(dicomInstances, nameof(dicomInstances));
 
+            DicomSeries = dicomSeries;
             _dicomInstances = dicomInstances;
-        }
-
-        public TransactionMessage(DicomInstance dicomInstance)
-            : this(new HashSet<DicomInstance>() { dicomInstance })
-        {
-            EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
         }
 
         [JsonIgnore]
         public IEnumerable<DicomInstance> DicomInstances => _dicomInstances;
 
+        [JsonProperty("dicomSeires")]
+        public DicomSeries DicomSeries { get; }
+
         public bool AddInstance(DicomInstance dicomInstance)
         {
             EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
+            EnsureArg.IsEqualTo(dicomInstance.StudyInstanceUID, DicomSeries.StudyInstanceUID, $"This instance does not belong to the StudyInstanceUID: '{DicomSeries.StudyInstanceUID}'");
+            EnsureArg.IsEqualTo(dicomInstance.SeriesInstanceUID, DicomSeries.SeriesInstanceUID, $"This instance does not belong to the SeriesInstanceUID: '{DicomSeries.SeriesInstanceUID}'");
             return _dicomInstances.Add(dicomInstance);
         }
     }

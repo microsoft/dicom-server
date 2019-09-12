@@ -26,14 +26,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
     public class RetrieveDicomResourceHandler : BaseRetrieveDicomResourceHandler, IRequestHandler<RetrieveDicomResourceRequest, RetrieveDicomResourceResponse>
     {
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
-        private readonly DicomDataStore _dicomDataStore;
+        private readonly IDicomBlobDataStore _dicomBlobDataStore;
 
-        public RetrieveDicomResourceHandler(IDicomMetadataStore dicomMetadataStore, DicomDataStore dicomDataStore)
+        public RetrieveDicomResourceHandler(IDicomMetadataStore dicomMetadataStore, IDicomBlobDataStore dicomBlobDataStore)
             : base(dicomMetadataStore)
         {
-            EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
+            EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
 
-            _dicomDataStore = dicomDataStore;
+            _dicomBlobDataStore = dicomBlobDataStore;
         }
 
         public async Task<RetrieveDicomResourceResponse> Handle(
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             {
                 IEnumerable<DicomInstance> retrieveInstances = await GetInstancesToRetrieve(
                     message.ResourceType, message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID, cancellationToken);
-                Stream[] resultStreams = await Task.WhenAll(retrieveInstances.Select(x => _dicomDataStore.GetDicomDataStreamAsync(x, cancellationToken)));
+                Stream[] resultStreams = await Task.WhenAll(retrieveInstances.Select(x => _dicomBlobDataStore.GetInstanceAsStreamAsync(x, cancellationToken)));
 
                 if (message.ResourceType == ResourceType.Frames)
                 {

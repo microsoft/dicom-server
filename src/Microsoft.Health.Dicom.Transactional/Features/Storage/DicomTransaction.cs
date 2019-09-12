@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -14,6 +15,7 @@ using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Transaction;
 using Microsoft.Health.Dicom.Transactional.Features.Storage.Models;
 using Newtonsoft.Json;
@@ -22,27 +24,30 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
 {
     internal class DicomTransaction : ITransaction
     {
+        private const int RetryLeaseDelaySeconds = 1;
         private const int RenewLeaseDelaySeconds = 5;
         private const int MinimumLeaseTimeSeconds = 15;
         private readonly TimeSpan _messageLease;
         private readonly ILogger _logger;
-        private readonly CloudBlockBlob _cloudBlockBlob;
+        private readonly CloudBlockBlob _cloudBlob;
         private readonly CancellationTokenSource _renewLeaseCancellationTokenSource;
         private readonly JsonSerializer _jsonSerializer;
         private readonly Encoding _messageEncoding;
-        private readonly TransactionMessage _transactionMessage;
+        private readonly TransactionMessage _message;
         private Task _renewLeaseTask;
         private AccessCondition _cloudBlockBlobAccessCondition;
         private bool _disposed;
 
-        public DicomTransaction(CloudBlockBlob cloudBlockBlob, TimeSpan messageLease, ILogger logger)
+        public DicomTransaction(CloudBlockBlob cloudBlob, TransactionMessage message, TimeSpan messageLease, ILogger logger)
         {
-            EnsureArg.IsNotNull(cloudBlockBlob, nameof(cloudBlockBlob));
+            EnsureArg.IsNotNull(cloudBlob, nameof(cloudBlob));
+            EnsureArg.IsNotNull(message, nameof(message));
             EnsureArg.IsTrue(messageLease.TotalSeconds >= MinimumLeaseTimeSeconds, nameof(messageLease));
             EnsureArg.IsTrue(messageLease.TotalSeconds > RenewLeaseDelaySeconds, nameof(messageLease));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _cloudBlockBlob = cloudBlockBlob;
+            _cloudBlob = cloudBlob;
+            _message = message;
             _messageLease = messageLease;
             _logger = logger;
             _renewLeaseCancellationTokenSource = new CancellationTokenSource();
@@ -50,18 +55,20 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             _messageEncoding = Encoding.UTF8;
         }
 
+        public IEnumerable<DicomInstance> Instances => _message.DicomInstances;
+
         /// <inheritdoc />
         public async Task AppendInstanceAsync(DicomInstance dicomInstance, CancellationToken cancellationToken)
         {
-            _transactionMessage.AddInstance(dicomInstance);
-            await UpdateTransactionMessageAsync(_transactionMessage, cancellationToken);
+            _message.AddInstance(dicomInstance);
+            await UpdateTransactionMessageAsync(_message, cancellationToken);
         }
 
         /// <inheritdoc />
         public async Task CommitAsync(CancellationToken cancellationToken = default)
         {
             // Delete message from the queue.
-            await _cloudBlockBlob.DeleteIfExistsAsync(
+            await _cloudBlob.DeleteIfExistsAsync(
                 DeleteSnapshotsOption.None, _cloudBlockBlobAccessCondition, new BlobRequestOptions(), new OperationContext(), cancellationToken);
 
             // Cancel lease renew task after committing in case the message is released back to the queue before the commit.
@@ -76,7 +83,7 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
 
             try
             {
-                await _cloudBlockBlob.ReleaseLeaseAsync(_cloudBlockBlobAccessCondition, cancellationToken);
+                await _cloudBlob.ReleaseLeaseAsync(_cloudBlockBlobAccessCondition, cancellationToken);
             }
             catch (StorageException e) when (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
             {
@@ -91,17 +98,24 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             GC.SuppressFinalize(this);
         }
 
-        internal async Task BeginAsync(TransactionMessage transactionMessage, CancellationToken cancellationToken = default)
+        internal async Task BeginAsync(bool overwriteMessage, Func<ICloudBlob, Task> resolveBlob, CancellationToken cancellationToken = default)
         {
-            // We first create an empty blob, then acquire lease.
-            await _cloudBlockBlob.UploadFromByteArrayAsync(Array.Empty<byte>(), index: 0, count: 0, cancellationToken);
-            var leaseId = await _cloudBlockBlob.AcquireLeaseAsync(_messageLease, proposedLeaseId: string.Empty, cancellationToken);
-
-            _cloudBlockBlobAccessCondition = new AccessCondition() { LeaseId = leaseId };
+            // Fetch the lease on the blob.
+            var invalidState = await AcquireLeaseAndCheckIfInvalidStateAsync(cancellationToken);
 
             // Once lease has been acquired, start the renew task and upload the transaction message.
-            _renewLeaseTask = RenewLeaseAsync(_cloudBlockBlob, _cloudBlockBlobAccessCondition, _messageLease, _logger, _renewLeaseCancellationTokenSource);
-            await UpdateTransactionMessageAsync(transactionMessage, cancellationToken: cancellationToken);
+            _renewLeaseTask = RenewLeaseAsync(_cloudBlob, _cloudBlockBlobAccessCondition, _messageLease, _logger, _renewLeaseCancellationTokenSource);
+
+            // It is possible we have acquired a lease on this transaction before a previous storage operation was cleaned up.
+            if (invalidState)
+            {
+                await resolveBlob(_cloudBlob);
+            }
+
+            if (overwriteMessage)
+            {
+                await UpdateTransactionMessageAsync(_message, cancellationToken: cancellationToken);
+            }
         }
 
         protected virtual void Dispose(bool disposing)
@@ -120,20 +134,6 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             _disposed = true;
         }
 
-        private async Task UpdateTransactionMessageAsync(TransactionMessage transactionMessage, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(transactionMessage, nameof(transactionMessage));
-
-            using (CloudBlobStream stream = await _cloudBlockBlob.OpenWriteAsync(
-                                                    _cloudBlockBlobAccessCondition, new BlobRequestOptions(), new OperationContext(), cancellationToken))
-            using (var streamWriter = new StreamWriter(stream, _messageEncoding))
-            using (var jsonTextWriter = new JsonTextWriter(streamWriter))
-            {
-                _jsonSerializer.Serialize(jsonTextWriter, transactionMessage);
-                jsonTextWriter.Flush();
-            }
-        }
-
         private static async Task TryDelay(int millisecondsDelay, CancellationToken cancellationToken)
         {
             try
@@ -147,9 +147,9 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
         }
 
         private static async Task RenewLeaseAsync(
-            CloudBlockBlob cloudBlockBlob, AccessCondition accessCondition, TimeSpan messageLease, ILogger logger, CancellationTokenSource cancellationTokenSource)
+            ICloudBlob cloudBlob, AccessCondition accessCondition, TimeSpan messageLease, ILogger logger, CancellationTokenSource cancellationTokenSource)
         {
-            EnsureArg.IsNotNull(cloudBlockBlob, nameof(cloudBlockBlob));
+            EnsureArg.IsNotNull(cloudBlob, nameof(cloudBlob));
             EnsureArg.IsNotNull(accessCondition, nameof(accessCondition));
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(cancellationTokenSource, nameof(cancellationTokenSource));
@@ -164,7 +164,7 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             {
                 try
                 {
-                    await cloudBlockBlob.RenewLeaseAsync(accessCondition, cancellationTokenSource.Token);
+                    await cloudBlob.RenewLeaseAsync(accessCondition, cancellationTokenSource.Token);
                     renewLeaseLastUpdate = DateTime.UtcNow;
 
                     await TryDelay(RenewLeaseDelaySeconds, cancellationTokenSource.Token);
@@ -175,12 +175,12 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
                     // we need to cancel and let the owner of the message know that the lease has expired.
                     if ((DateTime.UtcNow - renewLeaseLastUpdate).TotalSeconds > maximumRenewLeaseWaitSeconds && !cancellationTokenSource.IsCancellationRequested)
                     {
-                        logger.LogError($"Failed to renew the lease failed within {maximumRenewLeaseWaitSeconds} seconds with ID: {accessCondition.LeaseId}. Cloud Block Blob: {cloudBlockBlob.Name}. Exception: {e}.");
+                        logger.LogError($"Failed to renew the lease failed within {maximumRenewLeaseWaitSeconds} seconds with ID: {accessCondition.LeaseId}. Cloud Block Blob: {cloudBlob.Name}. Exception: {e}.");
                         cancellationTokenSource.Cancel();
                     }
                     else
                     {
-                        logger.LogError($"Trying to renew for the lease failed with ID: {accessCondition.LeaseId}. Cloud Block Blob: {cloudBlockBlob.Name}. Exception: {e}.");
+                        logger.LogError($"Trying to renew for the lease failed with ID: {accessCondition.LeaseId}. Cloud Block Blob: {cloudBlob.Name}. Exception: {e}.");
                     }
                 }
             }
@@ -190,6 +190,71 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
         {
             _renewLeaseCancellationTokenSource.Cancel();
             await _renewLeaseTask.ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Attempts to acquire the lease for the current cloud blob.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// Returns true if the blob was not created new.
+        /// This means an old transaction was left in an invalid state and needs resolving.
+        /// /returns>
+        private async Task<bool> AcquireLeaseAndCheckIfInvalidStateAsync(CancellationToken cancellationToken)
+        {
+            bool invalidState = false;
+
+            try
+            {
+                // First attempt to create the blob, and fail over-writting if it exists.
+                await _cloudBlob.UploadTextAsync(
+                    string.Empty,
+                    TransactionMessage.MessageEncoding,
+                    AccessCondition.GenerateIfNotExistsCondition(),
+                    new BlobRequestOptions(),
+                    new OperationContext(),
+                    cancellationToken);
+            }
+            catch (StorageException e) when (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            {
+                invalidState = true;
+            }
+
+            try
+            {
+                var leaseId = await _cloudBlob.AcquireLeaseAsync(_messageLease, proposedLeaseId: Guid.NewGuid().ToString(), cancellationToken);
+                _cloudBlockBlobAccessCondition = new AccessCondition() { LeaseId = leaseId };
+
+                return invalidState;
+            }
+            catch (StorageException e) when (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            {
+                return await AcquireLeaseAndCheckIfInvalidStateAsync(cancellationToken);
+            }
+            catch (StorageException e) when (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            {
+                // Already a lease on this blob, delay before attempting to acquire the lease.
+                await Task.Delay(TimeSpan.FromSeconds(RetryLeaseDelaySeconds), cancellationToken);
+                return await AcquireLeaseAndCheckIfInvalidStateAsync(cancellationToken);
+            }
+            catch
+            {
+                throw new DataStoreException(HttpStatusCode.ServiceUnavailable);
+            }
+        }
+
+        private async Task UpdateTransactionMessageAsync(TransactionMessage transactionMessage, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(transactionMessage, nameof(transactionMessage));
+
+            using (CloudBlobStream stream = await _cloudBlob.OpenWriteAsync(
+                                                _cloudBlockBlobAccessCondition, new BlobRequestOptions(), new OperationContext(), cancellationToken))
+            using (var streamWriter = new StreamWriter(stream, _messageEncoding))
+            using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+            {
+                _jsonSerializer.Serialize(jsonTextWriter, transactionMessage);
+                jsonTextWriter.Flush();
+            }
         }
     }
 }

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
@@ -12,6 +13,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Transaction
 {
     public interface ITransaction : IDisposable
     {
+        IEnumerable<DicomInstance> Instances { get; }
+
         Task AppendInstanceAsync(DicomInstance dicomInstance, CancellationToken cancellationToken);
 
         Task CommitAsync(CancellationToken cancellationToken = default);

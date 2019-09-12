@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -17,7 +18,7 @@ using Microsoft.Health.Dicom.Transactional.Features.Storage.Models;
 
 namespace Microsoft.Health.Dicom.Transactional.Features.Storage
 {
-    public class DicomTransactionService : IDicomTransactionService
+    internal class DicomTransactionService : IDicomTransactionService
     {
         private readonly CloudBlobContainer _container;
         private readonly ILogger<DicomTransactionService> _logger;
@@ -38,16 +39,29 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             _logger = logger;
         }
 
-        public async Task<ITransaction> CreateTransactionAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task<ITransaction> BeginTransactionAsync(DicomSeries dicomSeries, DicomInstance[] dicomInstances, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
+            var transactionMessage = new TransactionMessage(dicomSeries, new HashSet<DicomInstance>(dicomInstances));
 
-            var transactionMessage = new TransactionMessage(dicomInstance);
-            var result = new DicomTransaction(CreateTransactionBlockBlob(), TransactionMessageLease, _logger);
-            await result.BeginAsync(transactionMessage, cancellationToken);
+            foreach (DicomInstance instance in dicomInstances)
+            {
+                transactionMessage.AddInstance(instance);
+            }
+
+            var result = new DicomTransaction(CreateTransactionCloudBlob(dicomSeries), transactionMessage, TransactionMessageLease, _logger);
+            await result.BeginAsync(overwriteMessage: true, _ => Task.CompletedTask, cancellationToken);
             return result;
         }
 
-        private CloudBlockBlob CreateTransactionBlockBlob() => _container.GetBlockBlobReference($"/transaction/{Guid.NewGuid()}");
+        /// <inheritdoc />
+        public async Task<ITransaction> BeginTransactionAsync(DicomSeries dicomSeries, DicomInstance dicomInstance, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
+            return await BeginTransactionAsync(dicomSeries, new[] { dicomInstance }, cancellationToken);
+        }
+
+        private CloudBlockBlob CreateTransactionCloudBlob(DicomSeries dicomSeries)
+            => _container.GetBlockBlobReference($"/transaction/{dicomSeries.StudyInstanceUID}_{dicomSeries.SeriesInstanceUID}");
     }
 }
