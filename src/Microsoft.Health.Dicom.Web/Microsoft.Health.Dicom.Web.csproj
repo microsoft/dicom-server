@@ -28,6 +28,7 @@
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Dicom.CosmosDb\Microsoft.Health.Dicom.CosmosDb.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Transactional\Microsoft.Health.Dicom.Transactional.csproj" />
   </ItemGroup>
 
 </Project>

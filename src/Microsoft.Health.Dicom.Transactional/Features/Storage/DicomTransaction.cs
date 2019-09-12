@@ -29,6 +29,7 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
         private const int MinimumLeaseTimeSeconds = 15;
         private readonly TimeSpan _messageLease;
         private readonly ILogger _logger;
+        private readonly ITransactionResolver _transactionResolver;
         private readonly CloudBlockBlob _cloudBlob;
         private readonly CancellationTokenSource _renewLeaseCancellationTokenSource;
         private readonly JsonSerializer _jsonSerializer;
@@ -38,14 +39,21 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
         private AccessCondition _cloudBlockBlobAccessCondition;
         private bool _disposed;
 
-        public DicomTransaction(CloudBlockBlob cloudBlob, TransactionMessage message, TimeSpan messageLease, ILogger logger)
+        public DicomTransaction(
+            ITransactionResolver transactionResolver,
+            CloudBlockBlob cloudBlob,
+            TransactionMessage message,
+            TimeSpan messageLease,
+            ILogger logger)
         {
+            EnsureArg.IsNotNull(transactionResolver, nameof(transactionResolver));
             EnsureArg.IsNotNull(cloudBlob, nameof(cloudBlob));
             EnsureArg.IsNotNull(message, nameof(message));
             EnsureArg.IsTrue(messageLease.TotalSeconds >= MinimumLeaseTimeSeconds, nameof(messageLease));
             EnsureArg.IsTrue(messageLease.TotalSeconds > RenewLeaseDelaySeconds, nameof(messageLease));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
+            _transactionResolver = transactionResolver;
             _cloudBlob = cloudBlob;
             _message = message;
             _messageLease = messageLease;
@@ -98,7 +106,7 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             GC.SuppressFinalize(this);
         }
 
-        internal async Task BeginAsync(bool overwriteMessage, Func<ICloudBlob, Task> resolveBlob, CancellationToken cancellationToken = default)
+        internal async Task BeginAsync(bool overwriteMessage, CancellationToken cancellationToken = default)
         {
             // Fetch the lease on the blob.
             var invalidState = await AcquireLeaseAndCheckIfInvalidStateAsync(cancellationToken);
@@ -109,7 +117,7 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             // It is possible we have acquired a lease on this transaction before a previous storage operation was cleaned up.
             if (invalidState)
             {
-                await resolveBlob(_cloudBlob);
+                await _transactionResolver.ResolveTransactionAsync(_cloudBlob, cancellationToken);
             }
 
             if (overwriteMessage)

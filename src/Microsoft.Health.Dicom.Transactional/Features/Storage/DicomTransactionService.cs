@@ -21,21 +21,25 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
     internal class DicomTransactionService : IDicomTransactionService
     {
         private readonly CloudBlobContainer _container;
+        private readonly ITransactionResolver _transactionResolver;
         private readonly ILogger<DicomTransactionService> _logger;
         private static readonly TimeSpan TransactionMessageLease = TimeSpan.FromSeconds(15);
 
         public DicomTransactionService(
             CloudBlobClient client,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
+            ITransactionResolver transactionResolver,
             ILogger<DicomTransactionService> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
+            EnsureArg.IsNotNull(transactionResolver, nameof(transactionResolver));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
 
             _container = client.GetContainerReference(containerConfiguration.ContainerName);
+            _transactionResolver = transactionResolver;
             _logger = logger;
         }
 
@@ -49,8 +53,9 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
                 transactionMessage.AddInstance(instance);
             }
 
-            var result = new DicomTransaction(CreateTransactionCloudBlob(dicomSeries), transactionMessage, TransactionMessageLease, _logger);
-            await result.BeginAsync(overwriteMessage: true, _ => Task.CompletedTask, cancellationToken);
+            var cloudBlob = CreateTransactionCloudBlob(dicomSeries);
+            var result = new DicomTransaction(_transactionResolver, cloudBlob, transactionMessage, TransactionMessageLease, _logger);
+            await result.BeginAsync(overwriteMessage: true, cancellationToken);
             return result;
         }
 

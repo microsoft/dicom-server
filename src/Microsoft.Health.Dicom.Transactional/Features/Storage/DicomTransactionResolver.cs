@@ -19,7 +19,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Transactional.Features.Storage
 {
-    internal class DicomTransactionResolver
+    internal class DicomTransactionResolver : ITransactionResolver
     {
         private readonly CloudBlobContainer _container;
         private readonly IDicomBlobDataStore _dicomBlobDataStore;
@@ -58,6 +58,20 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             _jsonSerializer = new JsonSerializer();
         }
 
+        public async Task ResolveTransactionAsync(ICloudBlob cloudBlob, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(cloudBlob, nameof(cloudBlob));
+
+            TransactionMessage transactionMessage = await cloudBlob.ReadTransactionMessageAsync(cancellationToken);
+            await DeleteTransactionHelper.DeleteInstancesAsync(
+                _dicomBlobDataStore,
+                _dicomMetadataStore,
+                _dicomInstanceMetadataStore,
+                _dicomIndexDataStore,
+                transactionMessage.DicomInstances,
+                cancellationToken);
+        }
+
         public async Task CleanUpTransactions(CancellationToken cancellationToken)
         {
             var blobContinuationToken = new BlobContinuationToken();
@@ -87,11 +101,11 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             {
                 TransactionMessage transactionMessage = await cloudBlob.ReadTransactionMessageAsync(cancellationToken);
 
-                using (var transaction = new DicomTransaction(cloudBlob, transactionMessage, TimeSpan.FromSeconds(15), _logger))
+                using (var transaction = new DicomTransaction(this, cloudBlob, transactionMessage, TimeSpan.FromSeconds(15), _logger))
                 {
                     try
                     {
-                        await transaction.BeginAsync(overwriteMessage: false, _ => Task.CompletedTask, cancellationToken);
+                        await transaction.BeginAsync(overwriteMessage: false, cancellationToken);
 
                         await DeleteTransactionHelper.DeleteInstancesAsync(
                             _dicomBlobDataStore,

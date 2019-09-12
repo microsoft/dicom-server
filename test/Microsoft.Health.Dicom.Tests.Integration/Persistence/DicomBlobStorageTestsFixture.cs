@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomBlobDataStore = new DicomBlobDataStore(_cloudBlobClient, optionsMonitor, NullLogger<DicomBlobDataStore>.Instance);
             DicomMetadataStore = new DicomMetadataStore(_cloudBlobClient, optionsMonitor, new DicomMetadataConfiguration(), NullLogger<DicomMetadataStore>.Instance);
             DicomInstanceMetadataStore = new DicomInstanceMetadataStore(_cloudBlobClient, jsonSerializer, optionsMonitor, NullLogger<DicomInstanceMetadataStore>.Instance);
-            DicomTransactionService = new DicomTransactionService(_cloudBlobClient, optionsMonitor, NullLogger<DicomTransactionService>.Instance);
+            DicomTransactionService = new DicomTransactionService(_cloudBlobClient, optionsMonitor, null, NullLogger<DicomTransactionService>.Instance);
         }
 
         public async Task DisposeAsync()

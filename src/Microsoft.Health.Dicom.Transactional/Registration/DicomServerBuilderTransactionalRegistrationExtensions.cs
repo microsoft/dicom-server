@@ -12,6 +12,7 @@ using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Transactional;
 using Microsoft.Health.Dicom.Transactional.Features.Health;
+using Microsoft.Health.Dicom.Transactional.Features.Storage;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -21,22 +22,22 @@ namespace Microsoft.Extensions.DependencyInjection
         private static readonly string DicomServerBlobConfigurationSectionName = $"DicomWeb:MetadataStore";
 
         /// <summary>
-        /// Adds the metadata store for the DICOM server.
+        /// Adds the transactional service for the DICOM server.
         /// </summary>
         /// <param name="serverBuilder">The DICOM server builder instance.</param>
         /// <param name="configuration">The configuration for the server.</param>
         /// <returns>The server builder.</returns>
-        public static IDicomServerBuilder AddMetadataStorageDataStore(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
+        public static IDicomServerBuilder AddTransactionalServices(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             return serverBuilder
-                        .AddMetadataPersistence(configuration)
-                        .AddMetadataHealthCheck();
+                        .AddTransactionService(configuration)
+                        .AddTransactionHealthCheck();
         }
 
-        private static IDicomServerBuilder AddMetadataPersistence(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
+        private static IDicomServerBuilder AddTransactionService(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
         {
             IServiceCollection services = serverBuilder.Services;
 
@@ -60,10 +61,20 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsService<IBlobContainerInitializer>();
 
+            services.Add<DicomTransactionService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<DicomTransactionResolver>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             return serverBuilder;
         }
 
-        private static IDicomServerBuilder AddMetadataHealthCheck(this IDicomServerBuilder serverBuilder)
+        private static IDicomServerBuilder AddTransactionHealthCheck(this IDicomServerBuilder serverBuilder)
         {
             serverBuilder.Services.AddHealthChecks().AddCheck<DicomTransactionHealthCheck>(name: nameof(DicomTransactionHealthCheck));
             return serverBuilder;
