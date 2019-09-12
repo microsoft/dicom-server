@@ -39,6 +39,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
         Task<IEnumerable<DicomInstance>> DeleteSeriesIndexAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default);
 
+        Task DeleteInstancesIndexAsync(bool throwOnNotFound = false, CancellationToken cancellationToken = default, params DicomInstance[] dicomInstances);
+
         Task DeleteInstanceIndexAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken = default);
     }
 }

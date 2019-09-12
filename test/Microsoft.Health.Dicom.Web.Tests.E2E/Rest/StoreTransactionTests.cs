@@ -52,94 +52,104 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("application/dicom")]
         public async void GivenAnIncorrectAcceptHeader_WhenStoring_TheServerShouldReturnNotAcceptable(string acceptHeader)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "studies");
-            request.Headers.Add(HeaderNames.Accept, acceptHeader);
-
-            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
+            using (var request = new HttpRequestMessage(HttpMethod.Post, "studies"))
             {
-                Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
+                request.Headers.Add(HeaderNames.Accept, acceptHeader);
+
+                using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
+                {
+                    Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
+                }
             }
         }
 
         [Fact]
         public async void GivenAnNonMultipartRequest_WhenStoring_TheServerShouldReturnUnsupportedMediaType()
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "studies");
-            request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
-            request.Content = new ByteArrayContent(new byte[] { 1, 2, 3 });
-
-            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
+            using (var request = new HttpRequestMessage(HttpMethod.Post, "studies"))
             {
-                Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
+                request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
+                request.Content = new ByteArrayContent(new byte[] { 1, 2, 3 });
+
+                using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
+                {
+                    Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
+                }
             }
         }
 
         [Fact]
         public async void GivenAMultipartRequestWithNoContent_WhenStoring_TheServerShouldReturnNoContent()
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "studies");
-            request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
+            using (var request = new HttpRequestMessage(HttpMethod.Post, "studies"))
+            {
+                request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
 
-            var multiContent = new MultipartContent("related");
-            multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
+                var multiContent = new MultipartContent("related");
+                multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
 
-            request.Content = multiContent;
+                request.Content = multiContent;
 
-            HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+                HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            }
         }
 
         [Fact]
         public async void GivenAMultipartRequestWithEmptyContent_WhenStoring_TheServerShouldReturnConflict()
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "studies");
-            request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
+            using (var request = new HttpRequestMessage(HttpMethod.Post, "studies"))
+            {
+                request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
 
-            var multiContent = new MultipartContent("related");
-            multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
+                var multiContent = new MultipartContent("related");
+                multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
 
-            var byteContent = new ByteArrayContent(Array.Empty<byte>());
-            byteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
-            multiContent.Add(byteContent);
+                var byteContent = new ByteArrayContent(Array.Empty<byte>());
+                byteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
+                multiContent.Add(byteContent);
 
-            request.Content = multiContent;
+                request.Content = multiContent;
 
-            HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
-            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+                HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
+                Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            }
         }
 
         [Fact]
         public async void GivenAMultipartRequestWithAnInvalidMultipartSection_WhenStoring_TheServerShouldReturnAccepted()
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "studies");
-            request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
-
-            var multiContent = new MultipartContent("related");
-            multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
-
-            var byteContent = new ByteArrayContent(Array.Empty<byte>());
-            byteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
-            multiContent.Add(byteContent);
-
-            string studyInstanceUID = Guid.NewGuid().ToString();
-            DicomFile validFile = Samples.CreateRandomDicomFile(studyInstanceUID);
-
-            using (var stream = new MemoryStream())
+            using (var request = new HttpRequestMessage(HttpMethod.Post, "studies"))
             {
-                await validFile.SaveAsync(stream);
+                request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
 
-                var validByteContent = new ByteArrayContent(stream.ToArray());
-                validByteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
-                multiContent.Add(validByteContent);
+                var multiContent = new MultipartContent("related");
+                multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
+
+                var byteContent = new ByteArrayContent(Array.Empty<byte>());
+                byteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
+                multiContent.Add(byteContent);
+
+                string studyInstanceUID = Guid.NewGuid().ToString();
+                DicomFile validFile = Samples.CreateRandomDicomFile(studyInstanceUID);
+
+                using (var stream = new MemoryStream())
+                {
+                    await validFile.SaveAsync(stream);
+
+                    var validByteContent = new ByteArrayContent(stream.ToArray());
+                    validByteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
+                    multiContent.Add(validByteContent);
+                }
+
+                request.Content = multiContent;
+
+                HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
+                Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+                ValidationHelpers.ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
+
+                await Client.DeleteAsync(studyInstanceUID);
             }
-
-            request.Content = multiContent;
-
-            HttpResult<DicomDataset> response = await Client.PostMultipartContentAsync(multiContent, "studies");
-            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-            ValidationHelpers.ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
-
-            await Client.DeleteAsync(studyInstanceUID);
         }
 
         [Fact]

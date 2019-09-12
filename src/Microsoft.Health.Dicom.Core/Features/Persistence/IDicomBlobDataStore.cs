@@ -12,10 +12,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public interface IDicomBlobDataStore
     {
-        Task<Uri> AddFileAsStreamAsync(string blobName, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default);
+        Task<Uri> AddInstanceAsStreamAsync(DicomInstance dicomInstance, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default);
 
-        Task<Stream> GetFileAsStreamAsync(string blobName, CancellationToken cancellationToken = default);
+        Task<Stream> GetInstanceAsStreamAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default);
 
-        Task DeleteFileIfExistsAsync(string blobName, CancellationToken cancellationToken = default);
+        Task DeleteInstanceIfExistsAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default);
     }
 }

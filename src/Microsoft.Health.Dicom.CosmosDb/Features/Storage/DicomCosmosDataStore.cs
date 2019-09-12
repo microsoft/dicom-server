@@ -215,8 +215,24 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUID, nameof(seriesInstanceUID));
             EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUID, nameof(sopInstanceUID));
 
-            Uri documentUri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, QuerySeriesDocument.GetDocumentId(studyInstanceUID, seriesInstanceUID));
-            RequestOptions requestOptions = CreateRequestOptions(QuerySeriesDocument.GetPartitionKey(studyInstanceUID));
+            await DeleteInstancesIndexAsync(throwOnNotFound: true, cancellationToken, new DicomInstance(studyInstanceUID, seriesInstanceUID, sopInstanceUID));
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteInstancesIndexAsync(bool throwOnNotFound = false, CancellationToken cancellationToken = default, params DicomInstance[] dicomInstances)
+        {
+            EnsureArg.IsNotNull(dicomInstances, nameof(dicomInstances));
+            EnsureArg.HasItems(dicomInstances, nameof(dicomInstances));
+
+            DicomInstance reference = dicomInstances[0];
+            for (var i = 0; i < dicomInstances.Length; i++)
+            {
+                EnsureArg.IsEqualTo(dicomInstances[i].StudyInstanceUID, reference.StudyInstanceUID, "All instances should have the same StudyInstanceUID.");
+                EnsureArg.IsEqualTo(dicomInstances[i].SeriesInstanceUID, reference.SeriesInstanceUID, "All instances should have the same SeriesInstanceUID.");
+            }
+
+            Uri documentUri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, QuerySeriesDocument.GetDocumentId(reference.StudyInstanceUID, reference.SeriesInstanceUID));
+            RequestOptions requestOptions = CreateRequestOptions(QuerySeriesDocument.GetPartitionKey(reference.StudyInstanceUID));
 
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
             await _documentClient.CatchClientExceptionAndThrowDataStoreException(
@@ -226,9 +242,12 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                             await documentClient.ReadDocumentAsync<QuerySeriesDocument>(documentUri, requestOptions, cancellationToken: cancellationToken);
 
                     // If the instance does not exist, throw not found exception.
-                    if (!response.Document.RemoveInstance(sopInstanceUID))
+                    foreach (DicomInstance instance in dicomInstances)
                     {
-                        throw new DataStoreException(HttpStatusCode.NotFound);
+                        if (!response.Document.RemoveInstance(instance.SopInstanceUID) && throwOnNotFound)
+                        {
+                            throw new DataStoreException(HttpStatusCode.NotFound);
+                        }
                     }
 
                     requestOptions.AccessCondition = new AccessCondition() { Condition = response.Document.ETag, Type = AccessConditionType.IfMatch };

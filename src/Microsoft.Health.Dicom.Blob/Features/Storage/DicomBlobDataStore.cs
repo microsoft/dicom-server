@@ -38,11 +38,11 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<Uri> AddFileAsStreamAsync(string blobName, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
+        public async Task<Uri> AddInstanceAsStreamAsync(DicomInstance dicomInstance, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(buffer, nameof(buffer));
-            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
-            _logger.LogDebug($"Adding blob resource: {blobName}. Overwrite mode: {overwriteIfExists}.");
+            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(dicomInstance);
+            _logger.LogDebug($"Adding blob resource: {cloudBlob.Name}. Overwrite mode: {overwriteIfExists}.");
 
             return await cloudBlob.CatchStorageExceptionAndThrowDataStoreException(
                 async (blockBlob) =>
@@ -60,10 +60,10 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetFileAsStreamAsync(string blobName, CancellationToken cancellationToken = default)
+        public async Task<Stream> GetInstanceAsStreamAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default)
         {
-            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
-            _logger.LogDebug($"Opening read of blob resource: {blobName}");
+            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(dicomInstance);
+            _logger.LogDebug($"Opening read of blob resource: {cloudBlob.Name}");
 
             return await cloudBlob.CatchStorageExceptionAndThrowDataStoreException(
                 async (blockBlob) =>
@@ -73,10 +73,10 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task DeleteFileIfExistsAsync(string blobName, CancellationToken cancellationToken = default)
+        public async Task DeleteInstanceIfExistsAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default)
         {
-            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
-            _logger.LogDebug($"Deleting blob resource: {blobName}");
+            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(dicomInstance);
+            _logger.LogDebug($"Deleting blob resource: {cloudBlob.Name}");
 
             await cloudBlob.CatchStorageExceptionAndThrowDataStoreException(
                 async (blockBlob) =>
@@ -85,9 +85,10 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
                 });
         }
 
-        private CloudBlockBlob GetBlockBlobAndValidateName(string blobName)
+        private CloudBlockBlob GetBlockBlobAndValidateName(DicomInstance dicomInstance)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(blobName, nameof(blobName));
+            EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
+            var blobName = $"{dicomInstance.StudyInstanceUID}/{dicomInstance.SeriesInstanceUID}/{dicomInstance.SopInstanceUID}";
 
             // Use the Azure storage SDK to validate the blob name; only specific values are allowed here.
             // Check here for more information: https://blogs.msdn.microsoft.com/jmstall/2014/06/12/azure-storage-naming-rules/

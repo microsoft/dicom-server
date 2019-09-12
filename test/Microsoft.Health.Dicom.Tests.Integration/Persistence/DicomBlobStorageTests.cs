@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Xunit;
@@ -27,9 +28,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             using (var stream = new MemoryStream())
             {
-                await Assert.ThrowsAsync<ArgumentException>(() => _dicomBlobDataStore.AddFileAsStreamAsync(string.Empty, stream));
-                await Assert.ThrowsAsync<ArgumentException>(() => _dicomBlobDataStore.AddFileAsStreamAsync(new string('c', 1025), stream));
-                await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomBlobDataStore.AddFileAsStreamAsync("validname", null));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomBlobDataStore.AddInstanceAsStreamAsync(null, stream));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomBlobDataStore.AddInstanceAsStreamAsync(
+                    new DicomInstance(DicomUID.Generate().UID, DicomUID.Generate().UID, DicomUID.Generate().UID),
+                    null));
             }
         }
 
@@ -38,8 +40,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             using (var stream = new MemoryStream())
             {
-                await Assert.ThrowsAsync<ArgumentException>(() => _dicomBlobDataStore.GetFileAsStreamAsync(string.Empty));
-                await Assert.ThrowsAsync<ArgumentException>(() => _dicomBlobDataStore.GetFileAsStreamAsync(new string('c', 1025)));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomBlobDataStore.GetInstanceAsStreamAsync(null));
             }
         }
 
@@ -48,69 +49,66 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             using (var stream = new MemoryStream())
             {
-                await Assert.ThrowsAsync<ArgumentException>(() => _dicomBlobDataStore.DeleteFileIfExistsAsync(string.Empty));
-                await Assert.ThrowsAsync<ArgumentException>(() => _dicomBlobDataStore.DeleteFileIfExistsAsync(new string('c', 1025)));
+                await Assert.ThrowsAsync<ArgumentException>(() => _dicomBlobDataStore.DeleteInstanceIfExistsAsync(null));
             }
         }
 
         [Fact]
         public async Task GivenAValidFileStream_WhenStored_CanBeRetrievedAndDeleted()
         {
-            var fileName = Guid.NewGuid().ToString();
+            var dicomInstance = new DicomInstance(DicomUID.Generate().UID, DicomUID.Generate().UID, DicomUID.Generate().UID);
             var fileData = new byte[] { 4, 7, 2 };
 
             using (var stream = new MemoryStream(fileData))
             {
-                Uri fileLocation = await _dicomBlobDataStore.AddFileAsStreamAsync(fileName, stream);
-
+                Uri fileLocation = await _dicomBlobDataStore.AddInstanceAsStreamAsync(dicomInstance, stream);
                 Assert.NotNull(fileLocation);
-                Assert.EndsWith(fileName, fileLocation.AbsoluteUri);
             }
 
-            using (Stream resultStream = await _dicomBlobDataStore.GetFileAsStreamAsync(fileName))
+            using (Stream resultStream = await _dicomBlobDataStore.GetInstanceAsStreamAsync(dicomInstance))
             {
                 byte[] result = await ConvertStreamToByteArrayAsync(resultStream);
                 Assert.Equal(fileData, result);
             }
 
-            await _dicomBlobDataStore.DeleteFileIfExistsAsync(fileName);
+            await _dicomBlobDataStore.DeleteInstanceIfExistsAsync(dicomInstance);
         }
 
         [Fact]
         public async Task GivenAValidFile_WhenStored_CanBeOverwrittenOrThrowExceptionIsExists()
         {
-            var fileName = Guid.NewGuid().ToString();
+            var dicomInstance = new DicomInstance(DicomUID.Generate().UID, DicomUID.Generate().UID, DicomUID.Generate().UID);
             var fileData = new byte[] { 4, 7, 2 };
 
             using (var stream = new MemoryStream(fileData))
             {
                 // Overwrite test
-                Uri fileLocation1 = await _dicomBlobDataStore.AddFileAsStreamAsync(fileName, stream);
-                Uri fileLocation2 = await _dicomBlobDataStore.AddFileAsStreamAsync(fileName, stream, overwriteIfExists: true);
+                Uri fileLocation1 = await _dicomBlobDataStore.AddInstanceAsStreamAsync(dicomInstance, stream);
+                Uri fileLocation2 = await _dicomBlobDataStore.AddInstanceAsStreamAsync(dicomInstance, stream, overwriteIfExists: true);
                 Assert.Equal(fileLocation1, fileLocation2);
 
                 // Fail on exists
                 DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(
-                                    () => _dicomBlobDataStore.AddFileAsStreamAsync(fileName, stream, overwriteIfExists: false));
+                                    () => _dicomBlobDataStore.AddInstanceAsStreamAsync(dicomInstance, stream, overwriteIfExists: false));
                 Assert.Equal((int)HttpStatusCode.Conflict, exception.StatusCode);
             }
 
-            await _dicomBlobDataStore.DeleteFileIfExistsAsync(fileName);
+            await _dicomBlobDataStore.DeleteInstanceIfExistsAsync(dicomInstance);
         }
 
         [Fact]
         public async Task GivenANonExistentFile_WhenFetched_ThrowsNotFoundException()
         {
-            var fileName = Guid.NewGuid().ToString();
-            DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(() => _dicomBlobDataStore.GetFileAsStreamAsync(fileName));
+            var dicomInstance = new DicomInstance(DicomUID.Generate().UID, DicomUID.Generate().UID, DicomUID.Generate().UID);
+            DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(() => _dicomBlobDataStore.GetInstanceAsStreamAsync(dicomInstance));
             Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
         public async Task GivenANonExistentFile_WhenDeleted_DoesNotThrowException()
         {
-            var fileName = Guid.NewGuid().ToString();
-            await _dicomBlobDataStore.DeleteFileIfExistsAsync(fileName);
+            var dicomInstance = new DicomInstance(DicomUID.Generate().UID, DicomUID.Generate().UID, DicomUID.Generate().UID);
+            await _dicomBlobDataStore.DeleteInstanceIfExistsAsync(dicomInstance);
         }
 
         private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream)

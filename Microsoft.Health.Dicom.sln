@@ -38,9 +38,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Cosm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Metadata", "src\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj", "{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Metadata.UnitTests", "src\Microsoft.Health.Dicom.Metadata.UnitTests\Microsoft.Health.Dicom.Metadata.UnitTests.csproj", "{C66FAF73-02E3-41E0-8794-594F2E38E36F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Metadata.UnitTests", "src\Microsoft.Health.Dicom.Metadata.UnitTests\Microsoft.Health.Dicom.Metadata.UnitTests.csproj", "{C66FAF73-02E3-41E0-8794-594F2E38E36F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Tests.Common", "src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj", "{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tests.Common", "src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj", "{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Queue", "src\Microsoft.Health.Queue\Microsoft.Health.Queue.csproj", "{99165285-10C6-4609-A22D-C874AD848330}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Transactional", "src\Microsoft.Health.Dicom.Transactional\Microsoft.Health.Dicom.Transactional.csproj", "{41AB790D-466A-40FE-AD17-230A41248130}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -108,6 +112,14 @@ Global
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99165285-10C6-4609-A22D-C874AD848330}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99165285-10C6-4609-A22D-C874AD848330}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99165285-10C6-4609-A22D-C874AD848330}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99165285-10C6-4609-A22D-C874AD848330}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41AB790D-466A-40FE-AD17-230A41248130}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41AB790D-466A-40FE-AD17-230A41248130}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41AB790D-466A-40FE-AD17-230A41248130}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41AB790D-466A-40FE-AD17-230A41248130}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -128,6 +140,8 @@ Global
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{C66FAF73-02E3-41E0-8794-594F2E38E36F} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{99165285-10C6-4609-A22D-C874AD848330} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{41AB790D-466A-40FE-AD17-230A41248130} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}

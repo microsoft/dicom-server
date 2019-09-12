@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Transaction;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
 {
@@ -29,24 +30,29 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             DicomVR.UN,
         };
 
+        private readonly IDicomTransactionService _transactionService;
         private readonly IDicomBlobDataStore _dicomBlobDataStore;
         private readonly IDicomMetadataStore _dicomMetadataStore;
         private readonly IDicomInstanceMetadataStore _dicomInstanceMetadataStore;
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
-        private IDictionary<DicomInstance, DicomDataset> _metadataInstances = new Dictionary<DicomInstance, DicomDataset>();
+        private readonly IDictionary<DicomInstance, DicomDataset> _metadataInstances = new Dictionary<DicomInstance, DicomDataset>();
+        private ITransaction _transaction;
         private bool _disposed;
 
         public StoreTransaction(
+            IDicomTransactionService transactionService,
             IDicomBlobDataStore dicomBlobDataStore,
             IDicomMetadataStore dicomMetadataStore,
             IDicomInstanceMetadataStore dicomInstanceMetadataStore,
             IDicomIndexDataStore dicomIndexDataStore)
         {
+            EnsureArg.IsNotNull(transactionService, nameof(transactionService));
             EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
             EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
             EnsureArg.IsNotNull(dicomInstanceMetadataStore, nameof(dicomInstanceMetadataStore));
             EnsureArg.IsNotNull(dicomIndexDataStore, nameof(dicomIndexDataStore));
 
+            _transactionService = transactionService;
             _dicomBlobDataStore = dicomBlobDataStore;
             _dicomMetadataStore = dicomMetadataStore;
             _dicomInstanceMetadataStore = dicomInstanceMetadataStore;
@@ -59,11 +65,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
             var dicomInstance = DicomInstance.Create(dicomFile.Dataset);
-            var blobStorageName = GetBlobStorageName(dicomInstance);
+
+            // Attempt to create a transaction, or append to an existing transaction.
+            if (_transaction == null)
+            {
+                await _transactionService.CreateTransactionAsync(dicomInstance, cancellationToken);
+            }
+            else
+            {
+                await _transaction.AppendInstanceAsync(dicomInstance, cancellationToken);
+            }
 
             // If a file with the same name exists, a conflict exception will be thrown.
             dicomFileStream.Seek(0, SeekOrigin.Begin);
-            await _dicomBlobDataStore.AddFileAsStreamAsync(blobStorageName, dicomFileStream, cancellationToken: cancellationToken);
+            await _dicomBlobDataStore.AddInstanceAsStreamAsync(dicomInstance, dicomFileStream, cancellationToken: cancellationToken);
 
             // Strip the DICOM file down to the tags we want to store for metadata.
             RemoveOtherAndUnknownValueRepresentations(dicomFile.Dataset);
@@ -76,12 +91,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             GC.SuppressFinalize(this);
         }
 
-        public async Task AbortAsync()
-        {
-            await Task.WhenAll(_metadataInstances.Keys.Select(x => _dicomBlobDataStore.DeleteFileIfExistsAsync(GetBlobStorageName(x))));
-            _metadataInstances.Clear();
-        }
-
         public async Task CommitAsync()
         {
             if (_metadataInstances.Count == 0)
@@ -90,7 +99,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             }
 
             // Commit per series grouping
-            // TODO: Synchronize the stores
             foreach (IGrouping<string, KeyValuePair<DicomInstance, DicomDataset>> grouping in _metadataInstances.GroupBy(x => x.Key.StudyInstanceUID + x.Key.SeriesInstanceUID))
             {
                 DicomDataset[] seriesArray = grouping.Select(x => x.Value).ToArray();
@@ -104,10 +112,37 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             }
 
             _metadataInstances.Clear();
+            await _transaction.CommitAsync();
         }
 
-        internal static string GetBlobStorageName(DicomInstance dicomInstance)
-            => $"{dicomInstance.StudyInstanceUID}/{dicomInstance.SeriesInstanceUID}/{dicomInstance.SopInstanceUID}";
+        public async Task AbortAsync()
+        {
+            if (_metadataInstances.Count == 0)
+            {
+                return;
+            }
+
+            // Abort per series grouping
+            foreach (IGrouping<string, KeyValuePair<DicomInstance, DicomDataset>> grouping in _metadataInstances.GroupBy(x => x.Key.StudyInstanceUID + x.Key.SeriesInstanceUID))
+            {
+                DicomInstance[] instances = grouping.Select(x => x.Key).ToArray();
+
+                // Attempt to delete the instance indexes and instance metadata.
+                await Task.WhenAll(
+                    _dicomIndexDataStore.DeleteInstancesIndexAsync(throwOnNotFound: false, dicomInstances: instances),
+                    _dicomMetadataStore.DeleteInstanceAsync(throwOnNotFound: false, dicomInstances: instances));
+
+                await Task.WhenAll(instances.Select(async x =>
+                {
+                    await _dicomInstanceMetadataStore.DeleteInstanceMetadataAsync(x);
+                    await _dicomBlobDataStore.DeleteInstanceIfExistsAsync(x);
+                }));
+            }
+
+            // If we managed to clear-up, we commit the transaction.
+            _metadataInstances.Clear();
+            await _transaction.CommitAsync();
+        }
 
         internal static void RemoveOtherAndUnknownValueRepresentations(DicomDataset dicomDataset)
         {
@@ -139,7 +174,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
 
             if (disposing)
             {
-                Task.WaitAll(AbortAsync());
+                try
+                {
+                    Task.WaitAll(AbortAsync());
+                }
+                catch
+                {
+                    // Ignore any exceptions from an abort
+                }
+
+                _transaction?.Dispose();
             }
 
             _disposed = true;

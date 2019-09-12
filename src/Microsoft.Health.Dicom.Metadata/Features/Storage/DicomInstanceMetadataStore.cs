@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 async (blockBlob) =>
                 {
                     _logger.LogDebug($"Deleting Instance Metadata: {instance}");
-                    await cloudBlockBlob.DeleteAsync(cancellationToken);
+                    await cloudBlockBlob.DeleteIfExistsAsync(cancellationToken);
                 },
                 retryPolicy);
         }

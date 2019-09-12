@@ -291,11 +291,19 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task DeleteInstanceAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken = default)
+        public async Task DeleteInstanceAsync(bool throwOnNotFound = true, CancellationToken cancellationToken = default, params DicomInstance[] dicomInstances)
         {
-            EnsureArg.Matches(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
-            EnsureArg.Matches(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(sopInstanceUID));
-            CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(studyInstanceUID);
+            EnsureArg.IsNotNull(dicomInstances, nameof(dicomInstances));
+            EnsureArg.HasItems(dicomInstances, nameof(dicomInstances));
+
+            DicomInstance reference = dicomInstances[0];
+            for (var i = 0; i < dicomInstances.Length; i++)
+            {
+                EnsureArg.IsEqualTo(dicomInstances[i].StudyInstanceUID, reference.StudyInstanceUID, "All instances should have the same StudyInstanceUID.");
+                EnsureArg.IsEqualTo(dicomInstances[i].SeriesInstanceUID, reference.SeriesInstanceUID, "All instances should have the same SeriesInstanceUID.");
+            }
+
+            CloudBlockBlob cloudBlockBlob = GetStudyMetadataBlockBlobAndValidateId(reference.StudyInstanceUID);
 
             // Retry when the pre-condition fails on replace (ETag check).
             IAsyncPolicy retryPolicy = CreatePreConditionFailedRetryPolicy();
@@ -305,12 +313,15 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                     DicomStudyMetadata metadata = await ReadMetadataAsync(blockBlob, cancellationToken);
 
                     // Validate the Series & Study is in the fetched metadata.
-                    if (!metadata.TryRemoveInstance(new DicomInstance(studyInstanceUID, seriesInstanceUID, sopInstanceUID)))
+                    foreach (DicomInstance instance in dicomInstances)
                     {
-                        throw new DataStoreException(HttpStatusCode.NotFound);
+                        if (!metadata.TryRemoveInstance(instance) && throwOnNotFound)
+                        {
+                            throw new DataStoreException(HttpStatusCode.NotFound);
+                        }
                     }
 
-                    _logger.LogDebug($"Deleting Instance Metadata for SOP instance '{sopInstanceUID}'");
+                    _logger.LogDebug($"Deleting Instance Metadata for SOP instances: {string.Join(", ", dicomInstances.Select(x => x.SopInstanceUID))}");
 
                     // If this instance was also the last instance in the entire study, we should delete the file, otherwise update.
                     if (metadata.SeriesMetadata.Count == 0)
@@ -323,6 +334,16 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                     }
                 },
                 retryPolicy);
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteInstanceAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.Matches(studyInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(studyInstanceUID));
+            EnsureArg.Matches(seriesInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(seriesInstanceUID));
+            EnsureArg.Matches(sopInstanceUID, DicomIdentifierValidator.IdentifierRegex, nameof(sopInstanceUID));
+
+            await DeleteInstanceAsync(throwOnNotFound: true, cancellationToken, new DicomInstance(studyInstanceUID, seriesInstanceUID, sopInstanceUID));
         }
 
         private static IAsyncPolicy CreatePreConditionFailedRetryPolicy()
