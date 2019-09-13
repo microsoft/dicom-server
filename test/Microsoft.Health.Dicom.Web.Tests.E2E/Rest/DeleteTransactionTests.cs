@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -64,15 +64,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             // Add 10 series with 10 instances each to a single study
             const int numberOfStudies = 2;
-            var studyInstanceUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = DicomUID.Generate().UID;
             for (int i = 0; i < numberOfStudies; i++)
             {
                 var files = new DicomFile[10];
-                var seriesUID = Guid.NewGuid().ToString();
+                var seriesInstanceUID = DicomUID.Generate().UID;
 
                 for (int j = 0; j < 10; j++)
                 {
-                    files[j] = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID);
+                    files[j] = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesInstanceUID);
                 }
 
                 await Client.PostAsync(files);
@@ -81,40 +81,52 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Send the delete request
             HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID);
             Assert.Equal(HttpStatusCode.OK, result);
+
+            // Validate not found
+            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetStudyAsync(studyInstanceUID);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
         public async void GivenValidSeriesId_WhenDeletingSeries_TheServerShouldReturnOK()
         {
             // Store series with 10 instances
-            var studyInstanceUID = Guid.NewGuid().ToString();
-            var seriesUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = DicomUID.Generate().UID;
+            var seriesInstanceUID = DicomUID.Generate().UID;
             var files = new DicomFile[10];
             for (int i = 0; i < 10; i++)
             {
-                files[i] = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID);
+                files[i] = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesInstanceUID);
             }
 
             await Client.PostAsync(files);
 
             // Send the delete request
-            HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesUID);
+            HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesInstanceUID);
             Assert.Equal(HttpStatusCode.OK, result);
+
+            // Validate not found
+            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetSeriesAsync(studyInstanceUID, seriesInstanceUID);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
         public async void GivenValidInstanceId_WhenDeletingInstance_TheServerShouldReturnOK()
         {
             // Create and upload file
-            var studyInstanceUID = Guid.NewGuid().ToString();
-            var seriesUID = Guid.NewGuid().ToString();
-            var instanceUID = Guid.NewGuid().ToString();
-            DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesUID, sopInstanceUID: instanceUID);
+            var studyInstanceUID = DicomUID.Generate().UID;
+            var seriesInstanceUID = DicomUID.Generate().UID;
+            var sopInstanceUID = DicomUID.Generate().UID;
+            DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesInstanceUID, sopInstanceUID: sopInstanceUID);
             await Client.PostAsync(new[] { dicomFile });
 
             // Send the delete request
-            HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesUID, instanceUID);
+            HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
             Assert.Equal(HttpStatusCode.OK, result);
+
+            // Validate not found
+            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }

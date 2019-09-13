@@ -27,10 +27,10 @@ namespace Microsoft.Health.Dicom.Core.Messages.Delete
                 .SetValidator(new DicomIdentifierValidator());
 
             // Check for non-repeated identifiers.
-            RuleFor(x => x)
-                .Must(x => x.StudyInstanceUID != x.SeriesInstanceUID && x.StudyInstanceUID != x.SopInstanceUID);
-            RuleFor(x => x)
-                .Must(x => x.SeriesInstanceUID != x.SopInstanceUID)
+            RuleFor(x => x.StudyInstanceUID)
+                .Must((request, x) => request.SeriesInstanceUID != x && request.SopInstanceUID != x);
+            RuleFor(x => x.SeriesInstanceUID)
+                .Must((request, x) => x != request.SopInstanceUID)
                 .When(x => x.ResourceType != ResourceType.Study);
         }
     }
