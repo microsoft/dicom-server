@@ -9,7 +9,7 @@ using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Transaction;
-using Microsoft.Health.Dicom.Transactional.Features.Storage;
+using Microsoft.Health.Dicom.Transactional.Features.Transactions;
 using NSubstitute;
 using Xunit;
 

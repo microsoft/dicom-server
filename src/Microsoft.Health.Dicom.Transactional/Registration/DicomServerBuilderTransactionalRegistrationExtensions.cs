@@ -12,7 +12,7 @@ using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Transactional;
 using Microsoft.Health.Dicom.Transactional.Features.Health;
-using Microsoft.Health.Dicom.Transactional.Features.Storage;
+using Microsoft.Health.Dicom.Transactional.Features.Transactions;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection

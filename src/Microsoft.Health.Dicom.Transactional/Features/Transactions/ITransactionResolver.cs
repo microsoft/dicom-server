@@ -7,9 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Storage.Blob;
 
-namespace Microsoft.Health.Dicom.Transactional.Features.Storage
+namespace Microsoft.Health.Dicom.Transactional.Features.Transactions
 {
-    public interface ITransactionResolver
+    internal interface ITransactionResolver
     {
         Task ResolveTransactionAsync(ICloudBlob cloudBlob, CancellationToken cancellationToken = default);
     }

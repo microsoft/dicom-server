@@ -6,6 +6,6 @@
 using System.Resources;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Metadata.UnitTests")]
+[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Transactional.UnitTests")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Tests.Integration")]
 [assembly: NeutralResourcesLanguage("en-us")]

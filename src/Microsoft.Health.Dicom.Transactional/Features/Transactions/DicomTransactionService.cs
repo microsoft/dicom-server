@@ -14,9 +14,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Transaction;
-using Microsoft.Health.Dicom.Transactional.Features.Storage.Models;
 
-namespace Microsoft.Health.Dicom.Transactional.Features.Storage
+namespace Microsoft.Health.Dicom.Transactional.Features.Transactions
 {
     internal class DicomTransactionService : IDicomTransactionService
     {

@@ -16,10 +16,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Transaction;
-using Microsoft.Health.Dicom.Transactional.Features.Storage.Models;
 using Newtonsoft.Json;
 
-namespace Microsoft.Health.Dicom.Transactional.Features.Storage
+namespace Microsoft.Health.Dicom.Transactional.Features.Transactions
 {
     internal class DicomTransaction : ITransaction
     {

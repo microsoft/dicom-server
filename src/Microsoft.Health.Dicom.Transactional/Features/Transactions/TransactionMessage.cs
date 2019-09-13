@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Transaction;
 using Newtonsoft.Json;
 
-namespace Microsoft.Health.Dicom.Transactional.Features.Storage.Models
+namespace Microsoft.Health.Dicom.Transactional.Features.Transactions
 {
     internal class TransactionMessage : ITransactionMessage
     {
