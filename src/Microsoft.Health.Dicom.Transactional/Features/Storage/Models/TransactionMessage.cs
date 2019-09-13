@@ -7,16 +7,17 @@ using System.Collections.Generic;
 using System.Text;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Transaction;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Transactional.Features.Storage.Models
 {
-    internal class TransactionMessage
+    internal class TransactionMessage : ITransactionMessage
     {
         public static readonly Encoding MessageEncoding = Encoding.UTF8;
 
         [JsonProperty("dicomInstances")]
-        private readonly HashSet<DicomInstance> _dicomInstances;
+        private readonly HashSet<DicomInstance> _dicomInstances = new HashSet<DicomInstance>();
 
         [JsonConstructor]
         public TransactionMessage(DicomSeries dicomSeries, HashSet<DicomInstance> dicomInstances)
@@ -25,11 +26,16 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage.Models
             EnsureArg.IsNotNull(dicomInstances, nameof(dicomInstances));
 
             DicomSeries = dicomSeries;
-            _dicomInstances = dicomInstances;
+
+            foreach (DicomInstance instance in dicomInstances)
+            {
+                // Use the add instance method to validate all instances in the HashSet belong to the provided series.
+                AddInstance(instance);
+            }
         }
 
         [JsonIgnore]
-        public IEnumerable<DicomInstance> DicomInstances => _dicomInstances;
+        public IEnumerable<DicomInstance> Instances => _dicomInstances;
 
         [JsonProperty("dicomSeires")]
         public DicomSeries DicomSeries { get; }

@@ -5,8 +5,12 @@
 
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Azure.Storage.Blob;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Transaction;
+using Microsoft.Health.Dicom.Transactional.Features.Storage;
+using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -17,7 +21,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public DicomTransactionalTests(DicomBlobStorageTestsFixture fixture)
         {
-            _transactionService = fixture.DicomTransactionService;
+            ITransactionResolver transactionResolver = Substitute.For<ITransactionResolver>();
+            transactionResolver.ResolveTransactionAsync(Arg.Any<ICloudBlob>()).Returns(Task.CompletedTask);
+            _transactionService = new DicomTransactionService(fixture.CloudBlobClient, fixture.OptionsMonitor, transactionResolver, NullLogger<DicomTransactionService>.Instance);
         }
 
         [Fact]
@@ -26,8 +32,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var dicomInstance = new DicomInstance(DicomUID.Generate().UID, DicomUID.Generate().UID, DicomUID.Generate().UID);
             var dicomSeries = new DicomSeries(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID);
 
-            using (ITransaction transaction = await _transactionService.BeginTransactionAsync(dicomSeries, dicomInstance))
+            using (ITransaction transaction = await _transactionService.BeginTransactionAsync(dicomSeries))
             {
+                await transaction.AppendInstanceAsync(dicomInstance);
                 await transaction.CommitAsync();
             }
         }

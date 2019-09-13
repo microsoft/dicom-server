@@ -6,35 +6,42 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 
 namespace Microsoft.Health.Dicom.Core.Features.Transaction
 {
     public static class TransactionExtensions
     {
-        public static async Task AbortStoreInstancesAsync(
-            this ITransaction transaction,
+        public static async Task DeleteInstancesAsync(
+            this ITransactionMessage transactionMessage,
             IDicomBlobDataStore dicomBlobDataStore,
             IDicomMetadataStore dicomMetadataStore,
             IDicomInstanceMetadataStore dicomInstanceMetadataStore,
             IDicomIndexDataStore dicomIndexDataStore,
             CancellationToken cancellationToken = default)
         {
-            DicomInstance[] instances = transaction.Instances.ToArray();
+            EnsureArg.IsNotNull(transactionMessage, nameof(transactionMessage));
+            EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
+            EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
+            EnsureArg.IsNotNull(dicomInstanceMetadataStore, nameof(dicomInstanceMetadataStore));
+            EnsureArg.IsNotNull(dicomIndexDataStore, nameof(dicomIndexDataStore));
 
-            // Attempt to delete the instance indexes and instance metadata.
-            await Task.WhenAll(
-                dicomIndexDataStore.DeleteInstancesIndexAsync(throwOnNotFound: false, cancellationToken, instances),
-                dicomMetadataStore.DeleteInstanceAsync(throwOnNotFound: false, cancellationToken, instances));
+            DicomInstance[] instances = transactionMessage.Instances.ToArray();
 
-            await Task.WhenAll(instances.Select(async x =>
+            if (instances.Length > 0)
             {
-                await dicomInstanceMetadataStore.DeleteInstanceMetadataAsync(x, cancellationToken);
-                await dicomBlobDataStore.DeleteInstanceIfExistsAsync(x, cancellationToken);
-            }));
+                // Attempt to delete the instance indexes and instance metadata.
+                await Task.WhenAll(
+                    dicomIndexDataStore.DeleteInstancesIndexAsync(throwOnNotFound: false, cancellationToken, instances),
+                    dicomMetadataStore.DeleteInstanceAsync(throwOnNotFound: false, cancellationToken, instances));
 
-            // If the store is rolled back, we commit the transaction.
-            await transaction.CommitAsync(cancellationToken);
+                await Task.WhenAll(instances.Select(async x =>
+                {
+                    await dicomInstanceMetadataStore.DeleteInstanceMetadataIfExistsAsync(x, cancellationToken);
+                    await dicomBlobDataStore.DeleteInstanceIfExistsAsync(x, cancellationToken);
+                }));
+            }
         }
     }
 }

@@ -38,6 +38,19 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
+        public async Task<bool> InstanceExistsAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default)
+        {
+            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(dicomInstance);
+
+            return await cloudBlob.CatchStorageExceptionAndThrowDataStoreException(
+                async (blockBlob) =>
+                {
+                    // Will throw if the provided resource identifier already exists.
+                    return await blockBlob.ExistsAsync(cancellationToken);
+                });
+        }
+
+        /// <inheritdoc />
         public async Task<Uri> AddInstanceAsStreamAsync(DicomInstance dicomInstance, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(buffer, nameof(buffer));

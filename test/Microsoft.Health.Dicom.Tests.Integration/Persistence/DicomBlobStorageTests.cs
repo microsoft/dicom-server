@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             using (var stream = new MemoryStream())
             {
-                await Assert.ThrowsAsync<ArgumentException>(() => _dicomBlobDataStore.DeleteInstanceIfExistsAsync(null));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomBlobDataStore.DeleteInstanceIfExistsAsync(null));
             }
         }
 

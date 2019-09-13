@@ -48,22 +48,17 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
         {
             var transactionMessage = new TransactionMessage(dicomSeries, new HashSet<DicomInstance>(dicomInstances));
 
-            foreach (DicomInstance instance in dicomInstances)
-            {
-                transactionMessage.AddInstance(instance);
-            }
-
-            var cloudBlob = CreateTransactionCloudBlob(dicomSeries);
+            CloudBlockBlob cloudBlob = CreateTransactionCloudBlob(dicomSeries);
             var result = new DicomTransaction(_transactionResolver, cloudBlob, transactionMessage, TransactionMessageLease, _logger);
-            await result.BeginAsync(overwriteMessage: true, cancellationToken);
+            await result.BeginAsync(cancellationToken);
             return result;
         }
 
         /// <inheritdoc />
-        public async Task<ITransaction> BeginTransactionAsync(DicomSeries dicomSeries, DicomInstance dicomInstance, CancellationToken cancellationToken = default)
+        public async Task<ITransaction> BeginTransactionAsync(DicomSeries dicomSeries, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
-            return await BeginTransactionAsync(dicomSeries, new[] { dicomInstance }, cancellationToken);
+            EnsureArg.IsNotNull(dicomSeries, nameof(dicomSeries));
+            return await BeginTransactionAsync(dicomSeries, Array.Empty<DicomInstance>(), cancellationToken);
         }
 
         private CloudBlockBlob CreateTransactionCloudBlob(DicomSeries dicomSeries)

@@ -12,6 +12,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public interface IDicomBlobDataStore
     {
+        Task<bool> InstanceExistsAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default);
+
         Task<Uri> AddInstanceAsStreamAsync(DicomInstance dicomInstance, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default);
 
         Task<Stream> GetInstanceAsStreamAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default);

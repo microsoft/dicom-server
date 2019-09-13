@@ -22,6 +22,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Transaction
         /// <returns>The created transaction.</returns>
         Task<ITransaction> BeginTransactionAsync(DicomSeries dicomSeries, DicomInstance[] dicomInstances, CancellationToken cancellationToken = default);
 
-        Task<ITransaction> BeginTransactionAsync(DicomSeries dicomSeries, DicomInstance dicomInstance, CancellationToken cancellationToken = default);
+        Task<ITransaction> BeginTransactionAsync(DicomSeries dicomSeries, CancellationToken cancellationToken = default);
     }
 }

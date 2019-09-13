@@ -7,10 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Transaction;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
@@ -65,11 +67,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
             var dicomInstance = DicomInstance.Create(dicomFile.Dataset);
+            var dicomSeries = new DicomSeries(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID);
 
-            // Attempt to create a transaction, or append to an existing transaction.
-            await CreateOrAppendToTransactionAsync(dicomInstance, cancellationToken);
+            // Attempt to create a lock for the series.
+            ITransaction transaction = await GetTransactionAsync(dicomSeries, cancellationToken);
 
-            // If a file with the same name exists, a conflict exception will be thrown.
+            // Validate if the instance exists, if true throw conflict exception.
+            if (await _dicomBlobDataStore.InstanceExistsAsync(dicomInstance, cancellationToken))
+            {
+                throw new DataStoreException(HttpStatusCode.Conflict);
+            }
+
+            // Now append to the transaction we are about to modify this instance.
+            await transaction.AppendInstanceAsync(dicomInstance, cancellationToken);
+
+            // Write the instance to blob storage.
             dicomFileStream.Seek(0, SeekOrigin.Begin);
             await _dicomBlobDataStore.AddInstanceAsStreamAsync(dicomInstance, dicomFileStream, cancellationToken: cancellationToken);
 
@@ -91,19 +103,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
                 return;
             }
 
-            // Commit per series grouping
-            foreach (IGrouping<DicomSeries, KeyValuePair<DicomInstance, DicomDataset>> grouping in _metadataInstances.GroupBy(x => new DicomSeries(x.Key.StudyInstanceUID, x.Key.SeriesInstanceUID)))
+            // Commit per transaction
+            foreach (ITransaction transaction in _transactions.Values)
             {
-                ITransaction transaction = _transactions[GetTransactionId(grouping.Key)];
-
-                DicomDataset[] seriesArray = grouping.Select(x => x.Value).ToArray();
-                foreach (DicomDataset metadataInstance in seriesArray)
+                DicomDataset[] datasets = transaction.Message.Instances.Select(x => _metadataInstances[x]).ToArray();
+                foreach (DicomDataset instanceDataset in datasets)
                 {
-                    await _dicomInstanceMetadataStore.AddInstanceMetadataAsync(metadataInstance);
+                    await _dicomInstanceMetadataStore.AddInstanceMetadataAsync(instanceDataset);
                 }
 
-                await _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(seriesArray);
-                await _dicomIndexDataStore.IndexSeriesAsync(seriesArray);
+                await _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(datasets);
+                await _dicomIndexDataStore.IndexSeriesAsync(datasets);
 
                 await transaction.CommitAsync();
             }
@@ -120,7 +130,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
 
             foreach (KeyValuePair<string, ITransaction> transaction in _transactions)
             {
-                await transaction.Value.AbortStoreInstancesAsync(_dicomBlobDataStore, _dicomMetadataStore, _dicomInstanceMetadataStore, _dicomIndexDataStore);
+                await transaction.Value.Message.DeleteInstancesAsync(_dicomBlobDataStore, _dicomMetadataStore, _dicomInstanceMetadataStore, _dicomIndexDataStore);
+                await transaction.Value.CommitAsync();
             }
 
             _metadataInstances.Clear();
@@ -171,22 +182,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             _disposed = true;
         }
 
-        private static string GetTransactionId(DicomSeries dicomSeries) => dicomSeries.StudyInstanceUID + dicomSeries.SeriesInstanceUID;
-
-        private async Task CreateOrAppendToTransactionAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default)
+        private async Task<ITransaction> GetTransactionAsync(DicomSeries dicomSeries, CancellationToken cancellationToken = default)
         {
-            var dicomSeries = new DicomSeries(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID);
-            var transactionId = GetTransactionId(dicomSeries);
+            var transactionId = dicomSeries.StudyInstanceUID + dicomSeries.SeriesInstanceUID;
 
-            if (_transactions.TryGetValue(transactionId, out ITransaction transaction))
+            if (!_transactions.TryGetValue(transactionId, out ITransaction transaction))
             {
-                await transaction.AppendInstanceAsync(dicomInstance, cancellationToken);
-            }
-            else
-            {
-                transaction = await _transactionService.BeginTransactionAsync(dicomSeries, dicomInstance, cancellationToken);
+                transaction = await _transactionService.BeginTransactionAsync(dicomSeries, cancellationToken);
                 _transactions[transactionId] = transaction;
             }
+
+            return transaction;
         }
     }
 }

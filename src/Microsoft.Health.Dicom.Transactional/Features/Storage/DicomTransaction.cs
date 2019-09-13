@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -63,13 +62,14 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             _messageEncoding = Encoding.UTF8;
         }
 
-        public IEnumerable<DicomInstance> Instances => _message.DicomInstances;
+        /// <inheritdoc />
+        public ITransactionMessage Message => _message;
 
         /// <inheritdoc />
-        public async Task AppendInstanceAsync(DicomInstance dicomInstance, CancellationToken cancellationToken)
+        public async Task AppendInstanceAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default)
         {
             _message.AddInstance(dicomInstance);
-            await UpdateTransactionMessageAsync(_message, cancellationToken);
+            await UpdateTransactionMessageAsync(_message, _cloudBlockBlobAccessCondition, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             GC.SuppressFinalize(this);
         }
 
-        internal async Task BeginAsync(bool overwriteMessage, CancellationToken cancellationToken = default)
+        internal async Task BeginAsync(CancellationToken cancellationToken = default)
         {
             // Fetch the lease on the blob.
             var invalidState = await AcquireLeaseAndCheckIfInvalidStateAsync(cancellationToken);
@@ -115,14 +115,11 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             _renewLeaseTask = RenewLeaseAsync(_cloudBlob, _cloudBlockBlobAccessCondition, _messageLease, _logger, _renewLeaseCancellationTokenSource);
 
             // It is possible we have acquired a lease on this transaction before a previous storage operation was cleaned up.
+            // Attempt to resolve the transaction and then overwrite the message.
             if (invalidState)
             {
                 await _transactionResolver.ResolveTransactionAsync(_cloudBlob, cancellationToken);
-            }
-
-            if (overwriteMessage)
-            {
-                await UpdateTransactionMessageAsync(_message, cancellationToken: cancellationToken);
+                await UpdateTransactionMessageAsync(_message, _cloudBlockBlobAccessCondition, cancellationToken);
             }
         }
 
@@ -214,14 +211,8 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
 
             try
             {
-                // First attempt to create the blob, and fail over-writting if it exists.
-                await _cloudBlob.UploadTextAsync(
-                    string.Empty,
-                    TransactionMessage.MessageEncoding,
-                    AccessCondition.GenerateIfNotExistsCondition(),
-                    new BlobRequestOptions(),
-                    new OperationContext(),
-                    cancellationToken);
+                // First attempt to create the blob, and fail over-writing if it exists.
+                await UpdateTransactionMessageAsync(_message, AccessCondition.GenerateIfNotExistsCondition(), cancellationToken);
             }
             catch (StorageException e) when (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
             {
@@ -251,12 +242,13 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             }
         }
 
-        private async Task UpdateTransactionMessageAsync(TransactionMessage transactionMessage, CancellationToken cancellationToken = default)
+        private async Task UpdateTransactionMessageAsync(
+            TransactionMessage transactionMessage, AccessCondition accessCondition, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(transactionMessage, nameof(transactionMessage));
+            EnsureArg.IsNotNull(accessCondition, nameof(accessCondition));
 
-            using (CloudBlobStream stream = await _cloudBlob.OpenWriteAsync(
-                                                _cloudBlockBlobAccessCondition, new BlobRequestOptions(), new OperationContext(), cancellationToken))
+            using (CloudBlobStream stream = await _cloudBlob.OpenWriteAsync(accessCondition, new BlobRequestOptions(), new OperationContext(), cancellationToken))
             using (var streamWriter = new StreamWriter(stream, _messageEncoding))
             using (var jsonTextWriter = new JsonTextWriter(streamWriter))
             {

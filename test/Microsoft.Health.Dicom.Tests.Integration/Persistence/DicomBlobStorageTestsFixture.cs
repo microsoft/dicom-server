@@ -14,10 +14,8 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
-using Microsoft.Health.Dicom.Core.Features.Transaction;
 using Microsoft.Health.Dicom.Metadata.Config;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
-using Microsoft.Health.Dicom.Transactional.Features.Storage;
 using Newtonsoft.Json;
 using NSubstitute;
 using Xunit;
@@ -33,7 +31,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly BlobContainerConfiguration _blobContainerConfiguration;
         private readonly BlobContainerConfiguration _metadataContainerConfiguration;
         private readonly BlobContainerConfiguration _transactionalContainerConfiguration;
-        private CloudBlobClient _cloudBlobClient;
 
         public DicomBlobStorageTestsFixture()
         {
@@ -44,6 +41,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 ConnectionString = Environment.GetEnvironmentVariable("Blob:ConnectionString") ?? BlobLocalEmulator.ConnectionString,
             };
+
+            OptionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
+            OptionsMonitor.Get(BlobConstants.ContainerConfigurationName).Returns(_blobContainerConfiguration);
+            OptionsMonitor.Get(MetadataConstants.ContainerConfigurationName).Returns(_metadataContainerConfiguration);
+            OptionsMonitor.Get(TransactionalConstants.ContainerConfigurationName).Returns(_transactionalContainerConfiguration);
         }
 
         public IDicomBlobDataStore DicomBlobDataStore { get; private set; }
@@ -52,46 +54,42 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IDicomInstanceMetadataStore DicomInstanceMetadataStore { get; private set; }
 
-        public IDicomTransactionService DicomTransactionService { get; private set; }
+        public CloudBlobClient CloudBlobClient { get; private set; }
+
+        public IOptionsMonitor<BlobContainerConfiguration> OptionsMonitor { get; }
 
         public async Task InitializeAsync()
         {
-            IOptionsMonitor<BlobContainerConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
-            optionsMonitor.Get(BlobConstants.ContainerConfigurationName).Returns(_blobContainerConfiguration);
-            optionsMonitor.Get(MetadataConstants.ContainerConfigurationName).Returns(_metadataContainerConfiguration);
-            optionsMonitor.Get(TransactionalConstants.ContainerConfigurationName).Returns(_transactionalContainerConfiguration);
-
             IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider();
 
             var blobClientInitializer = new BlobClientInitializer(testProvider, NullLogger<BlobClientInitializer>.Instance);
-            _cloudBlobClient = blobClientInitializer.CreateBlobClient(_blobDataStoreConfiguration);
+            CloudBlobClient = blobClientInitializer.CreateBlobClient(_blobDataStoreConfiguration);
 
             var blobContainerInitializer = new BlobContainerInitializer(_blobContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
             var metadataContainerInitializer = new BlobContainerInitializer(_metadataContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
             var transactionalContainerInitializer = new BlobContainerInitializer(_transactionalContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
 
             await blobClientInitializer.InitializeDataStoreAsync(
-                                            _cloudBlobClient,
+                                            CloudBlobClient,
                                             _blobDataStoreConfiguration,
                                             new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer, transactionalContainerInitializer });
 
             var jsonSerializer = new JsonSerializer();
             jsonSerializer.Converters.Add(new JsonDicomConverter());
 
-            DicomBlobDataStore = new DicomBlobDataStore(_cloudBlobClient, optionsMonitor, NullLogger<DicomBlobDataStore>.Instance);
-            DicomMetadataStore = new DicomMetadataStore(_cloudBlobClient, optionsMonitor, new DicomMetadataConfiguration(), NullLogger<DicomMetadataStore>.Instance);
-            DicomInstanceMetadataStore = new DicomInstanceMetadataStore(_cloudBlobClient, jsonSerializer, optionsMonitor, NullLogger<DicomInstanceMetadataStore>.Instance);
-            DicomTransactionService = new DicomTransactionService(_cloudBlobClient, optionsMonitor, null, NullLogger<DicomTransactionService>.Instance);
+            DicomBlobDataStore = new DicomBlobDataStore(CloudBlobClient, OptionsMonitor, NullLogger<DicomBlobDataStore>.Instance);
+            DicomMetadataStore = new DicomMetadataStore(CloudBlobClient, OptionsMonitor, new DicomMetadataConfiguration(), NullLogger<DicomMetadataStore>.Instance);
+            DicomInstanceMetadataStore = new DicomInstanceMetadataStore(CloudBlobClient, jsonSerializer, OptionsMonitor, NullLogger<DicomInstanceMetadataStore>.Instance);
         }
 
         public async Task DisposeAsync()
         {
-            using (_cloudBlobClient as IDisposable)
+            using (CloudBlobClient as IDisposable)
             {
-                CloudBlobContainer blobContainer = _cloudBlobClient.GetContainerReference(_blobContainerConfiguration.ContainerName);
+                CloudBlobContainer blobContainer = CloudBlobClient.GetContainerReference(_blobContainerConfiguration.ContainerName);
                 await blobContainer.DeleteIfExistsAsync();
 
-                CloudBlobContainer metadataContainer = _cloudBlobClient.GetContainerReference(_metadataContainerConfiguration.ContainerName);
+                CloudBlobContainer metadataContainer = CloudBlobClient.GetContainerReference(_metadataContainerConfiguration.ContainerName);
                 await metadataContainer.DeleteIfExistsAsync();
             }
         }

@@ -50,6 +50,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task AddInstanceMetadataAsync(DicomDataset instanceMetadata, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(instanceMetadata, nameof(instanceMetadata));
@@ -82,7 +83,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 retryPolicy);
         }
 
-        public async Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task DeleteInstanceMetadataIfExistsAsync(DicomInstance instance, CancellationToken cancellationToken = default)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(instance);
 
@@ -96,6 +98,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 retryPolicy);
         }
 
+        /// <inheritdoc />
         public async Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(instance);

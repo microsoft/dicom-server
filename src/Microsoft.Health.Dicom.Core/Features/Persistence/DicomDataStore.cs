@@ -73,14 +73,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         {
             foreach (IGrouping<DicomSeries, DicomInstance> grouping in instances.GroupBy(x => new DicomSeries(x.StudyInstanceUID, x.SeriesInstanceUID)))
             {
-                using (ITransaction transaction = await _transactionService.BeginTransactionAsync(grouping.Key, instances.ToArray(), cancellationToken))
+                using (ITransaction transaction = await _transactionService.BeginTransactionAsync(grouping.Key, grouping.ToArray(), cancellationToken))
                 {
-                    await DeleteTransactionHelper.DeleteInstancesAsync(
+                    await transaction.Message.DeleteInstancesAsync(
                         _dicomBlobDataStore,
                         _dicomMetadataStore,
                         _dicomInstanceMetadataStore,
                         _dicomIndexDataStore,
-                        instances,
                         cancellationToken);
 
                     await transaction.CommitAsync(cancellationToken);

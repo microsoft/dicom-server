@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,13 +23,14 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
 {
     internal class DicomTransactionResolver : ITransactionResolver
     {
+        private static JsonSerializer _jsonSerializer = new JsonSerializer();
+        private readonly TransactionMessage _emptyTransactionMessage;
         private readonly CloudBlobContainer _container;
         private readonly IDicomBlobDataStore _dicomBlobDataStore;
         private readonly IDicomMetadataStore _dicomMetadataStore;
         private readonly IDicomInstanceMetadataStore _dicomInstanceMetadataStore;
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
         private readonly ILogger<DicomTransactionService> _logger;
-        private readonly JsonSerializer _jsonSerializer;
         private const int MinimumBlobAgeSeconds = 15;
 
         public DicomTransactionResolver(
@@ -55,21 +58,24 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             _dicomInstanceMetadataStore = dicomInstanceMetadataStore;
             _dicomBlobDataStore = dicomBlobDataStore;
             _logger = logger;
-            _jsonSerializer = new JsonSerializer();
+            _emptyTransactionMessage = new TransactionMessage(new DicomSeries("0", "1"), new HashSet<DicomInstance>());
         }
 
         public async Task ResolveTransactionAsync(ICloudBlob cloudBlob, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(cloudBlob, nameof(cloudBlob));
 
-            TransactionMessage transactionMessage = await cloudBlob.ReadTransactionMessageAsync(cancellationToken);
-            await DeleteTransactionHelper.DeleteInstancesAsync(
-                _dicomBlobDataStore,
-                _dicomMetadataStore,
-                _dicomInstanceMetadataStore,
-                _dicomIndexDataStore,
-                transactionMessage.DicomInstances,
-                cancellationToken);
+            TransactionMessage transactionMessage = await ReadTransactionMessageAsync(cloudBlob, cancellationToken);
+
+            if (transactionMessage != null && transactionMessage.Instances.Any())
+            {
+                await transactionMessage.DeleteInstancesAsync(
+                    _dicomBlobDataStore,
+                    _dicomMetadataStore,
+                    _dicomInstanceMetadataStore,
+                    _dicomIndexDataStore,
+                    cancellationToken);
+            }
         }
 
         public async Task CleanUpTransactions(CancellationToken cancellationToken)
@@ -99,22 +105,13 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
         {
             try
             {
-                TransactionMessage transactionMessage = await cloudBlob.ReadTransactionMessageAsync(cancellationToken);
-
-                using (var transaction = new DicomTransaction(this, cloudBlob, transactionMessage, TimeSpan.FromSeconds(15), _logger))
+                // Use the transaction object to acquire a lock on the cloud blob file.
+                using (var transaction = new DicomTransaction(this, cloudBlob, _emptyTransactionMessage, TimeSpan.FromSeconds(15), _logger))
                 {
                     try
                     {
-                        await transaction.BeginAsync(overwriteMessage: false, cancellationToken);
-
-                        await DeleteTransactionHelper.DeleteInstancesAsync(
-                            _dicomBlobDataStore,
-                            _dicomMetadataStore,
-                            _dicomInstanceMetadataStore,
-                            _dicomIndexDataStore,
-                            transactionMessage.DicomInstances,
-                            cancellationToken);
-
+                        // Begin and commit the transaction - this will resolve any outstanding issues automatically.
+                        await transaction.BeginAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
                     }
                     catch
@@ -126,6 +123,18 @@ namespace Microsoft.Health.Dicom.Transactional.Features.Storage
             catch (Exception e)
             {
                 _logger.LogError($"Error when trying to clean up failed transaction: {cloudBlob.Name}. {e}");
+            }
+        }
+
+        private static async Task<TransactionMessage> ReadTransactionMessageAsync(ICloudBlob cloudBlob, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(cloudBlob, nameof(cloudBlob));
+
+            using (Stream stream = await cloudBlob.OpenReadAsync(cancellationToken))
+            using (var streamReader = new StreamReader(stream, TransactionMessage.MessageEncoding))
+            using (var jsonTextReader = new JsonTextReader(streamReader))
+            {
+                return _jsonSerializer.Deserialize<TransactionMessage>(jsonTextReader);
             }
         }
     }
