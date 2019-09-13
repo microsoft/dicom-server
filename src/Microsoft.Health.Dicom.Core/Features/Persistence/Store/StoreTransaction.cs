@@ -107,14 +107,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             foreach (ITransaction transaction in _transactions.Values)
             {
                 DicomDataset[] datasets = transaction.Message.Instances.Select(x => _metadataInstances[x]).ToArray();
-                foreach (DicomDataset instanceDataset in datasets)
-                {
-                    await _dicomInstanceMetadataStore.AddInstanceMetadataAsync(instanceDataset);
-                }
 
-                await _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(datasets);
+                var addTasks = new List<Task>(datasets.Length + 1) { _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(datasets) };
+                addTasks.AddRange(datasets.Select(x => _dicomInstanceMetadataStore.AddInstanceMetadataAsync(x)));
+
+                // Add the metadata for instances and study/ series in parallel.
+                await Task.WhenAll(addTasks);
+
+                // Lastly index the series - this should be done last, so we don't return this items in search results until they
+                // have metadata stored.
                 await _dicomIndexDataStore.IndexSeriesAsync(datasets);
-
                 await transaction.CommitAsync();
             }
 
