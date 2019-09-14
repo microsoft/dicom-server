@@ -162,6 +162,12 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
                     retryPolicy);
             }
 
+            // After searching, no matching items were found.
+            if (deleteDocuments.Count == 0)
+            {
+                throw new DataStoreException(HttpStatusCode.NotFound);
+            }
+
             // Delete all the series using a stored procedure (single transaction).
             var deleteStoredProcedure = new DeleteStoredProcedure();
             await _documentClient.CatchClientExceptionAndThrowDataStoreException(

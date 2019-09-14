@@ -152,6 +152,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             return await PostAsync(postContent, studyInstanceUID);
         }
 
+        public async Task<HttpStatusCode> DeleteAsync(string studyInstanceUID, string seriesInstanceUID = null, string sopInstanceUID = null)
+        {
+            string url = string.IsNullOrEmpty(seriesInstanceUID) ? $"studies/{studyInstanceUID}"
+                : string.IsNullOrEmpty(sopInstanceUID) ? $"studies/{studyInstanceUID}/series/{seriesInstanceUID}"
+                : $"studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}";
+
+            var request = new HttpRequestMessage(HttpMethod.Delete, url);
+
+            using (HttpResponseMessage response = await HttpClient.SendAsync(request))
+            {
+                return response.StatusCode;
+            }
+        }
+
         private static MultipartContent GetMultipartContent(string mimeType)
         {
             var multiContent = new MultipartContent("related");

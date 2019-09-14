@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -41,6 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
         public StoreTransaction BeginStoreTransaction()
         {
+            _logger.LogDebug("Starting a new store transaction.");
             return new StoreTransaction(_dicomBlobDataStore, _dicomMetadataStore, _dicomInstanceMetadataStore, _dicomIndexDataStore);
         }
 
@@ -48,6 +50,40 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         {
             var storageName = StoreTransaction.GetBlobStorageName(dicomInstance);
             return await _dicomBlobDataStore.GetFileAsStreamAsync(storageName, cancellationToken);
+        }
+
+        public async Task DeleteStudyAsync(string studyInstanceUID, CancellationToken cancellationToken)
+        {
+            var deletedInstances = (await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUID, cancellationToken)).ToArray();
+            await _dicomMetadataStore.DeleteStudyAsync(studyInstanceUID);
+
+            await DeleteInstanceMetadataAndBlobsAsync(deletedInstances);
+        }
+
+        public async Task DeleteSeriesAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken)
+        {
+            var deletedInstances = (await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUID, seriesInstanceUID, cancellationToken)).ToArray();
+            await _dicomMetadataStore.DeleteSeriesAsync(studyInstanceUID, seriesInstanceUID);
+
+            await DeleteInstanceMetadataAndBlobsAsync(deletedInstances);
+        }
+
+        public async Task DeleteInstanceAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken)
+        {
+            var dicomInstance = new DicomInstance(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, cancellationToken);
+            await _dicomMetadataStore.DeleteInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+
+            await DeleteInstanceMetadataAndBlobsAsync(dicomInstance);
+        }
+
+        public async Task DeleteInstanceMetadataAndBlobsAsync(params DicomInstance[] instances)
+        {
+            await Task.WhenAll(instances.Select(async x =>
+            {
+                await _dicomInstanceMetadataStore.DeleteInstanceMetadataAsync(x);
+                await _dicomBlobDataStore.DeleteFileIfExistsAsync(StoreTransaction.GetBlobStorageName(x));
+            }));
         }
     }
 }

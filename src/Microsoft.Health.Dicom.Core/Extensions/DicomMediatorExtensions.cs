@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
@@ -69,6 +70,24 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(
                 new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames),
                 cancellationToken);
+        }
+
+        public static Task<DeleteDicomResourcesResponse> DeleteDicomResourcesAsync(
+            this IMediator mediator, string studyInstanceUID, CancellationToken cancellationToken = default)
+        {
+            return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUID), cancellationToken);
+        }
+
+        public static Task<DeleteDicomResourcesResponse> DeleteDicomResourcesAsync(
+            this IMediator mediator, string studyInstanceUID, string seriesUID, CancellationToken cancellationToken = default)
+        {
+            return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUID, seriesUID), cancellationToken);
+        }
+
+        public static Task<DeleteDicomResourcesResponse> DeleteDicomResourcesAsync(
+            this IMediator mediator, string studyInstanceUID, string seriesUID, string instanceUID, CancellationToken cancellationToken = default)
+        {
+            return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUID, seriesUID, instanceUID), cancellationToken);
         }
     }
 }
