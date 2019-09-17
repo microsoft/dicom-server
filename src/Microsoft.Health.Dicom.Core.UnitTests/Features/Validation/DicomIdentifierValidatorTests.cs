@@ -49,9 +49,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 
         private static IEnumerable<ValidationFailure> GetValidationFailures(StoreDicomResourcesRequest request)
         {
-            var validator = new DicomIdentifierValidator();
-
-            return validator.Validate(
+            return new DicomIdentifierValidator().Validate(
                 new PropertyValidatorContext(new ValidationContext(request), PropertyRule.Create<StoreDicomResourcesRequest, string>(x => x.StudyInstanceUID), nameof(StoreDicomResourcesRequest.StudyInstanceUID)));
         }
     }

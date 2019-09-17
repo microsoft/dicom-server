@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
+using Dicom;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Xunit;
@@ -13,29 +13,41 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
     public class RetrieveDicomResourceRequestTests
     {
         [Fact]
-        public void GivenRetrieveDicomResourcesRequest_OnConstruction_CorrectResourceTypeIsSet()
+        public void GivenRetrieveDicomResourcesRequestForStudy_OnConstruction_StudyResourceTypeIsSet()
         {
-            var request = new RetrieveDicomResourceRequest(requestedTransferSyntax: string.Empty, Guid.NewGuid().ToString());
+            var request = new RetrieveDicomResourceRequest(requestedTransferSyntax: string.Empty, DicomUID.Generate().UID);
             Assert.Equal(ResourceType.Study, request.ResourceType);
+        }
 
-            request = new RetrieveDicomResourceRequest(
+        [Fact]
+        public void GivenRetrieveDicomResourcesRequestForSeries_OnConstruction_SeriesResourceTypeIsSet()
+        {
+            var request = new RetrieveDicomResourceRequest(
                 requestedTransferSyntax: string.Empty,
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString());
+                DicomUID.Generate().UID,
+                DicomUID.Generate().UID);
             Assert.Equal(ResourceType.Series, request.ResourceType);
+        }
 
-            request = new RetrieveDicomResourceRequest(
+        [Fact]
+        public void GivenRetrieveDicomResourcesRequestForInstance_OnConstruction_InstanceResourceTypeIsSet()
+        {
+            var request = new RetrieveDicomResourceRequest(
                 requestedTransferSyntax: string.Empty,
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString());
+                DicomUID.Generate().UID,
+                DicomUID.Generate().UID,
+                DicomUID.Generate().UID);
             Assert.Equal(ResourceType.Instance, request.ResourceType);
+        }
 
-            request = new RetrieveDicomResourceRequest(
+        [Fact]
+        public void GivenRetrieveDicomResourcesRequestForFrames_OnConstruction_FramesResourceTypeIsSet()
+        {
+            var request = new RetrieveDicomResourceRequest(
                 requestedTransferSyntax: string.Empty,
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                DicomUID.Generate().UID,
+                DicomUID.Generate().UID,
+                DicomUID.Generate().UID,
                 new[] { 5 });
             Assert.Equal(ResourceType.Frames, request.ResourceType);
         }
