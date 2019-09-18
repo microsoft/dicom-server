@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             _logger = logger;
         }
 
+        [Authorize]
         [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -56,6 +58,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return ConvertToActionResult(response);
         }
 
+        [Authorize]
         [AcceptContentFilter(ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -71,6 +74,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
+        [Authorize]
         [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -90,6 +94,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return ConvertToActionResult(response);
         }
 
+        [Authorize]
         [AcceptContentFilter(ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -106,6 +111,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
+        [Authorize]
         [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -126,6 +132,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return ConvertToActionResult(response);
         }
 
+        [Authorize]
         [AcceptContentFilter(ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -142,6 +149,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
+        [Authorize]
         [AcceptContentFilter(ApplicationOctetStream)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]

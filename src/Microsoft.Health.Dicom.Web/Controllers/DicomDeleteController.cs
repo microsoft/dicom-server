@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -29,6 +30,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             _logger = logger;
         }
 
+        [Authorize]
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -44,6 +46,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return StatusCode(deleteResponse.StatusCode);
         }
 
+        [Authorize]
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -59,6 +62,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return StatusCode(deleteResponse.StatusCode);
         }
 
+        [Authorize]
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
