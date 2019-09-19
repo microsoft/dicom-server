@@ -114,16 +114,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
 
         private static void ValidateHasError(RetrieveDicomResourceRequest request, string expectedErrorMessage)
         {
-            ValidationResult result = GetValidationResult(request);
+            ValidationResult result = new RetrieveDicomResourcesRequestValidator().Validate(request);
             Assert.False(result.IsValid);
             Assert.Single(result.Errors);
             Assert.Equal(expectedErrorMessage, result.Errors[0].ErrorMessage);
-        }
-
-        private static ValidationResult GetValidationResult(RetrieveDicomResourceRequest request)
-        {
-            var validator = new RetrieveDicomResourcesRequestValidator();
-            return validator.Validate(request);
         }
     }
 }

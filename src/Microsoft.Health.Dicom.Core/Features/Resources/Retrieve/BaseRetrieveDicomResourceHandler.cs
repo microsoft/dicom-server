@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
-using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {

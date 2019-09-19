@@ -12,12 +12,14 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
+using Microsoft.Health.CosmosDb.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.CosmosDb.Features;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents;
-using Microsoft.Health.Dicom.CosmosDb.Features.Transactions;
+using Microsoft.Health.Dicom.CosmosDb.Features.Storage.StoredProcedures.Delete;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -416,30 +418,31 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenValidDocumentAndMissingDocument_WhenDeletingUsingATransaction_EntireTransactionFailsAndNothingDeleted()
+        public async Task GivenValidDocumentAndMissingDocument_WhenDeletingUsingAStoredProcedure_EntireTransactionFailsAndNothingDeleted()
         {
-            var validDocument = new QuerySeriesDocument(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            var validDocument = new Document(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
             var requestOptions = new RequestOptions() { PartitionKey = new PartitionKey(validDocument.PartitionKey) };
             validDocument = await _fixture.DocumentClient.GetOrCreateDocumentAsync(_fixture.DatabaseId, _fixture.CollectionId, validDocument.Id, requestOptions, validDocument);
 
             // Missing document
-            using (ITransaction transaction = _fixture.DocumentClient.CreateTransaction(_fixture.DatabaseId, _fixture.CollectionId, requestOptions))
+            var deleteStoredProcedure = new DeleteStoredProcedure();
+            Document[] documents = new[]
             {
-                transaction.DeleteDocument(validDocument.Id, validDocument.ETag);
-                transaction.DeleteDocument(Guid.NewGuid().ToString(), validDocument.ETag);
-                await Assert.ThrowsAnyAsync<DocumentClientException>(() => transaction.CommitAsync());
-            }
+                validDocument,
+                new Document(Guid.NewGuid().ToString(), validDocument.ETag, validDocument.PartitionKey),
+            };
+            await Assert.ThrowsAnyAsync<DocumentClientException>(
+                () => deleteStoredProcedure.Execute(_fixture.DocumentClient, _fixture.DatabaseId, _fixture.CollectionId, validDocument.PartitionKey, documents));
 
             // Invalid ETag
-            using (ITransaction transaction = _fixture.DocumentClient.CreateTransaction(_fixture.DatabaseId, _fixture.CollectionId, requestOptions))
-            {
-                transaction.DeleteDocument(validDocument.Id, Guid.NewGuid().ToString());
-                await Assert.ThrowsAnyAsync<DocumentClientException>(() => transaction.CommitAsync());
-            }
+            Document[] invalidETag = new[] { new Document(validDocument.Id, Guid.NewGuid().ToString(), validDocument.PartitionKey) };
+
+            await Assert.ThrowsAnyAsync<DocumentClientException>(
+            () => deleteStoredProcedure.Execute(_fixture.DocumentClient, _fixture.DatabaseId, _fixture.CollectionId, validDocument.PartitionKey, invalidETag));
 
             // Check initial document still exists.
             Uri documentUri = UriFactory.CreateDocumentUri(_fixture.DatabaseId, _fixture.CollectionId, validDocument.Id);
-            DocumentResponse<QuerySeriesDocument> documentResponse = await _fixture.DocumentClient.ReadDocumentAsync<QuerySeriesDocument>(documentUri, requestOptions);
+            DocumentResponse<Document> documentResponse = await _fixture.DocumentClient.ReadDocumentAsync<Document>(documentUri, requestOptions);
 
             Assert.NotNull(documentResponse.Document);
             Assert.Equal(validDocument.ETag, documentResponse.Document.ETag);
@@ -487,6 +490,25 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                                                         .ToArray();
             await _indexDataStore.IndexSeriesAsync(series);
             return series;
+        }
+
+        private class Document : IDocument
+        {
+            public Document(string id, string eTag, string partitionKey)
+            {
+                Id = id;
+                ETag = eTag;
+                PartitionKey = partitionKey;
+            }
+
+            [JsonProperty(KnownDocumentProperties.Id)]
+            public string Id { get; }
+
+            [JsonProperty(KnownDocumentProperties.ETag)]
+            public string ETag { get; set; }
+
+            [JsonProperty(KnownDocumentProperties.PartitionKey)]
+            public string PartitionKey { get; }
         }
     }
 }

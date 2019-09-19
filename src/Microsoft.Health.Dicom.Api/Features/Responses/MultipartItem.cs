@@ -11,22 +11,42 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Api.Features.Responses
 {
-    public class MultipartItem
+    public class MultipartItem : IDisposable
     {
+        private bool _disposed = false;
+        private readonly StreamContent _streamContent;
+
         public MultipartItem(string contentType, Stream stream)
         {
             EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
             EnsureArg.IsNotNull(stream, nameof(stream));
 
-            var streamContent = new StreamContent(stream);
-            streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-
-            Content = streamContent;
-            Disposable = stream;
+            _streamContent = new StreamContent(stream);
+            _streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
         }
 
-        public HttpContent Content { get; }
+        public HttpContent Content => _streamContent;
 
-        public IDisposable Disposable { get; }
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                _streamContent.Dispose();
+            }
+
+            _disposed = true;
+        }
     }
 }

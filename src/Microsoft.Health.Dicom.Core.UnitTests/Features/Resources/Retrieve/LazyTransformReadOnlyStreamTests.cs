@@ -85,7 +85,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Resources.Retrieve
         public void GivenLazyTransformStream_WhenTransformingAnInputStream_InputStreamIsNotReadUntilLazyStreamIsRead()
         {
             using (var inputStream = new MemoryStream(TestData))
-            using (var lazyTransform = new LazyTransformReadOnlyStream<Stream>(inputStream, ReverseStream))
+            using (var lazyTransform = new LazyTransformReadOnlyStream<Stream>(inputStream, ReadAndCreateNewStream))
             {
                 Assert.Equal(0, inputStream.Position);
                 Assert.Equal(TestData.Length, lazyTransform.Length);
@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Resources.Retrieve
         public void GivenLazyTransformStreamWithStream_WhenDisposing_IsDisposedCorrectly()
         {
             var inputStream = new MemoryStream(TestData);
-            GCWatch gcWatch = GetGCWatch(inputStream, ReverseStream);
+            GCWatch gcWatch = GetGCWatch(inputStream, ReadAndCreateNewStream);
             inputStream.Dispose();
             inputStream = null;
             Assert.True(gcWatch.IsAlive);
@@ -135,7 +135,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Resources.Retrieve
             return result;
         }
 
-        private static Stream ReverseStream(Stream stream)
+        private static Stream ReadAndCreateNewStream(Stream stream)
         {
             var resultBuffer = new byte[stream.Length];
             stream.Read(resultBuffer, 0, resultBuffer.Length);

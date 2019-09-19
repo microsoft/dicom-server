@@ -4,6 +4,7 @@ The **Azure for Health API** supports a subset of the DICOM Web standard. Suppor
 
 - [Store Transaction](##Store-Transaction)
 - [Retrieve Transaction](##Retrieve-Transaction)
+- [Delete Transaction](##Delete-Transaction)
 
 ## Store Transaction
 
@@ -12,7 +13,9 @@ This transaction uses the POST method to Store representations of Studies, Serie
 Method|Path|Description
 ----------|----------|----------
 POST|../studies|Store instances.
-POST|../studies/{studyInstanceUID}|Store instances for a specific study. If an instance does not belong to the provided study identifier, that specific instance will be rejected with a '`43265`' warning code.
+POST|../studies/{study}|Store instances for a specific study. If an instance does not belong to the provided study identifier, that specific instance will be rejected with a '`43265`' warning code.
+
+Parameter `'study'` corresponds to the DICOM attribute StudyInstanceUID.
 
 The following `'Accept'` headers for the response are supported:
 - `application/dicom+json`
@@ -146,7 +149,7 @@ GET|../study/{study}/series/{series}|Retrieves an series.
 GET|../study/{study}/series/{series}/metadata|Retrieves all the metadata for every instance in the series.
 GET|../study/{study}/series/{series}/instances/{instance}|Retrieves a single instance.
 GET|../study/{study}/series/{series}/instances/{instance}/metadata|Retrieves the metadata for a single instance.
-GET|../study/{study}/series/{series}/instances/{instance}/frames/{frames}|Retrieves one or many frames from a single instance.
+GET|../study/{study}/series/{series}/instances/{instance}/frames/{frames}|Retrieves one or many frames from a single instance. To specify more than one frame, a comma seperate each frame to return, e.g. /study/1/series/2/instance/3/frames/4,5,6
 
 ### Retrieve Study or Series
 The following `'Accept'` headers are supported for retrieving study or series:
@@ -155,6 +158,7 @@ The following `'Accept'` headers are supported for retrieving study or series:
 
 ### Retrieve Metadata (for Study/ Series/ or Instance)
 The following `'Accept'` headers are supported for retrieving metadata for a study, series or single instance:
+- `application/dicom+json (default)`
 
 Retrieving metadata will not return attributes with the following value representations:
 VR Name|Full
@@ -183,3 +187,32 @@ Code|Description
 200 (OK)|All requested data has been retrieved.
 400 (Bad Request)|The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported.
 404 (Not Found)|The specified DICOM resource could not be found.
+
+## Delete Transaction
+
+This transaction is not part of the official DICOMweb standard. It uses the DELETE method to remove representations of Studies, Series, and Instances from the store.
+
+
+Method|Path|Description
+----------|----------|----------
+DELETE|../studies/{study}|Delete all instances for a specific study.
+DELETE|../studies/{study}/series/{series}|Delete all instances for a specific series within a study.
+DELETE|../studies/{study}/series/{series}/instances/{instance}| Delete a specific instance within a series.
+
+Parameters `'study'`, `'series'` and `'instance'` correspond to the DICOM attributes StudyInstanceUID, SeriesInstanceUID and SopInstanceUID respectively.
+
+There are no restrictions on the request's `'Accept'` header, `'Content-Type'` header or body content.
+
+> Note: After a Delete transaction the deleted instances will not be recoverable.
+
+### Response Status Codes
+
+Code|Description
+----------|----------
+200 (OK)|When all the SOP instances have been deleted.
+400 (Bad Request)|The request was badly formatted.
+404 (Not Found)|When the specified series was not found within a study, or the specified instance was not found within the series.
+
+### Response Payload
+
+The response body will be empty. The status code is the only useful information returned.

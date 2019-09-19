@@ -18,6 +18,7 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
@@ -256,8 +257,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 throw new DataStoreException(HttpStatusCode.NotFound);
             }
 
+            // Note: We look for any frame value that is 0 or less, or greater than number of frames.
+            // As number of frames is 0 based, but incoming frame requests start at 1, we are converting in this check.
             var pixelData = DicomPixelData.Create(dataset);
-            var missingFrames = frames.Where(x => x > pixelData.NumberOfFrames || x < 0).ToArray();
+            var missingFrames = frames.Where(x => x > pixelData.NumberOfFrames || x <= 0).ToArray();
 
             // If any missing frames, throw not found exception for the specific frames not found.
             if (missingFrames.Length > 0)

@@ -25,11 +25,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             _transformFunction = transformFunction;
         }
 
-        ~LazyTransformReadOnlyStream()
-        {
-            Dispose(false);
-        }
-
         public override bool CanRead => true;
 
         public override bool CanSeek => true;

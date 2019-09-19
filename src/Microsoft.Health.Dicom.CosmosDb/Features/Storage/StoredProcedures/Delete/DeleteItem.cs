@@ -5,28 +5,26 @@
 
 using System;
 using EnsureThat;
+using Newtonsoft.Json;
 
-namespace Microsoft.Health.Dicom.CosmosDb.Features.Transactions
+namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.StoredProcedures.Delete
 {
-    internal class TransactionItem
+    internal class DeleteItem
     {
-        private TransactionItem(Operation operation, Uri documentLink, string documentETag)
+        [JsonConstructor]
+        public DeleteItem(Uri documentLink, string documentETag)
         {
             EnsureArg.IsNotNull(documentLink, nameof(documentLink));
             EnsureArg.IsNotEmptyOrWhitespace(documentETag, nameof(documentETag));
 
-            Operation = operation;
             DocumentETag = documentETag;
             DocumentLink = documentLink.OriginalString;
         }
 
-        public Operation Operation { get; }
-
+        [JsonProperty("documentETag")]
         public string DocumentETag { get; }
 
+        [JsonProperty("documentLink")]
         public string DocumentLink { get; }
-
-        public static TransactionItem CreateDeleteTransactionItem(Uri documentLink, string documentETag)
-            => new TransactionItem(Operation.Delete, documentLink, documentETag);
     }
 }

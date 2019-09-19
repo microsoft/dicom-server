@@ -34,11 +34,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
             foreach (MultipartItem item in _multipartItems)
             {
                 content.Add(item.Content);
-
-                if (item.Disposable != null)
-                {
-                    context.HttpContext.Response.RegisterForDispose(item.Disposable);
-                }
+                context.HttpContext.Response.RegisterForDispose(item);
             }
 
             context.HttpContext.Response.ContentLength = content.Headers.ContentLength;
