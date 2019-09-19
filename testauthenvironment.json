@@ -1,0 +1,33 @@
+{
+    "users": [
+        {
+            "id": "john"
+        },
+        {
+            "id": "sam"
+        },
+        {
+            "id": "frank"
+        },
+        {
+            "id": "steve"
+        },
+        {
+            "id": "doug"
+        },
+        {
+            "id": "itguy"
+        }
+    ],
+    "clientApplications": [
+        {
+            "id": "serviceclient"
+        },
+        {
+            "id": "nativeclient"
+        },
+        {
+            "id": "wrongaudienceclient"
+        }
+    ]
+}

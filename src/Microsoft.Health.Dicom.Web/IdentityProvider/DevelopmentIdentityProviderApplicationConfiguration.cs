@@ -3,14 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Configs
+namespace Microsoft.Health.Dicom.Web.IdentityProvider
 {
-    public class SecurityConfiguration
+    public class DevelopmentIdentityProviderApplicationConfiguration
     {
-        public bool Enabled { get; set; }
-
-        public AuthenticationConfiguration Authentication { get; set; } = new AuthenticationConfiguration();
-
-        public AuthorizationConfiguration Authorization { get; set; } = new AuthorizationConfiguration();
+        public string Id { get; set; }
     }
 }

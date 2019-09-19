@@ -5,12 +5,8 @@
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
-    public class SecurityConfiguration
+    public class AuthorizationConfiguration
     {
         public bool Enabled { get; set; }
-
-        public AuthenticationConfiguration Authentication { get; set; } = new AuthenticationConfiguration();
-
-        public AuthorizationConfiguration Authorization { get; set; } = new AuthorizationConfiguration();
     }
 }

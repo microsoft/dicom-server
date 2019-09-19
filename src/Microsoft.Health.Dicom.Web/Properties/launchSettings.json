@@ -12,6 +12,7 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
+        "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },

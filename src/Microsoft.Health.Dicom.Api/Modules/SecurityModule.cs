@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.IdentityModel.Tokens.Jwt;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -27,6 +26,9 @@ namespace Microsoft.Health.Dicom.Api.Modules
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
+            // Set the token handler to not do auto inbound mapping. (e.g. "roles" -> "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
             if (_securityConfiguration.Enabled)
             {
                 services.AddAuthentication(options =>
@@ -41,6 +43,19 @@ namespace Microsoft.Health.Dicom.Api.Modules
                         options.Audience = _securityConfiguration.Authentication.Audience;
                         options.RequireHttpsMetadata = true;
                     });
+
+                if (_securityConfiguration.Authorization.Enabled)
+                {
+                    services.AddSingleton(_securityConfiguration.Authorization);
+                }
+                else
+                {
+                    services.AddAuthorization();
+                }
+            }
+            else
+            {
+                services.AddAuthorization();
             }
         }
     }

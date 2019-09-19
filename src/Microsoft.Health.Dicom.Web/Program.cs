@@ -9,6 +9,7 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
+using Microsoft.Health.Dicom.Web.IdentityProvider;
 
 namespace Microsoft.Health.Dicom.Web
 {
@@ -28,6 +29,8 @@ namespace Microsoft.Health.Dicom.Web
                                             var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
                                             builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
                                         }
+
+                                        builder.AddDevelopmentAuthEnvironment(builtConfig["TestAuthEnvironment:FilePath"]);
                                     })
                                    .UseStartup<Startup>()
                                    .Build();

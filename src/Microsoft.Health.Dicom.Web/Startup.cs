@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Web.IdentityProvider;
 
 namespace Microsoft.Health.Dicom.Web
 {
@@ -22,6 +23,8 @@ namespace Microsoft.Health.Dicom.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public virtual void ConfigureServices(IServiceCollection services)
         {
+            services.AddDevelopmentIdentityProvider(Configuration);
+
             services.AddDicomServer(Configuration)
                 .AddBlobStorageDataStore(Configuration)
                 .AddMetadataStorageDataStore(Configuration)
@@ -34,6 +37,8 @@ namespace Microsoft.Health.Dicom.Web
         public virtual void Configure(IApplicationBuilder app)
         {
             app.UseDicomServer();
+
+            app.UseDevelopmentIdentityProvider();
         }
 
         /// <summary>
