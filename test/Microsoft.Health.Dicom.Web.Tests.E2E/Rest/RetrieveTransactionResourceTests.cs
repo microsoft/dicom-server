@@ -243,8 +243,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
@@ -252,6 +251,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             var getResponse = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, transferSyntax);
             Assert.Equal(expectedStatusCode, getResponse.StatusCode);
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID,
+                seriesInstanceUID,
+                sopInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         // Test that if no TS specified, we return the original TS w/o transcoding -
@@ -276,8 +281,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             // Check for series
             var seriesResponse = await Client.GetSeriesAsync(
@@ -298,6 +302,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.Equal(HttpStatusCode.OK, frameResponse.StatusCode);
             Assert.NotEqual(0, frameResponse.Value.Single().Length);
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID,
+                sopInstanceUID.UID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Fact]
@@ -313,8 +323,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var getResponse = await Client.GetSeriesAsync(
                 studyInstanceUID.UID,
@@ -322,6 +331,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Equal(DicomTransferSyntax.ExplicitVRLittleEndian, getResponse.Value.Single().Dataset.InternalTransferSyntax);
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Fact]
@@ -348,8 +362,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var getResponse = await Client.GetSeriesAsync(
                 studyInstanceUID.UID,
@@ -358,6 +371,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.Equal(HttpStatusCode.PartialContent, getResponse.StatusCode);
             Assert.Equal(2, getResponse.Value.Count);
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         public static IEnumerable<object[]> Get8BitTranscoderCombos()
@@ -386,8 +404,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
@@ -401,6 +418,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var framesResponse = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, expectedTransferSyntax.UID.UID, 1);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.NotEqual(0, framesResponse.Value.Single().Length);
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID,
+                seriesInstanceUID,
+                sopInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Theory]
@@ -414,8 +437,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
@@ -427,6 +449,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(expectedTransferSyntax, getResponse.Value.Single().Dataset.InternalTransferSyntax);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.NotNull(getResponse.Value.Single());
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID,
+                seriesInstanceUID,
+                sopInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Theory]
@@ -442,8 +470,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
@@ -453,6 +480,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Null(getResponse.Value.Single());
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID,
+                seriesInstanceUID,
+                sopInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Theory]
