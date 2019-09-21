@@ -66,8 +66,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
 
             var fromTs = ds.InternalTransferSyntax;
-            ds.TryGetSingleValue(DicomTag.BitsAllocated, out ushort bpp);
-            ds.TryGetString(DicomTag.PhotometricInterpretation, out string photometricInterpretation);
+            if (!ds.TryGetSingleValue(DicomTag.BitsAllocated, out ushort bpp))
+            {
+                return false;
+            }
+
+            if (ds.TryGetString(DicomTag.PhotometricInterpretation, out string photometricInterpretation))
+            {
+                return false;
+            }
 
             // Bug in fo-dicom 4.0.1
             if ((toTransferSyntax == DicomTransferSyntax.JPEGProcess1 || toTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
@@ -94,6 +101,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         public async Task<RetrieveDicomResourceResponse> Handle(
             RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(message, nameof(message));
+
             DicomTransferSyntax parsedDicomTransferSyntax =
                 message.OriginalTransferSyntaxRequested() ?
                     null :
