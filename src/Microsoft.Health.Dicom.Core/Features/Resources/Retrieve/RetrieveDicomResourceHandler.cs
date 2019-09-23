@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 return false;
             }
 
-            if (ds.TryGetString(DicomTag.PhotometricInterpretation, out string photometricInterpretation))
+            if (!ds.TryGetString(DicomTag.PhotometricInterpretation, out string photometricInterpretation))
             {
                 return false;
             }

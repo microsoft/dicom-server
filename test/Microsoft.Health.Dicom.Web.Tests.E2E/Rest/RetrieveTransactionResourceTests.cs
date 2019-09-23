@@ -470,7 +470,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
             var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);

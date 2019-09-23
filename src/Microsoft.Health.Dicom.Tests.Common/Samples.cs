@@ -160,6 +160,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 { DicomTag.SeriesInstanceUID, seriesInstanceUID ?? DicomUID.Generate().UID },
                 { DicomTag.SOPInstanceUID, sopInstanceUID ?? DicomUID.Generate().UID },
                 { DicomTag.SOPClassUID, sopClassUID ?? DicomUID.Generate().UID },
+                { DicomTag.BitsAllocated, (ushort)8 },
+                { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
             };
 
             return ds;
