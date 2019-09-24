@@ -8,29 +8,28 @@ using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.Linq;
 
-namespace Microsoft.Health.Dicom.Core.Features.Resources
+namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
     public class ImageRepresentationModel
     {
-        public static readonly ImageRepresentationModel JPEG = new ImageRepresentationModel()
+        public static readonly ImageRepresentationModel Jpeg = new ImageRepresentationModel()
         {
-            CodecInfo = ImageCodecInfo.GetImageEncoders().FirstOrDefault(x => x.MimeType == "image/jpeg"),
+            CodecInfo = ImageCodecInfo.GetImageEncoders().First(x => x.MimeType == "image/jpeg"),
             EncoderParameters = new EncoderParameters(1) { Param = { [0] = new EncoderParameter(Encoder.Quality, 90L) } },
         };
 
-        public static readonly ImageRepresentationModel PNG = new ImageRepresentationModel
+        public static readonly ImageRepresentationModel Png = new ImageRepresentationModel
         {
-            CodecInfo = ImageCodecInfo.GetImageEncoders().FirstOrDefault(x => x.MimeType == "image/png"),
+            CodecInfo = ImageCodecInfo.GetImageEncoders().First(x => x.MimeType == "image/png"),
             EncoderParameters = null,
         };
 
-        private static readonly List<ImageRepresentationModel> SupportedRepresenations = new List<ImageRepresentationModel>();
-
-        static ImageRepresentationModel()
-        {
-            SupportedRepresenations.Add(JPEG);
-            SupportedRepresenations.Add(PNG);
-        }
+        private static readonly List<ImageRepresentationModel> SupportedRepresentations =
+            new List<ImageRepresentationModel>
+            {
+                Jpeg,
+                Png,
+            };
 
         public ImageCodecInfo CodecInfo { get; private set; }
 
@@ -38,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources
 
         public static ImageRepresentationModel Parse(string mediaType)
         {
-            return SupportedRepresenations.Where(x => x.CodecInfo.MimeType.Equals(mediaType, StringComparison.InvariantCulture)).Single();
+            return SupportedRepresentations.Single(x => x.CodecInfo.MimeType.Equals(mediaType, StringComparison.InvariantCulture));
         }
     }
 }

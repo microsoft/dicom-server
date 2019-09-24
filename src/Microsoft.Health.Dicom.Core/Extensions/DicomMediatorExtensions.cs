@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, false, false),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, renderedRequested: false, thumbnailRequested: false),
                 cancellationToken);
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string requestedFormat, bool thumbnail, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, true, thumbnail),
+                new RetrieveDicomResourceRequest(requestedFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, renderedRequested: true, thumbnail),
                 cancellationToken);
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, int[] frames, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, false, false),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, renderedRequested: false, thumbnailRequested: false),
                 cancellationToken);
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, int[] frames, string requestedFormat, bool thumbnail, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, true, thumbnail),
+                new RetrieveDicomResourceRequest(requestedFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, renderedRequested: true, thumbnail),
                 cancellationToken);
         }
 

@@ -8,6 +8,7 @@ using System.Linq;
 using Dicom;
 using FluentValidation;
 using Microsoft.Health.Dicom.Core.Features.Resources;
+using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
