@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
         private readonly DicomDataStore _dicomDataStore;
 
-        private static HashSet<DicomTransferSyntax> _supportedTransferSyntaxes8bit = new HashSet<DicomTransferSyntax>
+        private static readonly HashSet<DicomTransferSyntax> _supportedTransferSyntaxes8bit = new HashSet<DicomTransferSyntax>
         {
             DicomTransferSyntax.DeflatedExplicitVRLittleEndian,
             DicomTransferSyntax.ExplicitVRBigEndian,
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             DicomTransferSyntax.RLELossless,
         };
 
-        private static HashSet<DicomTransferSyntax> _supportedTransferSyntaxesOver8bit = new HashSet<DicomTransferSyntax>
+        private static readonly HashSet<DicomTransferSyntax> _supportedTransferSyntaxesOver8bit = new HashSet<DicomTransferSyntax>
         {
             DicomTransferSyntax.DeflatedExplicitVRLittleEndian,
             DicomTransferSyntax.ExplicitVRBigEndian,
@@ -125,7 +125,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                         resultStreams = message.Frames.Select(
                                 x => new LazyTransformReadOnlyStream<DicomFile>(
                                     dicomFile,
-                                    y => y.GetFrameAsImage(x - 1, imageRepresentation, message.ThumbnailRequested)))
+                                    y => y.GetFrameAsImage(x, imageRepresentation, message.ThumbnailRequested)))
                             .ToArray();
                     }
                     else
@@ -136,12 +136,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                             throw new DataStoreException(HttpStatusCode.NotAcceptable);
                         }
 
-                        // Note that per DICOMWeb spec (http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_9.5.1.2.1)
-                        // frame number in the URI is 1-based, unlike fo-dicom representation
                         resultStreams = message.Frames.Select(
                                 x => new LazyTransformReadOnlyStream<DicomFile>(
                                     dicomFile,
-                                    y => y.GetFrameAsDicomData(x - 1, parsedDicomTransferSyntax)))
+                                    y => y.GetFrameAsDicomData(x, parsedDicomTransferSyntax)))
                             .ToArray();
                     }
                 }

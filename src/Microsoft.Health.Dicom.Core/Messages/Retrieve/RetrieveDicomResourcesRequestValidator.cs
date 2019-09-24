@@ -7,7 +7,6 @@ using System;
 using System.Linq;
 using Dicom;
 using FluentValidation;
-using Microsoft.Health.Dicom.Core.Features.Resources;
 using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -56,9 +55,9 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
                 .Must(x => x != null && x.Any() && x.Count() == 1)
                 .When(x => x.ResourceType == ResourceType.Frames && x.RenderedRequested);
 
-            // Check the frames has at least one when requested, and all requested frames are > 0.
+            // Check the frames has at least one when requested, and all requested frames are >= 0.
             RuleFor(x => x.Frames)
-                .Must(x => x != null && x.Any() && x.Any(y => y <= 0) == false)
+                .Must(x => x != null && x.Any() && x.Any(y => y < 0) == false)
                 .When(x => x.ResourceType == ResourceType.Frames);
 
             // Validate the provided identifiers conform correctly.
