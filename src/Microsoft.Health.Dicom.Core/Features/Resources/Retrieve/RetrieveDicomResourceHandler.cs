@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
         private readonly DicomDataStore _dicomDataStore;
 
-        private static DicomTransferSyntax[] _supportedTransferSyntaxes8bit = new[]
+        private static HashSet<DicomTransferSyntax> _supportedTransferSyntaxes8bit = new HashSet<DicomTransferSyntax>
         {
             DicomTransferSyntax.DeflatedExplicitVRLittleEndian,
             DicomTransferSyntax.ExplicitVRBigEndian,
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             DicomTransferSyntax.RLELossless,
         };
 
-        private static DicomTransferSyntax[] _supportedTransferSyntaxesOver8bit = new[]
+        private static HashSet<DicomTransferSyntax> _supportedTransferSyntaxesOver8bit = new HashSet<DicomTransferSyntax>
         {
             DicomTransferSyntax.DeflatedExplicitVRLittleEndian,
             DicomTransferSyntax.ExplicitVRBigEndian,
