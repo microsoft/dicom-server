@@ -5,13 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Features\Transactions\TransactionStoredProcedure.js" />
+    <Compile Remove="Features\Transactions\**" />
+    <EmbeddedResource Remove="Features\Transactions\**" />
+    <None Remove="Features\Transactions\**" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <Content Include="Features\Transactions\TransactionStoredProcedure.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="Features\Storage\StoredProcedures\Delete\deleteStoredProcedure.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,12 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Features\Transactions\TransactionStoredProcedure.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

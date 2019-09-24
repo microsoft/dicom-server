@@ -11,6 +11,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dicom;
+using Dicom.Imaging;
+using Dicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
@@ -54,11 +56,65 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         protected DicomWebClient Client { get; set; }
 
+        [Fact]
+        public async Task GivenADicomInstanceWithMultipleFrames_WhenRetrievingFrames_TheServerShouldReturnOK()
+        {
+            var studyInstanceUID = Guid.NewGuid().ToString();
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUID, frames: 2);
+            var dicomInstance = DicomInstance.Create(dicomFile1.Dataset);
+            HttpResult<DicomDataset> response = await Client.PostAsync(new[] { dicomFile1 }, studyInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            DicomSequence successSequence = response.Value.GetSequence(DicomTag.ReferencedSOPSequence);
+            ValidationHelpers.ValidateSuccessSequence(successSequence, dicomFile1.Dataset);
+
+            HttpResult<IReadOnlyList<Stream>> frames = await Client.GetFramesAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, frames: 1);
+            Assert.NotNull(frames);
+            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
+            Assert.Single(frames.Value);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
+
+            frames = await Client.GetFramesAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, frames: 2);
+            Assert.NotNull(frames);
+            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
+            Assert.Single(frames.Value);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(1), frames.Value[0]);
+
+            frames = await Client.GetFramesAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, frames: new[] { 1, 2 });
+            Assert.NotNull(frames);
+            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
+            Assert.Equal(2, frames.Value.Count);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(1), frames.Value[1]);
+
+            // Now check not found when 1 frame exists and the other doesn't.
+            frames = await Client.GetFramesAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, frames: new[] { 2, 3 });
+            Assert.Equal(HttpStatusCode.NotFound, frames.StatusCode);
+        }
+
         [Theory]
-        [InlineData(new int[] { 0 })]
-        [InlineData(new int[] { -1 })]
-        [InlineData(new int[] { 1, 2, -1 })]
-        public async Task GivenARequestWithFrameLessThanOrEqualTo0_WhenRetrievingFrames_TheServerShouldReturnBadRequest(int[] frames)
+        [InlineData("test")]
+        [InlineData("0", "1", "invalid")]
+        [InlineData("0.6", "1")]
+        public async Task GivenARequestWithNonIntegerFrames_WhenRetrievingFrames_TheServerShouldReturnBadRequest(params string[] frames)
+        {
+            var requestUri = new Uri(string.Format(DicomWebClient.BaseRetrieveFramesUriFormat, DicomUID.Generate(), DicomUID.Generate(), DicomUID.Generate(), string.Join("%2C", frames)), UriKind.Relative);
+
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.Headers.Accept.Add(DicomWebClient.MediaTypeApplicationOctetStream);
+
+                using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(1, 2, -1)]
+        public async Task GivenARequestWithFrameLessThanOrEqualTo0_WhenRetrievingFrames_TheServerShouldReturnBadRequest(params int[] frames)
         {
             HttpResult<IReadOnlyList<Stream>> response = await Client.GetFramesAsync(
                 studyInstanceUID: Guid.NewGuid().ToString(),
@@ -68,39 +124,54 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
-        [Fact]
-        public async Task GivenARequestWithInvalidIdentifier_WhenRetrieving_TheServerShouldReturnBadRequest()
+        [Theory]
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+        [InlineData("345%^&")]
+        public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingStudy_TheServerShouldReturnBadRequest(string studyInstanceUID)
         {
-            var invalidId1 = new string('b', 65);
-            var validId1 = Guid.NewGuid().ToString();
-            var validId2 = Guid.NewGuid().ToString();
+            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetStudyAsync(studyInstanceUID);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
 
-            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetStudyAsync(studyInstanceUID: invalidId1);
+        [Theory]
+        [InlineData("aaaa-bbbb", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+        [InlineData("aaaa-bbbb", "345%^&")]
+        [InlineData("aaaa-bbbb", "aaaa-bbbb")]
+        public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingSeries_TheServerShouldReturnBadRequest(string studyInstanceUID, string seriesInstanceUID)
+        {
+            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetSeriesAsync(studyInstanceUID, seriesInstanceUID);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
 
-            response = await Client.GetSeriesAsync(studyInstanceUID: validId1, seriesInstanceUID: invalidId1);
+        [Theory]
+        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "345%^&")]
+        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb2")]
+        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb1")]
+        public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingInstanceOrFrames_TheServerShouldReturnBadRequest(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+        {
+            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            response = await Client.GetSeriesAsync(studyInstanceUID: invalidId1, seriesInstanceUID: validId1);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            response = await Client.GetSeriesAsync(studyInstanceUID: validId2, seriesInstanceUID: validId2);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
-            response = await Client.GetInstanceAsync(studyInstanceUID: validId1, seriesInstanceUID: validId2, sopInstanceUID: invalidId1);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            response = await Client.GetInstanceAsync(studyInstanceUID: invalidId1, seriesInstanceUID: validId1, sopInstanceUID: validId2);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            response = await Client.GetInstanceAsync(studyInstanceUID: validId1, seriesInstanceUID: invalidId1, sopInstanceUID: validId2);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            response = await Client.GetInstanceAsync(studyInstanceUID: validId2, seriesInstanceUID: invalidId1, sopInstanceUID: validId2);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
-            HttpResult<IReadOnlyList<Stream>> framesResponse = await Client.GetFramesAsync(studyInstanceUID: validId1, seriesInstanceUID: validId2, sopInstanceUID: invalidId1, frames: 1);
+            HttpResult<IReadOnlyList<Stream>> framesResponse = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 1);
             Assert.Equal(HttpStatusCode.BadRequest, framesResponse.StatusCode);
-            framesResponse = await Client.GetFramesAsync(studyInstanceUID: invalidId1, seriesInstanceUID: validId1, sopInstanceUID: validId2, frames: 1);
-            Assert.Equal(HttpStatusCode.BadRequest, framesResponse.StatusCode);
-            framesResponse = await Client.GetFramesAsync(studyInstanceUID: validId1, seriesInstanceUID: invalidId1, sopInstanceUID: validId2, frames: 1);
-            Assert.Equal(HttpStatusCode.BadRequest, framesResponse.StatusCode);
-            framesResponse = await Client.GetFramesAsync(studyInstanceUID: validId2, seriesInstanceUID: invalidId1, sopInstanceUID: validId2, frames: 1);
+        }
+
+        [Theory]
+        [InlineData("unknown")]
+        [InlineData("&&5")]
+        public async Task GivenARequestWithInvalidTransferSyntax_WhenRetrievingResources_TheServerShouldReturnBadRequest(string transferSyntax)
+        {
+            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetStudyAsync(Guid.NewGuid().ToString(), transferSyntax);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+            response = await Client.GetSeriesAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), transferSyntax);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+            response = await Client.GetInstanceAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), transferSyntax);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+            HttpResult<IReadOnlyList<Stream>> framesResponse =
+                await Client.GetFramesAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), transferSyntax, 1);
             Assert.Equal(HttpStatusCode.BadRequest, framesResponse.StatusCode);
         }
 
@@ -172,8 +243,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
@@ -181,6 +251,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             var getResponse = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, transferSyntax);
             Assert.Equal(expectedStatusCode, getResponse.StatusCode);
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID,
+                seriesInstanceUID,
+                sopInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         // Test that if no TS specified, we return the original TS w/o transcoding -
@@ -205,8 +281,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             // Check for series
             var seriesResponse = await Client.GetSeriesAsync(
@@ -227,6 +302,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.Equal(HttpStatusCode.OK, frameResponse.StatusCode);
             Assert.NotEqual(0, frameResponse.Value.Single().Length);
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID,
+                sopInstanceUID.UID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Fact]
@@ -242,8 +323,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var getResponse = await Client.GetSeriesAsync(
                 studyInstanceUID.UID,
@@ -251,6 +331,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Equal(DicomTransferSyntax.ExplicitVRLittleEndian, getResponse.Value.Single().Dataset.InternalTransferSyntax);
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Fact]
@@ -277,8 +362,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var getResponse = await Client.GetSeriesAsync(
                 studyInstanceUID.UID,
@@ -287,6 +371,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.Equal(HttpStatusCode.PartialContent, getResponse.StatusCode);
             Assert.Equal(2, getResponse.Value.Count);
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID.UID,
+                seriesInstanceUID.UID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         public static IEnumerable<object[]> Get8BitTranscoderCombos()
@@ -315,8 +404,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
@@ -330,6 +418,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var framesResponse = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, expectedTransferSyntax.UID.UID, 1);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.NotEqual(0, framesResponse.Value.Single().Length);
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID,
+                seriesInstanceUID,
+                sopInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Theory]
@@ -343,8 +437,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
             var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
@@ -356,6 +449,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(expectedTransferSyntax, getResponse.Value.Single().Dataset.InternalTransferSyntax);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.NotNull(getResponse.Value.Single());
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID,
+                seriesInstanceUID,
+                sopInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Theory]
@@ -371,8 +470,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
 
-            // TODO: fix this and add proper cleanup of posted resources once delete is implemented
-            Assert.True((postResponse.StatusCode == HttpStatusCode.OK) || (postResponse.StatusCode == HttpStatusCode.Conflict));
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
             var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
@@ -382,34 +480,34 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Null(getResponse.Value.Single());
+
+            HttpStatusCode result = await Client.DeleteAsync(
+                studyInstanceUID,
+                seriesInstanceUID,
+                sopInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, result);
         }
 
         [Theory]
         [InlineData("application/data")]
         [InlineData("application/json")]
-        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingStudy_NotAcceptableIsReturned(string acceptHeader)
+        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingResource_NotAcceptableIsReturned(string acceptHeader)
         {
+            // Study
             await ValidateNotAcceptableResponseAsync(
+                Client,
                 string.Format(DicomWebClient.BaseRetrieveStudyUriFormat, Guid.NewGuid().ToString()),
                 acceptHeader);
-        }
 
-        [Theory]
-        [InlineData("application/data")]
-        [InlineData("application/json")]
-        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingSeries_NotAcceptableIsReturned(string acceptHeader)
-        {
+            // Series
             await ValidateNotAcceptableResponseAsync(
+                Client,
                 string.Format(DicomWebClient.BaseRetrieveSeriesUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
                 acceptHeader);
-        }
 
-        [Theory]
-        [InlineData("application/data")]
-        [InlineData("application/json")]
-        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingInstance_NotAcceptableIsReturned(string acceptHeader)
-        {
+            // Instance
             await ValidateNotAcceptableResponseAsync(
+                Client,
                 string.Format(DicomWebClient.BaseRetrieveInstanceUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
                 acceptHeader);
         }
@@ -421,15 +519,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingFrames_NotAcceptableIsReturned(string acceptHeader)
         {
             await ValidateNotAcceptableResponseAsync(
+                Client,
                 string.Format(DicomWebClient.BaseRetrieveFramesUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), 1),
                 acceptHeader);
         }
 
-        private async Task ValidateNotAcceptableResponseAsync(string requestUri, string acceptHeader)
+        internal static async Task ValidateNotAcceptableResponseAsync(DicomWebClient dicomWebClient, string requestUri, string acceptHeader)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
-            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
+            using (HttpResponseMessage response = await dicomWebClient.HttpClient.SendAsync(request))
             {
                 Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
             }
@@ -478,6 +577,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 dicomFile.Save(memoryStream);
                 return memoryStream.ToArray();
+            }
+        }
+
+        private static void AssertPixelDataEqual(IByteBuffer expectedPixelData, Stream actualPixelData)
+        {
+            Assert.Equal(expectedPixelData.Size, actualPixelData.Length);
+            Assert.Equal(0, actualPixelData.Position);
+            for (var i = 0; i < expectedPixelData.Size; i++)
+            {
+                Assert.Equal(expectedPixelData.Data[i], actualPixelData.ReadByte());
             }
         }
     }

@@ -3,21 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
+using System.Net;
 
-namespace Microsoft.Health.Dicom.Core.Messages
+namespace Microsoft.Health.Dicom.Core.Messages.Delete
 {
-    public abstract class BaseStatusCodeResponse
+    public sealed class DeleteDicomResourcesResponse : BaseStatusCodeResponse
     {
-        private const int MinimumStatusCode = 100;
-
-        public BaseStatusCodeResponse(int statusCode)
+        public DeleteDicomResourcesResponse(int statusCode)
+            : base(statusCode)
         {
-            EnsureArg.IsGte(statusCode, MinimumStatusCode, nameof(statusCode));
-
-            StatusCode = statusCode;
         }
 
-        public int StatusCode { get; }
+        public DeleteDicomResourcesResponse(HttpStatusCode statusCode)
+            : base((int)statusCode)
+        {
+        }
     }
 }

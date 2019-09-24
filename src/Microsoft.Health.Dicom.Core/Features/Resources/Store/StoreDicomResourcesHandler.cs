@@ -24,6 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
     public class StoreDicomResourcesHandler : IRequestHandler<StoreDicomResourcesRequest, StoreDicomResourcesResponse>
     {
         private const string ApplicationDicom = "application/dicom";
+        private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
         private readonly ILogger<StoreDicomResourcesHandler> _logger;
         private readonly IDicomRouteProvider _dicomRouteProvider;
         private readonly DicomDataStore _dicomDataStore;
@@ -118,7 +119,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
                         // Now Validate if the StudyInstanceUID is provided, it matches the provided file
                         var dicomFileStudyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
                         if (string.IsNullOrWhiteSpace(studyInstanceUID) ||
-                            studyInstanceUID.Equals(dicomFileStudyInstanceUID, DicomStudy.EqualsStringComparison))
+                            studyInstanceUID.Equals(dicomFileStudyInstanceUID, EqualsStringComparison))
                         {
                             await storeTransaction.StoreDicomFileAsync(seekStream, dicomFile, cancellationToken);
                             transactionResponseBuilder.AddSuccess(dicomFile.Dataset);

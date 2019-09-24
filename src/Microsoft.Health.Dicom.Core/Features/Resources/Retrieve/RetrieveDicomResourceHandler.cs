@@ -21,6 +21,7 @@ using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
@@ -52,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             DicomTransferSyntax.RLELossless,
         };
 
-        private static readonly Size _thumbnailSize = new Size(100, 100);
+        private static readonly Size ThumbnailSize = new Size(100, 100);
 
         public RetrieveDicomResourceHandler(IDicomMetadataStore dicomMetadataStore, DicomDataStore dicomDataStore)
             : base(dicomMetadataStore)
@@ -70,8 +71,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
 
             var fromTs = ds.InternalTransferSyntax;
-            ds.TryGetSingleValue(DicomTag.BitsAllocated, out ushort bpp);
-            ds.TryGetString(DicomTag.PhotometricInterpretation, out string photometricInterpretation);
+            if (!ds.TryGetSingleValue(DicomTag.BitsAllocated, out ushort bpp))
+            {
+                return false;
+            }
+
+            if (!ds.TryGetString(DicomTag.PhotometricInterpretation, out string photometricInterpretation))
+            {
+                return false;
+            }
 
             // Bug in fo-dicom 4.0.1
             if ((toTransferSyntax == DicomTransferSyntax.JPEGProcess1 || toTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
@@ -90,14 +98,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             return false;
         }
 
-        private bool IsOriginalTransferSyntaxRequested(string transferSyntax)
-        {
-            return transferSyntax.Equals("*", StringComparison.InvariantCultureIgnoreCase);
-        }
-
         public async Task<RetrieveDicomResourceResponse> Handle(
             RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(message, nameof(message));
+
             try
             {
                 IEnumerable<DicomInstance> retrieveInstances = await GetInstancesToRetrieve(
@@ -265,13 +270,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     var bmp = image;
                     if (thumbnail)
                     {
-                        var bmpResized = new Bitmap(_thumbnailSize.Width, _thumbnailSize.Height);
+                        var bmpResized = new Bitmap(ThumbnailSize.Width, ThumbnailSize.Height);
                         using (var graphics = Graphics.FromImage(bmpResized))
                         {
                             graphics.CompositingQuality = CompositingQuality.HighSpeed;
                             graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                             graphics.CompositingMode = CompositingMode.SourceCopy;
-                            graphics.DrawImage(image, 0, 0, _thumbnailSize.Width, _thumbnailSize.Height);
+                            graphics.DrawImage(image, 0, 0, ThumbnailSize.Width, ThumbnailSize.Height);
                         }
 
                         bmp = bmpResized;
@@ -328,13 +333,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     var bmp = image;
                     if (thumbnail)
                     {
-                        var bmpResized = new Bitmap(_thumbnailSize.Width, _thumbnailSize.Height);
+                        var bmpResized = new Bitmap(ThumbnailSize.Width, ThumbnailSize.Height);
                         using (var graphics = Graphics.FromImage(bmpResized))
                         {
                             graphics.CompositingQuality = CompositingQuality.HighSpeed;
                             graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                             graphics.CompositingMode = CompositingMode.SourceCopy;
-                            graphics.DrawImage(image, 0, 0, _thumbnailSize.Width, _thumbnailSize.Height);
+                            graphics.DrawImage(image, 0, 0, ThumbnailSize.Width, ThumbnailSize.Height);
                         }
 
                         bmp = bmpResized;
@@ -367,8 +372,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 throw new DataStoreException(HttpStatusCode.NotFound);
             }
 
+            // Note: We look for any frame value that is 0 or less, or greater than number of frames.
+            // As number of frames is 0 based, but incoming frame requests start at 1, we are converting in this check.
             var pixelData = DicomPixelData.Create(dataset);
-            var missingFrames = frames.Where(x => x > pixelData.NumberOfFrames || x < 0).ToArray();
+            var missingFrames = frames.Where(x => x > pixelData.NumberOfFrames || x <= 0).ToArray();
 
             // If any missing frames, throw not found exception for the specific frames not found.
             if (missingFrames.Length > 0)

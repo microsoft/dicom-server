@@ -3,10 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.CosmosDb.Features.Transactions
+using Microsoft.Health.CosmosDb.Features.Storage.StoredProcedures;
+
+namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.StoredProcedures
 {
-    internal enum Operation
+    public interface IDicomStoredProcedure : IStoredProcedure
     {
-        Delete,
     }
 }

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -12,6 +13,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public class DicomSeries
     {
+        private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
+
         [JsonConstructor]
         public DicomSeries(string studyInstanceUID, string seriesInstanceUID)
         {
@@ -42,14 +45,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         {
             if (obj is DicomSeries identity)
             {
-                return StudyInstanceUID.Equals(identity.StudyInstanceUID, DicomStudy.EqualsStringComparison) &&
-                        SeriesInstanceUID.Equals(identity.SeriesInstanceUID, DicomStudy.EqualsStringComparison);
+                return StudyInstanceUID.Equals(identity.StudyInstanceUID, EqualsStringComparison) &&
+                        SeriesInstanceUID.Equals(identity.SeriesInstanceUID, EqualsStringComparison);
             }
 
             return false;
         }
 
         public override int GetHashCode()
-            => (StudyInstanceUID + SeriesInstanceUID).GetHashCode(DicomStudy.EqualsStringComparison);
+            => (StudyInstanceUID + SeriesInstanceUID).GetHashCode(EqualsStringComparison);
     }
 }

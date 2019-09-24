@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Builder
             });
 
             services.AddSingleton<IDicomRouteProvider, DicomRouteProvider>();
-            services.AddSingleton<DicomDataStore>();
+            services.Add<DicomDataStore>().Scoped().AsSelf();
             services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 

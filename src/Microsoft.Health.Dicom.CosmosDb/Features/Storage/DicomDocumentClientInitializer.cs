@@ -13,7 +13,6 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.CosmosDb.Configs;
 using Microsoft.Health.CosmosDb.Features.Storage;
-using Microsoft.Health.Dicom.CosmosDb.Features.Transactions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -131,8 +130,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage
 
                 foreach (ICollectionInitializer collectionInitializer in collectionInitializers)
                 {
-                    DocumentCollection documentCollection = await collectionInitializer.InitializeCollection(documentClient);
-                    await documentClient.RegisterTransactionCapabilityAsync(cosmosDataStoreConfiguration.DatabaseId, documentCollection.Id);
+                    await collectionInitializer.InitializeCollection(documentClient);
                 }
 
                 _logger.LogInformation("Cosmos DB Database {DatabaseId} and collections successfully initialized", cosmosDataStoreConfiguration.DatabaseId);

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
+using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -192,15 +194,14 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}/frames/{frames}")]
-        public async Task<IActionResult> GetFrameAsync(
+        public async Task<IActionResult> GetFramesAsync(
             [FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax,
             string studyInstanceUID,
             string seriesInstanceUID,
             string sopInstanceUID,
-            int[] frames)
+            [ModelBinder(typeof(IntArrayModelBinder))] int[] frames)
         {
-            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}', instance: '{sopInstanceUID}', frames: '{string.Join(", ", frames)}'.");
-
+            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}', instance: '{sopInstanceUID}', frames: '{string.Join(", ", frames ?? Array.Empty<int>())}'.");
             RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
                             studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, transferSyntax, HttpContext.RequestAborted);
             return ConvertToActionResult(response);
