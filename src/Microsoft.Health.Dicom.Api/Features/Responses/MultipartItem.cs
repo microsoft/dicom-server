@@ -14,18 +14,26 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
     public class MultipartItem : IDisposable
     {
         private bool _disposed = false;
-        private readonly StreamContent _streamContent;
 
         public MultipartItem(string contentType, Stream stream)
         {
             EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
             EnsureArg.IsNotNull(stream, nameof(stream));
 
-            _streamContent = new StreamContent(stream);
-            _streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            Content = new StreamContent(stream);
+            Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
         }
 
-        public HttpContent Content => _streamContent;
+        public MultipartItem(string contentType, string content)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
+            EnsureArg.IsNotNull(content, nameof(content));
+
+            Content = new StringContent(content);
+            Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        }
+
+        public HttpContent Content { get; }
 
         /// <inheritdoc />
         public void Dispose()
@@ -43,7 +51,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
 
             if (disposing)
             {
-                _streamContent.Dispose();
+                Content.Dispose();
             }
 
             _disposed = true;

@@ -15,6 +15,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Features.ContentTypes;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
@@ -27,7 +28,6 @@ namespace Microsoft.Health.Dicom.Web.Controllers
     {
         private const string ApplicationOctetStream = "application/octet-stream";
         private const string ApplicationDicom = "application/dicom";
-        private const string ApplicationDicomJson = "application/dicom+json";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly IMediator _mediator;
         private readonly ILogger<DicomRetrieveController> _logger;
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return ConvertToActionResult(response);
         }
 
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.JsonContentType, KnownContentTypes.XmlContentType)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -90,8 +90,8 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return ConvertToActionResult(response);
         }
 
-        [AcceptContentFilter(ApplicationDicomJson)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
+        [AcceptContentFilter(KnownContentTypes.JsonContentType, KnownContentTypes.XmlContentType)]
+        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
@@ -126,8 +126,8 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return ConvertToActionResult(response);
         }
 
-        [AcceptContentFilter(ApplicationDicomJson)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
+        [AcceptContentFilter(KnownContentTypes.JsonContentType, KnownContentTypes.XmlContentType)]
+        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]

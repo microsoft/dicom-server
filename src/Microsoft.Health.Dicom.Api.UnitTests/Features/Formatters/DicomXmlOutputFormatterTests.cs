@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Dicom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -43,47 +44,35 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Formatters
         }
 
         [Fact]
-        public async System.Threading.Tasks.Task GivenADicomDatasetAndXmlContentType_WhenSerializing_ThenTheObjectIsSerializedToTheResponseStream()
+        public async Task GivenADicomDatasetAndXmlContentType_WhenSerializing_ThenTheObjectIsSerializedToTheResponseStream()
         {
             var formatter = new DicomXmlOutputFormatter();
-
             DicomDataset dataset = BuildSimpleDataset();
-
             var defaultHttpContext = new DefaultHttpContext();
             defaultHttpContext.Request.ContentType = KnownContentTypes.XmlContentType;
-            var responseBody = new MemoryStream();
-            defaultHttpContext.Response.Body = responseBody;
 
-            Func<Stream, Encoding, TextWriter> writerFactory = Substitute.For<Func<Stream, Encoding, TextWriter>>();
-            writerFactory.Invoke(Arg.Any<Stream>(), Arg.Any<Encoding>()).Returns(p => new StreamWriter(p.ArgAt<Stream>(0), p.ArgAt<Encoding>(1)));
-
-            await formatter.WriteResponseBodyAsync(
-                new OutputFormatterWriteContext(
-                    defaultHttpContext,
-                    writerFactory,
-                    typeof(DicomDataset),
-                    dataset),
-                Encoding.UTF8);
-
-            string expectedString;
-            using (var stream = new MemoryStream())
-            using (var sw = new StreamWriter(stream, Encoding.UTF8))
+            using (var responseBody = new MemoryStream())
             {
-                expectedString = Dicom.Core.DicomXML.ConvertDicomToXML(dataset, Encoding.UTF8);
-            }
+                defaultHttpContext.Response.Body = responseBody;
 
-            // actual string may start with unicode byte order mark
-            string actualString = Encoding.UTF8.GetString(responseBody.ToArray());
-            if (actualString[0] != '<')
-            {
+                await formatter.WriteResponseBodyAsync(
+                    new OutputFormatterWriteContext(
+                        defaultHttpContext,
+                        (stream, encoding) => new StreamWriter(stream, encoding),
+                        typeof(DicomDataset),
+                        dataset),
+                    Encoding.UTF8);
+
+                string expectedString;
+                using (var stream = new MemoryStream())
+                using (var streamWriter = new StreamWriter(stream, Encoding.UTF8))
+                {
+                    expectedString = Core.DicomXML.ConvertDicomToXML(dataset, Encoding.UTF8);
+                }
+
+                string actualString = Encoding.UTF8.GetString(responseBody.ToArray());
                 Assert.Equal(expectedString, actualString.Substring(1));
             }
-            else
-            {
-                Assert.Equal(expectedString, actualString.Substring(1));
-            }
-
-            responseBody.Dispose();
         }
 
         private DicomDataset BuildSimpleDataset()
@@ -104,7 +93,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Formatters
             var result = formatter.CanWriteResult(
                 new OutputFormatterWriteContext(
                     defaultHttpContext,
-                    Substitute.For<Func<Stream, Encoding, TextWriter>>(),
+                    (stream, encoding) => null,
                     modelType,
                     new object()));
 

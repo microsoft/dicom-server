@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Microsoft.Health.Dicom.Api.Features.Responses
@@ -26,22 +27,30 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
             _multipartItems = multipartItems;
         }
 
+        public static async Task WriteMultipartItemsAsync(HttpResponse httpResponse, IEnumerable<MultipartItem> multipartItems, int statusCode)
+        {
+            EnsureArg.IsNotNull(httpResponse, nameof(httpResponse));
+            EnsureArg.IsNotNull(multipartItems, nameof(multipartItems));
+            using (var content = new MultipartContent(MultipartContentSubType))
+            {
+                foreach (MultipartItem item in multipartItems)
+                {
+                    content.Add(item.Content);
+                    httpResponse.RegisterForDispose(item);
+                }
+
+                httpResponse.ContentLength = content.Headers.ContentLength;
+                httpResponse.ContentType = content.Headers.ContentType.ToString();
+                httpResponse.StatusCode = statusCode;
+
+                await content.CopyToAsync(httpResponse.Body);
+            }
+        }
+
         public async override Task ExecuteResultAsync(ActionContext context)
         {
-            EnsureArg.IsNotNull(context, nameof(context));
-            var content = new MultipartContent(MultipartContentSubType);
-
-            foreach (MultipartItem item in _multipartItems)
-            {
-                content.Add(item.Content);
-                context.HttpContext.Response.RegisterForDispose(item);
-            }
-
-            context.HttpContext.Response.ContentLength = content.Headers.ContentLength;
-            context.HttpContext.Response.ContentType = content.Headers.ContentType.ToString();
-            context.HttpContext.Response.StatusCode = _statusCode;
-
-            await content.CopyToAsync(context.HttpContext.Response.Body);
+            EnsureArg.IsNotNull(context?.HttpContext?.Response, nameof(context));
+            await WriteMultipartItemsAsync(context.HttpContext.Response, _multipartItems, _statusCode);
         }
     }
 }

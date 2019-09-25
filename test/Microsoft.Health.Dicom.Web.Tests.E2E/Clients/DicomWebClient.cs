@@ -54,20 +54,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         public Task<HttpResult<IReadOnlyList<DicomFile>>> GetStudyAsync(string studyInstanceUID, string dicomTransferSyntax = null)
                 => GetInstancesAsync(new Uri(string.Format(BaseRetrieveStudyUriFormat, studyInstanceUID), UriKind.Relative), dicomTransferSyntax);
 
-        public Task<HttpResult<IReadOnlyList<DicomDataset>>> GetStudyMetadataAsync(string studyInstanceUID)
-                => GetMetadataAsync(new Uri(string.Format(BaseRetrieveStudyMetadataUriFormat, studyInstanceUID), UriKind.Relative));
+        public Task<HttpResult<IReadOnlyList<DicomDataset>>> GetStudyMetadataAsync(string studyInstanceUID, DicomMediaType dicomMediaType = DicomMediaType.Json)
+                => GetMetadataAsync(new Uri(string.Format(BaseRetrieveStudyMetadataUriFormat, studyInstanceUID), UriKind.Relative), dicomMediaType);
 
         public Task<HttpResult<IReadOnlyList<DicomFile>>> GetSeriesAsync(string studyInstanceUID, string seriesInstanceUID, string dicomTransferSyntax = null)
                 => GetInstancesAsync(new Uri(string.Format(BaseRetrieveSeriesUriFormat, studyInstanceUID, seriesInstanceUID), UriKind.Relative), dicomTransferSyntax);
 
-        public Task<HttpResult<IReadOnlyList<DicomDataset>>> GetSeriesMetadataAsync(string studyInstanceUID, string seriesInstanceUID)
-                => GetMetadataAsync(new Uri(string.Format(BaseRetrieveSeriesMetadataUriFormat, studyInstanceUID, seriesInstanceUID), UriKind.Relative));
+        public Task<HttpResult<IReadOnlyList<DicomDataset>>> GetSeriesMetadataAsync(string studyInstanceUID, string seriesInstanceUID, DicomMediaType dicomMediaType = DicomMediaType.Json)
+                => GetMetadataAsync(new Uri(string.Format(BaseRetrieveSeriesMetadataUriFormat, studyInstanceUID, seriesInstanceUID), UriKind.Relative), dicomMediaType);
 
         public Task<HttpResult<IReadOnlyList<DicomFile>>> GetInstanceAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null)
             => GetInstancesAsync(new Uri(string.Format(BaseRetrieveInstanceUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID), UriKind.Relative), dicomTransferSyntax);
 
-        public Task<HttpResult<IReadOnlyList<DicomDataset>>> GetInstanceMetadataAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
-                => GetMetadataAsync(new Uri(string.Format(BaseRetrieveInstanceMetadataUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID), UriKind.Relative));
+        public Task<HttpResult<IReadOnlyList<DicomDataset>>> GetInstanceMetadataAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, DicomMediaType dicomMediaType = DicomMediaType.Json)
+                => GetMetadataAsync(new Uri(string.Format(BaseRetrieveInstanceMetadataUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID), UriKind.Relative), dicomMediaType);
 
         public async Task<HttpResult<IReadOnlyList<Stream>>> GetFramesAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null, params int[] frames)
         {
@@ -111,18 +111,40 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
-        public async Task<HttpResult<IReadOnlyList<DicomDataset>>> GetMetadataAsync(Uri requestUri)
+        public async Task<HttpResult<IReadOnlyList<DicomDataset>>> GetMetadataAsync(Uri requestUri, DicomMediaType dicomMediaType)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
+                switch (dicomMediaType)
+                {
+                    case DicomMediaType.Json:
+                        request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
+                        break;
+                    case DicomMediaType.Xml:
+                        request.Headers.Accept.Add(MediaTypeApplicationDicomXml);
+                        break;
+                }
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
                 {
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        var contentText = await response.Content.ReadAsStringAsync();
-                        IReadOnlyList<DicomDataset> responseMetadata = JsonConvert.DeserializeObject<IReadOnlyList<DicomDataset>>(contentText, _jsonSerializerSettings);
+                        IReadOnlyList<DicomDataset> responseMetadata = null;
+
+                        switch (dicomMediaType)
+                        {
+                            case DicomMediaType.Json:
+                                var contentText = await response.Content.ReadAsStringAsync();
+                                responseMetadata = JsonConvert.DeserializeObject<IReadOnlyList<DicomDataset>>(contentText, _jsonSerializerSettings);
+                                break;
+                            case DicomMediaType.Xml:
+                                using (var xmlMultipartReader = new XmlMultipartReader(response))
+                                {
+                                    responseMetadata = await xmlMultipartReader.ReadAsync();
+                                }
+
+                                break;
+                        }
 
                         return new HttpResult<IReadOnlyList<DicomDataset>>(response.StatusCode, responseMetadata);
                     }

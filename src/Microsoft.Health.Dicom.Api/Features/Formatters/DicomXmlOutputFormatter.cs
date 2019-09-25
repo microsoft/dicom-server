@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dicom;
@@ -13,6 +14,7 @@ using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Health.Dicom.Api.Features.ContentTypes;
+using Microsoft.Health.Dicom.Api.Features.Responses;
 using Microsoft.Health.Dicom.Core;
 
 namespace Microsoft.Health.Dicom.Api.Features.Formatters
@@ -37,7 +39,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
             return typeof(DicomDataset).IsAssignableFrom(type) || typeof(IEnumerable<DicomDataset>).IsAssignableFrom(type);
         }
 
-        public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
+        public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(selectedEncoding, nameof(selectedEncoding));
@@ -45,10 +47,23 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
             HttpResponse response = context.HttpContext.Response;
             using (TextWriter textWriter = context.WriterFactory(response.Body, selectedEncoding))
             {
-                textWriter.Write(DicomXML.WriteToXml((DicomDataset)context.Object, selectedEncoding));
+                // Arrays are written as multipart items; otherwise serialise directly as XML.
+                if (context.Object is IEnumerable<DicomDataset> array)
+                {
+                    await WriteMultipartContentAsync(response, array, selectedEncoding);
+                }
+                else
+                {
+                    await textWriter.WriteAsync(DicomXML.WriteToXml((DicomDataset)context.Object, selectedEncoding));
+                }
             }
+        }
 
-            return Task.CompletedTask;
+        private async Task WriteMultipartContentAsync(HttpResponse response, IEnumerable<DicomDataset> dicomItems, Encoding encoding)
+        {
+            IEnumerable<MultipartItem> multipartItems = dicomItems.Select(
+                x => new MultipartItem(KnownContentTypes.XmlContentType, DicomXML.WriteToXml(x, encoding)));
+            await MultipartResult.WriteMultipartItemsAsync(response, multipartItems, response.StatusCode);
         }
     }
 }
