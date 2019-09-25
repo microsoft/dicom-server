@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             string transferSyntax = "1.2.840.10008.1.2.1",  // Explicit VR Little Endian
             bool encode = true)
         {
-            var dicomFile = DicomImageGenerator.GenerateDicomFile(
+            DicomFile dicomFile = DicomImageGenerator.GenerateDicomFile(
                 studyInstanceUID,
                 seriesInstanceUID,
                 sopInstanceUID,
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             string transferSyntax = "1.2.840.10008.1.2.1", // Explicit VR Little Endian
             bool encode = true)
         {
-            var dicomFile = DicomImageGenerator.GenerateDicomFile(
+            DicomFile dicomFile = DicomImageGenerator.GenerateDicomFile(
                 studyInstanceUID,
                 seriesInstanceUID,
                 sopInstanceUID,

@@ -58,41 +58,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             _dicomDataStore = dicomDataStore;
         }
 
-        private bool CanTranscodeDataset(DicomDataset ds, DicomTransferSyntax toTransferSyntax)
-        {
-            if (toTransferSyntax == null)
-            {
-               return true;
-            }
-
-            var fromTs = ds.InternalTransferSyntax;
-            if (!ds.TryGetSingleValue(DicomTag.BitsAllocated, out ushort bpp))
-            {
-                return false;
-            }
-
-            if (!ds.TryGetString(DicomTag.PhotometricInterpretation, out string photometricInterpretation))
-            {
-                return false;
-            }
-
-            // Bug in fo-dicom 4.0.1
-            if ((toTransferSyntax == DicomTransferSyntax.JPEGProcess1 || toTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
-                ((photometricInterpretation == PhotometricInterpretation.Monochrome2.Value) ||
-                 (photometricInterpretation == PhotometricInterpretation.Monochrome1.Value)))
-            {
-                return false;
-            }
-
-            if (((bpp > 8) && _supportedTransferSyntaxesOver8bit.Contains(toTransferSyntax) && _supportedTransferSyntaxesOver8bit.Contains(fromTs)) ||
-                 ((bpp <= 8) && _supportedTransferSyntaxes8bit.Contains(toTransferSyntax) && _supportedTransferSyntaxes8bit.Contains(fromTs)))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public async Task<RetrieveDicomResourceResponse> Handle(
             RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
         {
@@ -111,7 +76,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     message.ResourceType, message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID, cancellationToken);
                 Stream[] resultStreams = await Task.WhenAll(retrieveInstances.Select(x => _dicomDataStore.GetDicomDataStreamAsync(x, cancellationToken)));
 
-                var responseCode = HttpStatusCode.OK;
+                HttpStatusCode responseCode = HttpStatusCode.OK;
 
                 if (message.ResourceType == ResourceType.Frames)
                 {
@@ -132,34 +97,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 }
                 else
                 {
+                    // If different transfer syntax requested, filter streams that cannot be transcoded.
+                    // If any streams are filtered, we must set the response code as patial content.
                     if (!message.OriginalTransferSyntaxRequested())
                     {
-                        resultStreams = resultStreams.Where(x =>
+                        Stream[] filteredStreams = FilterAndDisposeNonTranscodableStreams(resultStreams, parsedDicomTransferSyntax).ToArray();
+                        if (filteredStreams.Length != resultStreams.Length)
                         {
-                            var canTranscode = false;
+                            responseCode = HttpStatusCode.PartialContent;
+                        }
 
-                            try
-                            {
-                                // TODO: replace with FileReadOption.SkipLargeTags when updating to a future
-                                // version of fo-dicom where https://github.com/fo-dicom/fo-dicom/issues/893 is fixed
-                                var dicomFile = DicomFile.Open(x, FileReadOption.ReadLargeOnDemand);
-                                canTranscode = CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax);
-                            }
-                            catch (DicomFileException)
-                            {
-                                canTranscode = false;
-                            }
-
-                            x.Seek(0, SeekOrigin.Begin);
-
-                            // If some of the instances are not transcodeable, Partial Content should be returned
-                            if (!canTranscode)
-                            {
-                                responseCode = HttpStatusCode.PartialContent;
-                            }
-
-                            return canTranscode;
-                        }).ToArray();
+                        resultStreams = filteredStreams;
                     }
 
                     if (resultStreams.Length == 0)
@@ -271,6 +219,73 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             {
                 throw new DataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame(s) '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
             }
+        }
+
+        private static IEnumerable<Stream> FilterAndDisposeNonTranscodableStreams(Stream[] streams, DicomTransferSyntax requestedTransferSyntax)
+        {
+            var result = new List<Stream>();
+            foreach (Stream stream in streams)
+            {
+                bool canTranscode = false;
+
+                try
+                {
+                    // TODO: replace with FileReadOption.SkipLargeTags when updating to a future
+                    // version of fo-dicom where https://github.com/fo-dicom/fo-dicom/issues/893 is fixed
+                    var dicomFile = DicomFile.Open(stream, FileReadOption.ReadLargeOnDemand);
+                    canTranscode = CanTranscodeDataset(dicomFile.Dataset, requestedTransferSyntax);
+                }
+                catch (DicomFileException)
+                {
+                }
+
+                if (canTranscode)
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                    result.Add(stream);
+                }
+                else
+                {
+                    stream.Dispose();
+                }
+            }
+
+            return result;
+        }
+
+        private static bool CanTranscodeDataset(DicomDataset dicomDataset, DicomTransferSyntax requestedTransferSyntax)
+        {
+            if (requestedTransferSyntax == null)
+            {
+                return true;
+            }
+
+            DicomTransferSyntax originalTransferSyntax = dicomDataset.InternalTransferSyntax;
+            if (!dicomDataset.TryGetSingleValue(DicomTag.BitsAllocated, out ushort bpp))
+            {
+                return false;
+            }
+
+            if (!dicomDataset.TryGetString(DicomTag.PhotometricInterpretation, out string photometricInterpretation))
+            {
+                return false;
+            }
+
+            // Bug in fo-dicom 4.0.1
+            if ((requestedTransferSyntax == DicomTransferSyntax.JPEGProcess1 || requestedTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
+                ((photometricInterpretation == PhotometricInterpretation.Monochrome2.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.Monochrome1.Value)))
+            {
+                return false;
+            }
+
+            if (((bpp > 8) && _supportedTransferSyntaxesOver8bit.Contains(requestedTransferSyntax) && _supportedTransferSyntaxesOver8bit.Contains(originalTransferSyntax)) ||
+                 ((bpp <= 8) && _supportedTransferSyntaxes8bit.Contains(requestedTransferSyntax) && _supportedTransferSyntaxes8bit.Contains(originalTransferSyntax)))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
