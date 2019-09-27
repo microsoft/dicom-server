@@ -101,7 +101,33 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     // If any streams are filtered, we must set the response code as patial content.
                     if (!message.OriginalTransferSyntaxRequested())
                     {
-                        Stream[] filteredStreams = FilterAndDisposeNonTranscodableStreams(resultStreams, parsedDicomTransferSyntax).ToArray();
+                        Stream[] filteredStreams = resultStreams.Where(x =>
+                        {
+                            var canTranscode = false;
+
+                            try
+                            {
+                                // TODO: replace with FileReadOption.SkipLargeTags when updating to a future
+                                // version of fo-dicom where https://github.com/fo-dicom/fo-dicom/issues/893 is fixed
+                                var dicomFile = DicomFile.Open(x, FileReadOption.ReadLargeOnDemand);
+                                canTranscode = CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax);
+                            }
+                            catch (DicomFileException)
+                            {
+                                canTranscode = false;
+                            }
+
+                            x.Seek(0, SeekOrigin.Begin);
+
+                            // If some of the instances are not transcodeable, Partial Content should be returned
+                            if (!canTranscode)
+                            {
+                                responseCode = HttpStatusCode.PartialContent;
+                            }
+
+                            return canTranscode;
+                        }).ToArray();
+
                         if (filteredStreams.Length != resultStreams.Length)
                         {
                             responseCode = HttpStatusCode.PartialContent;
@@ -221,37 +247,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
         }
 
-        private static IEnumerable<Stream> FilterAndDisposeNonTranscodableStreams(Stream[] streams, DicomTransferSyntax requestedTransferSyntax)
-        {
-            var result = new List<Stream>();
-            foreach (Stream stream in streams)
-            {
-                bool canTranscode = false;
-
-                try
-                {
-                    // TODO: replace with FileReadOption.SkipLargeTags when updating to a future
-                    // version of fo-dicom where https://github.com/fo-dicom/fo-dicom/issues/893 is fixed
-                    var dicomFile = DicomFile.Open(stream, FileReadOption.ReadLargeOnDemand);
-                    canTranscode = CanTranscodeDataset(dicomFile.Dataset, requestedTransferSyntax);
-                }
-                catch (DicomFileException)
-                {
-                }
-
-                if (canTranscode)
-                {
-                    stream.Seek(0, SeekOrigin.Begin);
-                    result.Add(stream);
-                }
-                else
-                {
-                    stream.Dispose();
-                }
-            }
-
-            return result;
-        }
 
         private static bool CanTranscodeDataset(DicomDataset dicomDataset, DicomTransferSyntax requestedTransferSyntax)
         {
