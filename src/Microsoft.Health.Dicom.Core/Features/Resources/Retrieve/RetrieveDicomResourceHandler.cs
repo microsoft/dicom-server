@@ -50,7 +50,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             DicomTransferSyntax.RLELossless,
         };
 
-        public RetrieveDicomResourceHandler(IDicomMetadataStore dicomMetadataStore, DicomDataStore dicomDataStore)
+        public RetrieveDicomResourceHandler(
+            IDicomMetadataStore dicomMetadataStore,
+            DicomDataStore dicomDataStore)
             : base(dicomMetadataStore)
         {
             EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
@@ -176,6 +178,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
                     // We catch all here as Transcoder can throw a wide variety of things.
                     // Basically this means codec failure - a quite extraordinary situation, but not impossible
+                    // Proper solution here would be to actually try transcoding all the files that we are
+                    // returning and either form a PartialContent or NotAcceptable response with extra error message in
+                    // the headers. Because transcoding is an expensive operation, we choose to do it from within the
+                    // LazyTransformReadOnlyStream at the time when response is being formed by the server, therefore this code
+                    // is called from ASP.NET framework and at this point we can not change our server response.
+                    // The decision for now is just to return an empty stream here letting the clieng handle it.
+                    // In the future a more optimal solution would involve maintaining a cache of transcoded images and
+                    // using that to determine if transcoding is possible from within Handle method.
                     catch
                     {
                         tempDicomFile = null;

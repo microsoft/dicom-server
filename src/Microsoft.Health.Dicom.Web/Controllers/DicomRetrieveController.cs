@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType((int)HttpStatusCode.PartialContent)]
+        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.PartialContent)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}")]
         public async Task<IActionResult> GetSeriesAsync(
