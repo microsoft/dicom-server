@@ -247,7 +247,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
         }
 
-
         private static bool CanTranscodeDataset(DicomDataset dicomDataset, DicomTransferSyntax requestedTransferSyntax)
         {
             if (requestedTransferSyntax == null)
