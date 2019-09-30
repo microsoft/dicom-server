@@ -111,7 +111,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                             {
                                 // TODO: replace with FileReadOption.SkipLargeTags when updating to a future
                                 // version of fo-dicom where https://github.com/fo-dicom/fo-dicom/issues/893 is fixed
-                                var dicomFile = DicomFile.Open(x, FileReadOption.ReadLargeOnDemand);
+                                var dicomFile = DicomFile.OpenAsync(x, FileReadOption.ReadLargeOnDemand).Result;
                                 canTranscode = CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax);
                             }
                             catch (DicomFileException)
