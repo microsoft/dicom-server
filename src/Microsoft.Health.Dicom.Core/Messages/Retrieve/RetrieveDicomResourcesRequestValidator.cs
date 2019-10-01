@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Linq;
 using Dicom;
 using FluentValidation;
@@ -21,10 +22,17 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             RuleFor(x => x.RequestedTransferSyntax)
                 .Must(x =>
                 {
-                    var transferSyntax = DicomTransferSyntax.Parse(x);
-                    return transferSyntax?.UID != null && transferSyntax.UID.Name != UnknownDicomTransferSyntaxName;
+                    try
+                    {
+                        var transferSyntax = DicomTransferSyntax.Parse(x);
+                        return transferSyntax?.UID != null && transferSyntax.UID.Name != UnknownDicomTransferSyntaxName;
+                    }
+                    catch (DicomDataException)
+                    {
+                        return false;
+                    }
                 })
-                .When(x => x.RequestedTransferSyntax != null);
+                .When(x => !x.OriginalTransferSyntaxRequested() && x.RequestedTransferSyntax != null);
 
             // Check the frames has at least one when requested, and all requested frames are > 0.
             RuleFor(x => x.Frames)

@@ -23,6 +23,28 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class RetrieveTransactionResourceTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
+        public static readonly List<string> SupportedTransferSyntaxesFor8BitTranscoding = new List<string>
+        {
+            "DeflatedExplicitVRLittleEndian",
+            "ExplicitVRBigEndian",
+            "ExplicitVRLittleEndian",
+            "ImplicitVRLittleEndian",
+            "JPEG2000Lossless",
+            "JPEG2000Lossy",
+            "JPEGProcess1",
+            "JPEGProcess2_4",
+            "RLELossless",
+        };
+
+        public static readonly List<string> SupportedTransferSyntaxesForOver8BitTranscoding = new List<string>
+        {
+            "DeflatedExplicitVRLittleEndian",
+            "ExplicitVRBigEndian",
+            "ExplicitVRLittleEndian",
+            "ImplicitVRLittleEndian",
+            "RLELossless",
+        };
+
         public RetrieveTransactionResourceTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             Client = new DicomWebClient(fixture.HttpClient);
@@ -91,9 +113,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenARequestWithFrameLessThanOrEqualTo0_WhenRetrievingFrames_TheServerShouldReturnBadRequest(params int[] frames)
         {
             HttpResult<IReadOnlyList<Stream>> response = await Client.GetFramesAsync(
-                studyInstanceUID: Guid.NewGuid().ToString(),
-                seriesInstanceUID: Guid.NewGuid().ToString(),
-                sopInstanceUID: Guid.NewGuid().ToString(),
+                studyInstanceUID: DicomUID.Generate().UID,
+                seriesInstanceUID: DicomUID.Generate().UID,
+                sopInstanceUID: DicomUID.Generate().UID,
                 frames: frames);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -165,7 +187,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var studyInstanceUID = Guid.NewGuid().ToString();
             var seriesInstanceUID = Guid.NewGuid().ToString();
             var sopInstanceUID = Guid.NewGuid().ToString();
-            DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFileWith8BitPixelData(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
             HttpResult<DicomDataset> storeResponse = await Client.PostAsync(new[] { dicomFile1 }, studyInstanceUID);
             ValidationHelpers.ValidateSuccessSequence(storeResponse.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
 
@@ -173,8 +195,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.NotFound, response5.StatusCode);
             HttpResult<IReadOnlyList<DicomFile>> response6 = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, Guid.NewGuid().ToString());
             Assert.Equal(HttpStatusCode.NotFound, response6.StatusCode);
-            HttpResult<IReadOnlyList<Stream>> response7 = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 2);
-            Assert.Equal(HttpStatusCode.NotFound, response7.StatusCode);
+            HttpResult<IReadOnlyList<Stream>> response7 = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 1);
+            Assert.Equal(HttpStatusCode.OK, response7.StatusCode);
+            HttpResult<IReadOnlyList<Stream>> response8 = await Client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 2);
+            Assert.Equal(HttpStatusCode.NotFound, response8.StatusCode);
         }
 
         [Fact]
@@ -202,6 +226,267 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateRetrieveTransaction(seriesRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, dicomFile1);
             HttpResult<IReadOnlyList<DicomFile>> instanceRetrieve = await Client.GetInstanceAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
             ValidateRetrieveTransaction(instanceRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, dicomFile1);
+        }
+
+        [Theory]
+        [InlineData("1.2.840.10008.1.2.4.100", HttpStatusCode.NotAcceptable)] // Unsupported conversion - a video codec
+        [InlineData("Bogus TS", HttpStatusCode.BadRequest)] // A non-existent codec
+        [InlineData("1.2.840.10008.5.1.4.1.1.1", HttpStatusCode.BadRequest)] // Valid UID, but not a transfer syntax
+        public async Task GivenAnUnsupportedTransferSyntax_WhenRetrievingStudy_NotAcceptableIsReturned(string transferSyntax, HttpStatusCode expectedStatusCode)
+        {
+            IEnumerable<DicomFile> dicomFiles = Samples.GetDicomFilesForTranscoding();
+            DicomFile dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == "ExplicitVRLittleEndian"));
+            var dicomInstance = DicomInstance.Create(dicomFile.Dataset);
+
+            try
+            {
+                HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+                Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+                HttpResult<IReadOnlyList<DicomFile>> getResponse = await Client.GetInstanceAsync(
+                    dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, transferSyntax);
+                Assert.Equal(expectedStatusCode, getResponse.StatusCode);
+            }
+            finally
+            {
+                HttpStatusCode result = await Client.DeleteAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
+                Assert.Equal(HttpStatusCode.OK, result);
+            }
+        }
+
+        // Test that if no TS specified, we return the original TS w/o transcoding -
+        // http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_8.7.3.5.2:S
+        // The wildcard value "*" indicates that the user agent will accept any Transfer Syntax.
+        // This allows, for example, the origin server to respond without needing to encode an
+        // existing representation to a new Transfer Syntax, or to respond with the
+        // Explicit VR Little Endian Transfer Syntax regardless of the Transfer Syntax stored.
+        [Fact]
+        public async Task GivenAnUnsupportedTransferSyntax_WhenWildCardTsSpecified_OriginalImageReturned()
+        {
+            var studyInstanceUID = DicomUID.Generate().UID;
+            var seriesInstanceUID = DicomUID.Generate().UID;
+            var sopInstanceUID = DicomUID.Generate().UID;
+
+            DicomFile dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
+                studyInstanceUID,
+                seriesInstanceUID,
+                sopInstanceUID,
+                transferSyntax: DicomTransferSyntax.HEVCH265Main10ProfileLevel51.UID.UID,
+                encode: false);
+
+            try
+            {
+                HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+
+                Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+
+                // Check for series
+                HttpResult<IReadOnlyList<DicomFile>> seriesResponse = await Client.GetSeriesAsync(
+                    studyInstanceUID,
+                    seriesInstanceUID,
+                    "*");
+
+                Assert.Equal(HttpStatusCode.OK, seriesResponse.StatusCode);
+                Assert.Equal(DicomTransferSyntax.HEVCH265Main10ProfileLevel51, seriesResponse.Value.Single().Dataset.InternalTransferSyntax);
+
+                // Check for frame
+                HttpResult<IReadOnlyList<Stream>> frameResponse = await Client.GetFramesAsync(
+                    studyInstanceUID,
+                    seriesInstanceUID,
+                    sopInstanceUID,
+                    dicomTransferSyntax: "*",
+                    frames: 1);
+
+                Assert.Equal(HttpStatusCode.OK, frameResponse.StatusCode);
+                Assert.NotEqual(0, frameResponse.Value.Single().Length);
+            }
+            finally
+            {
+                HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+                Assert.Equal(HttpStatusCode.OK, result);
+            }
+        }
+
+        [Fact]
+        public async Task GivenSupportedTransferSyntax_WhenNoTsSpecified_DefaultTsReturned()
+        {
+            var seriesInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = DicomUID.Generate().UID;
+
+            DicomFile dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
+                studyInstanceUID,
+                seriesInstanceUID,
+                transferSyntax: DicomTransferSyntax.DeflatedExplicitVRLittleEndian.UID.UID);
+
+            try
+            {
+                HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+
+                Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+
+                HttpResult<IReadOnlyList<DicomFile>> getResponse = await Client.GetSeriesAsync(
+                    studyInstanceUID,
+                    seriesInstanceUID);
+
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+                Assert.Equal(DicomTransferSyntax.ExplicitVRLittleEndian, getResponse.Value.Single().Dataset.InternalTransferSyntax);
+            }
+            finally
+            {
+                HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesInstanceUID);
+                Assert.Equal(HttpStatusCode.OK, result);
+            }
+        }
+
+        [Fact]
+        public async Task GivenAMixOfTransferSyntaxes_WhenSomeAreSupported_PartialIsReturned()
+        {
+            var seriesInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = DicomUID.Generate().UID;
+
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFileWith8BitPixelData(
+                studyInstanceUID,
+                seriesInstanceUID,
+                transferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
+
+            DicomFile dicomFile2 = Samples.CreateRandomDicomFileWith8BitPixelData(
+                studyInstanceUID,
+                seriesInstanceUID,
+                transferSyntax: DicomTransferSyntax.HEVCH265Main10ProfileLevel51.UID.UID,
+                encode: false);
+
+            DicomFile dicomFile3 = Samples.CreateRandomDicomFileWith8BitPixelData(
+                studyInstanceUID,
+                seriesInstanceUID,
+                transferSyntax: DicomTransferSyntax.ImplicitVRLittleEndian.UID.UID);
+
+            try
+            {
+                HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
+
+                Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+
+                HttpResult<IReadOnlyList<DicomFile>> getResponse = await Client.GetSeriesAsync(
+                    studyInstanceUID,
+                    seriesInstanceUID,
+                    DicomTransferSyntax.JPEG2000Lossy.UID.UID);
+
+                Assert.Equal(HttpStatusCode.PartialContent, getResponse.StatusCode);
+                Assert.Equal(2, getResponse.Value.Count);
+            }
+            finally
+            {
+                HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesInstanceUID);
+                Assert.Equal(HttpStatusCode.OK, result);
+            }
+        }
+
+        public static IEnumerable<object[]> Get8BitTranscoderCombos()
+        {
+            List<string> fromList = SupportedTransferSyntaxesFor8BitTranscoding;
+            List<string> toList = SupportedTransferSyntaxesFor8BitTranscoding;
+
+            return from x in fromList from y in toList select new[] { x, y };
+        }
+
+        public static IEnumerable<object[]> Get16BitTranscoderCombos()
+        {
+            List<string> fromList = SupportedTransferSyntaxesForOver8BitTranscoding;
+            List<string> toList = SupportedTransferSyntaxesForOver8BitTranscoding;
+
+            return from x in fromList from y in toList select new[] { x, y };
+        }
+
+        [Theory]
+        [MemberData(nameof(Get16BitTranscoderCombos))]
+        public async Task GivenSupported16bitTransferSyntax_WhenRetrievingStudyAndAskingForConversion_OKIsReturned(
+            string tsFrom,
+            string tsTo)
+        {
+            DicomFile dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ((DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(tsFrom).GetValue(null)).UID.UID);
+            var dicomInstance = DicomInstance.Create(dicomFile.Dataset);
+
+            try
+            {
+                HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+                Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+
+                var expectedTransferSyntax = (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(tsTo).GetValue(null);
+
+                HttpResult<IReadOnlyList<DicomFile>> getResponse = await Client.GetInstanceAsync(
+                    dicomInstance.StudyInstanceUID,
+                    dicomInstance.SeriesInstanceUID,
+                    dicomInstance.SopInstanceUID,
+                    expectedTransferSyntax.UID.UID);
+                Assert.Equal(expectedTransferSyntax, getResponse.Value.Single().Dataset.InternalTransferSyntax);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+                HttpResult<IReadOnlyList<Stream>> framesResponse = await Client.GetFramesAsync(
+                    dicomInstance.StudyInstanceUID,
+                    dicomInstance.SeriesInstanceUID,
+                    dicomInstance.SopInstanceUID,
+                    expectedTransferSyntax.UID.UID,
+                    1);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+                Assert.NotEqual(0, framesResponse.Value.Single().Length);
+            }
+            finally
+            {
+                HttpStatusCode result = await Client.DeleteAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
+                Assert.Equal(HttpStatusCode.OK, result);
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(Get8BitTranscoderCombos))]
+        public async Task GivenSupported8bitTransferSyntax_WhenRetrievingStudyAndAskingForConversion_OKIsReturned(
+            string tsFrom,
+            string tsTo)
+        {
+            IEnumerable<DicomFile> dicomFiles = Samples.GetDicomFilesForTranscoding();
+            DicomFile dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == tsFrom));
+            var dicomInstance = DicomInstance.Create(dicomFile.Dataset);
+
+            try
+            {
+                HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+                Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+
+                var expectedTransferSyntax = (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(tsTo).GetValue(null);
+                HttpResult<IReadOnlyList<DicomFile>> getResponse = await Client.GetInstanceAsync(
+                    dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, expectedTransferSyntax.UID.UID);
+                Assert.Equal(expectedTransferSyntax, getResponse.Value.Single().Dataset.InternalTransferSyntax);
+                Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+                Assert.NotNull(getResponse.Value.Single());
+            }
+            finally
+            {
+                HttpStatusCode result = await Client.DeleteAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
+                Assert.Equal(HttpStatusCode.OK, result);
+            }
+        }
+
+        [Theory]
+        [InlineData("1.2.840.10008.1.2.4.91")] // JPEG Process 1 - should work, but doesn't for this particular image. Not officially supported
+        public async Task GivenAnExceptionDuringTranscoding_WhenRetrievingStudy_BadRequestIsReturned(string transferSyntax)
+        {
+            IEnumerable<DicomFile> dicomFiles = Samples.GetSampleDicomFiles();
+            DicomFile dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == "XRJPEGProcess1"));
+            var dicomInstance = DicomInstance.Create(dicomFile.Dataset);
+
+            try
+            {
+                HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+                Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
+
+                HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetInstanceAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID, transferSyntax);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Null(response.Value.Single());
+            }
+            finally
+            {
+                HttpStatusCode result = await Client.DeleteAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
+                Assert.Equal(HttpStatusCode.OK, result);
+            }
         }
 
         [Theory]
