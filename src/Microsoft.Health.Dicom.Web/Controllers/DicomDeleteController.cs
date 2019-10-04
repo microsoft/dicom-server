@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Messages.Delete;
 
 namespace Microsoft.Health.Dicom.Web.Controllers
 {
+    [Authorize]
     public class DicomDeleteController : Controller
     {
         private readonly IMediator _mediator;
@@ -30,7 +31,6 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             _logger = logger;
         }
 
-        [Authorize]
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -46,7 +46,6 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return StatusCode(deleteResponse.StatusCode);
         }
 
-        [Authorize]
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -62,7 +61,6 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return StatusCode(deleteResponse.StatusCode);
         }
 
-        [Authorize]
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]

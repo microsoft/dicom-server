@@ -33,12 +33,12 @@ namespace Microsoft.Health.Dicom.Api.Modules
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
-                    .AddJwtBearer(options =>
-                    {
-                        options.Authority = _securityConfiguration.Authentication.Authority;
-                        options.Audience = _securityConfiguration.Authentication.Audience;
-                        options.RequireHttpsMetadata = true;
-                    });
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = _securityConfiguration.Authentication.Authority;
+                    options.Audience = _securityConfiguration.Authentication.Audience;
+                    options.RequireHttpsMetadata = true;
+                });
             }
         }
     }

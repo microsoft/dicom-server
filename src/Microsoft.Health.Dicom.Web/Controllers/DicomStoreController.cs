@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [Authorize]
     public class DicomStoreController : Controller
     {
         private const string ApplicationDicomJson = "application/dicom+json";
@@ -34,7 +35,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
-        [Authorize]
         [DisableRequestSizeLimit]
         [AcceptContentFilter(ApplicationDicomJson)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
