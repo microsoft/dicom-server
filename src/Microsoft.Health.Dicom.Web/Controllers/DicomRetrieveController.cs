@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,7 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Web.Controllers
 {
+    [Authorize]
     public class DicomRetrieveController : Controller
     {
         private const string ApplicationOctetStream = "application/octet-stream";
