@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,7 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Web.Controllers
 {
+    [Authorize]
     public class DicomRetrieveController : Controller
     {
         private const string ApplicationOctetStream = "application/octet-stream";
@@ -49,7 +51,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType((int)HttpStatusCode.PartialContent)]
+        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.PartialContent)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/")]
         public async Task<IActionResult> GetStudyAsync([FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax, string studyInstanceUID)
@@ -80,7 +82,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType((int)HttpStatusCode.PartialContent)]
+        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.PartialContent)]
         [HttpGet]
         [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}")]
         public async Task<IActionResult> GetSeriesAsync(

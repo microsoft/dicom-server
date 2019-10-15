@@ -68,6 +68,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
             try
             {
+                // Since requesting to render a multiframe image without specifying a frame is ambiguous, per DICOM spec
+                // we are free to make assumptions here. We will render the first frame by default
                 using (var image = new DicomImage(tempDicomFile.Dataset).RenderImage().AsClonedBitmap())
                 {
                     var bmp = image;

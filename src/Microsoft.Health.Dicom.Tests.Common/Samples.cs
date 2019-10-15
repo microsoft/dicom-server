@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             bool encode = true,
             int frames = 1)
         {
-            var dicomFile = DicomImageGenerator.GenerateDicomFile(
+            DicomFile dicomFile = DicomImageGenerator.GenerateDicomFile(
                 studyInstanceUID,
                 seriesInstanceUID,
                 sopInstanceUID,
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             bool encode = true,
             int frames = 1)
         {
-            var dicomFile = DicomImageGenerator.GenerateDicomFile(
+            DicomFile dicomFile = DicomImageGenerator.GenerateDicomFile(
                 studyInstanceUID,
                 seriesInstanceUID,
                 sopInstanceUID,

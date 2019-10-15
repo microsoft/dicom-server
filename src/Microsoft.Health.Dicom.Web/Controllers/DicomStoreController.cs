@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [Authorize]
     public class DicomStoreController : Controller
     {
         private const string ApplicationDicomJson = "application/dicom+json";

@@ -25,28 +25,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
         private readonly DicomDataStore _dicomDataStore;
 
-        private static readonly HashSet<DicomTransferSyntax> _supportedTransferSyntaxes8bit = new HashSet<DicomTransferSyntax>
-        {
-            DicomTransferSyntax.DeflatedExplicitVRLittleEndian,
-            DicomTransferSyntax.ExplicitVRBigEndian,
-            DicomTransferSyntax.ExplicitVRLittleEndian,
-            DicomTransferSyntax.ImplicitVRLittleEndian,
-            DicomTransferSyntax.JPEG2000Lossless,
-            DicomTransferSyntax.JPEG2000Lossy,
-            DicomTransferSyntax.JPEGProcess1,
-            DicomTransferSyntax.JPEGProcess2_4,
-            DicomTransferSyntax.RLELossless,
-        };
-
-        private static readonly HashSet<DicomTransferSyntax> _supportedTransferSyntaxesOver8bit = new HashSet<DicomTransferSyntax>
-        {
-            DicomTransferSyntax.DeflatedExplicitVRLittleEndian,
-            DicomTransferSyntax.ExplicitVRBigEndian,
-            DicomTransferSyntax.ExplicitVRLittleEndian,
-            DicomTransferSyntax.ImplicitVRLittleEndian,
-            DicomTransferSyntax.RLELossless,
-        };
-
         public RetrieveDicomResourceHandler(IDicomMetadataStore dicomMetadataStore, DicomDataStore dicomDataStore)
             : base(dicomMetadataStore)
         {
@@ -55,45 +33,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             _dicomDataStore = dicomDataStore;
         }
 
-        private bool CanTranscodeDataset(DicomDataset ds, DicomTransferSyntax toTransferSyntax)
-        {
-            if (toTransferSyntax == null)
-            {
-               return true;
-            }
-
-            var fromTs = ds.InternalTransferSyntax;
-            if (!ds.TryGetSingleValue(DicomTag.BitsAllocated, out ushort bpp))
-            {
-                return false;
-            }
-
-            if (!ds.TryGetString(DicomTag.PhotometricInterpretation, out string photometricInterpretation))
-            {
-                return false;
-            }
-
-            // Bug in fo-dicom 4.0.1
-            if ((toTransferSyntax == DicomTransferSyntax.JPEGProcess1 || toTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
-                ((photometricInterpretation == PhotometricInterpretation.Monochrome2.Value) ||
-                 (photometricInterpretation == PhotometricInterpretation.Monochrome1.Value)))
-            {
-                return false;
-            }
-
-            if (((bpp > 8) && _supportedTransferSyntaxesOver8bit.Contains(toTransferSyntax) && _supportedTransferSyntaxesOver8bit.Contains(fromTs)) ||
-                 ((bpp <= 8) && _supportedTransferSyntaxes8bit.Contains(toTransferSyntax) && _supportedTransferSyntaxes8bit.Contains(fromTs)))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public async Task<RetrieveDicomResourceResponse> Handle(
             RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(message, nameof(message));
+
+            DicomTransferSyntax parsedDicomTransferSyntax =
+                message.RenderedRequested ? null :
+                message.OriginalTransferSyntaxRequested() ? null :
+                string.IsNullOrWhiteSpace(message.RequestedRepresentation) ? DefaultTransferSyntax :
+                DicomTransferSyntax.Parse(message.RequestedRepresentation);
+
+            ImageRepresentationModel imageRepresentation =
+                message.RenderedRequested ?
+                    ImageRepresentationModel.Parse(message.RequestedRepresentation) :
+                    null;
 
             try
             {
@@ -102,17 +56,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 Stream[] resultStreams = await Task.WhenAll(retrieveInstances.Select(x => _dicomDataStore.GetDicomDataStreamAsync(x, cancellationToken)));
 
                 var responseCode = HttpStatusCode.OK;
-
-                DicomTransferSyntax parsedDicomTransferSyntax =
-                    message.RenderedRequested ? null :
-                    message.OriginalTransferSyntaxRequested() ? null :
-                    string.IsNullOrWhiteSpace(message.RequestedRepresentation) ? DefaultTransferSyntax :
-                    DicomTransferSyntax.Parse(message.RequestedRepresentation);
-
-                ImageRepresentationModel imageRepresentation =
-                    message.RenderedRequested ?
-                        ImageRepresentationModel.Parse(message.RequestedRepresentation) :
-                        null;
 
                 if (message.ResourceType == ResourceType.Frames)
                 {
@@ -131,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     else
                     {
                         if (!message.OriginalTransferSyntaxRequested() &&
-                            !CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax))
+                            !dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
                         {
                             throw new DataStoreException(HttpStatusCode.NotAcceptable);
                         }
@@ -156,7 +99,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     {
                         if (!message.OriginalTransferSyntaxRequested())
                         {
-                            resultStreams = resultStreams.Where(x =>
+                            Stream[] filteredStreams = resultStreams.Where(x =>
                             {
                                 var canTranscode = false;
 
@@ -164,8 +107,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                                 {
                                     // TODO: replace with FileReadOption.SkipLargeTags when updating to a future
                                     // version of fo-dicom where https://github.com/fo-dicom/fo-dicom/issues/893 is fixed
-                                    var dicomFile = DicomFile.Open(x, FileReadOption.ReadLargeOnDemand);
-                                    canTranscode = CanTranscodeDataset(dicomFile.Dataset, parsedDicomTransferSyntax);
+                                    var dicomFile = DicomFile.OpenAsync(x, FileReadOption.ReadLargeOnDemand).Result;
+                                    canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
                                 }
                                 catch (DicomFileException)
                                 {
@@ -182,6 +125,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
                                 return canTranscode;
                             }).ToArray();
+
+                            if (filteredStreams.Length != resultStreams.Length)
+                            {
+                                responseCode = HttpStatusCode.PartialContent;
+                            }
+
+                            resultStreams = filteredStreams;
                         }
 
                         if (resultStreams.Length == 0)

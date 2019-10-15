@@ -4,12 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Reflection;
 using Dicom.Imaging;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
@@ -22,25 +27,49 @@ namespace Microsoft.AspNetCore.Builder
 {
     public static class DicomServerServiceCollectionExtensions
     {
+        private const string DicomServerConfigurationSectionName = "DicomServer";
+
         /// <summary>
         /// Adds services for enabling a DICOM server.
         /// </summary>
         /// <param name="services">The services collection.</param>
+        /// <param name="configurationRoot">An optional configuration root object. This method uses the "DicomServer" section.</param>
+        /// <param name="configureAction">An optional delegate to set <see cref="DicomServerConfiguration"/> properties after values have been loaded from configuration.</param>
         /// <returns>A <see cref="IDicomServerBuilder"/> object.</returns>
-        public static IDicomServerBuilder AddDicomServer(this IServiceCollection services)
+        public static IDicomServerBuilder AddDicomServer(
+            this IServiceCollection services,
+            IConfiguration configurationRoot,
+            Action<DicomServerConfiguration> configureAction = null)
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
+            var dicomServerConfiguration = new DicomServerConfiguration();
+
+            configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(dicomServerConfiguration);
+            configureAction?.Invoke(dicomServerConfiguration);
+
+            services.AddSingleton(Options.Create(dicomServerConfiguration));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
+
+            services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
+
             services.AddOptions();
+
             services.AddMvc(options =>
             {
                 options.RespectBrowserAcceptHeader = true;
                 options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
+
+                if (!dicomServerConfiguration.Security.Enabled)
+                {
+                    // Removes Authentication Requirements for all endpoints
+                    options.Filters.Add(new AllowAnonymousFilter());
+                }
             });
 
             services.AddSingleton<IDicomRouteProvider, DicomRouteProvider>();
             services.Add<DicomDataStore>().Scoped().AsSelf();
-            services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly);
+            services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
             // Register the Json Serializer to use
@@ -76,6 +105,9 @@ namespace Microsoft.AspNetCore.Builder
                 return app =>
                 {
                     app.UseExceptionHandling();
+
+                    app.UseAuthentication();
+
                     next(app);
                 };
             }
