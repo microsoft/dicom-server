@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.IO;
 using Dicom;
 using Dicom.Imaging;
@@ -15,8 +13,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
     public static class StreamExtensions
     {
-        private static readonly Size FileThumbnailSize = new Size(width: 100, height: 100);
-
         public static Stream EncodeDicomFileAsDicom(this Stream stream, DicomTransferSyntax requestedTransferSyntax)
         {
             var tempDicomFile = DicomFile.Open(stream);
@@ -64,41 +60,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         public static Stream EncodeDicomFileAsImage(this Stream stream, ImageRepresentationModel imageRepresentation, bool thumbnail)
         {
             var tempDicomFile = DicomFile.Open(stream);
-            var ms = new MemoryStream();
 
-            try
-            {
-                // Since requesting to render a multiframe image without specifying a frame is ambiguous, per DICOM spec
-                // we are free to make assumptions here. We will render the first frame by default
-                using (var image = new DicomImage(tempDicomFile.Dataset).RenderImage().AsClonedBitmap())
-                {
-                    var bmp = image;
-                    if (thumbnail)
-                    {
-                        var bmpResized = new Bitmap(FileThumbnailSize.Width, FileThumbnailSize.Height);
-                        using (var graphics = Graphics.FromImage(bmpResized))
-                        {
-                            graphics.CompositingQuality = CompositingQuality.HighSpeed;
-                            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            graphics.CompositingMode = CompositingMode.SourceCopy;
-                            graphics.DrawImage(image, x: 0, y: 0, FileThumbnailSize.Width, FileThumbnailSize.Height);
-                        }
-
-                        bmp = bmpResized;
-                    }
-
-                    bmp.Save(ms, imageRepresentation.CodecInfo, imageRepresentation.EncoderParameters);
-                }
-
-                ms.Seek(offset: 0, loc: SeekOrigin.Begin);
-            }
-            catch
-            {
-                // We catch all here because rendering may throw for a variety of reasons.
-                // Most likely, if we get here, this one is a corrupt image and we should return empty
-            }
-
-            return ms;
+            // Since requesting to render a multiframe image without specifying a frame is ambiguous, per DICOM spec
+            // we are free to make assumptions here. We will render the first frame by default
+            return new DicomImage(tempDicomFile.Dataset).ToRenderedMemoryStream(imageRepresentation, frame: 0, thumbnail);
         }
     }
 }

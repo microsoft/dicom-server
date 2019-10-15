@@ -55,16 +55,16 @@ namespace Microsoft.Health.Dicom.Tests.Common
             int frames = 1)
         {
             DicomFile dicomFile = DicomImageGenerator.GenerateDicomFile(
-                studyInstanceUID,
-                seriesInstanceUID,
-                sopInstanceUID,
-                null,
-                rows,
-                columns,
-                TestFileBitDepth.EightBit,
-                transferSyntax,
-                encode,
-                frames);
+               studyInstanceUID,
+               seriesInstanceUID,
+               sopInstanceUID,
+               null,
+               rows,
+               columns,
+               TestFileBitDepth.EightBit,
+               transferSyntax,
+               encode,
+               frames);
 
             return dicomFile;
         }

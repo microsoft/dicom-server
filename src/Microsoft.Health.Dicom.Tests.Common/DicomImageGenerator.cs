@@ -88,6 +88,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
                     { DicomTag.Columns, (ushort)cols },
                     { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
                     { DicomTag.BitsAllocated, (ushort)bitDepth },
+                    { DicomTag.WindowWidth, ((bitDepth == TestFileBitDepth.EightBit) ? "256" : "65536") },
+                    { DicomTag.WindowCenter, ((bitDepth == TestFileBitDepth.EightBit) ? "128" : "32768") },
                 });
 
             var pixelData = DicomPixelData.Create(dicomFile.Dataset, true);

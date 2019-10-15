@@ -5,8 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -21,8 +19,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
     public static class DicomFileExtensions
     {
-        private static readonly Size FrameThumbnailSize = new Size(width: 100, height: 100);
-
         public static Stream GetFrameAsDicomData(this DicomFile dicomFile, int frame, DicomTransferSyntax requestedTransferSyntax)
         {
             DicomDataset dataset = dicomFile.Dataset;
@@ -51,39 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
         public static Stream GetFrameAsImage(this DicomFile dicomFile, int frame, ImageRepresentationModel imageRepresentation, bool thumbnail)
         {
-            var ms = new MemoryStream();
-
-            try
-            {
-                using (var image = new DicomImage(dicomFile.Dataset).RenderImage(frame).AsClonedBitmap())
-                {
-                    var bmp = image;
-                    if (thumbnail)
-                    {
-                        var bmpResized = new Bitmap(FrameThumbnailSize.Width, FrameThumbnailSize.Height);
-                        using (var graphics = Graphics.FromImage(bmpResized))
-                        {
-                            graphics.CompositingQuality = CompositingQuality.HighSpeed;
-                            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            graphics.CompositingMode = CompositingMode.SourceCopy;
-                            graphics.DrawImage(image, x: 0, y: 0, FrameThumbnailSize.Width, FrameThumbnailSize.Height);
-                        }
-
-                        bmp = bmpResized;
-                    }
-
-                    bmp.Save(ms, imageRepresentation.CodecInfo, imageRepresentation.EncoderParameters);
-                }
-
-                ms.Seek(0, SeekOrigin.Begin);
-            }
-            catch
-            {
-                // We catch all here because rendering may throw for a variety of reasons.
-                // Most likely, this is a corrupt image
-            }
-
-            return ms;
+            return new DicomImage(dicomFile.Dataset).ToRenderedMemoryStream(imageRepresentation, frame, thumbnail);
         }
 
         public static void ValidateHasFrames(this DicomFile dicomFile, IEnumerable<int> frames)
