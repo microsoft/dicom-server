@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -15,10 +14,8 @@ using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
-using Remotion.Linq.Parsing.Structure.IntermediateModel;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
 {
@@ -53,8 +50,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
             {
                 "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
                 "JPEG2000Lossless", "JPEG2000Lossy", "RLELossless",
+
+                // "JPEGProcess1", "JPEGProcess2_4", <-- Not supported for 16bit data
             };
 
+            // Generate 8bit images with the appropriate transfer syntax
             var fromTsList = fromList8.Select(x =>
             {
                 var ts = (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(x).GetValue(null);
@@ -66,6 +66,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
                     dicomFile: f);
             });
 
+            // Generate 16bit images with the appropriate transfer syntax
             fromTsList = fromTsList.Concat(fromList16.Select(x =>
             {
                 var ts = (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(x).GetValue(null);
@@ -76,6 +77,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
                     bits: "16",
                     dicomFile: f);
             }));
+
+            var dicomList = Samples.GetDicomFilesForTranscoding().Where(f => (Path.GetFileNameWithoutExtension(f.File.Name) == "ExplicitVRLittleEndian"));
+
+            fromTsList = fromTsList.Concat(dicomList.Select(x => (name: Path.GetFileName(x.File.Name), bits: "n", dicomFile: x)));
 
             var filesGenerated = 0;
 
@@ -106,54 +111,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
             }
 
             Assert.Equal(fromTsList.Count(), filesGenerated);
-        }
-
-        [Fact(Skip="")]
-        public void Gen_GivenValid16BitSampleData_WhenRendering_ShouldSaveProperly()
-        {
-            var dirName = "genRendered16bit";
-            if (!Directory.Exists(dirName))
-            {
-                Directory.CreateDirectory(dirName);
-            }
-
-            var fromList = new List<string>
-            {
-                "DeflatedExplicitVRLittleEndian", "ExplicitVRBigEndian", "ExplicitVRLittleEndian", "ImplicitVRLittleEndian",
-                "JPEG2000Lossless", "JPEG2000Lossy", "RLELossless",
-
-                // "JPEGProcess1", "JPEGProcess2_4", <-- are not supported for 16bit data
-            };
-            var fromTsList = fromList.Select(x =>
-                (name: x, transferSyntax: (DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(x).GetValue(null)));
-
-            var filesGenerated = 0;
-
-            foreach (var ts in fromTsList)
-            {
-                try
-                {
-                    var dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ts.transferSyntax.UID.UID);
-
-                    var image = new DicomImage(dicomFile.Dataset).RenderImage();
-
-                    var ici = ImageCodecInfo.GetImageEncoders().FirstOrDefault(x => x.MimeType == "image/jpeg");
-                    EncoderParameters ep =
-                        new EncoderParameters(1) { Param = { [0] = new EncoderParameter(Encoder.Quality, 1L) } };
-
-                    // image.AsClonedBitmap().Save(Path.Combine(dirName, $"{ts.name}.png"), ImageFormat.Png);
-
-                    image.AsClonedBitmap().Save(Path.Combine(dirName, $"{ts.name}.jpg"), ici, null);
-
-                    filesGenerated++;
-                }
-                catch (Exception e)
-                {
-                    output.WriteLine(e.ToString());
-                }
-            }
-
-            Assert.Equal(fromList.Count, filesGenerated);
         }
     }
 }

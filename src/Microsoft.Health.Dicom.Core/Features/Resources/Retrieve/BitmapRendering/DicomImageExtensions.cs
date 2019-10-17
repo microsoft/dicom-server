@@ -47,7 +47,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRenderin
 
             try
             {
-                using (var image = dicomImage.RenderImage(frame).AsClonedBitmap())
+                // using (var image = dicomImage.RenderImage(frame).AsClonedBitmap())
+                using (var image = dicomImage.ToBitmap(frame))
                 {
                     var bmp = image;
                     if (thumbnail)

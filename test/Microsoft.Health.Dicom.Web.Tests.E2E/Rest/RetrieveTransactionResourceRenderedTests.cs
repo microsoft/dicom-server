@@ -33,7 +33,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         protected DicomWebClient Client { get; set; }
 
-        [Fact(Skip = "This validates ability to handle parallel processing. This is long running but may come in handy if issues are found in certain environments")]
+        // [Fact(Skip = "This validates ability to handle parallel processing. This is long running but may come in handy if issues are found in certain environments")]
+        [Fact]
         public void ConvertCanHandleParallelProcessing()
         {
             var maxFiles = 500;

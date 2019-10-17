@@ -78,7 +78,9 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(jsonSerializer);
 
             // Register image renderer for fo-dicom
-            ImageManager.SetImplementation(NetCoreImageManager.Instance);
+            ImageManager.SetImplementation(RawImageManager.Instance);
+
+            // ImageManager.SetImplementation(NetCoreImageManager.Instance);
 
             return new DicomServerBuilder(services);
         }
