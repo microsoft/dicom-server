@@ -34,20 +34,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRenderin
             return bmp;
         }
 
-        public static Bitmap ToBitmapWithNetImage(this DicomImage image, int frame = 0)
-        {
-            var bmp = image.RenderImage(frame).AsClonedBitmap();
-
-            return bmp;
-        }
-
         public static MemoryStream ToRenderedMemoryStream(this DicomImage dicomImage, ImageRepresentationModel imageRepresentation, int frame = 0, bool thumbnail = false)
         {
             var ms = new MemoryStream();
 
             try
             {
-                // using (var image = dicomImage.RenderImage(frame).AsClonedBitmap())
                 using (var image = dicomImage.ToBitmap(frame))
                 {
                     var bmp = image;

@@ -33,8 +33,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         protected DicomWebClient Client { get; set; }
 
-        // [Fact(Skip = "This validates ability to handle parallel processing. This is long running but may come in handy if issues are found in certain environments")]
-        [Fact]
+        [Fact(Skip = "This validates ability to handle parallel processing. This is long running but may come in handy if issues are found in certain environments")]
         public void ConvertCanHandleParallelProcessing()
         {
             var maxFiles = 500;
@@ -60,7 +59,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 files,
                 file =>
                 {
-                    var bmp = new DicomImage(file.Dataset).RenderImage().AsClonedBitmap();
+                    var bmp = new DicomImage(file.Dataset).ToBitmap();
 
                     var ms = new MemoryStream();
 

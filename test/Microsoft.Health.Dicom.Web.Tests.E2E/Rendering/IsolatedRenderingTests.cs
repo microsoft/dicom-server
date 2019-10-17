@@ -54,6 +54,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
                 // "JPEGProcess1", "JPEGProcess2_4", <-- Not supported for 16bit data
             };
 
+            // fromList16.Clear();
+            // fromList8.Clear();
+
             // Generate 8bit images with the appropriate transfer syntax
             var fromTsList = fromList8.Select(x =>
             {
@@ -78,9 +81,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
                     dicomFile: f);
             }));
 
-            var dicomList = Samples.GetDicomFilesForTranscoding().Where(f => (Path.GetFileNameWithoutExtension(f.File.Name) == "ExplicitVRLittleEndian"));
-
-            fromTsList = fromTsList.Concat(dicomList.Select(x => (name: Path.GetFileName(x.File.Name), bits: "n", dicomFile: x)));
+            // Add a real RGB DICOM file from samples folder
+            fromTsList = fromTsList.Concat(Samples.GetDicomFilesForTranscoding().Where(f => (Path.GetFileNameWithoutExtension(f.File.Name) == "ExplicitVRLittleEndian")).Select(x => (name: Path.GetFileName(x.File.Name), bits: "n", dicomFile: x)));
 
             var filesGenerated = 0;
 
