@@ -10,7 +10,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
-using Dicom.Imaging;
 using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Persistence;

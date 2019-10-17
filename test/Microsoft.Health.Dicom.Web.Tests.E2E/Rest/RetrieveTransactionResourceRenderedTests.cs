@@ -155,48 +155,48 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
                 var img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
-                Assert.Equal(100, img.Width);
-                Assert.Equal(100, img.Height);
+                Assert.Equal(200, img.Width);
+                Assert.Equal(200, img.Height);
 
                 getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Png, img.RawFormat);
-                Assert.Equal(100, img.Width);
-                Assert.Equal(100, img.Height);
+                Assert.Equal(200, img.Width);
+                Assert.Equal(200, img.Height);
 
                 getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true, 1);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
-                Assert.Equal(100, img.Width);
-                Assert.Equal(100, img.Height);
+                Assert.Equal(200, img.Width);
+                Assert.Equal(200, img.Height);
 
                 getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true, 2);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
-                Assert.Equal(100, img.Width);
-                Assert.Equal(100, img.Height);
+                Assert.Equal(200, img.Width);
+                Assert.Equal(200, img.Height);
 
                 getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true, 1);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Png, img.RawFormat);
-                Assert.Equal(100, img.Width);
-                Assert.Equal(100, img.Height);
+                Assert.Equal(200, img.Width);
+                Assert.Equal(200, img.Height);
 
                 getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true, 2);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Png, img.RawFormat);
-                Assert.Equal(100, img.Width);
-                Assert.Equal(100, img.Height);
+                Assert.Equal(200, img.Width);
+                Assert.Equal(200, img.Height);
             }
         }
 

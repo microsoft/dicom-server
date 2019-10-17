@@ -54,9 +54,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
                 // "JPEGProcess1", "JPEGProcess2_4", <-- Not supported for 16bit data
             };
 
-            // fromList16.Clear();
-            // fromList8.Clear();
-
             // Generate 8bit images with the appropriate transfer syntax
             var fromTsList = fromList8.Select(x =>
             {
@@ -99,8 +96,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
                     ms = new DicomImage(ts.dicomFile.Dataset).ToRenderedMemoryStream(ImageRepresentationModel.Parse(mimeType), thumbnail: true);
                     img = Image.FromStream(ms);
                     Assert.Equal(imageFormat, img.RawFormat);
-                    Assert.Equal(100, img.Width);
-                    Assert.Equal(100, img.Height);
+                    Assert.Equal(200, img.Width);
+                    Assert.Equal(200, img.Height);
 
                     img.Save(Path.Combine(dirName, $"{ts.name}_{ts.bits}_thumb.{fileExtension}"));
 

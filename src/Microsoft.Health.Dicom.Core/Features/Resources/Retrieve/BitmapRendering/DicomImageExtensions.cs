@@ -15,7 +15,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRenderin
 {
     public static class DicomImageExtensions
     {
-        private static readonly Size ThumbnailSize = new Size(width: 100, height: 100);
+        // DICOM spec does not define the thumbnail size. This choice is arbitrary and might be made a
+        // configuration constant in the future
+        private static readonly Size ThumbnailSize = new Size(width: 200, height: 200);
 
         public static Bitmap ToBitmap(this DicomImage image, int frame = 0)
         {
@@ -45,13 +47,31 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRenderin
                     var bmp = image;
                     if (thumbnail)
                     {
+                        // Scale factor to preserve aspect ratio and fit within the thumbnail square
+                        float scale = Math.Min((float)ThumbnailSize.Width / bmp.Width, (float)ThumbnailSize.Height / bmp.Height);
+                        var w = (int)(bmp.Width * scale);
+                        var h = (int)(bmp.Height * scale);
+
                         var bmpResized = new Bitmap(ThumbnailSize.Width, ThumbnailSize.Height);
                         using (var graphics = Graphics.FromImage(bmpResized))
                         {
+                            graphics.SmoothingMode = SmoothingMode.AntiAlias;
                             graphics.CompositingQuality = CompositingQuality.HighSpeed;
                             graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                             graphics.CompositingMode = CompositingMode.SourceCopy;
-                            graphics.DrawImage(image, x: 0, y: 0, ThumbnailSize.Width, ThumbnailSize.Height);
+
+                            // Paint the background black
+                            graphics.FillRectangle(
+                                new SolidBrush(Color.Black),
+                                new RectangleF(x: 0, y: 0, ThumbnailSize.Width, ThumbnailSize.Height));
+
+                            // Draw image in the middle
+                            graphics.DrawImage(
+                                image,
+                                x: (ThumbnailSize.Width - w) / 2,
+                                y: (ThumbnailSize.Height - h) / 2,
+                                width: w,
+                                height: h);
                         }
 
                         bmp = bmpResized;
