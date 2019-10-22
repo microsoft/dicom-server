@@ -29,16 +29,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
         }
 
         [Theory]
-        [InlineData("image/jpeg", "jpg", "Jpeg")]
-        [InlineData("image/png", "png", "Png")]
-        public void Gen_GivenValidSampleData_WhenRendering_ShouldSaveProperly(string mimeType, string fileExtension, string format)
+        [InlineData("image/jpeg", "Jpeg")]
+        [InlineData("image/png", "Png")]
+        public void Gen_GivenValidSampleData_WhenRendering_ShouldSaveProperly(string mimeType, string format)
         {
             var imageFormat = (ImageFormat)typeof(ImageFormat).GetProperty(format).GetValue(null);
-            var dirName = "genRendered8bit";
-            if (!Directory.Exists(dirName))
-            {
-                Directory.CreateDirectory(dirName);
-            }
 
             var fromList8 = new List<string>
             {
@@ -91,7 +86,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
                     var img = Image.FromStream(ms);
                     Assert.Equal(imageFormat, img.RawFormat);
 
-                    img.Save(Path.Combine(dirName, $"{ts.name}_{ts.bits}.{fileExtension}"));
+                    // Optional - good for debugging - save to disk
+                    // img.Save(Path.Combine(dirName, $"{ts.name}_{ts.bits}.{fileExtension}"));
 
                     ms = new DicomImage(ts.dicomFile.Dataset).ToRenderedMemoryStream(ImageRepresentationModel.Parse(mimeType), thumbnail: true);
                     img = Image.FromStream(ms);
@@ -99,7 +95,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
                     Assert.Equal(200, img.Width);
                     Assert.Equal(200, img.Height);
 
-                    img.Save(Path.Combine(dirName, $"{ts.name}_{ts.bits}_thumb.{fileExtension}"));
+                    // img.Save(Path.Combine(dirName, $"{ts.name}_{ts.bits}_thumb.{fileExtension}"));
 
                     filesGenerated++;
                 }
