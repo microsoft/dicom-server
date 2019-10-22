@@ -12,6 +12,7 @@ using Dicom;
 using Dicom.Imaging;
 using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
 
@@ -21,6 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
     {
         public static Stream GetFrameAsDicomData(this DicomFile dicomFile, int frame, DicomTransferSyntax requestedTransferSyntax)
         {
+            EnsureArg.IsNotNull(dicomFile);
             DicomDataset dataset = dicomFile.Dataset;
             IByteBuffer resultByteBuffer;
 
@@ -47,11 +49,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
         public static Stream GetFrameAsImage(this DicomFile dicomFile, int frame, ImageRepresentationModel imageRepresentation, bool thumbnail)
         {
+            EnsureArg.IsNotNull(dicomFile);
             return new DicomImage(dicomFile.Dataset).ToRenderedMemoryStream(imageRepresentation, frame, thumbnail);
         }
 
         public static void ValidateHasFrames(this DicomFile dicomFile, IEnumerable<int> frames)
         {
+            EnsureArg.IsNotNull(dicomFile);
             DicomDataset dataset = dicomFile.Dataset;
 
             // Validate the dataset has the correct DICOM tags.

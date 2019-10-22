@@ -10,6 +10,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using Dicom.Imaging;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering
 {
@@ -21,6 +22,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRenderin
 
         public static Bitmap ToBitmap(this DicomImage image, int frame = 0)
         {
+            EnsureArg.IsNotNull(image);
+
             var bytes = image.RenderImage(frame).AsBytes();
             var w = image.Width;
             var h = image.Height;
@@ -38,8 +41,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRenderin
 
         public static MemoryStream ToRenderedMemoryStream(this DicomImage dicomImage, ImageRepresentationModel imageRepresentation, int frame = 0, bool thumbnail = false)
         {
-            var ms = new MemoryStream();
+            EnsureArg.IsNotNull(dicomImage);
 
+            var ms = new MemoryStream();
             try
             {
                 using (var image = dicomImage.ToBitmap(frame))
@@ -85,7 +89,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRenderin
             catch
             {
                 // We catch all here because rendering may throw for a variety of reasons.
-                // Most likely, this is a corrupt image
+                // Most likely, this is a corrupt image or there has been a codec error.
+                // Opportunity for future enhancements - put more detailed error analysis here.
             }
 
             return ms;
