@@ -31,6 +31,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 Png,
             };
 
+        private ImageRepresentationModel()
+        {
+        }
+
         public ImageCodecInfo CodecInfo { get; private set; }
 
         public EncoderParameters EncoderParameters { get; private set; }
