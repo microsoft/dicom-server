@@ -28,8 +28,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         internal const string BaseRetrieveSeriesUriFormat = BaseRetrieveStudyUriFormat + "/series/{1}";
         internal const string BaseRetrieveSeriesMetadataUriFormat = BaseRetrieveSeriesUriFormat + "/metadata";
         internal const string BaseRetrieveInstanceUriFormat = BaseRetrieveSeriesUriFormat + "/instances/{2}";
+        internal const string BaseRetrieveInstanceRenderedUriFormat = BaseRetrieveInstanceUriFormat + "/rendered";
+        internal const string BaseRetrieveInstanceThumbnailUriFormat = BaseRetrieveInstanceUriFormat + "/thumbnail";
         internal const string BaseRetrieveInstanceMetadataUriFormat = BaseRetrieveInstanceUriFormat + "/metadata";
         internal const string BaseRetrieveFramesUriFormat = BaseRetrieveInstanceUriFormat + "/frames/{3}";
+        internal const string BaseRetrieveFramesRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered";
+        internal const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
@@ -59,8 +63,34 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         public Task<HttpResult<IReadOnlyList<DicomFile>>> GetInstanceAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null)
             => GetInstancesAsync(new Uri(string.Format(BaseRetrieveInstanceUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID), UriKind.Relative), dicomTransferSyntax);
 
+        public Task<HttpResult<IReadOnlyList<Stream>>> GetInstanceRenderedAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string format = null, bool thumbnail = false)
+            => GetInstancesRenderedAsync(new Uri(string.Format(thumbnail ? BaseRetrieveInstanceThumbnailUriFormat : BaseRetrieveInstanceRenderedUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID), UriKind.Relative), format, thumbnail);
+
         public Task<HttpResult<IReadOnlyList<DicomDataset>>> GetInstanceMetadataAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
                 => GetMetadataAsync(new Uri(string.Format(BaseRetrieveInstanceMetadataUriFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID), UriKind.Relative));
+
+        public async Task<HttpResult<IReadOnlyList<Stream>>> GetFramesRenderedAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string format = null, bool thumbnail = false, params int[] frames)
+        {
+            var uriString = thumbnail ? BaseRetrieveFramesThumbnailUriFormat : BaseRetrieveFramesRenderedUriFormat;
+
+            var requestUri = new Uri(string.Format(uriString, studyInstanceUID, seriesInstanceUID, sopInstanceUID, string.Join(",", frames)), UriKind.Relative);
+
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(format));
+
+                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        IEnumerable<Stream> responseStreams = await response.Content.ReadMultipartResponseAsStreamsAsync();
+                        return new HttpResult<IReadOnlyList<Stream>>(response.StatusCode, responseStreams.ToList());
+                    }
+
+                    return new HttpResult<IReadOnlyList<Stream>>(response.StatusCode);
+                }
+            }
+        }
 
         public async Task<HttpResult<IReadOnlyList<Stream>>> GetFramesAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string dicomTransferSyntax = null, params int[] frames)
         {
@@ -70,6 +100,25 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             {
                 request.Headers.Accept.Add(MediaTypeApplicationOctetStream);
                 request.Headers.Add(TransferSyntaxHeaderName, dicomTransferSyntax);
+
+                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        IEnumerable<Stream> responseStreams = await response.Content.ReadMultipartResponseAsStreamsAsync();
+                        return new HttpResult<IReadOnlyList<Stream>>(response.StatusCode, responseStreams.ToList());
+                    }
+
+                    return new HttpResult<IReadOnlyList<Stream>>(response.StatusCode);
+                }
+            }
+        }
+
+        public async Task<HttpResult<IReadOnlyList<Stream>>> GetInstancesRenderedAsync(Uri requestUri, string format = null, bool thumbnail = false)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(format));
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
                 {
