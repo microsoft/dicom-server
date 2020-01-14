@@ -1,0 +1,342 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serviceName": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 24,
+            "metadata": {
+                "description": "Name of the DICOM service Web App."
+            }
+        },
+        "appServicePlanResourceGroup": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Resource group containing App Service Plan. If empty, deployment resource group is used."
+            }
+        },
+        "appServicePlanName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
+            }
+        },
+        "appServicePlanSku": {
+            "type": "string",
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+            ],
+            "defaultValue": "S1"
+        },
+        "repositoryUrl": {
+            "type": "string",
+            "defaultValue": "https://github.com/microsoft/dicom-server",
+            "metadata": {
+                "description": "Respository to pull source code from. If blank, source code will not be deployed."
+            }
+        },
+        "repositoryBranch": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "Source code branch to deploy."
+            }
+        },
+        "cosmosDbAccountConsistencyPolicy": {
+            "type": "object",
+            "defaultValue": {
+                "defaultConsistencyLevel": "Strong"
+            },
+            "metadata": {
+                "description": "An object representing the default consistency policy for the Cosmos DB account. See https://docs.microsoft.com/en-us/azure/templates/microsoft.documentdb/databaseaccounts#ConsistencyPolicy"
+            }
+        },
+        "storageAccountSku": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS",
+                "Premium_LRS",
+                "Premium_ZRS",
+                "Standard_GZRS",
+                "Standard_RAGZRS"
+            ],
+            "defaultValue": "Standard_ZRS"
+        },
+        "deployApplicationInsights": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Deploy Application Insights for the DICOM server. Disabled for Microsoft Azure Government (MAG)"
+            }
+        },
+        "applicationInsightsLocation": {
+            "type": "string",
+            "defaultValue": "eastus",
+            "allowedValues": [
+                "southeastasia",
+                "northeurope",
+                "westeurope",
+                "eastus",
+                "southcentralus",
+                "westus2"
+            ]
+        },
+        "additionalDicomServerConfigProperties": {
+            "type": "object",
+            "defaultValue": {
+            },
+            "metadata": {
+                "description": "Additional configuration properties for the DICOM server. In the form {\"path1\":\"value1\",\"path2\":\"value2\"}"
+            }
+        },
+        "solutionType": {
+            "type": "string",
+            "defaultValue": "DicomServerCosmosDB",
+            "metadata": {
+                "description": "The type of the solution"
+            }
+        }
+    },
+    "variables": {
+        "isMAG": "[or(contains(resourceGroup().location,'usgov'),contains(resourceGroup().location,'usdod'))]",
+        "serviceName": "[toLower(parameters('serviceName'))]",
+        "keyVaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('serviceName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('serviceName'), '.vault.azure.net/'))]",
+        "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
+        "appServicePlanName": "[if(empty(parameters('appServicePlanName')),concat(variables('serviceName'),'-asp'),parameters('appServicePlanName'))]",
+        "appServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceName'))]",
+        "deploySourceCode": "[and(not(empty(parameters('repositoryUrl'))),not(empty(parameters('repositoryBranch'))))]",
+        "deployAppInsights": "[and(parameters('deployApplicationInsights'),not(variables('isMAG')))]",
+        "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
+        "storageAccountName": "[concat(substring(replace(variables('serviceName'), '-', ''), 0, min(11, length(variables('serviceName')))), uniquestring(resourceGroup().id))]",
+        "staticDicomServerConfigProperties": {
+            "APPINSIGHTS_PORTALINFO": "ASP.NETCORE",
+            "APPINSIGHTS_PROFILERFEATURE_VERSION": "1.0.0",
+            "APPINSIGHTS_SNAPSHOTFEATURE_VERSION": "1.0.0",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
+            "KeyVault:Endpoint": "[variables('keyVaultEndpoint')]",
+            "CosmosDb:ContinuationTokenSizeLimitInKb": "1",
+            "WEBSITE_RUN_FROM_PACKAGE": "1"
+        },
+        "emptyDicomServerConfigProperties": {},
+        "kuduDicomServerConfigProperties": {
+            "PROJECT": "[concat('src/Microsoft.Health.Dicom.Web/Microsoft.Health.Dicom.Web.csproj')]"
+        },
+        "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'), if(variables('deploySourceCode'), variables('kuduDicomServerConfigProperties'), variables('emptyDicomServerConfigProperties')))]"
+    },
+    "resources": [
+        {
+            "condition": "[empty(parameters('appServicePlanResourceGroup'))]",
+            "apiVersion": "2017-05-10",
+            "name": "nestedTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "apiVersion": "2015-08-01",
+                            "name": "[variables('appServicePlanName')]",
+                            "type": "Microsoft.Web/serverfarms",
+                            "tags": {
+                                "DicomServerSolution": "[parameters('solutionType')]"
+                            },
+                            "location": "[resourceGroup().location]",
+                            "sku": {
+                                "name": "[parameters('appServicePlanSku')]"
+                            },
+                            "properties": {
+                                "name": "[variables('appServicePlanName')]"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "apiVersion": "2015-08-01",
+            "type": "Microsoft.Web/sites",
+            "name": "[variables('serviceName')]",
+            "tags": {
+                "DicomServerSolution": "[parameters('solutionType')]"
+            },
+            "location": "[resourceGroup().location]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "clientAffinityEnabled": false,
+                "serverFarmId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
+                "siteConfig": {
+                    "use32BitWorkerProcess": "false",
+                    "metadata": [
+                        {
+                            "name": "CURRENT_STACK",
+                            "value": "dotnetcore"
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "nestedTemplate"
+            ],
+            "resources": [
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "appsettings",
+                    "type": "config",
+                    "dependsOn": [
+                        "[variables('appServiceResourceId')]",
+                        "[if(variables('deployAppInsights'),concat('Microsoft.Insights/components/', variables('appInsightsName')),resourceId('Microsoft.KeyVault/vaults', variables('serviceName')))]"
+                    ],
+                    "properties": "[if(variables('deployAppInsights'), union(variables('combinedDicomServerConfigProperties'), json(concat('{\"ApplicationInsights:InstrumentationKey\": \"', reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey, '\"}'))), variables('combinedDicomServerConfigProperties'))]"
+                }
+            ]
+        },
+        {
+            "apiVersion": "2015-05-01",
+            "name": "[variables('appInsightsName')]",
+            "type": "Microsoft.Insights/components",
+            "location": "[parameters('applicationInsightsLocation')]",
+            "condition": "[variables('deployAppInsights')]",
+            "kind": "web",
+            "tags": {
+                "[concat('hidden-link:', variables('appServiceResourceId'))]": "Resource",
+                "displayName": "AppInsightsComponent",
+                "DicomServerSolution": "[parameters('solutionType')]"
+            },
+            "properties": {
+                "Application_Type": "web",
+                "ApplicationId": "[variables('serviceName')]"
+            }
+        },
+        {
+            "apiVersion": "2015-04-08",
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "tags": {
+                "DicomServerSolution": "[parameters('solutionType')]"
+            },
+            "name": "[variables('serviceName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "name": "[variables('serviceName')]",
+                "databaseAccountOfferType": "Standard",
+                "consistencyPolicy": "[parameters('cosmosDbAccountConsistencyPolicy')]",
+                "locations": [
+                    {
+                        "locationName": "[resourceGroup().location]",
+                        "failoverPriority": 0
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2019-04-01",
+            "type": "Microsoft.Storage/storageAccounts",
+            "tags": {
+                "DicomServerSolution": "[parameters('solutionType')]"
+            },
+            "name": "[variables('storageAccountName')]",
+            "location": "[resourceGroup().location]",
+            "kind": "StorageV2",
+            "sku": {
+                "name": "[parameters('storageAccountSku')]"
+            },
+            "properties": {
+                "accessTier": "Hot"
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[variables('serviceName')]",
+            "apiVersion": "2015-06-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "DicomServerSolution": "[parameters('solutionType')]"
+            },
+            "properties": {
+                "sku": {
+                    "family": "A",
+                    "name": "Standard"
+                },
+                "tenantId": "[reference(variables('appServiceResourceId'), '2015-08-01', 'Full').Identity.tenantId]",
+                "accessPolicies": [
+                    {
+                        "tenantId": "[reference(variables('appServiceResourceId'), '2015-08-01', 'Full').Identity.tenantId]",
+                        "objectId": "[reference(variables('appServiceResourceId'), '2015-08-01', 'Full').Identity.principalId]",
+                        "permissions": {
+                            "secrets": [
+                                "get",
+                                "list",
+                                "set"
+                            ]
+                        }
+                    }
+                ],
+                "enabledForDeployment": false
+            },
+            "dependsOn": [
+                "[variables('appServiceResourceId')]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('serviceName'), '/CosmosDb--Host')]",
+            "apiVersion": "2015-06-01",
+            "properties": {
+                "contentType": "text/plain",
+                "value": "[reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('serviceName'))).documentEndpoint]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
+                "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('serviceName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('serviceName'), '/CosmosDb--Key')]",
+            "apiVersion": "2015-06-01",
+            "properties": {
+                "contentType": "text/plain",
+                "value": "[listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('serviceName')), '2015-04-08').primaryMasterKey]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
+                "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('serviceName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('serviceName'), '/BlobStore--ConnectionString')]",
+            "apiVersion": "2015-06-01",
+            "properties": {
+                "contentType": "text/plain",
+                "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ]
+        }
+    ]
+}
