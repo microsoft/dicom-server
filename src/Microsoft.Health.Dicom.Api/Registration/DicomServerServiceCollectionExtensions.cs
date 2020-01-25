@@ -56,6 +56,7 @@ namespace Microsoft.AspNetCore.Builder
 
             services.AddMvc(options =>
             {
+                options.EnableEndpointRouting = false;
                 options.RespectBrowserAcceptHeader = true;
                 options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
 

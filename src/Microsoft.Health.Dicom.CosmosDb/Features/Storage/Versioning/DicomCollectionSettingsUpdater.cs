@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features.Storage.Versioning
                         new IncludedPath
                         {
                             Path = "/*",
-                            Indexes = new Collection<Index>(),
+                            Indexes = new Collection<Azure.Documents.Index>(),
                         },
                     },
                     ExcludedPaths = new Collection<ExcludedPath>()
