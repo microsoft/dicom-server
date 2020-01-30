@@ -108,7 +108,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
                 using (Stream seekStream = new MemoryStream())
                 {
                     // Copy stream to a memory stream so it can be seeked by the fo-dicom library.
-                    stream.CopyTo(seekStream);
+                    await stream.CopyToAsync(seekStream, cancellationToken);
                     stream.Dispose();
 
                     seekStream.Seek(0, SeekOrigin.Begin);
