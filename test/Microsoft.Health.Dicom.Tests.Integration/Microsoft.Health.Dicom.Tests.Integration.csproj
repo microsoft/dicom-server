@@ -21,12 +21,5 @@
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.CosmosDb\Microsoft.Health.Dicom.CosmosDb.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="StyleCop.Analyzers" Version="1.1.118">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
   
 </Project>

@@ -12,11 +12,4 @@
     <PackageReference Include="Microsoft.Health.Fhir.Core" Version="1.0.0-master-20190514-1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Update="StyleCop.Analyzers" Version="1.1.118">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
 </Project>
