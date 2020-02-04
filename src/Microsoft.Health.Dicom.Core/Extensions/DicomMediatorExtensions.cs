@@ -54,15 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, renderedRequested: false, thumbnailRequested: false),
-                cancellationToken);
-        }
-
-        public static Task<RetrieveDicomResourceResponse> RetrieveDicomInstanceRenderedAsync(
-            this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string requestedFormat, bool thumbnail, CancellationToken cancellationToken)
-        {
-            return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, renderedRequested: true, thumbnail),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID),
                 cancellationToken);
         }
 
@@ -76,15 +68,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, int[] frames, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, renderedRequested: false, thumbnailRequested: false),
-                cancellationToken);
-        }
-
-        public static Task<RetrieveDicomResourceResponse> RetrieveDicomFramesRenderedAsync(
-            this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, int[] frames, string requestedFormat, bool thumbnail, CancellationToken cancellationToken)
-        {
-            return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedFormat, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, renderedRequested: true, thumbnail),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames),
                 cancellationToken);
         }
 

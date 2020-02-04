@@ -36,9 +36,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 seriesInstanceUID: Guid.NewGuid().ToString(),
                 sopInstanceUID: Guid.NewGuid().ToString(),
                 frames: new[] { frame },
-                requestedTransferSyntax: "*",
-                renderedRequested: false,
-                thumbnailRequested: false);
+                requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
         }
 
@@ -53,9 +51,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 seriesInstanceUID: Guid.NewGuid().ToString(),
                 sopInstanceUID: Guid.NewGuid().ToString(),
                 frames: frames,
-                requestedTransferSyntax: "*",
-                renderedRequested: false,
-                thumbnailRequested: false);
+                requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
         }
 
@@ -71,9 +67,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 studyInstanceUID: studyInstanceUID,
                 seriesInstanceUID: seriesInstanceUID,
                 sopInstanceUID: sopInstanceUID,
-                requestedTransferSyntax: "*",
-                renderedRequested: false,
-                thumbnailRequested: false);
+                requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
 
             request = new RetrieveDicomResourceRequest(
@@ -81,9 +75,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 seriesInstanceUID: seriesInstanceUID,
                 sopInstanceUID: sopInstanceUID,
                 frames: new int[] { 1 },
-                requestedTransferSyntax: "*",
-                renderedRequested: false,
-                thumbnailRequested: false);
+                requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
         }
 
@@ -108,9 +100,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 studyInstanceUID: Guid.NewGuid().ToString(),
                 seriesInstanceUID: Guid.NewGuid().ToString(),
                 sopInstanceUID: invalidIdentifier,
-                requestedTransferSyntax: "*",
-                renderedRequested: false,
-                thumbnailRequested: false);
+                requestedTransferSyntax: "*");
             ValidateHasError(request, "'Sop Instance UID' is not in the correct format.");
 
             request = new RetrieveDicomResourceRequest(
@@ -118,9 +108,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 seriesInstanceUID: Guid.NewGuid().ToString(),
                 sopInstanceUID: invalidIdentifier,
                 frames: new[] { 1 },
-                requestedTransferSyntax: "*",
-                renderedRequested: false,
-                thumbnailRequested: false);
+                requestedTransferSyntax: "*");
             ValidateHasError(request, "'Sop Instance UID' is not in the correct format.");
         }
 

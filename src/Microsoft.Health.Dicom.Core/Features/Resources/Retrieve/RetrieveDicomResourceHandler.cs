@@ -38,15 +38,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             EnsureArg.IsNotNull(message, nameof(message));
 
             DicomTransferSyntax parsedDicomTransferSyntax =
-                message.RenderedRequested ? null :
-                message.OriginalTransferSyntaxRequested() ? null :
-                string.IsNullOrWhiteSpace(message.RequestedRepresentation) ? DefaultTransferSyntax :
-                DicomTransferSyntax.Parse(message.RequestedRepresentation);
-
-            ImageRepresentationModel imageRepresentation =
-                message.RenderedRequested ?
-                    ImageRepresentationModel.Parse(message.RequestedRepresentation) :
-                    null;
+                message.OriginalTransferSyntaxRequested() ?
+                null :
+                string.IsNullOrWhiteSpace(message.RequestedRepresentation) ?
+                    DefaultTransferSyntax :
+                    DicomTransferSyntax.Parse(message.RequestedRepresentation);
 
             try
             {
@@ -62,87 +58,66 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     var dicomFile = DicomFile.Open(resultStreams.Single());
                     dicomFile.ValidateHasFrames(message.Frames);
 
-                    if (message.RenderedRequested)
+                    if (!message.OriginalTransferSyntaxRequested() &&
+                        !dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
                     {
-                        resultStreams = message.Frames.Select(
-                                x => new LazyTransformReadOnlyStream<DicomFile>(
-                                    dicomFile,
-                                    y => y.GetFrameAsImage(x, imageRepresentation, message.ThumbnailRequested)))
-                            .ToArray();
+                        throw new DataStoreException(HttpStatusCode.NotAcceptable);
                     }
-                    else
-                    {
-                        if (!message.OriginalTransferSyntaxRequested() &&
-                            !dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
-                        {
-                            throw new DataStoreException(HttpStatusCode.NotAcceptable);
-                        }
 
-                        resultStreams = message.Frames.Select(
-                                x => new LazyTransformReadOnlyStream<DicomFile>(
-                                    dicomFile,
-                                    y => y.GetFrameAsDicomData(x, parsedDicomTransferSyntax)))
-                            .ToArray();
-                    }
+                    resultStreams = message.Frames.Select(
+                            x => new LazyTransformReadOnlyStream<DicomFile>(
+                                dicomFile,
+                                y => y.GetFrameAsDicomData(x, parsedDicomTransferSyntax)))
+                        .ToArray();
                 }
                 else
                 {
-                    if (message.RenderedRequested)
+                    if (!message.OriginalTransferSyntaxRequested())
                     {
-                        resultStreams = resultStreams.Select(x =>
-                            new LazyTransformReadOnlyStream<Stream>(
-                                x,
-                                y => y.EncodeDicomFileAsImage(imageRepresentation, message.ThumbnailRequested))).ToArray();
-                    }
-                    else
-                    {
-                        if (!message.OriginalTransferSyntaxRequested())
+                        Stream[] filteredStreams = resultStreams.Where(x =>
                         {
-                            Stream[] filteredStreams = resultStreams.Where(x =>
+                            var canTranscode = false;
+
+                            try
                             {
-                                var canTranscode = false;
+                                // TODO: replace with FileReadOption.SkipLargeTags when updating to a future
+                                // version of fo-dicom where https://github.com/fo-dicom/fo-dicom/issues/893 is fixed
+                                var dicomFile = DicomFile.OpenAsync(x, FileReadOption.ReadLargeOnDemand).Result;
+                                canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
+                            }
+                            catch (DicomFileException)
+                            {
+                                canTranscode = false;
+                            }
 
-                                try
-                                {
-                                    // TODO: replace with FileReadOption.SkipLargeTags when updating to a future
-                                    // version of fo-dicom where https://github.com/fo-dicom/fo-dicom/issues/893 is fixed
-                                    var dicomFile = DicomFile.OpenAsync(x, FileReadOption.ReadLargeOnDemand).Result;
-                                    canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
-                                }
-                                catch (DicomFileException)
-                                {
-                                    canTranscode = false;
-                                }
+                            x.Seek(0, SeekOrigin.Begin);
 
-                                x.Seek(0, SeekOrigin.Begin);
-
-                                // If some of the instances are not transcodeable, Partial Content should be returned
-                                if (!canTranscode)
-                                {
-                                    responseCode = HttpStatusCode.PartialContent;
-                                }
-
-                                return canTranscode;
-                            }).ToArray();
-
-                            if (filteredStreams.Length != resultStreams.Length)
+                            // If some of the instances are not transcodeable, Partial Content should be returned
+                            if (!canTranscode)
                             {
                                 responseCode = HttpStatusCode.PartialContent;
                             }
 
-                            resultStreams = filteredStreams;
-                        }
+                            return canTranscode;
+                        }).ToArray();
 
-                        if (resultStreams.Length == 0)
+                        if (filteredStreams.Length != resultStreams.Length)
                         {
-                            throw new DataStoreException(HttpStatusCode.NotAcceptable);
+                            responseCode = HttpStatusCode.PartialContent;
                         }
 
-                        resultStreams = resultStreams.Select(x =>
-                            new LazyTransformReadOnlyStream<Stream>(
-                                x,
-                                y => y.EncodeDicomFileAsDicom(parsedDicomTransferSyntax))).ToArray();
+                        resultStreams = filteredStreams;
                     }
+
+                    if (resultStreams.Length == 0)
+                    {
+                        throw new DataStoreException(HttpStatusCode.NotAcceptable);
+                    }
+
+                    resultStreams = resultStreams.Select(x =>
+                        new LazyTransformReadOnlyStream<Stream>(
+                            x,
+                            y => y.EncodeDicomFileAsDicom(parsedDicomTransferSyntax))).ToArray();
                 }
 
                 return new RetrieveDicomResourceResponse(responseCode, resultStreams);

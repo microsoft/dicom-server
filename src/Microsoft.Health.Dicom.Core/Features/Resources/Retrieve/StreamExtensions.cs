@@ -5,9 +5,7 @@
 
 using System.IO;
 using Dicom;
-using Dicom.Imaging;
 using Dicom.Imaging.Codec;
-using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
@@ -62,15 +60,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 stream.Dispose();
                 return resultStream;
             }
-        }
-
-        public static Stream EncodeDicomFileAsImage(this Stream stream, ImageRepresentationModel imageRepresentation, bool thumbnail)
-        {
-            var tempDicomFile = DicomFile.Open(stream);
-
-            // Since requesting to render a multiframe image without specifying a frame is ambiguous, per DICOM spec
-            // we are free to make assumptions here. We will render the first frame by default
-            return new DicomImage(tempDicomFile.Dataset).ToRenderedMemoryStream(imageRepresentation, frame: 0, thumbnail);
         }
     }
 }
