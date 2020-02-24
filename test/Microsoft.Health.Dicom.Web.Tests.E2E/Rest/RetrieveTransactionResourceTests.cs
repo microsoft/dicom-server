@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
 using Dicom.IO.Buffer;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
@@ -574,7 +575,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private static byte[] DicomFileToByteArray(DicomFile dicomFile)
         {
-            using (var memoryStream = new MemoryStream())
+            using (MemoryStream memoryStream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
             {
                 dicomFile.Save(memoryStream);
                 return memoryStream.ToArray();

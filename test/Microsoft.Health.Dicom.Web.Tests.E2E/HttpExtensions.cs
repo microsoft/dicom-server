@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E
@@ -20,7 +21,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
             EnsureArg.IsNotNull(httpContent, nameof(httpContent));
 
             var result = new List<Stream>();
-            using (Stream stream = await httpContent.ReadAsStreamAsync())
+            await using (Stream stream = await httpContent.ReadAsStreamAsync())
             {
                 MultipartSection part;
                 var media = MediaTypeHeaderValue.Parse(httpContent.Headers.ContentType.ToString());
@@ -28,7 +29,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
 
                 while ((part = await multipartReader.ReadNextSectionAsync()) != null)
                 {
-                    var memoryStream = new MemoryStream();
+                    MemoryStream memoryStream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream();
                     await part.Body.CopyToAsync(memoryStream);
                     memoryStream.Seek(0, SeekOrigin.Begin);
                     result.Add(memoryStream);

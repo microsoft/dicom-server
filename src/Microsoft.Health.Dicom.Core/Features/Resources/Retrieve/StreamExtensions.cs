@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     tempDicomFile = null;
                 }
 
-                var resultStream = new MemoryStream();
+                MemoryStream resultStream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream();
 
                 if (tempDicomFile != null)
                 {

@@ -10,9 +10,11 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Resources.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
+using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -30,7 +32,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenRandomContent_WhenStoring_TheServerShouldReturnConflict()
         {
-            using (var stream = new MemoryStream())
+            await using (MemoryStream stream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
             {
                 HttpResult<DicomDataset> response = await Client.PostAsync(new[] { stream });
                 Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -40,7 +42,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenARequestWithInvalidStudyInstanceUID_WhenStoring_TheServerShouldReturnBadRequest()
         {
-            using (var stream = new MemoryStream())
+            await using (MemoryStream stream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
             {
                 HttpResult<DicomDataset> response = await Client.PostAsync(new[] { stream }, studyInstanceUID: new string('b', 65));
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -126,7 +128,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 DicomFile validFile = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-                using (var stream = new MemoryStream())
+                await using (MemoryStream stream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
                 {
                     await validFile.SaveAsync(stream);
 

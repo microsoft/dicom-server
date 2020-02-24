@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
@@ -179,7 +180,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             var postContent = new List<byte[]>();
             foreach (DicomFile dicomFile in dicomFiles)
             {
-                using (var stream = new MemoryStream())
+                await using (MemoryStream stream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
                 {
                     await dicomFile.SaveAsync(stream);
                     postContent.Add(stream.ToArray());
@@ -260,7 +261,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream)
         {
-            using (var memory = new MemoryStream())
+            await using (MemoryStream memory = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
             {
                 await stream.CopyToAsync(memory);
                 return memory.ToArray();

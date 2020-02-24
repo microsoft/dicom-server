@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 resultByteBuffer = pixelData.GetFrame(frame);
             }
 
-            return new MemoryStream(resultByteBuffer.Data);
+            return RecyclableMemoryStreamManagerAccessor.Instance.GetStream("DicomFileExtensions.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
         }
 
         public static Stream GetFrameAsImage(this DicomFile dicomFile, int frame, ImageRepresentationModel imageRepresentation, bool thumbnail)

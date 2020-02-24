@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Resources.Retrieve
         [Fact]
         public void GivenLazyTransformStream_WhenTransformingAnInputStream_InputStreamIsNotReadUntilLazyStreamIsRead()
         {
-            using (var inputStream = new MemoryStream(TestData))
+            using (var inputStream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream("GivenLazyTransformStream_WhenTransformingAnInputStream_InputStreamIsNotReadUntilLazyStreamIsRead.TestData", TestData, 0, TestData.Length))
             using (var lazyTransform = new LazyTransformReadOnlyStream<Stream>(inputStream, ReadAndCreateNewStream))
             {
                 Assert.Equal(0, inputStream.Position);
@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Resources.Retrieve
         [Fact]
         public void GivenLazyTransformStreamWithStream_WhenDisposing_IsDisposedCorrectly()
         {
-            var inputStream = new MemoryStream(TestData);
+            var inputStream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream("GivenLazyTransformStreamWithStream_WhenDisposing_IsDisposedCorrectly.TestData", TestData, 0, TestData.Length);
             GCWatch gcWatch = GetGCWatch(inputStream, ReadAndCreateNewStream);
             inputStream.Dispose();
             inputStream = null;
@@ -139,25 +139,25 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Resources.Retrieve
         {
             var resultBuffer = new byte[stream.Length];
             stream.Read(resultBuffer, 0, resultBuffer.Length);
-            return new MemoryStream(resultBuffer);
+            return RecyclableMemoryStreamManagerAccessor.Instance.GetStream("ReadAndCreateNewStream.resultBuffer", resultBuffer, 0, resultBuffer.Length);
         }
 
         private static Stream ReverseByteArray(byte[] input)
         {
             byte[] reversedInput = input.Reverse().ToArray();
-            return new MemoryStream(reversedInput);
+            return RecyclableMemoryStreamManagerAccessor.Instance.GetStream("ReverseByteArray.reversedInput", reversedInput, 0, reversedInput.Length);
         }
 
         private static Stream DoubleByteArray(byte[] input)
         {
-            byte[] result = new byte[input.Length * 2];
+            byte[] resultBuffer = new byte[input.Length * 2];
             for (var i = 0; i < input.Length; i++)
             {
-                result[i * 2] = input[i];
-                result[(i * 2) + 1] = input[i];
+                resultBuffer[i * 2] = input[i];
+                resultBuffer[(i * 2) + 1] = input[i];
             }
 
-            return new MemoryStream(result);
+            return RecyclableMemoryStreamManagerAccessor.Instance.GetStream("DoubleByteArray.resultBuffer", resultBuffer, 0, resultBuffer.Length);
         }
 
         private class GCWatch

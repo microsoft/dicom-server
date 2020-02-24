@@ -13,6 +13,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
@@ -61,10 +62,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 {
                     var bmp = new DicomImage(file.Dataset).ToBitmap();
 
-                    var ms = new MemoryStream();
-
-                    bmp.Save(ms, ImageFormat.Png);
-                    Assert.NotEqual(0, ms.Length);
+                    using (MemoryStream ms = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
+                    {
+                        bmp.Save(ms, ImageFormat.Png);
+                        Assert.NotEqual(0, ms.Length);
+                    }
                 });
         }
 

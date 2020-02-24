@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Newtonsoft.Json;
 using Polly;
@@ -63,8 +64,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 {
                     _logger.LogDebug($"Storing Instance Metadata: {dicomInstance}");
 
-                    using (Stream stream = new MemoryStream())
-                    using (var streamWriter = new StreamWriter(stream, _metadataEncoding))
+                    await using (Stream stream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
+                    await using (var streamWriter = new StreamWriter(stream, _metadataEncoding))
                     using (var jsonTextWriter = new JsonTextWriter(streamWriter))
                     {
                         _jsonSerializer.Serialize(jsonTextWriter, instanceMetadata);
@@ -105,7 +106,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 {
                     _logger.LogDebug($"Getting Instance Metadata: {instance}");
 
-                    using (Stream stream = await cloudBlockBlob.OpenReadAsync(cancellationToken))
+                    await using (Stream stream = await cloudBlockBlob.OpenReadAsync(cancellationToken))
                     using (var streamReader = new StreamReader(stream, _metadataEncoding))
                     using (var jsonTextReader = new JsonTextReader(streamReader))
                     {

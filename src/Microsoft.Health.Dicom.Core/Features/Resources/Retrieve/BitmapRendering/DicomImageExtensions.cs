@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRenderin
             Bitmap image = null;
             Bitmap bmpResized = null;
 
-            var ms = new MemoryStream();
+            MemoryStream ms = RecyclableMemoryStreamManagerAccessor.Instance.GetStream();
             try
             {
                 image = dicomImage.ToBitmap(frame);

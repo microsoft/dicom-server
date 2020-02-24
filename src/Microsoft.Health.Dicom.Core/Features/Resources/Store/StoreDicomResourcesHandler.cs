@@ -25,22 +25,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
     {
         private const string ApplicationDicom = "application/dicom";
         private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
-        private readonly ILogger<StoreDicomResourcesHandler> _logger;
         private readonly IDicomRouteProvider _dicomRouteProvider;
         private readonly DicomDataStore _dicomDataStore;
+        private readonly ILogger<StoreDicomResourcesHandler> _logger;
 
         public StoreDicomResourcesHandler(
-            ILogger<StoreDicomResourcesHandler> logger,
             IDicomRouteProvider dicomRouteProvider,
-            DicomDataStore dicomDataStore)
+            DicomDataStore dicomDataStore,
+            ILogger<StoreDicomResourcesHandler> logger)
         {
-            EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(dicomRouteProvider, nameof(dicomRouteProvider));
             EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
+            EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _logger = logger;
             _dicomRouteProvider = dicomRouteProvider;
             _dicomDataStore = dicomDataStore;
+            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -105,7 +105,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
 
             try
             {
-                using (Stream seekStream = new MemoryStream())
+                await using (Stream seekStream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
                 {
                     // Copy stream to a memory stream so it can be seeked by the fo-dicom library.
                     await stream.CopyToAsync(seekStream, cancellationToken);
