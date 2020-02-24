@@ -10,8 +10,8 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
+using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
-using Microsoft.Health.Dicom.Core.Features.Persistence.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;
@@ -134,7 +134,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             // Trim the stored dataset to the expected items in the repsonse metadata dataset (remove non-supported value representations).
             DicomDataset expectedDataset = storedDataset.Clone();
-            StoreTransaction.RemoveOtherAndUnknownValueRepresentations(expectedDataset);
+            DicomMetadata.RemoveBulkDatVRs(expectedDataset);
 
             // Compare result datasets by serializing.
             var jsonDicomConverter = new JsonDicomConverter();
