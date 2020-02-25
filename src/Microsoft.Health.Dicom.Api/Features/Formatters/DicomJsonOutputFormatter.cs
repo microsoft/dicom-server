@@ -13,19 +13,19 @@ using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Health.Dicom.Api.Features.Filters;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Api.Features.Formatters
 {
     public class DicomJsonOutputFormatter : TextOutputFormatter
     {
-        internal const string ApplicationDicomJson = "application/dicom+json";
         private readonly JsonDicomConverter _jsonDicomConverter = new JsonDicomConverter(writeTagsAsKeywords: false);
         private readonly JsonSerializer _jsonSerializer = new JsonSerializer();
 
         public DicomJsonOutputFormatter()
         {
-            SupportedMediaTypes.Add(ApplicationDicomJson);
+            SupportedMediaTypes.Add(KnownContentTypes.ApplicationDicomJson);
             SupportedEncodings.Add(Encoding.UTF8);
             SupportedEncodings.Add(Encoding.Unicode);
 
