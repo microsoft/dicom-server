@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             await _dicomBlobDataStore.AddFileAsStreamAsync(blobStorageName, dicomFileStream, cancellationToken: cancellationToken);
 
             // Strip the DICOM file down to the tags we want to store for metadata.
-            DicomMetadata.RemoveBulkDatVRs(dicomFile.Dataset);
+            DicomMetadata.RemoveBulkDataVRs(dicomFile.Dataset);
             _metadataInstances.Add(dicomInstance, dicomFile.Dataset);
         }
 

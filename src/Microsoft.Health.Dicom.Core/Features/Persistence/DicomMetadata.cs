@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features
             DicomVR.UN,
         };
 
-        public static void RemoveBulkDatVRs(DicomDataset dicomDataset)
+        public static void RemoveBulkDataVRs(DicomDataset dicomDataset)
         {
             var tagsToRemove = new List<DicomTag>();
             GetTagsToRemove(dicomDataset, tagsToRemove);
