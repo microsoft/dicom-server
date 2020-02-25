@@ -23,19 +23,13 @@ namespace Microsoft.Health.Dicom.Core.Features
         public static void RemoveBulkDataVRs(DicomDataset dicomDataset)
         {
             var tagsToRemove = new List<DicomTag>();
-            GetTagsToRemove(dicomDataset, tagsToRemove);
-            dicomDataset.Remove(tagsToRemove.ToArray());
-        }
-
-        private static void GetTagsToRemove(DicomDataset dicomDataset, List<DicomTag> tagsToRemove)
-        {
             foreach (DicomItem item in dicomDataset)
             {
                 if (item.ValueRepresentation == DicomVR.SQ && item is DicomSequence sequence)
                 {
                     foreach (DicomDataset sequenceDataset in sequence.Items)
                     {
-                        GetTagsToRemove(sequenceDataset, tagsToRemove);
+                        RemoveBulkDataVRs(sequenceDataset);
                     }
                 }
                 else if (DicomBulkDataVR.Contains(item.ValueRepresentation))
@@ -43,6 +37,8 @@ namespace Microsoft.Health.Dicom.Core.Features
                     tagsToRemove.Add(item.Tag);
                 }
             }
+
+            dicomDataset.Remove(tagsToRemove.ToArray());
         }
-    }
+   }
 }
