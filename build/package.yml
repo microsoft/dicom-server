@@ -53,14 +53,6 @@ steps:
       artifactType: 'container'
 
   - task: PublishBuildArtifacts@1
-    displayName: 'publish testauthenvironment.json'
-    enabled: false
-    inputs:
-      pathToPublish: './testauthenvironment.json'
-      artifactName: 'deploy'
-      artifactType: 'container'
-      
-  - task: PublishBuildArtifacts@1
     displayName: 'publish test configuration jsons'
     enabled: false
     inputs:
