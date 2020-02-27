@@ -21,7 +21,7 @@ using Microsoft.Health.Dicom.Api.Features.Responses;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Web.Controllers
+namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [Authorize]
     public class DicomRetrieveController : Controller

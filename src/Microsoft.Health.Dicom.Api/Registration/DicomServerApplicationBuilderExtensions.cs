@@ -4,9 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Microsoft.AspNetCore.Builder;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.AspNetCore.Builder
 {
     public static class DicomServerApplicationBuilderExtensions
     {
