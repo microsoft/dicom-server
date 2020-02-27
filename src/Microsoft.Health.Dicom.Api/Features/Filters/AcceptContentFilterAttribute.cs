@@ -46,29 +46,34 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
         {
             IList<MediaTypeHeaderValue> acceptHeaders = context.HttpContext.Request.GetTypedHeaders().Accept;
 
+            bool acceptable = false;
+
             // Validate the accept headers has one of the specified accepted media types.
-            if (acceptHeaders == null || acceptHeaders.Count == 0)
+            if (acceptHeaders != null && acceptHeaders.Count > 0)
             {
-                context.Result = new StatusCodeResult(NotAcceptableResponseCode);
-            }
-            else
-            {
-                if (acceptHeaders.Any(x => StringSegment.Equals(x.MediaType, KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase)))
+                var multipartHeaders = acceptHeaders.Where(x => StringSegment.Equals(x.MediaType, KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase)).ToList();
+
+                if (multipartHeaders.Count > 0)
                 {
-                    var multipartHeaders = acceptHeaders.Where(x => StringSegment.Equals(x.MediaType, KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase));
-                    var prospectiveTypes = multipartHeaders.SelectMany(
+                    IEnumerable<MediaTypeHeaderValue> prospectiveTypes = multipartHeaders.SelectMany(
                         x => x.Parameters.Where(p => StringSegment.Equals(p.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase))
                             .Select(p => MediaTypeHeaderValue.TryParse(p.Value.ToString().Trim('"'), out MediaTypeHeaderValue parsedValue) ? parsedValue : null));
 
-                    if (!prospectiveTypes.Any(x => _mediaTypes.Contains(x)))
+                    if (prospectiveTypes.Any(x => _mediaTypes.Contains(x)))
                     {
-                        context.Result = new StatusCodeResult(NotAcceptableResponseCode);
+                        acceptable = true;
                     }
                 }
-                else if (!acceptHeaders.Any(x => _mediaTypes.Contains(x)))
+
+                if (!acceptable && acceptHeaders.Any(x => _mediaTypes.Contains(x)))
                 {
-                    context.Result = new StatusCodeResult(NotAcceptableResponseCode);
+                    acceptable = true;
                 }
+            }
+
+            if (!acceptable)
+            {
+                context.Result = new StatusCodeResult(NotAcceptableResponseCode);
             }
 
             base.OnActionExecuting(context);

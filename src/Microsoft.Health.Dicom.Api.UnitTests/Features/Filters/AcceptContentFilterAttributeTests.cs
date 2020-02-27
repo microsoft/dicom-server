@@ -32,6 +32,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         [InlineData("multipart/related; type=\"application/dicom+json\"", null)]
         [InlineData("multipart/related; type=\"application/dicom\"", (int)HttpStatusCode.NotAcceptable)]
         [InlineData("multipart/related; type=\"blah\"", (int)HttpStatusCode.NotAcceptable)]
+        [InlineData("multipart/related;", (int)HttpStatusCode.NotAcceptable)]
         [InlineData("application/dicom+json+something", (int)HttpStatusCode.NotAcceptable)]
         [InlineData("application/dicom", (int)HttpStatusCode.NotAcceptable)]
         [InlineData("application/xml", (int)HttpStatusCode.NotAcceptable)]
@@ -51,6 +52,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         [InlineData(null, "multipart/related; type=\"application/dicom+json\"", "image/jpg")]
         [InlineData(null, "multipart/related; type=\"application/dicom+json\"", "multipart/related; type=\"image/jpg\"")]
         [InlineData((int)HttpStatusCode.NotAcceptable, "multipart/related; type=\"image/png\"", "multipart/related; type=\"image/jpg\"")]
+        [InlineData(null, "multipart/related; type=\"image/jpg\"", "application/dicom+json")]
         public void GivenARequestWithMultipleAcceptHeaders_WhenValidatingTheContentType_ThenCorrectStatusCodeShouldBeReturned(int? expectedStatusCode, params string[] acceptHeaderMediaType)
         {
             _context.HttpContext.Request.Headers.Add("Accept", acceptHeaderMediaType);
