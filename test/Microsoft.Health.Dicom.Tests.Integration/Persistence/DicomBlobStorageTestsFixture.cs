@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             optionsMonitor.Get(BlobConstants.ContainerConfigurationName).Returns(_blobContainerConfiguration);
             optionsMonitor.Get(MetadataConstants.ContainerConfigurationName).Returns(_metadataContainerConfiguration);
 
-            IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider();
+            IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager);
 
             var blobClientInitializer = new BlobClientInitializer(testProvider, NullLogger<BlobClientInitializer>.Instance);
             _blobClient = blobClientInitializer.CreateBlobClient(_blobDataStoreConfiguration);

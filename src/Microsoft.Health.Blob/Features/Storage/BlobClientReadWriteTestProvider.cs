@@ -18,7 +18,14 @@ namespace Microsoft.Health.Blob.Features.Storage
     {
         private const string TestBlobName = "_testblob_";
         private static readonly byte[] TestBlobContent = new byte[] { 1 };
-        private static readonly RecyclableMemoryStreamManager RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+
+        public BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+        {
+            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+
+            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+        }
 
         public async Task PerformTestAsync(CloudBlobClient blobClient, BlobDataStoreConfiguration configuration, BlobContainerConfiguration blobContainerConfiguration, CancellationToken cancellationToken = default)
         {
@@ -35,7 +42,7 @@ namespace Microsoft.Health.Blob.Features.Storage
 
         private async Task<byte[]> DownloadBlobContentAsync(CloudBlockBlob blob, CancellationToken cancellationToken)
         {
-            await using (MemoryStream stream = RecyclableMemoryStreamManager.GetStream())
+            await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
             {
                 await blob.DownloadToStreamAsync(stream, cancellationToken);
                 return stream.ToArray();
