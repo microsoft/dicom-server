@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Store;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Store;
+using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
 {
@@ -26,20 +27,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
         private const string ApplicationDicom = "application/dicom";
         private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
         private readonly IDicomRouteProvider _dicomRouteProvider;
-        private readonly DicomDataStore _dicomDataStore;
+        private readonly IDicomDataStore _dicomDataStore;
         private readonly ILogger<StoreDicomResourcesHandler> _logger;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public StoreDicomResourcesHandler(
             IDicomRouteProvider dicomRouteProvider,
-            DicomDataStore dicomDataStore,
+            IDicomDataStore dicomDataStore,
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager,
             ILogger<StoreDicomResourcesHandler> logger)
         {
             EnsureArg.IsNotNull(dicomRouteProvider, nameof(dicomRouteProvider));
             EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
+            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _dicomRouteProvider = dicomRouteProvider;
             _dicomDataStore = dicomDataStore;
+            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
             _logger = logger;
         }
 
@@ -105,7 +110,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
 
             try
             {
-                await using (Stream seekStream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
+                await using (Stream seekStream = _recyclableMemoryStreamManager.GetStream())
                 {
                     // Copy stream to a memory stream so it can be seeked by the fo-dicom library.
                     await stream.CopyToAsync(seekStream, cancellationToken);

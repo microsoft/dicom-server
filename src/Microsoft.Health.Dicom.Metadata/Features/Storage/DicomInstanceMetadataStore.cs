@@ -17,8 +17,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
-using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.IO;
 using Newtonsoft.Json;
 using Polly;
 
@@ -31,23 +31,27 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         private readonly Random _random = new Random();
         private readonly CloudBlobContainer _container;
         private readonly JsonSerializer _jsonSerializer;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly ILogger<DicomInstanceMetadataStore> _logger;
 
         public DicomInstanceMetadataStore(
             CloudBlobClient client,
             JsonSerializer jsonSerializer,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager,
             ILogger<DicomInstanceMetadataStore> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(jsonSerializer, nameof(jsonSerializer));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
+            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
 
             _container = client.GetContainerReference(containerConfiguration.ContainerName);
             _jsonSerializer = jsonSerializer;
+            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
             _logger = logger;
         }
 
@@ -64,7 +68,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 {
                     _logger.LogDebug($"Storing Instance Metadata: {dicomInstance}");
 
-                    await using (Stream stream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
+                    await using (Stream stream = _recyclableMemoryStreamManager.GetStream())
                     await using (var streamWriter = new StreamWriter(stream, _metadataEncoding))
                     using (var jsonTextWriter = new JsonTextWriter(streamWriter))
                     {

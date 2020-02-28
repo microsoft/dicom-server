@@ -13,10 +13,10 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
-using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
+using Microsoft.IO;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,15 +24,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class RetrieveTransactionResourceRenderedTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private readonly ITestOutputHelper output;
+        private readonly ITestOutputHelper _output;
+        private readonly DicomWebClient _client;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public RetrieveTransactionResourceRenderedTests(HttpIntegrationTestFixture<Startup> fixture, ITestOutputHelper output)
         {
-            Client = new DicomWebClient(fixture.HttpClient);
-            this.output = output;
+            _client = fixture.Client;
+            _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
+            _output = output;
         }
-
-        protected DicomWebClient Client { get; set; }
 
         [Fact(Skip = "This validates ability to handle parallel processing. This is long running but may come in handy if issues are found in certain environments")]
         public void ConvertCanHandleParallelProcessing()
@@ -62,7 +63,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 {
                     var bmp = new DicomImage(file.Dataset).ToBitmap();
 
-                    using (MemoryStream ms = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
+                    using (MemoryStream ms = _recyclableMemoryStreamManager.GetStream())
                     {
                         bmp.Save(ms, ImageFormat.Png);
                         Assert.NotEqual(0, ms.Length);
@@ -85,44 +86,44 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 var dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ts.transferSyntax.UID.UID, frames: 2);
 
-                HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+                HttpResult<DicomDataset> postResponse = await _client.PostAsync(new[] { dicomFile });
                 Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
                 var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
                 var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
                 var sopInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
 
-                var getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", false);
+                var getResponse = await _client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", false);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 var img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
 
-                getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", false);
+                getResponse = await _client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", false);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Png, img.RawFormat);
 
-                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", false, 1);
+                getResponse = await _client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", false, 1);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
 
-                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", false, 2);
+                getResponse = await _client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", false, 2);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Jpeg, img.RawFormat);
 
-                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", false, 1);
+                getResponse = await _client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", false, 1);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
                 Assert.Equal(ImageFormat.Png, img.RawFormat);
 
-                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", false, 2);
+                getResponse = await _client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", false, 2);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
@@ -145,14 +146,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 var dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ts.transferSyntax.UID.UID, frames: 2);
 
-                HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+                HttpResult<DicomDataset> postResponse = await _client.PostAsync(new[] { dicomFile });
                 Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
                 var studyInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
                 var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
                 var sopInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
 
-                var getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true);
+                var getResponse = await _client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 var img = Image.FromStream(getResponse.Value.Single());
@@ -160,7 +161,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 Assert.Equal(200, img.Width);
                 Assert.Equal(200, img.Height);
 
-                getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true);
+                getResponse = await _client.GetInstanceRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
@@ -168,7 +169,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 Assert.Equal(200, img.Width);
                 Assert.Equal(200, img.Height);
 
-                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true, 1);
+                getResponse = await _client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true, 1);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
@@ -176,7 +177,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 Assert.Equal(200, img.Width);
                 Assert.Equal(200, img.Height);
 
-                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true, 2);
+                getResponse = await _client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/jpeg", true, 2);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
@@ -184,7 +185,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 Assert.Equal(200, img.Width);
                 Assert.Equal(200, img.Height);
 
-                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true, 1);
+                getResponse = await _client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true, 1);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
@@ -192,7 +193,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 Assert.Equal(200, img.Width);
                 Assert.Equal(200, img.Height);
 
-                getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true, 2);
+                getResponse = await _client.GetFramesRenderedAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, "image/png", true, 2);
                 Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
                 img = Image.FromStream(getResponse.Value.Single());
@@ -216,14 +217,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 transferSyntax: DicomTransferSyntax.JPEG2000Lossless.UID.UID,
                 encode: false);
 
-            HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+            HttpResult<DicomDataset> postResponse = await _client.PostAsync(new[] { dicomFile });
             Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
-            var getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/jpeg");
+            var getResponse = await _client.GetInstanceRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/jpeg");
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Equal(0, getResponse.Value.Single().Length);
 
-            getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/jpeg", false, 1);
+            getResponse = await _client.GetFramesRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/jpeg", false, 1);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Equal(0, getResponse.Value.Single().Length);
         }
@@ -241,10 +242,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 sopInstanceUID.UID,
                 frames: 2);
 
-            HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+            HttpResult<DicomDataset> postResponse = await _client.PostAsync(new[] { dicomFile });
             Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
-            var getResponse = await Client.GetFramesRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/jpeg", false, 1, 2);
+            var getResponse = await _client.GetFramesRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/jpeg", false, 1, 2);
             Assert.Equal(HttpStatusCode.BadRequest, getResponse.StatusCode);
         }
 
@@ -260,10 +261,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 seriesInstanceUID.UID,
                 sopInstanceUID.UID);
 
-            HttpResult<DicomDataset> postResponse = await Client.PostAsync(new[] { dicomFile });
+            HttpResult<DicomDataset> postResponse = await _client.PostAsync(new[] { dicomFile });
             Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
 
-            var getResponse = await Client.GetInstanceRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/tiff", false);
+            var getResponse = await _client.GetInstanceRenderedAsync(studyInstanceUID.UID, seriesInstanceUID.UID, sopInstanceUID.UID, "image/tiff", false);
             Assert.Equal(HttpStatusCode.NotAcceptable, getResponse.StatusCode);
         }
     }

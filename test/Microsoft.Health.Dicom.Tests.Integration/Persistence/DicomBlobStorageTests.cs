@@ -7,9 +7,9 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
+using Microsoft.IO;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -17,16 +17,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public class DicomBlobStorageTests : IClassFixture<DicomBlobStorageTestsFixture>
     {
         private readonly IDicomBlobDataStore _dicomBlobDataStore;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public DicomBlobStorageTests(DicomBlobStorageTestsFixture fixture)
         {
             _dicomBlobDataStore = fixture.DicomBlobDataStore;
+            _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
         }
 
         [Fact]
         public async Task WhenStoringBlobWithInvalidParameters_ArgumentExceptionIsThrown()
         {
-            await using (MemoryStream stream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
+            await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
             {
                 await Assert.ThrowsAsync<ArgumentException>(() => _dicomBlobDataStore.AddFileAsStreamAsync(string.Empty, stream));
                 await Assert.ThrowsAsync<ArgumentException>(() => _dicomBlobDataStore.AddFileAsStreamAsync(new string('c', 1025), stream));
@@ -54,7 +56,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var fileName = Guid.NewGuid().ToString();
             var fileData = new byte[] { 4, 7, 2 };
 
-            await using (MemoryStream stream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream("GivenAValidFileStream_WhenStored_CanBeRetrievedAndDeleted.fileData", fileData, 0, fileData.Length))
+            await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream("GivenAValidFileStream_WhenStored_CanBeRetrievedAndDeleted.fileData", fileData, 0, fileData.Length))
             {
                 Uri fileLocation = await _dicomBlobDataStore.AddFileAsStreamAsync(fileName, stream);
 
@@ -77,7 +79,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var fileName = Guid.NewGuid().ToString();
             var fileData = new byte[] { 4, 7, 2 };
 
-            await using (var stream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream("GivenAValidFile_WhenStored_CanBeOverwrittenOrThrowExceptionIsExists.fileData", fileData, 0, fileData.Length))
+            await using (var stream = _recyclableMemoryStreamManager.GetStream("GivenAValidFile_WhenStored_CanBeOverwrittenOrThrowExceptionIsExists.fileData", fileData, 0, fileData.Length))
             {
                 // Overwrite test
                 Uri fileLocation1 = await _dicomBlobDataStore.AddFileAsStreamAsync(fileName, stream);
@@ -110,7 +112,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream)
         {
-            await using (MemoryStream memoryStream = RecyclableMemoryStreamManagerAccessor.Instance.GetStream())
+            await using (MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream())
             {
                 await stream.CopyToAsync(memoryStream);
                 return memoryStream.ToArray();

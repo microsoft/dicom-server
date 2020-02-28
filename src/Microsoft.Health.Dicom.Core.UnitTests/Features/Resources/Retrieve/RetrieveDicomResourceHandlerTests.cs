@@ -10,22 +10,29 @@ using System.IO;
 using System.Linq;
 using Dicom;
 using Dicom.Imaging;
+using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve;
-using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
 using Microsoft.Health.Dicom.Tests.Common;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
+using Microsoft.IO;
+using NSubstitute;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Resources.Retrieve
 {
-    public class IsolatedRenderingTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    public class RetrieveDicomResourceHandlerTests
     {
-        private readonly ITestOutputHelper output;
+        private readonly ITestOutputHelper _output;
+        private readonly RetrieveDicomResourceHandler _retrieveDicomResourceHandler;
 
-        public IsolatedRenderingTests(HttpIntegrationTestFixture<Startup> fixture, ITestOutputHelper output)
+        public RetrieveDicomResourceHandlerTests(ITestOutputHelper output)
         {
-            this.output = output;
+            var dicomMetadataStore = Substitute.For<IDicomMetadataStore>();
+            var dicomDataStore = Substitute.For<IDicomDataStore>();
+            var recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+
+            _retrieveDicomResourceHandler = new RetrieveDicomResourceHandler(dicomMetadataStore, dicomDataStore, recyclableMemoryStreamManager);
+            _output = output;
         }
 
         [Theory]
@@ -82,14 +89,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
             {
                 try
                 {
-                    var ms = new DicomImage(ts.dicomFile.Dataset).ToRenderedMemoryStream(ImageRepresentationModel.Parse(mimeType));
+                    var ms = _retrieveDicomResourceHandler.ToRenderedMemoryStream(new DicomImage(ts.dicomFile.Dataset), ImageRepresentationModel.Parse(mimeType));
                     var img = Image.FromStream(ms);
                     Assert.Equal(imageFormat, img.RawFormat);
 
                     // Optional - good for debugging - save to disk
                     // img.Save(Path.Combine(dirName, $"{ts.name}_{ts.bits}.{fileExtension}"));
 
-                    ms = new DicomImage(ts.dicomFile.Dataset).ToRenderedMemoryStream(ImageRepresentationModel.Parse(mimeType), thumbnail: true);
+                    ms = _retrieveDicomResourceHandler.ToRenderedMemoryStream(new DicomImage(ts.dicomFile.Dataset), ImageRepresentationModel.Parse(mimeType), thumbnail: true);
                     img = Image.FromStream(ms);
                     Assert.Equal(imageFormat, img.RawFormat);
                     Assert.Equal(200, img.Width);
@@ -101,7 +108,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rendering
                 }
                 catch
                 {
-                    output.WriteLine($"Failed to render {ts.bits}bit {ts.name}");
+                    _output.WriteLine($"Failed to render {ts.bits}bit {ts.name}");
                 }
             }
 
