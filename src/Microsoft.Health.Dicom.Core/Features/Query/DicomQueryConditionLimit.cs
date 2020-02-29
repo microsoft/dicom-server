@@ -33,21 +33,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.SOPInstanceUID,
         };
 
-        public static bool IsValidStudyQueryTag(DicomTag tag)
-        {
-            return DicomStudyQueryTagsSupported.Contains(tag);
-        }
-
-        public static bool IsValidSeriesQueryTag(DicomTag tag)
-        {
-            return DicomSeriesQueryTagsSupported.Contains(tag);
-        }
-
-        public static bool IsValidInstanceQueryTag(DicomTag tag)
-        {
-            return DicomInstanceQueryTagsSupported.Contains(tag);
-        }
-
         public static bool IsValidRangeQueryTag(DicomTag tag)
         {
             return tag == DicomTag.StudyDate;
