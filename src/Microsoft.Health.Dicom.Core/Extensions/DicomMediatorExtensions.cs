@@ -8,7 +8,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
+using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
@@ -104,6 +107,12 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, string studyInstanceUID, string seriesUID, string instanceUID, CancellationToken cancellationToken = default)
         {
             return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUID, seriesUID, instanceUID), cancellationToken);
+        }
+
+        public static Task<QueryDicomResourceResponse> QueryDicomResourcesAsync(
+            this IMediator mediator, IQueryCollection requestQuery, ResourceType resourceType, string studyInstanceUID = null, string seriesUID = null, CancellationToken cancellationToken = default)
+        {
+            return mediator.Send(new QueryDicomResourceRequest(requestQuery, resourceType, studyInstanceUID, seriesUID), cancellationToken);
         }
     }
 }
