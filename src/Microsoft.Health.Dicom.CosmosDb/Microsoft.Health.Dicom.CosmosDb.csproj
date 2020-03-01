@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="fo-dicom" Version="4.0.4" />
+    <PackageReference Include="fo-dicom" Version="4.0.1" />
     <PackageReference Include="Microsoft.Health.CosmosDb" Version="1.0.0-master-20190514-1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="Polly" Version="7.1.0" />
