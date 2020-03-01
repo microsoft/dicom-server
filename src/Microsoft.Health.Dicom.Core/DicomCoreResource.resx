@@ -117,6 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DuplicateQueryParam" xml:space="preserve">
+    <value>Duplicate AttributeId '{0}', Each attribute is allowed to be specified once.</value>
+    <comment>{0} specified attributeid</comment>
+  </data>
   <data name="IncludeFileUnknownAttribute" xml:space="preserve">
     <value>IncludeField has unknown attribute {0}.</value>
     <comment>{0} attribute name</comment>

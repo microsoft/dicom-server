@@ -90,6 +90,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
+        [InlineData("PatientName=Joe&00100010=Rob")]
+        public void DuplicateQueryParam_NotAllowed(string queryString)
+        {
+            Assert.Throws<DicomQueryParseException>(() => DicomQueryExpression.Parse(GetQueryCollection(queryString), ResourceType.Study));
+        }
+
+        [Theory]
         [InlineData("offset", "2.5")]
         public void OffsetValue_NotInt(string key, string value)
         {

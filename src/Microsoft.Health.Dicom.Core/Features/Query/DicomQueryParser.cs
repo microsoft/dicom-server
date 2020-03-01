@@ -39,6 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             int limit = 0;
             var filterConditions = new List<DicomQueryFilterCondition>();
             bool allValue = false;
+            var filterConditionTags = new HashSet<DicomTag>();
 
             if (_queryCollection == null || !_queryCollection.Any())
             {
@@ -74,6 +75,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
                 if (ParseFilterCondition(queryParam, out DicomQueryFilterCondition condition))
                 {
+                    if (filterConditionTags.Contains(condition.DicomTag))
+                    {
+                        throw new DicomQueryParseException(string.Format(DicomCoreResource.DuplicateQueryParam, queryParam.Key));
+                    }
+
+                    filterConditionTags.Add(condition.DicomTag);
                     filterConditions.Add(condition);
                     continue;
                 }
@@ -141,7 +148,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private static void ParseFuzzyMatching(KeyValuePair<string, StringValues> queryParameter, out bool fuzzyMatch)
         {
             fuzzyMatch = false;
-            var trimmedValue = queryParameter.Value.First().Trim();
+            var trimmedValue = queryParameter.Value.FirstOrDefault().Trim();
             if (bool.TryParse(trimmedValue, out bool result))
             {
                 fuzzyMatch = result;
@@ -155,8 +162,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private static void ParseOffset(KeyValuePair<string, StringValues> queryParameter, out int offset)
         {
             offset = 0;
-            var trimmedValue = queryParameter.Value.First().Trim();
-            if (int.TryParse(queryParameter.Value.First(), out int result))
+            var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
+            if (int.TryParse(trimmedValue, out int result))
             {
                 offset = result;
             }
@@ -169,7 +176,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private static void ParseLimit(KeyValuePair<string, StringValues> queryParameter, out int limit)
         {
             limit = 0;
-            var trimmedValue = queryParameter.Value.First().Trim();
+            var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
             if (int.TryParse(trimmedValue, out int result))
             {
                 if (result > DicomQueryConditionLimit.MaxQueryResultCount)
