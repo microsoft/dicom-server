@@ -21,11 +21,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _logger = logger;
         }
 
-#pragma warning disable 1998
         public async Task<QueryDicomResourceResponse> Handle(QueryDicomResourceRequest message, CancellationToken cancellationToken)
         {
             var dicomQueryExpression = DicomQueryExpression.Parse(message.RequestQuery, message.ResourceType);
-            return new QueryDicomResourceResponse(System.Net.HttpStatusCode.OK);
+            return await Task.FromResult(new QueryDicomResourceResponse(System.Net.HttpStatusCode.OK));
         }
     }
 }
