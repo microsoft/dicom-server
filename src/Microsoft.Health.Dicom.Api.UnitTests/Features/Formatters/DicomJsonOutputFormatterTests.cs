@@ -10,6 +10,7 @@ using System.Text;
 using Dicom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -26,7 +27,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Formatters
         [InlineData(null)]
         public void GivenAnInvalidDicomObjectAndJsonContentType_WhenCheckingCanWrite_ThenFalseShouldBeReturned(Type modelType)
         {
-            bool result = CanWrite(modelType, DicomJsonOutputFormatter.ApplicationDicomJson);
+            bool result = CanWrite(modelType, KnownContentTypes.ApplicationDicomJson);
             Assert.False(result);
         }
 
@@ -37,7 +38,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Formatters
         [InlineData(typeof(IReadOnlyCollection<DicomDataset>))]
         public void GivenAValidDicomObjectAndContentType_WhenCheckingCanWrite_ThenTrueShouldBeReturned(Type modelType)
         {
-            bool result = CanWrite(modelType, DicomJsonOutputFormatter.ApplicationDicomJson);
+            bool result = CanWrite(modelType, KnownContentTypes.ApplicationDicomJson);
             Assert.True(result);
         }
 
