@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public DicomTag DicomTag { get; }
     }
 
-    [SuppressMessage("Microsoft.StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Actual tyoe of abstract type")]
+    [SuppressMessage("Microsoft.StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Actual type of abstract type")]
     public class DicomQuerySingleValueFilterCondition<T> : DicomQueryFilterCondition
     {
         internal DicomQuerySingleValueFilterCondition(DicomTag tag, T value)
@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public T Value { get; }
     }
 
-    [SuppressMessage("Microsoft.StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Actual tyoe of abstract type")]
+    [SuppressMessage("Microsoft.StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Actual type of abstract type")]
     public class DicomQueryRangeValueFilterCondition<T> : DicomQueryFilterCondition
     {
         internal DicomQueryRangeValueFilterCondition(DicomTag tag, T minimum, T maximum)
