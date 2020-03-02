@@ -137,10 +137,6 @@ csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = false
 
 # C++ Files
-
-# SA1402: File may only contain a single type
-dotnet_diagnostic.SA1402.severity = silent
-
 [*.{cpp,h,in}]
 curly_bracket_next_line = true
 indent_brace_style = Allman

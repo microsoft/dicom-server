@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -62,6 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public bool IsEmpty { get; }
     }
 
+    [SuppressMessage("Microsoft.StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Subtype")]
     public class DicomQueryParameterIncludeField
     {
         public DicomQueryParameterIncludeField(bool all, IReadOnlyCollection<DicomTag> dicomTags)

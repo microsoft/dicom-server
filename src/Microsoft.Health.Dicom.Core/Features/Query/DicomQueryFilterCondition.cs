@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
+using System.Diagnostics.CodeAnalysis;
 using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -16,6 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public DicomTag DicomTag { get; }
     }
 
+    [SuppressMessage("Microsoft.StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Actual tyoe of abstract type")]
     public class DicomQuerySingleValueFilterCondition<T> : DicomQueryFilterCondition
     {
         internal DicomQuerySingleValueFilterCondition(DicomTag tag, T value)
@@ -27,6 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public T Value { get; }
     }
 
+    [SuppressMessage("Microsoft.StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Actual tyoe of abstract type")]
     public class DicomQueryRangeValueFilterCondition<T> : DicomQueryFilterCondition
     {
         internal DicomQueryRangeValueFilterCondition(DicomTag tag, T minimum, T maximum)
