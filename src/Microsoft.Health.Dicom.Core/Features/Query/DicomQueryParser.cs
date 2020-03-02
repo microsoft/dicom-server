@@ -8,16 +8,17 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Dicom;
+using EnsureThat;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DicomQueryParser
+    public class DicomQueryParser : IDicomQueryParser
     {
-        private IQueryCollection _queryCollection;
-        private ResourceType _resourceType;
+        private readonly ILogger<DicomQueryParser> _logger;
         private const string IncludeFieldParam = "includefield";
         private const string IncludeFieldValueAll = "all";
         private const string LimitParam = "limit";
@@ -25,14 +26,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private const string FuzzyMatchingParam = "fuzzymatching";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
 
-        public DicomQueryParser(IQueryCollection requestQuery, ResourceType resourceType)
+        public DicomQueryParser(ILogger<DicomQueryParser> logger)
         {
-            _queryCollection = requestQuery;
-            _resourceType = resourceType;
+            EnsureArg.IsNotNull(logger, nameof(logger));
+            _logger = logger;
         }
 
-        public DicomQueryExpression Parse()
+        public DicomQueryExpression Parse(IQueryCollection queryCollection, ResourceType resourceType)
         {
+            EnsureArg.IsNotNull(queryCollection, nameof(queryCollection));
             var includeFields = new HashSet<DicomTag>();
             bool fuzzyMatch = false;
             int offset = 0;
@@ -41,12 +43,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             bool allValue = false;
             var filterConditionTags = new HashSet<DicomTag>();
 
-            if (_queryCollection == null || !_queryCollection.Any())
+            if (queryCollection == null || !queryCollection.Any())
             {
                 return new DicomQueryExpression();
             }
 
-            foreach (var queryParam in _queryCollection)
+            foreach (var queryParam in queryCollection)
             {
                 var trimmedKey = queryParam.Key.Trim();
                 if (IsQueryParameter(IncludeFieldParam, trimmedKey))
@@ -73,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     continue;
                 }
 
-                if (ParseFilterCondition(queryParam, out DicomQueryFilterCondition condition))
+                if (ParseFilterCondition(queryParam, resourceType, out DicomQueryFilterCondition condition))
                 {
                     if (filterConditionTags.Contains(condition.DicomTag))
                     {
@@ -96,7 +98,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return expected.Equals(actual, QueryParameterComparision);
         }
 
-        private static void ParseIncludeField(KeyValuePair<string, StringValues> queryParameter, HashSet<DicomTag> includeFields, out bool allValue)
+        private void ParseIncludeField(KeyValuePair<string, StringValues> queryParameter, HashSet<DicomTag> includeFields, out bool allValue)
         {
             allValue = false;
             foreach (string value in queryParameter.Value)
@@ -118,7 +120,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
         }
 
-        private static bool ParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
+        private bool ParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
         {
             dicomTag = null;
 
@@ -128,8 +130,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 dicomTag = DicomDictionary.Default[attributeId];
             }
-            catch (NullReferenceException)
+            catch (NullReferenceException e)
             {
+                _logger.LogDebug(e, $"DicomDictionary.Default[attributeId] threw exception for {attributeId}");
             }
 
             if (dicomTag == null)
@@ -192,7 +195,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
         }
 
-        private bool ParseFilterCondition(KeyValuePair<string, StringValues> queryParameter, out DicomQueryFilterCondition condition)
+        private bool ParseFilterCondition(KeyValuePair<string, StringValues> queryParameter, ResourceType resourceType, out DicomQueryFilterCondition condition)
         {
             condition = null;
             var attributeId = queryParameter.Key.Trim();
@@ -203,7 +206,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
 
             HashSet<DicomTag> supportedQueryTags;
-            switch (_resourceType)
+            switch (resourceType)
             {
                 case ResourceType.Study:
                     supportedQueryTags = DicomQueryConditionLimit.DicomStudyQueryTagsSupported;
@@ -259,7 +262,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
             catch (FormatException)
             {
-                // TODO log exp
                 throw new DicomQueryParseException(string.Format(DicomCoreResource.InvalidDateValue, date, tagKeyword));
             }
          }

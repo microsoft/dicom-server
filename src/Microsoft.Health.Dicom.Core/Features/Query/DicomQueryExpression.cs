@@ -4,8 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
 using Dicom;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -62,17 +60,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         /// Request query was empty
         /// </summary>
         public bool IsEmpty { get; }
-
-        /// <summary>
-        /// Parse the queryParameters to DicomQueryExpression object
-        /// </summary>
-        /// <param name="requestQuery">Request queryCOllection</param>
-        /// <param name="resourceType">Resource level used to query Study/Series/Instance</param>
-        /// <returns>Parsed and validated DicomQueryExpression</returns>
-        internal static DicomQueryExpression Parse(IQueryCollection requestQuery, ResourceType resourceType)
-        {
-            return new DicomQueryParser(requestQuery, resourceType).Parse();
-        }
     }
 
     public class DicomQueryParameterIncludeField
