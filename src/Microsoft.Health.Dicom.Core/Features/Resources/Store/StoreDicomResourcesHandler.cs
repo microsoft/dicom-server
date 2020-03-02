@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
 
         /// <inheritdoc />
         public async Task<StoreDicomResourcesResponse> Handle(StoreDicomResourcesRequest message, CancellationToken cancellationToken)
-        {
+         {
             EnsureArg.IsNotNull(message, nameof(message));
 
             if (!message.IsMultipartRequest)

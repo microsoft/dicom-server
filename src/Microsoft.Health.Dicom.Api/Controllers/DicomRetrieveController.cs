@@ -13,7 +13,6 @@ using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
@@ -22,7 +21,7 @@ using Microsoft.Health.Dicom.Api.Features.Responses;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Web.Controllers
+namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [Authorize]
     public class DicomRetrieveController : Controller
