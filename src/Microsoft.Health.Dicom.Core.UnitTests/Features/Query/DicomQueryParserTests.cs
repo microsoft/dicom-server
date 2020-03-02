@@ -191,10 +191,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("StudyDate", "2020/02/28")]
         [InlineData("StudyDate", "20200230")]
         [InlineData("StudyDate", "20200228-20200230")]
-        public void StudyDate_InvalidDateFormat(string key, string value)
+        [InlineData("PerformedProcedureStepStartDate", "baddate")]
+        public void DateTagValue_InvalidDate(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => new DicomQueryParser(NullLogger<DicomQueryParser>.Instance)
-            .Parse(GetQueryCollection(key, value), ResourceType.Study));
+            .Parse(GetQueryCollection(key, value), ResourceType.Series));
         }
 
         private QueryCollection GetQueryCollection(string key, string value)

@@ -229,29 +229,38 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             if (queryParameter.Value.Any())
             {
                 var trimmedValue = queryParameter.Value.First().Trim();
-                if (dicomTag == DicomTag.StudyDate)
+                if (dicomTag.DictionaryEntry.ValueRepresentations.FirstOrDefault()?.Code == DicomVRCode.DA)
                 {
-                    var splitString = trimmedValue.Split('-');
-                    if (splitString.Length == 2)
-                    {
-                        string minDate = splitString[0].Trim();
-                        string maxDate = splitString[1].Trim();
-                        ParseDate(minDate, dicomTag.DictionaryEntry.Keyword);
-                        ParseDate(maxDate, dicomTag.DictionaryEntry.Keyword);
-
-                        condition = new DicomQueryRangeValueFilterCondition<string>(dicomTag, minDate, maxDate);
-                        return true;
-                    }
-                    else
-                    {
-                        ParseDate(trimmedValue, dicomTag.DictionaryEntry.Keyword);
-                    }
+                    ParseDateTagValue(dicomTag, trimmedValue, out condition);
                 }
-
-                condition = new DicomQuerySingleValueFilterCondition<string>(dicomTag, trimmedValue);
+                else
+                {
+                    condition = new DicomQuerySingleValueFilterCondition<string>(dicomTag, trimmedValue);
+                }
             }
 
             return condition != null;
+        }
+
+        private static void ParseDateTagValue(DicomTag dicomTag, string value, out DicomQueryFilterCondition filterCondition)
+        {
+            if (DicomQueryConditionLimit.IsValidRangeQueryTag(dicomTag))
+            {
+                var splitString = value.Split('-');
+                if (splitString.Length == 2)
+                {
+                    string minDate = splitString[0].Trim();
+                    string maxDate = splitString[1].Trim();
+                    ParseDate(minDate, dicomTag.DictionaryEntry.Keyword);
+                    ParseDate(maxDate, dicomTag.DictionaryEntry.Keyword);
+
+                    filterCondition = new DicomQueryRangeValueFilterCondition<string>(dicomTag, minDate, maxDate);
+                    return;
+                }
+            }
+
+            ParseDate(value, dicomTag.DictionaryEntry.Keyword);
+            filterCondition = new DicomQuerySingleValueFilterCondition<string>(dicomTag, value);
         }
 
         private static void ParseDate(string date, string tagKeyword)
