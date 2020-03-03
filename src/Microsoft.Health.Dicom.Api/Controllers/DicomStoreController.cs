@@ -22,7 +22,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [Authorize]
     public class DicomStoreController : Controller
     {
-        private const string ApplicationDicomJson = "application/dicom+json";
         private readonly IMediator _mediator;
         private readonly ILogger<DicomStoreController> _logger;
 
@@ -36,7 +35,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [DisableRequestSizeLimit]
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
