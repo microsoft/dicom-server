@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
 
         /// <inheritdoc />
         public async Task<StoreDicomResourcesResponse> Handle(StoreDicomResourcesRequest message, CancellationToken cancellationToken)
-        {
+         {
             EnsureArg.IsNotNull(message, nameof(message));
 
             if (!message.IsMultipartRequest)
@@ -105,7 +105,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
 
             try
             {
-                using (Stream seekStream = new MemoryStream())
+                await using (Stream seekStream = new MemoryStream())
                 {
                     // Copy stream to a memory stream so it can be seeked by the fo-dicom library.
                     await stream.CopyToAsync(seekStream, cancellationToken);

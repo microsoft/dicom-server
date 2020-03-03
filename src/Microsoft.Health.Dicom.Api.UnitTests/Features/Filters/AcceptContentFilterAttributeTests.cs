@@ -17,22 +17,57 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
 {
     public class AcceptContentFilterAttributeTests
     {
+        private readonly AcceptContentFilterAttribute _filter;
+        private readonly ActionExecutingContext _context;
+
+        public AcceptContentFilterAttributeTests()
+        {
+            _filter = CreateFilter("application/dicom+json", "application/dicom+xml");
+            _context = CreateContext();
+        }
+
         [Theory]
         [InlineData("application/dicom+json", null)]
         [InlineData("applicAtion/dICOM+Json", null)]
+        [InlineData("multipart/related; type=\"application/dicom+json\"", null)]
+        [InlineData("multipart/related; type=\"application/dicom\"", (int)HttpStatusCode.NotAcceptable)]
+        [InlineData("multipart/related; type=\"blah\"", (int)HttpStatusCode.NotAcceptable)]
+        [InlineData("multipart/related;", (int)HttpStatusCode.NotAcceptable)]
         [InlineData("application/dicom+json+something", (int)HttpStatusCode.NotAcceptable)]
         [InlineData("application/dicom", (int)HttpStatusCode.NotAcceptable)]
         [InlineData("application/xml", (int)HttpStatusCode.NotAcceptable)]
-        public void GivenARequestWithAValidFormatQuerystring_WhenValidatingTheContentType_ThenCorrectStatusCodeShouldBeReturned(string supportedMediaType, int? expectedStatusCode)
+        [InlineData("", (int)HttpStatusCode.NotAcceptable)]
+        public void GivenARequestWithAValidAcceptHeader_WhenValidatingTheContentType_ThenCorrectStatusCodeShouldBeReturned(string acceptHeaderMediaType, int? expectedStatusCode)
         {
-            AcceptContentFilterAttribute filter = CreateFilter(supportedMediaType);
-            ActionExecutingContext context = CreateContext();
+            _context.HttpContext.Request.Headers.Add("Accept", acceptHeaderMediaType);
 
-            context.HttpContext.Request.Headers.Add("Accept", "application/dicom+json");
+            _filter.OnActionExecuting(_context);
 
-            filter.OnActionExecuting(context);
+            Assert.Equal(expectedStatusCode, (_context.Result as StatusCodeResult)?.StatusCode);
+        }
 
-            Assert.Equal(expectedStatusCode, (context.Result as StatusCodeResult)?.StatusCode);
+        [Theory]
+        [InlineData(null, "application/dicom+json", "image/jpg")]
+        [InlineData((int)HttpStatusCode.NotAcceptable, "image/png", "image/jpg")]
+        [InlineData(null, "multipart/related; type=\"application/dicom+json\"", "image/jpg")]
+        [InlineData(null, "multipart/related; type=\"application/dicom+json\"", "multipart/related; type=\"image/jpg\"")]
+        [InlineData((int)HttpStatusCode.NotAcceptable, "multipart/related; type=\"image/png\"", "multipart/related; type=\"image/jpg\"")]
+        [InlineData(null, "multipart/related; type=\"image/jpg\"", "application/dicom+json")]
+        public void GivenARequestWithMultipleAcceptHeaders_WhenValidatingTheContentType_ThenCorrectStatusCodeShouldBeReturned(int? expectedStatusCode, params string[] acceptHeaderMediaType)
+        {
+            _context.HttpContext.Request.Headers.Add("Accept", acceptHeaderMediaType);
+
+            _filter.OnActionExecuting(_context);
+
+            Assert.Equal(expectedStatusCode, (_context.Result as StatusCodeResult)?.StatusCode);
+        }
+
+        [Fact]
+        public void GivenARequestWithNoAcceptHeader_WhenValidatingTheContentType_ThenNotAcceptableStatusCodeShouldBeReturned()
+        {
+            _filter.OnActionExecuting(_context);
+
+            Assert.Equal((int)HttpStatusCode.NotAcceptable, (_context.Result as StatusCodeResult)?.StatusCode);
         }
 
         private AcceptContentFilterAttribute CreateFilter(params string[] supportedMediaTypes)

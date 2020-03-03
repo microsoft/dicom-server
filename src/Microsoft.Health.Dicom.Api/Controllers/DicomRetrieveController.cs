@@ -13,7 +13,6 @@ using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
@@ -22,14 +21,11 @@ using Microsoft.Health.Dicom.Api.Features.Responses;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Web.Controllers
+namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [Authorize]
     public class DicomRetrieveController : Controller
     {
-        private const string ApplicationOctetStream = "application/octet-stream";
-        private const string ApplicationDicom = "application/dicom";
-        private const string ApplicationDicomJson = "application/dicom+json";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly IMediator _mediator;
         private readonly ILogger<DicomRetrieveController> _logger;
@@ -43,7 +39,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             _logger = logger;
         }
 
-        [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -59,7 +55,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return ConvertToActionResult(response);
         }
 
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -74,7 +70,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
-        [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -94,7 +90,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return ConvertToActionResult(response);
         }
 
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -110,7 +106,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
-        [AcceptContentFilter(ApplicationOctetStream, ApplicationDicom)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -130,7 +126,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return ConvertToActionResult(response);
         }
 
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -146,7 +142,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
             return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
-        [AcceptContentFilter(ApplicationOctetStream)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -173,7 +169,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
                 return StatusCode(response.StatusCode);
             }
 
-            return new MultipartResult(response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(ApplicationDicom, x)).ToList());
+            return new MultipartResult(response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(KnownContentTypes.ApplicationDicom, x)).ToList());
         }
     }
 }
