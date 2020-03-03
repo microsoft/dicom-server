@@ -36,9 +36,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 requestedTransferSyntax: string.Empty,
                 DicomUID.Generate().UID,
                 DicomUID.Generate().UID,
-                DicomUID.Generate().UID,
-                false,
-                false);
+                DicomUID.Generate().UID);
             Assert.Equal(ResourceType.Instance, request.ResourceType);
         }
 
@@ -50,9 +48,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 DicomUID.Generate().UID,
                 DicomUID.Generate().UID,
                 DicomUID.Generate().UID,
-                new[] { 5 },
-                false,
-                false);
+                new[] { 5 });
             Assert.Equal(ResourceType.Frames, request.ResourceType);
         }
     }

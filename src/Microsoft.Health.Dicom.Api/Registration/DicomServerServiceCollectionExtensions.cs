@@ -5,7 +5,6 @@
 
 using System;
 using System.Reflection;
-using Dicom.Imaging;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
@@ -82,11 +81,7 @@ namespace Microsoft.AspNetCore.Builder
             jsonSerializer.Converters.Add(new JsonDicomConverter());
             services.AddSingleton(jsonSerializer);
 
-            // Register image renderer for fo-dicom
-            ImageManager.SetImplementation(RawImageManager.Instance);
-
             services.AddSingleton<RecyclableMemoryStreamManager>();
-
             return new DicomServerBuilder(services);
         }
 

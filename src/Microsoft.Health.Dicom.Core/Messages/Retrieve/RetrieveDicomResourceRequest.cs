@@ -31,19 +31,16 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         }
 
         public RetrieveDicomResourceRequest(
-            string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, bool renderedRequested, bool thumbnailRequested)
+            string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
             : this(ResourceType.Instance, requestedTransferSyntax)
         {
             StudyInstanceUID = studyInstanceUID;
             SeriesInstanceUID = seriesInstanceUID;
             SopInstanceUID = sopInstanceUID;
-
-            RenderedRequested = renderedRequested;
-            ThumbnailRequested = thumbnailRequested;
         }
 
         public RetrieveDicomResourceRequest(
-            string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, IEnumerable<int> frames, bool renderedRequested, bool thumbnailRequested)
+            string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, IEnumerable<int> frames)
             : this(ResourceType.Frames, requestedTransferSyntax)
         {
             StudyInstanceUID = studyInstanceUID;
@@ -53,9 +50,6 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             // Per DICOMWeb spec (http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_9.5.1.2.1)
             // frame number in the URI is 1-based, unlike fo-dicom representation where it's 0-based.
             Frames = frames?.Select(x => x - 1);
-
-            RenderedRequested = renderedRequested;
-            ThumbnailRequested = thumbnailRequested;
         }
 
         private RetrieveDicomResourceRequest(ResourceType resourceType, string requestedRepresentation)
@@ -63,10 +57,6 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             ResourceType = resourceType;
             RequestedRepresentation = string.IsNullOrWhiteSpace(requestedRepresentation) ? null : requestedRepresentation;
         }
-
-        public bool RenderedRequested { get; }
-
-        public bool ThumbnailRequested { get; }
 
         public ResourceType ResourceType { get; }
 

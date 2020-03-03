@@ -5,8 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -20,7 +18,6 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.IO;
@@ -29,10 +26,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
     public class RetrieveDicomResourceHandler : BaseRetrieveDicomResourceHandler, IRequestHandler<RetrieveDicomResourceRequest, RetrieveDicomResourceResponse>
     {
-        // DICOM spec does not define the thumbnail size. This choice is arbitrary and might be made a
-        // configuration constant in the future
-        private static readonly Size ThumbnailSize = new Size(width: 200, height: 200);
-
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
         private readonly IDicomDataStore _dicomDataStore;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -53,15 +46,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             EnsureArg.IsNotNull(message, nameof(message));
 
             DicomTransferSyntax parsedDicomTransferSyntax =
-                message.RenderedRequested ? null :
-                message.OriginalTransferSyntaxRequested() ? null :
-                string.IsNullOrWhiteSpace(message.RequestedRepresentation) ? DefaultTransferSyntax :
-                DicomTransferSyntax.Parse(message.RequestedRepresentation);
-
-            ImageRepresentationModel imageRepresentation =
-                message.RenderedRequested ?
-                    ImageRepresentationModel.Parse(message.RequestedRepresentation) :
-                    null;
+                message.OriginalTransferSyntaxRequested() ?
+                null :
+                string.IsNullOrWhiteSpace(message.RequestedRepresentation) ?
+                    DefaultTransferSyntax :
+                    DicomTransferSyntax.Parse(message.RequestedRepresentation);
 
             try
             {
@@ -77,87 +66,66 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     var dicomFile = DicomFile.Open(resultStreams.Single());
                     dicomFile.ValidateHasFrames(message.Frames);
 
-                    if (message.RenderedRequested)
+                    if (!message.OriginalTransferSyntaxRequested() &&
+                        !dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
                     {
-                        resultStreams = message.Frames.Select(
-                                frame => new LazyTransformReadOnlyStream<DicomFile>(
-                                    dicomFile,
-                                    df => GetFrameAsImage(df, frame, imageRepresentation, message.ThumbnailRequested)))
-                            .ToArray();
+                        throw new DataStoreException(HttpStatusCode.NotAcceptable);
                     }
-                    else
-                    {
-                        if (!message.OriginalTransferSyntaxRequested() &&
-                            !dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
-                        {
-                            throw new DataStoreException(HttpStatusCode.NotAcceptable);
-                        }
 
-                        resultStreams = message.Frames.Select(
-                                frame => new LazyTransformReadOnlyStream<DicomFile>(
-                                    dicomFile,
-                                    df => GetFrameAsDicomData(df, frame, parsedDicomTransferSyntax)))
-                            .ToArray();
-                    }
+                    resultStreams = message.Frames.Select(
+                            frame => new LazyTransformReadOnlyStream<DicomFile>(
+                                dicomFile,
+                                df => GetFrameAsDicomData(df, frame, parsedDicomTransferSyntax)))
+                        .ToArray();
                 }
                 else
                 {
-                    if (message.RenderedRequested)
+                    if (!message.OriginalTransferSyntaxRequested())
                     {
-                        resultStreams = resultStreams.Select(stream =>
-                            new LazyTransformReadOnlyStream<Stream>(
-                                stream,
-                                s => EncodeDicomFileAsImage(s, imageRepresentation, message.ThumbnailRequested))).ToArray();
-                    }
-                    else
-                    {
-                        if (!message.OriginalTransferSyntaxRequested())
+                        Stream[] filteredStreams = resultStreams.Where(x =>
                         {
-                            Stream[] filteredStreams = resultStreams.Where(x =>
+                            var canTranscode = false;
+
+                            try
                             {
-                                var canTranscode = false;
+                                // TODO: replace with FileReadOption.SkipLargeTags when updating to a future
+                                // version of fo-dicom where https://github.com/fo-dicom/fo-dicom/issues/893 is fixed
+                                var dicomFile = DicomFile.OpenAsync(x, FileReadOption.ReadLargeOnDemand).Result;
+                                canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
+                            }
+                            catch (DicomFileException)
+                            {
+                                canTranscode = false;
+                            }
 
-                                try
-                                {
-                                    // TODO: replace with FileReadOption.SkipLargeTags when updating to a future
-                                    // version of fo-dicom where https://github.com/fo-dicom/fo-dicom/issues/893 is fixed
-                                    var dicomFile = DicomFile.OpenAsync(x, FileReadOption.ReadLargeOnDemand).Result;
-                                    canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
-                                }
-                                catch (DicomFileException)
-                                {
-                                    canTranscode = false;
-                                }
+                            x.Seek(0, SeekOrigin.Begin);
 
-                                x.Seek(0, SeekOrigin.Begin);
-
-                                // If some of the instances are not transcodeable, Partial Content should be returned
-                                if (!canTranscode)
-                                {
-                                    responseCode = HttpStatusCode.PartialContent;
-                                }
-
-                                return canTranscode;
-                            }).ToArray();
-
-                            if (filteredStreams.Length != resultStreams.Length)
+                            // If some of the instances are not transcodeable, Partial Content should be returned
+                            if (!canTranscode)
                             {
                                 responseCode = HttpStatusCode.PartialContent;
                             }
 
-                            resultStreams = filteredStreams;
-                        }
+                            return canTranscode;
+                        }).ToArray();
 
-                        if (resultStreams.Length == 0)
+                        if (filteredStreams.Length != resultStreams.Length)
                         {
-                            throw new DataStoreException(HttpStatusCode.NotAcceptable);
+                            responseCode = HttpStatusCode.PartialContent;
                         }
 
-                        resultStreams = resultStreams.Select(stream =>
-                            new LazyTransformReadOnlyStream<Stream>(
-                                stream,
-                                s => EncodeDicomFileAsDicom(s, parsedDicomTransferSyntax))).ToArray();
+                        resultStreams = filteredStreams;
                     }
+
+                    if (resultStreams.Length == 0)
+                    {
+                        throw new DataStoreException(HttpStatusCode.NotAcceptable);
+                    }
+
+                    resultStreams = resultStreams.Select(stream =>
+                        new LazyTransformReadOnlyStream<Stream>(
+                            stream,
+                            s => EncodeDicomFileAsDicom(s, parsedDicomTransferSyntax))).ToArray();
                 }
 
                 return new RetrieveDicomResourceResponse(responseCode, resultStreams);
@@ -194,15 +162,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
 
             return _recyclableMemoryStreamManager.GetStream("RetrieveDicomResourceHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
-        }
-
-        private Stream EncodeDicomFileAsImage(Stream stream, ImageRepresentationModel imageRepresentation, bool thumbnail)
-        {
-            var tempDicomFile = DicomFile.Open(stream);
-
-            // Since requesting to render a multiframe image without specifying a frame is ambiguous, per DICOM spec
-            // we are free to make assumptions here. We will render the first frame by default
-            return ToRenderedMemoryStream(new DicomImage(tempDicomFile.Dataset), imageRepresentation, frame: 0, thumbnail);
         }
 
         private Stream EncodeDicomFileAsDicom(Stream stream, DicomTransferSyntax requestedTransferSyntax)
@@ -254,81 +213,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                 stream.Dispose();
                 return resultStream;
             }
-        }
-
-        internal MemoryStream ToRenderedMemoryStream(DicomImage dicomImage, ImageRepresentationModel imageRepresentation, int frame = 0, bool thumbnail = false)
-        {
-            EnsureArg.IsNotNull(dicomImage, nameof(dicomImage));
-
-            Bitmap image = null;
-            Bitmap bmpResized = null;
-
-            MemoryStream ms = _recyclableMemoryStreamManager.GetStream();
-            try
-            {
-                image = dicomImage.ToBitmap(frame);
-                var bmp = image;
-
-                if (thumbnail)
-                {
-                    // Scale factor to preserve aspect ratio and fit within the thumbnail square
-                    float scale = Math.Min(
-                        (float)ThumbnailSize.Width / bmp.Width,
-                        (float)ThumbnailSize.Height / bmp.Height);
-                    var w = (int)(bmp.Width * scale);
-                    var h = (int)(bmp.Height * scale);
-
-                    bmpResized = new Bitmap(ThumbnailSize.Width, ThumbnailSize.Height);
-
-                    using (var graphics = Graphics.FromImage(bmpResized))
-                    {
-                        graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                        graphics.CompositingQuality = CompositingQuality.HighSpeed;
-                        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        graphics.CompositingMode = CompositingMode.SourceCopy;
-
-                        // Paint the background black
-                        graphics.FillRectangle(
-                            new SolidBrush(Color.Black),
-                            new RectangleF(x: 0, y: 0, ThumbnailSize.Width, ThumbnailSize.Height));
-
-                        // Draw image in the middle
-                        graphics.DrawImage(
-                            bmp,
-                            x: (ThumbnailSize.Width - w) / 2,
-                            y: (ThumbnailSize.Height - h) / 2,
-                            width: w,
-                            height: h);
-
-                        bmp = bmpResized;
-                    }
-                }
-
-                bmp.Save(ms, imageRepresentation.CodecInfo, imageRepresentation.EncoderParameters);
-
-                ms.Seek(0, SeekOrigin.Begin);
-            }
-            catch
-            {
-                // We catch all here because rendering may throw for a variety of reasons.
-                // Most likely, this is a corrupt image or there has been a codec error.
-                // Presently the intention is to return an empty stream
-                // TODO: for future enhancements - put more detailed error analysis here.
-                // If this is an issue to users, maybe return a default placeholder image
-            }
-            finally
-            {
-                image?.Dispose();
-                bmpResized?.Dispose();
-            }
-
-            return ms;
-        }
-
-        private Stream GetFrameAsImage(DicomFile dicomFile, int frame, ImageRepresentationModel imageRepresentation, bool thumbnail)
-        {
-            EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-            return ToRenderedMemoryStream(new DicomImage(dicomFile.Dataset), imageRepresentation, frame, thumbnail);
         }
     }
 }
