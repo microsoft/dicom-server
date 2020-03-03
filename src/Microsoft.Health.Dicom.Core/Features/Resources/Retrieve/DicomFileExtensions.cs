@@ -14,7 +14,6 @@ using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve.BitmapRendering;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
@@ -45,12 +44,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             }
 
             return new MemoryStream(resultByteBuffer.Data);
-        }
-
-        public static Stream GetFrameAsImage(this DicomFile dicomFile, int frame, ImageRepresentationModel imageRepresentation, bool thumbnail)
-        {
-            EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-            return new DicomImage(dicomFile.Dataset).ToRenderedMemoryStream(imageRepresentation, frame, thumbnail);
         }
 
         public static void ValidateHasFrames(this DicomFile dicomFile, IEnumerable<int> frames)
