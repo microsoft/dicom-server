@@ -24,6 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private const string LimitParam = "limit";
         private const string OffsetParam = "offset";
         private const string FuzzyMatchingParam = "fuzzymatching";
+        private const string DateTagValuFormat = "yyyyMMdd";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
 
         public DicomQueryParser(ILogger<DicomQueryParser> logger)
@@ -116,7 +117,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     continue;
                 }
 
-                throw new DicomQueryParseException(string.Format(DicomCoreResource.IncludeFileUnknownAttribute, trimmedValue));
+                throw new DicomQueryParseException(string.Format(DicomCoreResource.IncludeFieldUnknownAttribute, trimmedValue));
             }
         }
 
@@ -151,7 +152,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private static void ParseFuzzyMatching(KeyValuePair<string, StringValues> queryParameter, out bool fuzzyMatch)
         {
             fuzzyMatch = false;
-            var trimmedValue = queryParameter.Value.FirstOrDefault().Trim();
+            var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
             if (bool.TryParse(trimmedValue, out bool result))
             {
                 fuzzyMatch = result;
@@ -267,7 +268,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         {
             try
             {
-                DateTime.ParseExact(date, "yyyyMMdd", CultureInfo.InvariantCulture);
+                DateTime.ParseExact(date, DateTagValuFormat, CultureInfo.InvariantCulture);
             }
             catch (FormatException)
             {

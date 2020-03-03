@@ -121,7 +121,7 @@
     <value>Duplicate AttributeId '{0}', Each attribute is allowed to be specified once.</value>
     <comment>{0} specified attributeid</comment>
   </data>
-  <data name="IncludeFileUnknownAttribute" xml:space="preserve">
+  <data name="IncludeFieldUnknownAttribute" xml:space="preserve">
     <value>IncludeField has unknown attribute {0}.</value>
     <comment>{0} attribute name</comment>
   </data>

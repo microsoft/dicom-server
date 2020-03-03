@@ -22,7 +22,6 @@ namespace Microsoft.Health.Dicom.Web.Controllers
     {
         private readonly IMediator _mediator;
         private readonly ILogger<DicomQueryController> _logger;
-        private const string ApplicationDicomJson = "application/dicom+json";
 
         public DicomQueryController(IMediator mediator, ILogger<DicomQueryController> logger)
         {
@@ -34,7 +33,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -52,7 +51,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -70,7 +69,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -91,7 +90,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -109,7 +108,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -130,7 +129,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(ApplicationDicomJson)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]

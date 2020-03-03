@@ -72,9 +72,9 @@ namespace Microsoft.Health.Dicom.Core {
         /// <summary>
         ///   Looks up a localized string similar to IncludeField has unknown attribute {0}..
         /// </summary>
-        internal static string IncludeFileUnknownAttribute {
+        internal static string IncludeFieldUnknownAttribute {
             get {
-                return ResourceManager.GetString("IncludeFileUnknownAttribute", resourceCulture);
+                return ResourceManager.GetString("IncludeFieldUnknownAttribute", resourceCulture);
             }
         }
         

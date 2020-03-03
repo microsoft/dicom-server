@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -61,26 +59,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         /// Request query was empty
         /// </summary>
         public bool IsEmpty { get; }
-    }
-
-    [SuppressMessage("Microsoft.StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Subtype")]
-    public class DicomQueryParameterIncludeField
-    {
-        public DicomQueryParameterIncludeField(bool all, IReadOnlyCollection<DicomTag> dicomTags)
-        {
-            All = all;
-            DicomTags = dicomTags;
-        }
-
-        /// <summary>
-        /// If true, include all default and additional fields
-        /// DicomTags are ignored if all is true
-        /// </summary>
-        public bool All { get; }
-
-        /// <summary>
-        /// List of additional DicomTags to return with defaults. Used only if "all=false"
-        /// </summary>
-        public IReadOnlyCollection<DicomTag> DicomTags { get; }
     }
 }
