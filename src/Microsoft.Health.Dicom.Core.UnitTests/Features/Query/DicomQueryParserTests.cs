@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             DicomQueryExpression dicomQueryExpression = _queryParser
                 .Parse(GetQueryCollection(key, value), ResourceType.Study);
             Assert.False(dicomQueryExpression.IsEmpty);
-            var singleValueCond = dicomQueryExpression.FilterConditions.First() as DicomQuerySingleValueFilterCondition<string>;
+            var singleValueCond = dicomQueryExpression.FilterConditions.First() as DicomQuerySingleValueMatchingCondition<string>;
             Assert.NotNull(singleValueCond);
             Assert.True(singleValueCond.DicomTag == DicomTag.PatientName);
             Assert.True(singleValueCond.Value == value);
@@ -114,6 +114,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         [Theory]
         [InlineData("offset", "2.5")]
+        [InlineData("offset", "-1")]
         public void OffsetValue_NotInt(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
@@ -131,6 +132,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         [Theory]
         [InlineData("limit", "sdfsdf")]
+        [InlineData("limit", "-2")]
         public void LimitValue_NotInt(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
@@ -186,7 +188,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
                 .Parse(GetQueryCollection(key, value), ResourceType.Study);
-            var cond = dicomQueryExpression.FilterConditions.First() as DicomQueryRangeValueFilterCondition<string>;
+            var cond = dicomQueryExpression.FilterConditions.First() as DicomQueryRangeValueMatchingCondition<string>;
             Assert.NotNull(cond);
             Assert.True(cond.DicomTag == DicomTag.StudyDate);
             Assert.True(cond.Minimum == value.Split('-')[0]);

@@ -6,9 +6,9 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DicomQueryRangeValueFilterCondition<T> : DicomQueryFilterCondition
+    public class DicomQueryRangeValueMatchingCondition<T> : DicomQueryFilterCondition
     {
-        internal DicomQueryRangeValueFilterCondition(DicomTag tag, T minimum, T maximum)
+        internal DicomQueryRangeValueMatchingCondition(DicomTag tag, T minimum, T maximum)
             : base(tag)
         {
             Minimum = minimum;

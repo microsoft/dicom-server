@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private const string LimitParam = "limit";
         private const string OffsetParam = "offset";
         private const string FuzzyMatchingParam = "fuzzymatching";
-        private const string DateTagValuFormat = "yyyyMMdd";
+        private const string DateTagValueFormat = "yyyyMMdd";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
 
         public DicomQueryParser(ILogger<DicomQueryParser> logger)
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             bool allValue = false;
             var filterConditionTags = new HashSet<DicomTag>();
 
-            if (queryCollection == null || !queryCollection.Any())
+            if (!queryCollection.Any())
             {
                 return new DicomQueryExpression();
             }
@@ -111,7 +111,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     return;
                 }
 
-                if (ParseDicomAttributeId(trimmedValue, out DicomTag dicomTag))
+                if (TryParseDicomAttributeId(trimmedValue, out DicomTag dicomTag))
                 {
                     includeFields.Add(dicomTag);
                     continue;
@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
         }
 
-        private bool ParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
+        private bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
         {
             dicomTag = null;
 
@@ -167,7 +167,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         {
             offset = 0;
             var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
-            if (int.TryParse(trimmedValue, out int result))
+            if (int.TryParse(trimmedValue, out int result) && result >= 0)
             {
                 offset = result;
             }
@@ -183,7 +183,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
             if (int.TryParse(trimmedValue, out int result))
             {
-                if (result > DicomQueryConditionLimit.MaxQueryResultCount)
+                if (result > DicomQueryConditionLimit.MaxQueryResultCount || result < 0)
                 {
                     throw new DicomQueryParseException(string.Format(DicomCoreResource.QueryResultCountMaxExceeded, result, DicomQueryConditionLimit.MaxQueryResultCount));
                 }
@@ -201,7 +201,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             condition = null;
             var attributeId = queryParameter.Key.Trim();
 
-            if (!ParseDicomAttributeId(attributeId, out DicomTag dicomTag))
+            if (!TryParseDicomAttributeId(attributeId, out DicomTag dicomTag))
             {
                 return false;
             }
@@ -236,7 +236,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 }
                 else
                 {
-                    condition = new DicomQuerySingleValueFilterCondition<string>(dicomTag, trimmedValue);
+                    condition = new DicomQuerySingleValueMatchingCondition<string>(dicomTag, trimmedValue);
                 }
             }
 
@@ -255,20 +255,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     ParseDate(minDate, dicomTag.DictionaryEntry.Keyword);
                     ParseDate(maxDate, dicomTag.DictionaryEntry.Keyword);
 
-                    filterCondition = new DicomQueryRangeValueFilterCondition<string>(dicomTag, minDate, maxDate);
+                    filterCondition = new DicomQueryRangeValueMatchingCondition<string>(dicomTag, minDate, maxDate);
                     return;
                 }
             }
 
             ParseDate(value, dicomTag.DictionaryEntry.Keyword);
-            filterCondition = new DicomQuerySingleValueFilterCondition<string>(dicomTag, value);
+            filterCondition = new DicomQuerySingleValueMatchingCondition<string>(dicomTag, value);
         }
 
         private static void ParseDate(string date, string tagKeyword)
         {
             try
             {
-                DateTime.ParseExact(date, DateTagValuFormat, CultureInfo.InvariantCulture);
+                DateTime.ParseExact(date, DateTagValueFormat, CultureInfo.InvariantCulture);
             }
             catch (FormatException)
             {

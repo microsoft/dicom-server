@@ -6,9 +6,9 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DicomQuerySingleValueFilterCondition<T> : DicomQueryFilterCondition
+    public class DicomQuerySingleValueMatchingCondition<T> : DicomQueryFilterCondition
     {
-        internal DicomQuerySingleValueFilterCondition(DicomTag tag, T value)
+        internal DicomQuerySingleValueMatchingCondition(DicomTag tag, T value)
             : base(tag)
         {
             Value = value;
