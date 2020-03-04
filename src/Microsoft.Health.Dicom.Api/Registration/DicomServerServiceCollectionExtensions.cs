@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -75,6 +76,8 @@ namespace Microsoft.AspNetCore.Builder
 
             services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
+
+            services.AddTransient<IDicomQueryParser, DicomQueryParser>();
 
             // Register the Json Serializer to use
             var jsonSerializer = new JsonSerializer();
