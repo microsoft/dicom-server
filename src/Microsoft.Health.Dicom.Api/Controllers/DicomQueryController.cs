@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [Route("series")]
         public async Task<IActionResult> QueryForSeriesAsync()
         {
-            _logger.LogInformation($"DICOM Web Query Series request received. . QueryString '{Request.QueryString}.");
+            _logger.LogInformation($"DICOM Web Query Series request received. QueryString '{Request.QueryString}.");
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,

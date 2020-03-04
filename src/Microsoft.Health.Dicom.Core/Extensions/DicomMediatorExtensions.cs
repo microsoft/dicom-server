@@ -4,11 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.Query;
@@ -110,7 +111,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<QueryDicomResourceResponse> QueryDicomResourcesAsync(
-            this IMediator mediator, IQueryCollection requestQuery, ResourceType resourceType, string studyInstanceUID = null, string seriesUID = null, CancellationToken cancellationToken = default)
+            this IMediator mediator, IEnumerable<KeyValuePair<string, StringValues>> requestQuery, ResourceType resourceType, string studyInstanceUID = null, string seriesUID = null, CancellationToken cancellationToken = default)
         {
             return mediator.Send(new QueryDicomResourceRequest(requestQuery, resourceType, studyInstanceUID, seriesUID), cancellationToken);
         }

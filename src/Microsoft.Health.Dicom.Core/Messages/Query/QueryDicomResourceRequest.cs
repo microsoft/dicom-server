@@ -3,15 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using MediatR;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Query
 {
     public class QueryDicomResourceRequest : IRequest<QueryDicomResourceResponse>
     {
         public QueryDicomResourceRequest(
-            IQueryCollection requestQuery,
+            IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
             ResourceType resourceType,
             string studyInstanceUID = null,
             string seriesUID = null)
@@ -22,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
             SeriesUID = seriesUID;
         }
 
-        public IQueryCollection RequestQuery { get; }
+        public IEnumerable<KeyValuePair<string, StringValues>> RequestQuery { get; }
 
         public ResourceType ResourceType { get; }
 

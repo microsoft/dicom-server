@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public async Task<QueryDicomResourceResponse> Handle(QueryDicomResourceRequest message, CancellationToken cancellationToken)
         {
             var dicomQueryExpression = _queryParser.Parse(message.RequestQuery, message.ResourceType);
-            return await Task.FromResult(new QueryDicomResourceResponse(System.Net.HttpStatusCode.OK));
+            return await Task.FromResult(new QueryDicomResourceResponse(System.Net.HttpStatusCode.NotImplemented));
         }
     }
 }

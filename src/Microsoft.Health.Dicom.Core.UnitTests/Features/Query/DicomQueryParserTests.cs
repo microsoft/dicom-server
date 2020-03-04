@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 {
     public class DicomQueryParserTests
     {
-        private DicomQueryParser _queryParser = null;
+        private readonly DicomQueryParser _queryParser = null;
 
         public DicomQueryParserTests()
         {
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Fact]
-        public void EmptyQueryString_ObjectWithIsEmptyTrue()
+        public void EmptyQueryString_IsEmptyProperty_True()
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
                 .Parse(new QueryCollection(), ResourceType.Study);
@@ -106,6 +106,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         [Theory]
         [InlineData("PatientName=Joe&00100010=Rob")]
+        [InlineData("00100010=Joe, Rob")]
         public void DuplicateQueryParam_NotAllowed(string queryString)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
