@@ -49,8 +49,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Core"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer.Api", "src\Microsoft.Health.Dicom.SqlServer.Api\Microsoft.Health.Dicom.SqlServer.Api.csproj", "{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.DependencyInjection", "src\Microsoft.Health.Extensions.DependencyInjection\Microsoft.Health.Extensions.DependencyInjection.csproj", "{7733C1E3-7FC2-4BA1-BF34-AD07C2909D43}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -133,10 +131,6 @@ Global
 		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7733C1E3-7FC2-4BA1-BF34-AD07C2909D43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7733C1E3-7FC2-4BA1-BF34-AD07C2909D43}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7733C1E3-7FC2-4BA1-BF34-AD07C2909D43}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7733C1E3-7FC2-4BA1-BF34-AD07C2909D43}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -161,10 +155,9 @@ Global
 		{D3D120D9-4983-4A90-AF84-2811DA11A0C8} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{0CC699AB-F606-45F3-BC8E-444DF807378A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{7733C1E3-7FC2-4BA1-BF34-AD07C2909D43} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
+		RESX_SortFileContentOnSave = True
 	EndGlobalSection
 EndGlobal

@@ -11,6 +11,5 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema
     public enum SchemaVersion
     {
         V1 = 1,
-        V2 = 2,
     }
 }
