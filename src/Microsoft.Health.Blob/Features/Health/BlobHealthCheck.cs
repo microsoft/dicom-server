@@ -30,7 +30,7 @@ namespace Microsoft.Health.Blob.Features.Health
         /// <param name="client">The cloud blob client factory.</param>
         /// <param name="configuration">The CosmosDB configuration.</param>
         /// <param name="namedBlobContainerConfigurationAccessor">The IOptions accessor to get a named container configuration version.</param>
-        /// <param name="containerConfigurationName">Name to get corresponding cfontainer configuration.</param>
+        /// <param name="containerConfigurationName">Name to get corresponding container configuration.</param>
         /// <param name="testProvider">The test provider.</param>
         /// <param name="logger">The logger.</param>
         public BlobHealthCheck(
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Blob.Features.Health
         {
             try
             {
-                await _testProvider.PerformTestAsync(_client, _configuration, _blobContainerConfiguration);
+                await _testProvider.PerformTestAsync(_client, _configuration, _blobContainerConfiguration, cancellationToken);
 
                 return HealthCheckResult.Healthy("Successfully connected to the blob data store.");
             }

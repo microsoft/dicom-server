@@ -21,12 +21,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class RetrieveTransactionMetadataTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
+        private readonly DicomWebClient _client;
+
         public RetrieveTransactionMetadataTests(HttpIntegrationTestFixture<Startup> fixture)
         {
-            Client = new DicomWebClient(fixture.HttpClient);
+            _client = fixture.Client;
         }
-
-        protected DicomWebClient Client { get; set; }
 
         [Theory]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("345%^&")]
         public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingStudyMetadata_TheServerShouldReturnBadRequest(string invalidIdentifier)
         {
-            HttpResult<IReadOnlyList<DicomDataset>> response = await Client.GetStudyMetadataAsync(invalidIdentifier);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.GetStudyMetadataAsync(invalidIdentifier);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("aaaa-bbbb", "aaaa-bbbb")]
         public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingSeriesMetadata_TheServerShouldReturnBadRequest(string studyInstanceUID, string seriesInstanceUID)
         {
-            HttpResult<IReadOnlyList<DicomDataset>> response = await Client.GetSeriesMetadataAsync(studyInstanceUID, seriesInstanceUID);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.GetSeriesMetadataAsync(studyInstanceUID, seriesInstanceUID);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb1")]
         public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingInstanceMetadata_TheServerShouldReturnBadRequest(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
         {
-            HttpResult<IReadOnlyList<DicomDataset>> response = await Client.GetInstanceMetadataAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.GetInstanceMetadataAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
@@ -67,19 +67,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             // Study
             await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
-                Client,
+                _client,
                 string.Format(DicomWebClient.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid().ToString()),
                 acceptHeader);
 
             // Series
             await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
-                Client,
+                _client,
                 string.Format(DicomWebClient.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
                 acceptHeader);
 
             // Instance
             await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
-                Client,
+                _client,
                 string.Format(DicomWebClient.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
                 acceptHeader);
         }
@@ -90,13 +90,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset storedInstance = await PostDicomFileAsync();
             var dicomInstance = DicomInstance.Create(storedInstance);
 
-            HttpResult<IReadOnlyList<DicomDataset>> metadata = await Client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, Guid.NewGuid().ToString());
+            HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, Guid.NewGuid().ToString());
             Assert.Equal(HttpStatusCode.NotFound, metadata.StatusCode);
 
-            metadata = await Client.GetSeriesMetadataAsync(dicomInstance.StudyInstanceUID, Guid.NewGuid().ToString());
+            metadata = await _client.GetSeriesMetadataAsync(dicomInstance.StudyInstanceUID, Guid.NewGuid().ToString());
             Assert.Equal(HttpStatusCode.NotFound, metadata.StatusCode);
 
-            metadata = await Client.GetStudyMetadataAsync(Guid.NewGuid().ToString());
+            metadata = await _client.GetStudyMetadataAsync(Guid.NewGuid().ToString());
             Assert.Equal(HttpStatusCode.NotFound, metadata.StatusCode);
         }
 
@@ -117,15 +117,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var dicomInstance = DicomInstance.Create(storedInstance);
 
-            HttpResult<IReadOnlyList<DicomDataset>> metadata = await Client.GetStudyMetadataAsync(dicomInstance.StudyInstanceUID);
+            HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.GetStudyMetadataAsync(dicomInstance.StudyInstanceUID);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
 
-            metadata = await Client.GetSeriesMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID);
+            metadata = await _client.GetSeriesMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
 
-            metadata = await Client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
+            metadata = await _client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
         }
@@ -153,7 +153,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 dicomFile1.Dataset.AddOrUpdate(metadataItems);
             }
 
-            HttpResult<DicomDataset> response = await Client.PostAsync(new[] { dicomFile1 });
+            HttpResult<DicomDataset> response = await _client.PostAsync(new[] { dicomFile1 });
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             DicomSequence successSequence = response.Value.GetSequence(DicomTag.ReferencedSOPSequence);
             ValidationHelpers.ValidateSuccessSequence(successSequence, dicomFile1.Dataset);

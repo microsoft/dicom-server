@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="3.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.1" />
     <PackageReference Include="Microsoft.Health.Fhir.Core" Version="1.0.0-master-20190514-1" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.3.2" />
   </ItemGroup>
 
 </Project>
