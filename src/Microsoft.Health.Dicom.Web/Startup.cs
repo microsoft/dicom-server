@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
@@ -29,20 +28,10 @@ namespace Microsoft.Health.Dicom.Web
                 options.AllowSynchronousIO = true;
             });
 
-            Core.Registration.IDicomServerBuilder dicomServerBuilder = services.AddDicomServer(Configuration)
+            services.AddDicomServer(Configuration)
                 .AddBlobStorageDataStore(Configuration)
-                .AddMetadataStorageDataStore(Configuration);
-
-            string dataStore = Configuration["DataStore"];
-
-            if (string.Equals(dataStore, KnownDataStores.CosmosDb, StringComparison.InvariantCultureIgnoreCase))
-            {
-                dicomServerBuilder.AddCosmosDbIndexingPersistence(Configuration);
-            }
-            else if (string.Equals(dataStore, KnownDataStores.SqlServer, StringComparison.InvariantCultureIgnoreCase))
-            {
-                dicomServerBuilder.AddExperimentalSqlServer();
-            }
+                .AddMetadataStorageDataStore(Configuration)
+                .AddExperimentalSqlServer();
 
             AddApplicationInsightsTelemetry(services);
         }
