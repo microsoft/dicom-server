@@ -17,20 +17,21 @@ namespace Microsoft.Health.Dicom.Web
         public static void Main(string[] args)
         {
             IWebHost host = WebHost.CreateDefaultBuilder(args)
-                                    .ConfigureAppConfiguration((hostContext, builder) =>
-                                    {
-                                        IConfigurationRoot builtConfig = builder.Build();
+                .ConfigureAppConfiguration((hostContext, builder) =>
+                {
+                    IConfigurationRoot builtConfig = builder.Build();
 
-                                        var keyVaultEndpoint = builtConfig["KeyVault:Endpoint"];
-                                        if (!string.IsNullOrEmpty(keyVaultEndpoint))
-                                        {
-                                            var azureServiceTokenProvider = new AzureServiceTokenProvider();
-                                            var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-                                            builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
-                                        }
-                                    })
-                                   .UseStartup<Startup>()
-                                   .Build();
+                    var keyVaultEndpoint = builtConfig["KeyVault:Endpoint"];
+                    if (!string.IsNullOrEmpty(keyVaultEndpoint))
+                    {
+                        var azureServiceTokenProvider = new AzureServiceTokenProvider();
+                        var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+                        builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+                    }
+                })
+                .UseStartup<Startup>()
+                .Build();
+
             host.Run();
         }
     }
