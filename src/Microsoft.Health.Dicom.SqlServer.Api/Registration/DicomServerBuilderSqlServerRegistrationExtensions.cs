@@ -23,10 +23,10 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomServerBuilderSqlServerRegistrationExtensions
     {
-        public static IDicomServerBuilder AddExperimentalSqlServer(this IDicomServerBuilder fhirServerBuilder, Action<SqlServerDataStoreConfiguration> configureAction = null)
+        public static IDicomServerBuilder AddExperimentalSqlServer(this IDicomServerBuilder dicomServerBuilder, Action<SqlServerDataStoreConfiguration> configureAction = null)
         {
-            EnsureArg.IsNotNull(fhirServerBuilder, nameof(fhirServerBuilder));
-            IServiceCollection services = fhirServerBuilder.Services;
+            EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
+            IServiceCollection services = dicomServerBuilder.Services;
 
             services.Add(provider =>
                 {
@@ -70,7 +70,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            return fhirServerBuilder;
+            return dicomServerBuilder;
         }
 
         /// <summary>
