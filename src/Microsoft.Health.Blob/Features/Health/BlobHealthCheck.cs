@@ -28,7 +28,7 @@ namespace Microsoft.Health.Blob.Features.Health
         /// Initializes a new instance of the <see cref="BlobHealthCheck"/> class.
         /// </summary>
         /// <param name="client">The cloud blob client factory.</param>
-        /// <param name="configuration">The CosmosDB configuration.</param>
+        /// <param name="configuration">The blob data store configuration.</param>
         /// <param name="namedBlobContainerConfigurationAccessor">The IOptions accessor to get a named container configuration version.</param>
         /// <param name="containerConfigurationName">Name to get corresponding container configuration.</param>
         /// <param name="testProvider">The test provider.</param>

@@ -7,14 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
 
-namespace Microsoft.Health.Dicom.CosmosDb.Features
+namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    internal static class IDicomIndexDataStoreExtensions
+    public static class IDicomIndexDataStoreExtensions
     {
-        public static async Task IndexInstanceAsync(
-            this IDicomIndexDataStore indexDataStore, DicomDataset dicomDataset, CancellationToken cancellationToken = default)
+        public static async Task IndexInstanceAsync(this IDicomIndexDataStore indexDataStore, DicomDataset dicomDataset, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -22,8 +20,7 @@ namespace Microsoft.Health.Dicom.CosmosDb.Features
             await indexDataStore.IndexSeriesAsync(new[] { dicomDataset }, cancellationToken);
         }
 
-        public static async Task DeleteInstanceIndexAsync(
-            this IDicomIndexDataStore indexDataStore, DicomInstance dicomInstance, CancellationToken cancellationToken = default)
+        public static async Task DeleteInstanceIndexAsync(this IDicomIndexDataStore indexDataStore, DicomInstance dicomInstance, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
