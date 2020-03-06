@@ -8,6 +8,7 @@ using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents;
+using Microsoft.Health.Dicom.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -18,20 +19,20 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
         [Fact]
         public void GivenInvalidInstanceIdentifers_WhenCreatingQuerySeriesDocument_ExceptionsThrown()
         {
-            Assert.Throws<ArgumentNullException>(() => new QuerySeriesDocument(null, Guid.NewGuid().ToString()));
-            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(string.Empty, Guid.NewGuid().ToString()));
-            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(new string('a', 65), Guid.NewGuid().ToString()));
-            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument("?...", Guid.NewGuid().ToString()));
-            Assert.Throws<ArgumentNullException>(() => new QuerySeriesDocument(Guid.NewGuid().ToString(), null));
-            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(Guid.NewGuid().ToString(), string.Empty));
+            Assert.Throws<ArgumentNullException>(() => new QuerySeriesDocument(null, TestUidGenerator.Generate()));
+            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(string.Empty, TestUidGenerator.Generate()));
+            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(new string('a', 65), TestUidGenerator.Generate()));
+            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument("?...", TestUidGenerator.Generate()));
+            Assert.Throws<ArgumentNullException>(() => new QuerySeriesDocument(TestUidGenerator.Generate(), null));
+            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(TestUidGenerator.Generate(), string.Empty));
             Assert.Throws<ArgumentException>(() => new QuerySeriesDocument("sameid", "sameid"));
 
-            Assert.Throws<ArgumentNullException>(() => QuerySeriesDocument.GetDocumentId(null, Guid.NewGuid().ToString()));
-            Assert.Throws<ArgumentException>(() => QuerySeriesDocument.GetDocumentId(string.Empty, Guid.NewGuid().ToString()));
-            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(Guid.NewGuid().ToString(), new string('a', 65)));
-            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(Guid.NewGuid().ToString(), "?..."));
-            Assert.Throws<ArgumentNullException>(() => QuerySeriesDocument.GetDocumentId(Guid.NewGuid().ToString(), null));
-            Assert.Throws<ArgumentException>(() => QuerySeriesDocument.GetDocumentId(Guid.NewGuid().ToString(), string.Empty));
+            Assert.Throws<ArgumentNullException>(() => QuerySeriesDocument.GetDocumentId(null, TestUidGenerator.Generate()));
+            Assert.Throws<ArgumentException>(() => QuerySeriesDocument.GetDocumentId(string.Empty, TestUidGenerator.Generate()));
+            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(TestUidGenerator.Generate(), new string('a', 65)));
+            Assert.Throws<ArgumentException>(() => new QuerySeriesDocument(TestUidGenerator.Generate(), "?..."));
+            Assert.Throws<ArgumentNullException>(() => QuerySeriesDocument.GetDocumentId(TestUidGenerator.Generate(), null));
+            Assert.Throws<ArgumentException>(() => QuerySeriesDocument.GetDocumentId(TestUidGenerator.Generate(), string.Empty));
             Assert.Throws<ArgumentException>(() => QuerySeriesDocument.GetDocumentId("sameid", "sameid"));
 
             Assert.Throws<ArgumentNullException>(() => QuerySeriesDocument.GetPartitionKey(null));
@@ -41,10 +42,10 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
         [Fact]
         public void GivenExistingInstance_WhenAddingToInstancesHashSet_IsNotAdded()
         {
-            var document = new QuerySeriesDocument(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            var document = new QuerySeriesDocument(TestUidGenerator.Generate(), TestUidGenerator.Generate());
 
             var dataset = new DicomDataset();
-            var sopInstanceUID = Guid.NewGuid().ToString();
+            var sopInstanceUID = TestUidGenerator.Generate();
             var testPatientName = Guid.NewGuid().ToString();
             dataset.Add(DicomTag.SOPInstanceUID, sopInstanceUID);
             dataset.Add(DicomTag.PatientName, testPatientName);
@@ -68,13 +69,13 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
         [Fact]
         public void GivenSeriesDocument_WhenSerialized_IsDeserializedCorrectly()
         {
-            var document = new QuerySeriesDocument(Guid.NewGuid().ToString(), Guid.NewGuid().ToString())
+            var document = new QuerySeriesDocument(TestUidGenerator.Generate(), TestUidGenerator.Generate())
             {
                 ETag = Guid.NewGuid().ToString(),
             };
 
             var dataset = new DicomDataset();
-            var sopInstanceUID = Guid.NewGuid().ToString();
+            var sopInstanceUID = TestUidGenerator.Generate();
             var testPatientName = Guid.NewGuid().ToString();
             dataset.Add(DicomTag.SOPInstanceUID, sopInstanceUID);
             dataset.Add(DicomTag.PatientName, testPatientName);

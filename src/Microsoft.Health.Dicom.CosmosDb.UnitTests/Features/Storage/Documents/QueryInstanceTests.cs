@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents;
+using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
@@ -41,9 +42,9 @@ namespace Microsoft.Health.Dicom.CosmosDb.UnitTests.Features.Storage.Documents
 
             var dicomDataset = new DicomDataset
             {
-                { DicomTag.StudyInstanceUID, Guid.NewGuid().ToString() },
-                { DicomTag.SeriesInstanceUID, Guid.NewGuid().ToString() },
-                { DicomTag.SOPInstanceUID, Guid.NewGuid().ToString() },
+                { DicomTag.StudyInstanceUID, TestUidGenerator.Generate() },
+                { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
+                { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
                 { DicomTag.PatientName, Guid.NewGuid().ToString() },
                 { DicomTag.StudyDate, DateTime.UtcNow },
             };

@@ -88,9 +88,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
 
             var dirName = "transcodings";
             var filename = Path.Combine(dirName, "JPEGProcess1.dcm");
-            var studyInstanceUID = DicomUID.Generate().UID;
-            var seriesInstanceUID = DicomUID.Generate().UID;
-            var sopInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = TestUidGenerator.Generate();
+            var seriesInstanceUID = TestUidGenerator.Generate();
+            var sopInstanceUID = TestUidGenerator.Generate();
             var sopClassUID = "1.2.840.10008.5.1.4.1.1.1";
 
             var dicomFile = DicomImageGenerator.GenerateDicomFile(

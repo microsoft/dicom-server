@@ -124,7 +124,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             byteContent.Headers.ContentType = DicomWebClient.MediaTypeApplicationDicom;
             multiContent.Add(byteContent);
 
-            string studyInstanceUID = DicomUID.Generate().UID;
+            string studyInstanceUID = TestUidGenerator.Generate();
             try
             {
                 DicomFile validFile = Samples.CreateRandomDicomFile(studyInstanceUID);
@@ -175,8 +175,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async void GivenOneDifferentStudyInstanceUID_WhenStoringWithProvidedStudyInstanceUID_TheServerShouldReturnAccepted()
         {
-            var studyInstanceUID1 = DicomUID.Generate().UID;
-            var studyInstanceUID2 = DicomUID.Generate().UID;
+            var studyInstanceUID1 = TestUidGenerator.Generate();
+            var studyInstanceUID2 = TestUidGenerator.Generate();
 
             try
             {
@@ -207,7 +207,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async void GivenDatasetWithDuplicateIdentifiers_WhenStoring_TheServerShouldReturnConflict()
         {
-            var studyInstanceUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID, studyInstanceUID);
             HttpResult<DicomDataset> response = await _client.PostAsync(new[] { dicomFile1 });
             Assert.False(response.Value.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
@@ -221,7 +221,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async void GivenExistingDataset_WhenStoring_TheServerShouldReturnConflict()
         {
-            var studyInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = TestUidGenerator.Generate();
             try
             {
                 DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);

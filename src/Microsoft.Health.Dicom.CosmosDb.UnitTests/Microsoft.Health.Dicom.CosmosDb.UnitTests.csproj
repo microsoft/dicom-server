@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.CosmosDb\Microsoft.Health.Dicom.CosmosDb.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj" />
   </ItemGroup>
   
 </Project>

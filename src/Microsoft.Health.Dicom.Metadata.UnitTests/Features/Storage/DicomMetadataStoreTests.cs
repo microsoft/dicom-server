@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Metadata.Config;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
+using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using Xunit;
 
@@ -40,23 +41,23 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage
 
             // Missing Study Instance UID
             await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(
-                CreateRandomInstanceDataset(studyInstanceUID: null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString())));
+                CreateRandomInstanceDataset(studyInstanceUID: null, seriesInstanceUID: TestUidGenerator.Generate(), sopInstanceUID: TestUidGenerator.Generate())));
 
             // Missing Series Instance UID
             await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(
-                CreateRandomInstanceDataset(Guid.NewGuid().ToString(), seriesInstanceUID: null, Guid.NewGuid().ToString())));
+                CreateRandomInstanceDataset(studyInstanceUID: TestUidGenerator.Generate(), seriesInstanceUID: null, sopInstanceUID: TestUidGenerator.Generate())));
 
             // Missing SOP Instance UID
             await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(
-                CreateRandomInstanceDataset(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), sopInstanceUID: null)));
+                CreateRandomInstanceDataset(studyInstanceUID: TestUidGenerator.Generate(), seriesInstanceUID: TestUidGenerator.Generate(), sopInstanceUID: null)));
 
             // Different Study Instance UIDs
             await Assert.ThrowsAsync<ArgumentException>(
                 () => _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(
                     new[]
                     {
-                        CreateRandomInstanceDataset(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
-                        CreateRandomInstanceDataset(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                        CreateRandomInstanceDataset(studyInstanceUID: TestUidGenerator.Generate(), seriesInstanceUID: TestUidGenerator.Generate(), sopInstanceUID: TestUidGenerator.Generate()),
+                        CreateRandomInstanceDataset(studyInstanceUID: TestUidGenerator.Generate(), seriesInstanceUID: TestUidGenerator.Generate(), sopInstanceUID: TestUidGenerator.Generate()),
                     }));
         }
 
@@ -75,26 +76,26 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage
             await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetStudyDicomMetadataAsync(string.Empty));
             await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetStudyDicomMetadataAsync(new string('a', 65)));
 
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(null, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(string.Empty, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(new string('a', 65), Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(Guid.NewGuid().ToString(), null));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(Guid.NewGuid().ToString(), string.Empty));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(Guid.NewGuid().ToString(), new string('a', 65)));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(null, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(string.Empty, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(new string('a', 65), TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(TestUidGenerator.Generate(), null));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(TestUidGenerator.Generate(), string.Empty));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetInstancesInSeriesAsync(TestUidGenerator.Generate(), new string('a', 65)));
 
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(null, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(string.Empty, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(new string('a', 65), Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(Guid.NewGuid().ToString(), null));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(Guid.NewGuid().ToString(), string.Empty));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(Guid.NewGuid().ToString(), new string('a', 65)));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(null, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(string.Empty, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(new string('a', 65), TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(TestUidGenerator.Generate(), null));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(TestUidGenerator.Generate(), string.Empty));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataWithAllOptionalAsync(TestUidGenerator.Generate(), new string('a', 65)));
 
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(null, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(string.Empty, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(new string('a', 65), Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(Guid.NewGuid().ToString(), null));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(Guid.NewGuid().ToString(), string.Empty));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(Guid.NewGuid().ToString(), new string('a', 65)));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(null, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(string.Empty, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(new string('a', 65), TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(TestUidGenerator.Generate(), null));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(TestUidGenerator.Generate(), string.Empty));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.GetSeriesDicomMetadataAsync(TestUidGenerator.Generate(), new string('a', 65)));
         }
 
         [Fact]
@@ -104,22 +105,22 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage
             await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteStudyAsync(string.Empty));
             await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteStudyAsync(new string('a', 65)));
 
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteSeriesAsync(null, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteSeriesAsync(string.Empty, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteSeriesAsync(new string('a', 65), Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteSeriesAsync(Guid.NewGuid().ToString(), null));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteSeriesAsync(Guid.NewGuid().ToString(), string.Empty));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteSeriesAsync(Guid.NewGuid().ToString(), new string('a', 65)));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteSeriesAsync(null, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteSeriesAsync(string.Empty, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteSeriesAsync(new string('a', 65), TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteSeriesAsync(TestUidGenerator.Generate(), null));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteSeriesAsync(TestUidGenerator.Generate(), string.Empty));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteSeriesAsync(TestUidGenerator.Generate(), new string('a', 65)));
 
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteInstanceAsync(null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(string.Empty, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(new string('a', 65), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteInstanceAsync(Guid.NewGuid().ToString(), null, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(Guid.NewGuid().ToString(), string.Empty, Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(Guid.NewGuid().ToString(), new string('a', 65), Guid.NewGuid().ToString()));
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteInstanceAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), null));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), string.Empty));
-            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), new string('a', 65)));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteInstanceAsync(null, TestUidGenerator.Generate(), TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(string.Empty, TestUidGenerator.Generate(), TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(new string('a', 65), TestUidGenerator.Generate(), TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteInstanceAsync(TestUidGenerator.Generate(), null, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(TestUidGenerator.Generate(), string.Empty, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(TestUidGenerator.Generate(), new string('a', 65), TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), null));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Empty));
+            await Assert.ThrowsAsync<ArgumentException>(() => _dicomMetadataStore.DeleteInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), new string('a', 65)));
         }
 
         private static DicomDataset CreateRandomInstanceDataset(

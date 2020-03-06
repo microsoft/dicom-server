@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.CosmosDb.Features;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.Documents;
 using Microsoft.Health.Dicom.CosmosDb.Features.Storage.StoredProcedures.Delete;
+using Microsoft.Health.Dicom.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -38,8 +39,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAValidInstance_WhenIndexing_CanBeQueried()
         {
-            string studyInstanceUID = Guid.NewGuid().ToString();
-            string seriesInstanceUID = Guid.NewGuid().ToString();
+            string studyInstanceUID = TestUidGenerator.Generate();
+            string seriesInstanceUID = TestUidGenerator.Generate();
 
             DicomDataset testInstance = CreateTestInstanceDicomDataset(studyInstanceUID, seriesInstanceUID);
 
@@ -65,8 +66,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenMultipleValidInstances_WhenIndexingInParallel_AreStored()
         {
             const int numberOfInstancesToIndex = 5;
-            string studyInstanceUID = Guid.NewGuid().ToString();
-            string seriesInstanceUID = Guid.NewGuid().ToString();
+            string studyInstanceUID = TestUidGenerator.Generate();
+            string seriesInstanceUID = TestUidGenerator.Generate();
 
             IList<DicomDataset> instances = Enumerable.Range(0, numberOfInstancesToIndex)
                                                         .Select(_ => CreateTestInstanceDicomDataset(studyInstanceUID, seriesInstanceUID))
@@ -94,8 +95,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenAValidSeries_WhenDeletingAnInstance_InstanceIsDeletedButSeriesRemains()
         {
             const int numberOfInstancesToIndex = 5;
-            string studyInstanceUID = Guid.NewGuid().ToString();
-            string seriesInstanceUID = Guid.NewGuid().ToString();
+            string studyInstanceUID = TestUidGenerator.Generate();
+            string seriesInstanceUID = TestUidGenerator.Generate();
 
             IList<DicomDataset> instances = await CreateSeriesAsync(studyInstanceUID, seriesInstanceUID, numberOfInstancesToIndex);
             string firstSopInstanceUID = instances[0].GetSingleValue<string>(DicomTag.SOPInstanceUID);
@@ -112,46 +113,29 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenAnInstanceWithInvalidInstanceId_WhenStoring_ExceptionIsThrown()
-        {
-            string studyInstanceUID = Guid.NewGuid().ToString();
-            string seriesInstanceUID = "?/#";
-
-            DicomDataset testInstance = CreateTestInstanceDicomDataset(studyInstanceUID, seriesInstanceUID);
-
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.IndexInstanceAsync(testInstance));
-
-            testInstance.AddOrUpdate(DicomTag.SeriesInstanceUID, new string('a', 65));
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.IndexInstanceAsync(testInstance));
-
-            testInstance.Remove(DicomTag.SeriesInstanceUID);
-            await Assert.ThrowsAsync<ArgumentException>(() => _indexDataStore.IndexInstanceAsync(testInstance));
-        }
-
-        [Fact]
         public async Task GivenNonExistentInstancesOrSeries_WhenDeleting_IndexDataStoreExceptionIsThrownWithNotFoundStatusCode()
         {
             DataStoreException deleteInstanceException = await Assert.ThrowsAsync<DataStoreException>(
-                () => _indexDataStore.DeleteInstanceIndexAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
+                () => _indexDataStore.DeleteInstanceIndexAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()));
             Assert.Equal((int)HttpStatusCode.NotFound, deleteInstanceException.StatusCode);
 
             DataStoreException deleteSeriesException = await Assert.ThrowsAsync<DataStoreException>(
-                () => _indexDataStore.DeleteSeriesIndexAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
+                () => _indexDataStore.DeleteSeriesIndexAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate()));
             Assert.Equal((int)HttpStatusCode.NotFound, deleteSeriesException.StatusCode);
         }
 
         [Fact]
         public async Task GivenNonExistentStudy_WhenQuerying_NoExceptionIsThrown()
         {
-            QueryResult<DicomStudy> studyResults = await _indexDataStore.QueryStudiesAsync(0, 10, Guid.NewGuid().ToString());
+            QueryResult<DicomStudy> studyResults = await _indexDataStore.QueryStudiesAsync(0, 10, TestUidGenerator.Generate());
             Assert.Empty(studyResults.Results);
             Assert.False(studyResults.HasMoreResults);
 
-            QueryResult<DicomSeries> seriesResults = await _indexDataStore.QuerySeriesAsync(0, 10, Guid.NewGuid().ToString());
+            QueryResult<DicomSeries> seriesResults = await _indexDataStore.QuerySeriesAsync(0, 10, TestUidGenerator.Generate());
             Assert.Empty(seriesResults.Results);
             Assert.False(studyResults.HasMoreResults);
 
-            QueryResult<DicomInstance> instanceResults = await _indexDataStore.QueryInstancesAsync(0, 10, Guid.NewGuid().ToString());
+            QueryResult<DicomInstance> instanceResults = await _indexDataStore.QueryInstancesAsync(0, 10, TestUidGenerator.Generate());
             Assert.Empty(instanceResults.Results);
             Assert.False(studyResults.HasMoreResults);
         }
@@ -159,7 +143,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAStoredInstance_WhenStoringAgain_ConflictExceptionThrown()
         {
-            DicomDataset testInstance = CreateTestInstanceDicomDataset(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            DicomDataset testInstance = CreateTestInstanceDicomDataset(TestUidGenerator.Generate(), TestUidGenerator.Generate());
             await _indexDataStore.IndexInstanceAsync(testInstance);
             DataStoreException dataStoreException = await Assert.ThrowsAsync<DataStoreException>(() => _indexDataStore.IndexInstanceAsync(testInstance));
             Assert.Equal((int)HttpStatusCode.Conflict, dataStoreException.StatusCode);
@@ -184,12 +168,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag unsupportedDicomTag = DicomTag.AbortFlag;
             DicomTag supportedDicomTag = DicomTag.PatientName;
 
-            var studyInstanceUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = TestUidGenerator.Generate();
             var testInstance1PatientName = "Test1";
-            DicomDataset testInstance1 = CreateTestInstanceDicomDataset(studyInstanceUID, Guid.NewGuid().ToString(), testInstance1PatientName);
-            DicomDataset testInstance2 = CreateTestInstanceDicomDataset(studyInstanceUID, Guid.NewGuid().ToString(), "Test2");
+            DicomDataset testInstance1 = CreateTestInstanceDicomDataset(studyInstanceUID, TestUidGenerator.Generate(), testInstance1PatientName);
+            DicomDataset testInstance2 = CreateTestInstanceDicomDataset(studyInstanceUID, TestUidGenerator.Generate(), "Test2");
 
-            testInstance1.AddOrUpdate(unsupportedDicomTag, "DifferentValue");
+            testInstance1.AddOrUpdate(unsupportedDicomTag, "DIFFERENT_VALUE");
 
             await _indexDataStore.IndexInstanceAsync(testInstance1);
             await _indexDataStore.IndexInstanceAsync(testInstance2);
@@ -218,9 +202,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenIndexedInstance_WhenQueryingByPatientName_InstancesIsRetrieved()
         {
-            string studyInstanceUID = Guid.NewGuid().ToString();
-            string seriesInstanceUID = Guid.NewGuid().ToString();
-            string referringPhysicianName = Guid.NewGuid().ToString();
+            string studyInstanceUID = TestUidGenerator.Generate();
+            string seriesInstanceUID = TestUidGenerator.Generate();
+            string referringPhysicianName = TestUidGenerator.Generate();
 
             DicomDataset testInstance = CreateTestInstanceDicomDataset(studyInstanceUID, seriesInstanceUID);
             testInstance.Add(DicomTag.ReferringPhysicianName, referringPhysicianName);
@@ -241,8 +225,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             const int numberOfInstances = 20;
             Assert.Equal(0, numberOfInstances % 2);
-            string studyInstanceUID = Guid.NewGuid().ToString();
-            string seriesInstanceUID = Guid.NewGuid().ToString();
+            string studyInstanceUID = TestUidGenerator.Generate();
+            string seriesInstanceUID = TestUidGenerator.Generate();
 
             IList<DicomDataset> instances = await CreateSeriesAsync(studyInstanceUID, seriesInstanceUID, numberOfInstances);
             var instanceUIDs = new HashSet<string>(instances.Select(x => x.GetSingleValue<string>(DicomTag.SOPInstanceUID)));
@@ -301,7 +285,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Single(queryStudiesResults2.Results);
             Assert.False(queryStudiesResults2.HasMoreResults);
 
-            QueryResult<DicomStudy> queryStudiesResults3 = await _indexDataStore.QueryStudiesAsync(0, totalItems + 1, Guid.NewGuid().ToString());
+            QueryResult<DicomStudy> queryStudiesResults3 = await _indexDataStore.QueryStudiesAsync(0, totalItems + 1, TestUidGenerator.Generate());
             Assert.Empty(queryStudiesResults3.Results);
             Assert.False(queryStudiesResults3.HasMoreResults);
 
@@ -315,7 +299,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(numberOfSeriesPerStudy, querySeriesResults2.Results.Count());
             Assert.False(querySeriesResults2.HasMoreResults);
 
-            QueryResult<DicomSeries> querySeriesResults3 = await _indexDataStore.QuerySeriesAsync(0, totalItems + 1, Guid.NewGuid().ToString());
+            QueryResult<DicomSeries> querySeriesResults3 = await _indexDataStore.QuerySeriesAsync(0, totalItems + 1, TestUidGenerator.Generate());
             Assert.Empty(querySeriesResults3.Results);
             Assert.False(querySeriesResults3.HasMoreResults);
 
@@ -331,8 +315,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenInstanceWithInjectedSql_WhenQuerying_IsReturnedCorrectly()
         {
-            string studyInstanceUID = Guid.NewGuid().ToString();
-            string seriesInstanceUID = Guid.NewGuid().ToString();
+            string studyInstanceUID = TestUidGenerator.Generate();
+            string seriesInstanceUID = TestUidGenerator.Generate();
 
             DicomDataset testInstance = CreateTestInstanceDicomDataset(studyInstanceUID, seriesInstanceUID);
             var testDicomInstance = DicomInstance.Create(testInstance);
@@ -355,12 +339,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenWorstCaseStoreScenario_WhenAllInstancesHaveDifferentTagValues_CanIndexAndQueryCorrectly()
         {
-            string studyInstanceUID = Guid.NewGuid().ToString();
-            string seriesInstanceUID = Guid.NewGuid().ToString();
+            string studyInstanceUID = TestUidGenerator.Generate();
+            string seriesInstanceUID = TestUidGenerator.Generate();
             var startDateTime = new DateTime(2019, 6, 21);
             const int numberOfItemsToInsert = 100;
 
-            string[] patientNames = Enumerable.Range(0, numberOfItemsToInsert).Select(_ => Guid.NewGuid().ToString()).ToArray();
+            string[] patientNames = Enumerable.Range(0, numberOfItemsToInsert).Select(_ => TestUidGenerator.Generate()).ToArray();
             DicomDataset[] series = Enumerable.Range(0, numberOfItemsToInsert).Select(x =>
             {
                 DicomDataset dataset = CreateTestInstanceDicomDataset(studyInstanceUID, seriesInstanceUID, patientNames[x]);
@@ -420,7 +404,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenValidDocumentAndMissingDocument_WhenDeletingUsingAStoredProcedure_EntireTransactionFailsAndNothingDeleted()
         {
-            var validDocument = new Document(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            var validDocument = new Document(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
             var requestOptions = new RequestOptions() { PartitionKey = new PartitionKey(validDocument.PartitionKey) };
             validDocument = await _fixture.DocumentClient.GetOrCreateDocumentAsync(_fixture.DatabaseId, _fixture.CollectionId, validDocument.Id, requestOptions, validDocument);
 
@@ -429,13 +413,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Document[] documents = new[]
             {
                 validDocument,
-                new Document(Guid.NewGuid().ToString(), validDocument.ETag, validDocument.PartitionKey),
+                new Document(TestUidGenerator.Generate(), validDocument.ETag, validDocument.PartitionKey),
             };
             await Assert.ThrowsAnyAsync<DocumentClientException>(
                 () => deleteStoredProcedure.Execute(_fixture.DocumentClient, _fixture.DatabaseId, _fixture.CollectionId, validDocument.PartitionKey, documents));
 
             // Invalid ETag
-            Document[] invalidETag = new[] { new Document(validDocument.Id, Guid.NewGuid().ToString(), validDocument.PartitionKey) };
+            Document[] invalidETag = new[] { new Document(validDocument.Id, TestUidGenerator.Generate(), validDocument.PartitionKey) };
 
             await Assert.ThrowsAnyAsync<DocumentClientException>(
             () => deleteStoredProcedure.Execute(_fixture.DocumentClient, _fixture.DatabaseId, _fixture.CollectionId, validDocument.PartitionKey, invalidETag));
@@ -459,7 +443,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 { DicomTag.StudyInstanceUID, studyInstanceUID },
                 { DicomTag.SeriesInstanceUID, seriesInstanceUID },
-                { DicomTag.SOPInstanceUID, Guid.NewGuid().ToString() },
+                { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
                 { DicomTag.PatientName, patientName },
                 { DicomTag.StudyDate, new DateTime(2019, 6, 21) },
             };
@@ -472,10 +456,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var indexedDatasets = new List<DicomDataset>(numberOfStudies * numberOfSeriesPerStudy * numberOfInstancesPerSeries);
             for (var studyIndex = 0; studyIndex < numberOfStudies; studyIndex++)
             {
-                var studyInstanceUID = Guid.NewGuid().ToString();
+                var studyInstanceUID = TestUidGenerator.Generate();
                 for (var seriesIndex = 0; seriesIndex < numberOfSeriesPerStudy; seriesIndex++)
                 {
-                    IList<DicomDataset> series = await CreateSeriesAsync(studyInstanceUID, Guid.NewGuid().ToString(), numberOfInstancesPerSeries);
+                    IList<DicomDataset> series = await CreateSeriesAsync(studyInstanceUID, TestUidGenerator.Generate(), numberOfInstancesPerSeries);
                     indexedDatasets.AddRange(series);
                 }
             }
