@@ -39,7 +39,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.3" />
   </ItemGroup>
 
+  <Choose>
+    <When Condition="$(MSBuildProjectName)!='Microsoft.Health.Extensions.BuildTimeCodeGenerator' AND !$(MSBuildProjectName.Contains('Test'))">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.3" />
+      </ItemGroup>
+    </When>
+  </Choose>
 </Project>

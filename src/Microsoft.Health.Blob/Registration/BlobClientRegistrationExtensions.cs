@@ -6,7 +6,6 @@
 using System;
 using System.Linq;
 using EnsureThat;
-using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
@@ -51,7 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.Add(sp => sp.GetService<BlobClientProvider>().CreateBlobClient())
                 .Singleton()
-                .AsService<CloudBlobClient>();
+                .AsSelf();
 
             services.Add<BlobClientReadWriteTestProvider>()
                 .Singleton()

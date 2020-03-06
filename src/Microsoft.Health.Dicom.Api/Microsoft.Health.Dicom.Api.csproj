@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ensure.That" Version="8.1.1" />
+    <PackageReference Include="Ensure.That" Version="8.1.2" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20190514-1" />
   </ItemGroup>
