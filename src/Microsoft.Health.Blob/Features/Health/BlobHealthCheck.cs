@@ -59,7 +59,7 @@ namespace Microsoft.Health.Blob.Features.Health
         {
             try
             {
-                await _testProvider.PerformTestAsync(_client, _configuration, _blobContainerConfiguration);
+                await _testProvider.PerformTestAsync(_client, _configuration, _blobContainerConfiguration, cancellationToken);
 
                 return HealthCheckResult.Healthy("Successfully connected to the blob data store.");
             }

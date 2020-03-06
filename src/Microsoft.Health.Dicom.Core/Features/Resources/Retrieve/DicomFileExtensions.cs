@@ -5,13 +5,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using Dicom;
 using Dicom.Imaging;
-using Dicom.Imaging.Codec;
-using Dicom.IO.Buffer;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 
@@ -19,33 +16,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
     public static class DicomFileExtensions
     {
-        public static Stream GetFrameAsDicomData(this DicomFile dicomFile, int frame, DicomTransferSyntax requestedTransferSyntax)
-        {
-            EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-            DicomDataset dataset = dicomFile.Dataset;
-            IByteBuffer resultByteBuffer;
-
-            if (dataset.InternalTransferSyntax.IsEncapsulated && (requestedTransferSyntax != null))
-            {
-                // Decompress single frame from source dataset
-                var transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, requestedTransferSyntax);
-                resultByteBuffer = transcoder.DecodeFrame(dataset, frame);
-            }
-            else
-            {
-                // Pull uncompressed frame from source pixel data
-                var pixelData = DicomPixelData.Create(dataset);
-                if (frame >= pixelData.NumberOfFrames)
-                {
-                    throw new DataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame '{frame}' does not exist.", nameof(frame)));
-                }
-
-                resultByteBuffer = pixelData.GetFrame(frame);
-            }
-
-            return new MemoryStream(resultByteBuffer.Data);
-        }
-
         public static void ValidateHasFrames(this DicomFile dicomFile, IEnumerable<int> frames)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));

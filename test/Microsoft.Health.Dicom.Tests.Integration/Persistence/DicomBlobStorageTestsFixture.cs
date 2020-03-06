@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Metadata.Config;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
+using Microsoft.IO;
 using Newtonsoft.Json;
 using NSubstitute;
 using Xunit;
@@ -39,6 +40,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 ConnectionString = Environment.GetEnvironmentVariable("Blob:ConnectionString") ?? BlobLocalEmulator.ConnectionString,
             };
+            RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         }
 
         public IDicomBlobDataStore DicomBlobDataStore { get; private set; }
@@ -47,13 +49,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IDicomInstanceMetadataStore DicomInstanceMetadataStore { get; private set; }
 
+        public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
+
         public async Task InitializeAsync()
         {
             IOptionsMonitor<BlobContainerConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
             optionsMonitor.Get(BlobConstants.ContainerConfigurationName).Returns(_blobContainerConfiguration);
             optionsMonitor.Get(MetadataConstants.ContainerConfigurationName).Returns(_metadataContainerConfiguration);
 
-            IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider();
+            IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager);
 
             var blobClientInitializer = new BlobClientInitializer(testProvider, NullLogger<BlobClientInitializer>.Instance);
             _blobClient = blobClientInitializer.CreateBlobClient(_blobDataStoreConfiguration);
@@ -71,7 +75,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomBlobDataStore = new DicomBlobDataStore(_blobClient, optionsMonitor, NullLogger<DicomBlobDataStore>.Instance);
             DicomMetadataStore = new DicomMetadataStore(_blobClient, optionsMonitor, new DicomMetadataConfiguration(), NullLogger<DicomMetadataStore>.Instance);
-            DicomInstanceMetadataStore = new DicomInstanceMetadataStore(_blobClient, jsonSerializer, optionsMonitor, NullLogger<DicomInstanceMetadataStore>.Instance);
+            DicomInstanceMetadataStore = new DicomInstanceMetadataStore(_blobClient, jsonSerializer, optionsMonitor, RecyclableMemoryStreamManager, NullLogger<DicomInstanceMetadataStore>.Instance);
         }
 
         public async Task DisposeAsync()

@@ -16,9 +16,11 @@ using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.IO;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Builder
@@ -67,15 +69,22 @@ namespace Microsoft.AspNetCore.Builder
             });
 
             services.AddSingleton<IDicomRouteProvider, DicomRouteProvider>();
-            services.Add<DicomDataStore>().Scoped().AsSelf();
+            services.Add<DicomDataStore>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
+
+            services.AddTransient<IDicomQueryParser, DicomQueryParser>();
 
             // Register the Json Serializer to use
             var jsonSerializer = new JsonSerializer();
             jsonSerializer.Converters.Add(new JsonDicomConverter());
             services.AddSingleton(jsonSerializer);
 
+            services.AddSingleton<RecyclableMemoryStreamManager>();
             return new DicomServerBuilder(services);
         }
 

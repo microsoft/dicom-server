@@ -14,7 +14,12 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.IO;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
+using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 {
@@ -36,14 +41,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         internal const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
-        public DicomWebClient(HttpClient httpClient)
+        public DicomWebClient(HttpClient httpClient, RecyclableMemoryStreamManager recyclableMemoryStreamManager)
         {
             EnsureArg.IsNotNull(httpClient, nameof(httpClient));
+            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
             HttpClient = httpClient;
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
+
+            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
         public HttpClient HttpClient { get; }
@@ -83,7 +92,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 {
                     if (response.IsSuccessStatusCode)
                     {
-                        IEnumerable<Stream> responseStreams = await response.Content.ReadMultipartResponseAsStreamsAsync();
+                        IEnumerable<Stream> responseStreams = await ReadMultipartResponseAsStreamsAsync(response.Content);
                         return new HttpResult<IReadOnlyList<Stream>>(response.StatusCode, responseStreams.ToList());
                     }
 
@@ -105,7 +114,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 {
                     if (response.IsSuccessStatusCode)
                     {
-                        IEnumerable<Stream> responseStreams = await response.Content.ReadMultipartResponseAsStreamsAsync();
+                        IEnumerable<Stream> responseStreams = await ReadMultipartResponseAsStreamsAsync(response.Content);
                         return new HttpResult<IReadOnlyList<Stream>>(response.StatusCode, responseStreams.ToList());
                     }
 
@@ -124,7 +133,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 {
                     if (response.IsSuccessStatusCode)
                     {
-                        IEnumerable<Stream> responseStreams = await response.Content.ReadMultipartResponseAsStreamsAsync();
+                        IEnumerable<Stream> responseStreams = await ReadMultipartResponseAsStreamsAsync(response.Content);
                         return new HttpResult<IReadOnlyList<Stream>>(response.StatusCode, responseStreams.ToList());
                     }
 
@@ -144,7 +153,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 {
                     if (response.IsSuccessStatusCode)
                     {
-                        IEnumerable<Stream> responseStreams = await response.Content.ReadMultipartResponseAsStreamsAsync();
+                        IEnumerable<Stream> responseStreams = await ReadMultipartResponseAsStreamsAsync(response.Content);
                         return new HttpResult<IReadOnlyList<DicomFile>>(response.StatusCode, responseStreams.Select(x => DicomFile.Open(x)).ToList());
                     }
 
@@ -179,7 +188,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             var postContent = new List<byte[]>();
             foreach (DicomFile dicomFile in dicomFiles)
             {
-                using (var stream = new MemoryStream())
+                await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
                 {
                     await dicomFile.SaveAsync(stream);
                     postContent.Add(stream.ToArray());
@@ -260,11 +269,34 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream)
         {
-            using (var memory = new MemoryStream())
+            await using (MemoryStream memory = _recyclableMemoryStreamManager.GetStream())
             {
                 await stream.CopyToAsync(memory);
                 return memory.ToArray();
             }
+        }
+
+        private async Task<IEnumerable<Stream>> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent)
+        {
+            EnsureArg.IsNotNull(httpContent, nameof(httpContent));
+
+            var result = new List<Stream>();
+            await using (Stream stream = await httpContent.ReadAsStreamAsync())
+            {
+                MultipartSection part;
+                var media = MediaTypeHeaderValue.Parse(httpContent.Headers.ContentType.ToString());
+                var multipartReader = new MultipartReader(HeaderUtilities.RemoveQuotes(media.Boundary).Value, stream, 100);
+
+                while ((part = await multipartReader.ReadNextSectionAsync()) != null)
+                {
+                    MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream();
+                    await part.Body.CopyToAsync(memoryStream);
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    result.Add(memoryStream);
+                }
+            }
+
+            return result;
         }
     }
 }
