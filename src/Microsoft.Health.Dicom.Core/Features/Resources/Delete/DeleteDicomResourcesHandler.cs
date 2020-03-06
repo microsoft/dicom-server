@@ -18,9 +18,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
 {
     public class DeleteDicomResourcesHandler : IRequestHandler<DeleteDicomResourcesRequest, DeleteDicomResourcesResponse>
     {
-        private readonly DicomDataStore _dicomDataStore;
+        private readonly IDicomDataStore _dicomDataStore;
 
-        public DeleteDicomResourcesHandler(DicomDataStore dicomDataStore)
+        public DeleteDicomResourcesHandler(IDicomDataStore dicomDataStore)
         {
             EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
 

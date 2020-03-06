@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
+using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
@@ -55,6 +57,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _environmentUrl = environmentUrl;
 
             HttpClient = CreateHttpClient();
+
+            RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+
+            Client = new DicomWebClient(HttpClient, RecyclableMemoryStreamManager);
         }
 
         public bool IsUsingInProcTestServer { get; }
@@ -62,6 +68,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public HttpClient HttpClient { get; }
 
         protected TestServer Server { get; private set; }
+
+        public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
+
+        public DicomWebClient Client { get; }
 
         public HttpClient CreateHttpClient()
             => new HttpClient(new SessionMessageHandler(_messageHandler)) { BaseAddress = new Uri(_environmentUrl) };
