@@ -29,15 +29,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Api.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core.UnitTests", "src\Microsoft.Health.Dicom.Core.UnitTests\Microsoft.Health.Dicom.Core.UnitTests.csproj", "{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.CosmosDb", "src\Microsoft.Health.Dicom.CosmosDb\Microsoft.Health.Dicom.CosmosDb.csproj", "{E78AB378-6CF4-442A-BC34-81A1B7431ECD}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.CosmosDb.UnitTests", "src\Microsoft.Health.Dicom.CosmosDb.UnitTests\Microsoft.Health.Dicom.CosmosDb.UnitTests.csproj", "{FA0B32A4-E623-4B24-902D-BFDC6E42E612}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Metadata", "src\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj", "{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Metadata.UnitTests", "src\Microsoft.Health.Dicom.Metadata.UnitTests\Microsoft.Health.Dicom.Metadata.UnitTests.csproj", "{C66FAF73-02E3-41E0-8794-594F2E38E36F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tests.Common", "src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj", "{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{622D3539-1B27-45E7-86F4-7733482828D8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.BuildTimeCodeGenerator", "tools\Microsoft.Health.Extensions.BuildTimeCodeGenerator\Microsoft.Health.Extensions.BuildTimeCodeGenerator.csproj", "{ECD217D6-15F4-4EE2-9386-24ABE994FCDE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.SqlServer", "src\Microsoft.Health.Fhir.SqlServer\Microsoft.Health.Fhir.SqlServer.csproj", "{D3D120D9-4983-4A90-AF84-2811DA11A0C8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Core", "src\Microsoft.Health.Fhir.Core\Microsoft.Health.Fhir.Core.csproj", "{0CC699AB-F606-45F3-BC8E-444DF807378A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer.Api", "src\Microsoft.Health.Dicom.SqlServer.Api\Microsoft.Health.Dicom.SqlServer.Api.csproj", "{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,14 +91,6 @@ Global
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E78AB378-6CF4-442A-BC34-81A1B7431ECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E78AB378-6CF4-442A-BC34-81A1B7431ECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E78AB378-6CF4-442A-BC34-81A1B7431ECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E78AB378-6CF4-442A-BC34-81A1B7431ECD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FA0B32A4-E623-4B24-902D-BFDC6E42E612}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -105,6 +103,22 @@ Global
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECD217D6-15F4-4EE2-9386-24ABE994FCDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECD217D6-15F4-4EE2-9386-24ABE994FCDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECD217D6-15F4-4EE2-9386-24ABE994FCDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECD217D6-15F4-4EE2-9386-24ABE994FCDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3D120D9-4983-4A90-AF84-2811DA11A0C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3D120D9-4983-4A90-AF84-2811DA11A0C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3D120D9-4983-4A90-AF84-2811DA11A0C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3D120D9-4983-4A90-AF84-2811DA11A0C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CC699AB-F606-45F3-BC8E-444DF807378A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CC699AB-F606-45F3-BC8E-444DF807378A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CC699AB-F606-45F3-BC8E-444DF807378A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CC699AB-F606-45F3-BC8E-444DF807378A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -120,14 +134,16 @@ Global
 		{B0570D75-E376-44AC-870B-87ECB54F0AE3} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{D7B538E5-8B3B-487C-8F6A-475F80C50DFE} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{E78AB378-6CF4-442A-BC34-81A1B7431ECD} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{FA0B32A4-E623-4B24-902D-BFDC6E42E612} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{C66FAF73-02E3-41E0-8794-594F2E38E36F} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{ECD217D6-15F4-4EE2-9386-24ABE994FCDE} = {622D3539-1B27-45E7-86F4-7733482828D8}
+		{D3D120D9-4983-4A90-AF84-2811DA11A0C8} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{0CC699AB-F606-45F3-BC8E-444DF807378A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
+		RESX_SortFileContentOnSave = True
 	EndGlobalSection
 EndGlobal

@@ -5,12 +5,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ensure.That" Version="8.1.1" />
+    <PackageReference Include="Ensure.That" Version="8.1.2" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="10.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="3.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.1" />
-    <PackageReference Include="Microsoft.Health.Fhir.Core" Version="1.0.0-master-20190514-1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20200304-1" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.3.2" />
+ </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Health.Fhir.Core\Microsoft.Health.Fhir.Core.csproj" />
   </ItemGroup>
 
 </Project>
