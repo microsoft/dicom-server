@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             Limit = limit;
             Offset = offset;
             FilterConditions = filterConditions;
-        }
+         }
 
         public DicomQueryExpression()
         {

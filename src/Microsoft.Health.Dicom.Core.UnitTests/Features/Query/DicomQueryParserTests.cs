@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             DicomQueryExpression dicomQueryExpression = _queryParser
                 .Parse(GetQueryCollection(key, value), ResourceType.Study);
             Assert.False(dicomQueryExpression.IsEmpty);
-            var singleValueCond = dicomQueryExpression.FilterConditions.First() as DicomQuerySingleValueMatchingCondition<string>;
+            var singleValueCond = dicomQueryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
             Assert.NotNull(singleValueCond);
             Assert.True(singleValueCond.DicomTag == DicomTag.PatientName);
             Assert.True(singleValueCond.Value == value);
@@ -189,7 +189,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
                 .Parse(GetQueryCollection(key, value), ResourceType.Study);
-            var cond = dicomQueryExpression.FilterConditions.First() as DicomQueryRangeValueMatchingCondition<string>;
+            var cond = dicomQueryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
             Assert.NotNull(cond);
             Assert.True(cond.DicomTag == DicomTag.StudyDate);
             Assert.True(cond.Minimum == value.Split('-')[0]);

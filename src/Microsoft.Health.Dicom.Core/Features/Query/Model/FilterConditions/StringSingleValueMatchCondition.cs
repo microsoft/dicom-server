@@ -6,14 +6,19 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DicomQuerySingleValueMatchingCondition<T> : DicomQueryFilterCondition
+    public class StringSingleValueMatchCondition : DicomQueryFilterCondition
     {
-        internal DicomQuerySingleValueMatchingCondition(DicomTag tag, T value)
+        internal StringSingleValueMatchCondition(DicomTag tag, string value)
             : base(tag)
         {
             Value = value;
         }
 
-        public T Value { get; }
+        public string Value { get; }
+
+        public override void Accept(QueryFilterConditionVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

@@ -25,17 +25,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     ParseDate(minDate, dicomTag.DictionaryEntry.Keyword);
                     ParseDate(maxDate, dicomTag.DictionaryEntry.Keyword);
 
-                    return new DicomQueryRangeValueMatchingCondition<string>(dicomTag, minDate, maxDate);
+                    return new DateRangeValueMatchCondition(dicomTag, minDate, maxDate);
                 }
             }
 
             ParseDate(value, dicomTag.DictionaryEntry.Keyword);
-            return new DicomQuerySingleValueMatchingCondition<string>(dicomTag, value);
+            return new StringSingleValueMatchCondition(dicomTag, value);
         }
 
         private static DicomQueryFilterCondition ParseStringTagValue(DicomTag dicomTag, string value)
         {
-            return new DicomQuerySingleValueMatchingCondition<string>(dicomTag, value);
+            return new StringSingleValueMatchCondition(dicomTag, value);
         }
 
         private static void ParseDate(string date, string tagKeyword)

@@ -15,12 +15,12 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
             IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
             ResourceType resourceType,
             string studyInstanceUID = null,
-            string seriesUID = null)
+            string seriesInstanceUID = null)
         {
             RequestQuery = requestQuery;
             ResourceType = resourceType;
             StudyInstanceUID = studyInstanceUID;
-            SeriesUID = seriesUID;
+            SeriesInstanceUID = seriesInstanceUID;
         }
 
         public IEnumerable<KeyValuePair<string, StringValues>> RequestQuery { get; }
@@ -29,6 +29,6 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
 
         public string StudyInstanceUID { get; }
 
-        public string SeriesUID { get; }
+        public string SeriesInstanceUID { get; }
     }
 }

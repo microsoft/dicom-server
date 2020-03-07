@@ -150,6 +150,24 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
         }
     }
 
+    public class NullableDateColumn : Column<DateTime>
+    {
+        public NullableDateColumn(string name)
+            : base(name, SqlDbType.DateTime2, true)
+        {
+        }
+
+        public override DateTime Read(SqlDataReader reader, int ordinal)
+        {
+            return reader.GetDateTime(Metadata.Name, ordinal);
+        }
+
+        public override void Set(SqlDataRecord record, int ordinal, DateTime value)
+        {
+            record.SetDateTime(ordinal, value);
+        }
+    }
+
     public class DateTimeOffsetColumn : Column<DateTimeOffset>
     {
         public DateTimeOffsetColumn(string name, byte scale)

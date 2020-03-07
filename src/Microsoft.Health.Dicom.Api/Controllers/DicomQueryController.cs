@@ -3,8 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Net;
 using System.Threading.Tasks;
+using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -15,7 +17,7 @@ using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages;
 
-namespace Microsoft.Health.Dicom.Web.Controllers
+namespace Microsoft.Health.Dicom.Api
 {
     [Authorize]
     public class DicomQueryController : Controller
@@ -76,7 +78,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [Route("studies/{studyInstanceUID}/series")]
         public async Task<IActionResult> QueryForSeriesInStudyAsync(string studyInstanceUID)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
+            ValidateUID(studyInstanceUID, nameof(studyInstanceUID));
 
             _logger.LogInformation($"DICOM Web Query Series request for study '{studyInstanceUID}' received. QueryString '{Request.QueryString}.");
 
@@ -115,7 +117,7 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [Route("studies/{studyInstanceUID}/instances")]
         public async Task<IActionResult> QueryForInstancesInStudyAsync(string studyInstanceUID)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
+            ValidateUID(studyInstanceUID, nameof(studyInstanceUID));
 
             _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUID}' received. QueryString '{Request.QueryString}.");
 
@@ -133,22 +135,30 @@ namespace Microsoft.Health.Dicom.Web.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [Route("studies/{studyInstanceUID}/series/{seriesUID}/instances")]
-        public async Task<IActionResult> QueryForInstancesInSeriesAsync(string studyInstanceUID, string seriesUID)
+        [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances")]
+        public async Task<IActionResult> QueryForInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUID, nameof(studyInstanceUID));
-            EnsureArg.IsNotNullOrWhiteSpace(seriesUID, nameof(seriesUID));
+            ValidateUID(studyInstanceUID, nameof(studyInstanceUID));
+            ValidateUID(seriesInstanceUID, nameof(seriesInstanceUID));
 
-            _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUID}' and series '{seriesUID}' received. QueryString '{Request.QueryString}.");
+            _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUID}' and series '{seriesInstanceUID}' received. QueryString '{Request.QueryString}.");
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
                 ResourceType.Instance,
                 studyInstanceUID: studyInstanceUID,
-                seriesUID: seriesUID,
+                seriesInstanceUID: seriesInstanceUID,
                 cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(response.StatusCode);
+        }
+
+        private static void ValidateUID(string value, string nameOfParam)
+        {
+            if (!DicomUID.IsValid(value))
+            {
+                throw new ArgumentException(string.Format(DicomApiResource.InvalidValue, value, nameOfParam));
+            }
         }
     }
 }

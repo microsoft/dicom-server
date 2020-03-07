@@ -48,14 +48,16 @@ GO
 /*************************************************************
     Schema bootstrap
 **************************************************************/
+CREATE SCHEMA dicom
+GO
 
-CREATE TABLE dbo.SchemaVersion
+CREATE TABLE dicom.SchemaVersion
 (
     Version int PRIMARY KEY,
     Status varchar(10)
 )
 
-INSERT INTO dbo.SchemaVersion
+INSERT INTO dicom.SchemaVersion
 VALUES
     (1, 'started')
 
@@ -71,7 +73,7 @@ GO
 --  RETURNS
 --      The current version as a result set
 --
-CREATE PROCEDURE dbo.SelectCurrentSchemaVersion
+CREATE PROCEDURE dicom.SelectCurrentSchemaVersion
 AS
 BEGIN
     SET NOCOUNT ON
@@ -95,25 +97,71 @@ GO
 --      @status
 --          * The status of the version
 --
-CREATE PROCEDURE dbo.UpsertSchemaVersion
+CREATE PROCEDURE dicom.UpsertSchemaVersion
     @version int,
     @status varchar(10)
 AS
     SET NOCOUNT ON
 
     IF EXISTS(SELECT *
-        FROM dbo.SchemaVersion
+        FROM dicom.SchemaVersion
         WHERE Version = @version)
     BEGIN
-        UPDATE dbo.SchemaVersion
+        UPDATE dicom.SchemaVersion
         SET Status = @status
         WHERE Version = @version
     END
     ELSE
     BEGIN
-        INSERT INTO dbo.SchemaVersion
+        INSERT INTO dicom.SchemaVersion
             (Version, Status)
         VALUES
             (@version, @status)
     END
+GO
+/*************************************************************
+    Tables
+**************************************************************/
+--Mapping table for dicom retrieval
+CREATE TABLE dicom.UIDMapping (
+	--instance keys
+	StudyInstanceUID NVARCHAR(64) NOT NULL,
+	SeriesInstanceUID NVARCHAR(64) NOT NULL,
+	SOPInstanceUID NVARCHAR(64) NOT NULL,
+	--data consitency columns
+	Watermark BIGINT NOT NULL,
+	Status TINYINT NOT NULL,
+    LastStatusUpdatesDate DATETIME2(7) NOT NULL,
+    --audit columns
+	CreatedDate DATETIME2(7) NOT NULL
+)
+
+--Table containing normalized standard Study tags
+CREATE TABLE dicom.StudyMetadataCore (
+	--Key
+	ID BIGINT NOT NULL, --PK
+	--instance keys
+	StudyInstanceUID NVARCHAR(64) NOT NULL,
+    Version INT NOT NULL,
+	--patient and study core
+	PatientID NVARCHAR(64) NOT NULL,
+	PatientName NVARCHAR(64) NULL,
+	--PatientNameIndex AS REPLACE(PatientName, '^', ' '), --FT index, TODO code gen not working 
+	ReferringPhysicianName NVARCHAR(64) NULL,
+	StudyDate DATE NULL,
+	StudyDescription NVARCHAR(64) NULL,
+	AccessionNumer NVARCHAR(16) NULL,
+)
+
+--Table containing normalized standard Series tags
+CREATE TABLE dicom.SeriesMetadataCore (
+	--Key
+	ID BIGINT NOT NULL, --FK
+	--instance keys
+	SeriesInstanceUID NVARCHAR(64) NOT NULL,
+    Version INT NOT NULL,
+	--series core
+	Modality NVARCHAR(16) NULL,
+	PerformedProcedureStepStartDate DATE NULL
+) 
 GO

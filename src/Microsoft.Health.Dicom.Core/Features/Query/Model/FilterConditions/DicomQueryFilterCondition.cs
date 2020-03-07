@@ -6,17 +6,15 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DicomQueryRangeValueMatchingCondition<T> : DicomQueryFilterCondition
+    public abstract class DicomQueryFilterCondition
     {
-        internal DicomQueryRangeValueMatchingCondition(DicomTag tag, T minimum, T maximum)
-            : base(tag)
+        public DicomQueryFilterCondition(DicomTag tag)
         {
-            Minimum = minimum;
-            Maximum = maximum;
+            DicomTag = tag;
         }
 
-        public T Minimum { get; set; }
+        public DicomTag DicomTag { get; }
 
-        public T Maximum { get; set; }
+        public abstract void Accept(QueryFilterConditionVisitor visitor);
     }
 }

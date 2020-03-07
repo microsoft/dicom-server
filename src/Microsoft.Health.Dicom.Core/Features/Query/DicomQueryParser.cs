@@ -51,7 +51,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _valueParsers.Add(DicomVRCode.CS, ParseStringTagValue);
         }
 
-        public DicomQueryExpression Parse(IEnumerable<KeyValuePair<string, StringValues>> queryCollection, ResourceType resourceType)
+        public DicomQueryExpression Parse(
+            IEnumerable<KeyValuePair<string, StringValues>> queryCollection,
+            ResourceType resourceType)
         {
             EnsureArg.IsNotNull(queryCollection, nameof(queryCollection));
 

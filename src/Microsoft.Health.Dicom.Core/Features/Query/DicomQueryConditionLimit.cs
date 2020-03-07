@@ -10,6 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     public static class DicomQueryConditionLimit
     {
         public const int MaxQueryResultCount = 200;
+        public const int DefaultQueryResultCount = 100;
 
         public static readonly HashSet<DicomTag> DicomStudyQueryTagsSupported = new HashSet<DicomTag>()
         {
