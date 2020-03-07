@@ -489,10 +489,9 @@ namespace Dicom.Serialization
         {
             try
             {
-                DicomValidation.ValidateDS(val);
                 return true;
             }
-            catch (DicomValidationException)
+            catch (Exception)
             {
                 return false;
             }
