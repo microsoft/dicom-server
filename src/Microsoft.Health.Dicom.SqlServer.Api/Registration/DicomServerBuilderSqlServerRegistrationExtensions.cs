@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.Fhir.SqlServer.Configs;
 using Microsoft.Health.Fhir.SqlServer.Features.Health;
+using Microsoft.Health.Fhir.SqlServer.Features.Query;
 using Microsoft.Health.Fhir.SqlServer.Features.Schema;
 using Microsoft.Health.Fhir.SqlServer.Features.Storage;
 
@@ -23,7 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomServerBuilderSqlServerRegistrationExtensions
     {
-        public static IDicomServerBuilder AddExperimentalSqlServer(this IDicomServerBuilder dicomServerBuilder, Action<SqlServerDataStoreConfiguration> configureAction = null)
+        public static IDicomServerBuilder AddSqlServer(this IDicomServerBuilder dicomServerBuilder, Action<SqlServerDataStoreConfiguration> configureAction = null)
         {
             EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
             IServiceCollection services = dicomServerBuilder.Services;
@@ -70,6 +71,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.Add<DicomSqlQueryService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             return dicomServerBuilder;
         }
 
@@ -96,21 +102,6 @@ namespace Microsoft.Extensions.DependencyInjection
             public Task IndexSeriesAsync(IReadOnlyCollection<DicomDataset> series, CancellationToken cancellationToken = default)
             {
                 return Task.CompletedTask;
-            }
-
-            public Task<QueryResult<DicomInstance>> QueryInstancesAsync(int offset, int limit, string studyInstanceUID = null, IEnumerable<(DicomAttributeId Attribute, string Value)> query = null, CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(new QueryResult<DicomInstance>(false, Enumerable.Empty<DicomInstance>()));
-            }
-
-            public Task<QueryResult<DicomSeries>> QuerySeriesAsync(int offset, int limit, string studyInstanceUID = null, IEnumerable<(DicomAttributeId Attribute, string Value)> query = null, CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(new QueryResult<DicomSeries>(false, Enumerable.Empty<DicomSeries>()));
-            }
-
-            public Task<QueryResult<DicomStudy>> QueryStudiesAsync(int offset, int limit, string studyInstanceUID = null, IEnumerable<(DicomAttributeId Attribute, string Value)> query = null, CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(new QueryResult<DicomStudy>(false, Enumerable.Empty<DicomStudy>()));
             }
         }
     }

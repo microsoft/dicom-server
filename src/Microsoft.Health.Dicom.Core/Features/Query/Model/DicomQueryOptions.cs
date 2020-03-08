@@ -41,16 +41,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
         /// </summary>
         public QueryResourceType QueryResourceType { get; }
 
-        public bool AnyFilterCondition
-        {
-            get
-            {
-                return !(string.IsNullOrEmpty(StudyInstanceUID)
-                    && string.IsNullOrEmpty(SeriesInstanceUID)
-                    && !QueryExpression.FilterConditions.Any());
-            }
-        }
-
         /// <summary>
         /// evaluted result count for this request
         /// </summary>
