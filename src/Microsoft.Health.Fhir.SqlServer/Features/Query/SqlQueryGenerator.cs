@@ -5,7 +5,6 @@
 
 using System.Diagnostics;
 using System.Linq;
-using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Fhir.SqlServer.Features.Schema.Model;
@@ -33,8 +32,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
             _parameters = sqlQueryParameterManager;
 
             if (_queryOptions.QueryExpression.IsEmpty ||
-                !_queryOptions.QueryExpression.FilterConditions.Any() ||
-                _queryOptions.IsOnlyInstanceUIDQuery)
+                !_queryOptions.QueryExpression.FilterConditions.Any())
             {
                 // maaping table is enough to get the dicom instances
                 AppendUIDMappingTableQuery();
@@ -60,6 +58,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
 
             using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
             {
+                AppendUIDsClause(StudyTableAlias, SeriesTableAlias);
                 AppendFilterClause();
             }
         }
@@ -74,18 +73,29 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
             {
                 using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
                 {
-                    AppendUIDsClause(MappingTableAlias);
-                    AppendFilterClause();
+                    AppendUIDsClause(MappingTableAlias, MappingTableAlias);
                 }
             }
         }
 
         private void AppendCrossApplyMappingTable()
         {
+            var tableAlias = "x";
             _stringBuilder.AppendLine("CROSS APPLY").AppendLine(" ( ");
-            _stringBuilder.AppendLine("SELECT  TOP 1 *");
-            _stringBuilder.AppendLine($"FROM {VLatest.UIDMapping.TableName}");
-            AppendUIDsClause(string.Empty);
+            _stringBuilder.AppendLine("SELECT TOP 1 *");
+            _stringBuilder.AppendLine($"FROM {VLatest.UIDMapping.TableName} {tableAlias}");
+            using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
+            {
+                _stringBuilder.AppendLine(VLatest.UIDMapping.StudyInstanceUID, tableAlias)
+                   .Append(" = ")
+                   .Append(VLatest.StudyMetadataCore.StudyInstanceUID, StudyTableAlias);
+                _stringBuilder.AppendLine(VLatest.UIDMapping.SeriesInstanceUID, tableAlias)
+                   .Append(" = ")
+                   .Append(VLatest.SeriesMetadataCore.SeriesInstanceUID, SeriesTableAlias);
+
+                // TODO filter on status
+            }
+
             _stringBuilder.AppendLine($") {MappingTableAlias}");
         }
 
@@ -95,7 +105,8 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
                 .Any(filter => DicomTagSqlEntry.GetDicomTagSqlEntry(filter.DicomTag).SqlTableType == SqlTableType.SeriesTable))
             {
                 _stringBuilder.AppendLine($"INNER JOIN {VLatest.SeriesMetadataCore.TableName} {SeriesTableAlias}");
-                _stringBuilder.AppendLine(VLatest.SeriesMetadataCore.ID, SeriesTableAlias).Append(" = ").Append(VLatest.StudyMetadataCore.ID, StudyTableAlias);
+                _stringBuilder.AppendLine("ON")
+                    .Append(VLatest.SeriesMetadataCore.ID, SeriesTableAlias).Append(" = ").Append(VLatest.StudyMetadataCore.ID, StudyTableAlias);
             }
         }
 
@@ -107,18 +118,18 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
                 .AppendLine(VLatest.UIDMapping.SOPInstanceUID, tableAlias);
         }
 
-        private void AppendUIDsClause(string tableAlias)
+        private void AppendUIDsClause(string studyUIDtableAlias, string seriesUIDTableAlias)
         {
             if (_queryOptions.StudyInstanceUID != null)
             {
-                _stringBuilder.AppendLine(VLatest.UIDMapping.StudyInstanceUID, tableAlias)
+                _stringBuilder.AppendLine(VLatest.UIDMapping.StudyInstanceUID, studyUIDtableAlias)
                     .Append(" = ")
                     .Append(_parameters.AddParameter(VLatest.UIDMapping.StudyInstanceUID, _queryOptions.StudyInstanceUID));
             }
 
             if (_queryOptions.SeriesInstanceUID != null)
             {
-                _stringBuilder.AppendLine(VLatest.UIDMapping.SeriesInstanceUID, tableAlias)
+                _stringBuilder.AppendLine(VLatest.UIDMapping.SeriesInstanceUID, seriesUIDTableAlias)
                     .Append(" = ")
                     .Append(_parameters.AddParameter(VLatest.UIDMapping.SeriesInstanceUID, _queryOptions.SeriesInstanceUID));
             }
@@ -140,16 +151,17 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
 
         private void AppendOrderBy()
         {
-            _stringBuilder.AppendLine(VLatest.UIDMapping.Watermark, MappingTableAlias).Append(" DESC");
+            _stringBuilder.AppendLine("ORDER BY ")
+                .Append(VLatest.UIDMapping.Watermark, MappingTableAlias).Append(" DESC");
         }
 
         public override void Visit(StringSingleValueMatchCondition stringSingleValueMatchCondition)
         {
-            // TODO if PatientName and FuzzyMatch on generate diff condition
+            // TODO if PatientName and FuzzyMatch true generate a different condition
             DicomTagSqlEntry dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(stringSingleValueMatchCondition.DicomTag);
             var tableAlias = GetTableAlias(dicomTagSqlEntry);
             _stringBuilder.AppendLine(dicomTagSqlEntry.SqlColumn, tableAlias).Append("=")
-                  .Append(dicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value);
+                  .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value));
         }
 
         public override void Visit(DateRangeValueMatchCondition rangeValueMatchCondition)
@@ -157,9 +169,9 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
             DicomTagSqlEntry dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(rangeValueMatchCondition.DicomTag);
             var tableAlias = GetTableAlias(dicomTagSqlEntry);
             _stringBuilder.AppendLine(dicomTagSqlEntry.SqlColumn, tableAlias).Append(" BETWEEN ")
-                  .Append(null, rangeValueMatchCondition.Minimum)
+                  .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Minimum))
                   .Append("AND ")
-                  .Append(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Maximum);
+                  .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Maximum));
         }
 
         private string GetTableAlias(DicomTagSqlEntry sqlEntry)

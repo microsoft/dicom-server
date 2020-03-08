@@ -35,9 +35,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public async Task<QueryDicomResourceResponse> Handle(QueryDicomResourceRequest message, CancellationToken cancellationToken)
         {
-            DicomQueryExpression dicomQueryExpression = _queryParser.Parse(message.RequestQuery, message.ResourceType);
+            DicomQueryExpression dicomQueryExpression = _queryParser.Parse(message.RequestQuery, message.QueryResourceType);
 
-            var queryOptions = new DicomQueryOptions(dicomQueryExpression, message.ResourceType, message.StudyInstanceUID, message.SeriesInstanceUID);
+            var queryOptions = new DicomQueryOptions(dicomQueryExpression, message.QueryResourceType, message.StudyInstanceUID, message.SeriesInstanceUID);
 
             // TODO convert result to DicomDataset and pass it to the Response
             DicomQueryResult result = await _queryService.QueryAsync(queryOptions, cancellationToken);

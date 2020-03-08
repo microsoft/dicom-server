@@ -2,16 +2,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-using System.Collections.Generic;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Health.Dicom.Core.Messages;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Core.Messages
 {
-    public interface IDicomQueryParser
+    public enum QueryResourceType
     {
-        DicomQueryExpression Parse(
-            IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
-            QueryResourceType resourceType);
+        AllStudies,
+        StudySeries,
+        StudyInstances,
+        AllSeries,
+        StudySeriesInstances,
+        AllInstances,
     }
 }

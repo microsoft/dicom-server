@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public DicomQueryExpression Parse(
             IEnumerable<KeyValuePair<string, StringValues>> queryCollection,
-            ResourceType resourceType)
+            QueryResourceType resourceType)
         {
             EnsureArg.IsNotNull(queryCollection, nameof(queryCollection));
 
@@ -100,37 +100,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 _parsedQuery.FilterConditions);
         }
 
-        private bool ParseFilterCondition(KeyValuePair<string, StringValues> queryParameter, ResourceType resourceType, out DicomQueryFilterCondition condition)
+        private bool ParseFilterCondition(KeyValuePair<string, StringValues> queryParameter, QueryResourceType resourceType, out DicomQueryFilterCondition condition)
         {
             condition = null;
             var attributeId = queryParameter.Key.Trim();
 
+            // parse tag
             if (!TryParseDicomAttributeId(attributeId, out DicomTag dicomTag))
             {
                 return false;
             }
 
-            HashSet<DicomTag> supportedQueryTags;
-            switch (resourceType)
-            {
-                case ResourceType.Study:
-                    supportedQueryTags = DicomQueryConditionLimit.DicomStudyQueryTagsSupported;
-                    break;
-                case ResourceType.Series:
-                    supportedQueryTags = DicomQueryConditionLimit.DicomSeriesQueryTagsSupported;
-                    break;
-                case ResourceType.Instance:
-                    supportedQueryTags = DicomQueryConditionLimit.DicomInstanceQueryTagsSupported;
-                    break;
-                default:
-                    throw new DicomQueryParseException(DicomCoreResource.QueryInvalidResourceLevel);
-            }
+            ValidateIfTagSupported(dicomTag, resourceType);
 
-            if (!supportedQueryTags.Contains(dicomTag))
-            {
-                throw new DicomQueryParseException(DicomCoreResource.UnsupportedSearchParameter);
-            }
-
+            // parse tag value
             if (!queryParameter.Value.Any() || queryParameter.Value.Count() > 1)
             {
                 throw new DicomQueryParseException(string.Format(DicomCoreResource.DuplicateQueryParam, attributeId));
@@ -167,6 +150,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
 
             return dicomTag != null;
+        }
+
+        private static void ValidateIfTagSupported(DicomTag dicomTag, QueryResourceType resourceType)
+        {
+            HashSet<DicomTag> supportedQueryTags = DicomQueryConditionLimit.QueryResourceTypeToTagsMapping[resourceType];
+
+            if (!supportedQueryTags.Contains(dicomTag))
+            {
+                throw new DicomQueryParseException(DicomCoreResource.UnsupportedSearchParameter);
+            }
         }
 
         private static DicomTag ParseDicomTagNumber(string s)

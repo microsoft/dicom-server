@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using System.Linq;
-using Dicom;
 using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query.Model
@@ -12,12 +11,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
     {
         public DicomQueryOptions(
             DicomQueryExpression queryExpression,
-            ResourceType resourceType,
+            QueryResourceType resourceType,
             string studyInstanceUID = null,
             string seriesInstanceUID = null)
         {
             QueryExpression = queryExpression;
-            ResourceType = resourceType;
+            QueryResourceType = resourceType;
             StudyInstanceUID = studyInstanceUID;
             SeriesInstanceUID = seriesInstanceUID;
         }
@@ -40,20 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
         /// <summary>
         /// Resource level used for query
         /// </summary>
-        public ResourceType ResourceType { get; }
-
-        /// <summary>
-        /// Specific instance already specified in the queryParams
-        /// </summary>
-        public bool IsOnlyInstanceUIDQuery
-        {
-            get
-            {
-                return
-                    QueryExpression.FilterConditions.Count == 1
-                    && QueryExpression.FilterConditions.First().DicomTag == DicomTag.SOPInstanceUID;
-            }
-        }
+        public QueryResourceType QueryResourceType { get; }
 
         public bool AnyFilterCondition
         {
