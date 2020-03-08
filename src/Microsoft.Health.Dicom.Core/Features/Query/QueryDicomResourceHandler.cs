@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -35,12 +34,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public async Task<QueryDicomResourceResponse> Handle(QueryDicomResourceRequest message, CancellationToken cancellationToken)
         {
-            DicomQueryExpression dicomQueryExpression = _queryParser.Parse(message.RequestQuery, message.QueryResourceType);
-
-            var queryOptions = new DicomQueryOptions(dicomQueryExpression, message.QueryResourceType, message.StudyInstanceUID, message.SeriesInstanceUID);
+            DicomQueryExpression dicomQueryExpression = _queryParser.Parse(message);
 
             // TODO convert result to DicomDataset and pass it to the Response
-            DicomQueryResult result = await _queryService.QueryAsync(queryOptions, cancellationToken);
+            DicomQueryResult result = await _queryService.QueryAsync(dicomQueryExpression, cancellationToken);
 
             return new QueryDicomResourceResponse(System.Net.HttpStatusCode.NotImplemented);
         }

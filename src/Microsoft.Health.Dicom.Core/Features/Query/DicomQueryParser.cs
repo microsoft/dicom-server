@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -51,21 +52,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _valueParsers.Add(DicomVRCode.CS, ParseStringTagValue);
         }
 
-        public DicomQueryExpression Parse(
-            IEnumerable<KeyValuePair<string, StringValues>> queryCollection,
-            QueryResourceType resourceType)
+        public DicomQueryExpression Parse(QueryDicomResourceRequest request)
         {
-            EnsureArg.IsNotNull(queryCollection, nameof(queryCollection));
+            EnsureArg.IsNotNull(request, nameof(request));
 
             _parsedQuery = new QueryExpressionImp();
             var filterConditionTags = new HashSet<DicomTag>();
 
-            if (!queryCollection.Any())
-            {
-                return new DicomQueryExpression();
-            }
-
-            foreach (var queryParam in queryCollection)
+            foreach (var queryParam in request.RequestQuery)
             {
                 var trimmedKey = queryParam.Key.Trim();
 
@@ -77,7 +71,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 }
 
                 // filter conditions with attributeId as key
-                if (ParseFilterCondition(queryParam, resourceType, out DicomQueryFilterCondition condition))
+                if (ParseFilterCondition(queryParam, request.QueryResourceType, out DicomQueryFilterCondition condition))
                 {
                     if (filterConditionTags.Contains(condition.DicomTag))
                     {
@@ -92,7 +86,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 throw new DicomQueryParseException(string.Format(DicomCoreResource.UnkownQueryParameter, queryParam.Key));
             }
 
+            // add UIDs as filter conditions
+            if (request.StudyInstanceUID != null)
+            {
+                var condition = new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, request.StudyInstanceUID);
+                _parsedQuery.FilterConditions.Add(condition);
+            }
+
+            if (request.SeriesInstanceUID != null)
+            {
+                var condition = new StringSingleValueMatchCondition(DicomTag.SeriesInstanceUID, request.SeriesInstanceUID);
+                _parsedQuery.FilterConditions.Add(condition);
+            }
+
             return new DicomQueryExpression(
+                request.QueryResourceType,
                 new DicomQueryParameterIncludeField(_parsedQuery.AllValue, _parsedQuery.IncludeFields),
                 _parsedQuery.FuzzyMatch,
                 _parsedQuery.Limit,

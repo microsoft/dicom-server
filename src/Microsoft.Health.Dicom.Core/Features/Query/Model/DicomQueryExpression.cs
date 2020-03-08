@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -12,12 +14,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     public class DicomQueryExpression
     {
         public DicomQueryExpression(
+            QueryResourceType resourceType,
             DicomQueryParameterIncludeField includeFields,
             bool fuzzyMatching,
             int limit,
             int offset,
             IReadOnlyCollection<DicomQueryFilterCondition> filterConditions)
         {
+            QueryResourceType = resourceType;
             IncludeFields = includeFields;
             FuzzyMatching = fuzzyMatching;
             Limit = limit;
@@ -25,10 +29,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             FilterConditions = filterConditions;
          }
 
-        public DicomQueryExpression()
-        {
-            IsEmpty = true;
-        }
+        /// <summary>
+        /// Resource type level
+        /// </summary>
+        public QueryResourceType QueryResourceType { get; }
 
         /// <summary>
         /// Dicom tags to include in query result
@@ -58,6 +62,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         /// <summary>
         /// Request query was empty
         /// </summary>
-        public bool IsEmpty { get; }
+        public bool AnyFilters
+        {
+            get
+            {
+                return FilterConditions.Any();
+            }
+        }
+
+        /// <summary>
+        /// evaluted result count for this request
+        /// </summary>
+        public int EvaluatedLimit
+        {
+            get
+            {
+                return Limit > 0 && Limit <= DicomQueryConditionLimit.MaxQueryResultCount ?
+                    Limit : DicomQueryConditionLimit.DefaultQueryResultCount;
+            }
+        }
     }
 }

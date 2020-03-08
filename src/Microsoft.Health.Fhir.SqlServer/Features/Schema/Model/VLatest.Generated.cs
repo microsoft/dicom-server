@@ -10,12 +10,27 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
 {
     internal class VLatest
     {
+        internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SchemaVersionTable SchemaVersion = new SchemaVersionTable();
         internal readonly static SeriesMetadataCoreTable SeriesMetadataCore = new SeriesMetadataCoreTable();
         internal readonly static StudyMetadataCoreTable StudyMetadataCore = new StudyMetadataCoreTable();
-        internal readonly static UIDMappingTable UIDMapping = new UIDMappingTable();
         internal readonly static SelectCurrentSchemaVersionProcedure SelectCurrentSchemaVersion = new SelectCurrentSchemaVersionProcedure();
         internal readonly static UpsertSchemaVersionProcedure UpsertSchemaVersion = new UpsertSchemaVersionProcedure();
+        internal class InstanceTable : Table
+        {
+            internal InstanceTable(): base("dicom.Instance")
+            {
+            }
+
+            internal readonly NVarCharColumn StudyInstanceUID = new NVarCharColumn("StudyInstanceUID", 64);
+            internal readonly NVarCharColumn SeriesInstanceUID = new NVarCharColumn("SeriesInstanceUID", 64);
+            internal readonly NVarCharColumn SOPInstanceUID = new NVarCharColumn("SOPInstanceUID", 64);
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
+            internal readonly DateTime2Column LastStatusUpdatesDate = new DateTime2Column("LastStatusUpdatesDate", 7);
+            internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
+        }
+
         internal class SchemaVersionTable : Table
         {
             internal SchemaVersionTable(): base("dicom.SchemaVersion")
@@ -54,21 +69,6 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
             internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
             internal readonly NullableNVarCharColumn AccessionNumer = new NullableNVarCharColumn("AccessionNumer", 16);
-        }
-
-        internal class UIDMappingTable : Table
-        {
-            internal UIDMappingTable(): base("dicom.UIDMapping")
-            {
-            }
-
-            internal readonly NVarCharColumn StudyInstanceUID = new NVarCharColumn("StudyInstanceUID", 64);
-            internal readonly NVarCharColumn SeriesInstanceUID = new NVarCharColumn("SeriesInstanceUID", 64);
-            internal readonly NVarCharColumn SOPInstanceUID = new NVarCharColumn("SOPInstanceUID", 64);
-            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
-            internal readonly DateTime2Column LastStatusUpdatesDate = new DateTime2Column("LastStatusUpdatesDate", 7);
-            internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
         }
 
         internal class SelectCurrentSchemaVersionProcedure : StoredProcedure

@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Messages.Query;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
@@ -24,54 +25,46 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             _queryParser = new DicomQueryParser(NullLogger<DicomQueryParser>.Instance);
         }
 
-        [Fact]
-        public void EmptyQueryString_IsEmptyProperty_True()
-        {
-            DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(new QueryCollection(), QueryResourceType.AllStudies);
-            Assert.True(dicomQueryExpression.IsEmpty);
-        }
-
         [Theory]
         [InlineData("includefield", "StudyDate")]
         [InlineData("includefield", "00100020")]
         [InlineData("includefield", "00100020,00100010")]
         [InlineData("includefield", "StudyDate, StudyTime")]
-        public void IncludeField_AttributeId_Valid(string key, string value)
+        public void GivenIncludeField_WithValidAttributeId_CheckIncludeFields(string key, string value)
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies);
-            Assert.False(dicomQueryExpression.IsEmpty);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies));
+            Assert.False(dicomQueryExpression.AnyFilters);
             Assert.False(dicomQueryExpression.IncludeFields.All);
             Assert.True(dicomQueryExpression.IncludeFields.DicomTags.Count == value.Split(',').Count());
         }
 
         [Theory]
         [InlineData("includefield", "all")]
-        public void IncludeField_AttributeId_ValidAll(string key, string value)
+        public void GivenIncludeField_WithValueAll_CheckAllValue(string key, string value)
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies));
             Assert.True(dicomQueryExpression.IncludeFields.All);
         }
 
         [Theory]
         [InlineData("includefield", "something")]
         [InlineData("includefield", "00030033")]
-        public void IncludeField_AttributeId_Invalid(string key, string value)
+        public void GivenIncludeField_WithInvalidAttributeId_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies));
+            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies)));
         }
 
         [Theory]
         [InlineData("00100010", "joe")]
         [InlineData("PatientName", "joe")]
-        public void FilterCondition_AttributeId_Valid(string key, string value)
+        public void GivenFilterCondition_ValidTag_CheckProperties(string key, string value)
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies);
-            Assert.False(dicomQueryExpression.IsEmpty);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies));
+            Assert.True(dicomQueryExpression.AnyFilters);
             var singleValueCond = dicomQueryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
             Assert.NotNull(singleValueCond);
             Assert.True(singleValueCond.DicomTag == DicomTag.PatientName);
@@ -80,10 +73,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         [Theory]
         [InlineData("00080061", "CT")]
-        public void FilterCondition_AttributeIdKeywordValid_NotSupported(string key, string value)
+        public void GivenFilterCondition_WithNotSupportedTag_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies));
+            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies)));
         }
 
         [Theory]
@@ -91,106 +84,115 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("SOPInstanceUID", "1.2.3.48898989", QueryResourceType.AllSeries)]
         [InlineData("PatientName", "Joe", QueryResourceType.StudySeries)]
         [InlineData("Modality", "CT", QueryResourceType.StudySeriesInstances)]
-        public void FilterCondition_AttributeIdKeywordValid_LevelNotSupported(string key, string value, QueryResourceType resourceType)
+        public void GivenFilterCondition_WithKnownTagButNotSupportedAtLevel_Throws(string key, string value, QueryResourceType resourceType)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(GetQueryCollection(key, value), resourceType));
+            .Parse(CreateRequest(GetQueryCollection(key, value), resourceType)));
         }
 
         [Theory]
         [InlineData("limit=25&offset=0&fuzzymatching=false&includefield=00081030,00080060&StudyDate=19510910-20200220", QueryResourceType.AllStudies)]
         [InlineData("PatientName=Joe&fuzzyMatching=true&limit=50", QueryResourceType.AllStudies)]
         [InlineData("PatientName=Joe&fuzzyMatching=true&Modality=CT", QueryResourceType.AllSeries)]
-        public void QueryString_Valid(string queryString, QueryResourceType resourceType)
+        public void GivenFilterCondition_WithValidQueryString_ParseSucceeds(string queryString, QueryResourceType resourceType)
         {
-            _queryParser.Parse(GetQueryCollection(queryString), resourceType);
+            _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType));
         }
 
         [Theory]
         [InlineData("PatientName=Joe&00100010=Rob")]
         [InlineData("00100010=Joe, Rob")]
-        public void DuplicateQueryParam_NotAllowed(string queryString)
+        public void GivenFilterCondition_WithDuplicateQueryParam_Throws(string queryString)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(GetQueryCollection(queryString), QueryResourceType.AllStudies));
+            .Parse(CreateRequest(GetQueryCollection(queryString), QueryResourceType.AllStudies)));
         }
 
         [Theory]
         [InlineData("offset", "2.5")]
         [InlineData("offset", "-1")]
-        public void OffsetValue_NotInt(string key, string value)
+        public void GivenOffset_WithNotIntValue_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies));
+            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies)));
         }
 
         [Theory]
         [InlineData("offset", 25)]
-        public void OffsetValue_Valid(string key, int value)
+        public void GivenOffset_WithIntValue_CheckOffset(string key, int value)
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(GetQueryCollection(key, value.ToString()), QueryResourceType.AllStudies);
+                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResourceType.AllStudies));
             Assert.True(dicomQueryExpression.Offset == value);
         }
 
         [Theory]
         [InlineData("limit", "sdfsdf")]
         [InlineData("limit", "-2")]
-        public void LimitValue_NotInt(string key, string value)
+        public void GivenLimit_WithInvalidValue_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies));
+            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies)));
         }
 
         [Theory]
         [InlineData("limit", "500000")]
-        public void LimitValue_MaxExceeded(string key, string value)
+        public void GivenLimit_WithMaxValueExceeded_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies));
+            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies)));
         }
 
         [Theory]
         [InlineData("limit", 50)]
-        public void LimitValue_Valid(string key, int value)
+        public void GivenLimit_WithValidValue_CheckLimit(string key, int value)
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(GetQueryCollection(key, value.ToString()), QueryResourceType.AllStudies);
+                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResourceType.AllStudies));
             Assert.True(dicomQueryExpression.Limit == value);
+        }
+
+        [Theory]
+        [InlineData("limit", 0)]
+        public void GivenLimit_WithZero_CheckEvaluatedLimit(string key, int value)
+        {
+            DicomQueryExpression dicomQueryExpression = _queryParser
+                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResourceType.AllStudies));
+            Assert.True(dicomQueryExpression.EvaluatedLimit == DicomQueryConditionLimit.DefaultQueryResultCount);
         }
 
         [Theory]
         [InlineData("00390061", "invalidtag")]
         [InlineData("unkownparam", "invalidtag")]
-        public void FilterCondition_AttributeId_Invalid(string key, string value)
+        public void GivenFilterCondition_WithInvalidAttributeId_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies));
+            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies)));
         }
 
         [Theory]
         [InlineData("fuzzymatching", "true")]
-        public void FuzzyMatch_ValidValue(string key, string value)
+        public void GivenFuzzyMatch_WithValidValue_Check(string key, string value)
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies));
             Assert.True(dicomQueryExpression.FuzzyMatching);
         }
 
         [Theory]
         [InlineData("fuzzymatching", "notbool")]
-        public void FuzzyMatch_InValidValue(string key, string value)
+        public void GivenFuzzyMatch_InValidValue_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies));
+            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies)));
         }
 
         [Theory]
         [InlineData("StudyDate", "19510910-20200220")]
-        public void StudyDate_ValidRangeMatch(string key, string value)
+        public void GivenStudyDate_WithValidRangeMatch_CheckCondition(string key, string value)
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(GetQueryCollection(key, value), QueryResourceType.AllStudies);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllStudies));
             var cond = dicomQueryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
             Assert.NotNull(cond);
             Assert.True(cond.DicomTag == DicomTag.StudyDate);
@@ -203,10 +205,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("StudyDate", "20200230")]
         [InlineData("StudyDate", "20200228-20200230")]
         [InlineData("PerformedProcedureStepStartDate", "baddate")]
-        public void DateTagValue_InvalidDate(string key, string value)
+        public void GivenDateTag_WithInvalidDate_Throw(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(GetQueryCollection(key, value), QueryResourceType.AllSeries));
+            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResourceType.AllSeries)));
+        }
+
+        [Fact]
+        public void GivenStudyUID_WithUrl_CheckFilterCondition()
+        {
+            var testStudyUID = DicomUID.Generate();
+            DicomQueryExpression dicomQueryExpression = _queryParser
+                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResourceType.AllSeries, testStudyUID.UID));
+            Assert.Equal(1, dicomQueryExpression.FilterConditions.Count);
+            var cond = dicomQueryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
+            Assert.NotNull(cond);
+            Assert.Equal(testStudyUID.UID, cond.Value);
         }
 
         private QueryCollection GetQueryCollection(string key, string value)
@@ -237,6 +251,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             }
 
             return new QueryCollection(pairs);
+        }
+
+        private QueryDicomResourceRequest CreateRequest(
+            QueryCollection queryParams,
+            QueryResourceType resourceType,
+            string studyInstanceUID = null,
+            string seriesInstanceUID = null)
+        {
+            return new QueryDicomResourceRequest(queryParams, resourceType, studyInstanceUID, seriesInstanceUID);
         }
     }
 }

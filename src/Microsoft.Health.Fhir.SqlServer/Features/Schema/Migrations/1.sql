@@ -123,7 +123,7 @@ GO
     Tables
 **************************************************************/
 --Mapping table for dicom retrieval
-CREATE TABLE dicom.UIDMapping (
+CREATE TABLE dicom.Instance (
 	--instance keys
 	StudyInstanceUID NVARCHAR(64) NOT NULL,
 	SeriesInstanceUID NVARCHAR(64) NOT NULL,

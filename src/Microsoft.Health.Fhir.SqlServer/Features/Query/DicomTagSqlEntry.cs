@@ -21,7 +21,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
                 { DicomTag.SeriesInstanceUID, new DicomTagSqlEntry(DicomTag.SeriesInstanceUID, SqlTableType.SeriesTable, VLatest.SeriesMetadataCore.SeriesInstanceUID) },
                 { DicomTag.Modality, new DicomTagSqlEntry(DicomTag.Modality, SqlTableType.SeriesTable, VLatest.SeriesMetadataCore.Modality) },
                 { DicomTag.PerformedProcedureStepStartDate, new DicomTagSqlEntry(DicomTag.PerformedProcedureStepStartDate, SqlTableType.SeriesTable, VLatest.SeriesMetadataCore.PerformedProcedureStepStartDate) },
-                { DicomTag.SOPInstanceUID, new DicomTagSqlEntry(DicomTag.SOPInstanceUID, SqlTableType.MappingTable, VLatest.UIDMapping.SOPInstanceUID) },
+                { DicomTag.SOPInstanceUID, new DicomTagSqlEntry(DicomTag.SOPInstanceUID, SqlTableType.InstanceTable, VLatest.Instance.SOPInstanceUID) },
         };
 
         public DicomTagSqlEntry(DicomTag dicomTag, SqlTableType sqlTableType, Column sqlColumn)

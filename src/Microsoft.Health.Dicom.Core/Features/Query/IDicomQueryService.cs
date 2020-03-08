@@ -5,14 +5,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Query.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public interface IDicomQueryService
     {
         Task<DicomQueryResult> QueryAsync(
-            DicomQueryOptions query,
+            DicomQueryExpression query,
             CancellationToken cancellationToken);
     }
 }

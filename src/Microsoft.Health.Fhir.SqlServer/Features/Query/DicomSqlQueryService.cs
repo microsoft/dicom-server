@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Query;
-using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Fhir.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Fhir.SqlServer.Features.Storage;
 
@@ -36,16 +35,16 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
         }
 
         public async Task<DicomQueryResult> QueryAsync(
-            DicomQueryOptions queryOptions,
+            DicomQueryExpression query,
             CancellationToken cancellationToken)
         {
-            var results = new List<QueryResultEntry>(queryOptions.EvaluatedLimit);
+            var results = new List<QueryResultEntry>(query.EvaluatedLimit);
 
             using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper(true))
             using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-                var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, queryOptions, new SqlQueryParameterManager(sqlCommand.Parameters));
+                var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommand.Parameters));
 
                 sqlCommand.CommandText = stringBuilder.ToString();
                 LogSqlCommand(sqlCommand);
@@ -55,9 +54,9 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
                     while (await reader.ReadAsync(cancellationToken))
                     {
                         (string studyInstanceUID, string seriesInstanceUID, string sOPInstanceUID) = reader.ReadRow(
-                           VLatest.UIDMapping.StudyInstanceUID,
-                           VLatest.UIDMapping.SeriesInstanceUID,
-                           VLatest.UIDMapping.SOPInstanceUID);
+                           VLatest.Instance.StudyInstanceUID,
+                           VLatest.Instance.SeriesInstanceUID,
+                           VLatest.Instance.SOPInstanceUID);
 
                         results.Add(new QueryResultEntry()
                         {

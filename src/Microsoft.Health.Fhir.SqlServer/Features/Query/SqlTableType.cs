@@ -8,6 +8,6 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
     {
         StudyTable,
         SeriesTable,
-        MappingTable,
+        InstanceTable,
     }
 }
