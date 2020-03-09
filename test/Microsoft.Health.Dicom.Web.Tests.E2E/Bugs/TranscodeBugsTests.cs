@@ -27,55 +27,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
             this.output = output;
         }
 
-        private async Task<Dictionary<FileReadOption, bool>> TryOpenFile(string path)
-        {
-            var retDict = new Dictionary<FileReadOption, bool>();
-            foreach (var option in (FileReadOption[])Enum.GetValues(typeof(FileReadOption)))
-            {
-                retDict[option] = false;
-                try
-                {
-                    var dicomFile = await DicomFile.OpenAsync(path, option);
-                    retDict[option] = true;
-                }
-                catch (Exception e)
-                {
-                    output.WriteLine(e.Message);
-                }
-            }
-
-            return retDict;
-        }
-
-        /// <summary>
-        /// This is a bug with SkipLargeTags option
-        /// https://github.com/fo-dicom/fo-dicom/issues/893
-        /// TODO: this might start failing with future versions of fo-dicom - there should be no failed reads of these two files.
-        /// this wold mean the bug is fixed, in that case, review all uses of FileReadOption throughout the project, consider
-        /// replacing with SkipLargeTags
-        /// </summary>
-        [Fact]
-        public async Task GivenValidFile_WhenOpenWithKeepOption_Fails()
-        {
-            var dicomFilePath = @"ImageSamples/XRJPEGProcess1.dcm";
-            var genFilePath = @"ImageSamples/genFile.dcm";
-
-            var ret = await TryOpenFile(dicomFilePath);
-
-            var genFile = Samples.CreateRandomDicomFileWith8BitPixelData(transferSyntax: DicomTransferSyntax.JPEGProcess1.UID.UID, encode: false);
-            await genFile.SaveAsync(genFilePath);
-
-            var ret2 = await TryOpenFile(genFilePath);
-
-            File.Delete(genFilePath);
-
-            Assert.Equal(1,  ret.Count(x => x.Value == false));
-            Assert.Equal(FileReadOption.SkipLargeTags, ret.Single(x => x.Value == false).Key);
-
-            Assert.Equal(1, ret2.Count(x => x.Value == false));
-            Assert.Equal(FileReadOption.SkipLargeTags, ret2.Single(x => x.Value == false).Key);
-        }
-
         /// <summary>
         /// This test will start failing when a bug with JPEG transcoding is fixed in future
         /// versions of fo-dicom.
@@ -88,9 +39,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
 
             var dirName = "transcodings";
             var filename = Path.Combine(dirName, "JPEGProcess1.dcm");
-            var studyInstanceUID = DicomUID.Generate().UID;
-            var seriesInstanceUID = DicomUID.Generate().UID;
-            var sopInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = TestUidGenerator.Generate();
+            var seriesInstanceUID = TestUidGenerator.Generate();
+            var sopInstanceUID = TestUidGenerator.Generate();
             var sopClassUID = "1.2.840.10008.5.1.4.1.1.1";
 
             var dicomFile = DicomImageGenerator.GenerateDicomFile(
