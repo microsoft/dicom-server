@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public static readonly HashSet<DicomTag> AllInstancesTags = new HashSet<DicomTag>(
             AllStudiesTags.Union(StudySeriesTags).Union(StudySeriesInstancesTags));
 
-        public static readonly Dictionary<QueryResource, HashSet<DicomTag>> QueryResourceTypeToTagsMapping = new Dictionary<QueryResource, HashSet<DicomTag>>()
+        public static readonly IReadOnlyDictionary<QueryResource, HashSet<DicomTag>> QueryResourceTypeToTagsMapping = new Dictionary<QueryResource, HashSet<DicomTag>>()
         {
             { QueryResource.AllStudies, AllStudiesTags },
             { QueryResource.AllSeries, AllSeriesTags },
