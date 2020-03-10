@@ -80,10 +80,10 @@ namespace Microsoft.Health.Dicom.Tests.Common
             var dicomFile = new DicomFile(
                 new DicomDataset(initialTs)
                 {
-                    { DicomTag.StudyInstanceUID, studyInstanceUID ?? DicomUID.Generate().UID },
-                    { DicomTag.SeriesInstanceUID, seriesInstanceUID ?? DicomUID.Generate().UID },
-                    { DicomTag.SOPInstanceUID, sopInstanceUID ?? DicomUID.Generate().UID },
-                    { DicomTag.SOPClassUID, sopClassUID ?? DicomUID.Generate().UID },
+                    { DicomTag.StudyInstanceUID, studyInstanceUID ?? TestUidGenerator.Generate() },
+                    { DicomTag.SeriesInstanceUID, seriesInstanceUID ?? TestUidGenerator.Generate() },
+                    { DicomTag.SOPInstanceUID, sopInstanceUID ?? TestUidGenerator.Generate() },
+                    { DicomTag.SOPClassUID, sopClassUID ?? TestUidGenerator.Generate() },
                     { DicomTag.Rows, (ushort)rows },
                     { DicomTag.Columns, (ushort)cols },
                     { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },

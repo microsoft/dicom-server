@@ -7,4 +7,5 @@ using System.Resources;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Microsoft.Health.Dicom.SqlServer.Api")]
+[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.SqlServer.UnitTests")]
 [assembly: NeutralResourcesLanguage("en-us")]

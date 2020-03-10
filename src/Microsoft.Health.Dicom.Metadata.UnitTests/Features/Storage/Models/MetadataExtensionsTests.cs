@@ -10,6 +10,7 @@ using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Metadata.Config;
 using Microsoft.Health.Dicom.Metadata.Features.Storage.Models;
+using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
@@ -21,22 +22,22 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
         [Fact]
         public void GivenDicomStudyMetadata_WhenGettingOrRemovingInstancesWithInvalidParameters_ArgumentExceptionIsThrown()
         {
-            var studyMetadata = new DicomStudyMetadata(Guid.NewGuid().ToString());
+            var studyMetadata = new DicomStudyMetadata(TestUidGenerator.Generate());
             Assert.Throws<ArgumentNullException>(() => MetadataExtensions.GetDicomInstances(null).ToList());
             Assert.Throws<ArgumentNullException>(() => MetadataExtensions.GetDicomInstances(studyMetadata, null));
             Assert.Throws<ArgumentException>(() => MetadataExtensions.GetDicomInstances(studyMetadata, string.Empty));
-            Assert.Throws<ArgumentNullException>(() => MetadataExtensions.GetDicomInstances(null, Guid.NewGuid().ToString()));
+            Assert.Throws<ArgumentNullException>(() => MetadataExtensions.GetDicomInstances(null, TestUidGenerator.Generate()));
             Assert.Throws<ArgumentNullException>(() => MetadataExtensions.TryRemoveInstance(null, DicomInstance.Create(CreateDicomDataset())));
             Assert.Throws<ArgumentNullException>(() => MetadataExtensions.TryRemoveInstance(studyMetadata, null));
 
-            var differentStudyInstanceUID = new DicomInstance(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            var differentStudyInstanceUID = new DicomInstance(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
             Assert.Throws<ArgumentException>(() => MetadataExtensions.TryRemoveInstance(studyMetadata, differentStudyInstanceUID));
         }
 
         [Fact]
         public void GivenDicomStudyMetadata_WhenAddingInstanceWithInvalidParameters_ArgumentExceptionIsThrown()
         {
-            var studyMetadata = new DicomStudyMetadata(Guid.NewGuid().ToString());
+            var studyMetadata = new DicomStudyMetadata(TestUidGenerator.Generate());
             Assert.Throws<ArgumentNullException>(() => MetadataExtensions.AddDicomInstance(null, new DicomDataset(), Array.Empty<DicomAttributeId>()));
             Assert.Throws<ArgumentNullException>(() => studyMetadata.AddDicomInstance(null, Array.Empty<DicomAttributeId>()));
             Assert.Throws<ArgumentNullException>(() => studyMetadata.AddDicomInstance(new DicomDataset(), null));
@@ -46,14 +47,14 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
         [Fact]
         public void GivenDicomStudyMetadata_WhenAddingDicomInstance_CorrectInstancesRetrieved()
         {
-            var studyInstanceUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = TestUidGenerator.Generate();
             var studyMetadata = new DicomStudyMetadata(studyInstanceUID);
 
             DicomDataset dataset1 = CreateDicomDataset(studyInstanceUID);
             var instance1 = DicomInstance.Create(dataset1);
             studyMetadata.AddDicomInstance(dataset1, _dicomMetadataConfiguration.StudySeriesMetadataAttributes);
 
-            DicomDataset dataset2 = CreateDicomDataset(studyInstanceUID, Guid.NewGuid().ToString());
+            DicomDataset dataset2 = CreateDicomDataset(studyInstanceUID, TestUidGenerator.Generate());
             var instance2 = DicomInstance.Create(dataset2);
             DicomDataset dataset3 = CreateDicomDataset(studyInstanceUID, instance2.SeriesInstanceUID);
             var instance3 = DicomInstance.Create(dataset3);
@@ -89,7 +90,7 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
         [Fact]
         public void GivenDicomStudyMetadata_WhenRemovingDicomInstance_CorrectInstancesRetrieved()
         {
-            var studyInstanceUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = TestUidGenerator.Generate();
             var studyMetadata = new DicomStudyMetadata(studyInstanceUID);
             DicomAttributeId[] indexableAttributes = new[] { new DicomAttributeId(DicomTag.PatientName) };
 
@@ -100,9 +101,9 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
                 return DicomInstance.Create(dataset);
             }).ToList();
 
-            Assert.False(studyMetadata.TryRemoveInstance(new DicomInstance(studyInstanceUID, Guid.NewGuid().ToString(), Guid.NewGuid().ToString())));
-            Assert.False(studyMetadata.TryRemoveInstance(new DicomInstance(studyInstanceUID, instances[0].SeriesInstanceUID, Guid.NewGuid().ToString())));
-            Assert.False(studyMetadata.TryRemoveInstance(new DicomInstance(studyInstanceUID, Guid.NewGuid().ToString(), instances[0].SopInstanceUID)));
+            Assert.False(studyMetadata.TryRemoveInstance(new DicomInstance(studyInstanceUID, TestUidGenerator.Generate(), TestUidGenerator.Generate())));
+            Assert.False(studyMetadata.TryRemoveInstance(new DicomInstance(studyInstanceUID, instances[0].SeriesInstanceUID, TestUidGenerator.Generate())));
+            Assert.False(studyMetadata.TryRemoveInstance(new DicomInstance(studyInstanceUID, TestUidGenerator.Generate(), instances[0].SopInstanceUID)));
             Assert.True(studyMetadata.TryRemoveInstance(instances[0]));
             Assert.False(studyMetadata.TryRemoveInstance(instances[0]));
             Assert.Equal(3, studyMetadata.GetDicomInstances().Count());
@@ -134,8 +135,8 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
                     { DicomTag.InstitutionName, "TestInstitution" },
                     new DicomSequence(DicomTag.InstitutionCodeSequence, new DicomDataset() { { DicomTag.CodeMeaning, "TestMeaning" } }),
                 });
-            var studyInstanceUID = Guid.NewGuid().ToString();
-            var seriesInstanceUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = TestUidGenerator.Generate();
+            var seriesInstanceUID = TestUidGenerator.Generate();
             DicomAttributeId[] indexableAttributes = new[]
             {
                 new DicomAttributeId(DicomTag.PatientName),
@@ -213,9 +214,9 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
         {
             return new DicomDataset()
             {
-                { DicomTag.StudyInstanceUID, studyInstanceUID ?? Guid.NewGuid().ToString() },
-                { DicomTag.SeriesInstanceUID, seriesInstanceUID ?? Guid.NewGuid().ToString() },
-                { DicomTag.SOPInstanceUID, Guid.NewGuid().ToString() },
+                { DicomTag.StudyInstanceUID, studyInstanceUID ?? TestUidGenerator.Generate() },
+                { DicomTag.SeriesInstanceUID, seriesInstanceUID ?? TestUidGenerator.Generate() },
+                { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
             };
         }
     }

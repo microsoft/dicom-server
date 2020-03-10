@@ -7,12 +7,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public class QueryResultEntry
     {
-        public string StudyInstanceUID { get; set; }
+        public QueryResultEntry(
+            string studyInstanceUID,
+            string seriesInstanceUID,
+            string sOPInstanceUID,
+            long version)
+        {
+            StudyInstanceUID = studyInstanceUID;
+            SeriesInstanceUID = seriesInstanceUID;
+            SOPInstanceUID = sOPInstanceUID;
+            Version = version;
+        }
 
-        public string SeriesInstanceUID { get; set; }
+        public string StudyInstanceUID { get; }
 
-        public string SOPInstanceUID { get; set; }
+        public string SeriesInstanceUID { get; }
 
-        public long Version { get; set; }
+        public string SOPInstanceUID { get; }
+
+        public long Version { get; }
     }
 }

@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenADicomInstanceWithMultipleFrames_WhenRetrievingFrames_TheServerShouldReturnOK()
         {
-            var studyInstanceUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUID, frames: 2);
             var dicomInstance = DicomInstance.Create(dicomFile1.Dataset);
             HttpResult<DicomDataset> response = await _client.PostAsync(new[] { dicomFile1 }, studyInstanceUID);
@@ -116,9 +116,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenARequestWithFrameLessThanOrEqualTo0_WhenRetrievingFrames_TheServerShouldReturnBadRequest(params int[] frames)
         {
             HttpResult<IReadOnlyList<Stream>> response = await _client.GetFramesAsync(
-                studyInstanceUID: DicomUID.Generate().UID,
-                seriesInstanceUID: DicomUID.Generate().UID,
-                sopInstanceUID: DicomUID.Generate().UID,
+                studyInstanceUID: TestUidGenerator.Generate(),
+                seriesInstanceUID: TestUidGenerator.Generate(),
+                sopInstanceUID: TestUidGenerator.Generate(),
                 frames: frames);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -160,43 +160,43 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("&&5")]
         public async Task GivenARequestWithInvalidTransferSyntax_WhenRetrievingResources_TheServerShouldReturnBadRequest(string transferSyntax)
         {
-            HttpResult<IReadOnlyList<DicomFile>> response = await _client.GetStudyAsync(Guid.NewGuid().ToString(), transferSyntax);
+            HttpResult<IReadOnlyList<DicomFile>> response = await _client.GetStudyAsync(TestUidGenerator.Generate(), transferSyntax);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-            response = await _client.GetSeriesAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), transferSyntax);
+            response = await _client.GetSeriesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-            response = await _client.GetInstanceAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), transferSyntax);
+            response = await _client.GetInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
             HttpResult<IReadOnlyList<Stream>> framesResponse =
-                await _client.GetFramesAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), transferSyntax, 1);
+                await _client.GetFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax, 1);
             Assert.Equal(HttpStatusCode.BadRequest, framesResponse.StatusCode);
         }
 
         [Fact]
         public async Task GivenNonExistentIdentifiers_WhenRetrieving_TheServerReturnsNotFound()
         {
-            HttpResult<IReadOnlyList<DicomFile>> response1 = await _client.GetStudyAsync(Guid.NewGuid().ToString());
+            HttpResult<IReadOnlyList<DicomFile>> response1 = await _client.GetStudyAsync(TestUidGenerator.Generate());
             Assert.Equal(HttpStatusCode.NotFound, response1.StatusCode);
-            HttpResult<IReadOnlyList<DicomFile>> response2 = await _client.GetSeriesAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            HttpResult<IReadOnlyList<DicomFile>> response2 = await _client.GetSeriesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate());
             Assert.Equal(HttpStatusCode.NotFound, response2.StatusCode);
-            HttpResult<IReadOnlyList<DicomFile>> response3 = await _client.GetInstanceAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            HttpResult<IReadOnlyList<DicomFile>> response3 = await _client.GetInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
             Assert.Equal(HttpStatusCode.NotFound, response3.StatusCode);
-            HttpResult<IReadOnlyList<Stream>> response4 = await _client.GetFramesAsync(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), frames: 1);
+            HttpResult<IReadOnlyList<Stream>> response4 = await _client.GetFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), frames: 1);
             Assert.Equal(HttpStatusCode.NotFound, response4.StatusCode);
 
             // Create a valid Study/ Series/ Instance with one frame
-            var studyInstanceUID = Guid.NewGuid().ToString();
-            var seriesInstanceUID = Guid.NewGuid().ToString();
-            var sopInstanceUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = TestUidGenerator.Generate();
+            var seriesInstanceUID = TestUidGenerator.Generate();
+            var sopInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFileWith8BitPixelData(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
             HttpResult<DicomDataset> storeResponse = await _client.PostAsync(new[] { dicomFile1 }, studyInstanceUID);
             ValidationHelpers.ValidateSuccessSequence(storeResponse.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
 
-            HttpResult<IReadOnlyList<DicomFile>> response5 = await _client.GetSeriesAsync(studyInstanceUID, Guid.NewGuid().ToString());
+            HttpResult<IReadOnlyList<DicomFile>> response5 = await _client.GetSeriesAsync(studyInstanceUID, TestUidGenerator.Generate());
             Assert.Equal(HttpStatusCode.NotFound, response5.StatusCode);
-            HttpResult<IReadOnlyList<DicomFile>> response6 = await _client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, Guid.NewGuid().ToString());
+            HttpResult<IReadOnlyList<DicomFile>> response6 = await _client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, TestUidGenerator.Generate());
             Assert.Equal(HttpStatusCode.NotFound, response6.StatusCode);
             HttpResult<IReadOnlyList<Stream>> response7 = await _client.GetFramesAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 1);
             Assert.Equal(HttpStatusCode.OK, response7.StatusCode);
@@ -207,7 +207,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenStoredDicomFileWithNoContent_WhenRetrieved_TheFileIsRetrievedCorrectly()
         {
-            var studyInstanceUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);
             var dicomInstance = DicomInstance.Create(dicomFile1.Dataset);
             HttpResult<DicomDataset> response = await _client.PostAsync(new[] { dicomFile1 }, studyInstanceUID);
@@ -265,9 +265,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenAnUnsupportedTransferSyntax_WhenWildCardTsSpecified_OriginalImageReturned()
         {
-            var studyInstanceUID = DicomUID.Generate().UID;
-            var seriesInstanceUID = DicomUID.Generate().UID;
-            var sopInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = TestUidGenerator.Generate();
+            var seriesInstanceUID = TestUidGenerator.Generate();
+            var sopInstanceUID = TestUidGenerator.Generate();
 
             DicomFile dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
                 studyInstanceUID,
@@ -312,8 +312,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenSupportedTransferSyntax_WhenNoTsSpecified_DefaultTsReturned()
         {
-            var seriesInstanceUID = DicomUID.Generate().UID;
-            var studyInstanceUID = DicomUID.Generate().UID;
+            var seriesInstanceUID = TestUidGenerator.Generate();
+            var studyInstanceUID = TestUidGenerator.Generate();
 
             DicomFile dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
                 studyInstanceUID,
@@ -343,8 +343,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenAMixOfTransferSyntaxes_WhenSomeAreSupported_PartialIsReturned()
         {
-            var seriesInstanceUID = DicomUID.Generate().UID;
-            var studyInstanceUID = DicomUID.Generate().UID;
+            var seriesInstanceUID = TestUidGenerator.Generate();
+            var studyInstanceUID = TestUidGenerator.Generate();
 
             DicomFile dicomFile1 = Samples.CreateRandomDicomFileWith8BitPixelData(
                 studyInstanceUID,
@@ -500,19 +500,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Study
             await ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebClient.BaseRetrieveStudyUriFormat, Guid.NewGuid().ToString()),
+                string.Format(DicomWebClient.BaseRetrieveStudyUriFormat, TestUidGenerator.Generate()),
                 acceptHeader);
 
             // Series
             await ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebClient.BaseRetrieveSeriesUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                string.Format(DicomWebClient.BaseRetrieveSeriesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate()),
                 acceptHeader);
 
             // Instance
             await ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebClient.BaseRetrieveInstanceUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                string.Format(DicomWebClient.BaseRetrieveInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
                 acceptHeader);
         }
 
@@ -524,7 +524,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             await ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebClient.BaseRetrieveFramesUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), 1),
+                string.Format(DicomWebClient.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1),
                 acceptHeader);
         }
 

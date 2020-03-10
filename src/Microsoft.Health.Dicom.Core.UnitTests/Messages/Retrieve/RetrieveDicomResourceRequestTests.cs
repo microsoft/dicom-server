@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Dicom;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [Fact]
         public void GivenRetrieveDicomResourcesRequestForStudy_OnConstruction_StudyResourceTypeIsSet()
         {
-            var request = new RetrieveDicomResourceRequest(requestedTransferSyntax: string.Empty, DicomUID.Generate().UID);
+            var request = new RetrieveDicomResourceRequest(requestedTransferSyntax: string.Empty, TestUidGenerator.Generate());
             Assert.Equal(ResourceType.Study, request.ResourceType);
         }
 
@@ -24,8 +24,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             var request = new RetrieveDicomResourceRequest(
                 requestedTransferSyntax: string.Empty,
-                DicomUID.Generate().UID,
-                DicomUID.Generate().UID);
+                TestUidGenerator.Generate(),
+                TestUidGenerator.Generate());
             Assert.Equal(ResourceType.Series, request.ResourceType);
         }
 
@@ -34,9 +34,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             var request = new RetrieveDicomResourceRequest(
                 requestedTransferSyntax: string.Empty,
-                DicomUID.Generate().UID,
-                DicomUID.Generate().UID,
-                DicomUID.Generate().UID);
+                TestUidGenerator.Generate(),
+                TestUidGenerator.Generate(),
+                TestUidGenerator.Generate());
             Assert.Equal(ResourceType.Instance, request.ResourceType);
         }
 
@@ -45,9 +45,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             var request = new RetrieveDicomResourceRequest(
                 requestedTransferSyntax: string.Empty,
-                DicomUID.Generate().UID,
-                DicomUID.Generate().UID,
-                DicomUID.Generate().UID,
+                TestUidGenerator.Generate(),
+                TestUidGenerator.Generate(),
+                TestUidGenerator.Generate(),
                 new[] { 5 });
             Assert.Equal(ResourceType.Frames, request.ResourceType);
         }

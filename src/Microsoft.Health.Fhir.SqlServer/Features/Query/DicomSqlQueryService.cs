@@ -59,13 +59,11 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
                            VLatest.Instance.SOPInstanceUID,
                            VLatest.Instance.Watermark);
 
-                        results.Add(new QueryResultEntry()
-                        {
-                            StudyInstanceUID = studyInstanceUID,
-                            SeriesInstanceUID = seriesInstanceUID,
-                            SOPInstanceUID = sOPInstanceUID,
-                            Version = watermark,
-                        });
+                        results.Add(new QueryResultEntry(
+                                studyInstanceUID,
+                                seriesInstanceUID,
+                                sOPInstanceUID,
+                                watermark));
                     }
                 }
             }

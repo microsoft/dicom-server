@@ -64,11 +64,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             // Add 10 series with 10 instances each to a single study
             const int numberOfStudies = 2;
-            var studyInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = TestUidGenerator.Generate();
             for (int i = 0; i < numberOfStudies; i++)
             {
                 var files = new DicomFile[10];
-                var seriesInstanceUID = DicomUID.Generate().UID;
+                var seriesInstanceUID = TestUidGenerator.Generate();
 
                 for (int j = 0; j < 10; j++)
                 {
@@ -91,8 +91,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async void GivenValidSeriesId_WhenDeletingSeries_TheServerShouldReturnOK()
         {
             // Store series with 10 instances
-            var studyInstanceUID = DicomUID.Generate().UID;
-            var seriesInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = TestUidGenerator.Generate();
+            var seriesInstanceUID = TestUidGenerator.Generate();
             var files = new DicomFile[10];
             for (int i = 0; i < 10; i++)
             {
@@ -114,9 +114,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async void GivenValidInstanceId_WhenDeletingInstance_TheServerShouldReturnOK()
         {
             // Create and upload file
-            var studyInstanceUID = DicomUID.Generate().UID;
-            var seriesInstanceUID = DicomUID.Generate().UID;
-            var sopInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = TestUidGenerator.Generate();
+            var seriesInstanceUID = TestUidGenerator.Generate();
+            var sopInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesInstanceUID, sopInstanceUID: sopInstanceUID);
             await _client.PostAsync(new[] { dicomFile });
 

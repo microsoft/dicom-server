@@ -22,14 +22,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 {
                     string minDate = splitString[0].Trim();
                     string maxDate = splitString[1].Trim();
-                    ParseDate(minDate, dicomTag.DictionaryEntry.Keyword, out DateTime parsedMinDate);
-                    ParseDate(maxDate, dicomTag.DictionaryEntry.Keyword, out DateTime parsedMaxDate);
+                    DateTime parsedMinDate = ParseDate(minDate, dicomTag.DictionaryEntry.Keyword);
+                    DateTime parsedMaxDate = ParseDate(maxDate, dicomTag.DictionaryEntry.Keyword);
 
                     return new DateRangeValueMatchCondition(dicomTag, parsedMinDate, parsedMaxDate);
                 }
             }
 
-            ParseDate(value, dicomTag.DictionaryEntry.Keyword, out DateTime parsedDate);
+            DateTime parsedDate = ParseDate(value, dicomTag.DictionaryEntry.Keyword);
             return new DateSingleValueMatchCondition(dicomTag, parsedDate);
         }
 
@@ -38,12 +38,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new StringSingleValueMatchCondition(dicomTag, value);
         }
 
-        private static void ParseDate(string date, string tagKeyword, out DateTime parsedDate)
+        private static DateTime ParseDate(string date, string tagKeyword)
         {
+            DateTime parsedDate;
             if (!DateTime.TryParseExact(date, DateTagValueFormat, null, System.Globalization.DateTimeStyles.None, out parsedDate))
             {
                 throw new DicomQueryParseException(string.Format(DicomCoreResource.InvalidDateValue, date, tagKeyword));
             }
+
+            return parsedDate;
         }
     }
 }

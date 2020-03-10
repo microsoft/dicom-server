@@ -3,10 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Net;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Api
@@ -155,10 +154,7 @@ namespace Microsoft.Health.Dicom.Api
 
         private static void ValidateUID(string value, string nameOfParam)
         {
-            if (!DicomUID.IsValid(value))
-            {
-                throw new ArgumentException(string.Format(DicomApiResource.InvalidValue, value, nameOfParam));
-            }
+            EnsureArg.Matches(value, DicomIdentifierValidator.IdentifierRegex, nameof(nameOfParam));
         }
     }
 }
