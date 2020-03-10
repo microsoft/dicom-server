@@ -139,8 +139,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
             Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(
                 json,
                 new JsonDicomConverter(
-                    writeTagsAsKeywords: false,
-                    new JsonLoadSettings() { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error })));
+                    writeTagsAsKeywords: false)));
         }
     }
 }

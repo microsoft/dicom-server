@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\src\Microsoft.Health.Blob\Microsoft.Health.Blob.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Blob\Microsoft.Health.Dicom.Blob.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj" />
   </ItemGroup>
   
 </Project>

@@ -1,7 +1,7 @@
 ﻿#pragma warning disable
 // Copyright (c) 2012-2019 fo-dicom contributors.
 // Licensed under the Microsoft Public License (MS-PL).
-// Note: This is a copy of fo-dicom:4.01/Serialization/Json/JsonDicomConverter.cs
+// Note: This is a copy of fo-dicom:4.04/Serialization/Json/JsonDicomConverter.cs
 
 using System;
 using System.Collections.Generic;
@@ -23,21 +23,14 @@ namespace Dicom.Serialization
     {
         private readonly bool _writeTagsAsKeywords;
         private readonly static Encoding _jsonTextEncoding = Encoding.UTF8;
-        private readonly JsonLoadSettings _jsonLoadSettings;
 
         /// <summary>
         /// Initialize the JsonDicomConverter.
         /// </summary>
         /// <param name="writeTagsAsKeywords">Whether to write the json keys as DICOM keywords instead of tags. This makes the json non-compliant to DICOM JSON.</param>
         public JsonDicomConverter(bool writeTagsAsKeywords = false)
-            : this(writeTagsAsKeywords, new JsonLoadSettings())
-        {
-        }
-
-        public JsonDicomConverter(bool writeTagsAsKeywords, JsonLoadSettings jsonLoadSettings)
         {
             _writeTagsAsKeywords = writeTagsAsKeywords;
-            _jsonLoadSettings = jsonLoadSettings;
         }
 
         #region JsonConverter overrides
@@ -266,6 +259,9 @@ namespace Dicom.Serialization
                 case "OW":
                     item = new DicomOtherWord(tag, (IByteBuffer)data);
                     break;
+                case "OV":
+                    item = new DicomOtherVeryLong(tag, (IByteBuffer)data);
+                    break;
                 case "PN":
                     item = new DicomPersonName(tag, (string[])data);
                     break;
@@ -303,6 +299,16 @@ namespace Dicom.Serialization
                     else
                     {
                         item = new DicomShortText(tag, _jsonTextEncoding, data.AsStringArray().FirstOrEmpty());
+                    }
+                    break;
+                case "SV":
+                    if (data is IByteBuffer dataBufferSV)
+                    {
+                        item = new DicomSignedVeryLong(tag, dataBufferSV);
+                    }
+                    else
+                    {
+                        item = new DicomSignedVeryLong(tag, (long[])data);
                     }
                     break;
                 case "TM":
@@ -355,6 +361,16 @@ namespace Dicom.Serialization
                     else
                     {
                         item = new DicomUnlimitedText(tag, _jsonTextEncoding, data.AsStringArray().SingleOrEmpty());
+                    }
+                    break;
+                case "UV":
+                    if (data is IByteBuffer dataBufferUV)
+                    {
+                        item = new DicomUnsignedVeryLong(tag, dataBufferUV);
+                    }
+                    else
+                    {
+                        item = new DicomUnsignedVeryLong(tag, (ulong[])data);
                     }
                     break;
                 default:
