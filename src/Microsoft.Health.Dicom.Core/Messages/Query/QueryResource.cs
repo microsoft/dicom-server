@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Dicom.Core.Messages
 {
-    public enum QueryResourceType
+    public enum QueryResource
     {
         AllStudies,
         StudySeries,

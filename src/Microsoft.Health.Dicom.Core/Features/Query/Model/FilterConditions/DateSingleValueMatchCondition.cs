@@ -7,18 +7,15 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DateRangeValueMatchCondition : DicomQueryFilterCondition
+    public class DateSingleValueMatchCondition : DicomQueryFilterCondition
     {
-        internal DateRangeValueMatchCondition(DicomTag tag, DateTime minimum, DateTime maximum)
+        internal DateSingleValueMatchCondition(DicomTag tag, DateTime value)
             : base(tag)
         {
-            Minimum = minimum;
-            Maximum = maximum;
+            Value = value;
         }
 
-        public DateTime Minimum { get; set; }
-
-        public DateTime Maximum { get; set; }
+        public DateTime Value { get; }
 
         public override void Accept(QueryFilterConditionVisitor visitor)
         {

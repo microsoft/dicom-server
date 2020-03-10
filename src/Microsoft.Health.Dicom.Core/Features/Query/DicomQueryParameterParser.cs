@@ -67,9 +67,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
             if (int.TryParse(trimmedValue, out int result))
             {
-                if (result > DicomQueryConditionLimit.MaxQueryResultCount || result < 0)
+                if (result > DicomQueryLimit.MaxQueryResultCount || result < 0)
                 {
-                    throw new DicomQueryParseException(string.Format(DicomCoreResource.QueryResultCountMaxExceeded, result, DicomQueryConditionLimit.MaxQueryResultCount));
+                    throw new DicomQueryParseException(string.Format(DicomCoreResource.QueryResultCountMaxExceeded, result, DicomQueryLimit.MaxQueryResultCount));
                 }
 
                 _parsedQuery.Limit = result;

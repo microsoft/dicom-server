@@ -153,7 +153,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
     public class NullableDateColumn : Column<DateTime>
     {
         public NullableDateColumn(string name)
-            : base(name, SqlDbType.DateTime2, true)
+            : base(name, SqlDbType.DateTime2, true, 0, 0)
         {
         }
 

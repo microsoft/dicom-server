@@ -14,25 +14,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     public class DicomQueryExpression
     {
         public DicomQueryExpression(
-            QueryResourceType resourceType,
+            QueryResource resourceType,
             DicomQueryParameterIncludeField includeFields,
             bool fuzzyMatching,
             int limit,
             int offset,
             IReadOnlyCollection<DicomQueryFilterCondition> filterConditions)
         {
-            QueryResourceType = resourceType;
+            QueryResource = resourceType;
             IncludeFields = includeFields;
             FuzzyMatching = fuzzyMatching;
             Limit = limit;
             Offset = offset;
             FilterConditions = filterConditions;
+
+            SetIELevel();
          }
 
         /// <summary>
-        /// Resource type level
+        /// Query Resource type level
         /// </summary>
-        public QueryResourceType QueryResourceType { get; }
+        public QueryResource QueryResource { get; }
+
+        /// <summary>
+        /// Resource level Study/Series
+        /// </summary>
+        public ResourceType IELevel { get; private set; }
 
         /// <summary>
         /// Dicom tags to include in query result
@@ -77,8 +84,42 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         {
             get
             {
-                return Limit > 0 && Limit <= DicomQueryConditionLimit.MaxQueryResultCount ?
-                    Limit : DicomQueryConditionLimit.DefaultQueryResultCount;
+                return Limit > 0 && Limit <= DicomQueryLimit.MaxQueryResultCount ?
+                    Limit : DicomQueryLimit.DefaultQueryResultCount;
+            }
+        }
+
+        public bool IsInstanceIELevel()
+        {
+            return IELevel == ResourceType.Instance;
+        }
+
+        public bool IsSeriesIELevel()
+        {
+            return IELevel == ResourceType.Series;
+        }
+
+        public bool IsStudyIELevel()
+        {
+            return IELevel == ResourceType.Study;
+        }
+
+        private void SetIELevel()
+        {
+            switch (QueryResource)
+            {
+                case QueryResource.AllInstances:
+                case QueryResource.StudyInstances:
+                case QueryResource.StudySeriesInstances:
+                    IELevel = ResourceType.Instance;
+                    break;
+                case QueryResource.AllSeries:
+                case QueryResource.StudySeries:
+                    IELevel = ResourceType.Series;
+                    break;
+                case QueryResource.AllStudies:
+                    IELevel = ResourceType.Study;
+                    break;
             }
         }
     }

@@ -23,7 +23,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private readonly ILogger<DicomQueryParser> _logger;
         private const string IncludeFieldValueAll = "all";
-        private const string DateTagValueFormat = "yyyyMMdd";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
         private QueryExpressionImp _parsedQuery = null;
         private readonly Dictionary<string, Action<KeyValuePair<string, StringValues>>> _paramParsers =
@@ -31,6 +30,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private readonly Dictionary<string, Func<DicomTag, string, DicomQueryFilterCondition>> _valueParsers =
             new Dictionary<string, Func<DicomTag, string, DicomQueryFilterCondition>>(StringComparer.OrdinalIgnoreCase);
+
+        public const string DateTagValueFormat = "yyyyMMdd";
 
         public DicomQueryParser(ILogger<DicomQueryParser> logger)
         {
@@ -108,7 +109,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 _parsedQuery.FilterConditions);
         }
 
-        private bool ParseFilterCondition(KeyValuePair<string, StringValues> queryParameter, QueryResourceType resourceType, out DicomQueryFilterCondition condition)
+        private bool ParseFilterCondition(KeyValuePair<string, StringValues> queryParameter, QueryResource resourceType, out DicomQueryFilterCondition condition)
         {
             condition = null;
             var attributeId = queryParameter.Key.Trim();
@@ -160,9 +161,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return dicomTag != null;
         }
 
-        private static void ValidateIfTagSupported(DicomTag dicomTag, QueryResourceType resourceType)
+        private static void ValidateIfTagSupported(DicomTag dicomTag, QueryResource resourceType)
         {
-            HashSet<DicomTag> supportedQueryTags = DicomQueryConditionLimit.QueryResourceTypeToTagsMapping[resourceType];
+            HashSet<DicomTag> supportedQueryTags = DicomQueryLimit.QueryResourceTypeToTagsMapping[resourceType];
 
             if (!supportedQueryTags.Contains(dicomTag))
             {

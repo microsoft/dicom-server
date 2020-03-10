@@ -9,7 +9,7 @@ using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public static class DicomQueryConditionLimit
+    public static class DicomQueryLimit
     {
         public const int MaxQueryResultCount = 200;
         public const int DefaultQueryResultCount = 100;
@@ -45,14 +45,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public static readonly HashSet<DicomTag> AllInstancesTags = new HashSet<DicomTag>(
             AllStudiesTags.Union(StudySeriesTags).Union(StudySeriesInstancesTags));
 
-        public static readonly Dictionary<QueryResourceType, HashSet<DicomTag>> QueryResourceTypeToTagsMapping = new Dictionary<QueryResourceType, HashSet<DicomTag>>()
+        public static readonly Dictionary<QueryResource, HashSet<DicomTag>> QueryResourceTypeToTagsMapping = new Dictionary<QueryResource, HashSet<DicomTag>>()
         {
-            { QueryResourceType.AllStudies, AllStudiesTags },
-            { QueryResourceType.AllSeries, AllSeriesTags },
-            { QueryResourceType.AllInstances, AllInstancesTags },
-            { QueryResourceType.StudySeries, StudySeriesTags },
-            { QueryResourceType.StudyInstances, StudyInstancesTags },
-            { QueryResourceType.StudySeriesInstances, StudySeriesInstancesTags },
+            { QueryResource.AllStudies, AllStudiesTags },
+            { QueryResource.AllSeries, AllSeriesTags },
+            { QueryResource.AllInstances, AllInstancesTags },
+            { QueryResource.StudySeries, StudySeriesTags },
+            { QueryResource.StudyInstances, StudyInstancesTags },
+            { QueryResource.StudySeriesInstances, StudySeriesInstancesTags },
         };
 
         public static bool IsValidRangeQueryTag(DicomTag tag)

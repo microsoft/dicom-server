@@ -12,5 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public string SeriesInstanceUID { get; set; }
 
         public string SOPInstanceUID { get; set; }
+
+        public long Version { get; set; }
     }
 }

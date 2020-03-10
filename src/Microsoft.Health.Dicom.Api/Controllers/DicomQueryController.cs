@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Api
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
-                QueryResourceType.AllStudies,
+                QueryResource.AllStudies,
                 cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(response.StatusCode);
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Api
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
-                QueryResourceType.AllSeries,
+                QueryResource.AllSeries,
                 cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(response.StatusCode);
@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Api
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
-                QueryResourceType.StudySeries,
+                QueryResource.StudySeries,
                 studyInstanceUID: studyInstanceUID,
                 cancellationToken: HttpContext.RequestAborted);
 
@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Api
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
-                QueryResourceType.AllInstances,
+                QueryResource.AllInstances,
                 cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(response.StatusCode);
@@ -123,7 +123,7 @@ namespace Microsoft.Health.Dicom.Api
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
-                QueryResourceType.StudyInstances,
+                QueryResource.StudyInstances,
                 studyInstanceUID: studyInstanceUID,
                 cancellationToken: HttpContext.RequestAborted);
 
@@ -145,7 +145,7 @@ namespace Microsoft.Health.Dicom.Api
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
-                QueryResourceType.StudySeriesInstances,
+                QueryResource.StudySeriesInstances,
                 studyInstanceUID: studyInstanceUID,
                 seriesInstanceUID: seriesInstanceUID,
                 cancellationToken: HttpContext.RequestAborted);
