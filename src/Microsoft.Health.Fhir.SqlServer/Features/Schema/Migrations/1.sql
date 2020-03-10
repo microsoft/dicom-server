@@ -145,9 +145,9 @@ CREATE TABLE dicom.StudyMetadataCore (
     Version INT NOT NULL,
 	--patient and study core
 	PatientID NVARCHAR(64) NOT NULL,
-	PatientName NVARCHAR(64) NULL,
+	PatientName NVARCHAR(320) NULL,
 	--PatientNameIndex AS REPLACE(PatientName, '^', ' '), --FT index, TODO code gen not working 
-	ReferringPhysicianName NVARCHAR(64) NULL,
+	ReferringPhysicianName NVARCHAR(320) NULL,
 	StudyDate DATE NULL,
 	StudyDescription NVARCHAR(64) NULL,
 	AccessionNumber NVARCHAR(16) NULL,
