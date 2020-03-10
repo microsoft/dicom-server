@@ -7,15 +7,12 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DateSingleValueMatchCondition : DicomQueryFilterCondition
+    public class DateSingleValueMatchCondition : SingleValueMatchCondition<DateTime>
     {
         internal DateSingleValueMatchCondition(DicomTag tag, DateTime value)
-            : base(tag)
+            : base(tag, value)
         {
-            Value = value;
         }
-
-        public DateTime Value { get; }
 
         public override void Accept(QueryFilterConditionVisitor visitor)
         {

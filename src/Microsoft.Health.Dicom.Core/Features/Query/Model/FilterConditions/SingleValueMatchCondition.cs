@@ -2,21 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-using System;
 using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DateRangeValueMatchCondition : RangeValueMatchCondition<DateTime>
+    public abstract class SingleValueMatchCondition<T> : DicomQueryFilterCondition
     {
-        internal DateRangeValueMatchCondition(DicomTag tag, DateTime minimum, DateTime maximum)
-            : base(tag, minimum, maximum)
+        internal SingleValueMatchCondition(DicomTag tag, T value)
+            : base(tag)
         {
+            Value = value;
         }
 
-        public override void Accept(QueryFilterConditionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+        public T Value { get; }
     }
 }
