@@ -150,7 +150,7 @@ CREATE TABLE dicom.StudyMetadataCore (
 	ReferringPhysicianName NVARCHAR(64) NULL,
 	StudyDate DATE NULL,
 	StudyDescription NVARCHAR(64) NULL,
-	AccessionNumer NVARCHAR(16) NULL,
+	AccessionNumber NVARCHAR(16) NULL,
 )
 
 --Table containing normalized standard Series tags

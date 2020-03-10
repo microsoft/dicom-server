@@ -68,7 +68,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
             internal readonly NullableNVarCharColumn ReferringPhysicianName = new NullableNVarCharColumn("ReferringPhysicianName", 64);
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
             internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
-            internal readonly NullableNVarCharColumn AccessionNumer = new NullableNVarCharColumn("AccessionNumer", 16);
+            internal readonly NullableNVarCharColumn AccessionNumber = new NullableNVarCharColumn("AccessionNumber", 16);
         }
 
         internal class SelectCurrentSchemaVersionProcedure : StoredProcedure

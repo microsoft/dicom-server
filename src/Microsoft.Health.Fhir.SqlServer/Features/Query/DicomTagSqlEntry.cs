@@ -15,7 +15,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
                 { DicomTag.StudyInstanceUID, new DicomTagSqlEntry(DicomTag.StudyInstanceUID, SqlTableType.StudyTable, VLatest.StudyMetadataCore.StudyInstanceUID) },
                 { DicomTag.StudyDate, new DicomTagSqlEntry(DicomTag.StudyDate, SqlTableType.StudyTable, VLatest.StudyMetadataCore.StudyDate) },
                 { DicomTag.StudyDescription, new DicomTagSqlEntry(DicomTag.StudyDescription, SqlTableType.StudyTable, VLatest.StudyMetadataCore.StudyDescription) },
-                { DicomTag.AccessionNumber, new DicomTagSqlEntry(DicomTag.AccessionNumber, SqlTableType.StudyTable, VLatest.StudyMetadataCore.AccessionNumer) },
+                { DicomTag.AccessionNumber, new DicomTagSqlEntry(DicomTag.AccessionNumber, SqlTableType.StudyTable, VLatest.StudyMetadataCore.AccessionNumber) },
                 { DicomTag.PatientID, new DicomTagSqlEntry(DicomTag.PatientID, SqlTableType.StudyTable, VLatest.StudyMetadataCore.PatientID) },
                 { DicomTag.PatientName, new DicomTagSqlEntry(DicomTag.PatientName, SqlTableType.StudyTable, VLatest.StudyMetadataCore.PatientName) },
                 { DicomTag.SeriesInstanceUID, new DicomTagSqlEntry(DicomTag.SeriesInstanceUID, SqlTableType.SeriesTable, VLatest.SeriesMetadataCore.SeriesInstanceUID) },
