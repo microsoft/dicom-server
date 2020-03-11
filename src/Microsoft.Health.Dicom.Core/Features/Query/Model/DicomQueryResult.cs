@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -11,6 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         public DicomQueryResult(IEnumerable<QueryResultEntry> entries)
         {
+            EnsureArg.IsNotNull(entries, nameof(entries));
             DicomInstances = entries;
         }
 

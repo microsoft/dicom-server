@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
+
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public class QueryResultEntry
@@ -13,6 +15,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             string sopInstanceUid,
             long version)
         {
+            EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
+            EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
+
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
