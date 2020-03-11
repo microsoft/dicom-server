@@ -53,16 +53,16 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (string studyInstanceUID, string seriesInstanceUID, string sOPInstanceUID, long watermark) = reader.ReadRow(
-                           VLatest.Instance.StudyInstanceUID,
-                           VLatest.Instance.SeriesInstanceUID,
-                           VLatest.Instance.SOPInstanceUID,
+                        (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+                           VLatest.Instance.StudyInstanceUid,
+                           VLatest.Instance.SeriesInstanceUid,
+                           VLatest.Instance.SopInstanceUid,
                            VLatest.Instance.Watermark);
 
                         results.Add(new QueryResultEntry(
-                                studyInstanceUID,
-                                seriesInstanceUID,
-                                sOPInstanceUID,
+                                studyInstanceUid,
+                                seriesInstanceUid,
+                                sopInstanceUid,
                                 watermark));
                     }
                 }

@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Api
@@ -74,17 +73,17 @@ namespace Microsoft.Health.Dicom.Api
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [Route("studies/{studyInstanceUID}/series")]
-        public async Task<IActionResult> QueryForSeriesInStudyAsync(string studyInstanceUID)
+        [Route("studies/{studyInstanceUid}/series")]
+        public async Task<IActionResult> QueryForSeriesInStudyAsync(string studyInstanceUid)
         {
-            ValidateUID(studyInstanceUID, nameof(studyInstanceUID));
+            EnsureArg.IsNotEmptyOrWhitespace(studyInstanceUid, nameof(studyInstanceUid));
 
-            _logger.LogInformation($"DICOM Web Query Series request for study '{studyInstanceUID}' received. QueryString '{Request.QueryString}.");
+            _logger.LogInformation($"DICOM Web Query Series request for study '{studyInstanceUid}' received. QueryString '{Request.QueryString}.");
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
                 QueryResource.StudySeries,
-                studyInstanceUID: studyInstanceUID,
+                studyInstanceUid: studyInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(response.StatusCode);
@@ -113,17 +112,17 @@ namespace Microsoft.Health.Dicom.Api
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [Route("studies/{studyInstanceUID}/instances")]
-        public async Task<IActionResult> QueryForInstancesInStudyAsync(string studyInstanceUID)
+        [Route("studies/{studyInstanceUid}/instances")]
+        public async Task<IActionResult> QueryForInstancesInStudyAsync(string studyInstanceUid)
         {
-            ValidateUID(studyInstanceUID, nameof(studyInstanceUID));
+            EnsureArg.IsNotEmptyOrWhitespace(studyInstanceUid, nameof(studyInstanceUid));
 
-            _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUID}' received. QueryString '{Request.QueryString}.");
+            _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUid}' received. QueryString '{Request.QueryString}.");
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
                 QueryResource.StudyInstances,
-                studyInstanceUID: studyInstanceUID,
+                studyInstanceUid: studyInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(response.StatusCode);
@@ -134,27 +133,22 @@ namespace Microsoft.Health.Dicom.Api
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances")]
-        public async Task<IActionResult> QueryForInstancesInSeriesAsync(string studyInstanceUID, string seriesInstanceUID)
+        [Route("studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances")]
+        public async Task<IActionResult> QueryForInstancesInSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
         {
-            ValidateUID(studyInstanceUID, nameof(studyInstanceUID));
-            ValidateUID(seriesInstanceUID, nameof(seriesInstanceUID));
+            EnsureArg.IsNotEmptyOrWhitespace(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotEmptyOrWhitespace(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUID}' and series '{seriesInstanceUID}' received. QueryString '{Request.QueryString}.");
+            _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUid}' and series '{seriesInstanceUid}' received. QueryString '{Request.QueryString}.");
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
                 QueryResource.StudySeriesInstances,
-                studyInstanceUID: studyInstanceUID,
-                seriesInstanceUID: seriesInstanceUID,
+                studyInstanceUid: studyInstanceUid,
+                seriesInstanceUid: seriesInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(response.StatusCode);
-        }
-
-        private static void ValidateUID(string value, string nameOfParam)
-        {
-            EnsureArg.Matches(value, DicomIdentifierValidator.IdentifierRegex, nameof(nameOfParam));
         }
     }
 }

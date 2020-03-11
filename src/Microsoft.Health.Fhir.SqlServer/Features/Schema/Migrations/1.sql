@@ -125,9 +125,9 @@ GO
 --Mapping table for dicom retrieval
 CREATE TABLE dicom.Instance (
 	--instance keys
-	StudyInstanceUID NVARCHAR(64) NOT NULL,
-	SeriesInstanceUID NVARCHAR(64) NOT NULL,
-	SOPInstanceUID NVARCHAR(64) NOT NULL,
+	StudyInstanceUid NVARCHAR(64) NOT NULL,
+	SeriesInstanceUid NVARCHAR(64) NOT NULL,
+	SopInstanceUid NVARCHAR(64) NOT NULL,
 	--data consitency columns
 	Watermark BIGINT NOT NULL,
 	Status TINYINT NOT NULL,
@@ -141,7 +141,7 @@ CREATE TABLE dicom.StudyMetadataCore (
 	--Key
 	ID BIGINT NOT NULL, --PK
 	--instance keys
-	StudyInstanceUID NVARCHAR(64) NOT NULL,
+	StudyInstanceUid NVARCHAR(64) NOT NULL,
     Version INT NOT NULL,
 	--patient and study core
 	PatientID NVARCHAR(64) NOT NULL,
@@ -158,7 +158,7 @@ CREATE TABLE dicom.SeriesMetadataCore (
 	--Key
 	ID BIGINT NOT NULL, --FK
 	--instance keys
-	SeriesInstanceUID NVARCHAR(64) NOT NULL,
+	SeriesInstanceUid NVARCHAR(64) NOT NULL,
     Version INT NOT NULL,
 	--series core
 	Modality NVARCHAR(16) NULL,

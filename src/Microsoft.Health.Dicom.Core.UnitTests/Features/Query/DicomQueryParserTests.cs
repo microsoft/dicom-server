@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
                 .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies));
-            Assert.False(dicomQueryExpression.AnyFilters);
+            Assert.False(dicomQueryExpression.HasFilters);
             Assert.False(dicomQueryExpression.IncludeFields.All);
             Assert.True(dicomQueryExpression.IncludeFields.DicomTags.Count == value.Split(',').Count());
         }
@@ -65,7 +65,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             DicomQueryExpression dicomQueryExpression = _queryParser
                 .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies));
-            Assert.True(dicomQueryExpression.AnyFilters);
+            Assert.True(dicomQueryExpression.HasFilters);
             var singleValueCond = dicomQueryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
             Assert.NotNull(singleValueCond);
             Assert.True(singleValueCond.DicomTag == DicomTag.PatientName);

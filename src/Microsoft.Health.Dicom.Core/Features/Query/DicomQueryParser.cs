@@ -88,15 +88,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
 
             // add UIDs as filter conditions
-            if (request.StudyInstanceUID != null)
+            if (request.StudyInstanceUid != null)
             {
-                var condition = new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, request.StudyInstanceUID);
+                var condition = new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, request.StudyInstanceUid);
                 _parsedQuery.FilterConditions.Add(condition);
             }
 
-            if (request.SeriesInstanceUID != null)
+            if (request.SeriesInstanceUid != null)
             {
-                var condition = new StringSingleValueMatchCondition(DicomTag.SeriesInstanceUID, request.SeriesInstanceUID);
+                var condition = new StringSingleValueMatchCondition(DicomTag.SeriesInstanceUID, request.SeriesInstanceUid);
                 _parsedQuery.FilterConditions.Add(condition);
             }
 

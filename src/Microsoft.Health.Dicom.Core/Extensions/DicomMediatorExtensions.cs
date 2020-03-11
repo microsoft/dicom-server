@@ -98,11 +98,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator,
             IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
             QueryResource resourceType,
-            string studyInstanceUID = null,
-            string seriesInstanceUID = null,
+            string studyInstanceUid = null,
+            string seriesInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
-            return mediator.Send(new QueryDicomResourceRequest(requestQuery, resourceType, studyInstanceUID, seriesInstanceUID), cancellationToken);
+            return mediator.Send(new QueryDicomResourceRequest(requestQuery, resourceType, studyInstanceUid, seriesInstanceUid), cancellationToken);
         }
     }
 }

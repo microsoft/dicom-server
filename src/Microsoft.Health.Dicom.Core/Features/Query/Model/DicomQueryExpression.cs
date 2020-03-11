@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         /// <summary>
         /// Request query was empty
         /// </summary>
-        public bool AnyFilters
+        public bool HasFilters
         {
             get
             {

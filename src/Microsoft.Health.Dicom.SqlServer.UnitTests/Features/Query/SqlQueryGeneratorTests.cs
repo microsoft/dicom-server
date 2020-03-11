@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
     public class SqlQueryGeneratorTests
     {
         [Fact]
-        public void GivenStudyInstanceUID_WhenIELevelSeries_ValidateDistinctStudySeries()
+        public void GivenStudyInstanceUid_WhenIELevelSeries_ValidateDistinctStudySeries()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new DicomQueryParameterIncludeField(false, new List<DicomTag>());
@@ -34,18 +34,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             new SqlQueryGenerator(stringBuilder, query, parm);
 
             string expectedDistinctSelect = @"SELECT DISTINCT
-i.StudyInstanceUID
-,i.SeriesInstanceUID
+i.StudyInstanceUid
+,i.SeriesInstanceUid
 FROM dicom.Instance i";
-            string expectedCrossApply = @"SELECT TOP 1 *
+            string expectedCrossApply = @"
 FROM dicom.Instance a
 WHERE 1 = 1
-AND a.StudyInstanceUID = f.StudyInstanceUID
-AND a.SeriesInstanceUID = f.SeriesInstanceUID";
+AND a.StudyInstanceUid = f.StudyInstanceUid
+AND a.SeriesInstanceUid = f.SeriesInstanceUid";
 
             Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
             Assert.Contains(expectedCrossApply, stringBuilder.ToString());
-            Assert.Contains("StudyInstanceUID=@p0", stringBuilder.ToString());
+            Assert.Contains("StudyInstanceUid=@p0", stringBuilder.ToString());
             Assert.Contains($"OFFSET 0 ROWS", stringBuilder.ToString());
             Assert.Contains($"FETCH NEXT {DicomQueryLimit.DefaultQueryResultCount} ROWS ONLY", stringBuilder.ToString());
         }
@@ -68,13 +68,13 @@ AND a.SeriesInstanceUID = f.SeriesInstanceUID";
             new SqlQueryGenerator(stringBuilder, query, parm);
 
             string expectedDistinctSelect = @"SELECT DISTINCT
-st.StudyInstanceUID
+st.StudyInstanceUid
 FROM dicom.StudyMetadataCore st";
 
-            string expectedCrossApply = @"SELECT TOP 1 *
+            string expectedCrossApply = @"
 FROM dicom.Instance a
 WHERE 1 = 1
-AND a.StudyInstanceUID = f.StudyInstanceUID";
+AND a.StudyInstanceUid = f.StudyInstanceUid";
             Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
             Assert.Contains(expectedCrossApply, stringBuilder.ToString());
 
@@ -82,7 +82,7 @@ AND a.StudyInstanceUID = f.StudyInstanceUID";
         }
 
         [Fact]
-        public void GivenSOPInstanceUID_WhenIELevelInstance_ValidateDistinctInstances()
+        public void GivenSopInstanceUid_WhenIELevelInstance_ValidateDistinctInstances()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new DicomQueryParameterIncludeField(false, new List<DicomTag>());
@@ -98,15 +98,15 @@ AND a.StudyInstanceUID = f.StudyInstanceUID";
             new SqlQueryGenerator(stringBuilder, query, parm);
 
             string expectedDistinctSelect = @"SELECT DISTINCT
-i.StudyInstanceUID
-,i.SeriesInstanceUID
-,i.SOPInstanceUID
+i.StudyInstanceUid
+,i.SeriesInstanceUid
+,i.SopInstanceUid
 ,i.Watermark
 FROM dicom.Instance i";
 
-            string expectedFilters = @"AND i.StudyInstanceUID=@p0
-AND i.SeriesInstanceUID=@p1
-AND i.SOPInstanceUID=@p2";
+            string expectedFilters = @"AND i.StudyInstanceUid=@p0
+AND i.SeriesInstanceUid=@p1
+AND i.SopInstanceUid=@p2";
 
             Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
             Assert.Contains(expectedFilters, stringBuilder.ToString());
