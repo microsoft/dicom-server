@@ -8,19 +8,31 @@
 
 DECLARE @sql nvarchar(max) =''
 
-SELECT @sql = @sql + 'DROP PROCEDURE ' + name + '; '
-FROM sys.procedures
+SELECT @sql = @sql + 'DROP PROCEDURE '+ s.name + '.' + p.name +';'
+FROM sys.procedures p
+join sys.schemas s
+on p.schema_id = s.schema_id
 
-SELECT @sql = @sql + 'DROP TABLE ' + name + '; '
-FROM sys.tables
+SELECT @sql = @sql + 'DROP TABLE '+ s.name + '.' + t.name +';'
+from sys.tables t
+join sys.schemas s
+on t.schema_id = s.schema_id
 
-SELECT @sql = @sql + 'DROP TYPE ' + name + '; '
-FROM sys.table_types
+SELECT @sql = @sql + 'DROP TYPE '+ s.name + '.' + tt.name +';'
+FROM sys.table_types tt
+join sys.schemas s
+on tt.schema_id = s.schema_id
 
-SELECT @sql = @sql + 'DROP SEQUENCE ' + name + '; '
-FROM sys.sequences
+SELECT @sql = @sql + 'DROP SEQUENCE '+ s.name + '.' + sq.name +';'
+FROM sys.sequences sq
+join sys.schemas s
+on sq.schema_id = s.schema_id
 
 EXEC(@sql)
+
+GO
+
+DROP SCHEMA IF EXISTS dicom
 
 GO
 
@@ -120,7 +132,7 @@ AS
     END
 GO
 /*************************************************************
-    Tables
+    Instance Table
 **************************************************************/
 --Mapping table for dicom retrieval
 CREATE TABLE dicom.Instance (
@@ -136,6 +148,9 @@ CREATE TABLE dicom.Instance (
 	CreatedDate DATETIME2(7) NOT NULL
 )
 
+/*************************************************************
+    Study Table
+**************************************************************/
 --Table containing normalized standard Study tags
 CREATE TABLE dicom.StudyMetadataCore (
 	--Key
@@ -153,6 +168,9 @@ CREATE TABLE dicom.StudyMetadataCore (
 	AccessionNumber NVARCHAR(16) NULL,
 )
 
+/*************************************************************
+    Series Table
+**************************************************************/
 --Table containing normalized standard Series tags
 CREATE TABLE dicom.SeriesMetadataCore (
 	--Key
