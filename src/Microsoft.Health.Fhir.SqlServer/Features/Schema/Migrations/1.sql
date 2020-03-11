@@ -183,3 +183,124 @@ CREATE TABLE dicom.SeriesMetadataCore (
 	PerformedProcedureStepStartDate DATE NULL
 ) 
 GO
+
+/*************************************************************
+    Sequence for generating unique 12.5ns "tick" components that are added
+    to a base ID based on the timestamp to form a unique resource surrogate ID
+**************************************************************/
+
+CREATE SEQUENCE dicom.MetadataIdSequence
+        AS BIGINT
+        START WITH 0
+        INCREMENT BY 1
+        MINVALUE 0
+        NO CYCLE
+        CACHE 1000000
+GO
+
+/*************************************************************
+    Stored procedures for adding an instance.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     AddInstance
+--
+-- DESCRIPTION
+--     Adds a DICOM instance
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @patientId
+--         * The ID of the patient.
+--     @patientName
+--         * The name of the patient.
+--     @referringPhysicianName
+--         * The referring physician name.
+--     @studyDate
+--         * The study date.
+--     @studyDescription
+--         * The study description.
+--     @accessionNumber
+--         * The accession number associated for the study.
+--     @modality
+--         * The modality associated for the series.
+--     @performedProcedureStepStartDate
+--         * The date when the procedure for the series was performed.
+--
+-- RETURN VALUE
+--         None
+--
+
+CREATE PROCEDURE dicom.AddInstance
+    @studyInstanceUid VARCHAR(64),
+    @seriesInstanceUid VARCHAR(64),
+    @sopInstanceUid VARCHAR(64),
+    @patientId NVARCHAR(64) = NULL,
+    @patientName NVARCHAR(64),
+    @referringPhysicianName NVARCHAR(64) = NULL,
+    @studyDate DATE = NULL,
+    @studyDescription NVARCHAR(64) = NULL,
+    @accessionNumber NVARCHAR(64) = NULL,
+    @modality NVARCHAR(16) = NULL,
+    @performedProcedureStepStartDate DATE = NULL
+AS
+    SET NOCOUNT ON
+
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+
+    DECLARE @currentDate DATETIME2(7) = GETUTCDATE()
+    DECLARE @existingStatus TINYINT
+
+    SELECT @existingStatus = Status
+    FROM dicom.Instance WITH (UPDLOCK, HOLDLOCK)
+    WHERE studyInstanceUid = @studyInstanceUid AND seriesInstanceUid = @seriesInstanceUid AND sopInstanceUid = @sopInstanceUid
+
+    IF (@existingStatus IS NULL) BEGIN
+        -- The instance does not exist, insert it.
+        INSERT INTO dicom.Instance
+            (studyInstanceUid, seriesInstanceUid, sopInstanceUid, Watermark, Status, LastStatusUpdatesDate, CreatedDate)
+        VALUES
+            (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, 0, 0, @currentDate, @currentDate)
+
+        -- Update the study metadata if needed.
+        DECLARE @metadataId BIGINT
+
+        SELECT @metadataId = ID
+        FROM dicom.StudyMetadataCore WITH (NOLOCK)
+        WHERE studyInstanceUid = @studyInstanceUid
+
+        IF (@metadataId IS NULL) BEGIN
+            SET @metadataId = NEXT VALUE FOR dicom.MetadataIdSequence
+
+            INSERT INTO dicom.StudyMetadataCore
+                (ID, studyInstanceUid, Version, PatientID, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            VALUES
+                (@metadataId, @studyInstanceUid, 0, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+        END
+        --ELSE BEGIN
+          -- TODO: handle the versioning
+        --END
+
+        IF NOT EXISTS (SELECT * FROM dicom.SeriesMetadataCore WITH (NOLOCK) WHERE ID = @metadataId AND seriesInstanceUid = @seriesInstanceUid) BEGIN
+            INSERT INTO dicom.SeriesMetadataCore
+                (ID, seriesInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
+            VALUES
+                (@metadataId, @seriesInstanceUid, 0, @modality, @performedProcedureStepStartDate)
+        END
+        --ELSE BEGIN
+          -- TODO: handle the versioning
+        --END
+    END
+    ELSE BEGIN
+        -- TODO: handle the conflict case
+        THROW 50409, 'Instance already exists', 1;
+    END
+
+    COMMIT TRANSACTION
+GO
