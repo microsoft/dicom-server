@@ -15,10 +15,10 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
 {
     internal class SqlQueryGenerator : QueryFilterConditionVisitor
     {
-        private IndentedStringBuilder _stringBuilder;
-        private DicomQueryExpression _queryExpression;
-        private SqlQueryParameterManager _parameters;
-        private FilterTableContext _tableContext;
+        private readonly IndentedStringBuilder _stringBuilder;
+        private readonly DicomQueryExpression _queryExpression;
+        private readonly SqlQueryParameterManager _parameters;
+        private readonly FilterTableContext _tableContext;
         private const string SqlDateFormat = "yyyy-MM-dd";
         private static HashSet<DicomTag> _dicomUIDTags = new HashSet<DicomTag>()
         {
