@@ -13,22 +13,22 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
     {
         public QueryDicomResourceRequest(
             IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
-            ResourceType resourceType,
-            string studyInstanceUID = null,
-            string seriesUID = null)
+            QueryResource resourceType,
+            string studyInstanceUid = null,
+            string seriesInstanceUid = null)
         {
             RequestQuery = requestQuery;
-            ResourceType = resourceType;
-            StudyInstanceUID = studyInstanceUID;
-            SeriesUID = seriesUID;
+            QueryResourceType = resourceType;
+            StudyInstanceUid = studyInstanceUid;
+            SeriesInstanceUid = seriesInstanceUid;
         }
 
         public IEnumerable<KeyValuePair<string, StringValues>> RequestQuery { get; }
 
-        public ResourceType ResourceType { get; }
+        public QueryResource QueryResourceType { get; }
 
-        public string StudyInstanceUID { get; }
+        public string StudyInstanceUid { get; }
 
-        public string SeriesUID { get; }
+        public string SeriesInstanceUid { get; }
     }
 }

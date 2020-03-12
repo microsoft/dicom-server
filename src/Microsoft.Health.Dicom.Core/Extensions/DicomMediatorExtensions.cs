@@ -95,9 +95,14 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<QueryDicomResourceResponse> QueryDicomResourcesAsync(
-            this IMediator mediator, IEnumerable<KeyValuePair<string, StringValues>> requestQuery, ResourceType resourceType, string studyInstanceUID = null, string seriesUID = null, CancellationToken cancellationToken = default)
+            this IMediator mediator,
+            IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
+            QueryResource resourceType,
+            string studyInstanceUid = null,
+            string seriesInstanceUid = null,
+            CancellationToken cancellationToken = default)
         {
-            return mediator.Send(new QueryDicomResourceRequest(requestQuery, resourceType, studyInstanceUID, seriesUID), cancellationToken);
+            return mediator.Send(new QueryDicomResourceRequest(requestQuery, resourceType, studyInstanceUid, seriesInstanceUid), cancellationToken);
         }
     }
 }

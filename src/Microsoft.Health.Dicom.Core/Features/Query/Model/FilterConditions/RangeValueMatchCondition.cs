@@ -2,12 +2,21 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-using Microsoft.Health.Dicom.Core.Messages.Query;
+using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public interface IDicomQueryParser
+    public abstract class RangeValueMatchCondition<T> : DicomQueryFilterCondition
     {
-        DicomQueryExpression Parse(QueryDicomResourceRequest request);
+        internal RangeValueMatchCondition(DicomTag tag, T minimum, T maximum)
+            : base(tag)
+        {
+            Minimum = minimum;
+            Maximum = maximum;
+        }
+
+        public T Minimum { get; set; }
+
+        public T Maximum { get; set; }
     }
 }

@@ -10,12 +10,30 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
 {
     internal class VLatest
     {
+        internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SchemaVersionTable SchemaVersion = new SchemaVersionTable();
+        internal readonly static SeriesMetadataCoreTable SeriesMetadataCore = new SeriesMetadataCoreTable();
+        internal readonly static StudyMetadataCoreTable StudyMetadataCore = new StudyMetadataCoreTable();
         internal readonly static SelectCurrentSchemaVersionProcedure SelectCurrentSchemaVersion = new SelectCurrentSchemaVersionProcedure();
         internal readonly static UpsertSchemaVersionProcedure UpsertSchemaVersion = new UpsertSchemaVersionProcedure();
+        internal class InstanceTable : Table
+        {
+            internal InstanceTable(): base("dicom.Instance")
+            {
+            }
+
+            internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
+            internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
+            internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
+            internal readonly DateTime2Column LastStatusUpdatesDate = new DateTime2Column("LastStatusUpdatesDate", 7);
+            internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
+        }
+
         internal class SchemaVersionTable : Table
         {
-            internal SchemaVersionTable(): base("dbo.SchemaVersion")
+            internal SchemaVersionTable(): base("dicom.SchemaVersion")
             {
             }
 
@@ -23,22 +41,52 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn Status = new VarCharColumn("Status", 10);
         }
 
+        internal class SeriesMetadataCoreTable : Table
+        {
+            internal SeriesMetadataCoreTable(): base("dicom.SeriesMetadataCore")
+            {
+            }
+
+            internal readonly BigIntColumn ID = new BigIntColumn("ID");
+            internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
+            internal readonly IntColumn Version = new IntColumn("Version");
+            internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
+            internal readonly NullableDateColumn PerformedProcedureStepStartDate = new NullableDateColumn("PerformedProcedureStepStartDate");
+        }
+
+        internal class StudyMetadataCoreTable : Table
+        {
+            internal StudyMetadataCoreTable(): base("dicom.StudyMetadataCore")
+            {
+            }
+
+            internal readonly BigIntColumn ID = new BigIntColumn("ID");
+            internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
+            internal readonly IntColumn Version = new IntColumn("Version");
+            internal readonly NVarCharColumn PatientID = new NVarCharColumn("PatientID", 64);
+            internal readonly NullableNVarCharColumn PatientName = new NullableNVarCharColumn("PatientName", 325);
+            internal readonly NullableNVarCharColumn ReferringPhysicianName = new NullableNVarCharColumn("ReferringPhysicianName", 325);
+            internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
+            internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
+            internal readonly NullableNVarCharColumn AccessionNumber = new NullableNVarCharColumn("AccessionNumber", 16);
+        }
+
         internal class SelectCurrentSchemaVersionProcedure : StoredProcedure
         {
-            internal SelectCurrentSchemaVersionProcedure(): base("dbo.SelectCurrentSchemaVersion")
+            internal SelectCurrentSchemaVersionProcedure(): base("dicom.SelectCurrentSchemaVersion")
             {
             }
 
             public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.SelectCurrentSchemaVersion";
+                command.CommandText = "dicom.SelectCurrentSchemaVersion";
             }
         }
 
         internal class UpsertSchemaVersionProcedure : StoredProcedure
         {
-            internal UpsertSchemaVersionProcedure(): base("dbo.UpsertSchemaVersion")
+            internal UpsertSchemaVersionProcedure(): base("dicom.UpsertSchemaVersion")
             {
             }
 
@@ -47,7 +95,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
             public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.Int32 version, System.String status)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.UpsertSchemaVersion";
+                command.CommandText = "dicom.UpsertSchemaVersion";
                 _version.AddParameter(command.Parameters, version);
                 _status.AddParameter(command.Parameters, status);
             }

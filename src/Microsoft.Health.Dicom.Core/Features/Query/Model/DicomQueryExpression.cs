@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -12,23 +14,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     public class DicomQueryExpression
     {
         public DicomQueryExpression(
+            QueryResource resourceType,
             DicomQueryParameterIncludeField includeFields,
             bool fuzzyMatching,
             int limit,
             int offset,
             IReadOnlyCollection<DicomQueryFilterCondition> filterConditions)
         {
+            QueryResource = resourceType;
             IncludeFields = includeFields;
             FuzzyMatching = fuzzyMatching;
             Limit = limit;
             Offset = offset;
             FilterConditions = filterConditions;
-        }
 
-        public DicomQueryExpression()
-        {
-            IsEmpty = true;
-        }
+            SetIELevel();
+         }
+
+        /// <summary>
+        /// Query Resource type level
+        /// </summary>
+        public QueryResource QueryResource { get; }
+
+        /// <summary>
+        /// Resource level Study/Series
+        /// </summary>
+        public ResourceType IELevel { get; private set; }
 
         /// <summary>
         /// Dicom tags to include in query result
@@ -58,6 +69,58 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         /// <summary>
         /// Request query was empty
         /// </summary>
-        public bool IsEmpty { get; }
+        public bool HasFilters
+        {
+            get
+            {
+                return FilterConditions.Any();
+            }
+        }
+
+        /// <summary>
+        /// evaluted result count for this request
+        /// </summary>
+        public int EvaluatedLimit
+        {
+            get
+            {
+                return Limit > 0 && Limit <= DicomQueryLimit.MaxQueryResultCount ?
+                    Limit : DicomQueryLimit.DefaultQueryResultCount;
+            }
+        }
+
+        public bool IsInstanceIELevel()
+        {
+            return IELevel == ResourceType.Instance;
+        }
+
+        public bool IsSeriesIELevel()
+        {
+            return IELevel == ResourceType.Series;
+        }
+
+        public bool IsStudyIELevel()
+        {
+            return IELevel == ResourceType.Study;
+        }
+
+        private void SetIELevel()
+        {
+            switch (QueryResource)
+            {
+                case QueryResource.AllInstances:
+                case QueryResource.StudyInstances:
+                case QueryResource.StudySeriesInstances:
+                    IELevel = ResourceType.Instance;
+                    break;
+                case QueryResource.AllSeries:
+                case QueryResource.StudySeries:
+                    IELevel = ResourceType.Series;
+                    break;
+                case QueryResource.AllStudies:
+                    IELevel = ResourceType.Study;
+                    break;
+            }
+        }
     }
 }
