@@ -147,7 +147,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
                         .Append(" = ")
                         .AppendLine(VLatest.StudyMetadataCore.StudyInstanceUid, StudyTableAlias);
                     _stringBuilder
-                        .Append("ON ")
+                        .Append("AND ")
                         .Append(VLatest.Instance.SeriesInstanceUid, InstanceTableAlias)
                         .Append(" = ")
                         .AppendLine(VLatest.SeriesMetadataCore.SeriesInstanceUid, SeriesTableAlias);

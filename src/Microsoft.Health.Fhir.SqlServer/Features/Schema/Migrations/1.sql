@@ -137,9 +137,9 @@ GO
 --Mapping table for dicom retrieval
 CREATE TABLE dicom.Instance (
 	--instance keys
-	StudyInstanceUid NVARCHAR(64) NOT NULL,
-	SeriesInstanceUid NVARCHAR(64) NOT NULL,
-	SopInstanceUid NVARCHAR(64) NOT NULL,
+	StudyInstanceUid VARCHAR(64) NOT NULL,
+	SeriesInstanceUid VARCHAR(64) NOT NULL,
+	SopInstanceUid VARCHAR(64) NOT NULL,
 	--data consitency columns
 	Watermark BIGINT NOT NULL,
 	Status TINYINT NOT NULL,
@@ -156,13 +156,13 @@ CREATE TABLE dicom.StudyMetadataCore (
 	--Key
 	ID BIGINT NOT NULL, --PK
 	--instance keys
-	StudyInstanceUid NVARCHAR(64) NOT NULL,
+	StudyInstanceUid VARCHAR(64) NOT NULL,
     Version INT NOT NULL,
 	--patient and study core
 	PatientID NVARCHAR(64) NOT NULL,
-	PatientName NVARCHAR(320) NULL,
+	PatientName NVARCHAR(325) NULL,
 	--PatientNameIndex AS REPLACE(PatientName, '^', ' '), --FT index, TODO code gen not working 
-	ReferringPhysicianName NVARCHAR(320) NULL,
+	ReferringPhysicianName NVARCHAR(325) NULL,
 	StudyDate DATE NULL,
 	StudyDescription NVARCHAR(64) NULL,
 	AccessionNumber NVARCHAR(16) NULL,
@@ -176,7 +176,7 @@ CREATE TABLE dicom.SeriesMetadataCore (
 	--Key
 	ID BIGINT NOT NULL, --FK
 	--instance keys
-	SeriesInstanceUid NVARCHAR(64) NOT NULL,
+	SeriesInstanceUid VARCHAR(64) NOT NULL,
     Version INT NOT NULL,
 	--series core
 	Modality NVARCHAR(16) NULL,

@@ -22,9 +22,9 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly NVarCharColumn StudyInstanceUid = new NVarCharColumn("StudyInstanceUid", 64);
-            internal readonly NVarCharColumn SeriesInstanceUid = new NVarCharColumn("SeriesInstanceUid", 64);
-            internal readonly NVarCharColumn SopInstanceUid = new NVarCharColumn("SopInstanceUid", 64);
+            internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
+            internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
+            internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
             internal readonly DateTime2Column LastStatusUpdatesDate = new DateTime2Column("LastStatusUpdatesDate", 7);
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
             }
 
             internal readonly BigIntColumn ID = new BigIntColumn("ID");
-            internal readonly NVarCharColumn SeriesInstanceUid = new NVarCharColumn("SeriesInstanceUid", 64);
+            internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly IntColumn Version = new IntColumn("Version");
             internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
             internal readonly NullableDateColumn PerformedProcedureStepStartDate = new NullableDateColumn("PerformedProcedureStepStartDate");
@@ -61,11 +61,11 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
             }
 
             internal readonly BigIntColumn ID = new BigIntColumn("ID");
-            internal readonly NVarCharColumn StudyInstanceUid = new NVarCharColumn("StudyInstanceUid", 64);
+            internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
             internal readonly IntColumn Version = new IntColumn("Version");
             internal readonly NVarCharColumn PatientID = new NVarCharColumn("PatientID", 64);
-            internal readonly NullableNVarCharColumn PatientName = new NullableNVarCharColumn("PatientName", 320);
-            internal readonly NullableNVarCharColumn ReferringPhysicianName = new NullableNVarCharColumn("ReferringPhysicianName", 320);
+            internal readonly NullableNVarCharColumn PatientName = new NullableNVarCharColumn("PatientName", 325);
+            internal readonly NullableNVarCharColumn ReferringPhysicianName = new NullableNVarCharColumn("ReferringPhysicianName", 325);
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
             internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
             internal readonly NullableNVarCharColumn AccessionNumber = new NullableNVarCharColumn("AccessionNumber", 16);
