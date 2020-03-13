@@ -222,7 +222,7 @@ GO
 --         * The series instance UID.
 --     @sopInstanceUid
 --         * The SOP instance UID.
---     @patientId
+--     @patientID
 --         * The ID of the patient.
 --     @patientName
 --         * The name of the patient.
@@ -294,7 +294,7 @@ AS
         INSERT INTO dicom.StudyMetadataCore
             (ID, studyInstanceUid, Version, PatientID, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
-            (@metadataId, @studyInstanceUid, 0, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+            (@metadataId, @studyInstanceUid, 0, @patientID, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
     END
     --ELSE BEGIN
         -- TODO: handle the versioning
