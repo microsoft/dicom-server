@@ -136,16 +136,16 @@ GO
 **************************************************************/
 --Mapping table for dicom retrieval
 CREATE TABLE dicom.Instance (
-	--instance keys
-	StudyInstanceUid VARCHAR(64) NOT NULL,
-	SeriesInstanceUid VARCHAR(64) NOT NULL,
-	SopInstanceUid VARCHAR(64) NOT NULL,
-	--data consitency columns
-	Watermark BIGINT NOT NULL,
-	Status TINYINT NOT NULL,
+    --instance keys
+    StudyInstanceUid VARCHAR(64) NOT NULL,
+    SeriesInstanceUid VARCHAR(64) NOT NULL,
+    SopInstanceUid VARCHAR(64) NOT NULL,
+    --data consitency columns
+    Watermark BIGINT NOT NULL,
+    Status TINYINT NOT NULL,
     LastStatusUpdatesDate DATETIME2(7) NOT NULL,
     --audit columns
-	CreatedDate DATETIME2(7) NOT NULL
+    CreatedDate DATETIME2(7) NOT NULL
 )
 
 /*************************************************************
@@ -153,19 +153,19 @@ CREATE TABLE dicom.Instance (
 **************************************************************/
 --Table containing normalized standard Study tags
 CREATE TABLE dicom.StudyMetadataCore (
-	--Key
-	ID BIGINT NOT NULL, --PK
-	--instance keys
-	StudyInstanceUid VARCHAR(64) NOT NULL,
+    --Key
+    ID BIGINT NOT NULL, --PK
+    --instance keys
+    StudyInstanceUid VARCHAR(64) NOT NULL,
     Version INT NOT NULL,
-	--patient and study core
-	PatientID NVARCHAR(64) NOT NULL,
-	PatientName NVARCHAR(325) NULL,
-	--PatientNameIndex AS REPLACE(PatientName, '^', ' '), --FT index, TODO code gen not working 
-	ReferringPhysicianName NVARCHAR(325) NULL,
-	StudyDate DATE NULL,
-	StudyDescription NVARCHAR(64) NULL,
-	AccessionNumber NVARCHAR(16) NULL,
+    --patient and study core
+    PatientID NVARCHAR(64) NOT NULL,
+    PatientName NVARCHAR(325) NULL,
+    --PatientNameIndex AS REPLACE(PatientName, '^', ' '), --FT index, TODO code gen not working 
+    ReferringPhysicianName NVARCHAR(325) NULL,
+    StudyDate DATE NULL,
+    StudyDescription NVARCHAR(64) NULL,
+    AccessionNumber NVARCHAR(16) NULL,
 )
 
 /*************************************************************
@@ -173,29 +173,36 @@ CREATE TABLE dicom.StudyMetadataCore (
 **************************************************************/
 --Table containing normalized standard Series tags
 CREATE TABLE dicom.SeriesMetadataCore (
-	--Key
-	ID BIGINT NOT NULL, --FK
-	--instance keys
-	SeriesInstanceUid VARCHAR(64) NOT NULL,
+    --Key
+    ID BIGINT NOT NULL, --FK
+    --instance keys
+    SeriesInstanceUid VARCHAR(64) NOT NULL,
     Version INT NOT NULL,
-	--series core
-	Modality NVARCHAR(16) NULL,
-	PerformedProcedureStepStartDate DATE NULL
+    --series core
+    Modality NVARCHAR(16) NULL,
+    PerformedProcedureStepStartDate DATE NULL
 ) 
 GO
 
 /*************************************************************
-    Sequence for generating unique 12.5ns "tick" components that are added
-    to a base ID based on the timestamp to form a unique resource surrogate ID
+    Sequence for generating unique ids
 **************************************************************/
 
+CREATE SEQUENCE dicom.WatermarkSequence
+    AS BIGINT
+    START WITH 0
+    INCREMENT BY 1
+    MINVALUE 0
+    NO CYCLE
+    CACHE 1000000
+
 CREATE SEQUENCE dicom.MetadataIdSequence
-        AS BIGINT
-        START WITH 0
-        INCREMENT BY 1
-        MINVALUE 0
-        NO CYCLE
-        CACHE 1000000
+    AS BIGINT
+    START WITH 0
+    INCREMENT BY 1
+    MINVALUE 0
+    NO CYCLE
+    CACHE 1000000
 GO
 
 /*************************************************************
@@ -240,9 +247,9 @@ CREATE PROCEDURE dicom.AddInstance
     @studyInstanceUid VARCHAR(64),
     @seriesInstanceUid VARCHAR(64),
     @sopInstanceUid VARCHAR(64),
-    @patientId NVARCHAR(64) = NULL,
-    @patientName NVARCHAR(64),
-    @referringPhysicianName NVARCHAR(64) = NULL,
+    @patientID NVARCHAR(64),
+    @patientName NVARCHAR(325) = NULL,
+    @referringPhysicianName NVARCHAR(325) = NULL,
     @studyDate DATE = NULL,
     @studyDescription NVARCHAR(64) = NULL,
     @accessionNumber NVARCHAR(64) = NULL,
@@ -252,55 +259,57 @@ AS
     SET NOCOUNT ON
 
     SET XACT_ABORT ON
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
     BEGIN TRANSACTION
 
     DECLARE @currentDate DATETIME2(7) = GETUTCDATE()
     DECLARE @existingStatus TINYINT
-
-    SELECT @existingStatus = Status
-    FROM dicom.Instance WITH (UPDLOCK, HOLDLOCK)
-    WHERE studyInstanceUid = @studyInstanceUid AND seriesInstanceUid = @seriesInstanceUid AND sopInstanceUid = @sopInstanceUid
-
-    IF (@existingStatus IS NULL) BEGIN
-        -- The instance does not exist, insert it.
-        INSERT INTO dicom.Instance
-            (studyInstanceUid, seriesInstanceUid, sopInstanceUid, Watermark, Status, LastStatusUpdatesDate, CreatedDate)
-        VALUES
-            (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, 0, 0, @currentDate, @currentDate)
-
-        -- Update the study metadata if needed.
-        DECLARE @metadataId BIGINT
-
-        SELECT @metadataId = ID
-        FROM dicom.StudyMetadataCore WITH (NOLOCK)
+    DECLARE @metadataId BIGINT
+    
+    IF EXISTS
+        (SELECT * 
+        FROM dicom.Instance
         WHERE studyInstanceUid = @studyInstanceUid
-
-        IF (@metadataId IS NULL) BEGIN
-            SET @metadataId = NEXT VALUE FOR dicom.MetadataIdSequence
-
-            INSERT INTO dicom.StudyMetadataCore
-                (ID, studyInstanceUid, Version, PatientID, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
-            VALUES
-                (@metadataId, @studyInstanceUid, 0, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
-        END
-        --ELSE BEGIN
-          -- TODO: handle the versioning
-        --END
-
-        IF NOT EXISTS (SELECT * FROM dicom.SeriesMetadataCore WITH (NOLOCK) WHERE ID = @metadataId AND seriesInstanceUid = @seriesInstanceUid) BEGIN
-            INSERT INTO dicom.SeriesMetadataCore
-                (ID, seriesInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
-            VALUES
-                (@metadataId, @seriesInstanceUid, 0, @modality, @performedProcedureStepStartDate)
-        END
-        --ELSE BEGIN
-          -- TODO: handle the versioning
-        --END
-    END
-    ELSE BEGIN
-        -- TODO: handle the conflict case
+        AND seriesInstanceUid = @seriesInstanceUid
+        AND sopInstanceUid = @sopInstanceUid)
+    BEGIN
         THROW 50409, 'Instance already exists', 1;
     END
+
+    -- The instance does not exist, insert it.
+    INSERT INTO dicom.Instance
+        (studyInstanceUid, seriesInstanceUid, sopInstanceUid, Watermark, Status, LastStatusUpdatesDate, CreatedDate)
+    VALUES
+        (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, NEXT VALUE FOR dicom.WatermarkSequence, 0, @currentDate, @currentDate)
+
+    -- Update the study metadata if needed.
+    SELECT @metadataId = ID
+    FROM dicom.StudyMetadataCore
+    WHERE studyInstanceUid = @studyInstanceUid
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @metadataId = NEXT VALUE FOR dicom.MetadataIdSequence
+
+        INSERT INTO dicom.StudyMetadataCore
+            (ID, studyInstanceUid, Version, PatientID, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+        VALUES
+            (@metadataId, @studyInstanceUid, 0, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+    END
+    --ELSE BEGIN
+        -- TODO: handle the versioning
+    --END
+
+    IF NOT EXISTS (SELECT * FROM dicom.SeriesMetadataCore WHERE ID = @metadataId AND seriesInstanceUid = @seriesInstanceUid)
+    BEGIN
+        INSERT INTO dicom.SeriesMetadataCore
+            (ID, seriesInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
+        VALUES
+            (@metadataId, @seriesInstanceUid, 0, @modality, @performedProcedureStepStartDate)
+    END
+    --ELSE BEGIN
+        -- TODO: handle the versioning
+    --END
 
     COMMIT TRANSACTION
 GO
