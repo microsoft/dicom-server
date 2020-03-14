@@ -3,8 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -34,7 +36,7 @@ namespace Microsoft.Health.Dicom.Api
 
         [HttpGet]
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route("studies")]
@@ -47,12 +49,12 @@ namespace Microsoft.Health.Dicom.Api
                 QueryResource.AllStudies,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode);
+            return StatusCode(response.StatusCode, response.ResponseDataset);
         }
 
         [HttpGet]
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route("series")]
@@ -65,12 +67,12 @@ namespace Microsoft.Health.Dicom.Api
                 QueryResource.AllSeries,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode);
+            return StatusCode(response.StatusCode, response.ResponseDataset);
         }
 
         [HttpGet]
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route("studies/{studyInstanceUid}/series")]
@@ -86,12 +88,12 @@ namespace Microsoft.Health.Dicom.Api
                 studyInstanceUid: studyInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode);
+            return StatusCode(response.StatusCode, response.ResponseDataset);
         }
 
         [HttpGet]
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route("instances")]
@@ -104,12 +106,12 @@ namespace Microsoft.Health.Dicom.Api
                 QueryResource.AllInstances,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode);
+            return StatusCode(response.StatusCode, response.ResponseDataset);
         }
 
         [HttpGet]
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route("studies/{studyInstanceUid}/instances")]
@@ -125,12 +127,12 @@ namespace Microsoft.Health.Dicom.Api
                 studyInstanceUid: studyInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode);
+            return StatusCode(response.StatusCode, response.ResponseDataset);
         }
 
         [HttpGet]
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route("studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances")]
@@ -148,7 +150,7 @@ namespace Microsoft.Health.Dicom.Api
                 seriesInstanceUid: seriesInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode);
+            return StatusCode(response.StatusCode, response.ResponseDataset);
         }
     }
 }
