@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         public DicomQueryExpression(
             QueryResource resourceType,
-            DicomQueryParameterIncludeField includeFields,
+            DicomQueryIncludeField includeFields,
             bool fuzzyMatching,
             int limit,
             int offset,
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         /// <summary>
         /// Dicom tags to include in query result
         /// </summary>
-        public DicomQueryParameterIncludeField IncludeFields { get; }
+        public DicomQueryIncludeField IncludeFields { get; }
 
         /// <summary>
         /// If true do Fuzzy matching of PN tag types
