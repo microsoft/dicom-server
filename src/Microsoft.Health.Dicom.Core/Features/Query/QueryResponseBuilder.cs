@@ -15,6 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private static readonly HashSet<DicomTag> DefaultStudyTags = new HashSet<DicomTag>()
         {
+            DicomTag.SpecificCharacterSet,
             DicomTag.StudyDate,
             DicomTag.StudyTime,
             DicomTag.AccessionNumber,
@@ -46,6 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private static readonly HashSet<DicomTag> DefaultSeriesTags = new HashSet<DicomTag>()
         {
+            DicomTag.SpecificCharacterSet,
             DicomTag.Modality,
             DicomTag.TimezoneOffsetFromUTC,
             DicomTag.SeriesDescription,
@@ -65,6 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private static readonly HashSet<DicomTag> DefaultInstancesTags = new HashSet<DicomTag>()
         {
+            DicomTag.SpecificCharacterSet,
             DicomTag.SOPClassUID,
             DicomTag.SOPInstanceUID,
             DicomTag.InstanceAvailability,
@@ -95,6 +98,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(queryExpression, nameof(queryExpression));
             EnsureArg.IsFalse(queryExpression.IELevel == ResourceType.Frames, nameof(queryExpression.IELevel));
+
             HashSet<DicomTag> levelSpecificTags = null;
             HashSet<DicomTag> tagsToReturn = null;
             switch (queryExpression.QueryResource)
