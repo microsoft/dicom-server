@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -48,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             if (!queryResult.DicomInstances.Any())
             {
-                return new QueryDicomResourceResponse(HttpStatusCode.NoContent);
+                return new QueryDicomResourceResponse();
             }
 
             IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
@@ -58,7 +57,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             var responseBuilder = new QueryResponseBuilder(dicomQueryExpression);
             IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
 
-            return new QueryDicomResourceResponse(HttpStatusCode.OK, responseMetadata);
+            return new QueryDicomResourceResponse(responseMetadata);
         }
     }
 }

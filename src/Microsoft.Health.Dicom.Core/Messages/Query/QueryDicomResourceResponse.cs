@@ -4,25 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Net;
+using System.Linq;
 using Dicom;
-using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Query
 {
-    public sealed class QueryDicomResourceResponse : BaseStatusCodeResponse
+    public sealed class QueryDicomResourceResponse
     {
-        public QueryDicomResourceResponse(HttpStatusCode statusCode)
-            : base((int)statusCode)
+        public QueryDicomResourceResponse(IEnumerable<DicomDataset> responseDataset = null)
         {
-        }
-
-        public QueryDicomResourceResponse(HttpStatusCode statusCode, IEnumerable<DicomDataset> responseDataset)
-            : base((int)statusCode)
-        {
-            EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
-
-            ResponseDataset = responseDataset;
+            ResponseDataset = responseDataset ?? Enumerable.Empty<DicomDataset>();
         }
 
         public IEnumerable<DicomDataset> ResponseDataset { get; }

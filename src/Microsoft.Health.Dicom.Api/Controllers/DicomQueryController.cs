@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Api
 {
@@ -49,7 +51,7 @@ namespace Microsoft.Health.Dicom.Api
                 QueryResource.AllStudies,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode, response.ResponseDataset);
+            return CreateResult(response);
         }
 
         [HttpGet]
@@ -67,7 +69,7 @@ namespace Microsoft.Health.Dicom.Api
                 QueryResource.AllSeries,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode, response.ResponseDataset);
+            return CreateResult(response);
         }
 
         [HttpGet]
@@ -88,7 +90,7 @@ namespace Microsoft.Health.Dicom.Api
                 studyInstanceUid: studyInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode, response.ResponseDataset);
+            return CreateResult(response);
         }
 
         [HttpGet]
@@ -106,7 +108,7 @@ namespace Microsoft.Health.Dicom.Api
                 QueryResource.AllInstances,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode, response.ResponseDataset);
+            return CreateResult(response);
         }
 
         [HttpGet]
@@ -127,7 +129,7 @@ namespace Microsoft.Health.Dicom.Api
                 studyInstanceUid: studyInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode, response.ResponseDataset);
+            return CreateResult(response);
         }
 
         [HttpGet]
@@ -150,7 +152,17 @@ namespace Microsoft.Health.Dicom.Api
                 seriesInstanceUid: seriesInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode, response.ResponseDataset);
+            return CreateResult(response);
+        }
+
+        private IActionResult CreateResult(QueryDicomResourceResponse resourceResponse)
+        {
+            if (!resourceResponse.ResponseDataset.Any())
+            {
+                return NoContent();
+            }
+
+            return StatusCode((int)HttpStatusCode.OK, resourceResponse.ResponseDataset);
         }
     }
 }
