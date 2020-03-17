@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -26,13 +27,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
+            var tags = responseDataset.Select(i => i.Tag).ToList();
 
-            Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Default
-            Assert.True(responseDataset.Contains(DicomTag.PatientAge)); // Match condition
-            Assert.True(responseDataset.Contains(DicomTag.StudyDescription)); // Valid include
-            Assert.False(responseDataset.Contains(DicomTag.Modality)); // Invalid include
-            Assert.False(responseDataset.Contains(DicomTag.SeriesInstanceUID)); // Invalid study resource
-            Assert.False(responseDataset.Contains(DicomTag.SOPInstanceUID)); // Invalid study resource
+            Assert.Contains<DicomTag>(DicomTag.StudyInstanceUID, tags); // Default
+            Assert.Contains<DicomTag>(DicomTag.PatientAge, tags); // Match condition
+            Assert.Contains<DicomTag>(DicomTag.StudyDescription, tags); // Valid include
+            Assert.DoesNotContain<DicomTag>(DicomTag.Modality, tags); // Invalid include
+            Assert.DoesNotContain<DicomTag>(DicomTag.SeriesInstanceUID, tags); // Invalid study resource
+            Assert.DoesNotContain<DicomTag>(DicomTag.SOPInstanceUID, tags); // Invalid study resource
         }
 
         [Fact]
@@ -47,12 +49,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
+            var tags = responseDataset.Select(i => i.Tag).ToList();
 
-            Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Valid filter
-            Assert.True(responseDataset.Contains(DicomTag.StudyDescription)); // Valid include
-            Assert.True(responseDataset.Contains(DicomTag.Modality)); // Valid include
-            Assert.True(responseDataset.Contains(DicomTag.SeriesInstanceUID)); // Valid Series resource
-            Assert.False(responseDataset.Contains(DicomTag.SOPInstanceUID)); // Invalid Series resource
+            Assert.Contains<DicomTag>(DicomTag.StudyInstanceUID, tags); // Valid filter
+            Assert.Contains<DicomTag>(DicomTag.StudyDescription, tags); // Valid include
+            Assert.Contains<DicomTag>(DicomTag.Modality, tags); // Valid include
+            Assert.Contains<DicomTag>(DicomTag.SeriesInstanceUID, tags); // Valid Series resource
+            Assert.DoesNotContain<DicomTag>(DicomTag.SOPInstanceUID, tags); // Invalid Series resource
         }
 
         [Fact]
@@ -64,12 +67,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
+            var tags = responseDataset.Select(i => i.Tag).ToList();
 
-            Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Valid study field
-            Assert.True(responseDataset.Contains(DicomTag.StudyDescription)); // Valid all study field
-            Assert.True(responseDataset.Contains(DicomTag.Modality)); // Valid series field
-            Assert.True(responseDataset.Contains(DicomTag.SeriesInstanceUID)); // Valid Series resource
-            Assert.False(responseDataset.Contains(DicomTag.SOPInstanceUID)); // Invalid Series resource
+            Assert.Contains<DicomTag>(DicomTag.StudyInstanceUID, tags); // Valid study field
+            Assert.Contains<DicomTag>(DicomTag.StudyDescription, tags); // Valid all study field
+            Assert.Contains<DicomTag>(DicomTag.Modality, tags); // Valid series field
+            Assert.Contains<DicomTag>(DicomTag.SeriesInstanceUID, tags); // Valid Series resource
+            Assert.DoesNotContain<DicomTag>(DicomTag.SOPInstanceUID, tags); // Invalid Series resource
         }
 
         [Fact]
@@ -81,12 +85,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
+            var tags = responseDataset.Select(i => i.Tag).ToList();
 
-            Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Valid study field
-            Assert.True(responseDataset.Contains(DicomTag.StudyDescription)); // Valid all study field
-            Assert.True(responseDataset.Contains(DicomTag.Modality)); // Valid instance field
-            Assert.True(responseDataset.Contains(DicomTag.SeriesInstanceUID)); // Valid instance resource
-            Assert.True(responseDataset.Contains(DicomTag.SOPInstanceUID)); // Valid instance resource
+            Assert.Contains<DicomTag>(DicomTag.StudyInstanceUID, tags); // Valid study field
+            Assert.Contains<DicomTag>(DicomTag.StudyDescription, tags); // Valid all study field
+            Assert.Contains<DicomTag>(DicomTag.Modality, tags); // Valid instance field
+            Assert.Contains<DicomTag>(DicomTag.SeriesInstanceUID, tags); // Valid instance resource
+            Assert.Contains<DicomTag>(DicomTag.SOPInstanceUID, tags); // Valid instance resource
         }
 
         [Fact]
@@ -101,12 +106,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
+            var tags = responseDataset.Select(i => i.Tag).ToList();
 
-            Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Valid filter
-            Assert.False(responseDataset.Contains(DicomTag.StudyDescription)); // StudyInstance does not include study tags by deault
-            Assert.True(responseDataset.Contains(DicomTag.Modality)); // Valid series field
-            Assert.True(responseDataset.Contains(DicomTag.SeriesInstanceUID)); // Valid series tag
-            Assert.True(responseDataset.Contains(DicomTag.SOPInstanceUID)); // Valid instance tag
+            Assert.Contains<DicomTag>(DicomTag.StudyInstanceUID, tags); // Valid filter
+            Assert.DoesNotContain<DicomTag>(DicomTag.StudyDescription, tags); // StudyInstance does not include study tags by deault
+            Assert.Contains<DicomTag>(DicomTag.Modality, tags); // Valid series field
+            Assert.Contains<DicomTag>(DicomTag.SeriesInstanceUID, tags); // Valid series tag
+            Assert.Contains<DicomTag>(DicomTag.SOPInstanceUID, tags); // Valid instance tag
         }
 
         [Fact]
@@ -122,12 +128,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
+            var tags = responseDataset.Select(i => i.Tag).ToList();
 
-            Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Valid filter
-            Assert.False(responseDataset.Contains(DicomTag.StudyDescription)); // StudySeriesInstance does not include study tags by deault
-            Assert.False(responseDataset.Contains(DicomTag.Modality)); // StudySeriesInstance does not include series tags by deault
-            Assert.True(responseDataset.Contains(DicomTag.SeriesInstanceUID)); // Valid series tag
-            Assert.True(responseDataset.Contains(DicomTag.SOPInstanceUID)); // Valid instance tag
+            Assert.Contains<DicomTag>(DicomTag.StudyInstanceUID, tags); // Valid filter
+            Assert.DoesNotContain<DicomTag>(DicomTag.StudyDescription, tags); // StudySeriesInstance does not include study tags by deault
+            Assert.DoesNotContain<DicomTag>(DicomTag.Modality, tags); // StudySeriesInstance does not include series tags by deault
+            Assert.Contains<DicomTag>(DicomTag.SeriesInstanceUID, tags); // Valid series tag
+            Assert.Contains<DicomTag>(DicomTag.SOPInstanceUID, tags); // Valid instance tag
         }
 
         private DicomDataset GenerateTestDataSet()
