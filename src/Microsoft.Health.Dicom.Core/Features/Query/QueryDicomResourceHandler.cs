@@ -55,7 +55,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                    queryResult.DicomInstances
                    .Select(x => _dicomInstanceMetadataStore.GetInstanceMetadataAsync(new DicomInstance(x.StudyInstanceUid, x.SeriesInstanceUid, x.SopInstanceUid), cancellationToken)));
 
-            IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => QueryResponseBuilder.GenerateResponseDataset(m, dicomQueryExpression));
+            var responseBuilder = new QueryResponseBuilder(dicomQueryExpression);
+            IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
 
             return new QueryDicomResourceResponse(HttpStatusCode.OK, responseMetadata);
         }

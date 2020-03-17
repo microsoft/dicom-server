@@ -23,8 +23,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 new StringSingleValueMatchCondition(DicomTag.PatientAge, "35"),
             };
             var query = new DicomQueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
+            var responseBuilder = new QueryResponseBuilder(query);
 
-            DicomDataset responseDataset = QueryResponseBuilder.GenerateResponseDataset(GenerateTestDataSet(), query);
+            DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
 
             Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Default
             Assert.True(responseDataset.Contains(DicomTag.PatientAge)); // Match condition
@@ -43,8 +44,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "35"),
             };
             var query = new DicomQueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters);
+            var responseBuilder = new QueryResponseBuilder(query);
 
-            DicomDataset responseDataset = QueryResponseBuilder.GenerateResponseDataset(GenerateTestDataSet(), query);
+            DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
 
             Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Valid filter
             Assert.True(responseDataset.Contains(DicomTag.StudyDescription)); // Valid include
@@ -59,8 +61,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var includeField = new DicomQueryIncludeField(true, new List<DicomTag>() { });
             var filters = new List<DicomQueryFilterCondition>();
             var query = new DicomQueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters);
+            var responseBuilder = new QueryResponseBuilder(query);
 
-            DicomDataset responseDataset = QueryResponseBuilder.GenerateResponseDataset(GenerateTestDataSet(), query);
+            DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
 
             Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Valid study field
             Assert.True(responseDataset.Contains(DicomTag.StudyDescription)); // Valid all study field
@@ -75,8 +78,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var includeField = new DicomQueryIncludeField(true, new List<DicomTag>() { });
             var filters = new List<DicomQueryFilterCondition>();
             var query = new DicomQueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
+            var responseBuilder = new QueryResponseBuilder(query);
 
-            DicomDataset responseDataset = QueryResponseBuilder.GenerateResponseDataset(GenerateTestDataSet(), query);
+            DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
 
             Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Valid study field
             Assert.True(responseDataset.Contains(DicomTag.StudyDescription)); // Valid all study field
@@ -94,8 +98,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "35"),
             };
             var query = new DicomQueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters);
+            var responseBuilder = new QueryResponseBuilder(query);
 
-            DicomDataset responseDataset = QueryResponseBuilder.GenerateResponseDataset(GenerateTestDataSet(), query);
+            DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
 
             Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Valid filter
             Assert.False(responseDataset.Contains(DicomTag.StudyDescription)); // StudyInstance does not include study tags by deault
@@ -114,8 +119,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 new StringSingleValueMatchCondition(DicomTag.SeriesInstanceUID, "351"),
             };
             var query = new DicomQueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters);
+            var responseBuilder = new QueryResponseBuilder(query);
 
-            DicomDataset responseDataset = QueryResponseBuilder.GenerateResponseDataset(GenerateTestDataSet(), query);
+            DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
 
             Assert.True(responseDataset.Contains(DicomTag.StudyInstanceUID)); // Valid filter
             Assert.False(responseDataset.Contains(DicomTag.StudyDescription)); // StudySeriesInstance does not include study tags by deault

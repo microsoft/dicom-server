@@ -5,13 +5,14 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public static class QueryResponseBuilder
+    public class QueryResponseBuilder
     {
         private static readonly HashSet<DicomTag> DefaultStudyTags = new HashSet<DicomTag>()
         {
@@ -93,38 +94,56 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private static readonly HashSet<DicomTag> AllSeriesInstanceTags = new HashSet<DicomTag>(AllSeriesTags.Union(AllInstancesTags));
 
-        public static DicomDataset GenerateResponseDataset(DicomDataset dicomDataset, DicomQueryExpression queryExpression)
+        private HashSet<DicomTag> _tagsToReturn = null;
+
+        public QueryResponseBuilder(DicomQueryExpression queryExpression)
         {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(queryExpression, nameof(queryExpression));
             EnsureArg.IsFalse(queryExpression.IELevel == ResourceType.Frames, nameof(queryExpression.IELevel));
 
+            Initialize(queryExpression);
+        }
+
+        public DicomDataset GenerateResponseDataset(DicomDataset dicomDataset)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+            dicomDataset.Remove((di) =>
+                                {
+                                    return !_tagsToReturn.Contains(di.Tag);
+                                });
+
+            return dicomDataset;
+        }
+
+        private void Initialize(DicomQueryExpression queryExpression)
+        {
             HashSet<DicomTag> levelSpecificTags = null;
-            HashSet<DicomTag> tagsToReturn = null;
+
             switch (queryExpression.QueryResource)
             {
                 case QueryResource.AllStudies:
-                    tagsToReturn = queryExpression.IncludeFields.All ? AllStudyTags : DefaultStudyTags;
+                    _tagsToReturn = queryExpression.IncludeFields.All ? AllStudyTags : DefaultStudyTags;
                     levelSpecificTags = AllStudyTags;
                     break;
                 case QueryResource.AllSeries:
-                    tagsToReturn = queryExpression.IncludeFields.All ? AllStudySeriesTags : DefaultStudySeriesTags;
+                    _tagsToReturn = queryExpression.IncludeFields.All ? AllStudySeriesTags : DefaultStudySeriesTags;
                     levelSpecificTags = AllStudySeriesTags;
                     break;
                 case QueryResource.StudySeries:
-                    tagsToReturn = queryExpression.IncludeFields.All ? AllSeriesTags : DefaultSeriesTags;
+                    _tagsToReturn = queryExpression.IncludeFields.All ? AllSeriesTags : DefaultSeriesTags;
                     levelSpecificTags = AllStudySeriesTags;
                     break;
                 case QueryResource.AllInstances:
-                    tagsToReturn = queryExpression.IncludeFields.All ? AllStudySeriesInstanceTags : DefaultStudySeriesInstanceTags;
+                    _tagsToReturn = queryExpression.IncludeFields.All ? AllStudySeriesInstanceTags : DefaultStudySeriesInstanceTags;
                     levelSpecificTags = AllStudySeriesInstanceTags;
                     break;
                 case QueryResource.StudyInstances:
-                    tagsToReturn = queryExpression.IncludeFields.All ? AllSeriesInstanceTags : DefaultSeriesInstanceTags;
+                    _tagsToReturn = queryExpression.IncludeFields.All ? AllSeriesInstanceTags : DefaultSeriesInstanceTags;
                     levelSpecificTags = AllStudySeriesInstanceTags;
                     break;
                 case QueryResource.StudySeriesInstances:
-                    tagsToReturn = queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags;
+                    _tagsToReturn = queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags;
                     levelSpecificTags = AllStudySeriesInstanceTags;
                     break;
             }
@@ -133,21 +152,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 if (levelSpecificTags.Contains(tag))
                 {
-                    tagsToReturn.Add(tag);
+                    _tagsToReturn.Add(tag);
                 }
             }
 
             foreach (var cond in queryExpression.FilterConditions)
             {
-                tagsToReturn.Add(cond.DicomTag);
+                _tagsToReturn.Add(cond.DicomTag);
             }
-
-            dicomDataset.Remove((di) =>
-                                {
-                                    return !tagsToReturn.Contains(di.Tag);
-                                });
-
-            return dicomDataset;
         }
     }
 }
