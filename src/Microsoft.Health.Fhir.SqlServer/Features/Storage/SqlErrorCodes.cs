@@ -26,6 +26,11 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Storage
         public const int MethodNotAllowed = CustomErrorCodeBase + 405;
 
         /// <summary>
+        /// The resource already exists
+        /// </summary>
+        public const int Conflict = CustomErrorCodeBase + 409;
+
+        /// <summary>
         /// An optimistic concurrency precondition failed
         /// </summary>
         public const int PreconditionFailed = CustomErrorCodeBase + 412;

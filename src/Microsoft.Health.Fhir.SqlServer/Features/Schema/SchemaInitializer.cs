@@ -85,7 +85,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema
             {
                 connection.Open();
 
-                string procedureSchema = "dbo";
+                string procedureSchema = "dicom";
                 string procedureName = "SelectCurrentSchemaVersion";
 
                 bool procedureExists;

@@ -84,10 +84,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
                 foreach (DicomDataset metadataInstance in seriesArray)
                 {
                     await _dicomInstanceMetadataStore.AddInstanceMetadataAsync(metadataInstance);
+                    await _dicomIndexDataStore.IndexInstanceAsync(metadataInstance);
                 }
 
                 await _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(seriesArray);
-                await _dicomIndexDataStore.IndexSeriesAsync(seriesArray);
             }
 
             _metadataInstances.Clear();

@@ -3,10 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Resources;
-using System.Runtime.CompilerServices;
+namespace Microsoft.Health.Dicom.Core.Models
+{
+    public enum DicomIndexStatus
+    {
+        Unknown = 0,
 
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.SqlServer.Api")]
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.SqlServer.UnitTests")]
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Tests.Integration")]
-[assembly: NeutralResourcesLanguage("en-us")]
+        Creating = 1,
+
+        Created = 2,
+
+        Deleted = 3,
+    }
+}

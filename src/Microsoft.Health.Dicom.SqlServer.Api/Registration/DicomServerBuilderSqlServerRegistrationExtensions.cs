@@ -4,11 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
@@ -62,11 +57,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.Add<SqlServerDicomIndexModel>()
+                .Singleton()
+                .AsSelf();
+
             services
                 .AddHealthChecks()
                 .AddCheck<SqlServerHealthCheck>(nameof(SqlServerHealthCheck));
 
-            services.Add(sp => new NullSqlServerDicomIndexDataStore())
+            services.Add<SqlServerDicomIndexDataStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -77,32 +76,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsImplementedInterfaces();
 
             return dicomServerBuilder;
-        }
-
-        /// <summary>
-        /// Placeholder implementation that returns empty results. To be removed once the actual implementation starts.
-        /// </summary>
-        private class NullSqlServerDicomIndexDataStore : IDicomIndexDataStore
-        {
-            public Task DeleteInstanceIndexAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken = default)
-            {
-                return Task.CompletedTask;
-            }
-
-            public Task<IEnumerable<DicomInstance>> DeleteSeriesIndexAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(Enumerable.Empty<DicomInstance>());
-            }
-
-            public Task<IEnumerable<DicomInstance>> DeleteStudyIndexAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(Enumerable.Empty<DicomInstance>());
-            }
-
-            public Task IndexSeriesAsync(IReadOnlyCollection<DicomDataset> series, CancellationToken cancellationToken = default)
-            {
-                return Task.CompletedTask;
-            }
         }
     }
 }

@@ -254,7 +254,8 @@ CREATE PROCEDURE dicom.AddInstance
     @studyDescription NVARCHAR(64) = NULL,
     @accessionNumber NVARCHAR(64) = NULL,
     @modality NVARCHAR(16) = NULL,
-    @performedProcedureStepStartDate DATE = NULL
+    @performedProcedureStepStartDate DATE = NULL,
+    @initialStatus TINYINT
 AS
     SET NOCOUNT ON
 
@@ -280,7 +281,7 @@ AS
     INSERT INTO dicom.Instance
         (studyInstanceUid, seriesInstanceUid, sopInstanceUid, Watermark, Status, LastStatusUpdatesDate, CreatedDate)
     VALUES
-        (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, NEXT VALUE FOR dicom.WatermarkSequence, 0, @currentDate, @currentDate)
+        (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, NEXT VALUE FOR dicom.WatermarkSequence, @initialStatus, @currentDate, @currentDate)
 
     -- Update the study metadata if needed.
     SELECT @metadataId = ID
