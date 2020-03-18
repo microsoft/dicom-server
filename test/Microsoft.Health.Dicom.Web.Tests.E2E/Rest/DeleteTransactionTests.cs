@@ -16,12 +16,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class DeleteTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
+        private readonly DicomWebClient _client;
+
         public DeleteTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
-            Client = new DicomWebClient(fixture.HttpClient);
+            _client = fixture.Client;
         }
-
-        protected DicomWebClient Client { get; set; }
 
         [Theory]
         [InlineData("studies")]
@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, url);
 
-            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
+            using (HttpResponseMessage response = await _client.HttpClient.SendAsync(request))
             {
                 Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             }
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, url);
 
-            using (HttpResponseMessage response = await Client.HttpClient.SendAsync(request))
+            using (HttpResponseMessage response = await _client.HttpClient.SendAsync(request))
             {
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
@@ -64,26 +64,26 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             // Add 10 series with 10 instances each to a single study
             const int numberOfStudies = 2;
-            var studyInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = TestUidGenerator.Generate();
             for (int i = 0; i < numberOfStudies; i++)
             {
                 var files = new DicomFile[10];
-                var seriesInstanceUID = DicomUID.Generate().UID;
+                var seriesInstanceUID = TestUidGenerator.Generate();
 
                 for (int j = 0; j < 10; j++)
                 {
                     files[j] = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesInstanceUID);
                 }
 
-                await Client.PostAsync(files);
+                await _client.PostAsync(files);
             }
 
             // Send the delete request
-            HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID);
+            HttpStatusCode result = await _client.DeleteAsync(studyInstanceUID);
             Assert.Equal(HttpStatusCode.OK, result);
 
             // Validate not found
-            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetStudyAsync(studyInstanceUID);
+            HttpResult<IReadOnlyList<DicomFile>> response = await _client.GetStudyAsync(studyInstanceUID);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -91,22 +91,22 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async void GivenValidSeriesId_WhenDeletingSeries_TheServerShouldReturnOK()
         {
             // Store series with 10 instances
-            var studyInstanceUID = DicomUID.Generate().UID;
-            var seriesInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = TestUidGenerator.Generate();
+            var seriesInstanceUID = TestUidGenerator.Generate();
             var files = new DicomFile[10];
             for (int i = 0; i < 10; i++)
             {
                 files[i] = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesInstanceUID);
             }
 
-            await Client.PostAsync(files);
+            await _client.PostAsync(files);
 
             // Send the delete request
-            HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesInstanceUID);
+            HttpStatusCode result = await _client.DeleteAsync(studyInstanceUID, seriesInstanceUID);
             Assert.Equal(HttpStatusCode.OK, result);
 
             // Validate not found
-            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetSeriesAsync(studyInstanceUID, seriesInstanceUID);
+            HttpResult<IReadOnlyList<DicomFile>> response = await _client.GetSeriesAsync(studyInstanceUID, seriesInstanceUID);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -114,18 +114,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async void GivenValidInstanceId_WhenDeletingInstance_TheServerShouldReturnOK()
         {
             // Create and upload file
-            var studyInstanceUID = DicomUID.Generate().UID;
-            var seriesInstanceUID = DicomUID.Generate().UID;
-            var sopInstanceUID = DicomUID.Generate().UID;
+            var studyInstanceUID = TestUidGenerator.Generate();
+            var seriesInstanceUID = TestUidGenerator.Generate();
+            var sopInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID, seriesInstanceUID: seriesInstanceUID, sopInstanceUID: sopInstanceUID);
-            await Client.PostAsync(new[] { dicomFile });
+            await _client.PostAsync(new[] { dicomFile });
 
             // Send the delete request
-            HttpStatusCode result = await Client.DeleteAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            HttpStatusCode result = await _client.DeleteAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
             Assert.Equal(HttpStatusCode.OK, result);
 
             // Validate not found
-            HttpResult<IReadOnlyList<DicomFile>> response = await Client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            HttpResult<IReadOnlyList<DicomFile>> response = await _client.GetInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }

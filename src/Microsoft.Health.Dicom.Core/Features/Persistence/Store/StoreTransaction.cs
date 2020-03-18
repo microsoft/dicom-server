@@ -16,19 +16,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
 {
     public class StoreTransaction : IDisposable
     {
-        /// <summary>
-        /// The list of value representations that will not be stored when creating the 'metadata' storage objects.
-        /// </summary>
-        private static readonly HashSet<DicomVR> OtherAndUnkownValueRepresentations = new HashSet<DicomVR>()
-        {
-            DicomVR.OB,
-            DicomVR.OD,
-            DicomVR.OF,
-            DicomVR.OL,
-            DicomVR.OW,
-            DicomVR.UN,
-        };
-
         private readonly IDicomBlobDataStore _dicomBlobDataStore;
         private readonly IDicomMetadataStore _dicomMetadataStore;
         private readonly IDicomInstanceMetadataStore _dicomInstanceMetadataStore;
@@ -66,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             await _dicomBlobDataStore.AddFileAsStreamAsync(blobStorageName, dicomFileStream, cancellationToken: cancellationToken);
 
             // Strip the DICOM file down to the tags we want to store for metadata.
-            RemoveOtherAndUnknownValueRepresentations(dicomFile.Dataset);
+            DicomMetadata.RemoveBulkDataVRs(dicomFile.Dataset);
             _metadataInstances.Add(dicomInstance, dicomFile.Dataset);
         }
 
@@ -108,27 +95,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
 
         internal static string GetBlobStorageName(DicomInstance dicomInstance)
             => $"{dicomInstance.StudyInstanceUID}/{dicomInstance.SeriesInstanceUID}/{dicomInstance.SopInstanceUID}";
-
-        internal static void RemoveOtherAndUnknownValueRepresentations(DicomDataset dicomDataset)
-        {
-            var tagsToRemove = new List<DicomTag>();
-            foreach (DicomItem item in dicomDataset)
-            {
-                if (item.ValueRepresentation == DicomVR.SQ && item is DicomSequence sequence)
-                {
-                    foreach (DicomDataset sequenceDataset in sequence.Items)
-                    {
-                        RemoveOtherAndUnknownValueRepresentations(sequenceDataset);
-                    }
-                }
-                else if (OtherAndUnkownValueRepresentations.Contains(item.ValueRepresentation))
-                {
-                    tagsToRemove.Add(item.Tag);
-                }
-            }
-
-            dicomDataset.Remove(tagsToRemove.ToArray());
-        }
 
         protected virtual void Dispose(bool disposing)
         {

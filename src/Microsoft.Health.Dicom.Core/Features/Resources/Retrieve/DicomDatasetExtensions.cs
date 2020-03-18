@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using Dicom;
 using Dicom.Imaging;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
@@ -35,6 +36,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
         public static bool CanTranscodeDataset(this DicomDataset ds, DicomTransferSyntax toTransferSyntax)
         {
+            EnsureArg.IsNotNull(ds, nameof(ds));
+
             if (toTransferSyntax == null)
             {
                 return true;

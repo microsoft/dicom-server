@@ -41,7 +41,7 @@ namespace Microsoft.Health.Blob.UnitTests.Features.Health
         }
 
         [Fact]
-        public async Task GivenCosmosDbCanBeQueried_WhenHealthIsChecked_ThenHealthyStateShouldBeReturned()
+        public async Task GivenBlobDataStoreIsAvailable_WhenHealthIsChecked_ThenHealthyStateShouldBeReturned()
         {
             HealthCheckResult result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());
 
@@ -49,7 +49,7 @@ namespace Microsoft.Health.Blob.UnitTests.Features.Health
         }
 
         [Fact]
-        public async Task GivenCosmosDbCannotBeQueried_WhenHealthIsChecked_ThenUnhealthyStateShouldBeReturned()
+        public async Task GivenBlobDataStoreIsNotAvailable_WhenHealthIsChecked_ThenUnhealthyStateShouldBeReturned()
         {
             _testProvider.PerformTestAsync(default, default, _containerConfiguration).ThrowsForAnyArgs<HttpRequestException>();
             HealthCheckResult result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());

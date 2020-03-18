@@ -361,7 +361,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         {
             EnsureArg.IsNotNull(cloudBlockBlob, nameof(cloudBlockBlob));
 
-            using (Stream stream = await cloudBlockBlob.OpenReadAsync(cancellationToken))
+            await using (Stream stream = await cloudBlockBlob.OpenReadAsync(cancellationToken))
             using (var streamReader = new StreamReader(stream, _metadataEncoding))
             using (var jsonTextReader = new JsonTextReader(streamReader))
             {
@@ -376,12 +376,12 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             EnsureArg.IsNotNull(metadata, nameof(metadata));
             EnsureArg.IsGt(metadata.SeriesMetadata.Count, 0, nameof(metadata));
 
-            using (CloudBlobStream stream = await cloudBlockBlob.OpenWriteAsync(
+            await using (CloudBlobStream stream = await cloudBlockBlob.OpenWriteAsync(
                                         AccessCondition.GenerateIfMatchCondition(cloudBlockBlob.Properties.ETag),
                                         new BlobRequestOptions(),
                                         new OperationContext(),
                                         cancellationToken))
-            using (var streamWriter = new StreamWriter(stream, _metadataEncoding))
+            await using (var streamWriter = new StreamWriter(stream, _metadataEncoding))
             using (var jsonTextWriter = new JsonTextWriter(streamWriter))
             {
                 _jsonSerializer.Serialize(jsonTextWriter, metadata);

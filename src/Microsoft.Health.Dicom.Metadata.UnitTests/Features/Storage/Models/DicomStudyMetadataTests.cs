@@ -8,6 +8,7 @@ using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Metadata.Config;
 using Microsoft.Health.Dicom.Metadata.Features.Storage.Models;
+using Microsoft.Health.Dicom.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -20,7 +21,7 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
         [Fact]
         public void GivenDicomStudyMetadata_WhenSerializedToJson_IsDeserializedCorrectly()
         {
-            var studyInstanceUID = Guid.NewGuid().ToString();
+            var studyInstanceUID = TestUidGenerator.Generate();
             var dicomStudyMetadata = new DicomStudyMetadata(studyInstanceUID);
             AssertSerializeDeserializeCorrectly(dicomStudyMetadata);
 
@@ -28,8 +29,8 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
                 new DicomDataset()
                 {
                     { DicomTag.StudyInstanceUID, studyInstanceUID },
-                    { DicomTag.SeriesInstanceUID, Guid.NewGuid().ToString() },
-                    { DicomTag.SOPInstanceUID,  Guid.NewGuid().ToString() },
+                    { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
+                    { DicomTag.SOPInstanceUID,  TestUidGenerator.Generate() },
                     { DicomTag.PatientName, Guid.NewGuid().ToString() },
                     { DicomTag.StudyDate, DateTime.UtcNow },
                     { DicomTag.StudyTime, DateTime.UtcNow },
@@ -43,8 +44,8 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
                 new DicomDataset()
                 {
                     { DicomTag.StudyInstanceUID, studyInstanceUID },
-                    { DicomTag.SeriesInstanceUID, Guid.NewGuid().ToString() },
-                    { DicomTag.SOPInstanceUID,  Guid.NewGuid().ToString() },
+                    { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
+                    { DicomTag.SOPInstanceUID,  TestUidGenerator.Generate() },
                     { DicomTag.PatientName, Guid.NewGuid().ToString() },
                     { DicomTag.StudyDate, DateTime.UtcNow },
                     { DicomTag.StudyTime, DateTime.UtcNow },
@@ -80,7 +81,7 @@ namespace Microsoft.Health.Dicom.Metadata.UnitTests.Features.Storage.Models
                 Assert.Equal(expected.CreateOrGetInstanceIdentifier(instance), actual.CreateOrGetInstanceIdentifier(instance));
             }
 
-            Assert.Equal(expected.CreateOrGetInstanceIdentifier(Guid.NewGuid().ToString()), actual.CreateOrGetInstanceIdentifier(Guid.NewGuid().ToString()));
+            Assert.Equal(expected.CreateOrGetInstanceIdentifier(TestUidGenerator.Generate()), actual.CreateOrGetInstanceIdentifier(TestUidGenerator.Generate()));
 
             for (var i = 0; i < expected.DicomItems.Count; i++)
             {

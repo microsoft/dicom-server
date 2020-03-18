@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="fo-dicom" Version="4.0.1" />
+    <PackageReference Include="fo-dicom" Version="4.0.4" />
     <PackageReference Include="Polly" Version="7.1.0" />
   </ItemGroup>
 

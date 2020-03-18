@@ -3,11 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Linq;
 using Dicom;
 using FluentValidation;
-using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
@@ -33,27 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
                         return false;
                     }
                 })
-                .When(x => !x.OriginalTransferSyntaxRequested() && x.RequestedRepresentation != null && !x.RenderedRequested);
-
-            // Only validate the requested transfer syntax when provided.
-            RuleFor(x => x.RequestedRepresentation)
-                .Must(x =>
-                {
-                    try
-                    {
-                        return ImageRepresentationModel.Parse(x) != null;
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-                })
-                .When(x => x.RenderedRequested);
-
-            // Only allow one frame if rendered frame requested
-            RuleFor(x => x.Frames)
-                .Must(x => x != null && x.Any() && x.Count() == 1)
-                .When(x => x.ResourceType == ResourceType.Frames && x.RenderedRequested);
+                .When(x => !x.OriginalTransferSyntaxRequested() && x.RequestedRepresentation != null);
 
             // Check the frames has at least one when requested, and all requested frames are >= 0.
             RuleFor(x => x.Frames)
