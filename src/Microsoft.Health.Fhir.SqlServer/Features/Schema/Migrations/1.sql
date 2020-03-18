@@ -359,8 +359,10 @@ BEGIN
     BEGIN
         SELECT 1
     END
-    
-    SELECT 0
+    ELSE
+    BEGIN
+        SELECT 0
+    END
 END
 GO
 
