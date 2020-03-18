@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
     {
         StoreTransaction BeginStoreTransaction();
 
-        Task<Stream> GetDicomDataStreamAsync(DicomInstance dicomInstance, CancellationToken cancellationToken = default);
+        Task<Stream> GetDicomDataStreamAsync(DicomInstanceIdentifier dicomInstance, CancellationToken cancellationToken = default);
 
         Task DeleteStudyAsync(string studyInstanceUID, CancellationToken cancellationToken = default);
 

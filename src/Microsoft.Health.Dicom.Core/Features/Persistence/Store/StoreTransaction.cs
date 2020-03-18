@@ -17,25 +17,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
     public class StoreTransaction : IDisposable
     {
         private readonly IDicomBlobDataStore _dicomBlobDataStore;
-        private readonly IDicomMetadataStore _dicomMetadataStore;
-        private readonly IDicomInstanceMetadataStore _dicomInstanceMetadataStore;
+        private readonly IDicomMetadataService _dicomInstanceMetadataStore;
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
         private IDictionary<DicomInstance, DicomDataset> _metadataInstances = new Dictionary<DicomInstance, DicomDataset>();
         private bool _disposed;
 
         public StoreTransaction(
             IDicomBlobDataStore dicomBlobDataStore,
-            IDicomMetadataStore dicomMetadataStore,
-            IDicomInstanceMetadataStore dicomInstanceMetadataStore,
+            IDicomMetadataService dicomInstanceMetadataStore,
             IDicomIndexDataStore dicomIndexDataStore)
         {
             EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
-            EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
             EnsureArg.IsNotNull(dicomInstanceMetadataStore, nameof(dicomInstanceMetadataStore));
             EnsureArg.IsNotNull(dicomIndexDataStore, nameof(dicomIndexDataStore));
 
             _dicomBlobDataStore = dicomBlobDataStore;
-            _dicomMetadataStore = dicomMetadataStore;
             _dicomInstanceMetadataStore = dicomInstanceMetadataStore;
             _dicomIndexDataStore = dicomIndexDataStore;
         }
@@ -86,15 +82,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
                     await _dicomInstanceMetadataStore.AddInstanceMetadataAsync(metadataInstance);
                 }
 
-                await _dicomMetadataStore.AddStudySeriesDicomMetadataAsync(seriesArray);
                 await _dicomIndexDataStore.IndexSeriesAsync(seriesArray);
             }
 
             _metadataInstances.Clear();
         }
 
+        // TODO delete this when DicomInstance is deleted
         internal static string GetBlobStorageName(DicomInstance dicomInstance)
-            => $"{dicomInstance.StudyInstanceUID}/{dicomInstance.SeriesInstanceUID}/{dicomInstance.SopInstanceUID}";
+           => $"{dicomInstance.StudyInstanceUID}/{dicomInstance.SeriesInstanceUID}/{dicomInstance.SopInstanceUID}";
+
+        internal static string GetBlobStorageName(DicomInstanceIdentifier dicomInstance)
+            => $"{dicomInstance.StudyInstanceUid}/{dicomInstance.SeriesInstanceUid}/{dicomInstance.SopInstanceUid}";
 
         protected virtual void Dispose(bool disposing)
         {
