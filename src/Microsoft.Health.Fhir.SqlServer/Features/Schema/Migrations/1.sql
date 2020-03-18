@@ -380,7 +380,7 @@ GO
 --     @sopInstanceUid
 --         * The SOP instance UID.
 CREATE PROCEDURE dicom.GetInstance (
-    @invalidStatus      BIT,
+    @invalidStatus      TINYINT,
     @studyInstanceUid	VARCHAR(64),
     @seriesInstanceUid	VARCHAR(64) = NULL,
     @sopInstanceUid		VARCHAR(64) = NULL
