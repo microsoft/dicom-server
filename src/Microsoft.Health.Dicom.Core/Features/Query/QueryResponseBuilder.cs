@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -145,6 +145,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 case QueryResource.StudySeriesInstances:
                     _tagsToReturn = queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags;
                     levelSpecificTags = AllStudySeriesInstanceTags;
+                    break;
+                default:
+                    Debug.Fail("A newly added queryResource is not implemeted here");
                     break;
             }
 
