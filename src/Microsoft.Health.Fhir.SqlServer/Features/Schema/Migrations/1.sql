@@ -325,3 +325,101 @@ INCLUDE
 )
 
 GO
+-- STORED PROCEDURE
+--     CheckInstanceExists
+--
+-- DESCRIPTION
+--     Checks if a dicom instance exits in any state
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+CREATE PROCEDURE dicom.CheckInstanceExists (
+    @studyInstanceUid	VARCHAR(64),
+    @seriesInstanceUid	VARCHAR(64),
+    @sopInstanceUid		VARCHAR(64)
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    IF EXISTS
+    (
+        SELECT  *
+        FROM    dicom.Instance
+        WHERE   StudyInstanceUid		= @studyInstanceUid
+                AND SeriesInstanceUid	= @seriesInstanceUid
+                AND SopInstanceUid		= @sopInstanceUid
+    )
+    BEGIN
+        SELECT 1
+    END
+    
+    SELECT 0
+END
+GO
+
+-- STORED PROCEDURE
+--     GetInstance
+--
+-- DESCRIPTION
+--     Gets valid dicom instances at study/series/instance level
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+CREATE PROCEDURE dicom.GetInstance (
+    @invalidStatus      BIT,
+    @studyInstanceUid	VARCHAR(64),
+    @seriesInstanceUid	VARCHAR(64) = NULL,
+    @sopInstanceUid		VARCHAR(64) = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    IF ( @seriesInstanceUid <> NULL AND @sopInstanceUid <> NULL )
+    BEGIN
+        SELECT  StudyInstanceUid,
+                SeriesInstanceUid,
+                SopInstanceUid,
+                Watermark
+        FROM    dicom.Instance
+        WHERE   StudyInstanceUid		= @studyInstanceUid
+                AND SeriesInstanceUid	= @seriesInstanceUid
+                AND SopInstanceUid		= @sopInstanceUid
+                AND Status				<> @invalidStatus
+    END
+    ELSE IF ( @seriesInstanceUid <> NULL)
+    BEGIN
+        SELECT  StudyInstanceUid,
+                SeriesInstanceUid,
+                SopInstanceUid,
+                Watermark
+        FROM    dicom.Instance
+        WHERE   StudyInstanceUid		= @studyInstanceUid
+                AND SeriesInstanceUid	= @seriesInstanceUid
+                AND Status				<> @invalidStatus
+    END
+    ELSE
+    BEGIN
+        SELECT  StudyInstanceUid,
+                SeriesInstanceUid,
+                SopInstanceUid,
+                Watermark
+        FROM    dicom.Instance
+        WHERE   StudyInstanceUid		= @studyInstanceUid
+                AND Status				<> @invalidStatus
+    END
+END
+GO

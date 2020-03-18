@@ -14,6 +14,8 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
         internal readonly static SchemaVersionTable SchemaVersion = new SchemaVersionTable();
         internal readonly static SeriesMetadataCoreTable SeriesMetadataCore = new SeriesMetadataCoreTable();
         internal readonly static StudyMetadataCoreTable StudyMetadataCore = new StudyMetadataCoreTable();
+        internal readonly static CheckInstanceExistsProcedure CheckInstanceExists = new CheckInstanceExistsProcedure();
+        internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static SelectCurrentSchemaVersionProcedure SelectCurrentSchemaVersion = new SelectCurrentSchemaVersionProcedure();
         internal readonly static UpsertSchemaVersionProcedure UpsertSchemaVersion = new UpsertSchemaVersionProcedure();
         internal class InstanceTable : Table
@@ -69,6 +71,44 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
             internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
             internal readonly NullableNVarCharColumn AccessionNumber = new NullableNVarCharColumn("AccessionNumber", 16);
+        }
+
+        internal class CheckInstanceExistsProcedure : StoredProcedure
+        {
+            internal CheckInstanceExistsProcedure(): base("dicom.CheckInstanceExists")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dicom.CheckInstanceExists";
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+            }
+        }
+
+        internal class GetInstanceProcedure : StoredProcedure
+        {
+            internal GetInstanceProcedure(): base("dicom.GetInstance")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dicom.GetInstance";
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+            }
         }
 
         internal class SelectCurrentSchemaVersionProcedure : StoredProcedure
