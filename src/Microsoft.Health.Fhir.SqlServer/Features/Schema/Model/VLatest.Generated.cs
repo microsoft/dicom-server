@@ -28,7 +28,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
-            internal readonly DateTime2Column LastStatusUpdatesDate = new DateTime2Column("LastStatusUpdatesDate", 7);
+            internal readonly DateTime2Column LastStatusUpdatedDate = new DateTime2Column("LastStatusUpdatedDate", 7);
             internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
         }
 
