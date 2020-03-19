@@ -353,7 +353,7 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    IF ( @seriesInstanceUid <> NULL AND @sopInstanceUid <> NULL )
+    IF ( @seriesInstanceUid IS NOT NULL AND @sopInstanceUid IS NOT NULL )
     BEGIN
         SELECT  StudyInstanceUid,
                 SeriesInstanceUid,
@@ -365,7 +365,7 @@ BEGIN
                 AND SopInstanceUid		= @sopInstanceUid
                 AND Status				<> @invalidStatus
     END
-    ELSE IF ( @seriesInstanceUid <> NULL)
+    ELSE IF ( @seriesInstanceUid IS NOT NULL)
     BEGIN
         SELECT  StudyInstanceUid,
                 SeriesInstanceUid,
