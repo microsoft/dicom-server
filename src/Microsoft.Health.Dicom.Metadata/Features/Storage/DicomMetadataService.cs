@@ -133,6 +133,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         // TODO remove DicomInstance object and its reference
         private CloudBlockBlob GetInstanceBlockBlob(DicomInstance instance)
         {
+            EnsureArg.IsNotNull(instance, nameof(instance));
             return GetInstanceBlockBlob(new DicomInstanceIdentifier(
                 instance.StudyInstanceUID,
                 instance.SeriesInstanceUID,
