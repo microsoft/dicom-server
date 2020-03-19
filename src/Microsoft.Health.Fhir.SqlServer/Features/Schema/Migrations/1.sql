@@ -325,47 +325,7 @@ INCLUDE
 )
 
 GO
--- STORED PROCEDURE
---     CheckInstanceExists
---
--- DESCRIPTION
---     Checks if a dicom instance exits in any state
---
--- PARAMETERS
---     @studyInstanceUid
---         * The study instance UID.
---     @seriesInstanceUid
---         * The series instance UID.
---     @sopInstanceUid
---         * The SOP instance UID.
-CREATE PROCEDURE dicom.CheckInstanceExists (
-    @studyInstanceUid	VARCHAR(64),
-    @seriesInstanceUid	VARCHAR(64),
-    @sopInstanceUid		VARCHAR(64)
-)
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    IF EXISTS
-    (
-        SELECT  *
-        FROM    dicom.Instance
-        WHERE   StudyInstanceUid		= @studyInstanceUid
-                AND SeriesInstanceUid	= @seriesInstanceUid
-                AND SopInstanceUid		= @sopInstanceUid
-    )
-    BEGIN
-        SELECT 1
-    END
-    ELSE
-    BEGIN
-        SELECT 0
-    END
-END
-GO
-
+/***************************************************************************************/
 -- STORED PROCEDURE
 --     GetInstance
 --
@@ -373,12 +333,15 @@ GO
 --     Gets valid dicom instances at study/series/instance level
 --
 -- PARAMETERS
+--     @invalidStatus
+--         * Filter criteria to search only valid instances
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
 --         * The series instance UID.
 --     @sopInstanceUid
 --         * The SOP instance UID.
+/***************************************************************************************/
 CREATE PROCEDURE dicom.GetInstance (
     @invalidStatus      TINYINT,
     @studyInstanceUid	VARCHAR(64),
