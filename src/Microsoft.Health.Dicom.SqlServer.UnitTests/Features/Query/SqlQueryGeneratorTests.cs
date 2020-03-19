@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenStudyInstanceUid_WhenIELevelSeries_ValidateDistinctStudySeries()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new DicomQueryParameterIncludeField(false, new List<DicomTag>());
+            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>());
             var filters = new List<DicomQueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "1234"),
@@ -54,7 +54,7 @@ AND a.SeriesInstanceUid = f.SeriesInstanceUid";
         public void GivenStudyDate_WhenIELevelSTudy_ValidateDistinctStudyStudies()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new DicomQueryParameterIncludeField(false, new List<DicomTag>());
+            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>());
             var minDate = new DateTime(2020, 2, 1);
             var maxDate = new DateTime(2020, 3, 1);
 
@@ -85,7 +85,7 @@ AND a.StudyInstanceUid = f.StudyInstanceUid";
         public void GivenSopInstanceUid_WhenIELevelInstance_ValidateDistinctInstances()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new DicomQueryParameterIncludeField(false, new List<DicomTag>());
+            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>());
             var filters = new List<DicomQueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "123"),

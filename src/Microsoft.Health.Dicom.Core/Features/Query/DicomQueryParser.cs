@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             return new DicomQueryExpression(
                 request.QueryResourceType,
-                new DicomQueryParameterIncludeField(_parsedQuery.AllValue, _parsedQuery.IncludeFields),
+                new DicomQueryIncludeField(_parsedQuery.AllValue, _parsedQuery.IncludeFields),
                 _parsedQuery.FuzzyMatch,
                 _parsedQuery.Limit,
                 _parsedQuery.Offset,

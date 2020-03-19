@@ -3,27 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net;
+using System.Collections.Generic;
+using System.Linq;
 using Dicom;
-using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Query
 {
-    public sealed class QueryDicomResourceResponse : BaseStatusCodeResponse
+    public sealed class QueryDicomResourceResponse
     {
-        public QueryDicomResourceResponse(HttpStatusCode statusCode)
-            : base((int)statusCode)
+        public QueryDicomResourceResponse(IEnumerable<DicomDataset> responseDataset = null)
         {
+            ResponseDataset = responseDataset ?? Enumerable.Empty<DicomDataset>();
         }
 
-        public QueryDicomResourceResponse(HttpStatusCode statusCode, DicomDataset responseDataset)
-            : base((int)statusCode)
-        {
-            EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
-
-            Dataset = responseDataset;
-        }
-
-        public DicomDataset Dataset { get; }
+        public IEnumerable<DicomDataset> ResponseDataset { get; }
     }
 }

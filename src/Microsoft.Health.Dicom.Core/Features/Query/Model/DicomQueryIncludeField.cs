@@ -7,9 +7,9 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DicomQueryParameterIncludeField
+    public class DicomQueryIncludeField
     {
-        public DicomQueryParameterIncludeField(bool all, IReadOnlyCollection<DicomTag> dicomTags)
+        public DicomQueryIncludeField(bool all, IReadOnlyCollection<DicomTag> dicomTags)
         {
             All = all;
             DicomTags = dicomTags;
