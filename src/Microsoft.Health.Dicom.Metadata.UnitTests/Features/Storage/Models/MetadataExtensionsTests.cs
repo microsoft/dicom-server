@@ -9,7 +9,7 @@ using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Metadata.Config;
-using Microsoft.Health.Dicom.Metadata.Features.Storage.Models;
+using Microsoft.Health.Dicom.Metadata.Features.Storage;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
