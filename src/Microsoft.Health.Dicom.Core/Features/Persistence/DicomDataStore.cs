@@ -18,29 +18,29 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
     {
         private readonly ILogger<DicomDataStore> _logger;
         private readonly IDicomBlobDataStore _dicomBlobDataStore;
-        private readonly IDicomMetadataService _dicomInstanceMetadataStore;
+        private readonly IDicomMetadataService _dicomMetadataService;
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
 
         public DicomDataStore(
             IDicomBlobDataStore dicomBlobDataStore,
-            IDicomMetadataService dicomInstanceMetadataStore,
+            IDicomMetadataService dicomMetadataService,
             IDicomIndexDataStore dicomIndexDataStore,
             ILogger<DicomDataStore> logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
-            EnsureArg.IsNotNull(dicomInstanceMetadataStore, nameof(dicomInstanceMetadataStore));
+            EnsureArg.IsNotNull(dicomMetadataService, nameof(dicomMetadataService));
 
             _logger = logger;
             _dicomBlobDataStore = dicomBlobDataStore;
-            _dicomInstanceMetadataStore = dicomInstanceMetadataStore;
+            _dicomMetadataService = dicomMetadataService;
             _dicomIndexDataStore = dicomIndexDataStore;
         }
 
         public StoreTransaction BeginStoreTransaction()
         {
             _logger.LogDebug("Starting a new store transaction.");
-            return new StoreTransaction(_dicomBlobDataStore, _dicomInstanceMetadataStore, _dicomIndexDataStore);
+            return new StoreTransaction(_dicomBlobDataStore, _dicomMetadataService, _dicomIndexDataStore);
         }
 
         public async Task<Stream> GetDicomDataStreamAsync(DicomInstanceIdentifier dicomInstance, CancellationToken cancellationToken = default)
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         {
             await Task.WhenAll(instances.Select(async x =>
             {
-                await _dicomInstanceMetadataStore.DeleteInstanceMetadataAsync(x, cancellationToken);
+                await _dicomMetadataService.DeleteInstanceMetadataAsync(x, cancellationToken);
                 await _dicomBlobDataStore.DeleteFileIfExistsAsync(StoreTransaction.GetBlobStorageName(x), cancellationToken);
             }));
         }
