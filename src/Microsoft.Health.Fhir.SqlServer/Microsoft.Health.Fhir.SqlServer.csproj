@@ -8,6 +8,7 @@
   <ItemGroup>
     <None Remove="Features\Schema\Migrations\1.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\1.sql" />
+    <GenerateFilesInputs Include="Features\Schema\Migrations\1.sql" />
     <Generated Include="Features\Schema\Model\VLatest.Generated.cs">
       <Generator>SqlModelGenerator</Generator>
       <Namespace>Microsoft.Health.Fhir.SqlServer.Features.Schema.Model</Namespace>

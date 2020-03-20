@@ -79,6 +79,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The DICOM instance already exists..
+        /// </summary>
+        internal static string InstanceAlreadyExists {
+            get {
+                return ResourceManager.GetString("InstanceAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specified Date value {0} is invalid for parameter {1}. Date should be valid and formatted as yyyyMMdd..
         /// </summary>
         internal static string InvalidDateValue {
@@ -129,6 +138,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string QueryResultCountMaxExceeded {
             get {
                 return ResourceManager.GetString("QueryResultCountMaxExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The operation could not be completed, because the service was unable to accept new requests. It is safe to retry the operation. If the issue persists, please contact support..
+        /// </summary>
+        internal static string ServiceUnavailable {
+            get {
+                return ResourceManager.GetString("ServiceUnavailable", resourceCulture);
             }
         }
         

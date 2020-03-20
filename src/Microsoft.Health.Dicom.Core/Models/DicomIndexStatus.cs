@@ -3,10 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Resources;
-using System.Runtime.CompilerServices;
+namespace Microsoft.Health.Dicom.Core.Models
+{
+    /// <summary>
+    /// Representing the index status.
+    /// </summary>
+    public static class DicomIndexStatus
+    {
+        public const byte Creating = 0;
 
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.SqlServer.Api")]
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.SqlServer.UnitTests")]
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Tests.Integration")]
-[assembly: NeutralResourcesLanguage("en-us")]
+        public const byte Created = 1;
+
+        public const byte Deleted = 2;
+    }
+}

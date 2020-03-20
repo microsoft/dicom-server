@@ -63,7 +63,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema
         {
             using (var connection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
             {
-                var upsertCommand = new SqlCommand("dbo.UpsertSchemaVersion", connection)
+                var upsertCommand = new SqlCommand("dicom.UpsertSchemaVersion", connection)
                 {
                     CommandType = CommandType.StoredProcedure,
                 };
