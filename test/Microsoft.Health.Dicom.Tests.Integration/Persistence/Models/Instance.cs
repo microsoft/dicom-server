@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             string seriesInstanceUid,
             string sopInstanceUid,
             long watermark,
-            DicomIndexStatus status,
+            byte status,
             DateTime lastStatusUpdatedDate,
             DateTime createdDate)
         {
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             SeriesInstanceUid = sqlDataReader.GetString(1);
             SopInstanceUid = sqlDataReader.GetString(2);
             Watermark = sqlDataReader.GetInt64(3);
-            Status = (DicomIndexStatus)sqlDataReader.GetByte(4);
+            Status = sqlDataReader.GetByte(4);
             LastStatusUpdatedDate = sqlDataReader.GetDateTime(5);
             CreatedDate = sqlDataReader.GetDateTime(6);
         }
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public long Watermark { get; }
 
-        public DicomIndexStatus Status { get; }
+        public byte Status { get; }
 
         public DateTime LastStatusUpdatedDate { get; }
 

@@ -5,14 +5,15 @@
 
 namespace Microsoft.Health.Dicom.Core.Models
 {
-    public enum DicomIndexStatus
+    /// <summary>
+    /// Representing the index status.
+    /// </summary>
+    public static class DicomIndexStatus
     {
-        Unknown = 0,
+        public const byte Creating = 0;
 
-        Creating = 1,
+        public const byte Created = 1;
 
-        Created = 2,
-
-        Deleted = 3,
+        public const byte Deleted = 2;
     }
 }

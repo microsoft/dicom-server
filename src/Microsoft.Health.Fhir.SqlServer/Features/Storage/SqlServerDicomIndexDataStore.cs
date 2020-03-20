@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
@@ -21,20 +22,20 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Storage
 {
     internal class SqlServerDicomIndexDataStore : IDicomIndexDataStore
     {
-        private readonly SqlServerDicomIndexModel _sqlServerDicomIndexModel;
+        private readonly SqlServerDicomIndexSchema _sqlServerDicomIndexSchema;
         private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
         private readonly ILogger<SqlServerDicomIndexDataStore> _logger;
 
         public SqlServerDicomIndexDataStore(
-            SqlServerDicomIndexModel dicomIndexModel,
+            SqlServerDicomIndexSchema dicomIndexSchema,
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
             ILogger<SqlServerDicomIndexDataStore> logger)
         {
-            EnsureArg.IsNotNull(dicomIndexModel, nameof(dicomIndexModel));
+            EnsureArg.IsNotNull(dicomIndexSchema, nameof(dicomIndexSchema));
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _sqlServerDicomIndexModel = dicomIndexModel;
+            _sqlServerDicomIndexSchema = dicomIndexSchema;
             _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
             _logger = logger;
         }
@@ -58,7 +59,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Storage
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
 
-            await _sqlServerDicomIndexModel.EnsureInitialized();
+            await _sqlServerDicomIndexSchema.EnsureInitialized();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper())
             using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
@@ -76,7 +77,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Storage
                     instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
                     instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
                     instance.GetStringDateAsDateTime(DicomTag.PerformedProcedureStepStartDate),
-                    (byte)DicomIndexStatus.Created);
+                    DicomIndexStatus.Created);
 
                 try
                 {

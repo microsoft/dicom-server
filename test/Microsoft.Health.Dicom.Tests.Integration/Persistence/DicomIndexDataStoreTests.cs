@@ -44,6 +44,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
+            dataset.Remove(DicomTag.PatientID);
+
             dataset.Add(DicomTag.PatientID, patientId);
             dataset.Add(DicomTag.PatientName, patientName);
             dataset.Add(DicomTag.ReferringPhysicianName, referringPhysicianName);
@@ -53,56 +55,49 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(DicomTag.Modality, modality);
             dataset.Add(DicomTag.PerformedProcedureStepStartDate, performedProcedureStepStartDate);
 
-            try
-            {
-                DateTime date = DateTime.UtcNow;
+            DateTime date = DateTime.UtcNow;
 
-                await _dicomIndexDataStore.IndexInstanceAsync(dataset);
+            await _dicomIndexDataStore.IndexInstanceAsync(dataset);
 
-                IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
+            IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
 
-                Assert.Collection(
-                    studyMetadataEntries,
-                    entry => ValidateStudyMetadata(
-                        studyInstanceUid,
-                        0,
-                        patientId,
-                        patientName,
-                        referringPhysicianName,
-                        new DateTime(2020, 3, 1, 0, 0, 0, DateTimeKind.Utc),
-                        studyDescription,
-                        accessionNumber,
-                        entry));
+            Assert.Collection(
+                studyMetadataEntries,
+                entry => ValidateStudyMetadata(
+                    studyInstanceUid,
+                    0,
+                    patientId,
+                    patientName,
+                    referringPhysicianName,
+                    new DateTime(2020, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+                    studyDescription,
+                    accessionNumber,
+                    entry));
 
-                IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
+            IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
 
-                Assert.Collection(
-                    seriesMetadataEntries,
-                    entry => ValidateSeriesMetadata(
-                        seriesInstanceUid,
-                        0,
-                        modality,
-                        new DateTime(2020, 3, 2, 0, 0, 0, DateTimeKind.Utc),
-                        entry));
+            Assert.Collection(
+                seriesMetadataEntries,
+                entry => ValidateSeriesMetadata(
+                    seriesInstanceUid,
+                    0,
+                    modality,
+                    new DateTime(2020, 3, 2, 0, 0, 0, DateTimeKind.Utc),
+                    entry));
 
-                // Make sure the ID matches between the study and series metadata.
-                Assert.Equal(studyMetadataEntries[0].ID, seriesMetadataEntries[0].ID);
+            // Make sure the ID matches between the study and series metadata.
+            Assert.Equal(studyMetadataEntries[0].ID, seriesMetadataEntries[0].ID);
 
-                Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-                Assert.NotNull(instance);
-                Assert.Equal(studyInstanceUid, instance.StudyInstanceUid);
-                Assert.Equal(seriesInstanceUid, instance.SeriesInstanceUid);
-                Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
-                Assert.True(instance.Watermark >= 0);
-                Assert.Equal(DicomIndexStatus.Created, instance.Status);
-                Assert.InRange(instance.LastStatusUpdatedDate, date.AddSeconds(-1), date.AddSeconds(1));
-                Assert.InRange(instance.CreatedDate, date.AddSeconds(-1), date.AddSeconds(1));
-            }
-            finally
-            {
-                await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            }
+            Assert.NotNull(instance);
+            Assert.Equal(studyInstanceUid, instance.StudyInstanceUid);
+            Assert.Equal(seriesInstanceUid, instance.SeriesInstanceUid);
+            Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
+            Assert.True(instance.Watermark >= 0);
+            Assert.Equal(DicomIndexStatus.Created, instance.Status);
+            Assert.InRange(instance.LastStatusUpdatedDate, date.AddSeconds(-1), date.AddSeconds(1));
+            Assert.InRange(instance.CreatedDate, date.AddSeconds(-1), date.AddSeconds(1));
         }
 
         [Fact]
@@ -114,18 +109,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            dataset.Add(DicomTag.PatientID, "pid");
+            await _dicomIndexDataStore.IndexInstanceAsync(dataset);
 
-            try
-            {
-                await _dicomIndexDataStore.IndexInstanceAsync(dataset);
-
-                await Assert.ThrowsAsync<DicomInstanceAlreadyExistsException>(() => _dicomIndexDataStore.IndexInstanceAsync(dataset));
-            }
-            finally
-            {
-                await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            }
+            await Assert.ThrowsAsync<DicomInstanceAlreadyExistsException>(() => _dicomIndexDataStore.IndexInstanceAsync(dataset));
         }
 
         private static void ValidateStudyMetadata(

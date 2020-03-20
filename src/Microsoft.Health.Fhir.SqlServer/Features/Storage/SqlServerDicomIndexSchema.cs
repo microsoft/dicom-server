@@ -13,16 +13,16 @@ using Microsoft.Health.Fhir.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Fhir.SqlServer.Features.Storage
 {
-    public sealed class SqlServerDicomIndexModel : IDisposable
+    public sealed class SqlServerDicomIndexSchema : IDisposable
     {
         private readonly SchemaInformation _schemaInformation;
-        private readonly ILogger<SqlServerDicomIndexModel> _logger;
+        private readonly ILogger<SqlServerDicomIndexSchema> _logger;
 
         private readonly RetryableInitializationOperation _initializationOperation;
 
-        public SqlServerDicomIndexModel(
+        public SqlServerDicomIndexSchema(
             SchemaInformation schemaInformation,
-            ILogger<SqlServerDicomIndexModel> logger)
+            ILogger<SqlServerDicomIndexSchema> logger)
         {
             EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
             EnsureArg.IsNotNull(logger, nameof(logger));
