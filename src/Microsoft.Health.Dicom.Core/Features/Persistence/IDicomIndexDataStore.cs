@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public interface IDicomIndexDataStore
     {
-        Task IndexSeriesAsync(IReadOnlyCollection<DicomDataset> series, CancellationToken cancellationToken = default);
+        Task IndexInstanceAsync(DicomDataset instance, CancellationToken cancellationToken = default);
 
         Task<IEnumerable<DicomInstance>> DeleteStudyIndexAsync(string studyInstanceUID, CancellationToken cancellationToken = default);
 

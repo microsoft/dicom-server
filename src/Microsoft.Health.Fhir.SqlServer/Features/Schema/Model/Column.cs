@@ -150,21 +150,28 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
         }
     }
 
-    public class NullableDateColumn : Column<DateTime>
+    public class NullableDateColumn : Column<DateTime?>
     {
         public NullableDateColumn(string name)
             : base(name, SqlDbType.DateTime2, true, 0, 0)
         {
         }
 
-        public override DateTime Read(SqlDataReader reader, int ordinal)
+        public override DateTime? Read(SqlDataReader reader, int ordinal)
         {
             return reader.GetDateTime(Metadata.Name, ordinal);
         }
 
-        public override void Set(SqlDataRecord record, int ordinal, DateTime value)
+        public override void Set(SqlDataRecord record, int ordinal, DateTime? value)
         {
-            record.SetDateTime(ordinal, value);
+            if (value == null)
+            {
+                record.SetDBNull(ordinal);
+            }
+            else
+            {
+                record.SetDateTime(ordinal, value.Value);
+            }
         }
     }
 

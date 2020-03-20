@@ -90,6 +90,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
                     { DicomTag.BitsAllocated, (ushort)bitDepth },
                     { DicomTag.WindowWidth, ((bitDepth == TestFileBitDepth.EightBit) ? "256" : "65536") },
                     { DicomTag.WindowCenter, ((bitDepth == TestFileBitDepth.EightBit) ? "128" : "32768") },
+                    { DicomTag.PatientID, TestUidGenerator.Generate() },
                 });
 
             var pixelData = DicomPixelData.Create(dicomFile.Dataset, true);
