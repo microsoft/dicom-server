@@ -110,6 +110,27 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetInstanceProcedure : StoredProcedure
+        {
+            internal GetInstanceProcedure(): base("dicom.GetInstance")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Byte> _invalidStatus = new ParameterDefinition<System.Byte>("@invalidStatus", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.Byte invalidStatus, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dicom.GetInstance";
+                _invalidStatus.AddParameter(command.Parameters, invalidStatus);
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+            }
+        }
+
         internal class SelectCurrentSchemaVersionProcedure : StoredProcedure
         {
             internal SelectCurrentSchemaVersionProcedure(): base("dicom.SelectCurrentSchemaVersion")
