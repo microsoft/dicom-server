@@ -41,13 +41,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, NullLogger<SchemaInitializer>.Instance);
 
-            var sqlServerDicomIndexModel = new SqlServerDicomIndexModel(schemaInformation, NullLogger<SqlServerDicomIndexModel>.Instance);
+            var sqlServerDicomIndexSchema = new SqlServerDicomIndexSchema(schemaInformation, NullLogger<SqlServerDicomIndexSchema>.Instance);
 
             var sqlTransactionHandler = new SqlTransactionHandler();
             var sqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(config, sqlTransactionHandler);
 
             DicomIndexDataStore = new SqlServerDicomIndexDataStore(
-                sqlServerDicomIndexModel,
+                sqlServerDicomIndexSchema,
                 sqlConnectionWrapperFactory,
                 NullLogger<SqlServerDicomIndexDataStore>.Instance);
 

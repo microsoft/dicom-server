@@ -57,7 +57,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<SqlServerDicomIndexModel>()
+            services.Add<SqlServerDicomIndexSchema>()
                 .Singleton()
                 .AsSelf();
 
