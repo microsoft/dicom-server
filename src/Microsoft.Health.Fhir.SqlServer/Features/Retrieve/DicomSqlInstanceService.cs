@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Fhir.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Fhir.SqlServer.Features.Storage;
 
@@ -63,7 +64,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Retrieve
             {
                 VLatest.GetInstance.PopulateCommand(
                     sqlCommand,
-                    invalidStatus: 0, // TODO use the enum after post work
+                    invalidStatus: DicomIndexStatus.Creating,
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid);
