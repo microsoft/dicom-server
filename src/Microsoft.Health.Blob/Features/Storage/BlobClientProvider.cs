@@ -11,7 +11,6 @@ using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Extensions.DependencyInjection;
-using Microsoft.Health.Fhir.Core;
 
 namespace Microsoft.Health.Blob.Features.Storage
 {
