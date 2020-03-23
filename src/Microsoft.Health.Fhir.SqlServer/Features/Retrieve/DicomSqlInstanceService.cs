@@ -18,7 +18,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Retrieve
 {
     internal class DicomSqlInstanceService : IDicomInstanceService
     {
-        private SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
+        private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
 
         public DicomSqlInstanceService(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         {

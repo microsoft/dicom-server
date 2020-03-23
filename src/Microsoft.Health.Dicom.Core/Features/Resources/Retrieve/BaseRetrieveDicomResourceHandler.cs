@@ -31,25 +31,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
             string sopInstanceUid,
             CancellationToken cancellationToken)
         {
-            IEnumerable<DicomInstanceIdentifier> retrievedInstances;
+            IEnumerable<DicomInstanceIdentifier> instancesToRetrieve;
             switch (resourceType)
             {
                 case ResourceType.Frames:
                 case ResourceType.Instance:
-                    retrievedInstances = await _dicomInstanceService.GetInstanceIdentifierAsync(
+                    instancesToRetrieve = await _dicomInstanceService.GetInstanceIdentifierAsync(
                         studyInstanceUid,
                         seriesInstanceUid,
                         sopInstanceUid,
                         cancellationToken);
                     break;
                 case ResourceType.Series:
-                    retrievedInstances = await _dicomInstanceService.GetInstanceIdentifiersInSeriesAsync(
+                    instancesToRetrieve = await _dicomInstanceService.GetInstanceIdentifiersInSeriesAsync(
                         studyInstanceUid,
                         seriesInstanceUid,
                         cancellationToken);
                     break;
                 case ResourceType.Study:
-                    retrievedInstances = await _dicomInstanceService.GetInstanceIdentifiersInStudyAsync(
+                    instancesToRetrieve = await _dicomInstanceService.GetInstanceIdentifiersInStudyAsync(
                         studyInstanceUid,
                         cancellationToken);
                     break;
@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     throw new ArgumentException($"Unknown retrieve transaction type: {resourceType}", nameof(resourceType));
             }
 
-            return retrievedInstances;
+            return instancesToRetrieve;
         }
     }
 }
