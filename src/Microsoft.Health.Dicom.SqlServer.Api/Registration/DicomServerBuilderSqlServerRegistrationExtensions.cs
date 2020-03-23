@@ -6,7 +6,6 @@
 using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.Fhir.SqlServer.Configs;

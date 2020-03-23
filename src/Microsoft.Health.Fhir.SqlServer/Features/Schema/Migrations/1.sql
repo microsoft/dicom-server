@@ -492,21 +492,21 @@ BEGIN
                 SopInstanceUid,
                 Watermark
         FROM    dicom.Instance
-        WHERE   StudyInstanceUid		= @studyInstanceUid
-                AND SeriesInstanceUid	= @seriesInstanceUid
-                AND SopInstanceUid		= @sopInstanceUid
-                AND Status				<> @invalidStatus
+        WHERE   StudyInstanceUid        = @studyInstanceUid
+                AND SeriesInstanceUid   = @seriesInstanceUid
+                AND SopInstanceUid      = @sopInstanceUid
+                AND Status              <> @invalidStatus
     END
-    ELSE IF ( @seriesInstanceUid IS NOT NULL)
+    ELSE IF ( @seriesInstanceUid IS NOT NULL )
     BEGIN
         SELECT  StudyInstanceUid,
                 SeriesInstanceUid,
                 SopInstanceUid,
                 Watermark
         FROM    dicom.Instance
-        WHERE   StudyInstanceUid		= @studyInstanceUid
-                AND SeriesInstanceUid	= @seriesInstanceUid
-                AND Status				<> @invalidStatus
+        WHERE   StudyInstanceUid        = @studyInstanceUid
+                AND SeriesInstanceUid   = @seriesInstanceUid
+                AND Status              <> @invalidStatus
     END
     ELSE
     BEGIN
@@ -515,8 +515,8 @@ BEGIN
                 SopInstanceUid,
                 Watermark
         FROM    dicom.Instance
-        WHERE   StudyInstanceUid		= @studyInstanceUid
-                AND Status				<> @invalidStatus
+        WHERE   StudyInstanceUid        = @studyInstanceUid
+                AND Status              <> @invalidStatus
     END
 END
 GO

@@ -220,7 +220,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
 
         private void AppendStatusClause(string tableAlias)
         {
-            var invalidStatus = DicomIndexStatus.Creating;
+            byte invalidStatus = DicomIndexStatus.Creating;
             _stringBuilder
                 .Append("AND ")
                 .Append(VLatest.Instance.Status, tableAlias)
