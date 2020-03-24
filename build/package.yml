@@ -12,7 +12,6 @@ steps:
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet publish Integration Tests'
-    enabled: false
     inputs:
       command: publish
       projects: 'test/**/*.csproj'
