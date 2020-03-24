@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     /// </summary>
     public static class DicomDatasetExtensions
     {
-        private const string DateFormat = "yyyy-MM-dd";
+        private const string DateFormat = "yyyyMMdd";
 
         /// <summary>
         /// Gets a single value if the value exists; otherwise the default value for the type <typeparamref name="T"/>.
