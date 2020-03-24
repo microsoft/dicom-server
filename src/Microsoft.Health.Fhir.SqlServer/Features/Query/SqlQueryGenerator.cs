@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Fhir.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Fhir.SqlServer.Features.Storage;
 
@@ -219,12 +220,11 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
 
         private void AppendStatusClause(string tableAlias)
         {
-            // TODO set this from a enum
-            var readyStatus = 1;
+            byte invalidStatus = DicomIndexStatus.Creating;
             _stringBuilder
                 .Append("AND ")
                 .Append(VLatest.Instance.Status, tableAlias)
-                .AppendLine($" = {readyStatus} ");
+                .AppendLine($" <> {invalidStatus} ");
         }
 
         private void AppendFilterClause()

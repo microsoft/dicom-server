@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Fhir.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Fhir.SqlServer.Features.Storage;
@@ -38,7 +39,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
             DicomQueryExpression query,
             CancellationToken cancellationToken)
         {
-            var results = new List<QueryResultEntry>(query.EvaluatedLimit);
+            var results = new List<DicomInstanceIdentifier>(query.EvaluatedLimit);
 
             using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper(true))
             using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
@@ -59,7 +60,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
                            VLatest.Instance.SopInstanceUid,
                            VLatest.Instance.Watermark);
 
-                        results.Add(new QueryResultEntry(
+                        results.Add(new DicomInstanceIdentifier(
                                 studyInstanceUid,
                                 seriesInstanceUid,
                                 sopInstanceUid,

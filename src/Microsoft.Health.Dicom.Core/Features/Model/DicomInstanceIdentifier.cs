@@ -5,11 +5,11 @@
 
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Core.Features
 {
-    public class QueryResultEntry
+    public class DicomInstanceIdentifier
     {
-        public QueryResultEntry(
+        public DicomInstanceIdentifier(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
