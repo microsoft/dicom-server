@@ -123,7 +123,7 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Query
 
                 if (_queryExpression.IsInstanceIELevel())
                 {
-                    _stringBuilder.Append(",").AppendLine(VLatest.Instance.StudyInstanceUid, InstanceTableAlias);
+                    _stringBuilder.Append(",").AppendLine(VLatest.Instance.SopInstanceUid, InstanceTableAlias);
                     _stringBuilder.Append(",").AppendLine(VLatest.Instance.Watermark, InstanceTableAlias);
                 }
 
