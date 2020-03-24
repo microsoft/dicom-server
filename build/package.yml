@@ -46,7 +46,6 @@ steps:
 
   - task: PublishBuildArtifacts@1
     displayName: 'publish samples'
-    enabled: false
     inputs:
       pathToPublish: './samples/'
       artifactName: 'deploy'
@@ -61,14 +60,6 @@ steps:
       artifactType: 'container'
 
   - task: PublishBuildArtifacts@1
-    displayName: 'publish release directory'
-    enabled: false
-    inputs:
-      pathToPublish: './release/'
-      artifactName: 'deploy'
-      artifactType: 'container'
-
-  - task: PublishBuildArtifacts@1
     displayName: 'publish nuget artifacts'
     enabled: false
     inputs:
@@ -78,7 +69,6 @@ steps:
 
   - task: PublishBuildArtifacts@1
     displayName: 'publish Integration Tests'
-    enabled: false
     inputs:
       pathToPublish: '$(build.binariesdirectory)/IntegrationTests'
       artifactName: 'IntegrationTests'

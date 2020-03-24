@@ -2,8 +2,17 @@
 # Builds, tests and packages the solution for all PR requests.
 
 name: pr$(system.pullRequest.pullRequestNumber)-$(Date:yyyyMMdd)$(Rev:-r)
+
 variables:
   buildConfiguration: 'Release'
+
+trigger: none
+
+pr:
+  branches:
+    include:
+    - master
+
 jobs:
 - job: Windows
   pool:
