@@ -8,11 +8,6 @@ variables:
 
 trigger: none
 
-pr:
-  branches:
-    include:
-    - master
-
 jobs:
 - job: Windows
   pool:
