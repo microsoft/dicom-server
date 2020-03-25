@@ -201,7 +201,7 @@
             "apiVersion": "2015-05-01-preview",
             "location": "[parameters('sqlLocation')]",
             "tags": {
-                "FhirServerSolution": "[parameters('solutionType')]"
+                "DicomServerSolution": "[parameters('solutionType')]"
             },
             "properties": {
                 "administratorLogin": "dicomAdmin",
@@ -216,7 +216,7 @@
                     ],
                     "location": "[parameters('sqlLocation')]",
                     "tags": {
-                        "FhirServerSolution": "[parameters('solutionType')]"
+                        "DicomServerSolution": "[parameters('solutionType')]"
                     },
                     "name": "[variables('dicomDatabaseName')]",
                     "properties": {
