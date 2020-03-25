@@ -9,7 +9,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
-using Microsoft.Health.Dicom.Core.Features;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;
@@ -20,7 +20,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private readonly DicomWebClient _client;
-        private object retrievedDataset;
 
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
@@ -37,69 +36,105 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenSearchRequest_AllStudyLevel_MatchResult()
         {
-            // Add 2 study files, One matches the search and other does not
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
             {
-                 { DicomTag.PatientName, "Test^Patient" },
                  { DicomTag.StudyDate, "20190101" },
             });
             DicomDataset unMatchedInstance = await PostDicomFileAsync(new DicomDataset()
             {
-                 { DicomTag.PatientName, "Anonymous" },
                  { DicomTag.StudyDate, "20190101" },
             });
-            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync("/studies?StudyDate=20190101&PatientName=\"Test^Patient\"");
+            var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+
+            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                $"/studies?StudyDate=20190101&StudyInstanceUID={studyId}");
+
             Assert.Single(response.Value);
-
-            ValidateResponseDataset(matchInstance, response.Value.Single());
-        }
-
-        private void ValidateResponseDataset(DicomDataset storedInstance, DicomDataset responseInstance)
-        {
-            DicomDataset expectedDataset = storedInstance.Clone();
-            DicomMetadata.RemoveBulkDataVRs(expectedDataset);
-
-            // Compare result datasets by serializing.
-            var jsonDicomConverter = new JsonDicomConverter();
-            Assert.Equal(
-                JsonConvert.SerializeObject(expectedDataset, jsonDicomConverter),
-                JsonConvert.SerializeObject(responseInstance, jsonDicomConverter));
-            Assert.Equal(expectedDataset.Count(), responseInstance.Count());
+            ValidateResponseDataset(QueryResource.AllStudies, matchInstance, response.Value.Single());
         }
 
         [Fact]
         public async Task GivenSearchRequest_StudySeriesLevel_MatchResult()
         {
-            await Task.FromResult(0);
+            DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+            {
+                 { DicomTag.Modality, "MRI" },
+            });
+            var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+
+            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                $"/studies/{studyId}/series?Modality=MRI");
+
+            Assert.Single(response.Value);
+            ValidateResponseDataset(QueryResource.StudySeries, matchInstance, response.Value.Single());
         }
 
         [Fact]
         public async Task GivenSearchRequest_AllSeriesLevel_MatchResult()
         {
-            await Task.FromResult(0);
+            DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+            {
+                 { DicomTag.Modality, "MRI" },
+            });
+            var seriesId = matchInstance.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+
+            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                $"/series?Modality=MRI&SeriesInstanceUID={seriesId}");
+
+            Assert.Single(response.Value);
+            ValidateResponseDataset(QueryResource.AllSeries, matchInstance, response.Value.Single());
         }
 
         [Fact]
         public async Task GivenSearchRequest_StudyInstancesLevel_MatchResult()
         {
-            await Task.FromResult(0);
+            DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+            {
+                 { DicomTag.Modality, "MRI" },
+            });
+            var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+
+            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                   $"/studies/{studyId}/instances?Modality=MRI");
+
+            Assert.Single(response.Value);
+            ValidateResponseDataset(QueryResource.StudyInstances, matchInstance, response.Value.Single());
         }
 
         [Fact]
         public async Task GivenSearchRequest_StudySeriesInstancesLevel_MatchResult()
         {
-            await Task.FromResult(0);
+            DicomDataset matchInstance = await PostDicomFileAsync();
+            var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            var seriesId = matchInstance.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            var instanceId = matchInstance.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+
+            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                   $"/studies/{studyId}/series/{seriesId}/instances?SOPInstanceUID={instanceId}");
+
+            Assert.Single(response.Value);
+            ValidateResponseDataset(QueryResource.StudySeriesInstances, matchInstance, response.Value.Single());
         }
 
         [Fact]
         public async Task GivenSearchRequest_AllIntancesLevel_MatchResult()
         {
-            await Task.FromResult(0);
+            DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+            {
+                 { DicomTag.Modality, "XRAY" },
+            });
+            var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+
+            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                   $"/instances?Modality=XRAY&StudyInstanceUID={studyId}");
+
+            Assert.Single(response.Value);
+            ValidateResponseDataset(QueryResource.AllInstances, matchInstance, response.Value.Single());
         }
 
         private async Task<DicomDataset> PostDicomFileAsync(DicomDataset metadataItems = null)
         {
-            DicomFile dicomFile1 = Samples.CreateRandomDicomFile();
+            DicomFile dicomFile1 = CreateDicomFile();
 
             if (metadataItems != null)
             {
@@ -112,6 +147,91 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidationHelpers.ValidateSuccessSequence(successSequence, dicomFile1.Dataset);
 
             return dicomFile1.Dataset;
+        }
+
+        private static DicomFile CreateDicomFile()
+        {
+            return new DicomFile(new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
+            {
+                { DicomTag.StudyInstanceUID, TestUidGenerator.Generate() },
+                { DicomTag.PatientID, TestUidGenerator.Generate() },
+                { DicomTag.PatientName, "Query^Test^Patient" },
+                { DicomTag.StudyDate, "20080701" },
+                { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
+                { DicomTag.Modality, "CT" },
+                { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
+                { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
+                { DicomTag.BitsAllocated, (ushort)8 },
+            });
+        }
+
+        private void ValidateResponseDataset(
+            QueryResource resource,
+            DicomDataset storedInstance,
+            DicomDataset responseInstance)
+        {
+            DicomDataset expectedDataset = storedInstance.Clone();
+            HashSet<DicomTag> levelTags = new HashSet<DicomTag>();
+            switch (resource)
+            {
+                case QueryResource.AllStudies:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.PatientID);
+                    levelTags.Add(DicomTag.PatientName);
+                    levelTags.Add(DicomTag.StudyDate);
+                    break;
+                case QueryResource.AllSeries:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.PatientID);
+                    levelTags.Add(DicomTag.PatientName);
+                    levelTags.Add(DicomTag.StudyDate);
+                    levelTags.Add(DicomTag.SeriesInstanceUID);
+                    levelTags.Add(DicomTag.Modality);
+                    break;
+                case QueryResource.AllInstances:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.PatientID);
+                    levelTags.Add(DicomTag.PatientName);
+                    levelTags.Add(DicomTag.StudyDate);
+                    levelTags.Add(DicomTag.SeriesInstanceUID);
+                    levelTags.Add(DicomTag.Modality);
+                    levelTags.Add(DicomTag.SOPInstanceUID);
+                    levelTags.Add(DicomTag.SOPClassUID);
+                    levelTags.Add(DicomTag.BitsAllocated);
+                    break;
+                case QueryResource.StudySeries:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.SeriesInstanceUID);
+                    levelTags.Add(DicomTag.Modality);
+                    break;
+                case QueryResource.StudyInstances:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.SeriesInstanceUID);
+                    levelTags.Add(DicomTag.Modality);
+                    levelTags.Add(DicomTag.SOPInstanceUID);
+                    levelTags.Add(DicomTag.SOPClassUID);
+                    levelTags.Add(DicomTag.BitsAllocated);
+                    break;
+                case QueryResource.StudySeriesInstances:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.SeriesInstanceUID);
+                    levelTags.Add(DicomTag.SOPInstanceUID);
+                    levelTags.Add(DicomTag.SOPClassUID);
+                    levelTags.Add(DicomTag.BitsAllocated);
+                    break;
+            }
+
+            expectedDataset.Remove((di) =>
+            {
+                return !levelTags.Contains(di.Tag);
+            });
+
+            // Compare result datasets by serializing.
+            var jsonDicomConverter = new JsonDicomConverter();
+            Assert.Equal(
+                JsonConvert.SerializeObject(expectedDataset, jsonDicomConverter),
+                JsonConvert.SerializeObject(responseInstance, jsonDicomConverter));
+            Assert.Equal(expectedDataset.Count(), responseInstance.Count());
         }
     }
 }
