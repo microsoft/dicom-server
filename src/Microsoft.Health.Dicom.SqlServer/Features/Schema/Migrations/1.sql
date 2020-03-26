@@ -142,7 +142,7 @@ CREATE TABLE dbo.Instance (
     CreatedDate             DATETIME2(7) NOT NULL
 )
 
-CREATE UNIQUE CLUSTERED INDEX IXC_dbo_Instance on dbo.Instance
+CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
 (
     StudyInstanceUid,
     SeriesInstanceUid,
@@ -150,7 +150,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_dbo_Instance on dbo.Instance
 ) 
 
 --Filter indexes
-CREATE NONCLUSTERED INDEX IX_dbo_Instance_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_SeriesInstanceUid_SopInstanceUid on dbo.Instance
 (
     SeriesInstanceUid,
     SopInstanceUid
@@ -162,7 +162,7 @@ INCLUDE
     Watermark
 )
 
-CREATE NONCLUSTERED INDEX IX_dbo_Instance_SopInstanceUid ON dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid ON dbo.Instance
 (
     SopInstanceUid
 ) 
@@ -175,7 +175,7 @@ INCLUDE
 )
 
 --Cross apply indexes
-CREATE NONCLUSTERED INDEX IX_dbo_Instance_StudyInstanceUid_Status_Watermark on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_Watermark on dbo.Instance
 (
     StudyInstanceUid,
     Status,
@@ -187,7 +187,7 @@ INCLUDE
     SopInstanceUid
 )
 
-CREATE NONCLUSTERED INDEX IX_dbo_Instance_StudyInstanceUid_SeriesInstanceUid_Status_Watermark on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_Watermark on dbo.Instance
 (
     StudyInstanceUid,
     SeriesInstanceUid,
@@ -219,13 +219,13 @@ CREATE TABLE dbo.StudyMetadataCore (
     AccessionNumber             NVARCHAR(16) NULL,
 )
 
-CREATE UNIQUE CLUSTERED INDEX IXC_dbo_StudyMetadataCore ON dbo.StudyMetadataCore
+CREATE UNIQUE CLUSTERED INDEX IXC_StudyMetadataCore ON dbo.StudyMetadataCore
 (
     ID,
     StudyInstanceUid
 )
 
-CREATE NONCLUSTERED INDEX IX_dbo_StudyMetadataCore_PatientID ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_PatientID ON dbo.StudyMetadataCore
 (
     PatientID
 )
@@ -235,7 +235,7 @@ INCLUDE
     StudyInstanceUid
 )
 
-CREATE NONCLUSTERED INDEX IX_dbo_StudyMetadataCore_ReferringPhysicianName ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_ReferringPhysicianName ON dbo.StudyMetadataCore
 (
     ReferringPhysicianName
 )
@@ -245,7 +245,7 @@ INCLUDE
     StudyInstanceUid
 )
 
-CREATE NONCLUSTERED INDEX IX_dbo_StudyMetadataCore_StudyDate ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_StudyDate ON dbo.StudyMetadataCore
 (
     StudyDate
 )
@@ -256,7 +256,7 @@ INCLUDE
     StudyInstanceUid
 )
 
-CREATE NONCLUSTERED INDEX IX_dbo_StudyMetadataCore_StudyDescription ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_StudyDescription ON dbo.StudyMetadataCore
 (
     StudyDescription
 )
@@ -266,7 +266,7 @@ INCLUDE
     StudyInstanceUid
 )
 
-CREATE NONCLUSTERED INDEX IX_dbo_StudyMetadataCore_AccessionNumber ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_AccessionNumber ON dbo.StudyMetadataCore
 (
     AccessionNumber
 )
@@ -292,13 +292,13 @@ CREATE TABLE dbo.SeriesMetadataCore (
     PerformedProcedureStepStartDate     DATE NULL
 ) 
 
-CREATE UNIQUE CLUSTERED INDEX IXC_dbo_SeriesMetadataCore ON dbo.SeriesMetadataCore
+CREATE UNIQUE CLUSTERED INDEX IXC_SeriesMetadataCore ON dbo.SeriesMetadataCore
 (
     ID,
     SeriesInstanceUid
 )
 
-CREATE NONCLUSTERED INDEX IX_dbo_SeriesMetadataCore_Modality ON dbo.SeriesMetadataCore
+CREATE NONCLUSTERED INDEX IX_SeriesMetadataCore_Modality ON dbo.SeriesMetadataCore
 (
     Modality
 )
@@ -308,7 +308,7 @@ INCLUDE
     SeriesInstanceUid
 )
 
-CREATE NONCLUSTERED INDEX IX_dbo_SeriesMetadataCore_PerformedProcedureStepStartDate ON dbo.SeriesMetadataCore
+CREATE NONCLUSTERED INDEX IX_SeriesMetadataCore_PerformedProcedureStepStartDate ON dbo.SeriesMetadataCore
 (
     PerformedProcedureStepStartDate
 )
