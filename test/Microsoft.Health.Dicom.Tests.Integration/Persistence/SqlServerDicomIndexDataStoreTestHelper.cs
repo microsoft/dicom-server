@@ -6,8 +6,8 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
-using Microsoft.Health.Fhir.SqlServer.Features.Schema.Model;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {

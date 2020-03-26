@@ -10,12 +10,12 @@ using System.Text;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages;
-using Microsoft.Health.Fhir.SqlServer;
-using Microsoft.Health.Fhir.SqlServer.Features.Query;
-using Microsoft.Health.Fhir.SqlServer.Features.Storage;
+using Microsoft.Health.Dicom.SqlServer.Features.Query;
+using Microsoft.Health.SqlServer;
+using Microsoft.Health.SqlServer.Features.Storage;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
+namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
 {
     public class SqlQueryGeneratorTests
     {
@@ -36,9 +36,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             string expectedDistinctSelect = @"SELECT DISTINCT
 i.StudyInstanceUid
 ,i.SeriesInstanceUid
-FROM dicom.Instance i";
+FROM dbo.Instance i";
             string expectedCrossApply = @"
-FROM dicom.Instance a
+FROM dbo.Instance a
 WHERE 1 = 1
 AND a.StudyInstanceUid = f.StudyInstanceUid
 AND a.SeriesInstanceUid = f.SeriesInstanceUid";
@@ -69,10 +69,10 @@ AND a.SeriesInstanceUid = f.SeriesInstanceUid";
 
             string expectedDistinctSelect = @"SELECT DISTINCT
 st.StudyInstanceUid
-FROM dicom.StudyMetadataCore st";
+FROM dbo.StudyMetadataCore st";
 
             string expectedCrossApply = @"
-FROM dicom.Instance a
+FROM dbo.Instance a
 WHERE 1 = 1
 AND a.StudyInstanceUid = f.StudyInstanceUid";
             Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
@@ -102,7 +102,7 @@ i.StudyInstanceUid
 ,i.SeriesInstanceUid
 ,i.SopInstanceUid
 ,i.Watermark
-FROM dicom.Instance i";
+FROM dbo.Instance i";
 
             string expectedFilters = @"AND i.StudyInstanceUid=@p0
 AND i.SeriesInstanceUid=@p1
@@ -132,10 +132,10 @@ st.StudyInstanceUid
 ,se.SeriesInstanceUid
 ,i.SopInstanceUid
 ,i.Watermark
-FROM dicom.StudyMetadataCore st
-INNER JOIN dicom.SeriesMetadataCore se
+FROM dbo.StudyMetadataCore st
+INNER JOIN dbo.SeriesMetadataCore se
 ON se.ID = st.ID
-INNER JOIN dicom.Instance i
+INNER JOIN dbo.Instance i
 ON i.StudyInstanceUid = st.StudyInstanceUid
 AND i.SeriesInstanceUid = se.SeriesInstanceUid";
 
