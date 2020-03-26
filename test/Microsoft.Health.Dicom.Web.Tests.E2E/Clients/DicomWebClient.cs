@@ -224,6 +224,27 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
+        public async Task<HttpResult<IEnumerable<DicomDataset>>> QueryAsync(string requestUri)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
+
+                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        var contentText = await response.Content.ReadAsStringAsync();
+                        var responseMetadata = JsonConvert.DeserializeObject<IReadOnlyList<DicomDataset>>(contentText, _jsonSerializerSettings);
+
+                        return new HttpResult<IEnumerable<DicomDataset>>(response.StatusCode, responseMetadata);
+                    }
+
+                    return new HttpResult<IEnumerable<DicomDataset>>(response.StatusCode);
+                }
+            }
+        }
+
         private static MultipartContent GetMultipartContent(string mimeType)
         {
             var multiContent = new MultipartContent("related");
