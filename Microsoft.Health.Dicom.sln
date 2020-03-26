@@ -33,11 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Meta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tests.Common", "src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj", "{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.SqlServer", "src\Microsoft.Health.Fhir.SqlServer\Microsoft.Health.Fhir.SqlServer.csproj", "{D3D120D9-4983-4A90-AF84-2811DA11A0C8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Core", "src\Microsoft.Health.Fhir.Core\Microsoft.Health.Fhir.Core.csproj", "{0CC699AB-F606-45F3-BC8E-444DF807378A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer.Api", "src\Microsoft.Health.Dicom.SqlServer.Api\Microsoft.Health.Dicom.SqlServer.Api.csproj", "{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer", "src\Microsoft.Health.Dicom.SqlServer\Microsoft.Health.Dicom.SqlServer.csproj", "{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer.UnitTests", "src\Microsoft.Health.Dicom.SqlServer.UnitTests\Microsoft.Health.Dicom.SqlServer.UnitTests.csproj", "{ECC018C1-BFA8-44BE-B560-ACB05CA57251}"
 EndProject
@@ -95,14 +91,6 @@ Global
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D3D120D9-4983-4A90-AF84-2811DA11A0C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3D120D9-4983-4A90-AF84-2811DA11A0C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D3D120D9-4983-4A90-AF84-2811DA11A0C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3D120D9-4983-4A90-AF84-2811DA11A0C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0CC699AB-F606-45F3-BC8E-444DF807378A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0CC699AB-F606-45F3-BC8E-444DF807378A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0CC699AB-F606-45F3-BC8E-444DF807378A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0CC699AB-F606-45F3-BC8E-444DF807378A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -128,8 +116,6 @@ Global
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{D3D120D9-4983-4A90-AF84-2811DA11A0C8} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{0CC699AB-F606-45F3-BC8E-444DF807378A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{ECC018C1-BFA8-44BE-B560-ACB05CA57251} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
