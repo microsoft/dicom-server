@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -55,6 +56,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
                     break;
                 default:
                     throw new ArgumentException($"Unknown retrieve transaction type: {resourceType}", nameof(resourceType));
+            }
+
+            if (!instancesToRetrieve.Any())
+            {
+                throw new DicomInstanceNotFoundException();
             }
 
             return instancesToRetrieve;

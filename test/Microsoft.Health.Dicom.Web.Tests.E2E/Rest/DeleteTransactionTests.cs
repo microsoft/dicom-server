@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _client = fixture.Client;
         }
 
-        [Theory]
+        [Theory(Skip = "Delete on sql is not implemented")]
         [InlineData("studies")]
         [InlineData("studies/")]
         [InlineData("studies/invalidStudyId")]
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Delete on sql is not implemented")]
         public async void GivenValidStudyId_WhenDeletingStudy_TheServerShouldReturnOK()
         {
             // Add 10 series with 10 instances each to a single study
@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
-        [Fact]
+        [Fact(Skip = "Delete on sql is not implemented")]
         public async void GivenValidSeriesId_WhenDeletingSeries_TheServerShouldReturnOK()
         {
             // Store series with 10 instances
