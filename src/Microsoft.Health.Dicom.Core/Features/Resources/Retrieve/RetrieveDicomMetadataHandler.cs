@@ -12,17 +12,19 @@ using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
-using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
     internal class RetrieveDicomMetadataHandler : BaseRetrieveDicomResourceHandler, IRequestHandler<RetrieveDicomMetadataRequest, RetrieveDicomMetadataResponse>
     {
-        private readonly IDicomInstanceMetadataStore _dicomInstanceMetadataStore;
+        private readonly IDicomMetadataService _dicomInstanceMetadataStore;
 
-        public RetrieveDicomMetadataHandler(IDicomMetadataStore dicomMetadataStore, IDicomInstanceMetadataStore dicomInstanceMetadataStore)
-            : base(dicomMetadataStore)
+        public RetrieveDicomMetadataHandler(
+            IDicomInstanceService dicomInstanceService,
+            IDicomMetadataService dicomInstanceMetadataStore)
+            : base(dicomInstanceService)
         {
             EnsureArg.IsNotNull(dicomInstanceMetadataStore, nameof(dicomInstanceMetadataStore));
 
@@ -31,19 +33,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
         public async Task<RetrieveDicomMetadataResponse> Handle(RetrieveDicomMetadataRequest message, CancellationToken cancellationToken)
         {
-            try
-            {
-                IEnumerable<DicomInstance> retrieveInstances = await GetInstancesToRetrieve(
-                    message.ResourceType, message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID, cancellationToken);
-                IEnumerable<DicomDataset> responseMetadata = await Task.WhenAll(
-                    retrieveInstances.Select(x => _dicomInstanceMetadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
+            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await GetInstancesToRetrieve(
+                message.ResourceType,
+                message.StudyInstanceUID,
+                message.SeriesInstanceUID,
+                message.SopInstanceUID,
+                cancellationToken);
+            IEnumerable<DicomDataset> responseMetadata = await Task.WhenAll(
+                retrieveInstances.Select(x => _dicomInstanceMetadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
 
-                return new RetrieveDicomMetadataResponse(HttpStatusCode.OK, responseMetadata.ToArray());
-            }
-            catch (DataStoreException e)
-            {
-                return new RetrieveDicomMetadataResponse(e.StatusCode);
-            }
+            return new RetrieveDicomMetadataResponse(HttpStatusCode.OK, responseMetadata.ToArray());
         }
     }
 }

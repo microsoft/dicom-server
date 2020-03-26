@@ -8,6 +8,7 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
+using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -53,6 +54,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsImplementedInterfaces();
 
             services.Add<DicomSqlQueryService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<DicomSqlInstanceService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

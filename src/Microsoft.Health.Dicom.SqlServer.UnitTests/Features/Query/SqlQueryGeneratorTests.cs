@@ -113,6 +113,39 @@ AND i.SopInstanceUid=@p2";
             Assert.DoesNotContain("CROSS APPLY", stringBuilder.ToString());
         }
 
+        [Fact]
+        public void GivenNonUidFilter_WhenIELevelInstance_ValidateDistinctInstances()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>());
+            var filters = new List<DicomQueryFilterCondition>()
+            {
+                new StringSingleValueMatchCondition(DicomTag.Modality, "123"),
+            };
+            var query = new DicomQueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
+
+            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+            new SqlQueryGenerator(stringBuilder, query, parm);
+
+            string expectedDistinctSelect = @"SELECT DISTINCT
+st.StudyInstanceUid
+,se.SeriesInstanceUid
+,i.SopInstanceUid
+,i.Watermark
+FROM dbo.StudyMetadataCore st
+INNER JOIN dbo.SeriesMetadataCore se
+ON se.ID = st.ID
+INNER JOIN dbo.Instance i
+ON i.StudyInstanceUid = st.StudyInstanceUid
+AND i.SeriesInstanceUid = se.SeriesInstanceUid";
+
+            string expectedFilters = @"AND se.Modality=@p0";
+
+            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
+            Assert.Contains(expectedFilters, stringBuilder.ToString());
+            Assert.DoesNotContain("CROSS APPLY", stringBuilder.ToString());
+        }
+
         private SqlParameterCollection CreateSqlParameterCollection()
         {
             return (SqlParameterCollection)typeof(SqlParameterCollection).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null).Invoke(null);

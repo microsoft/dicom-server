@@ -9,11 +9,11 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    public interface IDicomInstanceMetadataStore
+    public interface IDicomMetadataService
     {
         Task AddInstanceMetadataAsync(DicomDataset instanceMetadata, CancellationToken cancellationToken = default);
 
-        Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default);
+        Task<DicomDataset> GetInstanceMetadataAsync(DicomInstanceIdentifier instance, CancellationToken cancellationToken = default);
 
         Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default);
     }

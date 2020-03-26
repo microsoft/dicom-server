@@ -1,5 +1,9 @@
 # DESCRIPTION: 
 # Builds, tests and packages the solution for the CI build configuration.
+trigger:
+    - master
+
+pr: none
 
 name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:-r)
 variables:

@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
@@ -66,7 +65,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             using (SqlConnection sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
             using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
             {
-                sqlCommand.Connection.Open();
+                await sqlCommand.Connection.OpenAsync(cancellationToken);
 
                 VLatest.AddInstance.PopulateCommand(
                     sqlCommand,

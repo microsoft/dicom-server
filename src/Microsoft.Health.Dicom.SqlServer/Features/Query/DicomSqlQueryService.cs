@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
@@ -40,12 +41,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             DicomQueryExpression query,
             CancellationToken cancellationToken)
         {
-            var results = new List<QueryResultEntry>(query.EvaluatedLimit);
+            var results = new List<DicomInstanceIdentifier>(query.EvaluatedLimit);
 
             using (var sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
             using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
             {
-                sqlCommand.Connection.Open();
+                await sqlCommand.Connection.OpenAsync(cancellationToken);
                 var stringBuilder = new IndentedStringBuilder(new StringBuilder());
                 var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommand.Parameters));
 
@@ -62,7 +63,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                            VLatest.Instance.SopInstanceUid,
                            VLatest.Instance.Watermark);
 
-                        results.Add(new QueryResultEntry(
+                        results.Add(new DicomInstanceIdentifier(
                                 studyInstanceUid,
                                 seriesInstanceUid,
                                 sopInstanceUid,

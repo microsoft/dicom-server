@@ -451,3 +451,66 @@ AS
 
     COMMIT TRANSACTION
 GO
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetInstance
+--
+-- DESCRIPTION
+--     Gets valid dicom instances at study/series/instance level
+--
+-- PARAMETERS
+--     @invalidStatus
+--         * Filter criteria to search only valid instances
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+/***************************************************************************************/
+CREATE PROCEDURE dbo.GetInstance (
+    @invalidStatus      TINYINT,
+    @studyInstanceUid	VARCHAR(64),
+    @seriesInstanceUid	VARCHAR(64) = NULL,
+    @sopInstanceUid		VARCHAR(64) = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    IF ( @seriesInstanceUid IS NOT NULL AND @sopInstanceUid IS NOT NULL )
+    BEGIN
+        SELECT  StudyInstanceUid,
+                SeriesInstanceUid,
+                SopInstanceUid,
+                Watermark
+        FROM    dbo.Instance
+        WHERE   StudyInstanceUid        = @studyInstanceUid
+                AND SeriesInstanceUid   = @seriesInstanceUid
+                AND SopInstanceUid      = @sopInstanceUid
+                AND Status              <> @invalidStatus
+    END
+    ELSE IF ( @seriesInstanceUid IS NOT NULL )
+    BEGIN
+        SELECT  StudyInstanceUid,
+                SeriesInstanceUid,
+                SopInstanceUid,
+                Watermark
+        FROM    dbo.Instance
+        WHERE   StudyInstanceUid        = @studyInstanceUid
+                AND SeriesInstanceUid   = @seriesInstanceUid
+                AND Status              <> @invalidStatus
+    END
+    ELSE
+    BEGIN
+        SELECT  StudyInstanceUid,
+                SeriesInstanceUid,
+                SopInstanceUid,
+                Watermark
+        FROM    dbo.Instance
+        WHERE   StudyInstanceUid        = @studyInstanceUid
+                AND Status              <> @invalidStatus
+    END
+END
+GO

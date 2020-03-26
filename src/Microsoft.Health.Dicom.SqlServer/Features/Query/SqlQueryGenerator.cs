@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Storage;
@@ -124,7 +125,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
                 if (_queryExpression.IsInstanceIELevel())
                 {
-                    _stringBuilder.Append(",").AppendLine(VLatest.Instance.StudyInstanceUid, InstanceTableAlias);
+                    _stringBuilder.Append(",").AppendLine(VLatest.Instance.SopInstanceUid, InstanceTableAlias);
                     _stringBuilder.Append(",").AppendLine(VLatest.Instance.Watermark, InstanceTableAlias);
                 }
 
@@ -220,12 +221,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         private void AppendStatusClause(string tableAlias)
         {
-            // TODO set this from a enum
-            var readyStatus = 1;
+            byte invalidStatus = DicomIndexStatus.Creating;
             _stringBuilder
                 .Append("AND ")
                 .Append(VLatest.Instance.Status, tableAlias)
-                .AppendLine($" = {readyStatus} ");
+                .AppendLine($" <> {invalidStatus} ");
         }
 
         private void AppendFilterClause()
