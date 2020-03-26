@@ -11,7 +11,6 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Metadata;
-using Microsoft.Health.Dicom.Metadata.Config;
 using Microsoft.Health.Dicom.Metadata.Features.Health;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -49,11 +48,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 containerConfiguration => configuration.GetSection(DicomServerBlobConfigurationSectionName)
                     .Bind(containerConfiguration));
 
-            // Add the metadata configuration; this is not loaded from the settings configuration for now.
-            services.Add<DicomMetadataConfiguration>()
-                .Singleton()
-                .AsSelf();
-
             services.Add(sp =>
                 {
                     ILoggerFactory loggerFactory = sp.GetService<ILoggerFactory>();
@@ -67,12 +61,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsService<IBlobContainerInitializer>();
 
-            services.Add<DicomMetadataStore>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<DicomInstanceMetadataStore>()
+            services.Add<DicomMetadataService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

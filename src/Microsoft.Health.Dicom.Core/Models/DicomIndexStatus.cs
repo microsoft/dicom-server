@@ -13,7 +13,5 @@ namespace Microsoft.Health.Dicom.Core.Models
         public const byte Creating = 0;
 
         public const byte Created = 1;
-
-        public const byte Deleted = 2;
     }
 }

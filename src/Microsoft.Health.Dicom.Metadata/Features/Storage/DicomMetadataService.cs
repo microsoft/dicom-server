@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.IO;
 using Newtonsoft.Json;
@@ -24,7 +25,7 @@ using Polly;
 
 namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 {
-    internal class DicomInstanceMetadataStore : IDicomInstanceMetadataStore
+    internal class DicomMetadataService : IDicomMetadataService
     {
         private const int MaximumRetryFailedRequests = 5;
         private static readonly Encoding _metadataEncoding = Encoding.UTF8;
@@ -32,14 +33,14 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         private readonly CloudBlobContainer _container;
         private readonly JsonSerializer _jsonSerializer;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-        private readonly ILogger<DicomInstanceMetadataStore> _logger;
+        private readonly ILogger<DicomMetadataService> _logger;
 
-        public DicomInstanceMetadataStore(
+        public DicomMetadataService(
             CloudBlobClient client,
             JsonSerializer jsonSerializer,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-            ILogger<DicomInstanceMetadataStore> logger)
+            ILogger<DicomMetadataService> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(jsonSerializer, nameof(jsonSerializer));
@@ -101,7 +102,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 retryPolicy);
         }
 
-        public async Task<DicomDataset> GetInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default)
+        public async Task<DicomDataset> GetInstanceMetadataAsync(DicomInstanceIdentifier instance, CancellationToken cancellationToken = default)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(instance);
 
@@ -129,10 +130,21 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                        return TimeSpan.FromMilliseconds((retryIndex - 1) * _random.Next(200, 500));
                    });
 
+        // TODO remove DicomInstance object and its reference
         private CloudBlockBlob GetInstanceBlockBlob(DicomInstance instance)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
-            var blobName = $"\\{instance.StudyInstanceUID}\\{instance.SeriesInstanceUID}\\{instance.SopInstanceUID}_metadata";
+            return GetInstanceBlockBlob(new DicomInstanceIdentifier(
+                instance.StudyInstanceUID,
+                instance.SeriesInstanceUID,
+                instance.SopInstanceUID,
+                0));
+        }
+
+        private CloudBlockBlob GetInstanceBlockBlob(DicomInstanceIdentifier instance)
+        {
+            EnsureArg.IsNotNull(instance, nameof(instance));
+            var blobName = $"\\{instance.StudyInstanceUid}\\{instance.SeriesInstanceUid}\\{instance.SopInstanceUid}_metadata";
 
             // Use the Azure storage SDK to validate the blob name; only specific values are allowed here.
             // Check here for more information: https://blogs.msdn.microsoft.com/jmstall/2014/06/12/azure-storage-naming-rules/

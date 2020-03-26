@@ -18,6 +18,7 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.IO;
@@ -30,8 +31,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
         private readonly IDicomDataStore _dicomDataStore;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
-        public RetrieveDicomResourceHandler(IDicomMetadataStore dicomMetadataStore, IDicomDataStore dicomDataStore, RecyclableMemoryStreamManager recyclableMemoryStreamManager)
-            : base(dicomMetadataStore)
+        public RetrieveDicomResourceHandler(
+            IDicomInstanceService dicomInstanceService,
+            IDicomDataStore dicomDataStore,
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+            : base(dicomInstanceService)
         {
             EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
@@ -54,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 
             try
             {
-                IEnumerable<DicomInstance> retrieveInstances = await GetInstancesToRetrieve(
+                IEnumerable<DicomInstanceIdentifier> retrieveInstances = await GetInstancesToRetrieve(
                     message.ResourceType, message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID, cancellationToken);
                 Stream[] resultStreams = await Task.WhenAll(retrieveInstances.Select(x => _dicomDataStore.GetDicomDataStreamAsync(x, cancellationToken)));
 
