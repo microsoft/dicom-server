@@ -6,6 +6,7 @@
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Extensions.DependencyInjection;
 

@@ -90,8 +90,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                 {
                     switch (ex.Number)
                     {
-                        // TODO: Update this to const once nuget is updated
-                        case 50409:
+                        case SqlErrorCodes.Conflict:
                             throw new DicomInstanceAlreadyExistsException();
 
                         default:
