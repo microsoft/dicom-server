@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -50,6 +51,7 @@ namespace Microsoft.AspNetCore.Builder
 
             services.AddSingleton(Options.Create(dicomServerConfiguration));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
 
@@ -109,7 +111,16 @@ namespace Microsoft.AspNetCore.Builder
             {
                 return app =>
                 {
-                    app.UseExceptionHandling();
+                    IWebHostEnvironment env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
+
+                    if (env.IsDevelopment())
+                    {
+                        app.UseDeveloperExceptionPage();
+                    }
+                    else
+                    {
+                        app.UseExceptionHandling();
+                    }
 
                     app.UseAuthentication();
 

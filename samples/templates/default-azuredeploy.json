@@ -96,6 +96,13 @@
                 "description": "An override location for the sql server database."
             }
         },
+        "deployOhifViewer": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Deploy OHIF viewer that is configured for the DICOM server."
+            }
+        },
         "solutionType": {
             "type": "string",
             "defaultValue": "DicomServerSqlServer",
@@ -120,7 +127,7 @@
             "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
             "KeyVault:Endpoint": "[variables('keyVaultEndpoint')]",
             "SqlServer:Initialize": "true",
-            "DataStore": "SqlServer",
+            "DicomServer:Features:EnableOhifViewer": "[parameters('deployOhifViewer')]"
         },
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
         "sqlServerResourceId": "[resourceId('Microsoft.Sql/servers/', variables('serviceName'))]",
