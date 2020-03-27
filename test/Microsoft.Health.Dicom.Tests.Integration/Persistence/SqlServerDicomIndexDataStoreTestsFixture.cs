@@ -9,9 +9,10 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
-using Microsoft.Health.Fhir.SqlServer.Configs;
-using Microsoft.Health.Fhir.SqlServer.Features.Schema;
-using Microsoft.Health.Fhir.SqlServer.Features.Storage;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.Dicom.SqlServer.Features.Storage;
+using Microsoft.Health.SqlServer.Configs;
+using Microsoft.Health.SqlServer.Features.Schema;
 using Polly;
 using Xunit;
 
@@ -35,20 +36,19 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var config = new SqlServerDataStoreConfiguration { ConnectionString = TestConnectionString, Initialize = true };
 
-            var schemaUpgradeRunner = new SchemaUpgradeRunner(config, NullLogger<SchemaUpgradeRunner>.Instance);
+            var scriptProvider = new ScriptProvider<SchemaVersion>();
 
-            var schemaInformation = new SchemaInformation();
+            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, config, NullLogger<SchemaUpgradeRunner>.Instance);
+
+            var schemaInformation = new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V1);
 
             _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, NullLogger<SchemaInitializer>.Instance);
 
             var sqlServerDicomIndexSchema = new SqlServerDicomIndexSchema(schemaInformation, NullLogger<SqlServerDicomIndexSchema>.Instance);
 
-            var sqlTransactionHandler = new SqlTransactionHandler();
-            var sqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(config, sqlTransactionHandler);
-
             DicomIndexDataStore = new SqlServerDicomIndexDataStore(
                 sqlServerDicomIndexSchema,
-                sqlConnectionWrapperFactory,
+                config,
                 NullLogger<SqlServerDicomIndexDataStore>.Instance);
 
             TestHelper = new SqlServerDicomIndexDataStoreTestHelper(TestConnectionString);

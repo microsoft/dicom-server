@@ -36,11 +36,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string patientId = "pid";
             string patientName = "pname";
             string referringPhysicianName = "rname";
-            string studyDateTime = "2020-03-01";
+            string studyDateTime = "20200301";
             string studyDescription = "sd";
             string accessionNumber = "an";
             string modality = "M";
-            string performedProcedureStepStartDate = "2020-03-02";
+            string performedProcedureStepStartDate = "20200302";
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
