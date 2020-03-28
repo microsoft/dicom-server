@@ -18,15 +18,15 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
-    public class DicomBlobDataStore : IDicomBlobDataStore
+    public class DicomFileBlobStore : IDicomFileStore
     {
         private readonly CloudBlobContainer _container;
-        private readonly ILogger<DicomBlobDataStore> _logger;
+        private readonly ILogger<DicomFileBlobStore> _logger;
 
-        public DicomBlobDataStore(
+        public DicomFileBlobStore(
             CloudBlobClient client,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            ILogger<DicomBlobDataStore> logger)
+            ILogger<DicomFileBlobStore> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));

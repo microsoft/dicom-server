@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public class DicomStoreService : IDicomStoreService
     {
-        private readonly IDicomBlobDataStore _dicomBlobDataStore;
+        private readonly IDicomFileStore _dicomBlobDataStore;
         private readonly IDicomMetadataStore _dicomInstanceMetadataStore;
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
         private readonly IDicomRouteProvider _dicomRouteProvider;
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
 
         public DicomStoreService(
-            IDicomBlobDataStore dicomBlobDataStore,
+            IDicomFileStore dicomBlobDataStore,
             IDicomMetadataStore dicomInstanceMetadataStore,
             IDicomIndexDataStore dicomIndexDataStore,
             IDicomRouteProvider dicomRouteProvider,

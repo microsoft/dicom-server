@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
     public class DicomBlobStorageTests : IClassFixture<DicomBlobStorageTestsFixture>
     {
-        private readonly IDicomBlobDataStore _dicomBlobDataStore;
+        private readonly IDicomFileStore _dicomBlobDataStore;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public DicomBlobStorageTests(DicomBlobStorageTestsFixture fixture)
@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             var id = new DicomInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 0);
 
-            var fileName = DicomBlobDataStore.GetBlobStorageName(id);
+            var fileName = DicomFileBlobStore.GetBlobStorageName(id);
             var fileData = new byte[] { 4, 7, 2 };
 
             await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream("GivenAValidFileStream_WhenStored_CanBeRetrievedAndDeleted.fileData", fileData, 0, fileData.Length))

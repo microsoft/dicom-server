@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public class DicomResourceRetrieveService : IDicomResourceRetrieveService
     {
-        private readonly IDicomBlobDataStore _dicomBlobDataStore;
+        private readonly IDicomFileStore _dicomBlobDataStore;
         private readonly IDicomInstanceStore _dicomInstanceStore;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly ILogger<DicomResourceRetrieveService> _logger;
@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public DicomResourceRetrieveService(
             IDicomInstanceStore dicomInstanceStore,
-            IDicomBlobDataStore dicomBlobDataStore,
+            IDicomFileStore dicomBlobDataStore,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
             ILogger<DicomResourceRetrieveService> logger)
         {

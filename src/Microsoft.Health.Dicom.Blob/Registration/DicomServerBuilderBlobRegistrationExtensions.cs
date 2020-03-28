@@ -48,7 +48,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 containerConfiguration => configuration.GetSection(DicomServerBlobConfigurationSectionName)
                     .Bind(containerConfiguration));
 
-            services.Add<DicomBlobDataStore>()
+            services.Add<DicomFileBlobStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

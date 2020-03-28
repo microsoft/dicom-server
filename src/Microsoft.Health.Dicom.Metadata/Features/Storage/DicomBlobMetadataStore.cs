@@ -25,7 +25,7 @@ using Polly;
 
 namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 {
-    internal class DicomMetadataStore : IDicomMetadataStore
+    internal class DicomBlobMetadataStore : IDicomMetadataStore
     {
         private const int MaximumRetryFailedRequests = 5;
         private static readonly Encoding _metadataEncoding = Encoding.UTF8;
@@ -33,14 +33,14 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         private readonly CloudBlobContainer _container;
         private readonly JsonSerializer _jsonSerializer;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-        private readonly ILogger<DicomMetadataStore> _logger;
+        private readonly ILogger<DicomBlobMetadataStore> _logger;
 
-        public DicomMetadataStore(
+        public DicomBlobMetadataStore(
             CloudBlobClient client,
             JsonSerializer jsonSerializer,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-            ILogger<DicomMetadataStore> logger)
+            ILogger<DicomBlobMetadataStore> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(jsonSerializer, nameof(jsonSerializer));

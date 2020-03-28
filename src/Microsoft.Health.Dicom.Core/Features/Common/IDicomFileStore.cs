@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
 {
-    public interface IDicomBlobDataStore
+    public interface IDicomFileStore
     {
         Task<Uri> AddFileAsStreamAsync(DicomInstanceIdentifier dicomInstanceIdentifier, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default);
 
