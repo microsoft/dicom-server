@@ -4,6 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -17,7 +20,22 @@ namespace Microsoft.AspNetCore.Builder
         public static IApplicationBuilder UseDicomServer(this IApplicationBuilder app)
         {
             EnsureArg.IsNotNull(app, nameof(app));
+
             app.UseMvc();
+
+            var featureConfiguration = app.ApplicationServices.GetRequiredService<IOptions<FeatureConfiguration>>();
+
+            if (featureConfiguration.Value.EnableOhifViewer)
+            {
+                var options = new DefaultFilesOptions();
+
+                options.DefaultFileNames.Clear();
+                options.DefaultFileNames.Add("index.html");
+
+                app.UseDefaultFiles(options);
+                app.UseStaticFiles();
+            }
+
             return app;
         }
     }

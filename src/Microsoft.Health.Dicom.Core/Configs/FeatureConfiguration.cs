@@ -5,10 +5,11 @@
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
-    public class DicomServerConfiguration
+    public class FeatureConfiguration
     {
-        public FeatureConfiguration Features { get; } = new FeatureConfiguration();
-
-        public SecurityConfiguration Security { get; } = new SecurityConfiguration();
+        /// <summary>
+        /// Gets or sets a value indicating OHIF viewer should be enabled or not.
+        /// </summary>
+        public bool EnableOhifViewer { get; set; }
     }
 }

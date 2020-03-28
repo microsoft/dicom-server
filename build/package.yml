@@ -12,7 +12,6 @@ steps:
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet publish Integration Tests'
-    enabled: false
     inputs:
       command: publish
       projects: 'test/**/*.csproj'
@@ -46,9 +45,15 @@ steps:
 
   - task: PublishBuildArtifacts@1
     displayName: 'publish samples'
-    enabled: false
     inputs:
       pathToPublish: './samples/'
+      artifactName: 'deploy'
+      artifactType: 'container'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'publish global.json'
+    inputs:
+      pathToPublish: './global.json'
       artifactName: 'deploy'
       artifactType: 'container'
 
@@ -57,14 +62,6 @@ steps:
     enabled: false
     inputs:
       pathToPublish: './test/configuration/'
-      artifactName: 'deploy'
-      artifactType: 'container'
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'publish release directory'
-    enabled: false
-    inputs:
-      pathToPublish: './release/'
       artifactName: 'deploy'
       artifactType: 'container'
 
@@ -78,7 +75,6 @@ steps:
 
   - task: PublishBuildArtifacts@1
     displayName: 'publish Integration Tests'
-    enabled: false
     inputs:
       pathToPublish: '$(build.binariesdirectory)/IntegrationTests'
       artifactName: 'IntegrationTests'

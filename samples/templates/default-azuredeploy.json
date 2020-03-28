@@ -54,7 +54,7 @@
                 "Standard_GZRS",
                 "Standard_RAGZRS"
             ],
-            "defaultValue": "Standard_ZRS"
+            "defaultValue": "Standard_LRS"
         },
         "deployApplicationInsights": {
             "type": "bool",
@@ -96,6 +96,13 @@
                 "description": "An override location for the sql server database."
             }
         },
+        "deployOhifViewer": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Deploy OHIF viewer that is configured for the DICOM server."
+            }
+        },
         "solutionType": {
             "type": "string",
             "defaultValue": "DicomServerSqlServer",
@@ -108,7 +115,7 @@
         "isMAG": "[or(contains(resourceGroup().location,'usgov'),contains(resourceGroup().location,'usdod'))]",
         "serviceName": "[toLower(parameters('serviceName'))]",
         "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
-        "appServicePlanName": "[if(empty(parameters('appServicePlanName')),concat(variables('serviceName'),'-asp'),parameters('appServicePlanName'))]",
+        "appServicePlanName": "[if(empty(parameters('appServicePlanName')), concat(variables('serviceName'),'-asp'), parameters('appServicePlanName'))]",
         "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
         "appServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceName'))]",
         "deployAppInsights": "[and(parameters('deployApplicationInsights'),not(variables('isMAG')))]",
@@ -120,7 +127,7 @@
             "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
             "KeyVault:Endpoint": "[variables('keyVaultEndpoint')]",
             "SqlServer:Initialize": "true",
-            "DataStore": "SqlServer",
+            "DicomServer:Features:EnableOhifViewer": "[parameters('deployOhifViewer')]"
         },
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
         "sqlServerResourceId": "[resourceId('Microsoft.Sql/servers/', variables('serviceName'))]",
@@ -133,19 +140,19 @@
     "resources": [
         {
             "condition": "[empty(parameters('appServicePlanResourceGroup'))]",
-	    "apiVersion": "2015-08-01",
-	    "name": "[variables('appServicePlanName')]",
-	    "type": "Microsoft.Web/serverfarms",
-	    "tags": {
-	        "DicomServerSolution": "[parameters('solutionType')]"
-	    },
-	    "location": "[resourceGroup().location]",
-	    "sku": {
-	        "name": "[parameters('appServicePlanSku')]"
-	    },
-	    "properties": {
-	        "name": "[variables('appServicePlanName')]"
-	    }
+            "apiVersion": "2015-08-01",
+            "name": "[variables('appServicePlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "tags": {
+                "DicomServerSolution": "[parameters('solutionType')]"
+            },
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[parameters('appServicePlanSku')]"
+            },
+            "properties": {
+                "name": "[variables('appServicePlanName')]"
+            }
         },
         {
             "apiVersion": "2015-08-01",
@@ -163,7 +170,7 @@
                 "serverFarmId": "[variables('appServicePlanResourceId')]"
             },
             "dependsOn": [
-                "[if(empty(parameters('appServicePlanResourceGroup')), variables('appServicePlanResourceId'), variables('sqlServerResourceId'))]"
+                "[if(empty(parameters('appServicePlanResourceGroup')), variables('appServicePlanResourceId'), resourceId('Microsoft.Sql/servers', variables('serviceName')))]"
             ],
             "resources": [
                 {
@@ -195,13 +202,13 @@
                 "ApplicationId": "[variables('serviceName')]"
             }
         },
-	{
+    {
             "name": "[variables('serviceName')]",
             "type": "Microsoft.Sql/servers",
             "apiVersion": "2015-05-01-preview",
             "location": "[parameters('sqlLocation')]",
             "tags": {
-                "FhirServerSolution": "[parameters('solutionType')]"
+                "DicomServerSolution": "[parameters('solutionType')]"
             },
             "properties": {
                 "administratorLogin": "dicomAdmin",
@@ -216,7 +223,7 @@
                     ],
                     "location": "[parameters('sqlLocation')]",
                     "tags": {
-                        "FhirServerSolution": "[parameters('solutionType')]"
+                        "DicomServerSolution": "[parameters('solutionType')]"
                     },
                     "name": "[variables('dicomDatabaseName')]",
                     "properties": {
