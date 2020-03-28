@@ -7,15 +7,17 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
-    public interface IDicomBlobDataStore
+    public interface IDicomStoreService
     {
-        Task<Uri> AddFileAsStreamAsync(string blobName, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default);
-
-        Task<Stream> GetFileAsStreamAsync(string blobName, CancellationToken cancellationToken = default);
-
-        Task DeleteFileIfExistsAsync(string blobName, CancellationToken cancellationToken = default);
+        Task<StoreDicomResourcesResponse> StoreMultiPartDicomResourceAsync(
+            Uri requestBaseUri,
+            Stream contentStream,
+            string requestContentType,
+            string studyInstanceUid,
+            CancellationToken cancellationToken);
     }
 }

@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
 using Microsoft.IO;
 using Newtonsoft.Json;
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IDicomBlobDataStore DicomBlobDataStore { get; private set; }
 
-        public IDicomMetadataService DicomInstanceMetadataStore { get; private set; }
+        public IDicomMetadataStore DicomInstanceMetadataStore { get; private set; }
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             jsonSerializer.Converters.Add(new JsonDicomConverter());
 
             DicomBlobDataStore = new DicomBlobDataStore(_blobClient, optionsMonitor, NullLogger<DicomBlobDataStore>.Instance);
-            DicomInstanceMetadataStore = new DicomMetadataService(_blobClient, jsonSerializer, optionsMonitor, RecyclableMemoryStreamManager, NullLogger<DicomMetadataService>.Instance);
+            DicomInstanceMetadataStore = new DicomMetadataStore(_blobClient, jsonSerializer, optionsMonitor, RecyclableMemoryStreamManager, NullLogger<DicomMetadataStore>.Instance);
         }
 
         public async Task DisposeAsync()

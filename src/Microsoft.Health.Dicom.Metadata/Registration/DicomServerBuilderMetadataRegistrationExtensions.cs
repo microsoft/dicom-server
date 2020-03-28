@@ -61,7 +61,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsService<IBlobContainerInitializer>();
 
-            services.Add<DicomMetadataService>()
+            services.Add<DicomMetadataStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

@@ -21,14 +21,14 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 {
-    internal class DicomSqlQueryService : IDicomQueryService
+    internal class DicomSqlQueryStore : IDicomQueryStore
     {
         private readonly SqlServerDataStoreConfiguration _sqlServerDataStoreConfiguration;
-        private readonly ILogger<DicomSqlQueryService> _logger;
+        private readonly ILogger<DicomSqlQueryStore> _logger;
 
-        public DicomSqlQueryService(
+        public DicomSqlQueryStore(
             SqlServerDataStoreConfiguration sqlServerDataStoreConfiguration,
-            ILogger<DicomSqlQueryService> logger)
+            ILogger<DicomSqlQueryStore> logger)
         {
             EnsureArg.IsNotNull(sqlServerDataStoreConfiguration, nameof(sqlServerDataStoreConfiguration));
             EnsureArg.IsNotNull(logger, nameof(logger));

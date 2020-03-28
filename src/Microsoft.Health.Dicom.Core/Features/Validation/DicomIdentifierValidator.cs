@@ -4,22 +4,65 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Text.RegularExpressions;
-using FluentValidation.Validators;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     /// <summary>
-    /// Validates a unique identifer conforms to the character rules from http://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html.
-    /// This validator does not validate the format of the identifier.
+    /// Validates a unique identifer conforms to the character rules from
+    /// http://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html.
+    /// http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
     /// </summary>
-    /// <seealso cref="RegularExpressionValidator" />
-    public class DicomIdentifierValidator : RegularExpressionValidator
+    public static class DicomIdentifierValidator
     {
-        public static readonly Regex IdentifierRegex = new Regex("^[A-Za-z0-9\\-\\.]{1,64}$", RegexOptions.Singleline | RegexOptions.Compiled);
-
-        public DicomIdentifierValidator()
-            : base(IdentifierRegex)
+        public static void ValidateAndThrow(string identifierValue, string parameterName)
         {
+            if (!Validate(identifierValue))
+            {
+                throw new DicomIdentifierInvalidException(identifierValue, parameterName);
+            }
+        }
+
+        public static bool Validate(string identifierValue)
+        {
+            /*
+             The UID is a series of numeric components separated by the period "." character.
+             If a Value Field containing one or more UIDs is an odd number of bytes in length,
+             the Value Field shall be padded with a single trailing NULL (00H)
+             character to ensure that the Value Field is an even number of bytes in length.
+             See Section 9 and Annex B for a complete specification and examples.
+             "0"-"9", "." of Default Character Repertoire
+             64 bytes maximum */
+
+            if (identifierValue == null)
+            {
+                return false;
+            }
+
+            // trailling spaces are allowed
+            identifierValue = identifierValue.TrimEnd(' ');
+            if (string.IsNullOrEmpty(identifierValue))
+            {
+                // empty values are valid
+                return true;
+            }
+
+            if (identifierValue.Length > 64)
+            {
+                return false;
+            }
+
+            if (!Regex.IsMatch(identifierValue, "^[0-9\\.]*$"))
+            {
+                return false;
+            }
+
+            if (identifierValue.StartsWith("0", System.StringComparison.OrdinalIgnoreCase) || Regex.IsMatch(identifierValue, @"[.]0\d"))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

@@ -10,8 +10,8 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;
@@ -88,15 +88,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenInvalidInstanceIdentifer_WhenRetrievingInstanceSeriesStudyMetadata_NotFoundStatusCodeReturned()
         {
             DicomDataset storedInstance = await PostDicomFileAsync();
-            var dicomInstance = DicomInstance.Create(storedInstance);
+            var dicomInstance = DicomDatasetIdentifier.Create(storedInstance);
 
-            HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, Guid.NewGuid().ToString());
+            HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, TestUidGenerator.Generate());
             Assert.Equal(HttpStatusCode.NotFound, metadata.StatusCode);
 
-            metadata = await _client.GetSeriesMetadataAsync(dicomInstance.StudyInstanceUID, Guid.NewGuid().ToString());
+            metadata = await _client.GetSeriesMetadataAsync(dicomInstance.StudyInstanceUid, TestUidGenerator.Generate());
             Assert.Equal(HttpStatusCode.NotFound, metadata.StatusCode);
 
-            metadata = await _client.GetStudyMetadataAsync(Guid.NewGuid().ToString());
+            metadata = await _client.GetStudyMetadataAsync(TestUidGenerator.Generate());
             Assert.Equal(HttpStatusCode.NotFound, metadata.StatusCode);
         }
 
@@ -115,17 +115,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 { DicomTag.StudyDate, DateTime.UtcNow },
                 { new DicomTag(0007, 0008), "Private Tag" },
             });
-            var dicomInstance = DicomInstance.Create(storedInstance);
+            var dicomInstance = DicomDatasetIdentifier.Create(storedInstance);
 
-            HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.GetStudyMetadataAsync(dicomInstance.StudyInstanceUID);
+            HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.GetStudyMetadataAsync(dicomInstance.StudyInstanceUid);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
 
-            metadata = await _client.GetSeriesMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID);
+            metadata = await _client.GetSeriesMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
 
-            metadata = await _client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUID, dicomInstance.SeriesInstanceUID, dicomInstance.SopInstanceUID);
+            metadata = await _client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
         }
@@ -134,7 +134,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             // Trim the stored dataset to the expected items in the repsonse metadata dataset (remove non-supported value representations).
             DicomDataset expectedDataset = storedDataset.Clone();
-            DicomMetadata.RemoveBulkDataVRs(expectedDataset);
+            expectedDataset.RemoveBulkDataVrs();
 
             // Compare result datasets by serializing.
             var jsonDicomConverter = new JsonDicomConverter();

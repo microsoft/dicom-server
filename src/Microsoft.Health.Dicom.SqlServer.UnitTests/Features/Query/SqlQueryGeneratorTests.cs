@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Text;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
-using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Storage;

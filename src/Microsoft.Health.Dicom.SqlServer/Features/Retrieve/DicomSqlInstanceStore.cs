@@ -17,11 +17,11 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {
-    internal class DicomSqlInstanceService : IDicomInstanceService
+    internal class DicomSqlInstanceStore : IDicomInstanceStore
     {
         private readonly SqlServerDataStoreConfiguration _sqlServerDataStoreConfiguration;
 
-        public DicomSqlInstanceService(SqlServerDataStoreConfiguration sqlServerDataStoreConfiguration)
+        public DicomSqlInstanceStore(SqlServerDataStoreConfiguration sqlServerDataStoreConfiguration)
         {
             EnsureArg.IsNotNull(sqlServerDataStoreConfiguration, nameof(sqlServerDataStoreConfiguration));
 

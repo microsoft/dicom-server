@@ -11,7 +11,7 @@ using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -20,13 +20,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private readonly IDicomQueryParser _queryParser;
         private readonly ILogger<QueryDicomResourceHandler> _logger;
-        private readonly IDicomQueryService _queryService;
-        private readonly IDicomMetadataService _dicomMetadataService;
+        private readonly IDicomQueryStore _queryStore;
+        private readonly IDicomMetadataStore _dicomMetadataService;
 
         public QueryDicomResourceHandler(
                     IDicomQueryParser queryParser,
-                    IDicomQueryService queryService,
-                    IDicomMetadataService dicomMetadataService,
+                    IDicomQueryStore queryService,
+                    IDicomMetadataStore dicomMetadataService,
                     ILogger<QueryDicomResourceHandler> logger)
         {
             EnsureArg.IsNotNull(queryParser, nameof(queryParser));
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             _queryParser = queryParser;
             _logger = logger;
-            _queryService = queryService;
+            _queryStore = queryService;
             _dicomMetadataService = dicomMetadataService;
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         {
             DicomQueryExpression dicomQueryExpression = _queryParser.Parse(message);
 
-            DicomQueryResult queryResult = await _queryService.QueryAsync(dicomQueryExpression, cancellationToken);
+            DicomQueryResult queryResult = await _queryStore.QueryAsync(dicomQueryExpression, cancellationToken);
 
             if (!queryResult.DicomInstances.Any())
             {

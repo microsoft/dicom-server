@@ -7,16 +7,15 @@ using System;
 using System.Net;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
-namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
+namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
 {
     /// <summary>
     /// http://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_6.6.html#table_6.6.1-4
     /// </summary>
-    internal class StoreTransactionResponseBuilder
+    internal class StoreResponseBuilder
     {
         private readonly DicomDataset _dataset;
         private readonly Uri _baseUri;
@@ -25,12 +24,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
         private bool _successAdded = false;
         private bool _failureAdded = false;
 
-        public StoreTransactionResponseBuilder(Uri baseUri, IDicomRouteProvider dicomRouteProvider, string studyInstanceUID = null)
+        public StoreResponseBuilder(Uri baseUri, IDicomRouteProvider dicomRouteProvider, string studyInstanceUid = null)
         {
             EnsureArg.IsNotNull(baseUri, nameof(baseUri));
             EnsureArg.IsNotNull(dicomRouteProvider, nameof(dicomRouteProvider));
 
-            Uri retrieveUri = string.IsNullOrWhiteSpace(studyInstanceUID) ? null : dicomRouteProvider.GetRetrieveUri(baseUri, new DicomStudy(studyInstanceUID));
+            Uri retrieveUri = string.IsNullOrWhiteSpace(studyInstanceUid) ? null : dicomRouteProvider.GetRetrieveUri(baseUri, studyInstanceUid);
 
             _dataset = new DicomDataset { { DicomTag.RetrieveURL, retrieveUri?.ToString() } };
             _baseUri = baseUri;
@@ -52,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            var dicomInstance = DicomInstance.Create(dicomDataset);
+            var dicomInstance = DicomDatasetIdentifier.Create(dicomDataset);
             DicomSequence referencedSopSequence = _dataset.Contains(DicomTag.ReferencedSOPSequence) ?
                                                         _dataset.GetSequence(DicomTag.ReferencedSOPSequence) :
                                                         new DicomSequence(DicomTag.ReferencedSOPSequence);
@@ -60,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
             referencedSopSequence.Items.Add(new DicomDataset()
             {
                 { DicomTag.ReferencedSOPClassUID, dicomDataset.GetSingleValueOrDefault(DicomTag.SOPClassUID, string.Empty) },
-                { DicomTag.ReferencedSOPInstanceUID, dicomInstance.SopInstanceUID },
+                { DicomTag.ReferencedSOPInstanceUID, dicomInstance.SopInstanceUid },
                 { DicomTag.RetrieveURL, _dicomRouteProvider.GetRetrieveUri(_baseUri, dicomInstance).ToString() },
             });
 

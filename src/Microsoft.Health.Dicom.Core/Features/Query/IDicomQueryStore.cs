@@ -3,14 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Features.Routing
+namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public interface IDicomRouteProvider
+    public interface IDicomQueryStore
     {
-        Uri GetRetrieveUri(Uri baseUri, string studyInstaceUid);
-
-        Uri GetRetrieveUri(Uri baseUri, DicomDatasetIdentifier dicomInstance);
+        Task<DicomQueryResult> QueryAsync(
+            DicomQueryExpression query,
+            CancellationToken cancellationToken);
     }
 }

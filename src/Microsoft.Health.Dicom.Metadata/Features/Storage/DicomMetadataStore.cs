@@ -18,14 +18,14 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.IO;
 using Newtonsoft.Json;
 using Polly;
 
 namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 {
-    internal class DicomMetadataService : IDicomMetadataService
+    internal class DicomMetadataStore : IDicomMetadataStore
     {
         private const int MaximumRetryFailedRequests = 5;
         private static readonly Encoding _metadataEncoding = Encoding.UTF8;
@@ -33,14 +33,14 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         private readonly CloudBlobContainer _container;
         private readonly JsonSerializer _jsonSerializer;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-        private readonly ILogger<DicomMetadataService> _logger;
+        private readonly ILogger<DicomMetadataStore> _logger;
 
-        public DicomMetadataService(
+        public DicomMetadataStore(
             CloudBlobClient client,
             JsonSerializer jsonSerializer,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-            ILogger<DicomMetadataService> logger)
+            ILogger<DicomMetadataStore> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(jsonSerializer, nameof(jsonSerializer));
@@ -60,7 +60,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         {
             EnsureArg.IsNotNull(instanceMetadata, nameof(instanceMetadata));
 
-            var dicomInstance = DicomInstance.Create(instanceMetadata);
+            // TODO remove this when AddInstance takes DicomInstanceIdentifier instead of just Dataset
+            var dicomInstance = DicomDatasetIdentifier.Create(instanceMetadata);
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(dicomInstance);
 
             IAsyncPolicy retryPolicy = CreateTooManyRequestsRetryPolicy();
@@ -88,7 +89,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 retryPolicy);
         }
 
-        public async Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default)
+        public async Task DeleteInstanceMetadataAsync(DicomInstanceIdentifier instance, CancellationToken cancellationToken = default)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(instance);
 
@@ -130,14 +131,14 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                        return TimeSpan.FromMilliseconds((retryIndex - 1) * _random.Next(200, 500));
                    });
 
-        // TODO remove DicomInstance object and its reference
-        private CloudBlockBlob GetInstanceBlockBlob(DicomInstance instance)
+        // TODO remove this when AddInstance takes DicomInstanceIdentifier instead of just Dataset
+        private CloudBlockBlob GetInstanceBlockBlob(DicomDatasetIdentifier instance)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             return GetInstanceBlockBlob(new DicomInstanceIdentifier(
-                instance.StudyInstanceUID,
-                instance.SeriesInstanceUID,
-                instance.SopInstanceUID,
+                instance.StudyInstanceUid,
+                instance.SeriesInstanceUid,
+                instance.SopInstanceUid,
                 0));
         }
 

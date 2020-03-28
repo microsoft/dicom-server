@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public interface IDicomInstanceService
+    public interface IDicomInstanceStore
     {
         Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
             string studyInstanceUid,

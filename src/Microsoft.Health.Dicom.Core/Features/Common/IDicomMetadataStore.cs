@@ -7,14 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Persistence
+namespace Microsoft.Health.Dicom.Core.Features.Common
 {
-    public interface IDicomMetadataService
+    public interface IDicomMetadataStore
     {
         Task AddInstanceMetadataAsync(DicomDataset instanceMetadata, CancellationToken cancellationToken = default);
 
         Task<DicomDataset> GetInstanceMetadataAsync(DicomInstanceIdentifier instance, CancellationToken cancellationToken = default);
 
-        Task DeleteInstanceMetadataAsync(DicomInstance instance, CancellationToken cancellationToken = default);
+        Task DeleteInstanceMetadataAsync(DicomInstanceIdentifier instance, CancellationToken cancellationToken = default);
     }
 }

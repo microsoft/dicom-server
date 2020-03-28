@@ -13,16 +13,16 @@ using Microsoft.Health.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
 {
-    public sealed class SqlServerDicomIndexSchema : IDisposable
+    public sealed class DicomSqlIndexSchema : IDisposable
     {
         private readonly SchemaInformation _schemaInformation;
-        private readonly ILogger<SqlServerDicomIndexSchema> _logger;
+        private readonly ILogger<DicomSqlIndexSchema> _logger;
 
         private readonly RetryableInitializationOperation _initializationOperation;
 
-        public SqlServerDicomIndexSchema(
+        public DicomSqlIndexSchema(
             SchemaInformation schemaInformation,
-            ILogger<SqlServerDicomIndexSchema> logger)
+            ILogger<DicomSqlIndexSchema> logger)
         {
             EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
         {
             if (!_schemaInformation.Current.HasValue)
             {
-                _logger.LogError($"The current version of the database is not available. Unable in initialize {nameof(SqlServerDicomIndexDataStore)}.");
+                _logger.LogError($"The current version of the database is not available. Unable in initialize {nameof(DicomSqlIndexDataStore)}.");
                 throw new ServiceUnavailableException();
             }
 

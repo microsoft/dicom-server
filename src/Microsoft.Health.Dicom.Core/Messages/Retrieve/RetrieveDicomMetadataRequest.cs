@@ -9,33 +9,33 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     public class RetrieveDicomMetadataRequest : IRequest<RetrieveDicomMetadataResponse>
     {
-        public RetrieveDicomMetadataRequest(string studyInstanceUID)
+        public RetrieveDicomMetadataRequest(string studyInstanceUid)
         {
-            StudyInstanceUID = studyInstanceUID;
+            StudyInstanceUid = studyInstanceUid;
             ResourceType = ResourceType.Study;
         }
 
-        public RetrieveDicomMetadataRequest(string studyInstanceUID, string seriesInstanceUID)
+        public RetrieveDicomMetadataRequest(string studyInstanceUid, string seriesInstanceUid)
         {
-            StudyInstanceUID = studyInstanceUID;
-            SeriesInstanceUID = seriesInstanceUID;
+            StudyInstanceUid = studyInstanceUid;
+            SeriesInstanceUid = seriesInstanceUid;
             ResourceType = ResourceType.Series;
         }
 
-        public RetrieveDicomMetadataRequest(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+        public RetrieveDicomMetadataRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            StudyInstanceUID = studyInstanceUID;
-            SeriesInstanceUID = seriesInstanceUID;
-            SopInstanceUID = sopInstanceUID;
+            StudyInstanceUid = studyInstanceUid;
+            SeriesInstanceUid = seriesInstanceUid;
+            SopInstanceUid = sopInstanceUid;
             ResourceType = ResourceType.Instance;
         }
 
         public ResourceType ResourceType { get; }
 
-        public string StudyInstanceUID { get; }
+        public string StudyInstanceUid { get; }
 
-        public string SeriesInstanceUID { get; }
+        public string SeriesInstanceUid { get; }
 
-        public string SopInstanceUID { get; }
+        public string SopInstanceUid { get; }
     }
 }

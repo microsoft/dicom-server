@@ -13,7 +13,8 @@ using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features;
+using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
@@ -38,9 +39,12 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<Uri> AddFileAsStreamAsync(string blobName, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
+        public async Task<Uri> AddFileAsStreamAsync(DicomInstanceIdentifier dicomInstanceIdentifier, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(buffer, nameof(buffer));
+
+            var blobName = GetBlobStorageName(dicomInstanceIdentifier);
+
             CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
             _logger.LogDebug($"Adding blob resource: {blobName}. Overwrite mode: {overwriteIfExists}.");
 
@@ -60,8 +64,9 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetFileAsStreamAsync(string blobName, CancellationToken cancellationToken = default)
+        public async Task<Stream> GetFileAsStreamAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
         {
+            var blobName = GetBlobStorageName(dicomInstanceIdentifier);
             CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
             _logger.LogDebug($"Opening read of blob resource: {blobName}");
 
@@ -73,8 +78,10 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task DeleteFileIfExistsAsync(string blobName, CancellationToken cancellationToken = default)
+        public async Task DeleteFileIfExistsAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
         {
+            var blobName = GetBlobStorageName(dicomInstanceIdentifier);
+
             CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
             _logger.LogDebug($"Deleting blob resource: {blobName}");
 
@@ -95,5 +102,8 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
             return _container.GetBlockBlobReference(blobName);
         }
+
+        internal static string GetBlobStorageName(DicomInstanceIdentifier dicomInstance)
+            => $"{dicomInstance.StudyInstanceUid}/{dicomInstance.SeriesInstanceUid}/{dicomInstance.SopInstanceUid}";
     }
 }

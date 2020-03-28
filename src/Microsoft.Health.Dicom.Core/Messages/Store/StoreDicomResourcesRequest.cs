@@ -5,56 +5,30 @@
 
 using System;
 using System.IO;
-using EnsureThat;
 using MediatR;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Store
 {
     public class StoreDicomResourcesRequest : IRequest<StoreDicomResourcesResponse>
     {
-        private const string MutipartRelated = "multipart/related";
-        private readonly MultipartReader _multipartReader;
-
-        public StoreDicomResourcesRequest(Uri requestBaseUri, Stream requestBody, string requestContentType, string studyInstanceUID = null)
+        public StoreDicomResourcesRequest(
+            Uri requestBaseUri,
+            Stream requestBody,
+            string requestContentType,
+            string studyInstanceUID = null)
         {
-            EnsureArg.IsNotNull(requestBaseUri, nameof(requestBaseUri));
-            EnsureArg.IsNotNull(requestBody, nameof(requestBody));
-
-            StudyInstanceUID = studyInstanceUID;
+            StudyInstanceUid = studyInstanceUID;
             RequestBaseUri = requestBaseUri;
-
-            if (!MediaTypeHeaderValue.TryParse(requestContentType, out MediaTypeHeaderValue media))
-            {
-                return;
-            }
-
-            var isMultipartRelated = media.MediaType.Equals(MutipartRelated, StringComparison.InvariantCultureIgnoreCase);
-            var boundary = HeaderUtilities.RemoveQuotes(media.Boundary).ToString();
-
-            if (!isMultipartRelated || string.IsNullOrWhiteSpace(boundary))
-            {
-                return;
-            }
-
-            _multipartReader = new MultipartReader(boundary, requestBody);
+            RequestBody = requestBody;
+            RequestContentType = requestContentType;
         }
 
-        public bool IsMultipartRequest => _multipartReader != null;
-
-        public string StudyInstanceUID { get; }
+        public string StudyInstanceUid { get; }
 
         public Uri RequestBaseUri { get; }
 
-        public MultipartReader GetMultipartReader()
-        {
-            if (_multipartReader == null)
-            {
-                throw new InvalidOperationException("The request was not a multi-part request.");
-            }
+        public Stream RequestBody { get; }
 
-            return _multipartReader;
-        }
+        public string RequestContentType { get; }
     }
 }

@@ -44,12 +44,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, NullLogger<SchemaInitializer>.Instance);
 
-            var sqlServerDicomIndexSchema = new SqlServerDicomIndexSchema(schemaInformation, NullLogger<SqlServerDicomIndexSchema>.Instance);
+            var dicomSqlIndexSchema = new DicomSqlIndexSchema(schemaInformation, NullLogger<DicomSqlIndexSchema>.Instance);
 
-            DicomIndexDataStore = new SqlServerDicomIndexDataStore(
-                sqlServerDicomIndexSchema,
+            DicomIndexDataStore = new DicomSqlIndexDataStore(
+                dicomSqlIndexSchema,
                 config,
-                NullLogger<SqlServerDicomIndexDataStore>.Instance);
+                NullLogger<DicomSqlIndexDataStore>.Instance);
 
             TestHelper = new SqlServerDicomIndexDataStoreTestHelper(TestConnectionString);
         }

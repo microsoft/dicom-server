@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
@@ -18,13 +18,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
 {
     public class DeleteDicomResourcesHandler : IRequestHandler<DeleteDicomResourcesRequest, DeleteDicomResourcesResponse>
     {
-        private readonly IDicomDataStore _dicomDataStore;
+        private readonly IDicomDeleteService _dicomDeleteService;
 
-        public DeleteDicomResourcesHandler(IDicomDataStore dicomDataStore)
+        public DeleteDicomResourcesHandler(IDicomDeleteService dicomDeleteService)
         {
-            EnsureArg.IsNotNull(dicomDataStore, nameof(dicomDataStore));
+            EnsureArg.IsNotNull(dicomDeleteService, nameof(dicomDeleteService));
 
-            _dicomDataStore = dicomDataStore;
+            _dicomDeleteService = dicomDeleteService;
         }
 
         /// <inheritdoc />
@@ -37,13 +37,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
                 switch (message.ResourceType)
                 {
                     case ResourceType.Study:
-                        await _dicomDataStore.DeleteStudyAsync(message.StudyInstanceUID, cancellationToken);
+                        await _dicomDeleteService.DeleteStudyAsync(message.StudyInstanceUid, cancellationToken);
                         break;
                     case ResourceType.Series:
-                        await _dicomDataStore.DeleteSeriesAsync(message.StudyInstanceUID, message.SeriesInstanceUID, cancellationToken);
+                        await _dicomDeleteService.DeleteSeriesAsync(message.StudyInstanceUid, message.SeriesInstanceUid, cancellationToken);
                         break;
                     case ResourceType.Instance:
-                        await _dicomDataStore.DeleteInstanceAsync(message.StudyInstanceUID, message.SeriesInstanceUID, message.SopInstanceUID, cancellationToken);
+                        await _dicomDeleteService.DeleteInstanceAsync(message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
                         break;
                     default:
                         throw new ArgumentException($"Unkown delete transaction type: {message.ResourceType}", nameof(message));

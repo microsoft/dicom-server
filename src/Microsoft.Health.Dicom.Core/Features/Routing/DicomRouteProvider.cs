@@ -5,37 +5,27 @@
 
 using System;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
 
 namespace Microsoft.Health.Dicom.Core.Features.Routing
 {
     public sealed class DicomRouteProvider : IDicomRouteProvider
     {
         /// <inheritdoc />
-        public Uri GetRetrieveUri(Uri baseUri, DicomStudy dicomStudy)
+        public Uri GetRetrieveUri(Uri baseUri, string studyInstaceUid)
         {
             EnsureArg.IsNotNull(baseUri, nameof(baseUri));
-            EnsureArg.IsNotNull(dicomStudy, nameof(dicomStudy));
+            EnsureArg.IsNotNull(studyInstaceUid, nameof(studyInstaceUid));
 
-            return new Uri(baseUri, $"/studies/{dicomStudy.StudyInstanceUID}");
+            return new Uri(baseUri, $"/studies/{studyInstaceUid}");
         }
 
         /// <inheritdoc />
-        public Uri GetRetrieveUri(Uri baseUri, DicomSeries dicomSeries)
-        {
-            EnsureArg.IsNotNull(baseUri, nameof(baseUri));
-            EnsureArg.IsNotNull(dicomSeries, nameof(dicomSeries));
-
-            return new Uri(baseUri, $"/studies/{dicomSeries.StudyInstanceUID}/series/{dicomSeries.SeriesInstanceUID}");
-        }
-
-        /// <inheritdoc />
-        public Uri GetRetrieveUri(Uri baseUri, DicomInstance dicomInstance)
+        public Uri GetRetrieveUri(Uri baseUri, DicomDatasetIdentifier dicomInstance)
         {
             EnsureArg.IsNotNull(baseUri, nameof(baseUri));
             EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
 
-            return new Uri(baseUri, $"/studies/{dicomInstance.StudyInstanceUID}/series/{dicomInstance.SeriesInstanceUID}/instances/{dicomInstance.SopInstanceUID}");
+            return new Uri(baseUri, $"/studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}/instances/{dicomInstance.SopInstanceUid}");
         }
     }
 }

@@ -117,6 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DicomIdentifierInvalid" xml:space="preserve">
+    <value>Dicom Identifier '{0}' value '{1}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
+    <comment>{0} Identifier Parameter name, {1} Value.</comment>
+  </data>
   <data name="DuplicateQueryParam" xml:space="preserve">
     <value>Duplicate AttributeId '{0}', Each attribute is allowed to be specified once.</value>
     <comment>{0} specified attributeid</comment>

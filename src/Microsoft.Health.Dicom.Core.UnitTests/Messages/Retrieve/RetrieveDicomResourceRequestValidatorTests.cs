@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using FluentValidation.Results;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         public void GivenIncorrectTransferSyntax_OnValidationOfRetrieveRequest_ErrorReturned(string transferSyntax)
         {
             const string expectedErrorMessage = "The specified condition was not met for 'Requested Representation'.";
-            var request = new RetrieveDicomResourceRequest(transferSyntax, Guid.NewGuid().ToString());
+            var request = new RetrieveDicomResourceRequest(transferSyntax, TestUidGenerator.Generate());
 
             ValidateHasError(request, expectedErrorMessage);
         }
@@ -32,9 +32,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             const string expectedErrorMessage = "The specified condition was not met for 'Frames'.";
             var request = new RetrieveDicomResourceRequest(
-                studyInstanceUID: Guid.NewGuid().ToString(),
-                seriesInstanceUID: Guid.NewGuid().ToString(),
-                sopInstanceUID: Guid.NewGuid().ToString(),
+                studyInstanceUid: TestUidGenerator.Generate(),
+                seriesInstanceUid: TestUidGenerator.Generate(),
+                sopInstanceUid: TestUidGenerator.Generate(),
                 frames: new[] { frame },
                 requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
@@ -47,9 +47,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             const string expectedErrorMessage = "The specified condition was not met for 'Frames'.";
             var request = new RetrieveDicomResourceRequest(
-                studyInstanceUID: Guid.NewGuid().ToString(),
-                seriesInstanceUID: Guid.NewGuid().ToString(),
-                sopInstanceUID: Guid.NewGuid().ToString(),
+                studyInstanceUid: TestUidGenerator.Generate(),
+                seriesInstanceUid: TestUidGenerator.Generate(),
+                sopInstanceUid: TestUidGenerator.Generate(),
                 frames: frames,
                 requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
@@ -60,56 +60,55 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("1", "2", "1")]
         [InlineData("1", "2", "2")]
         public void GivenRepeatedIdentifiers_OnValidationOfRetrieveRequest_ErrorReturned(
-            string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+            string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             const string expectedErrorMessage = "The specified condition was not met for ''.";
             var request = new RetrieveDicomResourceRequest(
-                studyInstanceUID: studyInstanceUID,
-                seriesInstanceUID: seriesInstanceUID,
-                sopInstanceUID: sopInstanceUID,
+                studyInstanceUid: studyInstanceUid,
+                seriesInstanceUid: seriesInstanceUid,
+                sopInstanceUid: sopInstanceUid,
                 requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
 
             request = new RetrieveDicomResourceRequest(
-                studyInstanceUID: studyInstanceUID,
-                seriesInstanceUID: seriesInstanceUID,
-                sopInstanceUID: sopInstanceUID,
+                studyInstanceUid: studyInstanceUid,
+                seriesInstanceUid: seriesInstanceUid,
+                sopInstanceUid: sopInstanceUid,
                 frames: new int[] { 1 },
                 requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
         }
 
         [Theory]
-        [InlineData("")]
         [InlineData("()")]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa65")]
         public void GivenInvalidIdentifiers_OnValidationOfRetrieveRequest_ErrorReturned(string invalidIdentifier)
         {
             var request = new RetrieveDicomResourceRequest(
-                studyInstanceUID: invalidIdentifier,
+                studyInstanceUid: invalidIdentifier,
                 requestedTransferSyntax: "*");
-            ValidateHasError(request, "'Study Instance UID' is not in the correct format.");
+            ValidateHasError(request, "Study Instance Uid");
 
             request = new RetrieveDicomResourceRequest(
-                studyInstanceUID: Guid.NewGuid().ToString(),
-                seriesInstanceUID: invalidIdentifier,
+                studyInstanceUid: TestUidGenerator.Generate(),
+                seriesInstanceUid: invalidIdentifier,
                 requestedTransferSyntax: "*");
-            ValidateHasError(request, "'Series Instance UID' is not in the correct format.");
+            ValidateHasError(request, "Series Instance Uid");
 
             request = new RetrieveDicomResourceRequest(
-                studyInstanceUID: Guid.NewGuid().ToString(),
-                seriesInstanceUID: Guid.NewGuid().ToString(),
-                sopInstanceUID: invalidIdentifier,
+                studyInstanceUid: TestUidGenerator.Generate(),
+                seriesInstanceUid: TestUidGenerator.Generate(),
+                sopInstanceUid: invalidIdentifier,
                 requestedTransferSyntax: "*");
-            ValidateHasError(request, "'Sop Instance UID' is not in the correct format.");
+            ValidateHasError(request, "Sop Instance Uid");
 
             request = new RetrieveDicomResourceRequest(
-                studyInstanceUID: Guid.NewGuid().ToString(),
-                seriesInstanceUID: Guid.NewGuid().ToString(),
-                sopInstanceUID: invalidIdentifier,
+                studyInstanceUid: TestUidGenerator.Generate(),
+                seriesInstanceUid: TestUidGenerator.Generate(),
+                sopInstanceUid: invalidIdentifier,
                 frames: new[] { 1 },
                 requestedTransferSyntax: "*");
-            ValidateHasError(request, "'Sop Instance UID' is not in the correct format.");
+            ValidateHasError(request, "Sop Instance Uid");
         }
 
         private static void ValidateHasError(RetrieveDicomResourceRequest request, string expectedErrorMessage)
@@ -117,7 +116,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
             ValidationResult result = new RetrieveDicomResourcesRequestValidator().Validate(request);
             Assert.False(result.IsValid);
             Assert.Single(result.Errors);
-            Assert.Equal(expectedErrorMessage, result.Errors[0].ErrorMessage);
+            Assert.Contains(expectedErrorMessage, result.Errors[0].ErrorMessage);
         }
     }
 }

@@ -5,13 +5,14 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public interface IDicomQueryService
+    public interface IDicomResourceRetrieveService
     {
-        Task<DicomQueryResult> QueryAsync(
-            DicomQueryExpression query,
+        Task<RetrieveDicomResourceResponse> GetInstanceResource(
+            RetrieveDicomResourceRequest message,
             CancellationToken cancellationToken);
     }
 }

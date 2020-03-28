@@ -11,36 +11,29 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
-    internal class RetrieveDicomMetadataHandler : BaseRetrieveDicomResourceHandler, IRequestHandler<RetrieveDicomMetadataRequest, RetrieveDicomMetadataResponse>
+    internal class RetrieveDicomMetadataHandler : IRequestHandler<RetrieveDicomMetadataRequest, RetrieveDicomMetadataResponse>
     {
-        private readonly IDicomMetadataService _dicomInstanceMetadataStore;
+        private readonly IDicomMetadataRetrieveService _dicomMetadataRetrieveService;
 
-        public RetrieveDicomMetadataHandler(
-            IDicomInstanceService dicomInstanceService,
-            IDicomMetadataService dicomInstanceMetadataStore)
-            : base(dicomInstanceService)
-        {
-            EnsureArg.IsNotNull(dicomInstanceMetadataStore, nameof(dicomInstanceMetadataStore));
-
-            _dicomInstanceMetadataStore = dicomInstanceMetadataStore;
+        public RetrieveDicomMetadataHandler(IDicomMetadataRetrieveService dicomMetadataRetrieveService)
+          {
+            EnsureArg.IsNotNull(dicomMetadataRetrieveService, nameof(dicomMetadataRetrieveService));
+            _dicomMetadataRetrieveService = dicomMetadataRetrieveService;
         }
 
         public async Task<RetrieveDicomMetadataResponse> Handle(RetrieveDicomMetadataRequest message, CancellationToken cancellationToken)
         {
-            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await GetInstancesToRetrieve(
+            IEnumerable<DicomDataset> responseMetadata = await _dicomMetadataRetrieveService.GetDicomInstanceMetadataAsync(
                 message.ResourceType,
-                message.StudyInstanceUID,
-                message.SeriesInstanceUID,
-                message.SopInstanceUID,
+                message.StudyInstanceUid,
+                message.SeriesInstanceUid,
+                message.SopInstanceUid,
                 cancellationToken);
-            IEnumerable<DicomDataset> responseMetadata = await Task.WhenAll(
-                retrieveInstances.Select(x => _dicomInstanceMetadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
 
             return new RetrieveDicomMetadataResponse(HttpStatusCode.OK, responseMetadata.ToArray());
         }

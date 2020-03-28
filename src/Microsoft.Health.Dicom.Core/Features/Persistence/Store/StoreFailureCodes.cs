@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.Resources.Store
+namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
 {
     /// <summary>
     /// If any of the failure codes are modified, please check they match the DICOM conformance statement.

@@ -13,24 +13,24 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Configs;
-using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
 {
-    internal class SqlServerDicomIndexDataStore : IDicomIndexDataStore
+    internal class DicomSqlIndexDataStore : IDicomIndexDataStore
     {
-        private readonly SqlServerDicomIndexSchema _sqlServerDicomIndexSchema;
+        private readonly DicomSqlIndexSchema _sqlServerDicomIndexSchema;
         private readonly SqlServerDataStoreConfiguration _sqlServerDataStoreConfiguration;
-        private readonly ILogger<SqlServerDicomIndexDataStore> _logger;
+        private readonly ILogger<DicomSqlIndexDataStore> _logger;
 
-        public SqlServerDicomIndexDataStore(
-            SqlServerDicomIndexSchema dicomIndexSchema,
+        public DicomSqlIndexDataStore(
+            DicomSqlIndexSchema dicomIndexSchema,
             SqlServerDataStoreConfiguration sqlServerDataStoreConfiguration,
-            ILogger<SqlServerDicomIndexDataStore> logger)
+            ILogger<DicomSqlIndexDataStore> logger)
         {
             EnsureArg.IsNotNull(dicomIndexSchema, nameof(dicomIndexSchema));
             EnsureArg.IsNotNull(sqlServerDataStoreConfiguration, nameof(sqlServerDataStoreConfiguration));
@@ -46,14 +46,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             return Task.CompletedTask;
         }
 
-        public Task<IEnumerable<DicomInstance>> DeleteSeriesIndexAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<DicomInstanceIdentifier>> DeleteSeriesIndexAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(Enumerable.Empty<DicomInstance>());
+            return Task.FromResult(Enumerable.Empty<DicomInstanceIdentifier>());
         }
 
-        public Task<IEnumerable<DicomInstance>> DeleteStudyIndexAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<DicomInstanceIdentifier>> DeleteStudyIndexAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(Enumerable.Empty<DicomInstance>());
+            return Task.FromResult(Enumerable.Empty<DicomInstanceIdentifier>());
         }
 
         public async Task IndexInstanceAsync(DicomDataset instance, CancellationToken cancellationToken = default)

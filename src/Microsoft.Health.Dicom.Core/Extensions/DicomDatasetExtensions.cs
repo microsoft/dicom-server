@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Dicom;
 
@@ -15,6 +16,16 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     public static class DicomDatasetExtensions
     {
         private const string DateFormat = "yyyyMMdd";
+
+        public static readonly HashSet<DicomVR> DicomBulkDataVr = new HashSet<DicomVR>()
+        {
+            DicomVR.OB,
+            DicomVR.OD,
+            DicomVR.OF,
+            DicomVR.OL,
+            DicomVR.OW,
+            DicomVR.UN,
+        };
 
         /// <summary>
         /// Gets a single value if the value exists; otherwise the default value for the type <typeparamref name="T"/>.
@@ -45,6 +56,31 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Remove dicom elements who's VR types are marked as Bulk in the DicomBulkDataVr enum
+        /// </summary>
+        /// <param name="dicomDataset">Dataset that has bulk metadata</param>
+        public static void RemoveBulkDataVrs(this DicomDataset dicomDataset)
+        {
+            var tagsToRemove = new List<DicomTag>();
+            foreach (DicomItem item in dicomDataset)
+            {
+                if (item.ValueRepresentation == DicomVR.SQ && item is DicomSequence sequence)
+                {
+                    foreach (DicomDataset sequenceDataset in sequence.Items)
+                    {
+                        RemoveBulkDataVrs(sequenceDataset);
+                    }
+                }
+                else if (DicomBulkDataVr.Contains(item.ValueRepresentation))
+                {
+                    tagsToRemove.Add(item.Tag);
+                }
+            }
+
+            dicomDataset.Remove(tagsToRemove.ToArray());
         }
     }
 }
