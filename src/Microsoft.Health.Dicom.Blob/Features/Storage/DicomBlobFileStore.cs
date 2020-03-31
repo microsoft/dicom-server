@@ -18,15 +18,15 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
-    public class DicomFileBlobStore : IDicomFileStore
+    public class DicomBlobFileStore : IDicomFileStore
     {
         private readonly CloudBlobContainer _container;
-        private readonly ILogger<DicomFileBlobStore> _logger;
+        private readonly ILogger<DicomBlobFileStore> _logger;
 
-        public DicomFileBlobStore(
+        public DicomBlobFileStore(
             CloudBlobClient client,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            ILogger<DicomFileBlobStore> logger)
+            ILogger<DicomBlobFileStore> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
@@ -39,8 +39,13 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<Uri> AddFileAsStreamAsync(DicomInstanceIdentifier dicomInstanceIdentifier, Stream buffer, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
+        public async Task<Uri> AddAsync(
+            DicomInstanceIdentifier dicomInstanceIdentifier,
+            Stream buffer,
+            bool overwriteIfExists = false,
+            CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(dicomInstanceIdentifier, nameof(dicomInstanceIdentifier));
             EnsureArg.IsNotNull(buffer, nameof(buffer));
 
             var blobName = GetBlobStorageName(dicomInstanceIdentifier);
@@ -64,8 +69,10 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetFileAsStreamAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task<Stream> GetAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(dicomInstanceIdentifier, nameof(dicomInstanceIdentifier));
+
             var blobName = GetBlobStorageName(dicomInstanceIdentifier);
             CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
             _logger.LogDebug($"Opening read of blob resource: {blobName}");
@@ -78,8 +85,10 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task DeleteFileIfExistsAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task DeleteIfExistsAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(dicomInstanceIdentifier, nameof(dicomInstanceIdentifier));
+
             var blobName = GetBlobStorageName(dicomInstanceIdentifier);
 
             CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);

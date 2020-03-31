@@ -26,19 +26,19 @@ using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class DicomResourceRetrieveService : IDicomResourceRetrieveService
+    public class DicomRetrieveResourceService : IDicomRetrieveResourceService
     {
         private readonly IDicomFileStore _dicomBlobDataStore;
         private readonly IDicomInstanceStore _dicomInstanceStore;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-        private readonly ILogger<DicomResourceRetrieveService> _logger;
+        private readonly ILogger<DicomRetrieveResourceService> _logger;
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
 
-        public DicomResourceRetrieveService(
+        public DicomRetrieveResourceService(
             IDicomInstanceStore dicomInstanceStore,
             IDicomFileStore dicomBlobDataStore,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-            ILogger<DicomResourceRetrieveService> logger)
+            ILogger<DicomRetrieveResourceService> logger)
         {
             EnsureArg.IsNotNull(dicomInstanceStore, nameof(dicomInstanceStore));
             EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         }
 
         // TODO change the input output params and setting the status code. US #73197
-        public async Task<RetrieveDicomResourceResponse> GetInstanceResource(RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
+        public async Task<RetrieveDicomResourceResponse> GetInstanceResourceAsync(RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(message, nameof(message));
 
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 IEnumerable<DicomInstanceIdentifier> retrieveInstances = await GetInstancesToRetrieve(
                     message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
                 Stream[] resultStreams = await Task.WhenAll(
-                    retrieveInstances.Select(x => _dicomBlobDataStore.GetFileAsStreamAsync(x, cancellationToken)));
+                    retrieveInstances.Select(x => _dicomBlobDataStore.GetAsync(x, cancellationToken)));
 
                 var responseCode = HttpStatusCode.OK;
 

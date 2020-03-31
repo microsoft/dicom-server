@@ -11,10 +11,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 {
     public interface IDicomMetadataStore
     {
-        Task AddInstanceMetadataAsync(DicomDataset instanceMetadata, CancellationToken cancellationToken = default);
+        Task AddInstanceMetadataAsync(DicomDataset dicomDataset, CancellationToken cancellationToken = default);
 
-        Task<DicomDataset> GetInstanceMetadataAsync(DicomInstanceIdentifier instance, CancellationToken cancellationToken = default);
+        Task<DicomDataset> GetInstanceMetadataAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default);
 
-        Task DeleteInstanceMetadataAsync(DicomInstanceIdentifier instance, CancellationToken cancellationToken = default);
+        Task DeleteInstanceMetadataAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default);
     }
 }

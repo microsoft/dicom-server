@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Features;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
@@ -17,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     {
         private const string DateFormat = "yyyyMMdd";
 
-        public static readonly HashSet<DicomVR> DicomBulkDataVr = new HashSet<DicomVR>()
+        private static readonly HashSet<DicomVR> DicomBulkDataVr = new HashSet<DicomVR>()
         {
             DicomVR.OB,
             DicomVR.OD,
@@ -81,6 +82,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             }
 
             dicomDataset.Remove(tagsToRemove.ToArray());
+        }
+
+        public static DicomDatasetIdentifier ToDicomDatasetIdentifier(this DicomDataset dicomDataset)
+        {
+            return DicomDatasetIdentifier.Create(dicomDataset);
         }
     }
 }

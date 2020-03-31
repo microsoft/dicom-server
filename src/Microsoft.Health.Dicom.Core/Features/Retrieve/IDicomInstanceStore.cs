@@ -13,17 +13,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     {
         Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
             string studyInstanceUid,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifierAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
     }
 }

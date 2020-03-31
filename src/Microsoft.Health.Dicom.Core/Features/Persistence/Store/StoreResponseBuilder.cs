@@ -7,6 +7,7 @@ using System;
 using System.Net;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
@@ -36,22 +37,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             _dicomRouteProvider = dicomRouteProvider;
         }
 
-        public StoreDicomResourcesResponse GetStoreResponse(bool hadAnyUnsupportedContentTypes)
+        public StoreDicomResponse GetStoreResponse(bool hadAnyUnsupportedContentTypes)
         {
             if (_successAdded || _failureAdded)
             {
-                return new StoreDicomResourcesResponse(_responseStatusCode, _dataset);
+                return new StoreDicomResponse(_responseStatusCode, _dataset);
             }
 
             // If nothing failed or added we should return no content or unsupported media type.
-            return new StoreDicomResourcesResponse(hadAnyUnsupportedContentTypes ? HttpStatusCode.UnsupportedMediaType : HttpStatusCode.NoContent);
+            return new StoreDicomResponse(hadAnyUnsupportedContentTypes ? HttpStatusCode.UnsupportedMediaType : HttpStatusCode.NoContent);
         }
 
         public void AddSuccess(DicomDataset dicomDataset)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            var dicomInstance = DicomDatasetIdentifier.Create(dicomDataset);
+            var dicomInstance = dicomDataset.ToDicomDatasetIdentifier();
             DicomSequence referencedSopSequence = _dataset.Contains(DicomTag.ReferencedSOPSequence) ?
                                                         _dataset.GetSequence(DicomTag.ReferencedSOPSequence) :
                                                         new DicomSequence(DicomTag.ReferencedSOPSequence);

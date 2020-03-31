@@ -14,18 +14,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
     public class RetrieveDicomResourceHandler : IRequestHandler<RetrieveDicomResourceRequest, RetrieveDicomResourceResponse>
     {
-        private readonly IDicomResourceRetrieveService _dicomResourceRetrieveService;
+        private readonly IDicomRetrieveResourceService _dicomRetrieveResourceService;
 
-        public RetrieveDicomResourceHandler(IDicomResourceRetrieveService dicomResourceRetrieveService)
+        public RetrieveDicomResourceHandler(IDicomRetrieveResourceService dicomRetrieveResourceService)
         {
-            EnsureArg.IsNotNull(dicomResourceRetrieveService, nameof(dicomResourceRetrieveService));
-            _dicomResourceRetrieveService = dicomResourceRetrieveService;
+            EnsureArg.IsNotNull(dicomRetrieveResourceService, nameof(dicomRetrieveResourceService));
+            _dicomRetrieveResourceService = dicomRetrieveResourceService;
         }
 
         public async Task<RetrieveDicomResourceResponse> Handle(
             RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
         {
-            return await _dicomResourceRetrieveService.GetInstanceResource(message, cancellationToken);
+            return await _dicomRetrieveResourceService.GetInstanceResourceAsync(message, cancellationToken);
         }
     }
 }

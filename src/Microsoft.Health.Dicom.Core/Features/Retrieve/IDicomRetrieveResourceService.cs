@@ -9,10 +9,10 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public interface IDicomResourceRetrieveService
+    public interface IDicomRetrieveResourceService
     {
-        Task<RetrieveDicomResourceResponse> GetInstanceResource(
+        Task<RetrieveDicomResourceResponse> GetInstanceResourceAsync(
             RetrieveDicomResourceRequest message,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
     }
 }

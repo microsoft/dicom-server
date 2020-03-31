@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
         private readonly IDicomRouteProvider _dicomRouteProvider;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-        private readonly ILogger<StoreDicomResourcesHandler> _logger;
+        private readonly ILogger<StoreDicomHandler> _logger;
         private const string ApplicationDicom = "application/dicom";
         private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
 
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             IDicomIndexDataStore dicomIndexDataStore,
             IDicomRouteProvider dicomRouteProvider,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-            ILogger<StoreDicomResourcesHandler> logger)
+            ILogger<StoreDicomHandler> logger)
         {
             EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
             EnsureArg.IsNotNull(dicomInstanceMetadataStore, nameof(dicomInstanceMetadataStore));
@@ -57,16 +57,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             _logger = logger;
         }
 
-        public async Task<StoreDicomResourcesResponse> StoreMultiPartDicomResourceAsync(
+        public async Task<StoreDicomResponse> StoreMultiPartDicomResourceAsync(
             Uri requestBaseUri,
             Stream contentStream,
             string requestContentType,
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(requestBaseUri, nameof(requestBaseUri));
-            EnsureArg.IsNotNull(contentStream, nameof(contentStream));
-            EnsureArg.IsNotNullOrWhiteSpace(requestContentType);
+            StoreRequestValidator.ValidateRequest(requestBaseUri, contentStream, requestContentType, studyInstanceUid);
 
             var responseBuilder = new StoreResponseBuilder(requestBaseUri, _dicomRouteProvider, studyInstanceUid);
             _ = MediaTypeHeaderValue.TryParse(requestContentType, out MediaTypeHeaderValue media);
@@ -162,7 +160,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             EnsureArg.IsNotNull(dicomFileStream, nameof(dicomFileStream));
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
-            var identifier = DicomDatasetIdentifier.Create(dicomFile.Dataset);
+            var identifier = dicomFile.Dataset.ToDicomDatasetIdentifier();
 
             // TODO fix the verion once we implement the data consistency
             var dicomInstanceIdentifier = new DicomInstanceIdentifier(
@@ -173,7 +171,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
             // If a file with the same name exists, a conflict exception will be thrown.
             dicomFileStream.Seek(0, SeekOrigin.Begin);
-            await _dicomBlobDataStore.AddFileAsStreamAsync(dicomInstanceIdentifier, dicomFileStream, cancellationToken: cancellationToken);
+            await _dicomBlobDataStore.AddAsync(dicomInstanceIdentifier, dicomFileStream, cancellationToken: cancellationToken);
 
             // Strip the DICOM file down to the tags we want to store for metadata.
             dicomFile.Dataset.RemoveBulkDataVrs();

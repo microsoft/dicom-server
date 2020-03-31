@@ -12,6 +12,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         Task<DicomQueryResult> QueryAsync(
             DicomQueryExpression query,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
     }
 }

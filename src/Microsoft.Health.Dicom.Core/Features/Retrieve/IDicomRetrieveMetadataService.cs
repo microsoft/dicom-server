@@ -11,13 +11,13 @@ using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public interface IDicomMetadataRetrieveService
+    public interface IDicomRetrieveMetadataService
     {
         Task<IEnumerable<DicomDataset>> GetDicomInstanceMetadataAsync(
            ResourceType resourceType,
            string studyInstanceUid,
            string seriesInstanceUid,
            string sopInstanceUid,
-           CancellationToken cancellationToken);
+           CancellationToken cancellationToken = default);
     }
 }

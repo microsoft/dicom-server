@@ -13,11 +13,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public interface IDicomStoreService
     {
-        Task<StoreDicomResourcesResponse> StoreMultiPartDicomResourceAsync(
+        Task<StoreDicomResponse> StoreMultiPartDicomResourceAsync(
             Uri requestBaseUri,
             Stream contentStream,
             string requestContentType,
             string studyInstanceUid,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
     }
 }

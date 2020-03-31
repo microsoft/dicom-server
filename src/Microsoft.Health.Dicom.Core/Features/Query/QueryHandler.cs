@@ -16,26 +16,26 @@ using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class QueryDicomResourceHandler : IRequestHandler<QueryDicomResourceRequest, QueryDicomResourceResponse>
+    public class QueryHandler : IRequestHandler<QueryDicomResourceRequest, QueryDicomResourceResponse>
     {
         private readonly IDicomQueryParser _queryParser;
-        private readonly ILogger<QueryDicomResourceHandler> _logger;
+        private readonly ILogger<QueryHandler> _logger;
         private readonly IDicomQueryStore _queryStore;
         private readonly IDicomMetadataStore _dicomMetadataService;
 
-        public QueryDicomResourceHandler(
+        public QueryHandler(
                     IDicomQueryParser queryParser,
-                    IDicomQueryStore queryService,
+                    IDicomQueryStore queryStore,
                     IDicomMetadataStore dicomMetadataService,
-                    ILogger<QueryDicomResourceHandler> logger)
+                    ILogger<QueryHandler> logger)
         {
             EnsureArg.IsNotNull(queryParser, nameof(queryParser));
-            EnsureArg.IsNotNull(queryService, nameof(queryService));
+            EnsureArg.IsNotNull(queryStore, nameof(queryStore));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _queryParser = queryParser;
             _logger = logger;
-            _queryStore = queryService;
+            _queryStore = queryStore;
             _dicomMetadataService = dicomMetadataService;
         }
 

@@ -18,17 +18,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
 {
     internal class RetrieveDicomMetadataHandler : IRequestHandler<RetrieveDicomMetadataRequest, RetrieveDicomMetadataResponse>
     {
-        private readonly IDicomMetadataRetrieveService _dicomMetadataRetrieveService;
+        private readonly IDicomRetrieveMetadataService _dicomRetrieveMetadataService;
 
-        public RetrieveDicomMetadataHandler(IDicomMetadataRetrieveService dicomMetadataRetrieveService)
-          {
-            EnsureArg.IsNotNull(dicomMetadataRetrieveService, nameof(dicomMetadataRetrieveService));
-            _dicomMetadataRetrieveService = dicomMetadataRetrieveService;
+        public RetrieveDicomMetadataHandler(IDicomRetrieveMetadataService dicomRetrieveMetadataService)
+        {
+            EnsureArg.IsNotNull(dicomRetrieveMetadataService, nameof(dicomRetrieveMetadataService));
+            _dicomRetrieveMetadataService = dicomRetrieveMetadataService;
         }
 
         public async Task<RetrieveDicomMetadataResponse> Handle(RetrieveDicomMetadataRequest message, CancellationToken cancellationToken)
         {
-            IEnumerable<DicomDataset> responseMetadata = await _dicomMetadataRetrieveService.GetDicomInstanceMetadataAsync(
+            IEnumerable<DicomDataset> responseMetadata = await _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(
                 message.ResourceType,
                 message.StudyInstanceUid,
                 message.SeriesInstanceUid,

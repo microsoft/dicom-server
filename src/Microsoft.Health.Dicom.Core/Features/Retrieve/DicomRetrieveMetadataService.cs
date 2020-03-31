@@ -16,12 +16,12 @@ using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class DicomMetadataRetrieveService : IDicomMetadataRetrieveService
+    public class DicomRetrieveMetadataService : IDicomRetrieveMetadataService
     {
         private readonly IDicomInstanceStore _dicomInstanceStore;
         private readonly IDicomMetadataStore _dicomMetadataStore;
 
-        public DicomMetadataRetrieveService(IDicomInstanceStore dicomInstanceStore, IDicomMetadataStore dicomMetadataStore)
+        public DicomRetrieveMetadataService(IDicomInstanceStore dicomInstanceStore, IDicomMetadataStore dicomMetadataStore)
         {
             EnsureArg.IsNotNull(dicomInstanceStore, nameof(dicomInstanceStore));
             EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));

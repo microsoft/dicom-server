@@ -7,9 +7,9 @@ using System.Net;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class DicomIdentifierInvalidException : DicomException
+    public class DicomInvalidIdentifierException : DicomException
     {
-        public DicomIdentifierInvalidException(string value, string name)
+        public DicomInvalidIdentifierException(string value, string name)
             : base(string.Format(DicomCoreResource.DicomIdentifierInvalid, name, value))
         {
         }

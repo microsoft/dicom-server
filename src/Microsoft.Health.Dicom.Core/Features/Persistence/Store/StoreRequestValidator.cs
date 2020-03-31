@@ -4,10 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.IO;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
-using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
@@ -17,21 +17,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
         private const string MutipartRelated = "multipart/related";
 
         // TODO cleanup this method with Unit tests #72595
-        public static void ValidateRequest(StoreDicomResourcesRequest request)
+        public static void ValidateRequest(
+            Uri requestBaseUri,
+            Stream requestBody,
+            string requestContentType,
+            string studyInstanceUid)
         {
-            if (request.RequestBaseUri == null
-                || request.RequestBody == null
-                || string.IsNullOrWhiteSpace(request.RequestContentType))
+            if (requestBaseUri == null
+                || requestBody == null
+                || string.IsNullOrWhiteSpace(requestContentType))
             {
                 throw new DicomBadRequestException("Invalid request");
             }
 
-            if (request.StudyInstanceUid != null)
+            if (studyInstanceUid != null)
             {
-                DicomIdentifierValidator.ValidateAndThrow(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
+                DicomIdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(studyInstanceUid));
             }
 
-            if (!MediaTypeHeaderValue.TryParse(request.RequestContentType, out MediaTypeHeaderValue media))
+            if (!MediaTypeHeaderValue.TryParse(requestContentType, out MediaTypeHeaderValue media))
             {
                 throw new DicomInvalidMediaTypeException();
             }

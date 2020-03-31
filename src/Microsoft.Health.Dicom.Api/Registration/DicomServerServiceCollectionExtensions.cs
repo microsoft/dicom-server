@@ -78,12 +78,12 @@ namespace Microsoft.AspNetCore.Builder
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomMetadataRetrieveService>()
+            services.Add<DicomRetrieveMetadataService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomResourceRetrieveService>()
+            services.Add<DicomRetrieveResourceService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

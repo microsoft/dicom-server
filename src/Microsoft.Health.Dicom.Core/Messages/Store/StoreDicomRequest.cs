@@ -9,9 +9,9 @@ using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Store
 {
-    public class StoreDicomResourcesRequest : IRequest<StoreDicomResourcesResponse>
+    public class StoreDicomRequest : IRequest<StoreDicomResponse>
     {
-        public StoreDicomResourcesRequest(
+        public StoreDicomRequest(
             Uri requestBaseUri,
             Stream requestBody,
             string requestContentType,

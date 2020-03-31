@@ -9,14 +9,14 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Store
 {
-    public sealed class StoreDicomResourcesResponse : BaseStatusCodeResponse
+    public sealed class StoreDicomResponse : BaseStatusCodeResponse
     {
-        public StoreDicomResourcesResponse(HttpStatusCode statusCode)
+        public StoreDicomResponse(HttpStatusCode statusCode)
             : base((int)statusCode)
         {
         }
 
-        public StoreDicomResourcesResponse(HttpStatusCode statusCode, DicomDataset responseDataset)
+        public StoreDicomResponse(HttpStatusCode statusCode, DicomDataset responseDataset)
             : base((int)statusCode)
         {
             EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));

@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         {
             if (!Validate(identifierValue))
             {
-                throw new DicomIdentifierInvalidException(identifierValue, parameterName);
+                throw new DicomInvalidIdentifierException(identifierValue, parameterName);
             }
         }
 

@@ -11,11 +11,11 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
 {
-    public class StoreDicomResourcesHandler : IRequestHandler<StoreDicomResourcesRequest, StoreDicomResourcesResponse>
+    public class StoreDicomHandler : IRequestHandler<StoreDicomRequest, StoreDicomResponse>
     {
         private readonly IDicomStoreService _dicomStoreService;
 
-        public StoreDicomResourcesHandler(
+        public StoreDicomHandler(
             IDicomStoreService dicomStoreService)
         {
             EnsureArg.IsNotNull(dicomStoreService, nameof(dicomStoreService));
@@ -23,13 +23,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
         }
 
         /// <inheritdoc />
-        public async Task<StoreDicomResourcesResponse> Handle(
-            StoreDicomResourcesRequest message,
+        public async Task<StoreDicomResponse> Handle(
+            StoreDicomRequest message,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(message, nameof(message));
-
-            StoreRequestValidator.ValidateRequest(message);
 
             return await _dicomStoreService.StoreMultiPartDicomResourceAsync(
                 message.RequestBaseUri,
