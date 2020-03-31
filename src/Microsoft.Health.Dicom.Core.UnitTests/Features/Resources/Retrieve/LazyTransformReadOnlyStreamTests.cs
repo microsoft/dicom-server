@@ -6,7 +6,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.IO;
 using Xunit;
 

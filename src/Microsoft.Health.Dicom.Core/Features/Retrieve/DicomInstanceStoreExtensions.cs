@@ -8,12 +8,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Resources.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public static class DicomInstanceStoreExtension
+    public static class DicomInstanceStoreExtensions
     {
         public static async Task<IEnumerable<DicomInstanceIdentifier>> GetInstancesToRetrieve(
                 this IDicomInstanceStore dicomInstanceStore,

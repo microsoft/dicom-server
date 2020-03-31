@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            var dicomInstance = dicomDataset.ToDicomDatasetIdentifier();
+            var dicomDatasetIdentifier = dicomDataset.ToDicomDatasetIdentifier();
             DicomSequence referencedSopSequence = _dataset.Contains(DicomTag.ReferencedSOPSequence) ?
                                                         _dataset.GetSequence(DicomTag.ReferencedSOPSequence) :
                                                         new DicomSequence(DicomTag.ReferencedSOPSequence);
@@ -60,8 +60,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             referencedSopSequence.Items.Add(new DicomDataset()
             {
                 { DicomTag.ReferencedSOPClassUID, dicomDataset.GetSingleValueOrDefault(DicomTag.SOPClassUID, string.Empty) },
-                { DicomTag.ReferencedSOPInstanceUID, dicomInstance.SopInstanceUid },
-                { DicomTag.RetrieveURL, _dicomRouteProvider.GetRetrieveUri(_baseUri, dicomInstance).ToString() },
+                { DicomTag.ReferencedSOPInstanceUID, dicomDatasetIdentifier.SopInstanceUid },
+                { DicomTag.RetrieveURL, _dicomRouteProvider.GetRetrieveUri(_baseUri, dicomDatasetIdentifier).ToString() },
             });
 
             // If any failures when adding, we return Accepted, otherwise OK.

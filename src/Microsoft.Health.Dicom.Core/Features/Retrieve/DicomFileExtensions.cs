@@ -12,7 +12,7 @@ using Dicom.Imaging;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public static class DicomFileExtensions
     {

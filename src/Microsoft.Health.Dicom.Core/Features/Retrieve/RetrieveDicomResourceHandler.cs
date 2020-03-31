@@ -7,10 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public class RetrieveDicomResourceHandler : IRequestHandler<RetrieveDicomResourceRequest, RetrieveDicomResourceResponse>
     {

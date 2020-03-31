@@ -21,12 +21,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private readonly IDicomQueryParser _queryParser;
         private readonly ILogger<QueryHandler> _logger;
         private readonly IDicomQueryStore _queryStore;
-        private readonly IDicomMetadataStore _dicomMetadataService;
+        private readonly IDicomMetadataStore _metadataService;
 
         public QueryHandler(
                     IDicomQueryParser queryParser,
                     IDicomQueryStore queryStore,
-                    IDicomMetadataStore dicomMetadataService,
+                    IDicomMetadataStore metadataService,
                     ILogger<QueryHandler> logger)
         {
             EnsureArg.IsNotNull(queryParser, nameof(queryParser));
@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _queryParser = queryParser;
             _logger = logger;
             _queryStore = queryStore;
-            _dicomMetadataService = dicomMetadataService;
+            _metadataService = metadataService;
         }
 
         public async Task<QueryDicomResourceResponse> Handle(QueryDicomResourceRequest message, CancellationToken cancellationToken)
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
                    queryResult.DicomInstances
-                   .Select(x => _dicomMetadataService.GetInstanceMetadataAsync(x, cancellationToken)));
+                   .Select(x => _metadataService.GetInstanceMetadataAsync(x, cancellationToken)));
 
             var responseBuilder = new QueryResponseBuilder(dicomQueryExpression);
             IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));

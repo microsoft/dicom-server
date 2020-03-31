@@ -8,7 +8,7 @@ using Dicom;
 using Dicom.Imaging;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public static class DicomDatasetExtensions
     {

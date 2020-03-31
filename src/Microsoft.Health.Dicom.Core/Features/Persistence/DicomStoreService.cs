@@ -162,7 +162,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 
             var identifier = dicomFile.Dataset.ToDicomDatasetIdentifier();
 
-            // TODO fix the verion once we implement the data consistency
+            // TODO fix the version once we implement the data consistency
             var dicomInstanceIdentifier = new DicomInstanceIdentifier(
                 identifier.StudyInstanceUid,
                 identifier.SeriesInstanceUid,

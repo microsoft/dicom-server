@@ -11,10 +11,9 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     internal class RetrieveDicomMetadataHandler : IRequestHandler<RetrieveDicomMetadataRequest, RetrieveDicomMetadataResponse>
     {

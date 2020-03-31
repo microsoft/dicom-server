@@ -7,7 +7,7 @@ using System;
 using System.Net;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     [Serializable]
     internal class DicomInstanceNotFoundException : DicomException

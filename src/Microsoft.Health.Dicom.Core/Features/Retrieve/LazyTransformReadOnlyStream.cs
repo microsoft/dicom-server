@@ -7,7 +7,7 @@ using System;
 using System.IO;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Features.Resources.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     internal class LazyTransformReadOnlyStream<T> : Stream
     {

@@ -9,12 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 
-namespace Microsoft.Health.Dicom.Core.Features.Resources.Delete
+namespace Microsoft.Health.Dicom.Core.Features.Delete
 {
     public class DeleteDicomHandler : IRequestHandler<DeleteDicomResourcesRequest, DeleteDicomResourcesResponse>
     {

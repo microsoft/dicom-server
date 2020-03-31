@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     {
         private const string DateFormat = "yyyyMMdd";
 
-        private static readonly HashSet<DicomVR> DicomBulkDataVr = new HashSet<DicomVR>()
+        private static readonly HashSet<DicomVR> DicomBulkDataVr = new HashSet<DicomVR>
         {
             DicomVR.OB,
             DicomVR.OD,
