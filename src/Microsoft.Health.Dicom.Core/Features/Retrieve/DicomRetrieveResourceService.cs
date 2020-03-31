@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             try
             {
-                IEnumerable<DicomInstanceIdentifier> retrieveInstances = await GetInstancesToRetrieve(
+                IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
                     message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
                 Stream[] resultStreams = await Task.WhenAll(
                     retrieveInstances.Select(x => _dicomBlobDataStore.GetAsync(x, cancellationToken)));
@@ -146,48 +146,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 _logger.LogError(e, "Error retrieving dicom resource.");
                 return new RetrieveDicomResourceResponse(e.StatusCode);
             }
-        }
-
-        private async Task<IEnumerable<DicomInstanceIdentifier>> GetInstancesToRetrieve(
-            ResourceType resourceType,
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            string sopInstanceUid,
-            CancellationToken cancellationToken)
-        {
-            IEnumerable<DicomInstanceIdentifier> instancesToRetrieve = Enumerable.Empty<DicomInstanceIdentifier>();
-            switch (resourceType)
-            {
-                case ResourceType.Frames:
-                case ResourceType.Instance:
-                    instancesToRetrieve = await _dicomInstanceStore.GetInstanceIdentifierAsync(
-                        studyInstanceUid,
-                        seriesInstanceUid,
-                        sopInstanceUid,
-                        cancellationToken);
-                    break;
-                case ResourceType.Series:
-                    instancesToRetrieve = await _dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(
-                        studyInstanceUid,
-                        seriesInstanceUid,
-                        cancellationToken);
-                    break;
-                case ResourceType.Study:
-                    instancesToRetrieve = await _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(
-                        studyInstanceUid,
-                        cancellationToken);
-                    break;
-                default:
-                    Debug.Fail($"Unknown retrieve transaction type: {resourceType}", nameof(resourceType));
-                    break;
-            }
-
-            if (!instancesToRetrieve.Any())
-            {
-                throw new DicomInstanceNotFoundException();
-            }
-
-            return instancesToRetrieve;
         }
 
         private Stream GetFrameAsDicomData(DicomFile dicomFile, int frame, DicomTransferSyntax requestedTransferSyntax)
