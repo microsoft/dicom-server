@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using FluentValidation.Results;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
@@ -13,24 +13,23 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
     public class RetrieveDicomMetadataRequestValidatorTests
     {
         [Theory]
-        [InlineData("")]
         [InlineData("()")]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa65")]
         public void GivenInvalidIdentifiers_OnValidationOfRetrieveRequest_ErrorReturned(string invalidIdentifier)
         {
             var request = new RetrieveDicomMetadataRequest(invalidIdentifier);
-            ValidateHasError(request, "'Study Instance UID' is not in the correct format.");
+            ValidateHasError(request, "Study Instance Uid");
 
             request = new RetrieveDicomMetadataRequest(
-                studyInstanceUID: Guid.NewGuid().ToString(),
-                seriesInstanceUID: invalidIdentifier);
-            ValidateHasError(request, "'Series Instance UID' is not in the correct format.");
+                studyInstanceUid: TestUidGenerator.Generate(),
+                seriesInstanceUid: invalidIdentifier);
+            ValidateHasError(request, "Series Instance Uid");
 
             request = new RetrieveDicomMetadataRequest(
-                studyInstanceUID: Guid.NewGuid().ToString(),
-                seriesInstanceUID: Guid.NewGuid().ToString(),
-                sopInstanceUID: invalidIdentifier);
-            ValidateHasError(request, "'Sop Instance UID' is not in the correct format.");
+                studyInstanceUid: TestUidGenerator.Generate(),
+                seriesInstanceUid: TestUidGenerator.Generate(),
+                sopInstanceUid: invalidIdentifier);
+            ValidateHasError(request, "Sop Instance Uid");
         }
 
         [Theory]
@@ -55,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
             ValidationResult result = new RetrieveDicomMetadataRequestValidator().Validate(request);
             Assert.False(result.IsValid);
             Assert.Single(result.Errors);
-            Assert.Equal(expectedErrorMessage, result.Errors[0].ErrorMessage);
+            Assert.Contains(expectedErrorMessage, result.Errors[0].ErrorMessage);
         }
     }
 }

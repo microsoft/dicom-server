@@ -44,21 +44,21 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsSelf();
 
-            services.Add<SqlServerDicomIndexSchema>()
+            services.Add<DicomSqlIndexSchema>()
                 .Singleton()
                 .AsSelf();
 
-            services.Add<SqlServerDicomIndexDataStore>()
+            services.Add<DicomSqlIndexDataStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomSqlQueryService>()
+            services.Add<DicomSqlQueryStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomSqlInstanceService>()
+            services.Add<DicomSqlInstanceStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

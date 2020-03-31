@@ -19,8 +19,10 @@ using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -75,7 +77,22 @@ namespace Microsoft.AspNetCore.Builder
             });
 
             services.AddSingleton<IDicomRouteProvider, DicomRouteProvider>();
-            services.Add<DicomDataStore>()
+            services.Add<DicomStoreService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<DicomRetrieveMetadataService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<DicomRetrieveResourceService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<DicomDeleteService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

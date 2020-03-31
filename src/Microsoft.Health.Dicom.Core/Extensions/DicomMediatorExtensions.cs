@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -20,10 +20,10 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 {
     public static class DicomMediatorExtensions
     {
-        public static Task<StoreDicomResourcesResponse> StoreDicomResourcesAsync(
+        public static Task<StoreDicomResponse> StoreDicomResourcesAsync(
             this IMediator mediator, Uri requestBaseUri, Stream requestBody, string requestContentType, string studyInstanceUID, CancellationToken cancellationToken)
         {
-            return mediator.Send(new StoreDicomResourcesRequest(requestBaseUri, requestBody, requestContentType, studyInstanceUID), cancellationToken);
+            return mediator.Send(new StoreDicomRequest(requestBaseUri, requestBody, requestContentType, studyInstanceUID), cancellationToken);
         }
 
         public static Task<RetrieveDicomResourceResponse> RetrieveDicomStudyAsync(

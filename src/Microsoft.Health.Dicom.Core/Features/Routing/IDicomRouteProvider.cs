@@ -4,16 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
 
 namespace Microsoft.Health.Dicom.Core.Features.Routing
 {
     public interface IDicomRouteProvider
     {
-        Uri GetRetrieveUri(Uri baseUri, DicomStudy dicomStudy);
+        Uri GetRetrieveUri(Uri baseUri, string studyInstaceUid);
 
-        Uri GetRetrieveUri(Uri baseUri, DicomSeries dicomSeries);
-
-        Uri GetRetrieveUri(Uri baseUri, DicomInstance dicomInstance);
+        Uri GetRetrieveUri(Uri baseUri, DicomDatasetIdentifier dicomInstance);
     }
 }
