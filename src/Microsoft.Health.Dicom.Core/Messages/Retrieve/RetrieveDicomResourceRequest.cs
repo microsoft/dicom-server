@@ -17,35 +17,35 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         /// </summary>
         private const string OriginalTransferSyntaxRequest = "*";
 
-        public RetrieveDicomResourceRequest(string requestedTransferSyntax, string studyInstanceUID)
+        public RetrieveDicomResourceRequest(string requestedTransferSyntax, string studyInstanceUid)
             : this(ResourceType.Study, requestedTransferSyntax)
         {
-            StudyInstanceUID = studyInstanceUID;
+            StudyInstanceUid = studyInstanceUid;
         }
 
-        public RetrieveDicomResourceRequest(string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID)
+        public RetrieveDicomResourceRequest(string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid)
             : this(ResourceType.Series, requestedTransferSyntax)
         {
-            StudyInstanceUID = studyInstanceUID;
-            SeriesInstanceUID = seriesInstanceUID;
+            StudyInstanceUid = studyInstanceUid;
+            SeriesInstanceUid = seriesInstanceUid;
         }
 
         public RetrieveDicomResourceRequest(
-            string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+            string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
             : this(ResourceType.Instance, requestedTransferSyntax)
         {
-            StudyInstanceUID = studyInstanceUID;
-            SeriesInstanceUID = seriesInstanceUID;
-            SopInstanceUID = sopInstanceUID;
+            StudyInstanceUid = studyInstanceUid;
+            SeriesInstanceUid = seriesInstanceUid;
+            SopInstanceUid = sopInstanceUid;
         }
 
         public RetrieveDicomResourceRequest(
-            string requestedTransferSyntax, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, IEnumerable<int> frames)
+            string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IEnumerable<int> frames)
             : this(ResourceType.Frames, requestedTransferSyntax)
         {
-            StudyInstanceUID = studyInstanceUID;
-            SeriesInstanceUID = seriesInstanceUID;
-            SopInstanceUID = sopInstanceUID;
+            StudyInstanceUid = studyInstanceUid;
+            SeriesInstanceUid = seriesInstanceUid;
+            SopInstanceUid = sopInstanceUid;
 
             // Per DICOMWeb spec (http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_9.5.1.2.1)
             // frame number in the URI is 1-based, unlike fo-dicom representation where it's 0-based.
@@ -62,11 +62,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 
         public string RequestedRepresentation { get; }
 
-        public string StudyInstanceUID { get; }
+        public string StudyInstanceUid { get; }
 
-        public string SeriesInstanceUID { get; }
+        public string SeriesInstanceUid { get; }
 
-        public string SopInstanceUID { get; }
+        public string SopInstanceUid { get; }
 
         public IEnumerable<int> Frames { get; }
 

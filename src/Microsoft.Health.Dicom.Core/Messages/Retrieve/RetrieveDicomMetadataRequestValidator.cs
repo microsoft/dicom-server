@@ -14,20 +14,20 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         public RetrieveDicomMetadataRequestValidator()
         {
             // Validate the provided identifiers conform correctly.
-            RuleFor(x => x.SopInstanceUID)
-                .SetValidator(new DicomIdentifierValidator())
+            RuleFor(x => x.SopInstanceUid)
+                .Must(DicomIdentifierValidator.Validate)
                 .When(x => x.ResourceType == ResourceType.Instance);
-            RuleFor(x => x.SeriesInstanceUID)
-                .SetValidator(new DicomIdentifierValidator())
+            RuleFor(x => x.SeriesInstanceUid)
+                 .Must(DicomIdentifierValidator.Validate)
                 .When(x => x.ResourceType != ResourceType.Study);
-            RuleFor(x => x.StudyInstanceUID)
-                .SetValidator(new DicomIdentifierValidator());
+            RuleFor(x => x.StudyInstanceUid)
+                 .Must(DicomIdentifierValidator.Validate);
 
             // Check for non-repeated identifiers.
             RuleFor(x => x)
-                .Must(x => x.StudyInstanceUID != x.SeriesInstanceUID && x.StudyInstanceUID != x.SopInstanceUID);
+                .Must(x => x.StudyInstanceUid != x.SeriesInstanceUid && x.StudyInstanceUid != x.SopInstanceUid);
             RuleFor(x => x)
-                .Must(x => x.SeriesInstanceUID != x.SopInstanceUID)
+                .Must(x => x.SeriesInstanceUid != x.SopInstanceUid)
                 .When(x => x.ResourceType != ResourceType.Study);
         }
     }

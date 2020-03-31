@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using MediatR;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Query
 {

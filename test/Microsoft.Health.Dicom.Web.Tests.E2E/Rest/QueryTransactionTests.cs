@@ -9,7 +9,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
-using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;

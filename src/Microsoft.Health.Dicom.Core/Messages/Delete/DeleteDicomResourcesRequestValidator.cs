@@ -17,20 +17,20 @@ namespace Microsoft.Health.Dicom.Core.Messages.Delete
                 .Must(x => x != ResourceType.Frames);
 
             // Validate the provided identifiers conform correctly.
-            RuleFor(x => x.SopInstanceUID)
-                .SetValidator(new DicomIdentifierValidator())
+            RuleFor(x => x.SopInstanceUid)
+                .Must(DicomIdentifierValidator.Validate)
                 .When(x => x.ResourceType == ResourceType.Instance);
-            RuleFor(x => x.SeriesInstanceUID)
-                .SetValidator(new DicomIdentifierValidator())
+            RuleFor(x => x.SeriesInstanceUid)
+                .Must(DicomIdentifierValidator.Validate)
                 .When(x => x.ResourceType != ResourceType.Study);
-            RuleFor(x => x.StudyInstanceUID)
-                .SetValidator(new DicomIdentifierValidator());
+            RuleFor(x => x.StudyInstanceUid)
+                .Must(DicomIdentifierValidator.Validate);
 
             // Check for non-repeated identifiers.
-            RuleFor(x => x.StudyInstanceUID)
-                .Must((request, x) => request.SeriesInstanceUID != x && request.SopInstanceUID != x);
-            RuleFor(x => x.SeriesInstanceUID)
-                .Must((request, x) => x != request.SopInstanceUID)
+            RuleFor(x => x.StudyInstanceUid)
+                .Must((request, x) => request.SeriesInstanceUid != x && request.SopInstanceUid != x);
+            RuleFor(x => x.SeriesInstanceUid)
+                .Must((request, x) => x != request.SopInstanceUid)
                 .When(x => x.ResourceType != ResourceType.Study);
         }
     }

@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Features.Persistence;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Common
@@ -41,10 +41,10 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 var referencedSopInstanceUID = dataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID);
                 Assert.True(datasetsBySopInstanceUID.ContainsKey(referencedSopInstanceUID));
                 DicomDataset referenceDataset = datasetsBySopInstanceUID[referencedSopInstanceUID];
-                var dicomInstance = DicomInstance.Create(referenceDataset);
+                var dicomInstance = referenceDataset.ToDicomDatasetIdentifier();
                 Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.SOPClassUID), dataset.GetSingleValue<string>(DicomTag.ReferencedSOPClassUID));
                 Assert.EndsWith(
-                    $"studies/{dicomInstance.StudyInstanceUID}/series/{dicomInstance.SeriesInstanceUID}/instances/{dicomInstance.SopInstanceUID}",
+                    $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}/instances/{dicomInstance.SopInstanceUid}",
                     dataset.GetSingleValue<string>(DicomTag.RetrieveURL));
             }
         }
