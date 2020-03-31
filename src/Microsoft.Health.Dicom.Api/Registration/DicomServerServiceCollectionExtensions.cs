@@ -13,8 +13,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Api.Features.Cors;
+using Microsoft.Health.Api.Features.Headers;
+using Microsoft.Health.Api.Modules;
+using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
@@ -56,6 +59,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
+            services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
 
             services.AddOptions();
 
@@ -129,6 +133,11 @@ namespace Microsoft.AspNetCore.Builder
                 return app =>
                 {
                     IWebHostEnvironment env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
+
+                    // This middleware will add delegates to the OnStarting method of httpContext.Response for setting headers.
+                    app.UseBaseHeaders();
+
+                    app.UseCors(CorsConstants.DefaultCorsPolicy);
 
                     if (env.IsDevelopment())
                     {
