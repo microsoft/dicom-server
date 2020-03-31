@@ -11,11 +11,11 @@ using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class SqlServerDicomIndexDataStoreTestHelper : IDicomIndexDataStoreTestHelper
+    public class DicomSqlIndexDataStoreTestHelper : IDicomIndexDataStoreTestHelper
     {
         private readonly string _connectionString;
 
-        public SqlServerDicomIndexDataStoreTestHelper(string connectionString)
+        public DicomSqlIndexDataStoreTestHelper(string connectionString)
         {
             _connectionString = connectionString;
         }

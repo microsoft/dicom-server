@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public DicomBlobStorageTests(DicomBlobStorageTestsFixture fixture)
         {
-            _dicomBlobDataStore = fixture.DicomBlobDataStore;
+            _dicomBlobDataStore = fixture.DicomFileStore;
             _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
         }
 

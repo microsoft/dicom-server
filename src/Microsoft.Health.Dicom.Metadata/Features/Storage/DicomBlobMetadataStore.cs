@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             _logger = logger;
         }
 
-        public async Task AddInstanceMetadataAsync(DicomDataset dicomDataset, CancellationToken cancellationToken = default)
+        public async Task AddInstanceMetadataAsync(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -90,7 +90,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 retryPolicy);
         }
 
-        public async Task DeleteInstanceMetadataAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task DeleteInstanceMetadataAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(dicomInstanceIdentifier);
 
@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 retryPolicy);
         }
 
-        public async Task<DicomDataset> GetInstanceMetadataAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task<DicomDataset> GetInstanceMetadataAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(dicomInstanceIdentifier);
 

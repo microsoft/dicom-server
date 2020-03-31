@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class SqlServerDicomIndexDataStoreTestsFixture : IAsyncLifetime
+    public class DicomSqlIndexDataStoreTestsFixture : IAsyncLifetime
     {
         private const string LocalConnectionString = "server=(local);Integrated Security=true";
 
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly string _databaseName;
         private readonly SchemaInitializer _schemaInitializer;
 
-        public SqlServerDicomIndexDataStoreTestsFixture()
+        public DicomSqlIndexDataStoreTestsFixture()
         {
             string initialConnectionString = Environment.GetEnvironmentVariable("SqlServer:ConnectionString") ?? LocalConnectionString;
 
@@ -51,14 +51,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 config,
                 NullLogger<DicomSqlIndexDataStore>.Instance);
 
-            TestHelper = new SqlServerDicomIndexDataStoreTestHelper(TestConnectionString);
+            TestHelper = new DicomSqlIndexDataStoreTestHelper(TestConnectionString);
         }
 
         public string TestConnectionString { get; }
 
         public IDicomIndexDataStore DicomIndexDataStore { get; }
 
-        public SqlServerDicomIndexDataStoreTestHelper TestHelper { get; }
+        public DicomSqlIndexDataStoreTestHelper TestHelper { get; }
 
         public async Task InitializeAsync()
         {

@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public DicomMetadataStoreTests(DicomBlobStorageTestsFixture fixture)
         {
-            _dicomMetadataStore = fixture.DicomInstanceMetadataStore;
+            _dicomMetadataStore = fixture.DicomMetadataStore;
         }
 
         [Fact]

@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 if (message.ResourceType == ResourceType.Frames)
                 {
                     // We first validate the file has the requested frames, then pass the frame for lazy encoding.
-                    var dicomFile = DicomFile.Open(resultStreams.Single());
+                    var dicomFile = await DicomFile.OpenAsync(resultStreams.Single());
                     dicomFile.ValidateHasFrames(message.Frames);
 
                     if (!message.OriginalTransferSyntaxRequested() &&

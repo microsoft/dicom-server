@@ -42,9 +42,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         }
 
-        public IDicomFileStore DicomBlobDataStore { get; private set; }
+        public IDicomFileStore DicomFileStore { get; private set; }
 
-        public IDicomMetadataStore DicomInstanceMetadataStore { get; private set; }
+        public IDicomMetadataStore DicomMetadataStore { get; private set; }
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
@@ -70,8 +70,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var jsonSerializer = new JsonSerializer();
             jsonSerializer.Converters.Add(new JsonDicomConverter());
 
-            DicomBlobDataStore = new DicomBlobFileStore(_blobClient, optionsMonitor, NullLogger<DicomBlobFileStore>.Instance);
-            DicomInstanceMetadataStore = new DicomBlobMetadataStore(_blobClient, jsonSerializer, optionsMonitor, RecyclableMemoryStreamManager, NullLogger<DicomBlobMetadataStore>.Instance);
+            DicomFileStore = new DicomBlobFileStore(_blobClient, optionsMonitor, NullLogger<DicomBlobFileStore>.Instance);
+            DicomMetadataStore = new DicomBlobMetadataStore(_blobClient, jsonSerializer, optionsMonitor, RecyclableMemoryStreamManager, NullLogger<DicomBlobMetadataStore>.Instance);
         }
 
         public async Task DisposeAsync()

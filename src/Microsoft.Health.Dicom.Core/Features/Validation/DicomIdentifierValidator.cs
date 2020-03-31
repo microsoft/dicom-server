@@ -15,6 +15,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     /// </summary>
     public static class DicomIdentifierValidator
     {
+        private static readonly Regex ValidIdentifierFormat = new Regex("^[0-9\\.]*$", RegexOptions.Compiled);
+        private static readonly Regex InvalidComponentStart = new Regex(@"[.]0\d", RegexOptions.Compiled);
+
         public static void ValidateAndThrow(string identifierValue, string parameterName)
         {
             if (!Validate(identifierValue))
@@ -52,12 +55,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return false;
             }
 
-            if (!Regex.IsMatch(identifierValue, "^[0-9\\.]*$"))
+            if (!ValidIdentifierFormat.IsMatch(identifierValue))
             {
                 return false;
             }
 
-            if (identifierValue.StartsWith("0", System.StringComparison.OrdinalIgnoreCase) || Regex.IsMatch(identifierValue, @"[.]0\d"))
+            if (identifierValue.StartsWith("0", System.StringComparison.OrdinalIgnoreCase) || InvalidComponentStart.IsMatch(identifierValue))
             {
                 return false;
             }
