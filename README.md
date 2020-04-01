@@ -2,6 +2,10 @@
 
 A .NET Core implementation of the DICOM Web standard.
 
+## Development
+- [Setup](docs/Development.md)
+- [Exception handling](docs/ExceptionHandling.md)
+
 ## Contributing
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
