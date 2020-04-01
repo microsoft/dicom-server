@@ -1,15 +1,14 @@
 # Developing
 ## Requirements
-- [Azure storage emulator](https://go.microsoft.com/fwlink/?linkid=717179&clcid=0x409)
+- [Azure storage emulator](https://go.microsoft.com/fwlink/?linkid=717179)
 - Sql Server 2019
-- .Net core SDK version specificied [here](global.json)
+- .Net core SDK version specificied [here](../global.json)
 
 ## Getting Started in Visual Studio
 ### To Develop
-- Install Visual studio 2019
+- Install Visual Studio 2019
 - [Clone the dicom-server repo](https://github.com/microsoft/dicom-server.git)
 - Navigate to the cloned dicom-server directory
-
 - Open Microsoft.Health.Dicom.sln in VS
 - Build
 - Make sure the storage emulator is running
@@ -30,7 +29,7 @@
 
 ![Post A Dicom Image](images/FiddlerPost.png)
 
-You should see the request body automatically populated as below.
+You should see the request body populated as below.
 
 ```http
 POST https://localhost:63838/studies/
@@ -48,7 +47,8 @@ Content-Type: application/dicom
 
 ```
 ## Postman for Get
-Example QIDO to get all studies
+- [Install Postman](https://www.postman.com/downloads/)
+- Example QIDO to get all studies
 ```http
 GET https://localhost:63838/studies
 accept: application/dicom+json
