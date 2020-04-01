@@ -92,6 +92,11 @@ namespace Microsoft.AspNetCore.Builder
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.Add<DicomQueryService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             services.Add<DicomDeleteService>()
                 .Scoped()
                 .AsSelf()

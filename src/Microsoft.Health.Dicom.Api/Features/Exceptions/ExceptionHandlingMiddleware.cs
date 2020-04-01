@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 {
@@ -42,15 +43,45 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     throw;
                 }
 
-                HttpStatusCode responseStatusCode = HttpStatusCode.InternalServerError;
-
-                if (exception is DicomException dicomException)
-                {
-                    responseStatusCode = dicomException.ResponseStatusCode;
-                }
-
-                await ExecuteResultAsync(context, new StatusCodeResult((int)responseStatusCode));
+                var result = MapExceptionToResult(exception);
+                await ExecuteResultAsync(context, result);
             }
+        }
+
+        private IActionResult MapExceptionToResult(Exception exception)
+        {
+            switch (exception)
+            {
+                case DicomQueryParseException _:
+                case DicomInvalidIdentifierException _:
+                    return GetResult(HttpStatusCode.BadRequest, exception.Message);
+                case DicomServerException serverException:
+                    return GetResult(HttpStatusCode.ServiceUnavailable, serverException.Message);
+
+                // TODO remove below exception after we clean up all exceptions
+                case DicomException dicomException:
+                    return GetResult(dicomException.ResponseStatusCode, dicomException.Message);
+                default:
+                    _logger.LogError("Unhandled exception: {0}", exception);
+                    return GetResult(HttpStatusCode.InternalServerError);
+            }
+        }
+
+        private IActionResult GetResult(HttpStatusCode statusCode, string message)
+        {
+            return new ContentResult
+            {
+                StatusCode = (int)statusCode,
+                Content = message,
+            };
+        }
+
+        private IActionResult GetResult(HttpStatusCode statusCode)
+        {
+            return new ContentResult
+            {
+                StatusCode = (int)statusCode,
+            };
         }
 
         protected internal virtual async Task ExecuteResultAsync(HttpContext context, IActionResult result)

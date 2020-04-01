@@ -3,13 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Messages.Query;
+
+namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DicomInvalidIdentifierException : DicomServerException
+    public interface IDicomQueryService
     {
-        public DicomInvalidIdentifierException(string value, string name)
-            : base(string.Format(DicomCoreResource.DicomIdentifierInvalid, name, value))
-        {
-        }
+        Task<QueryDicomResourceResponse> QueryAsync(QueryDicomResourceRequest message, CancellationToken cancellationToken = default);
     }
 }

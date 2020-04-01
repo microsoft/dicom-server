@@ -3,12 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class DicomInvalidIdentifierException : DicomServerException
+    /// <summary>
+    /// Base class for all server exceptions
+    /// </summary>
+    public abstract class DicomServerException : Exception
     {
-        public DicomInvalidIdentifierException(string value, string name)
-            : base(string.Format(DicomCoreResource.DicomIdentifierInvalid, name, value))
+        public DicomServerException(string message)
+            : base(message)
         {
         }
     }

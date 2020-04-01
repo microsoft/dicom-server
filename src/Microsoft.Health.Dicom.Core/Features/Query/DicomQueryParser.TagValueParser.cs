@@ -9,7 +9,7 @@ using Dicom;
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     /// <summary>
-    /// Vaoue parsers
+    /// Value parsers
     /// </summary>
     public partial class DicomQueryParser
     {
