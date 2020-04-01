@@ -1,26 +1,27 @@
 # Developing
 ## Requirements
-- Azure storage emulator
+- [Azure storage emulator](https://go.microsoft.com/fwlink/?linkid=717179&clcid=0x409)
 - Sql Server 2019
-- Visual Studio 2019
+- .Net core SDK version specificied [here](global.json)
 
-## Getting Started
+## Getting Started in Visual Studio
+### To Develop
+- Install Visual studio 2019
 - [Clone the dicom-server repo](https://github.com/microsoft/dicom-server.git)
 - Navigate to the cloned dicom-server directory
-- Open Microsoft.Health.Dicom.sln in VS
 
-## To Develop
+- Open Microsoft.Health.Dicom.sln in VS
 - Build
+- Make sure the storage emulator is running
 - Run all tests from the Test explorer
 
 # Testing
-- Make sure the storage emulator is running
 - Set Microsoft.Health.Dicom.Web as your startup project
 - Run the project
 - Webserver is now running at https://localhost:63838/
 
 ## Fiddler to Post dcm files
-- Install fiddler
+- [Install fiddler](https://www.telerik.com/download/fiddler)
 - Go to Tools->Options->Https on fiddler. Click protocols and add "tls1.2" to the list of protocols.
 - Use fiddler composer to post a request with (use upload file button at request body section as shown in picture below) 
    - Content-type: multipart/related
@@ -47,8 +48,7 @@ Content-Type: application/dicom
 
 ```
 ## Postman for Get
--  Check the [conformance](https://microsofthealth.visualstudio.com/Health/_git/health-paas-docs?path=%2Fspecs%2FDICOM%2FDICOMWeb-Conformance.md&_a=preview) document to try a WADO or QIDO url.
-- Example QIDO to get all studies
+Example QIDO to get all studies
 ```http
 GET https://localhost:63838/studies
 accept: application/dicom+json
