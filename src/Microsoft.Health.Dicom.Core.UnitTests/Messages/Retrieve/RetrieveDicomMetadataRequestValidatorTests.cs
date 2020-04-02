@@ -37,15 +37,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("1", "2", "1")]
         [InlineData("1", "2", "2")]
         public void GivenRepeatedIdentifiers_OnValidationOfRetrieveMetadataRequest_ErrorReturned(
-            string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+            string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             const string expectedErrorMessage = "The specified condition was not met for ''.";
 
-            var request = new RetrieveDicomMetadataRequest(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            var request = new RetrieveDicomMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             ValidateHasError(request, expectedErrorMessage);
 
             // Always use the same identifier for series request
-            request = new RetrieveDicomMetadataRequest(studyInstanceUID, studyInstanceUID);
+            request = new RetrieveDicomMetadataRequest(studyInstanceUid, studyInstanceUid);
             ValidateHasError(request, expectedErrorMessage);
         }
 

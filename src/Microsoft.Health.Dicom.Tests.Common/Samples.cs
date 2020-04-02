@@ -35,9 +35,9 @@ namespace Microsoft.Health.Dicom.Tests.Common
         /// <summary>
         /// Will generate a file with valid 8bit pixel data representing a monochrome pattern.
         /// </summary>
-        /// <param name="studyInstanceUID">Study UID (will generate new if null)</param>
-        /// <param name="seriesInstanceUID">Series UID (will generate new if null)</param>
-        /// <param name="sopInstanceUID">Instance UID (will generate new if null)</param>
+        /// <param name="studyInstanceUid">Study UID (will generate new if null)</param>
+        /// <param name="seriesInstanceUid">Series UID (will generate new if null)</param>
+        /// <param name="sopInstanceUid">Instance UID (will generate new if null)</param>
         /// <param name="rows">width</param>
         /// <param name="columns">height</param>
         /// <param name="transferSyntax">Transfer Syntax</param>
@@ -45,9 +45,9 @@ namespace Microsoft.Health.Dicom.Tests.Common
         /// <param name="frames">Number of frames to generate</param>
         /// <returns>DicomFile</returns>
         public static DicomFile CreateRandomDicomFileWith8BitPixelData(
-            string studyInstanceUID = null,
-            string seriesInstanceUID = null,
-            string sopInstanceUID = null,
+            string studyInstanceUid = null,
+            string seriesInstanceUid = null,
+            string sopInstanceUid = null,
             int rows = 512,
             int columns = 512,
             string transferSyntax = "1.2.840.10008.1.2.1",  // Explicit VR Little Endian
@@ -55,9 +55,9 @@ namespace Microsoft.Health.Dicom.Tests.Common
             int frames = 1)
         {
             DicomFile dicomFile = DicomImageGenerator.GenerateDicomFile(
-               studyInstanceUID,
-               seriesInstanceUID,
-               sopInstanceUID,
+               studyInstanceUid,
+               seriesInstanceUid,
+               sopInstanceUid,
                null,
                rows,
                columns,
@@ -72,9 +72,9 @@ namespace Microsoft.Health.Dicom.Tests.Common
         /// <summary>
         /// Will generate a file with valid 16bit pixel data representing a monochrome pattern.
         /// </summary>
-        /// <param name="studyInstanceUID">Study UID (will generate new if null)</param>
-        /// <param name="seriesInstanceUID">Series UID (will generate new if null)</param>
-        /// <param name="sopInstanceUID">Instance UID (will generate new if null)</param>
+        /// <param name="studyInstanceUid">Study UID (will generate new if null)</param>
+        /// <param name="seriesInstanceUid">Series UID (will generate new if null)</param>
+        /// <param name="sopInstanceUid">Instance UID (will generate new if null)</param>
         /// <param name="rows">width</param>
         /// <param name="columns">height</param>
         /// <param name="transferSyntax">Transfer Syntax</param>
@@ -82,9 +82,9 @@ namespace Microsoft.Health.Dicom.Tests.Common
         /// /// <param name="frames">Number of frames to generate</param>
         /// <returns>DicomFile</returns>
         public static DicomFile CreateRandomDicomFileWith16BitPixelData(
-            string studyInstanceUID = null,
-            string seriesInstanceUID = null,
-            string sopInstanceUID = null,
+            string studyInstanceUid = null,
+            string seriesInstanceUid = null,
+            string sopInstanceUid = null,
             int rows = 512,
             int columns = 512,
             string transferSyntax = "1.2.840.10008.1.2.1", // Explicit VR Little Endian
@@ -92,9 +92,9 @@ namespace Microsoft.Health.Dicom.Tests.Common
             int frames = 1)
         {
             DicomFile dicomFile = DicomImageGenerator.GenerateDicomFile(
-                studyInstanceUID,
-                seriesInstanceUID,
-                sopInstanceUID,
+                studyInstanceUid,
+                seriesInstanceUid,
+                sopInstanceUid,
                 null,
                 rows,
                 columns,
@@ -134,38 +134,38 @@ namespace Microsoft.Health.Dicom.Tests.Common
         }
 
         public static DicomFile CreateRandomDicomFileWithPixelData(
-        string studyInstanceUID = null,
-        string seriesInstanceUID = null,
-        string sopInstanceUID = null,
+        string studyInstanceUid = null,
+        string seriesInstanceUid = null,
+        string sopInstanceUid = null,
         int rows = 50,
         int columns = 50,
         int frames = 1)
         {
-            var result = new DicomFile(CreateRandomInstanceDataset(studyInstanceUID, seriesInstanceUID, sopInstanceUID));
+            var result = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             AppendRandomPixelData(rows, columns, frames, result);
             return result;
         }
 
         public static DicomFile CreateRandomDicomFile(
-                    string studyInstanceUID = null,
-                    string seriesInstanceUID = null,
-                    string sopInstanceUID = null)
+                    string studyInstanceUid = null,
+                    string seriesInstanceUid = null,
+                    string sopInstanceUid = null)
         {
-            return new DicomFile(CreateRandomInstanceDataset(studyInstanceUID, seriesInstanceUID, sopInstanceUID));
+            return new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         }
 
         public static DicomDataset CreateRandomInstanceDataset(
-            string studyInstanceUID = null,
-            string seriesInstanceUID = null,
-            string sopInstanceUID = null,
-            string sopClassUID = null)
+            string studyInstanceUid = null,
+            string seriesInstanceUid = null,
+            string sopInstanceUid = null,
+            string sopClassUid = null)
         {
             var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
             {
-                { DicomTag.StudyInstanceUID, studyInstanceUID ?? TestUidGenerator.Generate() },
-                { DicomTag.SeriesInstanceUID, seriesInstanceUID ?? TestUidGenerator.Generate() },
-                { DicomTag.SOPInstanceUID, sopInstanceUID ?? TestUidGenerator.Generate() },
-                { DicomTag.SOPClassUID, sopClassUID ?? TestUidGenerator.Generate() },
+                { DicomTag.StudyInstanceUID, studyInstanceUid ?? TestUidGenerator.Generate() },
+                { DicomTag.SeriesInstanceUID, seriesInstanceUid ?? TestUidGenerator.Generate() },
+                { DicomTag.SOPInstanceUID, sopInstanceUid ?? TestUidGenerator.Generate() },
+                { DicomTag.SOPClassUID, sopClassUid ?? TestUidGenerator.Generate() },
                 { DicomTag.BitsAllocated, (ushort)8 },
                 { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
                 { DicomTag.PatientID, TestUidGenerator.Generate() },

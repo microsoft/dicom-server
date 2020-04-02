@@ -39,16 +39,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Bugs
 
             var dirName = "transcodings";
             var filename = Path.Combine(dirName, "JPEGProcess1.dcm");
-            var studyInstanceUID = TestUidGenerator.Generate();
-            var seriesInstanceUID = TestUidGenerator.Generate();
-            var sopInstanceUID = TestUidGenerator.Generate();
-            var sopClassUID = "1.2.840.10008.5.1.4.1.1.1";
+            var studyInstanceUid = TestUidGenerator.Generate();
+            var seriesInstanceUid = TestUidGenerator.Generate();
+            var sopInstanceUid = TestUidGenerator.Generate();
+            var sopClassUid = "1.2.840.10008.5.1.4.1.1.1";
 
             var dicomFile = DicomImageGenerator.GenerateDicomFile(
-                studyInstanceUID,
-                seriesInstanceUID,
-                sopInstanceUID,
-                sopClassUID,
+                studyInstanceUid,
+                seriesInstanceUid,
+                sopInstanceUid,
+                sopClassUid,
                 512,
                 512,
                 TestFileBitDepth.EightBit,

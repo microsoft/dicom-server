@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Features
     {
         private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
 
-        private DicomDatasetIdentifier(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public DicomDatasetIdentifier(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             EnsureArg.IsNotNull(studyInstanceUid);
             EnsureArg.IsNotNull(seriesInstanceUid);

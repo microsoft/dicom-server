@@ -15,9 +15,9 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
             Uri requestBaseUri,
             Stream requestBody,
             string requestContentType,
-            string studyInstanceUID = null)
+            string studyInstanceUid = null)
         {
-            StudyInstanceUid = studyInstanceUID;
+            StudyInstanceUid = studyInstanceUid;
             RequestBaseUri = requestBaseUri;
             RequestBody = requestBody;
             RequestContentType = requestContentType;

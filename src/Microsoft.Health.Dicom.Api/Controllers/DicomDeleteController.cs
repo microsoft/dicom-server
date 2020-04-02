@@ -10,6 +10,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 
@@ -34,13 +35,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [Route("studies/{studyInstanceUID}")]
-        public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUID)
+        [Route(KnownRoutes.StudyRoute)]
+        public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Delete Study request received, with study instance UID '{studyInstanceUID}'.");
+            _logger.LogInformation($"DICOM Web Delete Study request received, with study instance UID '{studyInstanceUid}'.");
 
             DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
-                studyInstanceUID, cancellationToken: HttpContext.RequestAborted);
+                studyInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(deleteResponse.StatusCode);
         }
@@ -49,13 +50,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [Route("studies/{studyInstanceUID}/series/{seriesUID}")]
-        public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUID, string seriesUID)
+        [Route(KnownRoutes.SeriesRoute)]
+        public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Delete Series request received, with study instance UID '{studyInstanceUID}' and series UID '{seriesUID}'.");
+            _logger.LogInformation($"DICOM Web Delete Series request received, with study instance UID '{studyInstanceUid}' and series UID '{seriesInstanceUid}'.");
 
             DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
-                studyInstanceUID, seriesUID, cancellationToken: HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(deleteResponse.StatusCode);
         }
@@ -64,13 +65,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [Route("studies/{studyInstanceUID}/series/{seriesUID}/instances/{instanceUID}")]
-        public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUID, string seriesUID, string instanceUID)
+        [Route(KnownRoutes.InstanceRoute)]
+        public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Delete Instance request received, with study instance UID '{studyInstanceUID}', series UID '{seriesUID}' and instance UID '{instanceUID}'.");
+            _logger.LogInformation($"DICOM Web Delete Instance request received, with study instance UID '{studyInstanceUid}', series UID '{seriesInstanceUid}' and instance UID '{sopInstanceUid}'.");
 
             DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
-                studyInstanceUID, seriesUID, instanceUID, cancellationToken: HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
             return StatusCode(deleteResponse.StatusCode);
         }

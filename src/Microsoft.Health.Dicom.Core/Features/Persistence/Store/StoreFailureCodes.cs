@@ -12,6 +12,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
     {
         public const ushort ProcessingFailureCode = 272;
         public const ushort SopInstanceAlredyExistsFailureCode = 45070;
-        public const ushort MismatchStudyInstanceUIDFailureCode = 43265;
+        public const ushort MismatchStudyInstanceUidFailureCode = 43265;
     }
 }

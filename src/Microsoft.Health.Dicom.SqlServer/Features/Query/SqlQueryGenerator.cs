@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private readonly SqlQueryParameterManager _parameters;
         private readonly FilterTableContext _tableContext;
         private const string SqlDateFormat = "yyyy-MM-dd";
-        private static HashSet<DicomTag> _dicomUIDTags = new HashSet<DicomTag>()
+        private static HashSet<DicomTag> _dicomUidTags = new HashSet<DicomTag>()
         {
             DicomTag.StudyInstanceUID,
             DicomTag.SeriesInstanceUID,
@@ -292,13 +292,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private bool IsUidOnlyQuery()
         {
             return !_queryExpression.FilterConditions
-               .Any(filter => !_dicomUIDTags.Contains(filter.DicomTag));
+               .Any(filter => !_dicomUidTags.Contains(filter.DicomTag));
         }
 
         private string GetTableAlias(DicomTagSqlEntry sqlEntry)
         {
             if (_tableContext == FilterTableContext.InstanceTable
-                && _dicomUIDTags.Contains(sqlEntry.DicomTag))
+                && _dicomUidTags.Contains(sqlEntry.DicomTag))
             {
                 return InstanceTableAlias;
             }

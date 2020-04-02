@@ -18,8 +18,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
+using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
@@ -46,12 +48,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.PartialContent)]
         [HttpGet]
-        [Route("studies/{studyInstanceUID}/")]
-        public async Task<IActionResult> GetStudyAsync([FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax, string studyInstanceUID)
+        [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
+        public async Task<IActionResult> GetStudyAsync([FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax, string studyInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}'.");
+            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}'.");
 
-            RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUID, transferSyntax, HttpContext.RequestAborted);
+            RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, transferSyntax, HttpContext.RequestAborted);
             return ConvertToActionResult(response);
         }
 
@@ -61,12 +63,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route("studies/{studyInstanceUID}/metadata")]
-        public async Task<IActionResult> GetStudyMetadataAsync(string studyInstanceUID)
+        [Route(KnownRoutes.StudyMetadataRoute)]
+        public async Task<IActionResult> GetStudyMetadataAsync(string studyInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUID}'.");
+            _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}'.");
 
-            RetrieveDicomMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUID, HttpContext.RequestAborted);
+            RetrieveDicomMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, HttpContext.RequestAborted);
             return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
@@ -77,16 +79,16 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.PartialContent)]
         [HttpGet]
-        [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}")]
+        [Route(KnownRoutes.SeriesRoute)]
         public async Task<IActionResult> GetSeriesAsync(
             [FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax,
-            string studyInstanceUID,
-            string seriesInstanceUID)
+            string studyInstanceUid,
+            string seriesInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}'.");
+            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
             RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
-                                studyInstanceUID, seriesInstanceUID, transferSyntax, HttpContext.RequestAborted);
+                                studyInstanceUid, seriesInstanceUid, transferSyntax, HttpContext.RequestAborted);
             return ConvertToActionResult(response);
         }
 
@@ -96,13 +98,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/metadata")]
-        public async Task<IActionResult> GetSeriesMetadataAsync(string studyInstanceUID, string seriesInstanceUID)
+        [Route(KnownRoutes.SeriesMetadataRoute)]
+        public async Task<IActionResult> GetSeriesMetadataAsync(string studyInstanceUid, string seriesInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}'.");
+            _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
             RetrieveDicomMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
-                                studyInstanceUID, seriesInstanceUID, HttpContext.RequestAborted);
+                                studyInstanceUid, seriesInstanceUid, HttpContext.RequestAborted);
             return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
@@ -112,17 +114,17 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}")]
+        [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
         public async Task<IActionResult> GetInstanceAsync(
             [FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax,
-            string studyInstanceUID,
-            string seriesInstanceUID,
-            string sopInstanceUID)
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}', instance: '{sopInstanceUID}'.");
+            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
             RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
-                            studyInstanceUID, seriesInstanceUID, sopInstanceUID, transferSyntax, HttpContext.RequestAborted);
+                            studyInstanceUid, seriesInstanceUid, sopInstanceUid, transferSyntax, HttpContext.RequestAborted);
             return ConvertToActionResult(response);
         }
 
@@ -132,13 +134,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}/metadata")]
-        public async Task<IActionResult> GetInstanceMetadataAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+        [Route(KnownRoutes.InstanceMetadataRoute)]
+        public async Task<IActionResult> GetInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}', instance: '{sopInstanceUID}'.");
+            _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
             RetrieveDicomMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
-                studyInstanceUID, seriesInstanceUID, sopInstanceUID, HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
             return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
@@ -148,17 +150,17 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route("studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}/frames/{frames}")]
+        [Route(KnownRoutes.FrameRoute)]
         public async Task<IActionResult> GetFramesAsync(
             [FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax,
-            string studyInstanceUID,
-            string seriesInstanceUID,
-            string sopInstanceUID,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
             [ModelBinder(typeof(IntArrayModelBinder))] int[] frames)
         {
-            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUID}', series: '{seriesInstanceUID}', instance: '{sopInstanceUID}', frames: '{string.Join(", ", frames ?? Array.Empty<int>())}'.");
+            _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}', frames: '{string.Join(", ", frames ?? Array.Empty<int>())}'.");
             RetrieveDicomResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
-                            studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames, transferSyntax, HttpContext.RequestAborted);
+                            studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, transferSyntax, HttpContext.RequestAborted);
             return ConvertToActionResult(response);
         }
 

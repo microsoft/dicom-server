@@ -13,7 +13,7 @@ using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Health.Dicom.Api.Features.Filters;
+using Microsoft.Health.Dicom.Core.Web;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Api.Features.Formatters

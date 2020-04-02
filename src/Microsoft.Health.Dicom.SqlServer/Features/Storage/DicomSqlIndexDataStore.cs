@@ -42,17 +42,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             _logger = logger;
         }
 
-        public Task DeleteInstanceIndexAsync(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken = default)
+        public Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;
         }
 
-        public Task<IEnumerable<DicomInstanceIdentifier>> DeleteSeriesIndexAsync(string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<DicomInstanceIdentifier>> DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(Enumerable.Empty<DicomInstanceIdentifier>());
         }
 
-        public Task<IEnumerable<DicomInstanceIdentifier>> DeleteStudyIndexAsync(string studyInstanceUID, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<DicomInstanceIdentifier>> DeleteStudyIndexAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(Enumerable.Empty<DicomInstanceIdentifier>());
         }

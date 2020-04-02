@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
-using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 

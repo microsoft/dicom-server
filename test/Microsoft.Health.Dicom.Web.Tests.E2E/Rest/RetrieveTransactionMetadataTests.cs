@@ -43,9 +43,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("aaaa-bbbb", " ")]
         [InlineData("aaaa-bbbb", "345%^&")]
         [InlineData("aaaa-bbbb", "aaaa-bbbb")]
-        public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingSeriesMetadata_TheServerShouldReturnBadRequest(string studyInstanceUID, string seriesInstanceUID)
+        public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingSeriesMetadata_TheServerShouldReturnBadRequest(string studyInstanceUid, string seriesInstanceUid)
         {
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.GetSeriesMetadataAsync(studyInstanceUID, seriesInstanceUID);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.GetSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
@@ -54,9 +54,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "345%^&")]
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb2")]
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb1")]
-        public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingInstanceMetadata_TheServerShouldReturnBadRequest(string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID)
+        public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingInstanceMetadata_TheServerShouldReturnBadRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.GetInstanceMetadataAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.GetInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 

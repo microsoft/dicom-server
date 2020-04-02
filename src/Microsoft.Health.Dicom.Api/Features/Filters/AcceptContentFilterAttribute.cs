@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters

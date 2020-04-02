@@ -18,6 +18,7 @@ using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
+using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
@@ -76,7 +77,8 @@ namespace Microsoft.AspNetCore.Builder
                 }
             });
 
-            services.AddSingleton<IDicomRouteProvider, DicomRouteProvider>();
+            services.AddSingleton<IUrlResolver, UrlResolver>();
+
             services.Add<DicomStoreService>()
                 .Scoped()
                 .AsSelf()

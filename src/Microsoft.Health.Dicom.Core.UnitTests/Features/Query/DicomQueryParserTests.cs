@@ -214,13 +214,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenStudyUID_WithUrl_CheckFilterCondition()
         {
-            var testStudyUID = DicomUID.Generate();
+            var testStudyUid = DicomUID.Generate();
             DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllSeries, testStudyUID.UID));
+                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllSeries, testStudyUid.UID));
             Assert.Equal(1, dicomQueryExpression.FilterConditions.Count);
             var cond = dicomQueryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
             Assert.NotNull(cond);
-            Assert.Equal(testStudyUID.UID, cond.Value);
+            Assert.Equal(testStudyUid.UID, cond.Value);
         }
 
         private QueryCollection GetQueryCollection(string key, string value)
@@ -256,10 +256,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         private QueryDicomResourceRequest CreateRequest(
             QueryCollection queryParams,
             QueryResource resourceType,
-            string studyInstanceUID = null,
-            string seriesInstanceUID = null)
+            string studyInstanceUid = null,
+            string seriesInstanceUid = null)
         {
-            return new QueryDicomResourceRequest(queryParams, resourceType, studyInstanceUID, seriesInstanceUID);
+            return new QueryDicomResourceRequest(queryParams, resourceType, studyInstanceUid, seriesInstanceUid);
         }
     }
 }

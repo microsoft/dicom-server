@@ -14,8 +14,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
+using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Store;
+using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
@@ -44,14 +46,19 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType((int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
-        [Route("studies/{studyInstanceUID?}")]
-        public async Task<IActionResult> PostAsync(string studyInstanceUID = null)
+        [Route(KnownRoutes.StoreRoute)]
+        public async Task<IActionResult> PostAsync(string studyInstanceUid = null)
         {
-            _logger.LogInformation($"DICOM Web Store Transaction request received, with study instance UID '{studyInstanceUID}'.");
+            _logger.LogInformation($"DICOM Web Store Transaction request received, with study instance UID '{studyInstanceUid}'.");
 
             Uri requestBaseUri = GetRequestBaseUri(Request);
+
             StoreDicomResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
-                                            requestBaseUri, Request.Body, Request.ContentType, studyInstanceUID, HttpContext.RequestAborted);
+                requestBaseUri,
+                Request.Body,
+                Request.ContentType,
+                studyInstanceUid,
+                HttpContext.RequestAborted);
 
             return StatusCode(storeResponse.StatusCode, storeResponse.Dataset);
         }
