@@ -5,10 +5,13 @@
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class DicomInvalidIdentifierException : DicomValidationException
+    /// <summary>
+    /// Base class for all client input validation exceptions
+    /// </summary>
+    public abstract class DicomValidationException : DicomServerException
     {
-        public DicomInvalidIdentifierException(string value, string name)
-            : base(string.Format(DicomCoreResource.DicomIdentifierInvalid, name, value))
+        public DicomValidationException(string message)
+            : base(message)
         {
         }
     }

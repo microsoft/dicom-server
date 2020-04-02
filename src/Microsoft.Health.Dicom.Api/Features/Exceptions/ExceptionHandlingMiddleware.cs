@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 {
@@ -52,11 +51,10 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
         {
             switch (exception)
             {
-                case DicomQueryParseException _:
-                case DicomInvalidIdentifierException _:
+                case DicomValidationException _:
                     return GetResult(HttpStatusCode.BadRequest, exception.Message);
-                case DicomServerException serverException:
-                    return GetResult(HttpStatusCode.ServiceUnavailable, serverException.Message);
+                case DicomServerException _:
+                    return GetResult(HttpStatusCode.ServiceUnavailable, exception.Message);
 
                 // TODO remove below exception after we clean up all exceptions
                 case DicomException dicomException:
