@@ -59,10 +59,10 @@ namespace Microsoft.Health.Dicom.Tests.Common
         }
 
         public static DicomFile GenerateDicomFile(
-            string studyInstanceUID,
-            string seriesInstanceUID,
-            string sopInstanceUID,
-            string sopClassUID,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            string sopClassUid,
             int rows,
             int cols,
             TestFileBitDepth bitDepth,
@@ -80,10 +80,10 @@ namespace Microsoft.Health.Dicom.Tests.Common
             var dicomFile = new DicomFile(
                 new DicomDataset(initialTs)
                 {
-                    { DicomTag.StudyInstanceUID, studyInstanceUID ?? TestUidGenerator.Generate() },
-                    { DicomTag.SeriesInstanceUID, seriesInstanceUID ?? TestUidGenerator.Generate() },
-                    { DicomTag.SOPInstanceUID, sopInstanceUID ?? TestUidGenerator.Generate() },
-                    { DicomTag.SOPClassUID, sopClassUID ?? TestUidGenerator.Generate() },
+                    { DicomTag.StudyInstanceUID, studyInstanceUid ?? TestUidGenerator.Generate() },
+                    { DicomTag.SeriesInstanceUID, seriesInstanceUid ?? TestUidGenerator.Generate() },
+                    { DicomTag.SOPInstanceUID, sopInstanceUid ?? TestUidGenerator.Generate() },
+                    { DicomTag.SOPClassUID, sopClassUid ?? TestUidGenerator.Generate() },
                     { DicomTag.Rows, (ushort)rows },
                     { DicomTag.Columns, (ushort)cols },
                     { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },

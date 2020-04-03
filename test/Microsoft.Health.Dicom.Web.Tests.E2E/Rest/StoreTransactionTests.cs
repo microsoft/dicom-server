@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
             {
-                HttpResult<DicomDataset> response = await _client.PostAsync(new[] { stream }, studyInstanceUID: new string('b', 65));
+                HttpResult<DicomDataset> response = await _client.PostAsync(new[] { stream }, studyInstanceUid: new string('b', 65));
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
         }
@@ -170,7 +170,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             ValidationHelpers.ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                StoreFailureCodes.MismatchStudyInstanceUIDFailureCode,
+                StoreFailureCodes.MismatchStudyInstanceUidFailureCode,
                 dicomFile1.Dataset,
                 dicomFile2.Dataset);
         }
@@ -183,8 +183,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             try
             {
-                DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID1);
-                DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUID: studyInstanceUID2);
+                DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID1);
+                DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID2);
 
                 HttpResult<DicomDataset> response = await _client.PostAsync(
                     new[] { dicomFile1, dicomFile2 }, studyInstanceUID1);
@@ -197,7 +197,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 ValidationHelpers.ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
                 ValidationHelpers.ValidateFailureSequence(
                     response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                    StoreFailureCodes.MismatchStudyInstanceUIDFailureCode,
+                    StoreFailureCodes.MismatchStudyInstanceUidFailureCode,
                     dicomFile2.Dataset);
             }
             finally

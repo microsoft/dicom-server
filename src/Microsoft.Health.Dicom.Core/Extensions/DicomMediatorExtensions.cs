@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -21,77 +20,77 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     public static class DicomMediatorExtensions
     {
         public static Task<StoreDicomResponse> StoreDicomResourcesAsync(
-            this IMediator mediator, Uri requestBaseUri, Stream requestBody, string requestContentType, string studyInstanceUID, CancellationToken cancellationToken)
+            this IMediator mediator, Stream requestBody, string requestContentType, string studyInstanceUid, CancellationToken cancellationToken)
         {
-            return mediator.Send(new StoreDicomRequest(requestBaseUri, requestBody, requestContentType, studyInstanceUID), cancellationToken);
+            return mediator.Send(new StoreDicomRequest(requestBody, requestContentType, studyInstanceUid), cancellationToken);
         }
 
         public static Task<RetrieveDicomResourceResponse> RetrieveDicomStudyAsync(
-            this IMediator mediator, string studyInstanceUID, string requestedTransferSyntax, CancellationToken cancellationToken)
+            this IMediator mediator, string studyInstanceUid, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUid),
                 cancellationToken);
         }
 
         public static Task<RetrieveDicomMetadataResponse> RetrieveDicomStudyMetadataAsync(
-            this IMediator mediator, string studyInstanceUID, CancellationToken cancellationToken)
+            this IMediator mediator, string studyInstanceUid, CancellationToken cancellationToken)
         {
-            return mediator.Send(new RetrieveDicomMetadataRequest(studyInstanceUID), cancellationToken);
+            return mediator.Send(new RetrieveDicomMetadataRequest(studyInstanceUid), cancellationToken);
         }
 
         public static Task<RetrieveDicomResourceResponse> RetrieveDicomSeriesAsync(
-            this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string requestedTransferSyntax, CancellationToken cancellationToken)
+            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid),
                 cancellationToken);
         }
 
         public static Task<RetrieveDicomMetadataResponse> RetrieveDicomSeriesMetadataAsync(
-            this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, CancellationToken cancellationToken)
+            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
         {
-            return mediator.Send(new RetrieveDicomMetadataRequest(studyInstanceUID, seriesInstanceUID), cancellationToken);
+            return mediator.Send(new RetrieveDicomMetadataRequest(studyInstanceUid, seriesInstanceUid), cancellationToken);
         }
 
         public static Task<RetrieveDicomResourceResponse> RetrieveDicomInstanceAsync(
-            this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, string requestedTransferSyntax, CancellationToken cancellationToken)
+            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid, sopInstanceUid),
                 cancellationToken);
         }
 
         public static Task<RetrieveDicomMetadataResponse> RetrieveDicomInstanceMetadataAsync(
-            this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, CancellationToken cancellationToken)
+            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
-            return mediator.Send(new RetrieveDicomMetadataRequest(studyInstanceUID, seriesInstanceUID, sopInstanceUID), cancellationToken);
+            return mediator.Send(new RetrieveDicomMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid), cancellationToken);
         }
 
         public static Task<RetrieveDicomResourceResponse> RetrieveDicomFramesAsync(
-            this IMediator mediator, string studyInstanceUID, string seriesInstanceUID, string sopInstanceUID, int[] frames, string requestedTransferSyntax, CancellationToken cancellationToken)
+            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int[] frames, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames),
+                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames),
                 cancellationToken);
         }
 
         public static Task<DeleteDicomResourcesResponse> DeleteDicomResourcesAsync(
-            this IMediator mediator, string studyInstanceUID, CancellationToken cancellationToken = default)
+            this IMediator mediator, string studyInstanceUid, CancellationToken cancellationToken = default)
         {
-            return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUID), cancellationToken);
+            return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUid), cancellationToken);
         }
 
         public static Task<DeleteDicomResourcesResponse> DeleteDicomResourcesAsync(
-            this IMediator mediator, string studyInstanceUID, string seriesUID, CancellationToken cancellationToken = default)
+            this IMediator mediator, string studyInstanceUid, string seriesUid, CancellationToken cancellationToken = default)
         {
-            return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUID, seriesUID), cancellationToken);
+            return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUid, seriesUid), cancellationToken);
         }
 
         public static Task<DeleteDicomResourcesResponse> DeleteDicomResourcesAsync(
-            this IMediator mediator, string studyInstanceUID, string seriesUID, string instanceUID, CancellationToken cancellationToken = default)
+            this IMediator mediator, string studyInstanceUid, string seriesid, string sopInstanceUid, CancellationToken cancellationToken = default)
         {
-            return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUID, seriesUID, instanceUID), cancellationToken);
+            return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUid, seriesid, sopInstanceUid), cancellationToken);
         }
 
         public static Task<DicomQueryResourceResponse> QueryDicomResourcesAsync(

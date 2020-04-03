@@ -17,15 +17,15 @@ namespace Microsoft.Health.Dicom.Tests.Common
         {
             Assert.Equal(DicomTag.FailedSOPSequence, dicomSequence.Tag);
             Assert.True(dicomSequence.Count() == expectedFailedDatasets.Length);
-            var expectedSopClassUIDs = new HashSet<string>(expectedFailedDatasets.Select(x => x.GetSingleValueOrDefault(DicomTag.SOPClassUID, string.Empty)));
-            var expectedSopInstanceUIDs = new HashSet<string>(expectedFailedDatasets.Select(x => x.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty)));
+            var expectedSopClassUids = new HashSet<string>(expectedFailedDatasets.Select(x => x.GetSingleValueOrDefault(DicomTag.SOPClassUID, string.Empty)));
+            var expectedSopInstanceUids = new HashSet<string>(expectedFailedDatasets.Select(x => x.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty)));
 
             foreach (DicomDataset dataset in dicomSequence)
             {
                 Assert.True(dataset.Count() == 3);
                 Assert.Equal(expectedFailureCode, dataset.GetSingleValue<ushort>(DicomTag.FailureReason));
-                Assert.Contains(dataset.GetSingleValue<string>(DicomTag.ReferencedSOPClassUID), expectedSopClassUIDs);
-                Assert.Contains(dataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID), expectedSopInstanceUIDs);
+                Assert.Contains(dataset.GetSingleValue<string>(DicomTag.ReferencedSOPClassUID), expectedSopClassUids);
+                Assert.Contains(dataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID), expectedSopInstanceUids);
             }
         }
 
@@ -33,15 +33,15 @@ namespace Microsoft.Health.Dicom.Tests.Common
         {
             Assert.Equal(DicomTag.ReferencedSOPSequence, dicomSequence.Tag);
             Assert.True(dicomSequence.Count() == expectedDatasets.Length);
-            var datasetsBySopInstanceUID = expectedDatasets.ToDictionary(x => x.GetSingleValue<string>(DicomTag.SOPInstanceUID), x => x);
+            var datasetsBySopInstanceUid = expectedDatasets.ToDictionary(x => x.GetSingleValue<string>(DicomTag.SOPInstanceUID), x => x);
 
             foreach (DicomDataset dataset in dicomSequence)
             {
                 Assert.True(dataset.Count() == 3);
-                var referencedSopInstanceUID = dataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID);
-                Assert.True(datasetsBySopInstanceUID.ContainsKey(referencedSopInstanceUID));
-                DicomDataset referenceDataset = datasetsBySopInstanceUID[referencedSopInstanceUID];
-                var dicomInstance = referenceDataset.ToDicomDatasetIdentifier();
+                var referencedSopInstanceUid = dataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID);
+                Assert.True(datasetsBySopInstanceUid.ContainsKey(referencedSopInstanceUid));
+                DicomDataset referenceDataset = datasetsBySopInstanceUid[referencedSopInstanceUid];
+                var dicomInstance = referenceDataset.ToDicomInstanceIdentifier();
                 Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.SOPClassUID), dataset.GetSingleValue<string>(DicomTag.ReferencedSOPClassUID));
                 Assert.EndsWith(
                     $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}/instances/{dicomInstance.SopInstanceUid}",

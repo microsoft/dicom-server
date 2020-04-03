@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.IO;
 using MediatR;
 
@@ -12,20 +11,16 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
     public class StoreDicomRequest : IRequest<StoreDicomResponse>
     {
         public StoreDicomRequest(
-            Uri requestBaseUri,
             Stream requestBody,
             string requestContentType,
-            string studyInstanceUID = null)
+            string studyInstanceUid = null)
         {
-            StudyInstanceUid = studyInstanceUID;
-            RequestBaseUri = requestBaseUri;
+            StudyInstanceUid = studyInstanceUid;
             RequestBody = requestBody;
             RequestContentType = requestContentType;
         }
 
         public string StudyInstanceUid { get; }
-
-        public Uri RequestBaseUri { get; }
 
         public Stream RequestBody { get; }
 

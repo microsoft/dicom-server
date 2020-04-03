@@ -30,7 +30,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
             EnsureArg.IsNotNull(message, nameof(message));
 
             return await _dicomStoreService.StoreMultiPartDicomResourceAsync(
-                message.RequestBaseUri,
                 message.RequestBody,
                 message.RequestContentType,
                 message.StudyInstanceUid,

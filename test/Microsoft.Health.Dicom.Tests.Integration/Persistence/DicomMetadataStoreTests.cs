@@ -7,6 +7,7 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
@@ -35,7 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAnUnknownDicomInstance_WhenFetchingInstanceMetadata_NotFoundDataStoreExceptionIsThrown()
         {
-            var dicomInstanceId = new DicomInstanceIdentifier(
+            var dicomInstanceId = new VersionedDicomInstanceIdentifier(
                 studyInstanceUid: TestUidGenerator.Generate(),
                 seriesInstanceUid: TestUidGenerator.Generate(),
                 sopInstanceUid: TestUidGenerator.Generate(),
@@ -49,12 +50,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenExistingMetadata_WhenAdding_ConflictExceptionIsThrown()
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var dicomInstance = DicomDatasetIdentifier.Create(dicomDataset);
-            var dicomInstanceId = new DicomInstanceIdentifier(
-                studyInstanceUid: dicomInstance.StudyInstanceUid,
-                seriesInstanceUid: dicomInstance.SeriesInstanceUid,
-                sopInstanceUid: dicomInstance.SopInstanceUid,
-                version: 0);
+            var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
             await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset);
             DicomDataset storedMetadata = await _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId);
             Assert.NotNull(storedMetadata);
@@ -74,12 +70,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenAddedInstanceMetadata_WhenDeletingAgain_NotFoundExceptionIsThrown()
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var dicomInstance = DicomDatasetIdentifier.Create(dicomDataset);
-            var dicomInstanceId = new DicomInstanceIdentifier(
-                studyInstanceUid: dicomInstance.StudyInstanceUid,
-                seriesInstanceUid: dicomInstance.SeriesInstanceUid,
-                sopInstanceUid: dicomInstance.SopInstanceUid,
-                version: 0);
+            var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
 
             await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset);
             DicomDataset storedMetadata = await _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId);

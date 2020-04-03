@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
     public interface IDicomStoreService
     {
         Task<StoreDicomResponse> StoreMultiPartDicomResourceAsync(
-            Uri requestBaseUri,
             Stream contentStream,
             string requestContentType,
             string studyInstanceUid,
