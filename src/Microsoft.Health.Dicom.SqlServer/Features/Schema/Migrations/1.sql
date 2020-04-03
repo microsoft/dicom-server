@@ -282,8 +282,8 @@ INCLUDE
 **************************************************************/
 
 CREATE TABLE dbo.SeriesMetadataCore (
-    --Key
-    ID                                  BIGINT NOT NULL, --FK
+    --Foreign Key
+    StudyID                             BIGINT NOT NULL, --FK
     --instance keys
     SeriesInstanceUid                   VARCHAR(64) NOT NULL,
     Version                             INT NOT NULL,
@@ -294,7 +294,7 @@ CREATE TABLE dbo.SeriesMetadataCore (
 
 CREATE UNIQUE CLUSTERED INDEX IXC_SeriesMetadataCore ON dbo.SeriesMetadataCore
 (
-    ID,
+    StudyID,
     SeriesInstanceUid
 )
 
@@ -304,7 +304,7 @@ CREATE NONCLUSTERED INDEX IX_SeriesMetadataCore_Modality ON dbo.SeriesMetadataCo
 )
 INCLUDE
 (
-    ID,
+    StudyID,
     SeriesInstanceUid
 )
 
@@ -314,7 +314,7 @@ CREATE NONCLUSTERED INDEX IX_SeriesMetadataCore_PerformedProcedureStepStartDate 
 )
 INCLUDE
 (
-    ID,
+    StudyID,
     SeriesInstanceUid
 )
 
@@ -438,10 +438,10 @@ AS
         -- TODO: handle the versioning
     --END
 
-    IF NOT EXISTS (SELECT * FROM dbo.SeriesMetadataCore WHERE ID = @metadataId AND seriesInstanceUid = @seriesInstanceUid)
+    IF NOT EXISTS (SELECT * FROM dbo.SeriesMetadataCore WHERE StudyID = @metadataId AND seriesInstanceUid = @seriesInstanceUid)
     BEGIN
         INSERT INTO dbo.SeriesMetadataCore
-            (ID, seriesInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
+            (StudyID, seriesInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
         VALUES
             (@metadataId, @seriesInstanceUid, 0, @modality, @performedProcedureStepStartDate)
     END

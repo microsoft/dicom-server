@@ -133,7 +133,7 @@ st.StudyInstanceUid
 ,i.Watermark
 FROM dbo.StudyMetadataCore st
 INNER JOIN dbo.SeriesMetadataCore se
-ON se.ID = st.ID
+ON se.StudyID = st.ID
 INNER JOIN dbo.Instance i
 ON i.StudyInstanceUid = st.StudyInstanceUid
 AND i.SeriesInstanceUid = se.SeriesInstanceUid";

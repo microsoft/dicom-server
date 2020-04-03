@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly BigIntColumn ID = new BigIntColumn("ID");
+            internal readonly BigIntColumn StudyID = new BigIntColumn("StudyID");
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly IntColumn Version = new IntColumn("Version");
             internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
