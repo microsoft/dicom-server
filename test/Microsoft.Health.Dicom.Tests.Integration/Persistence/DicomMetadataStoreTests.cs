@@ -7,6 +7,7 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
@@ -49,7 +50,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenExistingMetadata_WhenAdding_ConflictExceptionIsThrown()
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var dicomInstance = DicomDatasetIdentifier.Create(dicomDataset);
+            var dicomInstance = dicomDataset.ToDicomInstanceIdentifier();
             var dicomInstanceId = new DicomInstanceIdentifier(
                 studyInstanceUid: dicomInstance.StudyInstanceUid,
                 seriesInstanceUid: dicomInstance.SeriesInstanceUid,
@@ -74,7 +75,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenAddedInstanceMetadata_WhenDeletingAgain_NotFoundExceptionIsThrown()
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var dicomInstance = DicomDatasetIdentifier.Create(dicomDataset);
+            var dicomInstance = dicomDataset.ToDicomInstanceIdentifier();
             var dicomInstanceId = new DicomInstanceIdentifier(
                 studyInstanceUid: dicomInstance.StudyInstanceUid,
                 seriesInstanceUid: dicomInstance.SeriesInstanceUid,

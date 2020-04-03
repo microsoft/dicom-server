@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 var referencedSopInstanceUid = dataset.GetSingleValue<string>(DicomTag.ReferencedSOPInstanceUID);
                 Assert.True(datasetsBySopInstanceUid.ContainsKey(referencedSopInstanceUid));
                 DicomDataset referenceDataset = datasetsBySopInstanceUid[referencedSopInstanceUid];
-                var dicomInstance = referenceDataset.ToDicomDatasetIdentifier();
+                var dicomInstance = referenceDataset.ToDicomInstanceIdentifier();
                 Assert.Equal(referenceDataset.GetSingleValue<string>(DicomTag.SOPClassUID), dataset.GetSingleValue<string>(DicomTag.ReferencedSOPClassUID));
                 Assert.EndsWith(
                     $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}/instances/{dicomInstance.SopInstanceUid}",

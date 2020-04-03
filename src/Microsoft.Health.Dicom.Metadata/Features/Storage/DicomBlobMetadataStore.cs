@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
             // TODO remove this when AddInstance takes DicomInstanceIdentifier instead of just Dataset
-            var dicomInstance = dicomDataset.ToDicomDatasetIdentifier();
+            var dicomInstance = dicomDataset.ToDicomInstanceIdentifier();
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(dicomInstance);
 
             IAsyncPolicy retryPolicy = CreateTooManyRequestsRetryPolicy();
@@ -133,16 +133,6 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                    });
 
         // TODO remove this when AddInstance takes DicomInstanceIdentifier instead of just Dataset
-        private CloudBlockBlob GetInstanceBlockBlob(DicomDatasetIdentifier instance)
-        {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-            return GetInstanceBlockBlob(new DicomInstanceIdentifier(
-                instance.StudyInstanceUid,
-                instance.SeriesInstanceUid,
-                instance.SopInstanceUid,
-                0));
-        }
-
         private CloudBlockBlob GetInstanceBlockBlob(DicomInstanceIdentifier instance)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));

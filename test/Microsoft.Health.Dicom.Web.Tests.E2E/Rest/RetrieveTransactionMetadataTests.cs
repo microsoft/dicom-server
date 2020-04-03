@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;
@@ -88,7 +87,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenInvalidInstanceIdentifer_WhenRetrievingInstanceSeriesStudyMetadata_NotFoundStatusCodeReturned()
         {
             DicomDataset storedInstance = await PostDicomFileAsync();
-            var dicomInstance = DicomDatasetIdentifier.Create(storedInstance);
+            var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
 
             HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.GetInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, TestUidGenerator.Generate());
             Assert.Equal(HttpStatusCode.NotFound, metadata.StatusCode);
@@ -115,7 +114,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 { DicomTag.StudyDate, DateTime.UtcNow },
                 { new DicomTag(0007, 0008), "Private Tag" },
             });
-            var dicomInstance = DicomDatasetIdentifier.Create(storedInstance);
+            var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
 
             HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.GetStudyMetadataAsync(dicomInstance.StudyInstanceUid);
             Assert.Single(metadata.Value);

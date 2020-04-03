@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
 {
     public static class IDicomIndexDataStoreExtensions
     {
-        public static async Task DeleteInstanceIndexAsync(this IDicomIndexDataStore indexDataStore, DicomDatasetIdentifier dicomInstance, CancellationToken cancellationToken = default)
+        public static async Task DeleteInstanceIndexAsync(this IDicomIndexDataStore indexDataStore, DicomInstanceIdentifier dicomInstance, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));

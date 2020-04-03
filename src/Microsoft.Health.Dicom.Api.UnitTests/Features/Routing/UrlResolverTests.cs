@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
             const string seriesInstanceUid = "456.456";
             const string sopInstanceUid = "789.789";
 
-            var instance = new DicomDatasetIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            var instance = new DicomInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             _urlResolver.ResolveRetrieveInstanceUri(instance);
 

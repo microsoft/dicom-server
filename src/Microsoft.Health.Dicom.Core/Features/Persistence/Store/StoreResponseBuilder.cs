@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            var dicomDatasetIdentifier = dicomDataset.ToDicomDatasetIdentifier();
+            var dicomDatasetIdentifier = dicomDataset.ToDicomInstanceIdentifier();
             DicomSequence referencedSopSequence = _dataset.Contains(DicomTag.ReferencedSOPSequence) ?
                                                         _dataset.GetSequence(DicomTag.ReferencedSOPSequence) :
                                                         new DicomSequence(DicomTag.ReferencedSOPSequence);

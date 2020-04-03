@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         }
 
         /// <inheritdoc />
-        public Uri ResolveRetrieveInstanceUri(DicomDatasetIdentifier dicomInstance)
+        public Uri ResolveRetrieveInstanceUri(DicomInstanceIdentifier dicomInstance)
         {
             EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
 

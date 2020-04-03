@@ -160,7 +160,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             EnsureArg.IsNotNull(dicomFileStream, nameof(dicomFileStream));
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
-            var identifier = dicomFile.Dataset.ToDicomDatasetIdentifier();
+            var identifier = dicomFile.Dataset.ToDicomInstanceIdentifier();
 
             // TODO fix the version once we implement the data consistency
             var dicomInstanceIdentifier = new DicomInstanceIdentifier(
