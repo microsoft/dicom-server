@@ -245,7 +245,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
-        public async Task<HttpResult<string>> QueryWithStringResponseAsync(string requestUri)
+        public async Task<HttpResult<string>> QueryWithBadRequest(string requestUri)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {

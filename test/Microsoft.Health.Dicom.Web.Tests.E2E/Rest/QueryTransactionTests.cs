@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenSearchRequest_WithUnsupportedTag_ReturnBadRequest()
         {
-            HttpResult<string> response = await _client.QueryWithStringResponseAsync("/studies?Modality=CT");
+            HttpResult<string> response = await _client.QueryWithBadRequest("/studies?Modality=CT");
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal(response.Value, string.Format(DicomCoreResource.UnsupportedSearchParameter, "Modality"));
         }
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenSearchRequest_WithInvalidUid_ReturnBadRequest()
         {
-            HttpResult<string> response = await _client.QueryWithStringResponseAsync("/studies/abcd.123/series");
+            HttpResult<string> response = await _client.QueryWithBadRequest("/studies/abcd.123/series");
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal(response.Value, string.Format(DicomCoreResource.DicomIdentifierInvalid, "studyInstanceUid", "abcd.123"));
         }

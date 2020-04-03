@@ -9,9 +9,9 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Query
 {
-    public sealed class QueryDicomResourceResponse
+    public sealed class DicomQueryResourceResponse
     {
-        public QueryDicomResourceResponse(IEnumerable<DicomDataset> responseDataset = null)
+        public DicomQueryResourceResponse(IEnumerable<DicomDataset> responseDataset = null)
         {
             ResponseDataset = responseDataset ?? Enumerable.Empty<DicomDataset>();
         }

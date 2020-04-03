@@ -5,6 +5,7 @@
 
 using System;
 using System.Net;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
@@ -30,6 +31,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 
         public async Task Invoke(HttpContext context)
         {
+            ExceptionDispatchInfo exceptionDispatchInfo = null;
             try
             {
                 await _next(context);
@@ -42,7 +44,13 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     throw;
                 }
 
-                var result = MapExceptionToResult(exception);
+                // Get the Exception, but don't continue processing in the catch block as its bad for stack usage.
+                exceptionDispatchInfo = ExceptionDispatchInfo.Capture(exception);
+            }
+
+            if (exceptionDispatchInfo != null)
+            {
+                var result = MapExceptionToResult(exceptionDispatchInfo.SourceException);
                 await ExecuteResultAsync(context, result);
             }
         }
@@ -52,33 +60,26 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
             switch (exception)
             {
                 case DicomValidationException _:
-                    return GetResult(HttpStatusCode.BadRequest, exception.Message);
+                    return GetContentResult(HttpStatusCode.BadRequest, exception.Message);
                 case DicomServerException _:
-                    return GetResult(HttpStatusCode.ServiceUnavailable, exception.Message);
+                    _logger.LogWarning("Service exception: {0}", exception);
+                    return GetContentResult(HttpStatusCode.ServiceUnavailable, exception.Message);
 
                 // TODO remove below exception after we clean up all exceptions
                 case DicomException dicomException:
-                    return GetResult(dicomException.ResponseStatusCode, dicomException.Message);
+                    return GetContentResult(dicomException.ResponseStatusCode, dicomException.Message);
                 default:
                     _logger.LogError("Unhandled exception: {0}", exception);
-                    return GetResult(HttpStatusCode.InternalServerError);
+                    return GetContentResult(HttpStatusCode.InternalServerError, string.Empty);
             }
         }
 
-        private IActionResult GetResult(HttpStatusCode statusCode, string message)
+        private IActionResult GetContentResult(HttpStatusCode statusCode, string message)
         {
             return new ContentResult
             {
                 StatusCode = (int)statusCode,
                 Content = message,
-            };
-        }
-
-        private IActionResult GetResult(HttpStatusCode statusCode)
-        {
-            return new ContentResult
-            {
-                StatusCode = (int)statusCode,
             };
         }
 

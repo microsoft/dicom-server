@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _valueParsers.Add(DicomVRCode.CS, ParseStringTagValue);
         }
 
-        public DicomQueryExpression Parse(QueryDicomResourceRequest request)
+        public DicomQueryExpression Parse(DicomQueryResourceRequest request)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 

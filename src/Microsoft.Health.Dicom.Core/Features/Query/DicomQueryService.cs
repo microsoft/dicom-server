@@ -33,8 +33,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _metadataService = metadataService;
         }
 
-        public async Task<QueryDicomResourceResponse> QueryAsync(
-            QueryDicomResourceRequest message,
+        public async Task<DicomQueryResourceResponse> QueryAsync(
+            DicomQueryResourceRequest message,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(message);
@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             if (!queryResult.DicomInstances.Any())
             {
-                return new QueryDicomResourceResponse();
+                return new DicomQueryResourceResponse();
             }
 
             IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             var responseBuilder = new QueryResponseBuilder(dicomQueryExpression);
             IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
 
-            return new QueryDicomResourceResponse(responseMetadata);
+            return new DicomQueryResourceResponse(responseMetadata);
         }
     }
 }

@@ -156,7 +156,7 @@ namespace Microsoft.Health.Dicom.Api
             return CreateResult(response);
         }
 
-        private IActionResult CreateResult(QueryDicomResourceResponse resourceResponse)
+        private IActionResult CreateResult(DicomQueryResourceResponse resourceResponse)
         {
             if (!resourceResponse.ResponseDataset.Any())
             {
