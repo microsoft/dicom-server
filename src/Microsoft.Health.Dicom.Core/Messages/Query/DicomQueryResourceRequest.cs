@@ -10,9 +10,9 @@ using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Query
 {
-    public class QueryDicomResourceRequest : IRequest<QueryDicomResourceResponse>
+    public class DicomQueryResourceRequest : IRequest<DicomQueryResourceResponse>
     {
-        public QueryDicomResourceRequest(
+        public DicomQueryResourceRequest(
             IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
             QueryResource resourceType,
             string studyInstanceUid = null,

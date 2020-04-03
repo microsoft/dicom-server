@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Api
@@ -40,7 +41,7 @@ namespace Microsoft.Health.Dicom.Api
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route("studies")]
         public async Task<IActionResult> QueryForStudyAsync()
         {
@@ -58,7 +59,7 @@ namespace Microsoft.Health.Dicom.Api
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route("series")]
         public async Task<IActionResult> QueryForSeriesAsync()
         {
@@ -76,11 +77,11 @@ namespace Microsoft.Health.Dicom.Api
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route("studies/{studyInstanceUid}/series")]
         public async Task<IActionResult> QueryForSeriesInStudyAsync(string studyInstanceUid)
         {
-            EnsureArg.IsNotEmptyOrWhitespace(studyInstanceUid, nameof(studyInstanceUid));
+            DicomIdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(studyInstanceUid));
 
             _logger.LogInformation($"DICOM Web Query Series request for study '{studyInstanceUid}' received. QueryString '{Request.QueryString}.");
 
@@ -97,7 +98,7 @@ namespace Microsoft.Health.Dicom.Api
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route("instances")]
         public async Task<IActionResult> QueryForInstancesAsync()
         {
@@ -115,11 +116,11 @@ namespace Microsoft.Health.Dicom.Api
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route("studies/{studyInstanceUid}/instances")]
         public async Task<IActionResult> QueryForInstancesInStudyAsync(string studyInstanceUid)
         {
-            EnsureArg.IsNotEmptyOrWhitespace(studyInstanceUid, nameof(studyInstanceUid));
+            DicomIdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(studyInstanceUid));
 
             _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUid}' received. QueryString '{Request.QueryString}.");
 
@@ -136,12 +137,12 @@ namespace Microsoft.Health.Dicom.Api
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route("studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances")]
         public async Task<IActionResult> QueryForInstancesInSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
         {
-            EnsureArg.IsNotEmptyOrWhitespace(studyInstanceUid, nameof(studyInstanceUid));
-            EnsureArg.IsNotEmptyOrWhitespace(seriesInstanceUid, nameof(seriesInstanceUid));
+            DicomIdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(studyInstanceUid));
+            DicomIdentifierValidator.ValidateAndThrow(seriesInstanceUid, nameof(seriesInstanceUid));
 
             _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUid}' and series '{seriesInstanceUid}' received. QueryString '{Request.QueryString}.");
 
@@ -155,7 +156,7 @@ namespace Microsoft.Health.Dicom.Api
             return CreateResult(response);
         }
 
-        private IActionResult CreateResult(QueryDicomResourceResponse resourceResponse)
+        private IActionResult CreateResult(DicomQueryResourceResponse resourceResponse)
         {
             if (!resourceResponse.ResponseDataset.Any())
             {

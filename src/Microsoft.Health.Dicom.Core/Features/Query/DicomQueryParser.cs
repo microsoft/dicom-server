@@ -11,7 +11,6 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -53,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _valueParsers.Add(DicomVRCode.CS, ParseStringTagValue);
         }
 
-        public DicomQueryExpression Parse(QueryDicomResourceRequest request)
+        public DicomQueryExpression Parse(DicomQueryResourceRequest request)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
@@ -120,7 +119,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 return false;
             }
 
-            ValidateIfTagSupported(dicomTag, resourceType);
+            ValidateIfTagSupported(dicomTag, attributeId, resourceType);
 
             // parse tag value
             if (!queryParameter.Value.Any() || queryParameter.Value.Count() > 1)
@@ -161,13 +160,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return dicomTag != null;
         }
 
-        private static void ValidateIfTagSupported(DicomTag dicomTag, QueryResource resourceType)
+        private static void ValidateIfTagSupported(DicomTag dicomTag, string attributeId, QueryResource resourceType)
         {
             HashSet<DicomTag> supportedQueryTags = DicomQueryLimit.QueryResourceTypeToTagsMapping[resourceType];
 
             if (!supportedQueryTags.Contains(dicomTag))
             {
-                throw new DicomQueryParseException(DicomCoreResource.UnsupportedSearchParameter);
+                throw new DicomQueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
             }
         }
 

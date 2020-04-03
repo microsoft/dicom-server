@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
                 .Received()
                 .ExecuteResultAsync(
                     Arg.Any<HttpContext>(),
-                    Arg.Is<StatusCodeResult>(x => x.StatusCode == (int)HttpStatusCode.BadRequest));
+                    Arg.Is<ContentResult>(x => x.StatusCode == (int)HttpStatusCode.BadRequest));
         }
 
         [Fact]
@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
                 .Received()
                 .ExecuteResultAsync(
                     Arg.Any<HttpContext>(),
-                    Arg.Is<StatusCodeResult>(x => x.StatusCode == (int)HttpStatusCode.InternalServerError));
+                    Arg.Is<ContentResult>(x => x.StatusCode == (int)HttpStatusCode.InternalServerError));
         }
 
         [Fact]

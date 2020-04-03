@@ -245,6 +245,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
+        public async Task<HttpResult<string>> QueryWithBadRequest(string requestUri)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
+
+                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    return new HttpResult<string>(response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+            }
+        }
+
         private static MultipartContent GetMultipartContent(string mimeType)
         {
             var multiContent = new MultipartContent("related");
