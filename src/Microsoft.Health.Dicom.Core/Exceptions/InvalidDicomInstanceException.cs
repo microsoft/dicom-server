@@ -8,18 +8,14 @@ using System.Net;
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Exception thrown when the service is not available.
+    /// Exception thrown when the DICOM instance is invalid.
     /// </summary>
-    /// <remarks>
-    /// TODO: This should be moved to common code base.
-    /// </remarks>
-    public class ServiceUnavailableException : DicomException
+    public class InvalidDicomInstanceException : DicomException
     {
-        public ServiceUnavailableException()
-            : base(DicomCoreResource.ServiceUnavailable)
+        public InvalidDicomInstanceException()
         {
         }
 
-        public override HttpStatusCode ResponseStatusCode => HttpStatusCode.ServiceUnavailable;
+        public override HttpStatusCode ResponseStatusCode => HttpStatusCode.BadRequest;
     }
 }

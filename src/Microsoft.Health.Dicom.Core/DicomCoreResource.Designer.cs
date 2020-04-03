@@ -169,6 +169,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified content type &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string UnsupportedContentType {
+            get {
+                return ResourceManager.GetString("UnsupportedContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} is not queryable. .
         /// </summary>
         internal static string UnsupportedSearchParameter {

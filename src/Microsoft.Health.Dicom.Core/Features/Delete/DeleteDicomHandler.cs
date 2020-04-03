@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                         throw new ArgumentException($"Unkown delete transaction type: {message.ResourceType}", nameof(message));
                 }
             }
-            catch (DataStoreException e)
+            catch (DicomDataStoreException e)
             {
                 return new DeleteDicomResourcesResponse(e.StatusCode);
             }

@@ -9,43 +9,43 @@ using System.Runtime.Serialization;
 using System.Security.Permissions;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     [Serializable]
-    public class DataStoreException : Exception
+    public class DicomDataStoreException : Exception
     {
-        public DataStoreException(HttpStatusCode httpStatusCode)
+        public DicomDataStoreException(HttpStatusCode httpStatusCode)
         {
             StatusCode = (int)httpStatusCode;
         }
 
-        public DataStoreException(HttpStatusCode? httpStatusCode, Exception innerException)
+        public DicomDataStoreException(HttpStatusCode? httpStatusCode, Exception innerException)
             : base(innerException.Message, innerException)
         {
             StatusCode = httpStatusCode.HasValue ? (int)httpStatusCode.Value : (int)HttpStatusCode.InternalServerError;
         }
 
-        public DataStoreException(int? statusCode, Exception innerException)
+        public DicomDataStoreException(int? statusCode, Exception innerException)
             : base(innerException.Message, innerException)
         {
             StatusCode = statusCode ?? (int)HttpStatusCode.InternalServerError;
         }
 
-        public DataStoreException()
+        public DicomDataStoreException()
         {
         }
 
-        public DataStoreException(string message)
+        public DicomDataStoreException(string message)
             : base(message)
         {
         }
 
-        public DataStoreException(string message, Exception innerException)
+        public DicomDataStoreException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
 
-        protected DataStoreException(SerializationInfo serializationInfo, StreamingContext streamingContext)
+        protected DicomDataStoreException(SerializationInfo serializationInfo, StreamingContext streamingContext)
             : base(serializationInfo, streamingContext)
         {
             EnsureArg.IsNotNull(serializationInfo, nameof(serializationInfo));

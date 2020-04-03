@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
@@ -51,7 +50,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Store Transaction request received, with study instance UID '{studyInstanceUid}'.");
 
-            StoreDicomResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
+            DicomStoreResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
                 Request.Body,
                 Request.ContentType,
                 studyInstanceUid,

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -223,38 +222,33 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.Equal(testStudyUid.UID, cond.Value);
         }
 
-        private QueryCollection GetQueryCollection(string key, string value)
+        private IEnumerable<KeyValuePair<string, StringValues>> GetQueryCollection(string key, string value)
         {
             return GetQueryCollection(new Dictionary<string, string>() { { key, value } });
         }
 
-        private QueryCollection GetQueryCollection(Dictionary<string, string> queryParams)
+        private IEnumerable<KeyValuePair<string, StringValues>> GetQueryCollection(Dictionary<string, string> queryParams)
         {
-            var pairs = new Dictionary<string, StringValues>();
-
             foreach (KeyValuePair<string, string> pair in queryParams)
             {
-                pairs.Add(pair.Key, new StringValues(pair.Value.Split(',')));
+                yield return KeyValuePair.Create(pair.Key, new StringValues(pair.Value.Split(',')));
             }
-
-            return new QueryCollection(pairs);
         }
 
-        private QueryCollection GetQueryCollection(string queryString)
+        private IEnumerable<KeyValuePair<string, StringValues>> GetQueryCollection(string queryString)
         {
             var parameters = queryString.Split('&');
-            var pairs = new Dictionary<string, StringValues>();
+
             foreach (var param in parameters)
             {
                 var keyValue = param.Split('=');
-                pairs.Add(keyValue[0], keyValue[1].Split(','));
-            }
 
-            return new QueryCollection(pairs);
+                yield return KeyValuePair.Create(keyValue[0], new StringValues(keyValue[1].Split(',')));
+            }
         }
 
         private DicomQueryResourceRequest CreateRequest(
-            QueryCollection queryParams,
+            IEnumerable<KeyValuePair<string, StringValues>> queryParams,
             QueryResource resourceType,
             string studyInstanceUid = null,
             string seriesInstanceUid = null)

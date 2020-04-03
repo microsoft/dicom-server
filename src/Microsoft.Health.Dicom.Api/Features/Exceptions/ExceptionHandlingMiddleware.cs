@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Api.Features.Exceptions
@@ -57,21 +58,36 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 
         private IActionResult MapExceptionToResult(Exception exception)
         {
+            HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
+            string message = exception.Message;
+
             switch (exception)
             {
                 case DicomValidationException _:
-                    return GetContentResult(HttpStatusCode.BadRequest, exception.Message);
+                    statusCode = HttpStatusCode.BadRequest;
+                    break;
                 case DicomServerException _:
                     _logger.LogWarning("Service exception: {0}", exception);
-                    return GetContentResult(HttpStatusCode.ServiceUnavailable, exception.Message);
+                    statusCode = HttpStatusCode.ServiceUnavailable;
+                    break;
 
                 // TODO remove below exception after we clean up all exceptions
                 case DicomException dicomException:
-                    return GetContentResult(dicomException.ResponseStatusCode, dicomException.Message);
+                    statusCode = dicomException.ResponseStatusCode;
+                    break;
+                case UnsupportedMediaTypeException _:
+                    statusCode = HttpStatusCode.UnsupportedMediaType;
+                    break;
+                case ServiceUnavailableException _:
+                    statusCode = HttpStatusCode.ServiceUnavailable;
+                    break;
                 default:
                     _logger.LogError("Unhandled exception: {0}", exception);
-                    return GetContentResult(HttpStatusCode.InternalServerError, string.Empty);
+                    message = string.Empty;
+                    break;
             }
+
+            return GetContentResult(statusCode, message);
         }
 
         private IActionResult GetContentResult(HttpStatusCode statusCode, string message)
