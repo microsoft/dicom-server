@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly BigIntColumn StudyID = new BigIntColumn("StudyID");
+            internal readonly BigIntColumn StudyId = new BigIntColumn("StudyId");
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly IntColumn Version = new IntColumn("Version");
             internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
@@ -64,10 +64,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly BigIntColumn ID = new BigIntColumn("ID");
+            internal readonly BigIntColumn Id = new BigIntColumn("Id");
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
             internal readonly IntColumn Version = new IntColumn("Version");
-            internal readonly NVarCharColumn PatientID = new NVarCharColumn("PatientID", 64);
+            internal readonly NVarCharColumn PatientId = new NVarCharColumn("PatientId", 64);
             internal readonly NullableNVarCharColumn PatientName = new NullableNVarCharColumn("PatientName", 325);
             internal readonly NullableNVarCharColumn ReferringPhysicianName = new NullableNVarCharColumn("ReferringPhysicianName", 325);
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _patientID = new ParameterDefinition<System.String>("@patientID", global::System.Data.SqlDbType.NVarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _patientId = new ParameterDefinition<System.String>("@patientId", global::System.Data.SqlDbType.NVarChar, false, 64);
             private readonly ParameterDefinition<System.String> _patientName = new ParameterDefinition<System.String>("@patientName", global::System.Data.SqlDbType.NVarChar, true, 325);
             private readonly ParameterDefinition<System.String> _referringPhysicianName = new ParameterDefinition<System.String>("@referringPhysicianName", global::System.Data.SqlDbType.NVarChar, true, 325);
             private readonly ParameterDefinition<System.Nullable<System.DateTime>> _studyDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@studyDate", global::System.Data.SqlDbType.Date, true);
@@ -93,14 +93,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
             private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
             private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
-            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientID, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus)
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddInstance";
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
-                _patientID.AddParameter(command.Parameters, patientID);
+                _patientId.AddParameter(command.Parameters, patientId);
                 _patientName.AddParameter(command.Parameters, patientName);
                 _referringPhysicianName.AddParameter(command.Parameters, referringPhysicianName);
                 _studyDate.AddParameter(command.Parameters, studyDate);

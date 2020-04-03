@@ -135,9 +135,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     _stringBuilder.AppendLine($"INNER JOIN {VLatest.SeriesMetadataCore.TableName} {SeriesTableAlias}");
                     _stringBuilder
                         .Append("ON ")
-                        .Append(VLatest.SeriesMetadataCore.StudyID, SeriesTableAlias)
+                        .Append(VLatest.SeriesMetadataCore.StudyId, SeriesTableAlias)
                         .Append(" = ")
-                        .AppendLine(VLatest.StudyMetadataCore.ID, StudyTableAlias);
+                        .AppendLine(VLatest.StudyMetadataCore.Id, StudyTableAlias);
                 }
 
                 if (_queryExpression.IsInstanceIELevel())
