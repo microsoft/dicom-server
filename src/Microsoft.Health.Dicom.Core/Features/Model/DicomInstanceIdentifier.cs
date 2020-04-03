@@ -15,17 +15,15 @@ namespace Microsoft.Health.Dicom.Core.Features
         public DicomInstanceIdentifier(
             string studyInstanceUid,
             string seriesInstanceUid,
-            string sopInstanceUid,
-            long? version = null)
+            string sopInstanceUid)
         {
-            EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
-            EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
-            EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
 
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
-            Version = version;
         }
 
         public string StudyInstanceUid { get; }
@@ -34,15 +32,13 @@ namespace Microsoft.Health.Dicom.Core.Features
 
         public string SopInstanceUid { get; }
 
-        public long? Version { get; }
-
         public override bool Equals(object obj)
         {
-            if (obj is DicomInstanceIdentifier identity)
+            if (obj is DicomInstanceIdentifier identifier)
             {
-                return StudyInstanceUid.Equals(identity.StudyInstanceUid, EqualsStringComparison) &&
-                        SeriesInstanceUid.Equals(identity.SeriesInstanceUid, EqualsStringComparison) &&
-                        SopInstanceUid.Equals(identity.SopInstanceUid, EqualsStringComparison);
+                return StudyInstanceUid.Equals(identifier.StudyInstanceUid, EqualsStringComparison) &&
+                        SeriesInstanceUid.Equals(identifier.SeriesInstanceUid, EqualsStringComparison) &&
+                        SopInstanceUid.Equals(identifier.SopInstanceUid, EqualsStringComparison);
             }
 
             return false;
@@ -52,6 +48,6 @@ namespace Microsoft.Health.Dicom.Core.Features
             => (StudyInstanceUid + SeriesInstanceUid + SopInstanceUid).GetHashCode(EqualsStringComparison);
 
         public override string ToString()
-            => $"Study Instance Uid: {StudyInstanceUid}, Series Instance Uid: {SeriesInstanceUid}, SOP Instance Uid {SopInstanceUid}";
+            => $"StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}";
     }
 }

@@ -19,9 +19,8 @@ namespace Microsoft.Health.Dicom.Api.Modules
 
             services.AddHttpContextAccessor();
 
-            // These are needed for IUrlResolver used by search.
-            // If we update the search implementation to not use these, we should remove
-            // the registration since enabling these accessors has performance implications.
+            // These are needed for IUrlResolver. If it's no longer need it,
+            // we should remove the registration since enabling these accessors has performance implications.
             // https://github.com/aspnet/Hosting/issues/793
             services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
         }

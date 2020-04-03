@@ -18,14 +18,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
 
         // TODO cleanup this method with Unit tests #72595
         public static void ValidateRequest(
-            Uri requestBaseUri,
             Stream requestBody,
             string requestContentType,
             string studyInstanceUid)
         {
-            if (requestBaseUri == null
-                || requestBody == null
-                || string.IsNullOrWhiteSpace(requestContentType))
+            if (requestBody == null ||
+                string.IsNullOrWhiteSpace(requestContentType))
             {
                 throw new DicomBadRequestException("Invalid request");
             }

@@ -61,7 +61,6 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            // TODO remove this when AddInstance takes DicomInstanceIdentifier instead of just Dataset
             var dicomInstance = dicomDataset.ToDicomInstanceIdentifier();
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(dicomInstance);
 

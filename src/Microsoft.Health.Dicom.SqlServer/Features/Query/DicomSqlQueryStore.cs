@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                            VLatest.Instance.SopInstanceUid,
                            VLatest.Instance.Watermark);
 
-                        results.Add(new DicomInstanceIdentifier(
+                        results.Add(new VersionedDicomInstanceIdentifier(
                                 studyInstanceUid,
                                 seriesInstanceUid,
                                 sopInstanceUid,

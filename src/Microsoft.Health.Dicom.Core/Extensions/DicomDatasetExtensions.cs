@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// <summary>
         /// Creates an instance of <see cref="DicomInstanceIdentifier"/> from <see cref="DicomDataset"/>.
         /// </summary>
-        /// <param name="dicomDataset">The DICOM dataset to get the identifier from.</param>
+        /// <param name="dicomDataset">The DICOM dataset to get the identifiers from.</param>
         /// <returns>An instance of <see cref="DicomInstanceIdentifier"/> representing the <paramref name="dicomDataset"/>.</returns>
         public static DicomInstanceIdentifier ToDicomInstanceIdentifier(this DicomDataset dicomDataset)
         {
@@ -105,6 +105,24 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty));
+        }
+
+        /// <summary>
+        /// Creates an instance of <see cref="VersionedDicomInstanceIdentifier"/> from <see cref="DicomDataset"/>.
+        /// </summary>
+        /// <param name="dicomDataset">The DICOM dataset to get the identifiers from.</param>
+        /// <param name="version">The version.</param>
+        /// <returns>An instance of <see cref="DicomInstanceIdentifier"/> representing the <paramref name="dicomDataset"/>.</returns>
+        public static VersionedDicomInstanceIdentifier ToVersionedDicomInstanceIdentifier(this DicomDataset dicomDataset, long version)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+            // Note: Here we 'GetSingleValueOrDefault' and let the constructor validate the identifier.
+            return new VersionedDicomInstanceIdentifier(
+                dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
+                dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
+                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
+                version);
         }
     }
 }

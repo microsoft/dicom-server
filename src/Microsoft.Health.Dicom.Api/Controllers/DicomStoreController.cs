@@ -51,10 +51,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Store Transaction request received, with study instance UID '{studyInstanceUid}'.");
 
-            Uri requestBaseUri = GetRequestBaseUri(Request);
-
             StoreDicomResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
-                requestBaseUri,
                 Request.Body,
                 Request.ContentType,
                 studyInstanceUid,

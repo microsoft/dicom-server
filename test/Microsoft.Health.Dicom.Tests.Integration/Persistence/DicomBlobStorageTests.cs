@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAValidFileStream_WhenStored_CanBeRetrievedAndDeleted()
         {
-            var id = new DicomInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 0);
+            var id = GenerateIdentifier();
 
             var fileName = DicomBlobFileStore.GetBlobStorageName(id);
             var fileData = new byte[] { 4, 7, 2 };
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAValidFile_WhenStored_CanBeOverwrittenOrThrowExceptionIsExists()
         {
-            var id = new DicomInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 0);
+            var id = GenerateIdentifier();
             var fileData = new byte[] { 4, 7, 2 };
 
             await using (var stream = _recyclableMemoryStreamManager.GetStream("GivenAValidFile_WhenStored_CanBeOverwrittenOrThrowExceptionIsExists.fileData", fileData, 0, fileData.Length))
@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenANonExistentFile_WhenFetched_ThrowsNotFoundException()
         {
-            var id = new DicomInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(),  0);
+            var id = GenerateIdentifier();
             DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(() => _dicomBlobDataStore.GetAsync(id));
             Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
         }
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenANonExistentFile_WhenDeleted_DoesNotThrowException()
         {
-            var id = new DicomInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 0);
+            var id = GenerateIdentifier();
             await _dicomBlobDataStore.DeleteIfExistsAsync(id);
         }
 
@@ -98,5 +98,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 return memoryStream.ToArray();
             }
         }
+
+        private VersionedDicomInstanceIdentifier GenerateIdentifier()
+            => new VersionedDicomInstanceIdentifier(
+                studyInstanceUid: TestUidGenerator.Generate(),
+                seriesInstanceUid: TestUidGenerator.Generate(),
+                sopInstanceUid: TestUidGenerator.Generate(),
+                version: 0);
     }
 }

@@ -19,21 +19,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence.Store
     internal class StoreResponseBuilder
     {
         private readonly DicomDataset _dataset;
-        private readonly Uri _baseUri;
         private readonly IUrlResolver _urlResolver;
         private HttpStatusCode _responseStatusCode = HttpStatusCode.BadRequest;
         private bool _successAdded = false;
         private bool _failureAdded = false;
 
-        public StoreResponseBuilder(Uri baseUri, IUrlResolver urlResolver, string studyInstanceUid = null)
+        public StoreResponseBuilder(IUrlResolver urlResolver, string studyInstanceUid = null)
         {
-            EnsureArg.IsNotNull(baseUri, nameof(baseUri));
             EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
 
             Uri retrieveUri = string.IsNullOrWhiteSpace(studyInstanceUid) ? null : urlResolver.ResolveRetrieveStudyUri(studyInstanceUid);
 
             _dataset = new DicomDataset { { DicomTag.RetrieveURL, retrieveUri?.ToString() } };
-            _baseUri = baseUri;
             _urlResolver = urlResolver;
         }
 

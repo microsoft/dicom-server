@@ -58,15 +58,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
         }
 
         public async Task<StoreDicomResponse> StoreMultiPartDicomResourceAsync(
-            Uri requestBaseUri,
             Stream contentStream,
             string requestContentType,
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
-            StoreRequestValidator.ValidateRequest(requestBaseUri, contentStream, requestContentType, studyInstanceUid);
+            StoreRequestValidator.ValidateRequest(contentStream, requestContentType, studyInstanceUid);
 
-            var responseBuilder = new StoreResponseBuilder(requestBaseUri, _urlResolver, studyInstanceUid);
+            var responseBuilder = new StoreResponseBuilder(_urlResolver, studyInstanceUid);
             _ = MediaTypeHeaderValue.TryParse(requestContentType, out MediaTypeHeaderValue media);
             string boundary = HeaderUtilities.RemoveQuotes(media.Boundary).ToString();
             var multipartReader = new MultipartReader(boundary, contentStream);
@@ -160,14 +159,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Persistence
             EnsureArg.IsNotNull(dicomFileStream, nameof(dicomFileStream));
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
-            var identifier = dicomFile.Dataset.ToDicomInstanceIdentifier();
-
             // TODO fix the version once we implement the data consistency
-            var dicomInstanceIdentifier = new DicomInstanceIdentifier(
-                identifier.StudyInstanceUid,
-                identifier.SeriesInstanceUid,
-                identifier.SopInstanceUid,
-                version: 0);
+            var dicomInstanceIdentifier = dicomFile.Dataset.ToVersionedDicomInstanceIdentifier(version: 0);
 
             // If a file with the same name exists, a conflict exception will be thrown.
             dicomFileStream.Seek(0, SeekOrigin.Begin);
