@@ -253,13 +253,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             return new QueryCollection(pairs);
         }
 
-        private QueryDicomResourceRequest CreateRequest(
+        private DicomQueryResourceRequest CreateRequest(
             QueryCollection queryParams,
             QueryResource resourceType,
             string studyInstanceUid = null,
             string seriesInstanceUid = null)
         {
-            return new QueryDicomResourceRequest(queryParams, resourceType, studyInstanceUid, seriesInstanceUid);
+            return new DicomQueryResourceRequest(queryParams, resourceType, studyInstanceUid, seriesInstanceUid);
         }
     }
 }

@@ -205,12 +205,12 @@ INCLUDE
 **************************************************************/
 CREATE TABLE dbo.StudyMetadataCore (
     --Key
-    ID                          BIGINT NOT NULL, --PK
+    Id                          BIGINT NOT NULL, --PK
     --instance keys
     StudyInstanceUid            VARCHAR(64) NOT NULL,
     Version                     INT NOT NULL,
     --patient and study core
-    PatientID                   NVARCHAR(64) NOT NULL,
+    PatientId                   NVARCHAR(64) NOT NULL,
     PatientName                 NVARCHAR(325) NULL,
     --PatientNameIndex AS REPLACE(PatientName, '^', ' '), --FT index,
     ReferringPhysicianName      NVARCHAR(325) NULL,
@@ -221,17 +221,17 @@ CREATE TABLE dbo.StudyMetadataCore (
 
 CREATE UNIQUE CLUSTERED INDEX IXC_StudyMetadataCore ON dbo.StudyMetadataCore
 (
-    ID,
+    Id,
     StudyInstanceUid
 )
 
-CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_PatientID ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_PatientId ON dbo.StudyMetadataCore
 (
-    PatientID
+    PatientId
 )
 INCLUDE
 (
-    ID,
+    Id,
     StudyInstanceUid
 )
 
@@ -241,7 +241,7 @@ CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_ReferringPhysicianName ON dbo.Stu
 )
 INCLUDE
 (
-    ID,
+    Id,
     StudyInstanceUid
 )
 
@@ -252,7 +252,7 @@ CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_StudyDate ON dbo.StudyMetadataCor
 INCLUDE
 
 (
-    ID,
+    Id,
     StudyInstanceUid
 )
 
@@ -262,7 +262,7 @@ CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_StudyDescription ON dbo.StudyMeta
 )
 INCLUDE
 (
-    ID,
+    Id,
     StudyInstanceUid
 )
 
@@ -272,7 +272,7 @@ CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_AccessionNumber ON dbo.StudyMetad
 )
 INCLUDE
 (
-    ID,
+    Id,
     StudyInstanceUid
 )
 
@@ -282,8 +282,8 @@ INCLUDE
 **************************************************************/
 
 CREATE TABLE dbo.SeriesMetadataCore (
-    --Key
-    ID                                  BIGINT NOT NULL, --FK
+    --Foreign Key
+    StudyId                             BIGINT NOT NULL, --FK
     --instance keys
     SeriesInstanceUid                   VARCHAR(64) NOT NULL,
     Version                             INT NOT NULL,
@@ -294,7 +294,7 @@ CREATE TABLE dbo.SeriesMetadataCore (
 
 CREATE UNIQUE CLUSTERED INDEX IXC_SeriesMetadataCore ON dbo.SeriesMetadataCore
 (
-    ID,
+    StudyId,
     SeriesInstanceUid
 )
 
@@ -304,7 +304,7 @@ CREATE NONCLUSTERED INDEX IX_SeriesMetadataCore_Modality ON dbo.SeriesMetadataCo
 )
 INCLUDE
 (
-    ID,
+    StudyId,
     SeriesInstanceUid
 )
 
@@ -314,7 +314,7 @@ CREATE NONCLUSTERED INDEX IX_SeriesMetadataCore_PerformedProcedureStepStartDate 
 )
 INCLUDE
 (
-    ID,
+    StudyId,
     SeriesInstanceUid
 )
 
@@ -359,8 +359,8 @@ GO
 --         * The series instance UID.
 --     @sopInstanceUid
 --         * The SOP instance UID.
---     @patientID
---         * The ID of the patient.
+--     @patientId
+--         * The Id of the patient.
 --     @patientName
 --         * The name of the patient.
 --     @referringPhysicianName
@@ -384,7 +384,7 @@ CREATE PROCEDURE dbo.AddInstance
     @studyInstanceUid VARCHAR(64),
     @seriesInstanceUid VARCHAR(64),
     @sopInstanceUid VARCHAR(64),
-    @patientID NVARCHAR(64),
+    @patientId NVARCHAR(64),
     @patientName NVARCHAR(325) = NULL,
     @referringPhysicianName NVARCHAR(325) = NULL,
     @studyDate DATE = NULL,
@@ -421,7 +421,7 @@ AS
         (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, NEXT VALUE FOR dbo.WatermarkSequence, @initialStatus, @currentDate, @currentDate)
 
     -- Update the study metadata if needed.
-    SELECT @metadataId = ID
+    SELECT @metadataId = Id
     FROM dbo.StudyMetadataCore
     WHERE studyInstanceUid = @studyInstanceUid
 
@@ -430,18 +430,18 @@ AS
         SET @metadataId = NEXT VALUE FOR dbo.MetadataIdSequence
 
         INSERT INTO dbo.StudyMetadataCore
-            (ID, studyInstanceUid, Version, PatientID, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            (Id, studyInstanceUid, Version, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
-            (@metadataId, @studyInstanceUid, 0, @patientID, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+            (@metadataId, @studyInstanceUid, 0, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
     END
     --ELSE BEGIN
         -- TODO: handle the versioning
     --END
 
-    IF NOT EXISTS (SELECT * FROM dbo.SeriesMetadataCore WHERE ID = @metadataId AND seriesInstanceUid = @seriesInstanceUid)
+    IF NOT EXISTS (SELECT * FROM dbo.SeriesMetadataCore WHERE StudyId = @metadataId AND seriesInstanceUid = @seriesInstanceUid)
     BEGIN
         INSERT INTO dbo.SeriesMetadataCore
-            (ID, seriesInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
+            (StudyId, seriesInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
         VALUES
             (@metadataId, @seriesInstanceUid, 0, @modality, @performedProcedureStepStartDate)
     END

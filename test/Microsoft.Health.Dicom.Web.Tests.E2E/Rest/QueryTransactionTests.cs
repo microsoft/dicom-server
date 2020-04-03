@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
@@ -24,6 +25,22 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             _client = fixture.Client;
+        }
+
+        [Fact]
+        public async Task GivenSearchRequest_WithUnsupportedTag_ReturnBadRequest()
+        {
+            HttpResult<string> response = await _client.QueryWithBadRequest("/studies?Modality=CT");
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(response.Value, string.Format(DicomCoreResource.UnsupportedSearchParameter, "Modality"));
+        }
+
+        [Fact]
+        public async Task GivenSearchRequest_WithInvalidUid_ReturnBadRequest()
+        {
+            HttpResult<string> response = await _client.QueryWithBadRequest("/studies/abcd.123/series");
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(response.Value, string.Format(DicomCoreResource.DicomIdentifierInvalid, "studyInstanceUid", "abcd.123"));
         }
 
         [Fact]

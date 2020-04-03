@@ -3,24 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DicomQueryParseException : DicomException
+    public class DicomQueryParseException : DicomValidationException
     {
         public DicomQueryParseException(string message)
             : base(message)
         {
-        }
-
-        public override HttpStatusCode ResponseStatusCode
-        {
-            get
-            {
-                return HttpStatusCode.BadRequest;
-            }
         }
     }
 }

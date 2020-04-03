@@ -8,6 +8,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public interface IDicomQueryParser
     {
-        DicomQueryExpression Parse(QueryDicomResourceRequest request);
+        DicomQueryExpression Parse(DicomQueryResourceRequest request);
     }
 }

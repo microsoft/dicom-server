@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 { DicomTag.StudyDate, new DicomTagSqlEntry(DicomTag.StudyDate, SqlTableType.StudyTable, VLatest.StudyMetadataCore.StudyDate) },
                 { DicomTag.StudyDescription, new DicomTagSqlEntry(DicomTag.StudyDescription, SqlTableType.StudyTable, VLatest.StudyMetadataCore.StudyDescription) },
                 { DicomTag.AccessionNumber, new DicomTagSqlEntry(DicomTag.AccessionNumber, SqlTableType.StudyTable, VLatest.StudyMetadataCore.AccessionNumber) },
-                { DicomTag.PatientID, new DicomTagSqlEntry(DicomTag.PatientID, SqlTableType.StudyTable, VLatest.StudyMetadataCore.PatientID) },
+                { DicomTag.PatientID, new DicomTagSqlEntry(DicomTag.PatientID, SqlTableType.StudyTable, VLatest.StudyMetadataCore.PatientId) },
                 { DicomTag.PatientName, new DicomTagSqlEntry(DicomTag.PatientName, SqlTableType.StudyTable, VLatest.StudyMetadataCore.PatientName) },
                 { DicomTag.SeriesInstanceUID, new DicomTagSqlEntry(DicomTag.SeriesInstanceUID, SqlTableType.SeriesTable, VLatest.SeriesMetadataCore.SeriesInstanceUid) },
                 { DicomTag.Modality, new DicomTagSqlEntry(DicomTag.Modality, SqlTableType.SeriesTable, VLatest.SeriesMetadataCore.Modality) },

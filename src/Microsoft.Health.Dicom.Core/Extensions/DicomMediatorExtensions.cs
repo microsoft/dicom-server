@@ -93,7 +93,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new DeleteDicomResourcesRequest(studyInstanceUid, seriesid, sopInstanceUid), cancellationToken);
         }
 
-        public static Task<QueryDicomResourceResponse> QueryDicomResourcesAsync(
+        public static Task<DicomQueryResourceResponse> QueryDicomResourcesAsync(
             this IMediator mediator,
             IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
             QueryResource resourceType,
@@ -101,7 +101,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             string seriesInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
-            return mediator.Send(new QueryDicomResourceRequest(requestQuery, resourceType, studyInstanceUid, seriesInstanceUid), cancellationToken);
+            return mediator.Send(new DicomQueryResourceRequest(requestQuery, resourceType, studyInstanceUid, seriesInstanceUid), cancellationToken);
         }
     }
 }
