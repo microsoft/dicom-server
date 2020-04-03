@@ -59,13 +59,5 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             return StatusCode(storeResponse.StatusCode, storeResponse.Dataset);
         }
-
-        private static Uri GetRequestBaseUri(HttpRequest request)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
-            EnsureArg.IsTrue(request.Host.HasValue, nameof(request.Host));
-
-            return new Uri($"{request.Scheme}://{request.Host.Value}/");
-        }
     }
 }
