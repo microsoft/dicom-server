@@ -223,6 +223,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.Equal(testStudyUID.UID, cond.Value);
         }
 
+        [Theory]
+        [InlineData("PatientName=CoronaPatient&StudyDate=20200403&fuzzyMatching=true", QueryResource.AllStudies)]
+        public void GivenPatientNameFilterCondition_WithFuzzyMatchingTrue_FuzzyMatchConditionAdded(string queryString, QueryResource resourceType)
+        {
+            DicomQueryExpression dicomQueryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType));
+
+            Assert.Equal(2, dicomQueryExpression.FilterConditions.Count);
+
+            var patientNameCondition = dicomQueryExpression.FilterConditions.FirstOrDefault(c => c.DicomTag == DicomTag.PatientName);
+            Assert.NotNull(patientNameCondition);
+
+            var fuzzyCondition = patientNameCondition as PatientNameFuzzyMatchCondition;
+            Assert.NotNull(fuzzyCondition);
+            Assert.Equal("CoronaPatient", fuzzyCondition.Value);
+        }
+
         private QueryCollection GetQueryCollection(string key, string value)
         {
             return GetQueryCollection(new Dictionary<string, string>() { { key, value } });

@@ -57,7 +57,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             EnsureArg.IsNotNull(request, nameof(request));
 
             _parsedQuery = new QueryExpressionImp();
-            var filterConditionTags = new HashSet<DicomTag>();
 
             foreach (var queryParam in request.RequestQuery)
             {
@@ -73,12 +72,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 // filter conditions with attributeId as key
                 if (ParseFilterCondition(queryParam, request.QueryResourceType, out DicomQueryFilterCondition condition))
                 {
-                    if (filterConditionTags.Contains(condition.DicomTag))
+                    if (_parsedQuery.FilterConditionTags.Contains(condition.DicomTag))
                     {
                         throw new DicomQueryParseException(string.Format(DicomCoreResource.DuplicateQueryParam, queryParam.Key));
                     }
 
-                    filterConditionTags.Add(condition.DicomTag);
+                    _parsedQuery.FilterConditionTags.Add(condition.DicomTag);
                     _parsedQuery.FilterConditions.Add(condition);
                     continue;
                 }
@@ -99,6 +98,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 _parsedQuery.FilterConditions.Add(condition);
             }
 
+            PostProcessFilterConditions(_parsedQuery);
+
             return new DicomQueryExpression(
                 request.QueryResourceType,
                 new DicomQueryIncludeField(_parsedQuery.AllValue, _parsedQuery.IncludeFields),
@@ -106,6 +107,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 _parsedQuery.Limit,
                 _parsedQuery.Offset,
                 _parsedQuery.FilterConditions);
+        }
+
+        private void PostProcessFilterConditions(QueryExpressionImp parsedQuery)
+        {
+            if (parsedQuery.FuzzyMatch == true
+                && parsedQuery.FilterConditionTags.Contains(DicomTag.PatientName))
+            {
+                var patientNameCondition = parsedQuery.FilterConditions.First(c => c.DicomTag == DicomTag.PatientName) as StringSingleValueMatchCondition;
+
+                // Remove existing stringvalue match and add fuzzymatch condition
+                var fuzzyPatientNameCondition = new PatientNameFuzzyMatchCondition(patientNameCondition.DicomTag, patientNameCondition.Value);
+                parsedQuery.FilterConditions.Remove(patientNameCondition);
+                parsedQuery.FilterConditions.Add(fuzzyPatientNameCondition);
+            }
         }
 
         private bool ParseFilterCondition(KeyValuePair<string, StringValues> queryParameter, QueryResource resourceType, out DicomQueryFilterCondition condition)
