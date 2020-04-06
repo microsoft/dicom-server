@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -174,15 +175,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenSearchRequest_PatientNameFuzzyMatch_MatchResult()
         {
+            string randomNamePart = RandomString(7);
             DicomDataset matchInstance1 = await PostDicomFileAsync(new DicomDataset()
             {
-                 { DicomTag.PatientName, "Jon^Duffy" },
+                 { DicomTag.PatientName, $"Jon^{randomNamePart}^StoneHall" },
             });
             var studyId1 = matchInstance1.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
             DicomDataset matchInstance2 = await PostDicomFileAsync(new DicomDataset()
             {
-                 { DicomTag.PatientName, "Jonathan^Duffy" },
+                 { DicomTag.PatientName, $"Jonathan^{randomNamePart}^Stone Hall^^" },
             });
             var studyId2 = matchInstance2.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
@@ -193,7 +195,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             while (retryCount < 3 || testDataResponse1 == null)
             {
                 response = await _client.QueryAsync(
-                       $"/studies?PatientName=Duff&FuzzyMatching=true");
+                       $"/studies?PatientName={randomNamePart}&FuzzyMatching=true");
 
                 testDataResponse1 = response.Value?.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId1);
                 retryCount++;
@@ -205,6 +207,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset testDataResponse2 = response.Value.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId2);
             Assert.NotNull(testDataResponse2);
             ValidateResponseDataset(QueryResource.AllStudies, matchInstance2, testDataResponse2);
+        }
+
+        private static string RandomString(int length)
+        {
+            var random = new Random();
+
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         private async Task<DicomDataset> PostDicomFileAsync(DicomDataset metadataItems = null)

@@ -6,9 +6,9 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class PatientNameFuzzyMatchCondition : SingleValueMatchCondition<string>
+    public class PersonNameFuzzyMatchCondition : SingleValueMatchCondition<string>
     {
-        internal PatientNameFuzzyMatchCondition(DicomTag tag, string value)
+        internal PersonNameFuzzyMatchCondition(DicomTag tag, string value)
             : base(tag, value)
         {
         }

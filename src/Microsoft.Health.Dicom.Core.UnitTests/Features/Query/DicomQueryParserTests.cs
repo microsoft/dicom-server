@@ -231,10 +231,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
             Assert.Equal(2, dicomQueryExpression.FilterConditions.Count);
 
+            var studyDateFilterCondition = dicomQueryExpression.FilterConditions.FirstOrDefault(c => c.DicomTag == DicomTag.StudyDate) as DateSingleValueMatchCondition;
+            Assert.NotNull(studyDateFilterCondition);
+
             var patientNameCondition = dicomQueryExpression.FilterConditions.FirstOrDefault(c => c.DicomTag == DicomTag.PatientName);
             Assert.NotNull(patientNameCondition);
 
-            var fuzzyCondition = patientNameCondition as PatientNameFuzzyMatchCondition;
+            var fuzzyCondition = patientNameCondition as PersonNameFuzzyMatchCondition;
             Assert.NotNull(fuzzyCondition);
             Assert.Equal("CoronaPatient", fuzzyCondition.Value);
         }

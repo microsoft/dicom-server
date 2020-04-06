@@ -289,14 +289,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .AppendLine();
         }
 
-        public override void Visit(PatientNameFuzzyMatchCondition fuzzyMatchCondition)
+        public override void Visit(PersonNameFuzzyMatchCondition fuzzyMatchCondition)
         {
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(fuzzyMatchCondition.DicomTag);
             var wildcardValue = $"\"{fuzzyMatchCondition.Value}*\"";
             var tableAlias = GetTableAlias(dicomTagSqlEntry);
             _stringBuilder
                 .Append("AND CONTAINS(")
-                .Append(VLatest.StudyMetadataCoreTable.PatientNameWords)
+                .Append(dicomTagSqlEntry.FullTextIndexColumnName)
                 .Append(", ")
                 .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, wildcardValue))
                 .Append(")")

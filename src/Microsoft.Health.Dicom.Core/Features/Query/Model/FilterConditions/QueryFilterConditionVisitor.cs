@@ -12,6 +12,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public abstract void Visit(DateSingleValueMatchCondition dateSingleValueMatchCondition);
 
-        public abstract void Visit(PatientNameFuzzyMatchCondition fuzzyMatchCondition);
+        public abstract void Visit(PersonNameFuzzyMatchCondition fuzzyMatchCondition);
     }
 }
