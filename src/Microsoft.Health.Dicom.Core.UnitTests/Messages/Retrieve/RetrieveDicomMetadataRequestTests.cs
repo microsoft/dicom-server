@@ -15,13 +15,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [Fact]
         public void GivenRetrieveDicomMetadataRequest_OnConstruction_CorrectResourceTypeIsSet()
         {
-            var request = new RetrieveDicomMetadataRequest(Guid.NewGuid().ToString());
+            var request = new RetrieveDicomMetadataRequest(ResourceType.Study, Guid.NewGuid().ToString());
             Assert.Equal(ResourceType.Study, request.ResourceType);
 
-            request = new RetrieveDicomMetadataRequest(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            request = new RetrieveDicomMetadataRequest(ResourceType.Series, Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
             Assert.Equal(ResourceType.Series, request.ResourceType);
 
-            request = new RetrieveDicomMetadataRequest(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            request = new RetrieveDicomMetadataRequest(ResourceType.Instance, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
             Assert.Equal(ResourceType.Instance, request.ResourceType);
         }
     }

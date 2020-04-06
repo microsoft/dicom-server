@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using FluentValidation.Results;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
@@ -17,15 +18,17 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa65")]
         public void GivenInvalidIdentifiers_OnValidationOfRetrieveRequest_ErrorReturned(string invalidIdentifier)
         {
-            var request = new RetrieveDicomMetadataRequest(invalidIdentifier);
+            var request = new RetrieveDicomMetadataRequest(ResourceType.Study, studyInstanceUid: invalidIdentifier);
             ValidateHasError(request, "Study Instance Uid");
 
             request = new RetrieveDicomMetadataRequest(
+                ResourceType.Series,
                 studyInstanceUid: TestUidGenerator.Generate(),
                 seriesInstanceUid: invalidIdentifier);
             ValidateHasError(request, "Series Instance Uid");
 
             request = new RetrieveDicomMetadataRequest(
+                ResourceType.Instance,
                 studyInstanceUid: TestUidGenerator.Generate(),
                 seriesInstanceUid: TestUidGenerator.Generate(),
                 sopInstanceUid: invalidIdentifier);
@@ -41,11 +44,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             const string expectedErrorMessage = "The specified condition was not met for ''.";
 
-            var request = new RetrieveDicomMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            var request = new RetrieveDicomMetadataRequest(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             ValidateHasError(request, expectedErrorMessage);
 
             // Always use the same identifier for series request
-            request = new RetrieveDicomMetadataRequest(studyInstanceUid, studyInstanceUid);
+            request = new RetrieveDicomMetadataRequest(ResourceType.Series, studyInstanceUid, studyInstanceUid);
             ValidateHasError(request, expectedErrorMessage);
         }
 
