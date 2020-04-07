@@ -8,35 +8,29 @@ using System.Data.SqlClient;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 {
-    public class Instance
+    public class FileCleanup
     {
-        public Instance(
+        public FileCleanup(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
             long watermark,
-            byte status,
-            DateTime lastStatusUpdatedDate,
-            DateTime createdDate)
+            DateTime deleteAfter)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
             Watermark = watermark;
-            Status = status;
-            LastStatusUpdatedDate = lastStatusUpdatedDate;
-            CreatedDate = createdDate;
+            DeleteAfter = deleteAfter;
         }
 
-        public Instance(SqlDataReader sqlDataReader)
+        public FileCleanup(SqlDataReader sqlDataReader)
         {
             StudyInstanceUid = sqlDataReader.GetString(0);
             SeriesInstanceUid = sqlDataReader.GetString(1);
             SopInstanceUid = sqlDataReader.GetString(2);
             Watermark = sqlDataReader.GetInt64(3);
-            Status = sqlDataReader.GetByte(4);
-            LastStatusUpdatedDate = sqlDataReader.GetDateTime(5);
-            CreatedDate = sqlDataReader.GetDateTime(6);
+            DeleteAfter = sqlDataReader.GetDateTime(4);
         }
 
         public string StudyInstanceUid { get; }
@@ -47,10 +41,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public long Watermark { get; }
 
-        public byte Status { get; }
-
-        public DateTime LastStatusUpdatedDate { get; }
-
-        public DateTime CreatedDate { get; }
+        public DateTime DeleteAfter { get; }
     }
 }

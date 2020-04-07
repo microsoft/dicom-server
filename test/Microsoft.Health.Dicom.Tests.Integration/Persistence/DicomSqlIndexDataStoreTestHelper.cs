@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
@@ -109,6 +110,40 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         return null;
                     }
                 }
+            }
+        }
+
+        public async Task<IReadOnlyList<FileCleanup>> GetFileCleanupEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                await sqlConnection.OpenAsync();
+
+                var result = new List<FileCleanup>();
+
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = @$"
+                        SELECT *
+                        FROM {VLatest.FileCleanup.TableName}
+                        WHERE {VLatest.FileCleanup.StudyInstanceUid} = @studyInstanceUid
+                        AND {VLatest.FileCleanup.SeriesInstanceUid} = ISNULL(@seriesInstanceUid, {VLatest.FileCleanup.SeriesInstanceUid})
+                        AND {VLatest.FileCleanup.SopInstanceUid} = ISNULL(@sopInstanceUid, {VLatest.FileCleanup.SopInstanceUid})";
+
+                    sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", string.IsNullOrEmpty(seriesInstanceUid) ? DBNull.Value : (object)seriesInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@sopInstanceUid", string.IsNullOrEmpty(sopInstanceUid) ? DBNull.Value : (object)sopInstanceUid);
+
+                    using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
+                    {
+                        while (await sqlDataReader.ReadAsync())
+                        {
+                            result.Add(new FileCleanup(sqlDataReader));
+                        }
+                    }
+                }
+
+                return result;
             }
         }
     }

@@ -42,19 +42,56 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             _logger = logger;
         }
 
-        public Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
+        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
         {
-            return Task.CompletedTask;
+            EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
+            EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
+
+            await DeleteInstanceAysnc(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
         }
 
-        public Task<IEnumerable<DicomInstanceIdentifier>> DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
+        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(Enumerable.Empty<DicomInstanceIdentifier>());
+            EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
+
+            await DeleteInstanceAysnc(studyInstanceUid, seriesInstanceUid, null, cancellationToken);
         }
 
-        public Task<IEnumerable<DicomInstanceIdentifier>> DeleteStudyIndexAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
+        public async Task DeleteStudyIndexAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(Enumerable.Empty<DicomInstanceIdentifier>());
+            EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
+
+            await DeleteInstanceAysnc(studyInstanceUid, null, null, cancellationToken);
+        }
+
+        private async Task DeleteInstanceAysnc(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
+        {
+            await _sqlServerDicomIndexSchema.EnsureInitialized();
+
+            using (var sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
+            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            {
+                await sqlCommand.Connection.OpenAsync(cancellationToken);
+
+                VLatest.DeleteInstance.PopulateCommand(
+                    sqlCommand,
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid,
+                    1);
+
+                try
+                {
+                    await sqlCommand.ExecuteScalarAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    _logger.LogError(ex, $"Error from SQL database on {nameof(VLatest.DeleteInstance)}.");
+                    throw;
+                }
+            }
         }
 
         public async Task IndexInstanceAsync(DicomDataset instance, CancellationToken cancellationToken = default)
