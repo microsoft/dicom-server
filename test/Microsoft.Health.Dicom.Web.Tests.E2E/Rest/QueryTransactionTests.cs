@@ -168,17 +168,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenSearchRequest_PatientNameFuzzyMatch_MatchResult()
         {
             string randomNamePart = RandomString(7);
-            DicomDataset matchInstance1 = await PostDicomFileAsync(new DicomDataset()
-            {
-                 { DicomTag.PatientName, $"Jon^{randomNamePart}^StoneHall" },
-            });
-            var studyId1 = matchInstance1.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-
             DicomDataset matchInstance2 = await PostDicomFileAsync(new DicomDataset()
             {
                  { DicomTag.PatientName, $"Jonathan^{randomNamePart}^Stone Hall^^" },
             });
             var studyId2 = matchInstance2.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+
+            DicomDataset matchInstance1 = await PostDicomFileAsync(new DicomDataset()
+            {
+                 { DicomTag.PatientName, $"Jon^{randomNamePart}^StoneHall" },
+            });
+            var studyId1 = matchInstance1.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
             // Retrying the query 3 times, to give sql FT index time to catch up
             int retryCount = 0;
