@@ -8,42 +8,37 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Store.Upload;
+using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides functionality to orchestrate persisting the DICOM resource to datastores.
+    /// Provides functionality to orchestrate persisting the DICOM instance entry to the data stores.
     /// </summary>
     public class DicomStorePersistenceOrchestrator : IDicomStorePersistenceOrchestrator
     {
         private readonly IDicomFileStore _dicomBlobDataStore;
         private readonly IDicomMetadataStore _dicomInstanceMetadataStore;
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
-        private readonly ILogger _logger;
 
         public DicomStorePersistenceOrchestrator(
             IDicomFileStore dicomBlobDataStore,
             IDicomMetadataStore dicomInstanceMetadataStore,
-            IDicomIndexDataStore dicomIndexDataStore,
-            ILogger<DicomStorePersistenceOrchestrator> logger)
+            IDicomIndexDataStore dicomIndexDataStore)
         {
             EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
             EnsureArg.IsNotNull(dicomInstanceMetadataStore, nameof(dicomInstanceMetadataStore));
             EnsureArg.IsNotNull(dicomIndexDataStore, nameof(dicomIndexDataStore));
-            EnsureArg.IsNotNull(logger, nameof(logger));
 
             _dicomBlobDataStore = dicomBlobDataStore;
             _dicomInstanceMetadataStore = dicomInstanceMetadataStore;
             _dicomIndexDataStore = dicomIndexDataStore;
-            _logger = logger;
         }
 
         /// <inheritdoc />
-        public async Task PersistUploadedDicomInstanceAsync(IUploadedDicomInstance uploadedDicomResource, CancellationToken cancellationToken)
+        public async Task PersistDicomInstanceEntryAsync(IDicomInstanceEntry uploadedDicomResource, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(uploadedDicomResource, nameof(uploadedDicomResource));
 

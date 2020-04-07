@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
+namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 {
     /// <summary>
     /// Provides logging for <see cref="IUploadedDicomInstanceReader"/>.
     /// </summary>
-    public class LoggingUploadedDicomInstanceReader : IUploadedDicomInstanceReader
+    public class LoggingDicomInstanceEntryReader : IDicomInstanceEntryReader
     {
         private static readonly Action<ILogger, string, string, Exception> LogCanReadDelegate =
             LoggerMessage.Define<string, string>(
@@ -42,22 +42,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
                 default,
                 "Failed to read uploaded DICOM instance(s).");
 
-        private readonly IUploadedDicomInstanceReader _uploadedDicomInstanceReader;
+        private readonly IDicomInstanceEntryReader _dicomInstanceEntryReader;
         private readonly ILogger _logger;
 
         private readonly string _readerType;
 
-        public LoggingUploadedDicomInstanceReader(
-            IUploadedDicomInstanceReader uploadedDicomInstanceReader,
-            ILogger<LoggingUploadedDicomInstanceReader> logger)
+        public LoggingDicomInstanceEntryReader(
+            IDicomInstanceEntryReader dicomInstanceEntryReader,
+            ILogger<LoggingDicomInstanceEntryReader> logger)
         {
-            EnsureArg.IsNotNull(uploadedDicomInstanceReader, nameof(uploadedDicomInstanceReader));
+            EnsureArg.IsNotNull(dicomInstanceEntryReader, nameof(dicomInstanceEntryReader));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _uploadedDicomInstanceReader = uploadedDicomInstanceReader;
+            _dicomInstanceEntryReader = dicomInstanceEntryReader;
             _logger = logger;
 
-            _readerType = _uploadedDicomInstanceReader.GetType().Name;
+            _readerType = _dicomInstanceEntryReader.GetType().Name;
         }
 
         /// <inheritdoc />
@@ -65,21 +65,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
         {
             LogCanReadDelegate(_logger, _readerType, contentType, null);
 
-            return _uploadedDicomInstanceReader.CanRead(contentType);
+            return _dicomInstanceEntryReader.CanRead(contentType);
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<IUploadedDicomInstance>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken)
         {
             LogReadingDelegate(_logger, _readerType, null);
 
             try
             {
-                IReadOnlyCollection<IUploadedDicomInstance> uploadedDicomInstances = await _uploadedDicomInstanceReader.ReadAsync(contentType, stream);
+                IReadOnlyCollection<IDicomInstanceEntry> dicomInstanceEntries = await _dicomInstanceEntryReader.ReadAsync(contentType, stream);
 
-                LogSuccessfullyReadDelegate(_logger, uploadedDicomInstances?.Count ?? 0, null);
+                LogSuccessfullyReadDelegate(_logger, dicomInstanceEntries?.Count ?? 0, null);
 
-                return uploadedDicomInstances;
+                return dicomInstanceEntries;
             }
             catch (Exception ex)
             {

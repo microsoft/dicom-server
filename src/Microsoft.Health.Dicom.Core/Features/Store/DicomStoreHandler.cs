@@ -13,27 +13,27 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Abstractions.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Store.Upload;
+using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     public class DicomStoreHandler : IRequestHandler<DicomStoreRequest, DicomStoreResponse>
     {
-        private readonly IEnumerable<IUploadedDicomInstanceReader> _uploadedDicomInstanceReaders;
+        private readonly IEnumerable<IDicomInstanceEntryReader> _dicomInstanceEntryReaders;
         private readonly IDicomStoreService _dicomStoreService;
         private readonly ILogger _logger;
 
         public DicomStoreHandler(
-            IEnumerable<IUploadedDicomInstanceReader> uploadedDicomInstanceReaders,
+            IEnumerable<IDicomInstanceEntryReader> dicomInstanceEntryReaders,
             IDicomStoreService dicomStoreService,
             ILogger<DicomStoreHandler> logger)
         {
-            EnsureArg.IsNotNull(uploadedDicomInstanceReaders, nameof(uploadedDicomInstanceReaders));
+            EnsureArg.IsNotNull(dicomInstanceEntryReaders, nameof(dicomInstanceEntryReaders));
             EnsureArg.IsNotNull(dicomStoreService, nameof(dicomStoreService));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _uploadedDicomInstanceReaders = uploadedDicomInstanceReaders;
+            _dicomInstanceEntryReaders = dicomInstanceEntryReaders;
             _dicomStoreService = dicomStoreService;
             _logger = logger;
         }
@@ -48,10 +48,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             DicomStoreRequestValidator.ValidateRequest(message);
 
             // Find a reader that can parse the request body.
-            IUploadedDicomInstanceReader uploadedDicomInstanceReader = _uploadedDicomInstanceReaders.FirstOrDefault(
+            IDicomInstanceEntryReader dicomInstanceEntryReader = _dicomInstanceEntryReaders.FirstOrDefault(
                 reader => reader.CanRead(message.RequestContentType));
 
-            if (uploadedDicomInstanceReader == null)
+            if (dicomInstanceEntryReader == null)
             {
                 _logger.LogWarning("The specified content type '{ContentType}' could not be processed.", message.RequestContentType);
 
@@ -59,18 +59,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, message.RequestContentType));
             }
 
-            IReadOnlyCollection<IUploadedDicomInstance> uploadedDicomInstances = null;
+            IReadOnlyCollection<IDicomInstanceEntry> dicomInstanceEntries = null;
 
             try
             {
-                uploadedDicomInstances = await uploadedDicomInstanceReader.ReadAsync(
+                dicomInstanceEntries = await dicomInstanceEntryReader.ReadAsync(
                     message.RequestContentType,
                     message.RequestBody,
                     cancellationToken);
 
-                return await _dicomStoreService.ProcessUploadedDicomInstancesAsync(
+                return await _dicomStoreService.ProcessDicomInstanceEntriesAsync(
                     message.StudyInstanceUid,
-                    uploadedDicomInstances,
+                    dicomInstanceEntries,
                     cancellationToken);
             }
             catch (Exception ex)
@@ -80,18 +80,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
             finally
             {
-                if (uploadedDicomInstances != null)
+                if (dicomInstanceEntries != null)
                 {
                     _logger.LogTrace("Disposing all uploaded DICOM instances.");
 
-                    IEnumerable<Task> disposeTasks = uploadedDicomInstances.Select(DisposeResourceAsync);
+                    IEnumerable<Task> disposeTasks = dicomInstanceEntries.Select(DisposeResourceAsync);
 
                     await Task.WhenAll(disposeTasks);
                 }
             }
         }
 
-        private async Task DisposeResourceAsync(IUploadedDicomInstance uploadedDicomInstance)
+        private async Task DisposeResourceAsync(IDicomInstanceEntry uploadedDicomInstance)
         {
             try
             {

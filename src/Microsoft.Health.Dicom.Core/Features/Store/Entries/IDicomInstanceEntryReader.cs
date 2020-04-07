@@ -8,12 +8,12 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
+namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 {
     /// <summary>
-    /// Provides functionality to read uploaded DICOM instance from stream such as HTTP request body.
+    /// Provides functionality to read DICOM instance entries from stream such as HTTP request body.
     /// </summary>
-    public interface IUploadedDicomInstanceReader
+    public interface IDicomInstanceEntryReader
     {
         /// <summary>
         /// Gets a flag indicating whether this reader can read the HTTP request body with <paramref name="contentType"/>.
@@ -23,12 +23,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
         bool CanRead(string contentType);
 
         /// <summary>
-        /// Reads the uploaded DICOM instances.
+        /// Reads the DICOM instance entries from stream.
         /// </summary>
         /// <param name="contentType">The content type.</param>
         /// <param name="stream">The stream to read the DICOM instances from.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A collection of <see cref="IUploadedDicomInstance"/>.</returns>
-        Task<IReadOnlyCollection<IUploadedDicomInstance>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken = default);
+        /// <returns>A collection of <see cref="IDicomInstanceEntry"/>.</returns>
+        Task<IReadOnlyCollection<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken = default);
     }
 }

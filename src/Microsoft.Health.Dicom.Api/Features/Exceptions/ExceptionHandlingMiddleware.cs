@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 
         private IActionResult MapExceptionToResult(Exception exception)
         {
-            HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
+            HttpStatusCode statusCode;
             string message = exception.Message;
 
             switch (exception)
@@ -83,6 +83,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     break;
                 default:
                     _logger.LogError("Unhandled exception: {0}", exception);
+                    statusCode = HttpStatusCode.InternalServerError;
                     message = string.Empty;
                     break;
             }

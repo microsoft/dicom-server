@@ -5,21 +5,21 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Store.Upload;
+using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides functionality to orchestrate persisting the DICOM instance to the data stores.
+    /// Provides functionality to orchestrate persisting the DICOM instance entry to the data stores.
     /// </summary>
     public interface IDicomStorePersistenceOrchestrator
     {
         /// <summary>
-        /// Persists the uploaded DICOM instance.
+        /// Persists the DICOM instance entry.
         /// </summary>
-        /// <param name="uploadedDicomInstance">The DICOM instance to store.</param>
+        /// <param name="dicomInstanceEntry">The DICOM instance entry to persist.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>An instance of <see cref="Task"/>.</returns>
-        Task PersistUploadedDicomInstanceAsync(IUploadedDicomInstance uploadedDicomInstance, CancellationToken cancellationToken = default);
+        Task PersistDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken = default);
     }
 }

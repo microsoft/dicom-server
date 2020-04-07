@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Store.Upload;
+using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task PersistUploadedDicomInstanceAsync(IUploadedDicomInstance uploadedDicomInstance, CancellationToken cancellationToken)
+        public async Task PersistDicomInstanceEntryAsync(IDicomInstanceEntry uploadedDicomInstance, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(uploadedDicomInstance, nameof(uploadedDicomInstance));
 
@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _dicomStorePersistenceOrchestrator.PersistUploadedDicomInstanceAsync(uploadedDicomInstance, cancellationToken);
+                await _dicomStorePersistenceOrchestrator.PersistDicomInstanceEntryAsync(uploadedDicomInstance, cancellationToken);
 
                 LogSuccessfullyStoredUploadedDicomInstanceDelegate(_logger, dicomInstanceIdentifier, null);
             }

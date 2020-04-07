@@ -9,7 +9,7 @@ using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Features.Store.Upload;
+using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Core.Modules
@@ -31,11 +31,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.Decorate<IDicomStorePersistenceOrchestrator, LoggingDicomStorePersistenceOrchestrator>();
 
-            services.Add<UploadedDicomInstanceFromMultipartRequestReader>()
+            services.Add<DicomInstanceEntryReaderForMultipartRequest>()
                 .Singleton()
                 .AsImplementedInterfaces();
 
-            services.Decorate<IUploadedDicomInstanceReader, LoggingUploadedDicomInstanceReader>();
+            services.Decorate<IDicomInstanceEntryReader, LoggingDicomInstanceEntryReader>();
 
             services.Add<DicomStoreResponseBuilder>()
                 .Transient()

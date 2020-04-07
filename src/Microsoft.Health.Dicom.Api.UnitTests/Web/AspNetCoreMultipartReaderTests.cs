@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Web;
-using Microsoft.IO;
+using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 {
     public class AspNetCoreMultipartReaderTests
     {
-        private static readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+        private readonly ISeekableStreamConverter _seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
 
         [Fact]
         public void GivenInvalidContentType_WhenInitialized_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
@@ -92,7 +92,10 @@ content
                 body = new MemoryStream();
             }
 
-            return new AspNetCoreMultipartReader(contentType, body, _recyclableMemoryStreamManager);
+            return new AspNetCoreMultipartReader(
+                contentType,
+                body,
+                _seekableStreamConverter);
         }
     }
 }

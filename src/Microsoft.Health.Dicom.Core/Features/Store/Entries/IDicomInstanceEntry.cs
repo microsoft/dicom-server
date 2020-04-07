@@ -9,15 +9,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
+namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 {
     /// <summary>
-    /// Represents an uploaded DICOM instance.
+    /// Represents a DICOM instance entry that's been read from the HTTP request body.
     /// </summary>
-    public interface IUploadedDicomInstance : IAsyncDisposable
+    public interface IDicomInstanceEntry : IAsyncDisposable
     {
         /// <summary>
-        /// Gets the <see cref="DicomDataset"/> of the uploaded DICOM instance.
+        /// Gets the <see cref="DicomDataset"/> of the DICOM instance.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>An instance of <see cref="DicomDataset"/>.</returns>
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
         ValueTask<DicomDataset> GetDicomDatasetAsync(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Gets the <see cref="Stream"/> of the uploaded DICOM instance.
+        /// Gets the <see cref="Stream"/> of the DICOM instance.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>An instance of <see cref="Stream"/>.</returns>

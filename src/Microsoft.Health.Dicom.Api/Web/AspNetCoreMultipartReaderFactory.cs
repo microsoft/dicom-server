@@ -6,7 +6,6 @@
 using System.IO;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Web;
-using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Api.Web
 {
@@ -15,19 +14,23 @@ namespace Microsoft.Health.Dicom.Api.Web
     /// </summary>
     internal class AspNetCoreMultipartReaderFactory : IMultipartReaderFactory
     {
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly ISeekableStreamConverter _seekableStreamConverter;
 
-        public AspNetCoreMultipartReaderFactory(RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+        public AspNetCoreMultipartReaderFactory(
+            ISeekableStreamConverter seekableStreamConverter)
         {
-            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+            EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
 
-            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+            _seekableStreamConverter = seekableStreamConverter;
         }
 
         /// <inheritdoc />
         public IMultipartReader Create(string contentType, Stream body)
         {
-            return new AspNetCoreMultipartReader(contentType, body, _recyclableMemoryStreamManager);
+            return new AspNetCoreMultipartReader(
+                contentType,
+                body,
+                _seekableStreamConverter);
         }
     }
 }

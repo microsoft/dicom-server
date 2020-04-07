@@ -13,13 +13,13 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Store.Upload;
+using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides functionality to process and store the uploaded DICOM instances.
+    /// Provides functionality to process and store the DICOM instance entries.
     /// </summary>
     public class DicomStoreService : IDicomStoreService
     {
@@ -42,20 +42,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task<DicomStoreResponse> ProcessUploadedDicomInstancesAsync(
+        public async Task<DicomStoreResponse> ProcessDicomInstanceEntriesAsync(
             string studyInstanceUid,
-            IReadOnlyCollection<IUploadedDicomInstance> uploadedDicomInstances,
+            IReadOnlyCollection<IDicomInstanceEntry> dicomInstanceEntries,
             CancellationToken cancellationToken)
         {
             var responseBuilder = _dicomStoreResponseBuilderFactory();
 
-            foreach (IUploadedDicomInstance uploadedDicomInstance in uploadedDicomInstances)
+            foreach (IDicomInstanceEntry dicomInstanceEntry in dicomInstanceEntries)
             {
                 DicomDataset dicomDataset;
 
                 try
                 {
-                    dicomDataset = await uploadedDicomInstance.GetDicomDatasetAsync(cancellationToken);
+                    dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
                 }
                 catch (InvalidDicomInstanceException)
                 {
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                 try
                 {
-                    await _dicomStoreOrchestrator.PersistUploadedDicomInstanceAsync(uploadedDicomInstance, cancellationToken);
+                    await _dicomStoreOrchestrator.PersistDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken);
 
                     responseBuilder.AddSuccess(dicomDataset);
                 }

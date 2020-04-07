@@ -3,9 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Resources;
-using System.Runtime.CompilerServices;
+using System;
+using System.IO;
 
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Api.UnitTests")]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
-[assembly: NeutralResourcesLanguage("en-us")]
+namespace Microsoft.Health.Dicom.Api.Web
+{
+    internal class MissingMultipartBodyPartException : IOException
+    {
+        public MissingMultipartBodyPartException(Exception innerException)
+            : base(null, innerException)
+        {
+        }
+    }
+}

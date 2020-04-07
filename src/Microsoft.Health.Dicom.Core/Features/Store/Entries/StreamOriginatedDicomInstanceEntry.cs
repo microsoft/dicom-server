@@ -10,12 +10,12 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
+namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 {
     /// <summary>
-    /// Represents an uploaded DICOM instance originated from stream.
+    /// Represents a DICOM instance entry originated from stream.
     /// </summary>
-    public sealed class StreamOriginatedDicomInstance : IUploadedDicomInstance
+    public sealed class StreamOriginatedDicomInstanceEntry : IDicomInstanceEntry
     {
         private readonly Stream _stream;
 
@@ -24,11 +24,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
         private TaskCompletionSource<bool> _dicomFileLoadingCompletionSource = new TaskCompletionSource<bool>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamOriginatedDicomInstance"/> class.
+        /// Initializes a new instance of the <see cref="StreamOriginatedDicomInstanceEntry"/> class.
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <remarks>The <paramref name="stream"/> must be seekable.</remarks>
-        internal StreamOriginatedDicomInstance(Stream stream)
+        internal StreamOriginatedDicomInstanceEntry(Stream stream)
         {
             // The stream must be seekable.
             EnsureArg.IsNotNull(stream, nameof(stream));

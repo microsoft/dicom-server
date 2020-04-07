@@ -10,36 +10,36 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Abstractions.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Store.Upload;
+using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Web;
 using NSubstitute;
 using NSubstitute.Core;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Upload
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
 {
-    public class UploadedDicomInstanceFromMultipartRequestReaderTests
+    public class DicomInstanceEntryReaderForMultipartRequestTests
     {
         private const string DefaultContentType = "multipart/related; boundary=123";
         private const string DefaultBodyPartContentType = "application/dicom";
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
         private readonly IMultipartReaderFactory _multipartReaderFactory = Substitute.For<IMultipartReaderFactory>();
-        private readonly UploadedDicomInstanceFromMultipartRequestReader _multipartUploadedDicomInstanceReader;
+        private readonly DicomInstanceEntryReaderForMultipartRequest _dicomInstanceEntryReader;
 
         private Stream _stream = new MemoryStream();
 
-        public UploadedDicomInstanceFromMultipartRequestReaderTests()
+        public DicomInstanceEntryReaderForMultipartRequestTests()
         {
-            _multipartUploadedDicomInstanceReader = new UploadedDicomInstanceFromMultipartRequestReader(
+            _dicomInstanceEntryReader = new DicomInstanceEntryReaderForMultipartRequest(
                 _multipartReaderFactory,
-                NullLogger<UploadedDicomInstanceFromMultipartRequestReader>.Instance);
+                NullLogger<DicomInstanceEntryReaderForMultipartRequest>.Instance);
         }
 
         [Fact]
         public void GivenAnInvalidContentType_WhenCanReadIsCalled_ThenFalseShouldBeReturned()
         {
-            bool result = _multipartUploadedDicomInstanceReader.CanRead("dummy");
+            bool result = _dicomInstanceEntryReader.CanRead("dummy");
 
             Assert.False(result);
         }
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Upload
         [Fact]
         public void GivenAnNonMultipartRelatedContentType_WhenCanReadIsCalled_ThenFalseShouldBeReturned()
         {
-            bool result = _multipartUploadedDicomInstanceReader.CanRead("multipart/data-form; boundary=123");
+            bool result = _dicomInstanceEntryReader.CanRead("multipart/data-form; boundary=123");
 
             Assert.False(result);
         }
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Upload
         [Fact]
         public void GivenAMultipartRelatedContentType_WhenCanReadIsCalled_ThenTrueShouldBeReturned()
         {
-            bool result = _multipartUploadedDicomInstanceReader.CanRead(DefaultContentType);
+            bool result = _dicomInstanceEntryReader.CanRead(DefaultContentType);
 
             Assert.True(result);
         }
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Upload
                 _ => new MultipartBodyPart("application/dicom+json", _stream),
                 _ => null);
 
-            Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _multipartUploadedDicomInstanceReader.ReadAsync(DefaultContentType, _stream, DefaultCancellationToken));
+            Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _dicomInstanceEntryReader.ReadAsync(DefaultContentType, _stream, DefaultCancellationToken));
         }
 
         [Fact]
@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Upload
                 _ => new MultipartBodyPart(DefaultBodyPartContentType, _stream),
                 _ => null);
 
-            IReadOnlyCollection<IUploadedDicomInstance> results = await _multipartUploadedDicomInstanceReader.ReadAsync(
+            IReadOnlyCollection<IDicomInstanceEntry> results = await _dicomInstanceEntryReader.ReadAsync(
                 DefaultContentType,
                 _stream,
                 DefaultCancellationToken);
@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Upload
                 results,
                 async item =>
                 {
-                    Assert.IsType<StreamOriginatedDicomInstance>(item);
+                    Assert.IsType<StreamOriginatedDicomInstanceEntry>(item);
                     Assert.Same(_stream, await item.GetStreamAsync(DefaultCancellationToken));
                 });
         }
@@ -99,7 +99,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Upload
                 _ => new MultipartBodyPart(DefaultBodyPartContentType, _stream),
                 _ => throw new Exception());
 
-            await Assert.ThrowsAsync<Exception>(() => _multipartUploadedDicomInstanceReader.ReadAsync(
+            await Assert.ThrowsAsync<Exception>(() => _dicomInstanceEntryReader.ReadAsync(
                 DefaultContentType,
                 _stream,
                 DefaultCancellationToken));
@@ -123,7 +123,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Upload
                 },
                 _ => throw new Exception());
 
-            await Assert.ThrowsAsync<Exception>(() => _multipartUploadedDicomInstanceReader.ReadAsync(
+            await Assert.ThrowsAsync<Exception>(() => _dicomInstanceEntryReader.ReadAsync(
                 DefaultContentType,
                 _stream,
                 DefaultCancellationToken));

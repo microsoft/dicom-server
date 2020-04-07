@@ -16,19 +16,19 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
+namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 {
     /// <summary>
-    /// Provides functionality to read uploaded DICOM instance from HTTP multipart request.
+    /// Provides functionality to read DICOM instance entries from HTTP multipart request.
     /// </summary>
-    public class UploadedDicomInstanceFromMultipartRequestReader : IUploadedDicomInstanceReader
+    public class DicomInstanceEntryReaderForMultipartRequest : IDicomInstanceEntryReader
     {
         private readonly IMultipartReaderFactory _multipartReaderFactory;
         private readonly ILogger _logger;
 
-        public UploadedDicomInstanceFromMultipartRequestReader(
+        public DicomInstanceEntryReaderForMultipartRequest(
             IMultipartReaderFactory multipartReaderFactory,
-            ILogger<UploadedDicomInstanceFromMultipartRequestReader> logger)
+            ILogger<DicomInstanceEntryReaderForMultipartRequest> logger)
         {
             EnsureArg.IsNotNull(multipartReaderFactory, nameof(multipartReaderFactory));
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -45,14 +45,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<IUploadedDicomInstance>> ReadAsync(string contentType, Stream body, CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<IDicomInstanceEntry>> ReadAsync(string contentType, Stream body, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
             EnsureArg.IsNotNull(body, nameof(body));
 
             IMultipartReader multipartReader = _multipartReaderFactory.Create(contentType, body);
 
-            var uploadedDicomResources = new List<StreamOriginatedDicomInstance>();
+            var dicomInstanceEntries = new List<StreamOriginatedDicomInstanceEntry>();
 
             MultipartBodyPart bodyPart;
 
@@ -68,25 +68,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Upload
                             string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, bodyPart.ContentType));
                     }
 
-                    uploadedDicomResources.Add(new StreamOriginatedDicomInstance(bodyPart.Body));
+                    dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(bodyPart.Body));
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Encountered an error while processing, release all resources.
-                _logger.LogWarning(ex, "Failed to read the multipart message.");
-
-                IEnumerable<Task> disposeTasks = uploadedDicomResources.Select(DisposeResourceAsync);
+                IEnumerable<Task> disposeTasks = dicomInstanceEntries.Select(DisposeResourceAsync);
 
                 await Task.WhenAll(disposeTasks);
 
                 throw;
             }
 
-            return uploadedDicomResources;
+            return dicomInstanceEntries;
         }
 
-        private async Task DisposeResourceAsync(IUploadedDicomInstance resource)
+        private async Task DisposeResourceAsync(IDicomInstanceEntry resource)
         {
             try
             {
