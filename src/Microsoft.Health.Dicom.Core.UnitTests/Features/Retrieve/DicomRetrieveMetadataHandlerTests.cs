@@ -3,10 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -28,6 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Theory]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
         [InlineData("345%^&")]
+        [InlineData("()")]
         public async Task GivenARequestWithInvalidStudyInstanceIdentifier_WhenHandlerIsExecuted_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
         {
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
@@ -53,6 +59,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
         [InlineData("345%^&")]
         [InlineData("aaaa-bbbb")]
+        [InlineData("()")]
         public async Task GivenARequestWithInvalidSeriesIdentifier_WhenRetrievingSeriesMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
         {
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid);
@@ -85,6 +92,37 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             var ex = await Assert.ThrowsAsync<DicomInvalidIdentifierException>(() => _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"Dicom Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+        }
+
+        [Theory]
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+        [InlineData("345%^&")]
+        [InlineData("aaaa-bbbb")]
+        [InlineData("()")]
+        public async Task GivenARequestWithInvalidSopInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
+        {
+            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid);
+            var ex = await Assert.ThrowsAsync<DicomInvalidIdentifierException>(() => _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None));
+
+            Assert.Equal($"Dicom Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+        }
+
+        [Fact]
+        public async Task GivenARequestWithValidInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            List<DicomDataset> responseMetadata = new List<DicomDataset> { new DicomDataset() };
+            _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid).Returns(responseMetadata);
+
+            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
+            Assert.NotNull(response);
+            Assert.Equal(responseMetadata.Count, response.ResponseMetadata.Count());
+            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
         }
     }
 }

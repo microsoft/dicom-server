@@ -13,51 +13,26 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
     public class DicomRetrieveMetadataRequestValidatorTests
     {
         [Theory]
-        [InlineData("()")]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa65")]
-        public void GivenInvalidStudyInstanceUid_WhenRetrieveMetadataRequestIsValidated_ThenErrorIsReturned(string invalidIdentifier)
-        {
-            var request = new DicomRetrieveMetadataRequest(studyInstanceUid: invalidIdentifier);
-            ValidateHasError(request, "Study Instance Uid");
-        }
-
-        [Theory]
-        [InlineData("()")]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa65")]
-        public void GivenInvalidSeriesInstanceUid_WhenRetrieveMetadataRequestIsValidated_ThenErrorIsReturned(string invalidIdentifier)
-        {
-            var request = new DicomRetrieveMetadataRequest(
-                studyInstanceUid: TestUidGenerator.Generate(),
-                seriesInstanceUid: invalidIdentifier);
-            ValidateHasError(request, "Series Instance Uid");
-        }
-
-        [Theory]
-        [InlineData("()")]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa65")]
-        public void GivenInvalidSopInstanceUid_WhenRetrieveMetadataRequestIsValidated_ThenErrorIsReturned(string invalidIdentifier)
-        {
-            var request = new DicomRetrieveMetadataRequest(
-                studyInstanceUid: TestUidGenerator.Generate(),
-                seriesInstanceUid: TestUidGenerator.Generate(),
-                sopInstanceUid: invalidIdentifier);
-            ValidateHasError(request, "Sop Instance Uid");
-        }
-
-        [Theory]
         [InlineData("1", "1", "2")]
         [InlineData("1", "2", "1")]
         [InlineData("1", "2", "2")]
-        public void GivenRepeatedIdentifiers_WhenRetrieveMetadataRequestIsValidated_ThenErrorIsReturned(
+        public void GivenRepeatedIdentifiers_WhenRetrieveSopInstanceMetadataRequestIsValidated_ThenErrorIsReturned(
             string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             const string expectedErrorMessage = "The specified condition was not met for ''.";
 
             var request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             ValidateHasError(request, expectedErrorMessage);
+        }
 
-            // Always use the same identifier for series request
-            request = new DicomRetrieveMetadataRequest(studyInstanceUid, studyInstanceUid);
+        [Fact]
+        public void GivenRepeatedIdentifiers_WhenRetrieveSeriesMetadataRequestIsValidated_ThenErrorIsReturned()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            const string expectedErrorMessage = "The specified condition was not met for ''.";
+
+            // Use same identifier as studyInstanceUid and seriesInstanceUid.
+            var request = new DicomRetrieveMetadataRequest(studyInstanceUid, studyInstanceUid);
             ValidateHasError(request, expectedErrorMessage);
         }
 
