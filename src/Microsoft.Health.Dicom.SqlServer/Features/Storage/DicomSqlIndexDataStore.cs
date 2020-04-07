@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -13,7 +11,6 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Persistence;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -24,6 +21,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
 {
     internal class DicomSqlIndexDataStore : IDicomIndexDataStore
     {
+        private const int _deleteAfterMinutes = 1440;
         private readonly DicomSqlIndexSchema _sqlServerDicomIndexSchema;
         private readonly SqlServerDataStoreConfiguration _sqlServerDataStoreConfiguration;
         private readonly ILogger<DicomSqlIndexDataStore> _logger;
@@ -80,7 +78,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid,
-                    1);
+                    _deleteAfterMinutes);
 
                 try
                 {
