@@ -132,6 +132,11 @@
   <data name="InstanceAlreadyExists" xml:space="preserve">
     <value>The DICOM instance already exists.</value>
   </data>
+  <data name="InvalidDateRangeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+The first part date {1} should be lesser than the second part date {2}.</value>
+    <comment>{0} date range with &lt;date1&gt;-&lt;date2&gt; format. {1} is date1. {2} is date2.</comment>
+  </data>
   <data name="InvalidDateValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified Date value {0} is invalid for parameter {1}. Date should be valid and formatted as yyyyMMdd.</value>
     <comment>{0} Date value. {1} parameter name.</comment>

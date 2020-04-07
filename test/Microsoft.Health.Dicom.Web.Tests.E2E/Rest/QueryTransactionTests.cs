@@ -37,14 +37,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenSearchRequest_WithInvalidUid_ReturnBadRequest()
-        {
-            HttpResult<string> response = await _client.QueryWithBadRequest("/studies/abcd.123/series");
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal(response.Value, string.Format(DicomCoreResource.DicomIdentifierInvalid, "studyInstanceUid", "abcd.123"));
-        }
-
-        [Fact]
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
         {
             HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync("/studies?StudyDate=20200101");

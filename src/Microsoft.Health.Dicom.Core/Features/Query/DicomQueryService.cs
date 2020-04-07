@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -39,6 +40,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         {
             EnsureArg.IsNotNull(message);
 
+            ValidateRequestIdentifiers(message);
+
             DicomQueryExpression dicomQueryExpression = _queryParser.Parse(message);
 
             DicomQueryResult queryResult = await _queryStore.QueryAsync(dicomQueryExpression, cancellationToken);
@@ -56,6 +59,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
 
             return new DicomQueryResourceResponse(responseMetadata);
+        }
+
+        private void ValidateRequestIdentifiers(DicomQueryResourceRequest message)
+        {
+            switch (message.QueryResourceType)
+            {
+                case QueryResource.StudySeries:
+                case QueryResource.StudyInstances:
+                    DicomIdentifierValidator.ValidateAndThrow(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
+                    break;
+                case QueryResource.StudySeriesInstances:
+                    DicomIdentifierValidator.ValidateAndThrow(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
+                    DicomIdentifierValidator.ValidateAndThrow(message.SeriesInstanceUid, nameof(message.SeriesInstanceUid));
+                    break;
+                default:
+                    return;
+            }
         }
     }
 }

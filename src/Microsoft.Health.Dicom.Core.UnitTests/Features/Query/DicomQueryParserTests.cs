@@ -204,6 +204,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("StudyDate", "2020/02/28")]
         [InlineData("StudyDate", "20200230")]
         [InlineData("StudyDate", "20200228-20200230")]
+        [InlineData("StudyDate", "20200110-20200109")]
         [InlineData("PerformedProcedureStepStartDate", "baddate")]
         public void GivenDateTag_WithInvalidDate_Throw(string key, string value)
         {
