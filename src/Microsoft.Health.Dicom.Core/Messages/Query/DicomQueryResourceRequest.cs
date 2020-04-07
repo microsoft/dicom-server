@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using EnsureThat;
 using MediatR;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -18,6 +19,8 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
             string studyInstanceUid = null,
             string seriesInstanceUid = null)
         {
+            EnsureArg.IsNotNull(requestQuery, nameof(requestQuery));
+
             RequestQuery = requestQuery;
             QueryResourceType = resourceType;
             StudyInstanceUid = studyInstanceUid;

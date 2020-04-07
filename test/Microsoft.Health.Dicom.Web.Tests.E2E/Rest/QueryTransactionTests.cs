@@ -37,14 +37,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenSearchRequest_WithInvalidUid_ReturnBadRequest()
-        {
-            HttpResult<string> response = await _client.QueryWithBadRequest("/studies/abcd.123/series");
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal(response.Value, string.Format(DicomCoreResource.DicomIdentifierInvalid, "studyInstanceUid", "abcd.123"));
-        }
-
-        [Fact]
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
         {
             HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync("/studies?StudyDate=20200101");
@@ -176,17 +168,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenSearchRequest_PatientNameFuzzyMatch_MatchResult()
         {
             string randomNamePart = RandomString(7);
-            DicomDataset matchInstance1 = await PostDicomFileAsync(new DicomDataset()
-            {
-                 { DicomTag.PatientName, $"Jon^{randomNamePart}^StoneHall" },
-            });
-            var studyId1 = matchInstance1.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-
             DicomDataset matchInstance2 = await PostDicomFileAsync(new DicomDataset()
             {
                  { DicomTag.PatientName, $"Jonathan^{randomNamePart}^Stone Hall^^" },
             });
             var studyId2 = matchInstance2.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+
+            DicomDataset matchInstance1 = await PostDicomFileAsync(new DicomDataset()
+            {
+                 { DicomTag.PatientName, $"Jon^{randomNamePart}^StoneHall" },
+            });
+            var studyId1 = matchInstance1.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
             // Retrying the query 3 times, to give sql FT index time to catch up
             int retryCount = 0;

@@ -25,6 +25,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     DateTime parsedMinDate = ParseDate(minDate, dicomTag.DictionaryEntry.Keyword);
                     DateTime parsedMaxDate = ParseDate(maxDate, dicomTag.DictionaryEntry.Keyword);
 
+                    if (parsedMinDate > parsedMaxDate)
+                    {
+                        throw new DicomQueryParseException(string.Format(
+                            DicomCoreResource.InvalidDateRangeValue,
+                            value,
+                            minDate,
+                            maxDate));
+                    }
+
                     return new DateRangeValueMatchCondition(dicomTag, parsedMinDate, parsedMaxDate);
                 }
             }
