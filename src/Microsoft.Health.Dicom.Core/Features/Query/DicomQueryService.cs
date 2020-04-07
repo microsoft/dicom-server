@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,8 +74,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     DicomIdentifierValidator.ValidateAndThrow(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
                     DicomIdentifierValidator.ValidateAndThrow(message.SeriesInstanceUid, nameof(message.SeriesInstanceUid));
                     break;
+                case QueryResource.AllStudies:
+                case QueryResource.AllSeries:
+                case QueryResource.AllInstances:
+                    break;
                 default:
-                    return;
+                    Debug.Fail("A newly added query resource is not handled.");
+                    break;
             }
         }
     }

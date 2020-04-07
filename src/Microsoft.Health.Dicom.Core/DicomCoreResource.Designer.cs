@@ -98,7 +98,7 @@ namespace Microsoft.Health.Dicom.Core {
         
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
-        ///The first part date {1} should be lesser than the second part date {2}..
+        ///The first part date {1} should be lesser than or equal to the second part date {2}..
         /// </summary>
         internal static string InvalidDateRangeValue {
             get {

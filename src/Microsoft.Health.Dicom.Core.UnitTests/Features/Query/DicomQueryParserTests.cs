@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenIncludeField_WithInvalidAttributeId_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -76,7 +76,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithNotSupportedTag_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithKnownTagButNotSupportedAtLevel_Throws(string key, string value, QueryResource resourceType)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), resourceType)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), resourceType)));
         }
 
         [Theory]
@@ -105,7 +105,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithDuplicateQueryParam_Throws(string queryString)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -114,7 +114,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenOffset_WithNotIntValue_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -132,7 +132,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenLimit_WithInvalidValue_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -140,7 +140,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenLimit_WithMaxValueExceeded_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -167,7 +167,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithInvalidAttributeId_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -181,10 +181,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         [Theory]
         [InlineData("fuzzymatching", "notbool")]
-        public void GivenFuzzyMatch_InValidValue_Throws(string key, string value)
+        public void GivenFuzzyMatch_InvalidValue_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -209,7 +209,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenDateTag_WithInvalidDate_Throw(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllSeries)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllSeries)));
         }
 
         [Fact]
