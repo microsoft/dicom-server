@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
 {
-    public class StreamOriginatedDicomInstanceTests
+    public class StreamOriginatedDicomInstanceEntryTests
     {
         private static readonly DicomDataset DefaultDicomDataset = new DicomDataset(
             new DicomUniqueIdentifier(DicomTag.SOPClassUID, "123"),
