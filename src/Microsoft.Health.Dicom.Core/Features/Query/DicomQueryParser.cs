@@ -111,19 +111,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private void PostProcessFilterConditions(QueryExpressionImp parsedQuery)
         {
+            // fuzzy match condition modification
             if (parsedQuery.FuzzyMatch == true)
             {
-                foreach (DicomQueryFilterCondition cond in parsedQuery.FilterConditions)
+                IEnumerable<DicomQueryFilterCondition> potentialFuzzyConds = parsedQuery.FilterConditions
+                                                                            .Where(c => DicomQueryLimit.IsValidFuzzyMatchingQueryTag(c.DicomTag)).ToList();
+                foreach (DicomQueryFilterCondition cond in potentialFuzzyConds)
                 {
-                    if (DicomQueryLimit.IsValidFuzzyMatchingQueryTag(cond.DicomTag))
-                    {
-                        var singleValueCondition = cond as StringSingleValueMatchCondition;
+                    var singleValueCondition = cond as StringSingleValueMatchCondition;
 
-                        // Remove existing stringvalue match and add fuzzymatch condition
-                        var personNameFuzzyMatchCondition = new PersonNameFuzzyMatchCondition(singleValueCondition.DicomTag, singleValueCondition.Value);
-                        parsedQuery.FilterConditions.Remove(singleValueCondition);
-                        parsedQuery.FilterConditions.Add(personNameFuzzyMatchCondition);
-                    }
+                    // Remove existing stringvalue match and add fuzzymatch condition
+                    var personNameFuzzyMatchCondition = new PersonNameFuzzyMatchCondition(singleValueCondition.DicomTag, singleValueCondition.Value);
+                    parsedQuery.FilterConditions.Remove(singleValueCondition);
+                    parsedQuery.FilterConditions.Add(personNameFuzzyMatchCondition);
                 }
             }
         }
