@@ -562,9 +562,23 @@ AS
     FROM    dbo.StudyMetadataCore
     WHERE   StudyInstanceUid = @studyInstanceUid;
 
+    IF(@StudyId IS NULL)
+    BEGIN
+        THROW 50404, 'Study not found', 1;
+    END
+
     -- We're deleting a specific instance
     IF(@sopInstanceUid IS NOT null)
     BEGIN
+        IF NOT EXISTS ( SELECT  *
+                        FROM    Instance
+                        WHERE   StudyInstanceUid = @studyInstanceUid
+                        AND     SeriesInstanceUid = @seriesInstanceUid
+                        AND     SopInstanceUid = @sopInstanceUid)
+        BEGIN
+            THROW 50404, 'Instance not found', 1;
+        END
+
         -- Delete the instance and insert the details into FileCleanup
         DELETE dbo.Instance
             OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, @deleteAfter
@@ -599,6 +613,14 @@ AS
     -- We're deleting a series
     ELSE IF(@seriesInstanceUid IS NOT null)
     BEGIN
+        IF NOT EXISTS ( SELECT  *
+                        FROM    SeriesMetadataCore
+                        WHERE   StudyId = @StudyId
+                        AND     SeriesInstanceUid = @seriesInstanceUid)
+        BEGIN
+            THROW 50404, 'Study not found', 1;
+        END
+
         -- Delete all instances for the series, and insert them into the FileCleanup
         DELETE dbo.Instance
             OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, @deleteAfter
@@ -644,3 +666,4 @@ AS
     
     COMMIT TRANSACTION 
 GO
+

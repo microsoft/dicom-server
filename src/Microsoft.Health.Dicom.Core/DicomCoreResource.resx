@@ -145,6 +145,9 @@
   <data name="InvaludFuzzyMatchValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified fuzzymatch value {0} is not a valid boolean</value>
   </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>The resource specified was not found.</value>
+  </data>
   <data name="QueryInvalidResourceLevel" xml:space="preserve">
     <value>Invalid QIDO-RS query. Querying is only supported at resource level Studies/Series/Instances.</value>
   </data>

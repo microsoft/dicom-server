@@ -88,8 +88,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                 }
                 catch (SqlException ex)
                 {
-                    _logger.LogError(ex, $"Error from SQL database on {nameof(VLatest.DeleteInstance)}.");
-                    throw;
+                    switch (ex.Number)
+                    {
+                        case SqlErrorCodes.NotFound:
+                            throw new DicomNotFoundException();
+                        default:
+                            _logger.LogError(ex, $"Error from SQL database on {nameof(VLatest.DeleteInstance)}.");
+                            throw;
+                    }
                 }
             }
         }

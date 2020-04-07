@@ -254,6 +254,36 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
+        public async Task GivenANonExistentInstance_WhenDeletedBySopInstanceUid_ThenExceptionThrown()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            await Assert.ThrowsAsync<DicomNotFoundException>(async () => await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()));
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        }
+
+        [Fact]
+        public async Task GivenANonExistentSeries_WhenDeletedBySeriesInstanceUid_ThenExceptionThrown()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            await Assert.ThrowsAsync<DicomNotFoundException>(async () => await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, TestUidGenerator.Generate()));
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        }
+
+        [Fact]
+        public async Task GivenANonExistentStudy_WhenDeletedByStudyInstanceUid_ThenExceptionThrown()
+        {
+            await Assert.ThrowsAsync<DicomNotFoundException>(async () => await _dicomIndexDataStore.DeleteStudyIndexAsync(TestUidGenerator.Generate()));
+        }
+
+        [Fact]
         public async Task GivenAnExistingDicomInstance_WhenAdded_ThenConflictExceptionShouldBeThrown()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
