@@ -15,7 +15,6 @@ using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
@@ -61,14 +60,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         public Task<HttpResult<IReadOnlyList<DicomFile>>> GetStudyAsync(string studyInstanceUid, string dicomTransferSyntax = null)
                 => GetInstancesAsync(new Uri(string.Format(BaseRetrieveStudyUriFormat, studyInstanceUid), UriKind.Relative), dicomTransferSyntax);
 
+        public Task<HttpResult<IReadOnlyList<DicomDataset>>> RetrieveStudyMetadataAsync(string studyInstanceUid)
+                => RetrieveMetadataAsync(new Uri(string.Format(BaseRetrieveStudyMetadataUriFormat, studyInstanceUid), UriKind.Relative));
+
         public Task<HttpResult<IReadOnlyList<DicomFile>>> GetSeriesAsync(string studyInstanceUid, string seriesInstanceUid, string dicomTransferSyntax = null)
                 => GetInstancesAsync(new Uri(string.Format(BaseRetrieveSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative), dicomTransferSyntax);
+
+        public Task<HttpResult<IReadOnlyList<DicomDataset>>> RetrieveSeriesMetadataAsync(string studyInstanceUid, string seriesInstanceUid)
+                => RetrieveMetadataAsync(new Uri(string.Format(BaseRetrieveSeriesMetadataUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative));
 
         public Task<HttpResult<IReadOnlyList<DicomFile>>> GetInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string dicomTransferSyntax = null)
             => GetInstancesAsync(new Uri(string.Format(BaseRetrieveInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative), dicomTransferSyntax);
 
         public Task<HttpResult<IReadOnlyList<Stream>>> GetInstanceRenderedAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUId, string format = null, bool thumbnail = false)
             => GetInstancesRenderedAsync(new Uri(string.Format(thumbnail ? BaseRetrieveInstanceThumbnailUriFormat : BaseRetrieveInstanceRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUId), UriKind.Relative), format, thumbnail);
+
+        public Task<HttpResult<IReadOnlyList<DicomDataset>>> RetrieveInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+                => RetrieveMetadataAsync(new Uri(string.Format(BaseRetrieveInstanceMetadataUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative));
 
         public async Task<HttpResult<IReadOnlyList<Stream>>> GetFramesRenderedAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string format = null, bool thumbnail = false, params int[] frames)
         {
@@ -154,10 +162,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
-        public async Task<HttpResult<IReadOnlyList<DicomDataset>>> RetrieveMetadataAsync(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null)
+        public async Task<HttpResult<IReadOnlyList<DicomDataset>>> RetrieveMetadataAsync(Uri requestUri)
         {
-            Uri requestUri = GenerateRequestUri(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
                 request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
@@ -173,36 +179,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                     }
 
                     return new HttpResult<IReadOnlyList<DicomDataset>>(response.StatusCode);
-                }
-            }
-        }
-
-        private Uri GenerateRequestUri(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
-        {
-            switch (resourceType)
-            {
-                case ResourceType.Study:
-                    return new Uri(string.Format(BaseRetrieveStudyMetadataUriFormat, studyInstanceUid), UriKind.Relative);
-                case ResourceType.Series:
-                    return new Uri(string.Format(BaseRetrieveSeriesMetadataUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative);
-                case ResourceType.Instance:
-                    return new Uri(string.Format(BaseRetrieveInstanceMetadataUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative);
-                default:
-                    return null;
-            }
-        }
-
-        public async Task<HttpResult<string>> RetrieveMetadataWithBadRequest(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null)
-        {
-            Uri requestUri = GenerateRequestUri(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
-            {
-                request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
-
-                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
-                {
-                    return new HttpResult<string>(response.StatusCode, await response.Content.ReadAsStringAsync());
                 }
             }
         }

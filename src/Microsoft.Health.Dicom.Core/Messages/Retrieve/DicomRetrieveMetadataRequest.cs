@@ -7,14 +7,27 @@ using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
-    public class RetrieveDicomMetadataRequest : IRequest<RetrieveDicomMetadataResponse>
+    public class DicomRetrieveMetadataRequest : IRequest<DicomRetrieveMetadataResponse>
     {
-        public RetrieveDicomMetadataRequest(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null)
+        public DicomRetrieveMetadataRequest(string studyInstanceUid)
+        {
+            StudyInstanceUid = studyInstanceUid;
+            ResourceType = ResourceType.Study;
+        }
+
+        public DicomRetrieveMetadataRequest(string studyInstanceUid, string seriesInstanceUid)
+        {
+            StudyInstanceUid = studyInstanceUid;
+            SeriesInstanceUid = seriesInstanceUid;
+            ResourceType = ResourceType.Series;
+        }
+
+        public DicomRetrieveMetadataRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
-            ResourceType = resourceType;
+            ResourceType = ResourceType.Instance;
         }
 
         public ResourceType ResourceType { get; }

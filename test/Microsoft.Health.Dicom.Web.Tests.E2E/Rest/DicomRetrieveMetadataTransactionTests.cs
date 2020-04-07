@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;
@@ -19,73 +18,13 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public class RetrieveDicomMetadataTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private readonly DicomWebClient _client;
 
-        public RetrieveDicomMetadataTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
+        public DicomRetrieveMetadataTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             _client = fixture.Client;
-        }
-
-        [Theory]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData(" ")]
-        [InlineData("345%^&")]
-        public async Task GivenARequestWithInvalidStudyInstanceIdentifier_WhenRetrievingStudyMetadata_TheServerShouldReturnBadRequest(string studyInstanceUid)
-        {
-            HttpResult<string> response = await _client.RetrieveMetadataWithBadRequest(ResourceType.Study, studyInstanceUid);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal($"Dicom Identifier 'studyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", response.Value);
-        }
-
-        [Theory]
-        [InlineData("aaaa-bbbb", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("aaaa-bbbb", " ")]
-        [InlineData("aaaa-bbbb", "345%^&")]
-        [InlineData("aaaa-bbbb", "aaaa-bbbb")]
-        public async Task GivenARequestWithInvalidStudyIdentifier_WhenRetrievingSeriesMetadata_TheServerShouldReturnBadRequest(string studyInstanceUid, string seriesInstanceUid)
-        {
-            HttpResult<string> response = await _client.RetrieveMetadataWithBadRequest(ResourceType.Series, studyInstanceUid, seriesInstanceUid);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal($"Dicom Identifier 'studyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", response.Value);
-        }
-
-        [Theory]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData(" ")]
-        [InlineData("345%^&")]
-        [InlineData("aaaa-bbbb")]
-        public async Task GivenARequestWithInvalidSeriesIdentifier_WhenRetrievingSeriesMetadata_TheServerShouldReturnBadRequest(string seriesInstanceUid)
-        {
-            HttpResult<string> response = await _client.RetrieveMetadataWithBadRequest(ResourceType.Series, TestUidGenerator.Generate(), seriesInstanceUid);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal($"Dicom Identifier 'seriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", response.Value);
-        }
-
-        [Theory]
-        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "345%^&")]
-        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb2")]
-        [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb1")]
-        public async Task GivenARequestWithInvalidStudyAndSeriesInstanceIdentifier_WhenRetrievingInstanceMetadata_TheServerShouldReturnBadRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
-        {
-            HttpResult<string> response = await _client.RetrieveMetadataWithBadRequest(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal($"Dicom Identifier 'studyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", response.Value);
-        }
-
-        [Theory]
-        [InlineData("aaaa-bbbb2", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("aaaa-bbbb2", "345%^&")]
-        [InlineData("aaaa-bbbb2", "aaaa-bbbb2")]
-        [InlineData("aaaa-bbbb2", " ")]
-        public async Task GivenARequestWithInvalidSeriesInstanceIdentifier_WhenRetrievingInstanceMetadata_TheServerShouldReturnBadRequest(string seriesInstanceUid, string sopInstanceUid)
-        {
-            HttpResult<string> response = await _client.RetrieveMetadataWithBadRequest(ResourceType.Instance, TestUidGenerator.Generate(), seriesInstanceUid, sopInstanceUid);
-
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal($"Dicom Identifier 'seriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", response.Value);
         }
 
         [Theory]
@@ -116,7 +55,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenRetrieveStudyMetadataRequest_WhenStudyInstanceUidDoesnotExists_ReturnsNotFound()
         {
             string fakeStudyInstanceUid = "1.2.345.6.7";
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveMetadataAsync(ResourceType.Study, fakeStudyInstanceUid);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveStudyMetadataAsync(fakeStudyInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -125,7 +64,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             string fakeStudyInstanceUid = "1.2.345.6.7";
             string fakeSeriesInstanceUid = "1.2.345.6.8";
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveMetadataAsync(ResourceType.Series, fakeStudyInstanceUid, fakeSeriesInstanceUid);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -136,7 +75,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
 
             string fakeSeriesInstanceUid = "1.2.345.6.7";
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveMetadataAsync(ResourceType.Series, dicomInstance.StudyInstanceUid, fakeSeriesInstanceUid);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(dicomInstance.StudyInstanceUid, fakeSeriesInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -147,7 +86,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
 
             string fakeStudyInstanceUid = "1.2.345.6.7";
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveMetadataAsync(ResourceType.Series, fakeStudyInstanceUid, dicomInstance.SeriesInstanceUid);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(fakeStudyInstanceUid, dicomInstance.SeriesInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -158,7 +97,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             string fakeSeriesInstanceUid = "1.2.345.6.8";
             string fakeSopInstanceUid = "1.2.345.6.9";
 
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveMetadataAsync(ResourceType.Instance, fakeStudyInstanceUid, fakeSeriesInstanceUid, fakeSopInstanceUid);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid, fakeSopInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -170,7 +109,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             string fakeSopInstanceUid = "1.2.345.6.7";
 
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveMetadataAsync(ResourceType.Instance, dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -181,7 +120,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
             string fakeSopInstanceUid = "1.2.345.6.7";
 
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveMetadataAsync(ResourceType.Instance, dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -194,7 +133,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset storedInstance = await PostDicomFileAsync();
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
 
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveMetadataAsync(ResourceType.Instance, fakeStudyInstanceUid, fakeSeriesInstanceUid, dicomInstance.SopInstanceUid);
+            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid, dicomInstance.SopInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -215,15 +154,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
 
-            HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.RetrieveMetadataAsync(ResourceType.Study, dicomInstance.StudyInstanceUid);
+            HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.RetrieveStudyMetadataAsync(dicomInstance.StudyInstanceUid);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
 
-            metadata = await _client.RetrieveMetadataAsync(ResourceType.Series, dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid);
+            metadata = await _client.RetrieveSeriesMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
 
-            metadata = await _client.RetrieveMetadataAsync(ResourceType.Instance, dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid);
+            metadata = await _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
         }

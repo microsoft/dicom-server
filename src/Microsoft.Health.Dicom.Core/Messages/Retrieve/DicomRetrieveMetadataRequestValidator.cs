@@ -9,9 +9,9 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "Follows validator naming convention.")]
-    public class RetrieveDicomMetadataRequestValidator : AbstractValidator<RetrieveDicomMetadataRequest>
+    public class DicomRetrieveMetadataRequestValidator : AbstractValidator<DicomRetrieveMetadataRequest>
     {
-        public RetrieveDicomMetadataRequestValidator()
+        public DicomRetrieveMetadataRequestValidator()
         {
             // Validate the provided identifiers conform correctly.
             RuleFor(x => x.SopInstanceUid)

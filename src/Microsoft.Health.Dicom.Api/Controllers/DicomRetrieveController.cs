@@ -20,8 +20,6 @@ using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Validation;
-using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 
@@ -61,21 +59,16 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route(KnownRoutes.StudyMetadataRoute)]
         public async Task<IActionResult> GetStudyMetadataAsync(string studyInstanceUid)
         {
-            DicomIdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(studyInstanceUid));
-
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}'.");
 
-            var response = await _mediator.RetrieveDicomInstanceMetadataAsync(
-                ResourceType.Study,
-                studyInstanceUid: studyInstanceUid,
-                cancellationToken: HttpContext.RequestAborted);
+            DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, HttpContext.RequestAborted);
 
             return CreateResult(response);
         }
@@ -102,23 +95,17 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route(KnownRoutes.SeriesMetadataRoute)]
         public async Task<IActionResult> GetSeriesMetadataAsync(string studyInstanceUid, string seriesInstanceUid)
         {
-            DicomIdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(studyInstanceUid));
-            DicomIdentifierValidator.ValidateAndThrow(seriesInstanceUid, nameof(seriesInstanceUid));
-
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
-            var response = await _mediator.RetrieveDicomInstanceMetadataAsync(
-                ResourceType.Series,
-                studyInstanceUid: studyInstanceUid,
-                seriesInstanceUid: seriesInstanceUid,
-                cancellationToken: HttpContext.RequestAborted);
+            DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
+                studyInstanceUid, seriesInstanceUid, HttpContext.RequestAborted);
 
             return CreateResult(response);
         }
@@ -145,25 +132,17 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route(KnownRoutes.InstanceMetadataRoute)]
         public async Task<IActionResult> GetInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            DicomIdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(studyInstanceUid));
-            DicomIdentifierValidator.ValidateAndThrow(seriesInstanceUid, nameof(seriesInstanceUid));
-            DicomIdentifierValidator.ValidateAndThrow(sopInstanceUid, nameof(sopInstanceUid));
-
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
-            var response = await _mediator.RetrieveDicomInstanceMetadataAsync(
-               ResourceType.Instance,
-               studyInstanceUid: studyInstanceUid,
-               seriesInstanceUid: seriesInstanceUid,
-               sopInstanceUid: sopInstanceUid,
-               cancellationToken: HttpContext.RequestAborted);
+            DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
+               studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
 
             return CreateResult(response);
         }
@@ -198,7 +177,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return new MultipartResult(response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(KnownContentTypes.ApplicationDicom, x)).ToList());
         }
 
-        private IActionResult CreateResult(RetrieveDicomMetadataResponse resourceResponse)
+        private IActionResult CreateResult(DicomRetrieveMetadataResponse resourceResponse)
         {
             if (!resourceResponse.ResponseMetadata.Any())
             {
