@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class DicomCoreResource {
@@ -97,6 +97,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The instance specified was not found..
+        /// </summary>
+        internal static string InstanceNotFound {
+            get {
+                return ResourceManager.GetString("InstanceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value {0} is invalid for parameter {1}. Date should be valid and formatted as yyyyMMdd..
         /// </summary>
         internal static string InvalidDateValue {
@@ -129,15 +138,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvaludFuzzyMatchValue {
             get {
                 return ResourceManager.GetString("InvaludFuzzyMatchValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The resource specified was not found..
-        /// </summary>
-        internal static string NotFound {
-            get {
-                return ResourceManager.GetString("NotFound", resourceCulture);
             }
         }
         

@@ -17,6 +17,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         Task<Instance> GetInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid);
 
-        Task<IReadOnlyList<FileCleanup>> GetFileCleanupEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid);
+        Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid);
     }
 }

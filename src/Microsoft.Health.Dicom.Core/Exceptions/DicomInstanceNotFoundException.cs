@@ -5,10 +5,10 @@
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class DicomNotFoundException : DicomServerException
+    public class DicomInstanceNotFoundException : DicomServerException
     {
-        public DicomNotFoundException()
-            : base(DicomCoreResource.NotFound)
+        public DicomInstanceNotFoundException()
+            : base(DicomCoreResource.InstanceNotFound)
         {
         }
     }

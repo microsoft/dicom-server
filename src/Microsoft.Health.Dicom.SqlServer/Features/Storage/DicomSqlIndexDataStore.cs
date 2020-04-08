@@ -21,7 +21,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
 {
     internal class DicomSqlIndexDataStore : IDicomIndexDataStore
     {
-        private const int _deleteAfterMinutes = 1440;
         private readonly DicomSqlIndexSchema _sqlServerDicomIndexSchema;
         private readonly SqlServerDataStoreConfiguration _sqlServerDataStoreConfiguration;
         private readonly ILogger<DicomSqlIndexDataStore> _logger;
@@ -77,8 +76,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                     sqlCommand,
                     studyInstanceUid,
                     seriesInstanceUid,
-                    sopInstanceUid,
-                    _deleteAfterMinutes);
+                    sopInstanceUid);
 
                 try
                 {
@@ -89,7 +87,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                     switch (ex.Number)
                     {
                         case SqlErrorCodes.NotFound:
-                            throw new DicomNotFoundException();
+                            throw new DicomInstanceNotFoundException();
                         default:
                             _logger.LogError(ex, $"Error from SQL database on {nameof(VLatest.DeleteInstance)}.");
                             throw;

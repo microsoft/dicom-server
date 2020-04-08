@@ -113,22 +113,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        public async Task<IReadOnlyList<FileCleanup>> GetFileCleanupEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public async Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 await sqlConnection.OpenAsync();
 
-                var result = new List<FileCleanup>();
+                var result = new List<DeletedInstance>();
 
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = @$"
                         SELECT *
-                        FROM {VLatest.FileCleanup.TableName}
-                        WHERE {VLatest.FileCleanup.StudyInstanceUid} = @studyInstanceUid
-                        AND {VLatest.FileCleanup.SeriesInstanceUid} = ISNULL(@seriesInstanceUid, {VLatest.FileCleanup.SeriesInstanceUid})
-                        AND {VLatest.FileCleanup.SopInstanceUid} = ISNULL(@sopInstanceUid, {VLatest.FileCleanup.SopInstanceUid})";
+                        FROM {VLatest.DeletedInstance.TableName}
+                        WHERE {VLatest.DeletedInstance.StudyInstanceUid} = @studyInstanceUid
+                        AND {VLatest.DeletedInstance.SeriesInstanceUid} = ISNULL(@seriesInstanceUid, {VLatest.DeletedInstance.SeriesInstanceUid})
+                        AND {VLatest.DeletedInstance.SopInstanceUid} = ISNULL(@sopInstanceUid, {VLatest.DeletedInstance.SopInstanceUid})";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", string.IsNullOrEmpty(seriesInstanceUid) ? DBNull.Value : (object)seriesInstanceUid);
@@ -138,7 +138,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     {
                         while (await sqlDataReader.ReadAsync())
                         {
-                            result.Add(new FileCleanup(sqlDataReader));
+                            result.Add(new DeletedInstance(sqlDataReader));
                         }
                     }
                 }

@@ -132,6 +132,9 @@
   <data name="InstanceAlreadyExists" xml:space="preserve">
     <value>The DICOM instance already exists.</value>
   </data>
+  <data name="InstanceNotFound" xml:space="preserve">
+    <value>The instance specified was not found.</value>
+  </data>
   <data name="InvalidDateValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified Date value {0} is invalid for parameter {1}. Date should be valid and formatted as yyyyMMdd.</value>
     <comment>{0} Date value. {1} parameter name.</comment>
@@ -144,9 +147,6 @@
   </data>
   <data name="InvaludFuzzyMatchValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified fuzzymatch value {0} is not a valid boolean</value>
-  </data>
-  <data name="NotFound" xml:space="preserve">
-    <value>The resource specified was not found.</value>
   </data>
   <data name="QueryInvalidResourceLevel" xml:space="preserve">
     <value>Invalid QIDO-RS query. Querying is only supported at resource level Studies/Series/Instances.</value>

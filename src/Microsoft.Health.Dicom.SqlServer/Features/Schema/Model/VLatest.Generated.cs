@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
     internal class VLatest
     {
-        internal readonly static FileCleanupTable FileCleanup = new FileCleanupTable();
+        internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SchemaVersionTable SchemaVersion = new SchemaVersionTable();
         internal readonly static SeriesMetadataCoreTable SeriesMetadataCore = new SeriesMetadataCoreTable();
@@ -22,9 +22,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static SelectCurrentSchemaVersionProcedure SelectCurrentSchemaVersion = new SelectCurrentSchemaVersionProcedure();
         internal readonly static UpsertSchemaVersionProcedure UpsertSchemaVersion = new UpsertSchemaVersionProcedure();
-        internal class FileCleanupTable : Table
+        internal class DeletedInstanceTable : Table
         {
-            internal FileCleanupTable(): base("dbo.FileCleanup")
+            internal DeletedInstanceTable(): base("dbo.DeletedInstance")
             {
             }
 
@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly DateTime2Column DeleteAfter = new DateTime2Column("DeleteAfter", 0);
+            internal readonly DateTime2Column DeletedDateTime = new DateTime2Column("DeletedDateTime", 0);
         }
 
         internal class InstanceTable : Table
@@ -136,15 +136,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
-            private readonly ParameterDefinition<System.Int32> _minutesToDeleteAfter = new ParameterDefinition<System.Int32>("@minutesToDeleteAfter", global::System.Data.SqlDbType.Int, false);
-            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int32 minutesToDeleteAfter)
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.DeleteInstance";
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
-                _minutesToDeleteAfter.AddParameter(command.Parameters, minutesToDeleteAfter);
             }
         }
 
