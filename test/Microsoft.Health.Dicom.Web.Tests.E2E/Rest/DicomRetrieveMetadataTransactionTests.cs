@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Theory]
         [InlineData("application/data")]
         [InlineData("application/json")]
-        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingResource_NotAcceptableIsReturned(string acceptHeader)
+        public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingResource_ThenNotAcceptableIsReturned(string acceptHeader)
         {
             // Study
             await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenRetrieveStudyMetadataRequest_WhenStudyInstanceUidDoesnotExists_ReturnsNotFound()
+        public async Task GivenRetrieveStudyMetadataRequest_WhenStudyInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
             string fakeStudyInstanceUid = "1.2.345.6.7";
             HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveStudyMetadataAsync(fakeStudyInstanceUid);
@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenRetrieveSeriesMetadataRequest_WhenStudyandSeriesUidDoesnotExists_ReturnsNotFound()
+        public async Task GivenRetrieveSeriesMetadataRequest_WhenStudyandSeriesInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
             string fakeStudyInstanceUid = "1.2.345.6.7";
             string fakeSeriesInstanceUid = "1.2.345.6.8";
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenRetrieveSeriesMetadataRequest_WhenSeriesUidDoesnotExists_ReturnsNotFound()
+        public async Task GivenRetrieveSeriesMetadataRequest_WhenSeriesInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
             DicomDataset storedInstance = await PostDicomFileAsync();
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenRetrieveSeriesMetadataRequest_WhenStudyUidDoesnotExists_ReturnsNotFound()
+        public async Task GivenRetrieveSeriesMetadataRequest_WhenStudyInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
             DicomDataset storedInstance = await PostDicomFileAsync();
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenStudySeriesAndInstanceUidDoesnotExists_ReturnsNotFound()
+        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenStudySeriesAndSopInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
             string fakeStudyInstanceUid = "1.2.345.6.7";
             string fakeSeriesInstanceUid = "1.2.345.6.8";
@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenSopInstanceUidDoesnotExists_ReturnsNotFound()
+        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenSopInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
             DicomDataset storedInstance = await PostDicomFileAsync();
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
@@ -114,7 +114,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenSeriesInstanceUidDoesnotExists_ReturnsNotFound()
+        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenSeriesInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
             DicomDataset storedInstance = await PostDicomFileAsync();
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
@@ -125,7 +125,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenStudyAndSeriesDoesnotExists_ReturnsNotFound()
+        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenStudyAndSeriesDoesnotExists_ThenNotFoundIsReturned()
         {
             string fakeStudyInstanceUid = "1.2.345.6.7";
             string fakeSeriesInstanceUid = "1.2.345.6.8";
@@ -138,7 +138,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenStoredDicomFile_WhenRetrievingMetadata_MetadataIsRetrievedCorrectly()
+        public async Task GivenStoredDicomFile_WhenRetrievingMetadata_ThenMetadataIsRetrievedCorrectly()
         {
             DicomDataset storedInstance = await PostDicomFileAsync(new DicomDataset()
             {
