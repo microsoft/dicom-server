@@ -20,6 +20,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     {
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
         private readonly IDicomIndexDataStoreTestHelper _testHelper;
+        private readonly DateTime _startDateTime = DateTime.UtcNow;
 
         public DicomIndexDataStoreTests(DicomSqlIndexDataStoreTestsFixture fixture)
         {
@@ -40,8 +41,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string studyDescription = dataset.GetString(DicomTag.StudyDescription);
             string accessionNumber = dataset.GetString(DicomTag.AccessionNumber);
             string modality = dataset.GetString(DicomTag.Modality);
-
-            DateTime date = DateTime.UtcNow;
 
             await _dicomIndexDataStore.IndexInstanceAsync(dataset);
 
@@ -82,12 +81,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
             Assert.True(instance.Watermark >= 0);
             Assert.Equal(DicomIndexStatus.Created, instance.Status);
-            Assert.InRange(instance.LastStatusUpdatedDate, date.AddSeconds(-1), date.AddSeconds(1));
-            Assert.InRange(instance.CreatedDate, date.AddSeconds(-1), date.AddSeconds(1));
+            Assert.InRange(instance.LastStatusUpdatedDate, _startDateTime.AddSeconds(-1), _startDateTime.AddSeconds(1));
+            Assert.InRange(instance.CreatedDate, _startDateTime.AddSeconds(-1), _startDateTime.AddSeconds(1));
         }
 
         [Fact]
-        public async Task GivenAnExistingDicomInstance_WhenDeletedByInstanceId_ThenItShouldBeRemovedAndAddedToFileCleanupTable()
+        public async Task GivenAnExistingDicomInstance_WhenDeletedByInstanceId_ThenItShouldBeRemovedAndAddedToDeletedInstanceTable()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
@@ -100,9 +99,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
             Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-            var fileCleanupEntries = await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            Assert.Equal(1, fileCleanupEntries.Count);
-            Assert.Collection(fileCleanupEntries, ValidateSingleFileCleanup(instance));
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleDeletedInstance(instance));
         }
 
         [Fact]
@@ -123,9 +120,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.NotEmpty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
             Assert.NotEmpty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-            var fileCleanupEntries = await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null);
-            Assert.Equal(1, fileCleanupEntries.Count);
-            Assert.Collection(fileCleanupEntries, ValidateSingleFileCleanup(instance));
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance));
         }
 
         [Fact]
@@ -148,11 +143,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.NotEmpty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid2));
             Assert.NotEmpty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleFileCleanup(instance1));
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance1));
         }
 
         [Fact]
-        public async Task GivenAnExistingDicomInstance_WhenDeletedBySeriesId_ThenItShouldBeRemovedAndAddedToFileCleanupTable()
+        public async Task GivenAnExistingDicomInstance_WhenDeletedBySeriesId_ThenItShouldBeRemovedAndAddedToDeletedInstanceTable()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
@@ -165,11 +160,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
             Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleFileCleanup(instance));
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleDeletedInstance(instance));
         }
 
         [Fact]
-        public async Task GivenMultipleDicomInstance_WhenDeletedBySeriesId_ThenItemsBeRemovedAndAddedToFileCleanupTable()
+        public async Task GivenMultipleDicomInstance_WhenDeletedBySeriesId_ThenItemsBeRemovedAndAddedToDeletedInstanceTable()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
@@ -186,7 +181,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
             Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleFileCleanup(instance2), ValidateSingleFileCleanup(instance1));
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance2), ValidateSingleDeletedInstance(instance1));
         }
 
         [Fact]
@@ -209,11 +204,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.NotEmpty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid2));
             Assert.NotEmpty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleFileCleanup(instance));
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance));
         }
 
         [Fact]
-        public async Task GivenAnExistingDicomInstance_WhenDeletedByStudyId_ThenItShouldBeRemovedAndAddedToFileCleanupTable()
+        public async Task GivenAnExistingDicomInstance_WhenDeletedByStudyId_ThenItShouldBeRemovedAndAddedToDeletedInstanceTable()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
@@ -226,11 +221,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
             Assert.Empty(await _testHelper.GetStudyMetadataAsync(seriesInstanceUid));
 
-            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleFileCleanup(instance));
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleDeletedInstance(instance));
         }
 
         [Fact]
-        public async Task GivenMultipleDicomInstance_WhenDeletedByStudyUid_ThenItemsBeRemovedAndAddedToFileCleanupTable()
+        public async Task GivenMultipleDicomInstance_WhenDeletedByStudyUid_ThenItemsBeRemovedAndAddedToDeletedInstanceTable()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
@@ -249,8 +244,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             Assert.Collection(
                 await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, null, null),
-                ValidateSingleFileCleanup(instance2),
-                ValidateSingleFileCleanup(instance1));
+                ValidateSingleDeletedInstance(instance2),
+                ValidateSingleDeletedInstance(instance1));
         }
 
         [Fact]
@@ -333,14 +328,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(expectedPerformedProcedureStepStartDate, actual.PerformedProcedureStepStartDate);
         }
 
-        private static Action<DeletedInstance> ValidateSingleFileCleanup(Instance instance)
+        private Action<DeletedInstance> ValidateSingleDeletedInstance(Instance instance)
         {
-            return cleanup =>
+            return deletedInstance =>
             {
-                Assert.Equal(instance.StudyInstanceUid, cleanup.StudyInstanceUid);
-                Assert.Equal(instance.SeriesInstanceUid, cleanup.SeriesInstanceUid);
-                Assert.Equal(instance.SopInstanceUid, cleanup.SopInstanceUid);
-                Assert.Equal(instance.Watermark, cleanup.Watermark);
+                Assert.Equal(instance.StudyInstanceUid, deletedInstance.StudyInstanceUid);
+                Assert.Equal(instance.SeriesInstanceUid, deletedInstance.SeriesInstanceUid);
+                Assert.Equal(instance.SopInstanceUid, deletedInstance.SopInstanceUid);
+                Assert.Equal(instance.Watermark, deletedInstance.Watermark);
+                Assert.InRange(deletedInstance.DeletedDateTime, _startDateTime.AddSeconds(-1), _startDateTime.AddSeconds(1));
+                Assert.Equal(0, deletedInstance.RetryCount);
+                Assert.Null(deletedInstance.RetryAfter);
             };
         }
 

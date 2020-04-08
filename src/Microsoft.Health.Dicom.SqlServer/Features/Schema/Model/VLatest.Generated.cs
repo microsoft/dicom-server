@@ -33,6 +33,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly DateTime2Column DeletedDateTime = new DateTime2Column("DeletedDateTime", 0);
+            internal readonly IntColumn RetryCount = new IntColumn("RetryCount");
+            internal readonly DateTime2Column RetryAfter = new DateTime2Column("RetryAfter", 0);
         }
 
         internal class InstanceTable : Table

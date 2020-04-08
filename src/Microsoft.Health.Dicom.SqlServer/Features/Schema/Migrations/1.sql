@@ -330,7 +330,9 @@ CREATE TABLE dbo.DeletedInstance
     SeriesInstanceUid varchar(64) NOT NULL,
     SopInstanceUid varchar(64) NOT NULL,
     Watermark bigint NOT NULL,
-    DeletedDateTime DateTime2(0) NOT NULL
+    DeletedDateTime DateTime2(0) NOT NULL,
+    RetryCount int NOT NULL,
+    RetryAfter DateTime2(0)
 )
 
 /*************************************************************
@@ -564,7 +566,7 @@ AS
     
     -- Delete the instance and insert the details into FileCleanup
     DELETE  dbo.Instance
-        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, GETUTCDATE()
+        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, GETUTCDATE(), 0, NULL
         INTO dbo.DeletedInstance
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
