@@ -550,6 +550,9 @@ CREATE PROCEDURE dbo.DeleteInstance (
 AS
     SET NOCOUNT ON
     SET XACT_ABORT ON
+    
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+    
     BEGIN TRANSACTION 
 
     DECLARE @studyId bigint
@@ -558,43 +561,23 @@ AS
     SELECT  @studyId = ID
     FROM    dbo.StudyMetadataCore
     WHERE   StudyInstanceUid = @studyInstanceUid;
-
-    IF(@StudyId IS NULL)
-    BEGIN
-        THROW 50404, 'Study not found', 1;
-    END
-    
-    IF @seriesInstanceUid IS NOT NULL 
-        AND NOT EXISTS (    SELECT  *
-                            FROM    SeriesMetadataCore
-                            WHERE   StudyId = @StudyId
-                            AND     SeriesInstanceUid =  @seriesInstanceUid)
-    BEGIN
-        THROW 50404, 'Series not found', 1;
-    END
-
-    IF @seriesInstanceUid IS NOT NULL
-        AND @sopInstanceUid IS NOT NULL 
-        AND NOT EXISTS ( SELECT  *
-                    FROM    Instance
-                    WHERE   StudyInstanceUid = @studyInstanceUid
-                    AND     SeriesInstanceUid = @seriesInstanceUid
-                    AND     SopInstanceUid = @sopInstanceUid)
-    BEGIN
-        THROW 50404, 'Instance not found', 1;
-    END
     
     -- Delete the instance and insert the details into FileCleanup
-    DELETE dbo.Instance
+    DELETE  dbo.Instance
         OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, GETUTCDATE()
         INTO dbo.DeletedInstance
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
+    
+    IF (@@ROWCOUNT = 0)
+    BEGIN
+        THROW 50404, 'Instance not found', 1;
+    END
 
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
-                    FROM    Instance
+                    FROM    dbo.Instance
                     WHERE   StudyInstanceUid = @studyInstanceUid
                     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid))
     BEGIN
@@ -605,8 +588,8 @@ AS
     END
     
     -- If we've removing the series, see if it's the last for a study and if so, remove the study
-    IF NOT EXISTS(  SELECT  *
-                    FROM    SeriesMetadataCore
+    IF NOT EXISTS ( SELECT  *
+                    FROM    dbo.SeriesMetadataCore
                     WHERE   StudyId = @studyId)
     BEGIN
         DELETE

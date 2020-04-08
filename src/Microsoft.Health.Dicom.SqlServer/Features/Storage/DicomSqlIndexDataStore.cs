@@ -53,14 +53,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            await DeleteInstanceAysnc(studyInstanceUid, seriesInstanceUid, null, cancellationToken);
+            await DeleteInstanceAysnc(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cancellationToken);
         }
 
         public async Task DeleteStudyIndexAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-            await DeleteInstanceAysnc(studyInstanceUid, null, null, cancellationToken);
+            await DeleteInstanceAysnc(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cancellationToken);
         }
 
         private async Task DeleteInstanceAysnc(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
