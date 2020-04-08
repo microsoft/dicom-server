@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -52,14 +53,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 return new DicomQueryResourceResponse();
             }
 
-            IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
-                   queryResult.DicomInstances
-                   .Select(x => _metadataService.GetInstanceMetadataAsync(x, cancellationToken)));
-
             var responseBuilder = new QueryResponseBuilder(dicomQueryExpression);
-            IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
+            return new DicomQueryResourceResponse(GetAsyncEnumerableResponse(queryResult.DicomInstances, responseBuilder, cancellationToken));
+        }
 
-            return new DicomQueryResourceResponse(responseMetadata);
+        private async IAsyncEnumerable<DicomDataset> GetAsyncEnumerableResponse(
+            IEnumerable<DicomInstanceIdentifier> ids,
+            QueryResponseBuilder responseBuilder,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            foreach (var id in ids)
+            {
+                DicomDataset ds = await _metadataService.GetInstanceMetadataAsync(id, cancellationToken);
+                yield return responseBuilder.GenerateResponseDataset(ds);
+            }
         }
 
         private void ValidateRequestIdentifiers(DicomQueryResourceRequest message)
