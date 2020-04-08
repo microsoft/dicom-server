@@ -16,8 +16,8 @@ using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.IO;
@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     if (!message.OriginalTransferSyntaxRequested() &&
                         !dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
                     {
-                        throw new DataStoreException(HttpStatusCode.NotAcceptable);
+                        throw new DicomDataStoreException(HttpStatusCode.NotAcceptable);
                     }
 
                     resultStreams = message.Frames.Select(
@@ -128,7 +128,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                     if (resultStreams.Length == 0)
                     {
-                        throw new DataStoreException(HttpStatusCode.NotAcceptable);
+                        throw new DicomDataStoreException(HttpStatusCode.NotAcceptable);
                     }
 
                     resultStreams = resultStreams.Select(stream =>
@@ -139,7 +139,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                 return new RetrieveDicomResourceResponse(responseCode, resultStreams);
             }
-            catch (DataStoreException e)
+            catch (DicomDataStoreException e)
             {
                 _logger.LogError(e, "Error retrieving dicom resource.");
                 return new RetrieveDicomResourceResponse(e.StatusCode);
@@ -165,7 +165,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 var pixelData = DicomPixelData.Create(dataset);
                 if (frame >= pixelData.NumberOfFrames)
                 {
-                    throw new DataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame '{frame}' does not exist.", nameof(frame)));
+                    throw new DicomDataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame '{frame}' does not exist.", nameof(frame)));
                 }
 
                 resultByteBuffer = pixelData.GetFrame(frame);

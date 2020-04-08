@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
-using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Polly;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             }
             catch (StorageException e)
             {
-                throw new DataStoreException(e.RequestInformation.HttpStatusCode, e);
+                throw new DicomDataStoreException(e.RequestInformation.HttpStatusCode, e);
             }
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             }
             catch (StorageException e)
             {
-                throw new DataStoreException(e.RequestInformation.HttpStatusCode, e);
+                throw new DicomDataStoreException(e.RequestInformation.HttpStatusCode, e);
             }
         }
     }
