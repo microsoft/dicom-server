@@ -17,15 +17,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     public interface IDicomInstanceEntry : IAsyncDisposable
     {
         /// <summary>
-        /// Gets the <see cref="DicomDataset"/> of the DICOM instance.
+        /// Gets the <see cref="DicomDataset"/> of the DICOM instance entry.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>An instance of <see cref="DicomDataset"/>.</returns>
-        /// <exception cref="InvalidDicomInstanceException">Thrown when the uploaded DICOM instance is invalid.</exception>
+        /// <exception cref="InvalidDicomInstanceException">Thrown when the DICOM instance entry is invalid.</exception>
         ValueTask<DicomDataset> GetDicomDatasetAsync(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Gets the <see cref="Stream"/> of the DICOM instance.
+        /// Gets the <see cref="Stream"/> of the DICOM instance entry.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>An instance of <see cref="Stream"/>.</returns>

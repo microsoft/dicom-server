@@ -75,14 +75,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process uploaded DICOM instance(s).");
+                _logger.LogError(ex, "Failed to process the DICOM entries.");
                 throw;
             }
             finally
             {
                 if (dicomInstanceEntries != null)
                 {
-                    _logger.LogTrace("Disposing all uploaded DICOM instances.");
+                    _logger.LogTrace("Disposing all DICOM instance entries.");
 
                     IEnumerable<Task> disposeTasks = dicomInstanceEntries.Select(DisposeResourceAsync);
 
@@ -91,15 +91,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
         }
 
-        private async Task DisposeResourceAsync(IDicomInstanceEntry uploadedDicomInstance)
+        private async Task DisposeResourceAsync(IDicomInstanceEntry dicomInstanceEntry)
         {
             try
             {
-                await uploadedDicomInstance.DisposeAsync();
+                await dicomInstanceEntry.DisposeAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to dispose the uploaded DICOM instance.");
+                _logger.LogWarning(ex, "Failed to dispose the DICOM instance entry.");
             }
         }
     }

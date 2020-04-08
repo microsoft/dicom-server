@@ -18,23 +18,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// </summary>
     public class LoggingDicomStorePersistenceOrchestrator : IDicomStorePersistenceOrchestrator
     {
-        private static readonly Action<ILogger, string, Exception> LogStoringUploadedDicomInstanceDelegate =
+        private static readonly Action<ILogger, string, Exception> LogPersistingDicomInstanceEntryDelegate =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
                 default,
-                "Storing an uploaded DICOM instance: '{UploadedDicomInstance}'.");
+                "Persisting a DICOM instance entry: '{DicomInstanceEntry}'.");
 
-        private static readonly Action<ILogger, string, Exception> LogSuccessfullyStoredUploadedDicomInstanceDelegate =
+        private static readonly Action<ILogger, string, Exception> LogSuccessfullyPersistedDicomInstanceEntryDelegate =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
                 default,
-                "Successfully stored the uploaded DICOM instance: '{UploadedDicomInstance}'.");
+                "Successfully persisted the DICOM instance entry: '{DicomInstanceEntry}'.");
 
-        private static readonly Action<ILogger, string, Exception> LogFailedToStoreUploadedDicomInstanceDelegate =
+        private static readonly Action<ILogger, string, Exception> LogFailedToPersistDicomInstanceEntryDelegate =
             LoggerMessage.Define<string>(
                 LogLevel.Warning,
                 default,
-                "Failed to store the uploaded DICOM instance: '{UploadedDicomInstance}'.");
+                "Failed to persist the DICOM instance entry: '{DicomInstanceEntry}'.");
 
         private readonly IDicomStorePersistenceOrchestrator _dicomStorePersistenceOrchestrator;
         private readonly ILogger _logger;
@@ -51,25 +51,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task PersistDicomInstanceEntryAsync(IDicomInstanceEntry uploadedDicomInstance, CancellationToken cancellationToken)
+        public async Task PersistDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(uploadedDicomInstance, nameof(uploadedDicomInstance));
+            EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
-            string dicomInstanceIdentifier = (await uploadedDicomInstance.GetDicomDatasetAsync(cancellationToken))
+            string dicomInstanceIdentifier = (await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken))
                 .ToDicomInstanceIdentifier()
                 .ToString();
 
-            LogStoringUploadedDicomInstanceDelegate(_logger, dicomInstanceIdentifier, null);
+            LogPersistingDicomInstanceEntryDelegate(_logger, dicomInstanceIdentifier, null);
 
             try
             {
-                await _dicomStorePersistenceOrchestrator.PersistDicomInstanceEntryAsync(uploadedDicomInstance, cancellationToken);
+                await _dicomStorePersistenceOrchestrator.PersistDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken);
 
-                LogSuccessfullyStoredUploadedDicomInstanceDelegate(_logger, dicomInstanceIdentifier, null);
+                LogSuccessfullyPersistedDicomInstanceEntryDelegate(_logger, dicomInstanceIdentifier, null);
             }
             catch (Exception ex)
             {
-                LogFailedToStoreUploadedDicomInstanceDelegate(_logger, dicomInstanceIdentifier, ex);
+                LogFailedToPersistDicomInstanceEntryDelegate(_logger, dicomInstanceIdentifier, ex);
 
                 throw;
             }

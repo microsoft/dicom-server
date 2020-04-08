@@ -38,12 +38,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task PersistDicomInstanceEntryAsync(IDicomInstanceEntry uploadedDicomResource, CancellationToken cancellationToken)
+        public async Task PersistDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(uploadedDicomResource, nameof(uploadedDicomResource));
+            EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
-            DicomDataset dicomDataset = await uploadedDicomResource.GetDicomDatasetAsync(cancellationToken);
-            Stream stream = await uploadedDicomResource.GetStreamAsync(cancellationToken);
+            DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
+            Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
             // If a file with the same name exists, a conflict exception will be thrown.
             await _dicomBlobDataStore.AddAsync(

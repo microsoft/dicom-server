@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 {
     /// <summary>
-    /// Provides logging for <see cref="IUploadedDicomInstanceReader"/>.
+    /// Provides logging for <see cref="IDicomInstanceEntryReader"/>.
     /// </summary>
     public class LoggingDicomInstanceEntryReader : IDicomInstanceEntryReader
     {
@@ -22,25 +22,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
             LoggerMessage.Define<string, string>(
                 LogLevel.Debug,
                 default,
-                "Checking if {UploadedDicomInstanceReaderType} can read {ContentType}.");
+                "Checking if {DicomInstanceReaderEntryType} can read {ContentType}.");
 
         private static readonly Action<ILogger, string, Exception> LogReadingDelegate =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
                 default,
-                "Reading uploaded DICOM instances using '{UploadedDicomInstanceReaderType}'.");
+                "Reading DICOM instance entries using '{DicomInstanceEntryReaderType}'.");
 
         private static readonly Action<ILogger, int, Exception> LogSuccessfullyReadDelegate =
             LoggerMessage.Define<int>(
                 LogLevel.Information,
                 default,
-                "Successfully read {Number} instances(s).");
+                "Successfully read {Number} instance entries.");
 
         private static readonly Action<ILogger, Exception> LogFailedToReadDelegate =
             LoggerMessage.Define(
                 LogLevel.Warning,
                 default,
-                "Failed to read uploaded DICOM instance(s).");
+                "Failed to read DICOM instance entries.");
 
         private readonly IDicomInstanceEntryReader _dicomInstanceEntryReader;
         private readonly ILogger _logger;

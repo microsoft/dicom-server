@@ -4,14 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.IO;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Api.Web
 {
-    internal class MissingMultipartBodyPartException : IOException
+    internal class MissingMultipartBodyPartException : DicomServerException
     {
         public MissingMultipartBodyPartException(Exception innerException)
-            : base(null, innerException)
+            : base(DicomApiResource.MissingMultipartBodyPart, innerException)
         {
         }
     }

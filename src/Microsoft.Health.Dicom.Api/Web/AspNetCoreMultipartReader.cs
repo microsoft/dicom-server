@@ -35,16 +35,16 @@ namespace Microsoft.Health.Dicom.Api.Web
 
             _seekableStreamConverter = seekableStreamConverter;
 
-            if (!MediaTypeHeaderValue.TryParse(contentType, out MediaTypeHeaderValue media))
+            if (!MediaTypeHeaderValue.TryParse(contentType, out MediaTypeHeaderValue media) ||
+                !media.MediaType.Equals(KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new UnsupportedMediaTypeException(
                     string.Format(CultureInfo.InvariantCulture, DicomApiResource.UnsupportedContentType, contentType));
             }
 
-            var isMultipartRelated = media.MediaType.Equals(KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase);
             string boundary = HeaderUtilities.RemoveQuotes(media.Boundary).ToString();
 
-            if (!isMultipartRelated || string.IsNullOrWhiteSpace(boundary))
+            if (string.IsNullOrWhiteSpace(boundary))
             {
                 throw new UnsupportedMediaTypeException(
                     string.Format(CultureInfo.InvariantCulture, DicomApiResource.InvalidMultipartContentType, contentType));

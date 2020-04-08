@@ -70,6 +70,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There was an error reading the content. This is likely caused by multipart request with missing body part..
+        /// </summary>
+        internal static string MissingMultipartBodyPart {
+            get {
+                return ResourceManager.GetString("MissingMultipartBodyPart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified content type &apos;{0}&apos; is not supported..
         /// </summary>
         internal static string UnsupportedContentType {
