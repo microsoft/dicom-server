@@ -119,10 +119,8 @@ namespace Microsoft.AspNetCore.Builder
                     {
                         app.UseDeveloperExceptionPage();
                     }
-                    else
-                    {
-                        app.UseExceptionHandling();
-                    }
+
+                    app.UseExceptionHandling();
 
                     app.UseAuthentication();
 

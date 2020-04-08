@@ -68,8 +68,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}'.");
 
-            RetrieveDicomMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, HttpContext.RequestAborted);
-            return StatusCode(response.StatusCode, response.ResponseMetadata);
+            DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, HttpContext.RequestAborted);
+
+            return CreateResult(response);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
@@ -103,9 +104,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
-            RetrieveDicomMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
-                                studyInstanceUid, seriesInstanceUid, HttpContext.RequestAborted);
-            return StatusCode(response.StatusCode, response.ResponseMetadata);
+            DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
+                studyInstanceUid, seriesInstanceUid, HttpContext.RequestAborted);
+
+            return CreateResult(response);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
@@ -139,9 +141,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
-            RetrieveDicomMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
-            return StatusCode(response.StatusCode, response.ResponseMetadata);
+            DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
+               studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
+
+            return CreateResult(response);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream)]
@@ -172,6 +175,16 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             }
 
             return new MultipartResult(response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(KnownContentTypes.ApplicationDicom, x)).ToList());
+        }
+
+        private IActionResult CreateResult(DicomRetrieveMetadataResponse resourceResponse)
+        {
+            if (!resourceResponse.ResponseMetadata.Any())
+            {
+                return NotFound();
+            }
+
+            return StatusCode((int)HttpStatusCode.OK, resourceResponse.ResponseMetadata);
         }
     }
 }
