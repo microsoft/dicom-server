@@ -32,6 +32,12 @@ EXEC(@sql)
 
 GO
 
+IF EXISTS ( SELECT *
+			FROM sysfulltextcatalogs
+			WHERE name = 'Dicom_Catalog' )
+	DROP FULLTEXT CATALOG [Dicom_Catalog]
+GO
+
 /*************************************************************
     Configure database
 **************************************************************/
@@ -125,6 +131,13 @@ AS
             (@version, @status)
     END
 GO
+
+/*************************************************************
+Full text catalog creation
+**************************************************************/
+CREATE FULLTEXT CATALOG Dicom_Catalog AS DEFAULT 
+GO
+
 /*************************************************************
     Instance Table
     Dicom instances with unique Study, Series and Instance Uid
@@ -212,11 +225,11 @@ CREATE TABLE dbo.StudyMetadataCore (
     --patient and study core
     PatientId                   NVARCHAR(64) NOT NULL,
     PatientName                 NVARCHAR(325) NULL,
-    --PatientNameIndex AS REPLACE(PatientName, '^', ' '), --FT index,
     ReferringPhysicianName      NVARCHAR(325) NULL,
     StudyDate                   DATE NULL,
     StudyDescription            NVARCHAR(64) NULL,
     AccessionNumber             NVARCHAR(16) NULL,
+    PatientNameWords            AS REPLACE(PatientName, '^', ' ')  PERSISTED--FT index,
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_StudyMetadataCore ON dbo.StudyMetadataCore
@@ -228,6 +241,16 @@ CREATE UNIQUE CLUSTERED INDEX IXC_StudyMetadataCore ON dbo.StudyMetadataCore
 CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_PatientId ON dbo.StudyMetadataCore
 (
     PatientId
+)
+INCLUDE
+(
+    Id,
+    StudyInstanceUid
+)
+
+CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_PatientName ON dbo.StudyMetadataCore
+(
+    PatientName
 )
 INCLUDE
 (
@@ -250,7 +273,6 @@ CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_StudyDate ON dbo.StudyMetadataCor
     StudyDate
 )
 INCLUDE
-
 (
     Id,
     StudyInstanceUid
@@ -275,6 +297,22 @@ INCLUDE
     Id,
     StudyInstanceUid
 )
+
+--Full text creation
+--unique single column index for FT index
+CREATE UNIQUE NONCLUSTERED INDEX IX_StudyMetadataCore_Id ON dbo.StudyMetadataCore
+(
+    Id
+)
+INCLUDE
+(
+	StudyInstanceUid
+)
+
+CREATE FULLTEXT INDEX ON StudyMetadataCore(PatientNameWords)   
+KEY INDEX IX_StudyMetadataCore_Id 
+WITH STOPLIST = SYSTEM; 
+
 
 /*************************************************************
     Series Table

@@ -10,7 +10,7 @@ using System.Net;
 using Dicom;
 using Dicom.Imaging;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 !dataset.Contains(DicomTag.Rows) ||
                 !dataset.Contains(DicomTag.PixelData))
             {
-                throw new DataStoreException(HttpStatusCode.NotFound);
+                throw new DicomDataStoreException(HttpStatusCode.NotFound);
             }
 
             // Note: We look for any frame value that is less than zero, or greater than number of frames.
@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             // If any missing frames, throw not found exception for the specific frames not found.
             if (missingFrames.Length > 0)
             {
-                throw new DataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame(s) '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
+                throw new DicomDataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame(s) '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
             }
         }
     }

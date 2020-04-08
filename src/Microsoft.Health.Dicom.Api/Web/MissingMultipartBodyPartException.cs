@@ -3,24 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net;
+using System;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions
+namespace Microsoft.Health.Dicom.Api.Web
 {
-    public class DicomInvalidMediaTypeException : DicomException
+    internal class MissingMultipartBodyPartException : DicomServerException
     {
-        public DicomInvalidMediaTypeException()
-            : base()
+        public MissingMultipartBodyPartException(Exception innerException)
+            : base(DicomApiResource.MissingMultipartBodyPart, innerException)
         {
-        }
-
-        public override HttpStatusCode ResponseStatusCode
-        {
-            get
-            {
-                return HttpStatusCode.UnsupportedMediaType;
-            }
         }
     }
 }

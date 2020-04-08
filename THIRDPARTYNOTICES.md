@@ -766,78 +766,103 @@ This file is based on or incorporates material from the projects listed below (T
   > (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   > SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+## Scrutor 3.2.0
+* Component Source:   https://github.com/khellang/Scrutor
+* Component Copyright and License:
+  > The MIT License (MIT)
+  > 
+  > Copyright (c) 2015 Kristian Hellang
+  > 
+  > Permission is hereby granted, free of charge, to any person obtaining a copy
+  > of this software and associated documentation files (the "Software"), to deal
+  > in the Software without restriction, including without limitation the rights
+  > to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  > copies of the Software, and to permit persons to whom the Software is
+  > furnished to do so, subject to the following conditions:
+  > 
+  > The above copyright notice and this permission notice shall be included in all
+  > copies or substantial portions of the Software.
+  > 
+  > THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  > IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  > FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  > AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  > SOFTWARE.
+
 ## StyleCop.Analyzers 1.1.118
 * Component Source:   https://github.com/DotNetAnalyzers/StyleCopAnalyzers/
 * Component Copyright and License:  
-  >Copyright (c) Tunnel Vision Laboratories, LLC. All rights reserved.
+  > Copyright (c) Tunnel Vision Laboratories, LLC. All rights reserved.
   >
-  >Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-  >these files except in compliance with the License. You may obtain a copy of the
-  >License at
+  > Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+  > these files except in compliance with the License. You may obtain a copy of the
+  > License at
   >
-  >http://www.apache.org/licenses/LICENSE-2.0
+  > http://www.apache.org/licenses/LICENSE-2.0
+  > 
+  > Unless required by applicable law or agreed to in writing, software distributed
+  > under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+  > CONDITIONS OF ANY KIND, either express or implied. See the License for the
+  > specific language governing permissions and limitations under the License.
   >
-  >Unless required by applicable law or agreed to in writing, software distributed
-  >under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-  >CONDITIONS OF ANY KIND, either express or implied. See the License for the
-  >specific language governing permissions and limitations under the License.
+  > ---
   >
-  >---
+  > This project uses other open source projects, which are used under the terms
+  > of the following license(s).
   >
-  >This project uses other open source projects, which are used under the terms
-  >of the following license(s).
+  > .NET Compiler Platform ("Roslyn")
   >
-  >.NET Compiler Platform ("Roslyn")
+  >   Copyright Microsoft.
   >
-  >  Copyright Microsoft.
+  >   Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+  >   these files except in compliance with the License. You may obtain a copy of the
+  >   License at
   >
-  >  Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-  >  these files except in compliance with the License. You may obtain a copy of the
-  >  License at
+  >   http://www.apache.org/licenses/LICENSE-2.0
+  > 
+  >   Unless required by applicable law or agreed to in writing, software distributed
+  >   under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+  >   CONDITIONS OF ANY KIND, either express or implied. See the License for the
+  >   specific language governing permissions and limitations under the License.
   >
-  >  http://www.apache.org/licenses/LICENSE-2.0
+  > Code Cracker
   >
-  >  Unless required by applicable law or agreed to in writing, software distributed
-  >  under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-  >  CONDITIONS OF ANY KIND, either express or implied. See the License for the
-  >  specific language governing permissions and limitations under the License.
+  >   Copyright 2014 Giovanni Bassi and Elemar Jr.
   >
-  >Code Cracker
+  >   Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+  >   these files except in compliance with the License. You may obtain a copy of the
+  >   License at
   >
-  >  Copyright 2014 Giovanni Bassi and Elemar Jr.
+  >   http://www.apache.org/licenses/LICENSE-2.0
   >
-  >  Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-  >  these files except in compliance with the License. You may obtain a copy of the
-  >  License at
+  >   Unless required by applicable law or agreed to in writing, software distributed
+  >   under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+  >   CONDITIONS OF ANY KIND, either express or implied. See the License for the
+  >   specific language governing permissions and limitations under the License.
   >
-  >  http://www.apache.org/licenses/LICENSE-2.0
+  > LightJson
   >
-  >  Unless required by applicable law or agreed to in writing, software distributed
-  >  under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-  >  CONDITIONS OF ANY KIND, either express or implied. See the License for the
-  >  specific language governing permissions and limitations under the License.
+  >   Copyright (c) 2017 Marcos López C.
   >
-  >LightJson
+  >   Permission is hereby granted, free of charge, to any person obtaining a copy
+  >   of this software and associated documentation files (the "Software"), to deal
+  >   in the Software without restriction, including without limitation the rights
+  >   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  >   copies of the Software, and to permit persons to whom the Software is
+  >   furnished to do so, subject to the following conditions:
   >
-  >  Copyright (c) 2017 Marcos López C.
-  >  
-  >  Permission is hereby granted, free of charge, to any person obtaining a copy
-  >  of this software and associated documentation files (the "Software"), to deal
-  >  in the Software without restriction, including without limitation the rights
-  >  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  >  copies of the Software, and to permit persons to whom the Software is
-  >  furnished to do so, subject to the following conditions:
-  >  
-  >  The above copyright notice and this permission notice shall be included in
-  >  all copies or substantial portions of the Software.
-  >  
-  >  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  >  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  >  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  >  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  >  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  >  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-  >  THE SOFTWARE.
+  >   The above copyright notice and this permission notice shall be included in
+  >   all copies or substantial portions of the Software.
+  >
+  >   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  >   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  >   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  >   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  >   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  >   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  >   THE SOFTWARE.
 
 ## XUnit 2.4.1
 * Component Source:   https://github.com/xunit/xunit

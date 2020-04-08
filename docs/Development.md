@@ -1,7 +1,7 @@
 # Developing
 ## Requirements
 - [Azure storage emulator](https://go.microsoft.com/fwlink/?linkid=717179)
-- Sql Server 2019
+- Sql Server 2019 with Full text index feature
 - .Net core SDK version specificied [here](../global.json)
 
 ## Getting Started in Visual Studio

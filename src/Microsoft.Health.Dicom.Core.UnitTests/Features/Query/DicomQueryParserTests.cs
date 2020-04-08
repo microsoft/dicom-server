@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -54,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenIncludeField_WithInvalidAttributeId_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -76,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithNotSupportedTag_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -87,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithKnownTagButNotSupportedAtLevel_Throws(string key, string value, QueryResource resourceType)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), resourceType)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), resourceType)));
         }
 
         [Theory]
@@ -105,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithDuplicateQueryParam_Throws(string queryString)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -114,7 +113,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenOffset_WithNotIntValue_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -132,7 +131,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenLimit_WithInvalidValue_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -140,7 +139,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenLimit_WithMaxValueExceeded_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -167,7 +166,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithInvalidAttributeId_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -181,10 +180,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         [Theory]
         [InlineData("fuzzymatching", "notbool")]
-        public void GivenFuzzyMatch_InValidValue_Throws(string key, string value)
+        public void GivenFuzzyMatch_InvalidValue_Throws(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
         }
 
         [Theory]
@@ -204,11 +203,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("StudyDate", "2020/02/28")]
         [InlineData("StudyDate", "20200230")]
         [InlineData("StudyDate", "20200228-20200230")]
+        [InlineData("StudyDate", "20200110-20200109")]
         [InlineData("PerformedProcedureStepStartDate", "baddate")]
         public void GivenDateTag_WithInvalidDate_Throw(string key, string value)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
-            .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllSeries)));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllSeries)));
         }
 
         [Fact]
@@ -223,38 +223,52 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.Equal(testStudyUid.UID, cond.Value);
         }
 
-        private QueryCollection GetQueryCollection(string key, string value)
+        [Theory]
+        [InlineData("PatientName=CoronaPatient&StudyDate=20200403&fuzzyMatching=true", QueryResource.AllStudies)]
+        public void GivenPatientNameFilterCondition_WithFuzzyMatchingTrue_FuzzyMatchConditionAdded(string queryString, QueryResource resourceType)
+        {
+            DicomQueryExpression dicomQueryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType));
+
+            Assert.Equal(2, dicomQueryExpression.FilterConditions.Count);
+
+            var studyDateFilterCondition = dicomQueryExpression.FilterConditions.FirstOrDefault(c => c.DicomTag == DicomTag.StudyDate) as DateSingleValueMatchCondition;
+            Assert.NotNull(studyDateFilterCondition);
+
+            var patientNameCondition = dicomQueryExpression.FilterConditions.FirstOrDefault(c => c.DicomTag == DicomTag.PatientName);
+            Assert.NotNull(patientNameCondition);
+
+            var fuzzyCondition = patientNameCondition as PersonNameFuzzyMatchCondition;
+            Assert.NotNull(fuzzyCondition);
+            Assert.Equal("CoronaPatient", fuzzyCondition.Value);
+        }
+
+        private IEnumerable<KeyValuePair<string, StringValues>> GetQueryCollection(string key, string value)
         {
             return GetQueryCollection(new Dictionary<string, string>() { { key, value } });
         }
 
-        private QueryCollection GetQueryCollection(Dictionary<string, string> queryParams)
+        private IEnumerable<KeyValuePair<string, StringValues>> GetQueryCollection(Dictionary<string, string> queryParams)
         {
-            var pairs = new Dictionary<string, StringValues>();
-
             foreach (KeyValuePair<string, string> pair in queryParams)
             {
-                pairs.Add(pair.Key, new StringValues(pair.Value.Split(',')));
+                yield return KeyValuePair.Create(pair.Key, new StringValues(pair.Value.Split(',')));
             }
-
-            return new QueryCollection(pairs);
         }
 
-        private QueryCollection GetQueryCollection(string queryString)
+        private IEnumerable<KeyValuePair<string, StringValues>> GetQueryCollection(string queryString)
         {
             var parameters = queryString.Split('&');
-            var pairs = new Dictionary<string, StringValues>();
+
             foreach (var param in parameters)
             {
                 var keyValue = param.Split('=');
-                pairs.Add(keyValue[0], keyValue[1].Split(','));
-            }
 
-            return new QueryCollection(pairs);
+                yield return KeyValuePair.Create(keyValue[0], new StringValues(keyValue[1].Split(',')));
+            }
         }
 
         private DicomQueryResourceRequest CreateRequest(
-            QueryCollection queryParams,
+            IEnumerable<KeyValuePair<string, StringValues>> queryParams,
             QueryResource resourceType,
             string studyInstanceUid = null,
             string seriesInstanceUid = null)

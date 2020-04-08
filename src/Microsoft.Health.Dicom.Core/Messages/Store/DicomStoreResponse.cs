@@ -5,22 +5,19 @@
 
 using System.Net;
 using Dicom;
-using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Store
 {
-    public sealed class StoreDicomResponse : BaseStatusCodeResponse
+    public sealed class DicomStoreResponse : BaseStatusCodeResponse
     {
-        public StoreDicomResponse(HttpStatusCode statusCode)
+        public DicomStoreResponse(HttpStatusCode statusCode)
             : base((int)statusCode)
         {
         }
 
-        public StoreDicomResponse(HttpStatusCode statusCode, DicomDataset responseDataset)
+        public DicomStoreResponse(HttpStatusCode statusCode, DicomDataset responseDataset)
             : base((int)statusCode)
         {
-            EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
-
             Dataset = responseDataset;
         }
 

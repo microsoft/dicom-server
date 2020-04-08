@@ -16,5 +16,10 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
             : base(message)
         {
         }
+
+        public DicomServerException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
     }
 }

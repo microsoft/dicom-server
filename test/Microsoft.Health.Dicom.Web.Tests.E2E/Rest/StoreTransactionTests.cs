@@ -10,7 +10,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Features.Persistence.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Microsoft.IO;
@@ -21,6 +20,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
+        private const ushort ProcessingFailureCode = 272;
+        private const ushort SopInstanceAlreadyExistsFailureCode = 45070;
+        private const ushort MismatchStudyInstanceUidFailureCode = 43265;
+
         private readonly DicomWebClient _client;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -164,13 +167,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 new[] { dicomFile1, dicomFile2 }, studyInstanceUID);
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             Assert.NotNull(response.Value);
-            Assert.True(response.Value.Count() == 2);
-
-            Assert.EndsWith($"studies/{studyInstanceUID}", response.Value.GetSingleValue<string>(DicomTag.RetrieveURL));
+            Assert.True(response.Value.Count() == 1);
 
             ValidationHelpers.ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                StoreFailureCodes.MismatchStudyInstanceUidFailureCode,
+                MismatchStudyInstanceUidFailureCode,
                 dicomFile1.Dataset,
                 dicomFile2.Dataset);
         }
@@ -197,7 +198,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 ValidationHelpers.ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
                 ValidationHelpers.ValidateFailureSequence(
                     response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                    StoreFailureCodes.MismatchStudyInstanceUidFailureCode,
+                    MismatchStudyInstanceUidFailureCode,
                     dicomFile2.Dataset);
             }
             finally
@@ -217,7 +218,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             ValidationHelpers.ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                StoreFailureCodes.ProcessingFailureCode,
+                ProcessingFailureCode,
                 dicomFile1.Dataset);
         }
 
@@ -237,7 +238,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 Assert.Equal(HttpStatusCode.Conflict, response2.StatusCode);
                 ValidationHelpers.ValidateFailureSequence(
                     response2.Value.GetSequence(DicomTag.FailedSOPSequence),
-                    StoreFailureCodes.SopInstanceAlredyExistsFailureCode,
+                    SopInstanceAlreadyExistsFailureCode,
                     dicomFile1.Dataset);
             }
             finally

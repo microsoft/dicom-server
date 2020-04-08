@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Persistence
+namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     public interface IDicomIndexDataStore
     {

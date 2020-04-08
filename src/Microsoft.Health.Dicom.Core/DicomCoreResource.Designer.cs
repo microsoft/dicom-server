@@ -106,6 +106,16 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
+        ///The first part date {1} should be lesser than or equal to the second part date {2}..
+        /// </summary>
+        internal static string InvalidDateRangeValue {
+            get {
+                return ResourceManager.GetString("InvalidDateRangeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value {0} is invalid for parameter {1}. Date should be valid and formatted as yyyyMMdd..
         /// </summary>
         internal static string InvalidDateValue {
@@ -174,6 +184,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string UnkownQueryParameter {
             get {
                 return ResourceManager.GetString("UnkownQueryParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified content type &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string UnsupportedContentType {
+            get {
+                return ResourceManager.GetString("UnsupportedContentType", resourceCulture);
             }
         }
         

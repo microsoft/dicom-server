@@ -90,6 +90,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
             internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
             internal readonly NullableNVarCharColumn AccessionNumber = new NullableNVarCharColumn("AccessionNumber", 16);
+            internal const string PatientNameWords = "PatientNameWords";
         }
 
         internal class AddInstanceProcedure : StoredProcedure

@@ -18,7 +18,6 @@ using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Query;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Web;
 
@@ -83,8 +82,6 @@ namespace Microsoft.Health.Dicom.Api
         [Route(KnownRoutes.QuerySeriesInStudyRoute)]
         public async Task<IActionResult> QueryForSeriesInStudyAsync(string studyInstanceUid)
         {
-            DicomIdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(studyInstanceUid));
-
             _logger.LogInformation($"DICOM Web Query Series request for study '{studyInstanceUid}' received. QueryString '{Request.QueryString}.");
 
             var response = await _mediator.QueryDicomResourcesAsync(
@@ -122,8 +119,6 @@ namespace Microsoft.Health.Dicom.Api
         [Route(KnownRoutes.QueryInstancesInStudyRoute)]
         public async Task<IActionResult> QueryForInstancesInStudyAsync(string studyInstanceUid)
         {
-            DicomIdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(studyInstanceUid));
-
             _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUid}' received. QueryString '{Request.QueryString}.");
 
             var response = await _mediator.QueryDicomResourcesAsync(
@@ -143,9 +138,6 @@ namespace Microsoft.Health.Dicom.Api
         [Route(KnownRoutes.QueryInstancesInSeriesRoute)]
         public async Task<IActionResult> QueryForInstancesInSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
         {
-            DicomIdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(studyInstanceUid));
-            DicomIdentifierValidator.ValidateAndThrow(seriesInstanceUid, nameof(seriesInstanceUid));
-
             _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUid}' and series '{seriesInstanceUid}' received. QueryString '{Request.QueryString}.");
 
             var response = await _mediator.QueryDicomResourcesAsync(
