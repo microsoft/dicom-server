@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// http://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_6.6.html#table_6.6.1-4
+    /// Provides functionality to build the response for the store transaction.
     /// </summary>
     public class DicomStoreResponseBuilder
     {
@@ -28,6 +28,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _urlResolver = urlResolver;
         }
 
+        /// <summary>
+        /// Builds the response.
+        /// </summary>
+        /// <param name="studyInstanceUid">If specified and there is at least one success, then the RetrieveURL for the study will be set.</param>
+        /// <returns>An instance of <see cref="DicomStoreResponse"/> representing the response.</returns>
         public DicomStoreResponse BuildResponse(string studyInstanceUid)
         {
             bool hasSuccess = _dataset?.TryGetSequence(DicomTag.ReferencedSOPSequence, out _) ?? false;
@@ -59,6 +64,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             return new DicomStoreResponse(statusCode, _dataset);
         }
 
+        /// <summary>
+        /// Adds a successful entry to the response.
+        /// </summary>
+        /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
         public void AddSuccess(DicomDataset dicomDataset)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -78,16 +87,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 { DicomTag.ReferencedSOPInstanceUID, dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID) },
                 { DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveInstanceUri(dicomInstance).ToString() },
+                { DicomTag.ReferencedSOPClassUID, dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID) },
             };
-
-            referencedSop.AddValueIfNotNull(
-                DicomTag.ReferencedSOPClassUID,
-                dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID));
 
             referencedSopSequence.Items.Add(referencedSop);
         }
 
-        public void AddFailure(DicomDataset dicomDataset = null, ushort failureReason = DicomStoreFailureCodes.ProcessingFailureCode)
+        /// <summary>
+        /// Adds a failed entry to the response.
+        /// </summary>
+        /// <param name="dicomDataset">The DICOM dataset that failed to be stored.</param>
+        /// <param name="failureReason">The failure reason.</param>
+        public void AddFailure(DicomDataset dicomDataset = null, ushort failureReason = DicomStoreFailureCodes.ProcessingFailure)
         {
             CreateDatasetIfNeeded();
 

@@ -14,44 +14,44 @@ using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides logging for <see cref="IDicomStorePersistenceOrchestrator"/>.
+    /// Provides logging for <see cref="IDicomStoreService"/>.
     /// </summary>
-    public class LoggingDicomStorePersistenceOrchestrator : IDicomStorePersistenceOrchestrator
+    public class LoggingDicomStoreService : IDicomStoreService
     {
         private static readonly Action<ILogger, string, Exception> LogPersistingDicomInstanceEntryDelegate =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
                 default,
-                "Persisting a DICOM instance entry: '{DicomInstanceEntry}'.");
+                "Storing a DICOM instance entry: '{DicomInstanceEntry}'.");
 
         private static readonly Action<ILogger, string, Exception> LogSuccessfullyPersistedDicomInstanceEntryDelegate =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
                 default,
-                "Successfully persisted the DICOM instance entry: '{DicomInstanceEntry}'.");
+                "Successfully stored the DICOM instance entry: '{DicomInstanceEntry}'.");
 
         private static readonly Action<ILogger, string, Exception> LogFailedToPersistDicomInstanceEntryDelegate =
             LoggerMessage.Define<string>(
                 LogLevel.Warning,
                 default,
-                "Failed to persist the DICOM instance entry: '{DicomInstanceEntry}'.");
+                "Failed to store the DICOM instance entry: '{DicomInstanceEntry}'.");
 
-        private readonly IDicomStorePersistenceOrchestrator _dicomStorePersistenceOrchestrator;
+        private readonly IDicomStoreService _dicomStoreService;
         private readonly ILogger _logger;
 
-        public LoggingDicomStorePersistenceOrchestrator(
-            IDicomStorePersistenceOrchestrator dicomStorePersistenceOrchestrator,
-            ILogger<LoggingDicomStorePersistenceOrchestrator> logger)
+        public LoggingDicomStoreService(
+            IDicomStoreService dicomStoreService,
+            ILogger<LoggingDicomStoreService> logger)
         {
-            EnsureArg.IsNotNull(dicomStorePersistenceOrchestrator, nameof(dicomStorePersistenceOrchestrator));
+            EnsureArg.IsNotNull(dicomStoreService, nameof(dicomStoreService));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _dicomStorePersistenceOrchestrator = dicomStorePersistenceOrchestrator;
+            _dicomStoreService = dicomStoreService;
             _logger = logger;
         }
 
         /// <inheritdoc />
-        public async Task PersistDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken)
+        public async Task StoreDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _dicomStorePersistenceOrchestrator.PersistDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken);
+                await _dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken);
 
                 LogSuccessfullyPersistedDicomInstanceEntryDelegate(_logger, dicomInstanceIdentifier, null);
             }

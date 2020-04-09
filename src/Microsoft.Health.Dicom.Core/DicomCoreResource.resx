@@ -118,8 +118,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="DicomIdentifierInvalid" xml:space="preserve">
-    <value>Dicom Identifier '{0}' value '{1}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
+    <value>DICOM Identifier '{0}' value '{1}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
     <comment>{0} Identifier Parameter name, {1} Value.</comment>
+  </data>
+  <data name="DuplicatedUidsNotAllowed" xml:space="preserve">
+    <value>The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.</value>
+    <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the sepc and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"}</comment>
   </data>
   <data name="DuplicateQueryParam" xml:space="preserve">
     <value>Invalid QIDO-RS query. Duplicate AttributeId '{0}', Each attribute is allowed to be specified once.</value>
@@ -149,6 +153,14 @@ The first part date {1} should be lesser than or equal to the second part date {
   </data>
   <data name="InvaludFuzzyMatchValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified fuzzymatch value {0} is not a valid boolean</value>
+  </data>
+  <data name="MismatchStudyInstanceUid" xml:space="preserve">
+    <value>Th StudyInstanceUid '{0}' in the payload does not match the specified StudyInstanceUid '{1}'.</value>
+    <comment>{0} and {1} are both StudyInstanceUid. StudyInstanceUID is defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID"}.</comment>
+  </data>
+  <data name="MissingRequiredTag" xml:space="preserve">
+    <value>The required tag '{0}' is missing.</value>
+    <comment>{0} is the DICOM tag name. E.g., StudyInstanceUID.</comment>
   </data>
   <data name="QueryInvalidResourceLevel" xml:space="preserve">
     <value>Invalid QIDO-RS query. Querying is only supported at resource level Studies/Series/Instances.</value>

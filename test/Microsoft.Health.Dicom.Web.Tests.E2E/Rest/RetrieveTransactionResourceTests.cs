@@ -356,7 +356,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await _client.PostAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
 
-            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
             HttpResult<IReadOnlyList<DicomFile>> getResponse = await _client.GetSeriesAsync(
                 studyInstanceUid,

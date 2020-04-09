@@ -3,18 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Net;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
-using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -23,88 +19,46 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// </summary>
     public class DicomStoreService : IDicomStoreService
     {
-        private readonly IDicomStorePersistenceOrchestrator _dicomStoreOrchestrator;
-        private readonly Func<DicomStoreResponseBuilder> _dicomStoreResponseBuilderFactory;
-        private readonly ILogger<DicomStoreService> _logger;
+        private readonly IDicomFileStore _dicomBlobDataStore;
+        private readonly IDicomMetadataStore _dicomInstanceMetadataStore;
+        private readonly IDicomIndexDataStore _dicomIndexDataStore;
 
         public DicomStoreService(
-            IDicomStorePersistenceOrchestrator dicomStoreOrchestrator,
-            Func<DicomStoreResponseBuilder> dicomStoreResponseBuilderFactory,
-            ILogger<DicomStoreService> logger)
+            IDicomFileStore dicomBlobDataStore,
+            IDicomMetadataStore dicomInstanceMetadataStore,
+            IDicomIndexDataStore dicomIndexDataStore)
         {
-            EnsureArg.IsNotNull(dicomStoreOrchestrator, nameof(dicomStoreOrchestrator));
-            EnsureArg.IsNotNull(dicomStoreResponseBuilderFactory, nameof(dicomStoreResponseBuilderFactory));
-            EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(dicomBlobDataStore, nameof(dicomBlobDataStore));
+            EnsureArg.IsNotNull(dicomInstanceMetadataStore, nameof(dicomInstanceMetadataStore));
+            EnsureArg.IsNotNull(dicomIndexDataStore, nameof(dicomIndexDataStore));
 
-            _dicomStoreOrchestrator = dicomStoreOrchestrator;
-            _dicomStoreResponseBuilderFactory = dicomStoreResponseBuilderFactory;
-            _logger = logger;
+            _dicomBlobDataStore = dicomBlobDataStore;
+            _dicomInstanceMetadataStore = dicomInstanceMetadataStore;
+            _dicomIndexDataStore = dicomIndexDataStore;
         }
 
         /// <inheritdoc />
-        public async Task<DicomStoreResponse> ProcessDicomInstanceEntriesAsync(
-            string studyInstanceUid,
-            IReadOnlyCollection<IDicomInstanceEntry> dicomInstanceEntries,
+        public async Task StoreDicomInstanceEntryAsync(
+            IDicomInstanceEntry dicomInstanceEntry,
             CancellationToken cancellationToken)
         {
-            var responseBuilder = _dicomStoreResponseBuilderFactory();
+            EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
-            foreach (IDicomInstanceEntry dicomInstanceEntry in dicomInstanceEntries)
-            {
-                DicomDataset dicomDataset;
+            DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-                try
-                {
-                    dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
-                }
-                catch (InvalidDicomInstanceException)
-                {
-                    _logger.LogDebug("The DICOM instance could not be parsed.");
+            Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
-                    responseBuilder.AddFailure();
+            // If a file with the same name exists, a conflict exception will be thrown.
+            await _dicomBlobDataStore.AddAsync(
+                dicomDataset.ToDicomInstanceIdentifier(),
+                stream,
+                cancellationToken: cancellationToken);
 
-                    continue;
-                }
+            // Strip the DICOM file down to the tags we want to store for metadata.
+            dicomDataset.RemoveBulkDataVrs();
 
-                if (studyInstanceUid != null)
-                {
-                    string specifiedStudyInstanceUid = dicomDataset.GetSingleValueOrDefault<string>(DicomTag.StudyInstanceUID);
-
-                    // The StudyInstanceUID was supplied, validate to make sure all supplied instances belongs to this study.
-                    if (!studyInstanceUid.Equals(specifiedStudyInstanceUid, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        _logger.LogDebug(
-                            "The DICOM instance does not belong to the same study as specified. Required StudyInstanceUID: {RequiredStudyInstanceUID}. SpecifiedStudyInstanceUID: {SpecifiedStudyInstanceUID}.",
-                            studyInstanceUid,
-                            specifiedStudyInstanceUid);
-
-                        responseBuilder.AddFailure(dicomDataset, DicomStoreFailureCodes.MismatchStudyInstanceUidFailureCode);
-
-                        continue;
-                    }
-                }
-
-                try
-                {
-                    await _dicomStoreOrchestrator.PersistDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken);
-
-                    responseBuilder.AddSuccess(dicomDataset);
-                }
-                catch (DicomDataStoreException ex) when (ex.StatusCode == (int)HttpStatusCode.Conflict)
-                {
-                    _logger.LogDebug("The specified DICOM instance already exists: '{DicomInstanceIdentifier}'.", dicomDataset.ToDicomInstanceIdentifier());
-
-                    responseBuilder.AddFailure(dicomDataset, DicomStoreFailureCodes.SopInstanceAlreadyExistsFailureCode);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to store the DICOM instance.");
-
-                    responseBuilder.AddFailure(dicomDataset);
-                }
-            }
-
-            return responseBuilder.BuildResponse(studyInstanceUid);
+            await _dicomInstanceMetadataStore.AddInstanceMetadataAsync(dicomDataset);
+            await _dicomIndexDataStore.IndexInstanceAsync(dicomDataset);
         }
     }
 }

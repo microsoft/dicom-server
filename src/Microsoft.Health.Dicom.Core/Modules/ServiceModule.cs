@@ -20,22 +20,33 @@ namespace Microsoft.Health.Dicom.Core.Modules
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
+            services.Add<DicomInstanceEntryReaderManager>()
+                .Singleton()
+                .AsImplementedInterfaces();
+
+            services.Add<DicomInstanceEntryProcessor>()
+                .Scoped()
+                .AsImplementedInterfaces()
+                .AsFactory();
+
             services.Add<DicomStoreService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomStorePersistenceOrchestrator>()
-                .Scoped()
-                .AsImplementedInterfaces();
-
-            services.Decorate<IDicomStorePersistenceOrchestrator, LoggingDicomStorePersistenceOrchestrator>();
+            services.Decorate<IDicomStoreService, LoggingDicomStoreService>();
 
             services.Add<DicomInstanceEntryReaderForMultipartRequest>()
                 .Singleton()
                 .AsImplementedInterfaces();
 
             services.Decorate<IDicomInstanceEntryReader, LoggingDicomInstanceEntryReader>();
+
+            services.Add<DicomInstanceEntryReaderManager>()
+                .Singleton()
+                .AsImplementedInterfaces();
+
+            services.Decorate<IDicomInstanceEntryReaderManager, LoggingDicomInstanceEntryReaderManager>();
 
             services.Add<DicomStoreResponseBuilder>()
                 .Transient()

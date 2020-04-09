@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private const ushort ProcessingFailureCode = 272;
+        private const ushort ValidationFailedFailureCode = 43264;
         private const ushort SopInstanceAlreadyExistsFailureCode = 45070;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
 
@@ -208,7 +209,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
         }
 
-        [Fact(Skip = "Store dataset validation pending in US#72595")]
+        [Fact]
         public async void GivenDatasetWithDuplicateIdentifiers_WhenStoring_TheServerShouldReturnConflict()
         {
             var studyInstanceUID = TestUidGenerator.Generate();
@@ -218,7 +219,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             ValidationHelpers.ValidateFailureSequence(
                 response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                ProcessingFailureCode,
+                ValidationFailedFailureCode,
                 dicomFile1.Dataset);
         }
 

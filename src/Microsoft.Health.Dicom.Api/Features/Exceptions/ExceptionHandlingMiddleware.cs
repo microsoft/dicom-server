@@ -70,16 +70,16 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     _logger.LogWarning("Service exception: {0}", exception);
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
-
-                // TODO remove below exception after we clean up all exceptions
-                case DicomException dicomException:
-                    statusCode = dicomException.ResponseStatusCode;
-                    break;
                 case UnsupportedMediaTypeException _:
                     statusCode = HttpStatusCode.UnsupportedMediaType;
                     break;
                 case ServiceUnavailableException _:
                     statusCode = HttpStatusCode.ServiceUnavailable;
+                    break;
+
+                // TODO remove below exception after we clean up all exceptions
+                case DicomException dicomException:
+                    statusCode = dicomException.ResponseStatusCode;
                     break;
                 default:
                     _logger.LogError("Unhandled exception: {0}", exception);

@@ -61,11 +61,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
+        ///   Looks up a localized string similar to DICOM Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
         /// </summary>
         internal static string DicomIdentifierInvalid {
             get {
                 return ResourceManager.GetString("DicomIdentifierInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
+        /// </summary>
+        internal static string DuplicatedUidsNotAllowed {
+            get {
+                return ResourceManager.GetString("DuplicatedUidsNotAllowed", resourceCulture);
             }
         }
         
@@ -139,6 +148,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvaludFuzzyMatchValue {
             get {
                 return ResourceManager.GetString("InvaludFuzzyMatchValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Th StudyInstanceUid &apos;{0}&apos; in the payload does not match the specified StudyInstanceUid &apos;{1}&apos;..
+        /// </summary>
+        internal static string MismatchStudyInstanceUid {
+            get {
+                return ResourceManager.GetString("MismatchStudyInstanceUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The required tag &apos;{0}&apos; is missing..
+        /// </summary>
+        internal static string MissingRequiredTag {
+            get {
+                return ResourceManager.GetString("MissingRequiredTag", resourceCulture);
             }
         }
         

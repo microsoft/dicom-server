@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<IDicomInstanceEntry>> ReadAsync(string contentType, Stream body, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream body, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
             EnsureArg.IsNotNull(body, nameof(body));
