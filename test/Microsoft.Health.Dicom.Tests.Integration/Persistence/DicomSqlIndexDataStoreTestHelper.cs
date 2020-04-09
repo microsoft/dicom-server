@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
@@ -109,6 +110,40 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         return null;
                     }
                 }
+            }
+        }
+
+        public async Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                await sqlConnection.OpenAsync();
+
+                var result = new List<DeletedInstance>();
+
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = @$"
+                        SELECT *
+                        FROM {VLatest.DeletedInstance.TableName}
+                        WHERE {VLatest.DeletedInstance.StudyInstanceUid} = @studyInstanceUid
+                        AND {VLatest.DeletedInstance.SeriesInstanceUid} = ISNULL(@seriesInstanceUid, {VLatest.DeletedInstance.SeriesInstanceUid})
+                        AND {VLatest.DeletedInstance.SopInstanceUid} = ISNULL(@sopInstanceUid, {VLatest.DeletedInstance.SopInstanceUid})";
+
+                    sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", string.IsNullOrEmpty(seriesInstanceUid) ? DBNull.Value : (object)seriesInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@sopInstanceUid", string.IsNullOrEmpty(sopInstanceUid) ? DBNull.Value : (object)sopInstanceUid);
+
+                    using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
+                    {
+                        while (await sqlDataReader.ReadAsync())
+                        {
+                            result.Add(new DeletedInstance(sqlDataReader));
+                        }
+                    }
+                }
+
+                return result;
             }
         }
     }

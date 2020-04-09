@@ -20,6 +20,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     {
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
         private readonly IDicomIndexDataStoreTestHelper _testHelper;
+        private readonly DateTime _startDateTime = DateTime.UtcNow;
 
         public DicomIndexDataStoreTests(DicomSqlIndexDataStoreTestsFixture fixture)
         {
@@ -30,32 +31,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenANonExistingDicomInstance_WhenAdded_ThenItShouldBeAdded()
         {
-            string studyInstanceUid = TestUidGenerator.Generate();
-            string seriesInstanceUid = TestUidGenerator.Generate();
-            string sopInstanceUid = TestUidGenerator.Generate();
-            string patientId = "pid";
-            string patientName = "pname";
-            string referringPhysicianName = "rname";
-            string studyDateTime = "20200301";
-            string studyDescription = "sd";
-            string accessionNumber = "an";
-            string modality = "M";
-            string performedProcedureStepStartDate = "20200302";
-
-            DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
-
-            dataset.Remove(DicomTag.PatientID);
-
-            dataset.Add(DicomTag.PatientID, patientId);
-            dataset.Add(DicomTag.PatientName, patientName);
-            dataset.Add(DicomTag.ReferringPhysicianName, referringPhysicianName);
-            dataset.Add(DicomTag.StudyDate, studyDateTime);
-            dataset.Add(DicomTag.StudyDescription, studyDescription);
-            dataset.Add(DicomTag.AccessionNumber, accessionNumber);
-            dataset.Add(DicomTag.Modality, modality);
-            dataset.Add(DicomTag.PerformedProcedureStepStartDate, performedProcedureStepStartDate);
-
-            DateTime date = DateTime.UtcNow;
+            DicomDataset dataset = CreateTestDicomDataset();
+            string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+            string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
+            string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
+            string patientId = dataset.GetString(DicomTag.PatientID);
+            string patientName = dataset.GetString(DicomTag.PatientName);
+            string referringPhysicianName = dataset.GetString(DicomTag.ReferringPhysicianName);
+            string studyDescription = dataset.GetString(DicomTag.StudyDescription);
+            string accessionNumber = dataset.GetString(DicomTag.AccessionNumber);
+            string modality = dataset.GetString(DicomTag.Modality);
 
             await _dicomIndexDataStore.IndexInstanceAsync(dataset);
 
@@ -96,8 +81,201 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
             Assert.True(instance.Watermark >= 0);
             Assert.Equal(DicomIndexStatus.Created, instance.Status);
-            Assert.InRange(instance.LastStatusUpdatedDate, date.AddSeconds(-1), date.AddSeconds(1));
-            Assert.InRange(instance.CreatedDate, date.AddSeconds(-1), date.AddSeconds(1));
+            Assert.InRange(instance.LastStatusUpdatedDate, _startDateTime.AddSeconds(-1), _startDateTime.AddSeconds(1));
+            Assert.InRange(instance.CreatedDate, _startDateTime.AddSeconds(-1), _startDateTime.AddSeconds(1));
+        }
+
+        [Fact]
+        public async Task GivenAnExistingDicomInstance_WhenDeletedByInstanceId_ThenItShouldBeRemovedAndAddedToDeletedInstanceTable()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            Assert.Null(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
+            Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
+
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleDeletedInstance(instance));
+        }
+
+        [Fact]
+        public async Task GivenAnExistingDicomInstance_WhenDeletedByInstanceId_AdditionalInstancesShouldBeMaintained()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            string sopInstanceUid2 = TestUidGenerator.Generate();
+            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            Assert.Null(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            Assert.NotNull(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2));
+            Assert.NotEmpty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
+            Assert.NotEmpty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
+
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance));
+        }
+
+        [Fact]
+        public async Task GivenAnExistingDicomInstance_WhenDeletedByInstanceId_AdditionalSeriesShouldBeMaintained()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            string sopInstanceUid2 = TestUidGenerator.Generate();
+            string seriesInstanceUid2 = TestUidGenerator.Generate();
+            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
+
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            Assert.Null(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            Assert.NotNull(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2));
+            Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
+            Assert.NotEmpty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid2));
+            Assert.NotEmpty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
+
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance1));
+        }
+
+        [Fact]
+        public async Task GivenAnExistingDicomInstance_WhenDeletedBySeriesId_ThenItShouldBeRemovedAndAddedToDeletedInstanceTable()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid);
+
+            Assert.Null(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
+            Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
+
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleDeletedInstance(instance));
+        }
+
+        [Fact]
+        public async Task GivenMultipleDicomInstance_WhenDeletedBySeriesId_ThenItemsBeRemovedAndAddedToDeletedInstanceTable()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            string sopInstanceUid2 = TestUidGenerator.Generate();
+            Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+
+            await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid);
+
+            Assert.Null(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            Assert.Null(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2));
+            Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
+            Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
+
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance2), ValidateSingleDeletedInstance(instance1));
+        }
+
+        [Fact]
+        public async Task GivenAnExistingDicomInstance_WhenDeletedBySeriesId_AdditionalSeriesShouldBeMaintained()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            string sopInstanceUid2 = TestUidGenerator.Generate();
+            string seriesInstanceUid2 = TestUidGenerator.Generate();
+            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
+
+            await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid);
+
+            Assert.Null(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            Assert.NotNull(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2));
+            Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
+            Assert.NotEmpty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid2));
+            Assert.NotEmpty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
+
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance));
+        }
+
+        [Fact]
+        public async Task GivenAnExistingDicomInstance_WhenDeletedByStudyId_ThenItShouldBeRemovedAndAddedToDeletedInstanceTable()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUid);
+
+            Assert.Null(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
+            Assert.Empty(await _testHelper.GetStudyMetadataAsync(seriesInstanceUid));
+
+            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleDeletedInstance(instance));
+        }
+
+        [Fact]
+        public async Task GivenMultipleDicomInstance_WhenDeletedByStudyUid_ThenItemsBeRemovedAndAddedToDeletedInstanceTable()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            string sopInstanceUid2 = TestUidGenerator.Generate();
+            Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+
+            await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUid);
+
+            Assert.Null(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            Assert.Null(await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2));
+            Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
+            Assert.Empty(await _testHelper.GetStudyMetadataAsync(seriesInstanceUid));
+
+            Assert.Collection(
+                await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, null, null),
+                ValidateSingleDeletedInstance(instance2),
+                ValidateSingleDeletedInstance(instance1));
+        }
+
+        [Fact]
+        public async Task GivenANonExistentInstance_WhenDeletedBySopInstanceUid_ThenExceptionThrown()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(async () => await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()));
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        }
+
+        [Fact]
+        public async Task GivenANonExistentSeries_WhenDeletedBySeriesInstanceUid_ThenExceptionThrown()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(async () => await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, TestUidGenerator.Generate()));
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        }
+
+        [Fact]
+        public async Task GivenANonExistentStudy_WhenDeletedByStudyInstanceUid_ThenExceptionThrown()
+        {
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(async () => await _dicomIndexDataStore.DeleteStudyIndexAsync(TestUidGenerator.Generate()));
         }
 
         [Fact]
@@ -148,6 +326,61 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(expectedVersion, actual.Version);
             Assert.Equal(expectedModality, actual.Modality);
             Assert.Equal(expectedPerformedProcedureStepStartDate, actual.PerformedProcedureStepStartDate);
+        }
+
+        private Action<DeletedInstance> ValidateSingleDeletedInstance(Instance instance)
+        {
+            return deletedInstance =>
+            {
+                Assert.Equal(instance.StudyInstanceUid, deletedInstance.StudyInstanceUid);
+                Assert.Equal(instance.SeriesInstanceUid, deletedInstance.SeriesInstanceUid);
+                Assert.Equal(instance.SopInstanceUid, deletedInstance.SopInstanceUid);
+                Assert.Equal(instance.Watermark, deletedInstance.Watermark);
+                Assert.InRange(deletedInstance.DeletedDateTime, _startDateTime.AddSeconds(-1), _startDateTime.AddSeconds(1));
+                Assert.Equal(0, deletedInstance.RetryCount);
+                Assert.Null(deletedInstance.RetryAfter);
+            };
+        }
+
+        private static DicomDataset CreateTestDicomDataset(string studyInstanceUid = null, string seriesInstanceUid = null, string sopInstanceUid = null)
+        {
+            if (string.IsNullOrEmpty(studyInstanceUid))
+            {
+                studyInstanceUid = TestUidGenerator.Generate();
+            }
+
+            if (string.IsNullOrEmpty(seriesInstanceUid))
+            {
+                seriesInstanceUid = TestUidGenerator.Generate();
+            }
+
+            if (string.IsNullOrEmpty(sopInstanceUid))
+            {
+                sopInstanceUid = TestUidGenerator.Generate();
+            }
+
+            DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
+
+            dataset.Remove(DicomTag.PatientID);
+
+            dataset.Add(DicomTag.PatientID, "pid");
+            dataset.Add(DicomTag.PatientName, "pname");
+            dataset.Add(DicomTag.ReferringPhysicianName, "rname");
+            dataset.Add(DicomTag.StudyDate, "20200301");
+            dataset.Add(DicomTag.StudyDescription, "sd");
+            dataset.Add(DicomTag.AccessionNumber, "an");
+            dataset.Add(DicomTag.Modality, "M");
+            dataset.Add(DicomTag.PerformedProcedureStepStartDate, "20200302");
+            return dataset;
+        }
+
+        private async Task<Instance> CreateIndexAndVerifyInstance(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        {
+            DicomDataset dataset = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            await _dicomIndexDataStore.IndexInstanceAsync(dataset);
+            Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
+            return instance;
         }
     }
 }

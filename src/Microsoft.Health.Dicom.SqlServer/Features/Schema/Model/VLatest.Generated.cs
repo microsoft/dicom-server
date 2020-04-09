@@ -12,14 +12,31 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
     internal class VLatest
     {
+        internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SchemaVersionTable SchemaVersion = new SchemaVersionTable();
         internal readonly static SeriesMetadataCoreTable SeriesMetadataCore = new SeriesMetadataCoreTable();
         internal readonly static StudyMetadataCoreTable StudyMetadataCore = new StudyMetadataCoreTable();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
+        internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static SelectCurrentSchemaVersionProcedure SelectCurrentSchemaVersion = new SelectCurrentSchemaVersionProcedure();
         internal readonly static UpsertSchemaVersionProcedure UpsertSchemaVersion = new UpsertSchemaVersionProcedure();
+        internal class DeletedInstanceTable : Table
+        {
+            internal DeletedInstanceTable(): base("dbo.DeletedInstance")
+            {
+            }
+
+            internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
+            internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
+            internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly DateTime2Column DeletedDateTime = new DateTime2Column("DeletedDateTime", 0);
+            internal readonly IntColumn RetryCount = new IntColumn("RetryCount");
+            internal readonly DateTime2Column RetryAfter = new DateTime2Column("RetryAfter", 0);
+        }
+
         internal class InstanceTable : Table
         {
             internal InstanceTable(): base("dbo.Instance")
@@ -110,6 +127,25 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _modality.AddParameter(command.Parameters, modality);
                 _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
                 _initialStatus.AddParameter(command.Parameters, initialStatus);
+            }
+        }
+
+        internal class DeleteInstanceProcedure : StoredProcedure
+        {
+            internal DeleteInstanceProcedure(): base("dbo.DeleteInstance")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.DeleteInstance";
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
             }
         }
 
