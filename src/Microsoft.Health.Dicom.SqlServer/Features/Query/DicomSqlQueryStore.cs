@@ -41,7 +41,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             DicomQueryExpression query,
             CancellationToken cancellationToken)
         {
-            var results = new List<DicomInstanceIdentifier>(query.EvaluatedLimit);
+            EnsureArg.IsNotNull(query, nameof(query));
+
+            var results = new List<VersionedDicomInstanceIdentifier>(query.EvaluatedLimit);
 
             using (var sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
             using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
