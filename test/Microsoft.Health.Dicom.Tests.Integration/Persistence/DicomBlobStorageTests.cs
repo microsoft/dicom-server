@@ -8,9 +8,9 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Persistence.Exceptions;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.IO;
 using Xunit;
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 Assert.Equal(fileLocation1, fileLocation2);
 
                 // Fail on exists
-                DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(
+                DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(
                                     () => _dicomBlobDataStore.AddAsync(id, stream, overwriteIfExists: false));
                 Assert.Equal((int)HttpStatusCode.Conflict, exception.StatusCode);
             }
@@ -79,7 +79,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenANonExistentFile_WhenFetched_ThrowsNotFoundException()
         {
             var id = GenerateIdentifier();
-            DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(() => _dicomBlobDataStore.GetAsync(id));
+            DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(() => _dicomBlobDataStore.GetAsync(id));
             Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
         }
 

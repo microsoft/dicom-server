@@ -124,5 +124,24 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
                 version);
         }
+
+        /// <summary>
+        /// Adds value to the <paramref name="dicomDataset"/> if <paramref name="value"/> is not null.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="dicomDataset">The dataset to add value to.</param>
+        /// <param name="dicomTag">The DICOM tag.</param>
+        /// <param name="value">The value to add.</param>
+        public static void AddValueIfNotNull<T>(this DicomDataset dicomDataset, DicomTag dicomTag, T value)
+            where T : class
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
+
+            if (value != null)
+            {
+                dicomDataset.Add(dicomTag, value);
+            }
+        }
     }
 }

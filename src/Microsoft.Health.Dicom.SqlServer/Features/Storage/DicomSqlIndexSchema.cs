@@ -7,7 +7,7 @@ using System;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Schema;
 

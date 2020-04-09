@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public class DicomQueryResult
     {
-        public DicomQueryResult(IEnumerable<DicomInstanceIdentifier> entries)
+        public DicomQueryResult(IEnumerable<VersionedDicomInstanceIdentifier> entries)
         {
             EnsureArg.IsNotNull(entries, nameof(entries));
             DicomInstances = entries;
