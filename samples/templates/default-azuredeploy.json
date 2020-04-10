@@ -188,8 +188,7 @@
                     "name": "AspNetCoreRuntime.3.1.x86",
                     "type": "siteextensions",
                     "dependsOn": [ 
-                        "[variables('appServiceResourceId')]",
-                        "[if(variables('deployAppInsights'),concat('Microsoft.Insights/components/', variables('appInsightsName')),resourceId('Microsoft.KeyVault/vaults', variables('serviceName')))]"
+                        "[variables('appServiceResourceId')]"
                     ],
                     "properties": {
                         "version": "3.1.3"
