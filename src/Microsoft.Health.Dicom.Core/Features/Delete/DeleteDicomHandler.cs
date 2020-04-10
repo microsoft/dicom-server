@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                 return new DeleteDicomResourcesResponse(e.StatusCode);
             }
 
-            return new DeleteDicomResourcesResponse(HttpStatusCode.OK);
+            return new DeleteDicomResourcesResponse(HttpStatusCode.NoContent);
         }
     }
 }
