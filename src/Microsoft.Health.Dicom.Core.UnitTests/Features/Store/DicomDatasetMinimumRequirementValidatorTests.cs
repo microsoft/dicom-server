@@ -16,12 +16,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private const ushort ValidationFailedFailureCode = 43264;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
 
+        private readonly DicomDatasetMinimumRequirementValidator _dicomDatasetMinimumRequirementValidator = new DicomDatasetMinimumRequirementValidator();
+
         private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset();
 
         [Fact]
         public void GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
         {
-            DicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null);
+            _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null);
         }
 
         [Fact]
@@ -31,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid);
 
-            DicomDatasetMinimumRequirementValidator.Validate(
+            _dicomDatasetMinimumRequirementValidator.Validate(
                 _dicomDataset,
                 studyInstanceUid);
         }
@@ -100,7 +102,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private void ExecuteAndValidateException(ushort failureCode, string requiredStudyInstanceUid = null)
         {
             var exception = Assert.Throws<DicomDatasetValidationException>(
-                () => DicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid));
+                () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid));
 
             Assert.Equal(failureCode, exception.FailureCode);
         }

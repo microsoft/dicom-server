@@ -24,6 +24,10 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Singleton()
                 .AsImplementedInterfaces();
 
+            services.Add<DicomDatasetMinimumRequirementValidator>()
+                .Singleton()
+                .AsImplementedInterfaces();
+
             services.Add<DicomInstanceEntryProcessor>()
                 .Scoped()
                 .AsImplementedInterfaces()
@@ -50,8 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.Add<DicomStoreResponseBuilder>()
                 .Transient()
-                .AsSelf()
-                .AsFactory();
+                .AsImplementedInterfaces();
 
             services.Add<DicomRetrieveMetadataService>()
                 .Scoped()

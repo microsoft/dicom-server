@@ -3,24 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Linq;
 using System.Net;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Tests.Common;
-using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 {
     public class DicomStoreResponseBuilderTests
     {
-        private readonly IUrlResolver _urlResolver = Substitute.For<IUrlResolver>();
+        private readonly IUrlResolver _urlResolver = new MockUrlResolver();
         private readonly DicomStoreResponseBuilder _dicomStoreResponseBuilder;
 
         private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
@@ -37,22 +34,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         public DicomStoreResponseBuilderTests()
         {
-            _urlResolver.ResolveRetrieveStudyUri(Arg.Any<string>()).Returns(x =>
-            {
-                var studyInstanceUid = x.ArgAt<string>(0);
-
-                return new Uri(studyInstanceUid, UriKind.Relative);
-            });
-
-            _urlResolver.ResolveRetrieveInstanceUri(Arg.Any<DicomInstanceIdentifier>()).Returns(x =>
-            {
-                var dicomInstance = x.ArgAt<DicomInstanceIdentifier>(0);
-
-                return new Uri(
-                    $"/{dicomInstance.StudyInstanceUid}/{dicomInstance.SeriesInstanceUid}/{dicomInstance.SopInstanceUid}",
-                    UriKind.Relative);
-            });
-
             _dicomStoreResponseBuilder = new DicomStoreResponseBuilder(_urlResolver);
         }
 
@@ -80,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             Assert.NotNull(response.Dataset);
             Assert.Single(response.Dataset);
 
-            ValidateReferencedSopSequence(
+            ValidationHelpers.ValidateReferencedSopSequence(
                 response.Dataset,
                 ("3", "/1/2/3", "4"));
         }
@@ -97,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             Assert.NotNull(response.Dataset);
             Assert.Single(response.Dataset);
 
-            ValidateFailedSopSequence(
+            ValidationHelpers.ValidateFailedSopSequence(
                 response.Dataset,
                 ("12", "13", 100));
         }
@@ -115,11 +96,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             Assert.NotNull(response.Dataset);
             Assert.Equal(2, response.Dataset.Count());
 
-            ValidateFailedSopSequence(
+            ValidationHelpers.ValidateFailedSopSequence(
                 response.Dataset,
                 ("3", "4", 272));
 
-            ValidateReferencedSopSequence(
+            ValidationHelpers.ValidateReferencedSopSequence(
                 response.Dataset,
                 ("12", "/10/11/12", "13"));
         }
@@ -140,12 +121,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             Assert.NotNull(response.Dataset);
             Assert.Equal(2, response.Dataset.Count());
 
-            ValidateFailedSopSequence(
+            ValidationHelpers.ValidateFailedSopSequence(
                 response.Dataset,
                 ("3", "4", 272),
                 ("12", "13", 100));
 
-            ValidateReferencedSopSequence(
+            ValidationHelpers.ValidateReferencedSopSequence(
                 response.Dataset,
                 ("12", "/10/11/12", "13"),
                 ("3", "/1/2/3", "4"));
@@ -163,7 +144,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             Assert.NotNull(response.Dataset);
             Assert.Single(response.Dataset);
 
-            ValidateFailedSopSequence(
+            ValidationHelpers.ValidateFailedSopSequence(
                 response.Dataset,
                 (null, null, 300));
         }
@@ -211,49 +192,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             // We have 3 items: RetrieveURL, FailedSOPSequence, and ReferencedSOPSequence.
             Assert.Equal(3, response.Dataset.Count());
             Assert.Equal("1", response.Dataset.GetSingleValueOrDefault<string>(DicomTag.RetrieveURL));
-        }
-
-        private void ValidateReferencedSopSequence(DicomDataset actualDicomDataset, params (string SopInstanceUid, string RetrieveUri, string SopClassUid)[] expectedValues)
-        {
-            Assert.True(actualDicomDataset.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence sequence));
-            Assert.Equal(expectedValues.Length, sequence.Count());
-
-            for (int i = 0; i < expectedValues.Length; i++)
-            {
-                DicomDataset actual = sequence.ElementAt(i);
-
-                Assert.Equal(expectedValues[i].SopInstanceUid, actual.GetSingleValueOrDefault<string>(DicomTag.ReferencedSOPInstanceUID));
-                Assert.Equal(expectedValues[i].RetrieveUri, actual.GetSingleValueOrDefault<string>(DicomTag.RetrieveURL));
-                Assert.Equal(expectedValues[i].SopClassUid, actual.GetSingleValueOrDefault<string>(DicomTag.ReferencedSOPClassUID));
-            }
-        }
-
-        private void ValidateFailedSopSequence(DicomDataset actualDicomDataset, params (string SopInstanceUid, string SopClassUid, ushort FailureReason)[] expectedValues)
-        {
-            Assert.True(actualDicomDataset.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence sequence));
-            Assert.Equal(expectedValues.Length, sequence.Count());
-
-            for (int i = 0; i < expectedValues.Length; i++)
-            {
-                DicomDataset actual = sequence.ElementAt(i);
-
-                ValidateNullOrCorrectValue(expectedValues[i].SopInstanceUid, actual, DicomTag.ReferencedSOPInstanceUID);
-                ValidateNullOrCorrectValue(expectedValues[i].SopClassUid, actual, DicomTag.ReferencedSOPClassUID);
-
-                Assert.Equal(expectedValues[i].FailureReason, actual.GetSingleValueOrDefault<ushort>(DicomTag.FailureReason));
-            }
-
-            void ValidateNullOrCorrectValue(string expectedValue, DicomDataset actual, DicomTag dicomTag)
-            {
-                if (expectedValue == null)
-                {
-                    Assert.False(actual.TryGetSingleValue(dicomTag, out string _));
-                }
-                else
-                {
-                    Assert.Equal(expectedValue, actual.GetSingleValueOrDefault<string>(dicomTag));
-                }
-            }
         }
     }
 }

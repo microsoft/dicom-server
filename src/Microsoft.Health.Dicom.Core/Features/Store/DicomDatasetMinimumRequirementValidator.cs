@@ -13,17 +13,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// <summary>
     /// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement.
     /// </summary>
-    public static class DicomDatasetMinimumRequirementValidator
+    public class DicomDatasetMinimumRequirementValidator : IDicomDatasetMinimumRequirementValidator
     {
-        /// <summary>
-        /// Validates the <paramref name="dicomDataset"/>.
-        /// </summary>
-        /// <param name="dicomDataset">The DICOM dataset to validate.</param>
-        /// <param name="requiredStudyInstanceUid">
-        /// If supplied, the StudyInstanceUID in the <paramref name="dicomDataset"/> must match to be considered valid.
-        /// </param>
-        /// <exception cref="DicomDatasetValidationException">Thrown when the validation fails.</exception>
-        public static void Validate(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+        public void Validate(DicomDataset dicomDataset, string requiredStudyInstanceUid)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -42,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 seriesInstanceUid == sopInstanceUid)
             {
                 throw new DicomDatasetValidationException(
-                    DicomStoreFailureCodes.ValidationFailed,
+                    DicomStoreFailureCodes.ValidationFailure,
                     DicomCoreResource.DuplicatedUidsNotAllowed);
             }
 
@@ -67,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 }
 
                 throw new DicomDatasetValidationException(
-                    DicomStoreFailureCodes.ValidationFailed,
+                    DicomStoreFailureCodes.ValidationFailure,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.MissingRequiredTag,

@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     /// <summary>
     /// Base class for all client input validation exceptions.
     /// </summary>
-    public class DicomValidationException : DicomServerException
+    public abstract class DicomValidationException : DicomServerException
     {
         protected DicomValidationException(string message)
             : base(message)

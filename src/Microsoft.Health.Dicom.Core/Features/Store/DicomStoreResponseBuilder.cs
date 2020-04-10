@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// <summary>
     /// Provides functionality to build the response for the store transaction.
     /// </summary>
-    public class DicomStoreResponseBuilder
+    public class DicomStoreResponseBuilder : IDicomStoreResponseBuilder
     {
         private readonly IUrlResolver _urlResolver;
 
@@ -28,11 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _urlResolver = urlResolver;
         }
 
-        /// <summary>
-        /// Builds the response.
-        /// </summary>
-        /// <param name="studyInstanceUid">If specified and there is at least one success, then the RetrieveURL for the study will be set.</param>
-        /// <returns>An instance of <see cref="DicomStoreResponse"/> representing the response.</returns>
+        /// <inheritdoc />
         public DicomStoreResponse BuildResponse(string studyInstanceUid)
         {
             bool hasSuccess = _dataset?.TryGetSequence(DicomTag.ReferencedSOPSequence, out _) ?? false;
@@ -64,10 +60,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             return new DicomStoreResponse(statusCode, _dataset);
         }
 
-        /// <summary>
-        /// Adds a successful entry to the response.
-        /// </summary>
-        /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
+        /// <inheritdoc />
         public void AddSuccess(DicomDataset dicomDataset)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -93,11 +86,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             referencedSopSequence.Items.Add(referencedSop);
         }
 
-        /// <summary>
-        /// Adds a failed entry to the response.
-        /// </summary>
-        /// <param name="dicomDataset">The DICOM dataset that failed to be stored.</param>
-        /// <param name="failureReason">The failure reason.</param>
+        /// <inheritdoc />
         public void AddFailure(DicomDataset dicomDataset = null, ushort failureReason = DicomStoreFailureCodes.ProcessingFailure)
         {
             CreateDatasetIfNeeded();

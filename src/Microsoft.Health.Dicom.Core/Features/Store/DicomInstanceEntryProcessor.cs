@@ -47,30 +47,36 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "Failed to dispose the DICOM instance entry at index '{DicomInstanceEntryIndex}'.");
 
+        private readonly IDicomStoreResponseBuilder _dicomStoreResponseBuilder;
+        private readonly IDicomDatasetMinimumRequirementValidator _dicomDatasetMinimumRequirementValidator;
         private readonly IDicomStoreService _dicomStoreService;
         private readonly ILogger _logger;
-
-        private readonly DicomStoreResponseBuilder _dicomStoreResponseBuilder;
 
         private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
         private string _requiredStudyInstanceUid;
 
         public DicomInstanceEntryProcessor(
-            Func<DicomStoreResponseBuilder> dicomStoreResponseBuilderFactory,
+            IDicomStoreResponseBuilder dicomStoreResponseBuilder,
+            IDicomDatasetMinimumRequirementValidator dicomDatasetMinimumRequirementValidator,
             IDicomStoreService dicomStoreService,
             ILogger<DicomInstanceEntryProcessor> logger)
         {
-            EnsureArg.IsNotNull(dicomStoreResponseBuilderFactory, nameof(dicomStoreResponseBuilderFactory));
+            EnsureArg.IsNotNull(dicomStoreResponseBuilder, nameof(dicomStoreResponseBuilder));
+            EnsureArg.IsNotNull(dicomDatasetMinimumRequirementValidator, nameof(dicomDatasetMinimumRequirementValidator));
             EnsureArg.IsNotNull(dicomStoreService, nameof(dicomStoreService));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
+            _dicomStoreResponseBuilder = dicomStoreResponseBuilder;
+            _dicomDatasetMinimumRequirementValidator = dicomDatasetMinimumRequirementValidator;
             _dicomStoreService = dicomStoreService;
-            _dicomStoreResponseBuilder = dicomStoreResponseBuilderFactory();
             _logger = logger;
         }
 
         /// <inheritdoc />
-        public async Task<DicomStoreResponse> ProcessAsync(IReadOnlyList<IDicomInstanceEntry> dicomInstanceEntries, string requiredStudyInstanceUid, CancellationToken cancellationToken)
+        public async Task<DicomStoreResponse> ProcessAsync(
+            IReadOnlyList<IDicomInstanceEntry> dicomInstanceEntries,
+            string requiredStudyInstanceUid,
+            CancellationToken cancellationToken)
         {
             if (dicomInstanceEntries != null)
             {
@@ -107,7 +113,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 // Open and validate the DICOM instance.
                 dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-                DicomDatasetMinimumRequirementValidator.Validate(dicomDataset, _requiredStudyInstanceUid);
+                _dicomDatasetMinimumRequirementValidator.Validate(dicomDataset, _requiredStudyInstanceUid);
             }
             catch (Exception ex)
             {
@@ -116,7 +122,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 switch (ex)
                 {
                     case DicomValidationException _:
-                        failureCode = DicomStoreFailureCodes.ValidationFailed;
+                        failureCode = DicomStoreFailureCodes.ValidationFailure;
                         break;
 
                     case DicomDatasetValidationException dicomDatasetMinimumRequirementException:
