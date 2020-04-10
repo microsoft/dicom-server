@@ -3,12 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -33,14 +29,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             ValidateRetrieveMetadataRequest(request);
 
-            IEnumerable<DicomDataset> responseMetadata = await _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(
-                request.ResourceType,
-                request.StudyInstanceUid,
-                request.SeriesInstanceUid,
-                request.SopInstanceUid,
+            return await _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(
+                request,
                 cancellationToken);
-
-            return new DicomRetrieveMetadataResponse(HttpStatusCode.OK, responseMetadata.ToArray());
         }
 
         private void ValidateRetrieveMetadataRequest(DicomRetrieveMetadataRequest request)

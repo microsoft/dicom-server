@@ -184,7 +184,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 return NotFound();
             }
 
-            return StatusCode((int)HttpStatusCode.OK, resourceResponse.ResponseMetadata);
+            return StatusCode(resourceResponse.StatusCode, resourceResponse.ResponseMetadata);
         }
     }
 }

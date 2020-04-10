@@ -115,11 +115,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string sopInstanceUid = TestUidGenerator.Generate();
 
             List<DicomDataset> responseMetadata = new List<DicomDataset> { new DicomDataset() };
-            _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid).Returns(responseMetadata);
 
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
+            DicomRetrieveMetadataResponse response = new DicomRetrieveMetadataResponse(HttpStatusCode.OK, responseMetadata);
+            _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(request, CancellationToken.None).Returns(response);
+
+            response = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
             Assert.NotNull(response);
             Assert.Equal(responseMetadata.Count, response.ResponseMetadata.Count());
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);

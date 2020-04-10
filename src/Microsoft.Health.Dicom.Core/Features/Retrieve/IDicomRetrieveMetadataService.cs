@@ -3,21 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
-using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public interface IDicomRetrieveMetadataService
     {
-        Task<IEnumerable<DicomDataset>> GetDicomInstanceMetadataAsync(
-           ResourceType resourceType,
-           string studyInstanceUid,
-           string seriesInstanceUid,
-           string sopInstanceUid,
+        Task<DicomRetrieveMetadataResponse> GetDicomInstanceMetadataAsync(
+           DicomRetrieveMetadataRequest message,
            CancellationToken cancellationToken = default);
     }
 }
