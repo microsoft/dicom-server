@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [HttpDelete]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.StudyRoute)]
@@ -40,14 +40,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Delete Study request received, with study instance UID '{studyInstanceUid}'.");
 
-            DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
+            DicomDeleteResourcesResponse dicomDeleteResponse = await _mediator.DeleteDicomResourcesAsync(
                 studyInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(deleteResponse.StatusCode);
+            return NoContent();
         }
 
         [HttpDelete]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.SeriesRoute)]
@@ -55,14 +55,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Delete Series request received, with study instance UID '{studyInstanceUid}' and series UID '{seriesInstanceUid}'.");
 
-            DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
+            DicomDeleteResourcesResponse dicomDeleteResponse = await _mediator.DeleteDicomResourcesAsync(
                 studyInstanceUid, seriesInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(deleteResponse.StatusCode);
+            return NoContent();
         }
 
         [HttpDelete]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.InstanceRoute)]
@@ -70,10 +70,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Delete Instance request received, with study instance UID '{studyInstanceUid}', series UID '{seriesInstanceUid}' and instance UID '{sopInstanceUid}'.");
 
-            DeleteDicomResourcesResponse deleteResponse = await _mediator.DeleteDicomResourcesAsync(
+            DicomDeleteResourcesResponse dicomDeleteResponse = await _mediator.DeleteDicomResourcesAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
-            return StatusCode(deleteResponse.StatusCode);
+            return NoContent();
         }
     }
 }

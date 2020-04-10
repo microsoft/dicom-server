@@ -251,6 +251,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await VerifyAllRemoval(studyInstanceUid, seriesInstanceUid2, sopInstanceUid3);
         }
 
+        [Theory]
+        [InlineData("notAStudyUid")]
+        [InlineData("notAStudyUid", "notASeriesUid")]
+        [InlineData("notAStudyUid", "notASeriesUid", "notASopInstanceUid")]
+        [InlineData("2.25.106797093114774953545959916858814568441", "notASeriesUid")]
+        [InlineData("2.25.106797093114774953545959916858814568441", "2.25.106797093114774953545959916858814568442", "notASopInstanceUid")]
+        public async Task GivenABadUid_WhenDeleting_TheServerShouldReturnBackRequest(string studyUid = null, string seriesUid = null, string sopInstanceUid = null)
+        {
+            HttpStatusCode deleteBadRequestResult1 = await _client.DeleteAsync(studyUid, seriesUid, sopInstanceUid);
+            Assert.Equal(HttpStatusCode.BadRequest, deleteBadRequestResult1);
+        }
+
         private async Task VerifyAllRemoval(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             await VerifySopInstanceRemoval(studyInstanceUid, seriesInstanceUid, sopInstanceUid);

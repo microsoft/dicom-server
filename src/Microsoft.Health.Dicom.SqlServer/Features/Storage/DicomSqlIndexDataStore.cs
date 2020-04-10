@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
             EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-            await DeleteInstanceAysnc(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
         }
 
         public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
@@ -53,17 +53,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            await DeleteInstanceAysnc(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cancellationToken);
         }
 
         public async Task DeleteStudyIndexAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-            await DeleteInstanceAysnc(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cancellationToken);
         }
 
-        private async Task DeleteInstanceAysnc(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
+        private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
         {
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 

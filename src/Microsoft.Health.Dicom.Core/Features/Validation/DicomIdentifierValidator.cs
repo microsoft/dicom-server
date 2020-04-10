@@ -9,7 +9,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     /// <summary>
-    /// Validates a unique identifer conforms to the character rules from
+    /// Validates a unique identifier conforms to the character rules from
     /// http://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html.
     /// http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
     /// </summary>
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return false;
             }
 
-            // trailling spaces are allowed
+            // trailing spaces are allowed
             identifierValue = identifierValue.TrimEnd(' ');
             if (string.IsNullOrEmpty(identifierValue))
             {
