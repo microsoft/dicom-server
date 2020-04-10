@@ -43,15 +43,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         [Fact]
         public async Task GivenAStudyInstanceUid_WhenRetireveInstanceMetadataFailsToRetrieveAll_ThenPartialContentRetrievedStatusCodeIsReturnedAsync()
         {
-            string studyUid = TestUidGenerator.Generate();
-            string seriesUid = TestUidGenerator.Generate();
-            string sopid1 = TestUidGenerator.Generate();
-            string sopid2 = TestUidGenerator.Generate();
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid1 = TestUidGenerator.Generate();
+            string sopInstanceUid2 = TestUidGenerator.Generate();
 
-            DicomDataset dicomDataset = CreateValidMetadataDataset(studyUid, seriesUid, sopid1);
+            DicomDataset dicomDataset = CreateValidMetadataDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid1);
             var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
 
-            DicomDataset dicomDataset1 = CreateValidMetadataDataset(studyUid, seriesUid, sopid2);
+            DicomDataset dicomDataset1 = CreateValidMetadataDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
             var dicomInstanceId2 = dicomDataset1.ToVersionedDicomInstanceIdentifier(version: 0);
 
             List<DicomInstanceIdentifier> list = new List<DicomInstanceIdentifier>()
@@ -62,9 +62,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
             await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset);
 
-            _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(studyUid, CancellationToken.None).Returns(list);
+            _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(studyInstanceUid, CancellationToken.None).Returns(list);
 
-            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyUid);
+            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
 
             DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(request);
             Assert.Equal((int)HttpStatusCode.PartialContent, response.StatusCode);
@@ -75,15 +75,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         [Fact]
         public async Task GivenAStudyInstanceUid_WhenRetireveInstanceMetadataFailsToRetrieveAny_ThenNotFoundIsThrown()
         {
-            string studyUid = TestUidGenerator.Generate();
-            string seriesUid = TestUidGenerator.Generate();
-            string sopid1 = TestUidGenerator.Generate();
-            string sopid2 = TestUidGenerator.Generate();
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid1 = TestUidGenerator.Generate();
+            string sopInstanceUid2 = TestUidGenerator.Generate();
 
-            DicomDataset dicomDataset = CreateValidMetadataDataset(studyUid, seriesUid, sopid1);
+            DicomDataset dicomDataset = CreateValidMetadataDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid1);
             var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
 
-            DicomDataset dicomDataset1 = CreateValidMetadataDataset(studyUid, seriesUid, sopid2);
+            DicomDataset dicomDataset1 = CreateValidMetadataDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
             var dicomInstanceId2 = dicomDataset1.ToVersionedDicomInstanceIdentifier(version: 0);
 
             List<DicomInstanceIdentifier> list = new List<DicomInstanceIdentifier>()
@@ -92,9 +92,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 dicomInstanceId2,
             };
 
-            _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(studyUid, CancellationToken.None).Returns(list);
+            _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(studyInstanceUid, CancellationToken.None).Returns(list);
 
-            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyUid);
+            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
 
             await Assert.ThrowsAsync<DicomInstanceMetadataNotFoundException>(() => _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(request));
         }
@@ -102,16 +102,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         [Fact]
         public async Task GivenAStudyInstanceUid_WhenRetireveInstanceMetadataIsSuccessFull_ThenInstanceMetaDataIsRetrievedSuccessfully()
         {
-            string studyUid = TestUidGenerator.Generate();
-            string seriesUid = TestUidGenerator.Generate();
-            string sopid1 = TestUidGenerator.Generate();
-            string sopid2 = TestUidGenerator.Generate();
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid1 = TestUidGenerator.Generate();
+            string sopInstanceUid2 = TestUidGenerator.Generate();
 
-            DicomDataset dicomDataset = CreateValidMetadataDataset(studyUid, seriesUid, sopid1);
+            DicomDataset dicomDataset = CreateValidMetadataDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid1);
             var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
             await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset);
 
-            DicomDataset dicomDataset1 = CreateValidMetadataDataset(studyUid, seriesUid, sopid2);
+            DicomDataset dicomDataset1 = CreateValidMetadataDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
             var dicomInstanceId2 = dicomDataset1.ToVersionedDicomInstanceIdentifier(version: 0);
             await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset1);
 
@@ -121,9 +121,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 dicomInstanceId2,
             };
 
-            _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(studyUid, CancellationToken.None).Returns(list);
+            _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(studyInstanceUid, CancellationToken.None).Returns(list);
 
-            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyUid);
+            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
 
             DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(request);
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
@@ -133,13 +133,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             ValidateResponseMetadataDataset(dicomDataset1, response.ResponseMetadata.Last());
         }
 
-        private DicomDataset CreateValidMetadataDataset(string studyUid, string seriesUid, string sopid)
+        private DicomDataset CreateValidMetadataDataset(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             return new DicomDataset()
             {
-                { DicomTag.StudyInstanceUID, studyUid },
-                { DicomTag.SeriesInstanceUID, seriesUid },
-                { DicomTag.SOPInstanceUID, sopid },
+                { DicomTag.StudyInstanceUID, studyInstanceUid },
+                { DicomTag.SeriesInstanceUID, seriesInstanceUid },
+                { DicomTag.SOPInstanceUID, sopInstanceUid },
             };
         }
 
