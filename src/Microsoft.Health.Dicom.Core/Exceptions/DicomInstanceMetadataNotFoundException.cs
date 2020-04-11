@@ -3,17 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net;
+using System;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class DicomInstanceMetadataNotFoundException : DicomException
+    public class DicomInstanceMetadataNotFoundException : Exception
     {
-        public DicomInstanceMetadataNotFoundException()
-            : base()
+        public DicomInstanceMetadataNotFoundException(string message)
+           : base(message)
         {
         }
-
-        public override HttpStatusCode ResponseStatusCode => HttpStatusCode.NotFound;
     }
 }

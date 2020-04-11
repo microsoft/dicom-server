@@ -67,8 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 // If couldnot retrieve metadata for any instances
                 if (!dataset.Any())
                 {
-                    _logger.LogError(ex, "Error retrieving dicom instance metadata.");
-                    throw new DicomInstanceMetadataNotFoundException();
+                    throw new DicomInstanceMetadataNotFoundException("Error retrieving metadata for dicom instances.");
                 }
 
                 if (dataset.Count < retrieveInstances.Count())

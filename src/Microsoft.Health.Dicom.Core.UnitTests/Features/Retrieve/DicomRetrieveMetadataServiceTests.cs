@@ -56,8 +56,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
 
-            var ex = await Assert.ThrowsAsync<DicomInstanceMetadataNotFoundException>(() => _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(request, CancellationToken.None));
-            Assert.Equal(HttpStatusCode.NotFound, ex.ResponseStatusCode);
+            await Assert.ThrowsAsync<DicomInstanceMetadataNotFoundException>(() => _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(request, CancellationToken.None));
         }
 
         [Fact]
