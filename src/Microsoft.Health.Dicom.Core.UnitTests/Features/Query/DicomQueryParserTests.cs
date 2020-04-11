@@ -71,6 +71,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
+        [InlineData("ReferringPhysicianName", "dr^joe")]
+        public void GivenFilterCondition_ValidReferringPhysicianNameTag_CheckProperties(string key, string value)
+        {
+            DicomQueryExpression dicomQueryExpression = _queryParser
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies));
+            Assert.True(dicomQueryExpression.HasFilters);
+            var singleValueCond = dicomQueryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
+            Assert.NotNull(singleValueCond);
+            Assert.True(singleValueCond.DicomTag == DicomTag.ReferringPhysicianName);
+            Assert.True(singleValueCond.Value == value);
+        }
+
+        [Theory]
         [InlineData("00080061", "CT")]
         public void GivenFilterCondition_WithNotSupportedTag_Throws(string key, string value)
         {
@@ -153,11 +166,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         [Theory]
         [InlineData("limit", 0)]
-        public void GivenLimit_WithZero_CheckEvaluatedLimit(string key, int value)
+        public void GivenLimit_WithZero_ThrowsException(string key, int value)
         {
-            DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies));
-            Assert.True(dicomQueryExpression.EvaluatedLimit == DicomQueryLimit.DefaultQueryResultCount);
+            Assert.Throws<DicomQueryParseException>(() => _queryParser
+                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies)));
         }
 
         [Theory]

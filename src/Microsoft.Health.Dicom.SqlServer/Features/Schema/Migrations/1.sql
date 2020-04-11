@@ -309,9 +309,9 @@ INCLUDE
 	StudyInstanceUid
 )
 
-CREATE FULLTEXT INDEX ON StudyMetadataCore(PatientNameWords)   
+CREATE FULLTEXT INDEX ON StudyMetadataCore(PatientNameWords LANGUAGE 1033)   
 KEY INDEX IX_StudyMetadataCore_Id 
-WITH STOPLIST = SYSTEM; 
+WITH STOPLIST = OFF; 
 
 
 /*************************************************************
