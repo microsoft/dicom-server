@@ -7,22 +7,22 @@ using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Delete
 {
-    public class DeleteDicomResourcesRequest : IRequest<DeleteDicomResourcesResponse>
+    public class DicomDeleteResourcesRequest : IRequest<DicomDeleteResourcesResponse>
     {
-        public DeleteDicomResourcesRequest(string studyInstanceUid)
+        public DicomDeleteResourcesRequest(string studyInstanceUid)
         {
             StudyInstanceUid = studyInstanceUid;
             ResourceType = ResourceType.Study;
         }
 
-        public DeleteDicomResourcesRequest(string studyInstanceUid, string seriesInstanceUid)
+        public DicomDeleteResourcesRequest(string studyInstanceUid, string seriesInstanceUid)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             ResourceType = ResourceType.Series;
         }
 
-        public DeleteDicomResourcesRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public DicomDeleteResourcesRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;

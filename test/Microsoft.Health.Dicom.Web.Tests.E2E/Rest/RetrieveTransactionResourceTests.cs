@@ -328,7 +328,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             finally
             {
                 HttpStatusCode result = await _client.DeleteAsync(studyInstanceUid, seriesInstanceUid);
-                Assert.Equal(HttpStatusCode.OK, result);
+                Assert.Equal(HttpStatusCode.NoContent, result);
             }
         }
 
@@ -419,7 +419,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             finally
             {
                 HttpStatusCode result = await _client.DeleteAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid);
-                Assert.Equal(HttpStatusCode.OK, result);
+                Assert.Equal(HttpStatusCode.NoContent, result);
             }
         }
 
