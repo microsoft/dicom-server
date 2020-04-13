@@ -10,14 +10,14 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
-    public class RetrieveDicomResourceResponse : BaseStatusCodeResponse
+    public class DicomRetrieveResourceResponse : BaseStatusCodeResponse
     {
-        public RetrieveDicomResourceResponse(int statusCode)
+        public DicomRetrieveResourceResponse(int statusCode)
             : base(statusCode)
         {
         }
 
-        public RetrieveDicomResourceResponse(HttpStatusCode statusCode, IEnumerable<Stream> responseStreams)
+        public DicomRetrieveResourceResponse(HttpStatusCode statusCode, IEnumerable<Stream> responseStreams)
             : base((int)statusCode)
         {
             EnsureArg.IsNotNull(responseStreams, nameof(responseStreams));

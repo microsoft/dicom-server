@@ -6,16 +6,15 @@
 using System.Linq;
 using Dicom;
 using FluentValidation;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "Follows validator naming convention.")]
-    public class RetrieveDicomResourcesRequestValidator : AbstractValidator<RetrieveDicomResourceRequest>
+    public class DicomRetrieveResourcesRequestValidator : AbstractValidator<DicomRetrieveResourceRequest>
     {
         private const string UnknownDicomTransferSyntaxName = "Unknown";
 
-        public RetrieveDicomResourcesRequestValidator()
+        public DicomRetrieveResourcesRequestValidator()
         {
             // Only validate the requested transfer syntax when provided.
             RuleFor(x => x.RequestedRepresentation)
@@ -37,16 +36,6 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             RuleFor(x => x.Frames)
                 .Must(x => x != null && x.Any() && x.Any(y => y < 0) == false)
                 .When(x => x.ResourceType == ResourceType.Frames);
-
-            // Validate the provided identifiers conform correctly.
-            RuleFor(x => x.SopInstanceUid)
-                .Must(DicomIdentifierValidator.Validate)
-                .When(x => x.ResourceType == ResourceType.Frames || x.ResourceType == ResourceType.Instance);
-            RuleFor(x => x.SeriesInstanceUid)
-                .Must(DicomIdentifierValidator.Validate)
-                .When(x => x.ResourceType != ResourceType.Study);
-            RuleFor(x => x.StudyInstanceUid)
-                 .Must(DicomIdentifierValidator.Validate);
 
             // Check for non-repeated identifiers.
             RuleFor(x => x)

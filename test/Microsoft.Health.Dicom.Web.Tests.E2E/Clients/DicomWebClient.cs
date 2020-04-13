@@ -57,28 +57,28 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         public HttpClient HttpClient { get; }
 
-        public Task<HttpResult<IReadOnlyList<DicomFile>>> GetStudyAsync(string studyInstanceUid, string dicomTransferSyntax = null)
-                => GetInstancesAsync(new Uri(string.Format(BaseRetrieveStudyUriFormat, studyInstanceUid), UriKind.Relative), dicomTransferSyntax);
+        public Task<HttpResult<IReadOnlyList<DicomFile>>> RetrieveStudyAsync(string studyInstanceUid, string dicomTransferSyntax = null)
+                => RetrieveInstancesAsync(new Uri(string.Format(BaseRetrieveStudyUriFormat, studyInstanceUid), UriKind.Relative), dicomTransferSyntax);
 
         public Task<HttpResult<IReadOnlyList<DicomDataset>>> RetrieveStudyMetadataAsync(string studyInstanceUid)
                 => RetrieveMetadataAsync(new Uri(string.Format(BaseRetrieveStudyMetadataUriFormat, studyInstanceUid), UriKind.Relative));
 
-        public Task<HttpResult<IReadOnlyList<DicomFile>>> GetSeriesAsync(string studyInstanceUid, string seriesInstanceUid, string dicomTransferSyntax = null)
-                => GetInstancesAsync(new Uri(string.Format(BaseRetrieveSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative), dicomTransferSyntax);
+        public Task<HttpResult<IReadOnlyList<DicomFile>>> RetrieveSeriesAsync(string studyInstanceUid, string seriesInstanceUid, string dicomTransferSyntax = null)
+                => RetrieveInstancesAsync(new Uri(string.Format(BaseRetrieveSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative), dicomTransferSyntax);
 
         public Task<HttpResult<IReadOnlyList<DicomDataset>>> RetrieveSeriesMetadataAsync(string studyInstanceUid, string seriesInstanceUid)
                 => RetrieveMetadataAsync(new Uri(string.Format(BaseRetrieveSeriesMetadataUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative));
 
-        public Task<HttpResult<IReadOnlyList<DicomFile>>> GetInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string dicomTransferSyntax = null)
-            => GetInstancesAsync(new Uri(string.Format(BaseRetrieveInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative), dicomTransferSyntax);
+        public Task<HttpResult<IReadOnlyList<DicomFile>>> RetrieveInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string dicomTransferSyntax = null)
+            => RetrieveInstancesAsync(new Uri(string.Format(BaseRetrieveInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative), dicomTransferSyntax);
 
-        public Task<HttpResult<IReadOnlyList<Stream>>> GetInstanceRenderedAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUId, string format = null, bool thumbnail = false)
-            => GetInstancesRenderedAsync(new Uri(string.Format(thumbnail ? BaseRetrieveInstanceThumbnailUriFormat : BaseRetrieveInstanceRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUId), UriKind.Relative), format, thumbnail);
+        public Task<HttpResult<IReadOnlyList<Stream>>> RetrieveInstanceRenderedAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUId, string format = null, bool thumbnail = false)
+            => RetrieveInstancesRenderedAsync(new Uri(string.Format(thumbnail ? BaseRetrieveInstanceThumbnailUriFormat : BaseRetrieveInstanceRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUId), UriKind.Relative), format, thumbnail);
 
         public Task<HttpResult<IReadOnlyList<DicomDataset>>> RetrieveInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
                 => RetrieveMetadataAsync(new Uri(string.Format(BaseRetrieveInstanceMetadataUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative));
 
-        public async Task<HttpResult<IReadOnlyList<Stream>>> GetFramesRenderedAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string format = null, bool thumbnail = false, params int[] frames)
+        public async Task<HttpResult<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string format = null, bool thumbnail = false, params int[] frames)
         {
             var uriString = thumbnail ? BaseRetrieveFramesThumbnailUriFormat : BaseRetrieveFramesRenderedUriFormat;
 
@@ -101,7 +101,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
-        public async Task<HttpResult<IReadOnlyList<Stream>>> GetFramesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string dicomTransferSyntax = null, params int[] frames)
+        public async Task<HttpResult<IReadOnlyList<Stream>>> RetrieveFramesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string dicomTransferSyntax = null, params int[] frames)
         {
             var requestUri = new Uri(string.Format(BaseRetrieveFramesUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join("%2C", frames)), UriKind.Relative);
 
@@ -123,7 +123,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
-        public async Task<HttpResult<IReadOnlyList<Stream>>> GetInstancesRenderedAsync(Uri requestUri, string format = null, bool thumbnail = false)
+        public async Task<HttpResult<IReadOnlyList<Stream>>> RetrieveInstancesRenderedAsync(Uri requestUri, string format = null, bool thumbnail = false)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -142,7 +142,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
-        public async Task<HttpResult<IReadOnlyList<DicomFile>>> GetInstancesAsync(Uri requestUri, string dicomTransferSyntax = null)
+        public async Task<HttpResult<IReadOnlyList<DicomFile>>> RetrieveInstancesAsync(Uri requestUri, string dicomTransferSyntax = null)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {

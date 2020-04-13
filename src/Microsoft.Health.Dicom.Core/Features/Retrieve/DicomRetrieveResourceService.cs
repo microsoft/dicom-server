@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         }
 
         // TODO change the input output params and setting the status code. US #73197
-        public async Task<RetrieveDicomResourceResponse> GetInstanceResourceAsync(RetrieveDicomResourceRequest message, CancellationToken cancellationToken)
+        public async Task<DicomRetrieveResourceResponse> GetInstanceResourceAsync(DicomRetrieveResourceRequest message, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(message, nameof(message));
 
@@ -137,12 +137,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                             s => EncodeDicomFileAsDicom(s, parsedDicomTransferSyntax))).ToArray();
                 }
 
-                return new RetrieveDicomResourceResponse(responseCode, resultStreams);
+                return new DicomRetrieveResourceResponse(responseCode, resultStreams);
             }
             catch (DicomDataStoreException e)
             {
                 _logger.LogError(e, "Error retrieving dicom resource.");
-                return new RetrieveDicomResourceResponse(e.StatusCode);
+                return new DicomRetrieveResourceResponse(e.StatusCode);
             }
         }
 
