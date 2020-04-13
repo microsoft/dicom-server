@@ -8,35 +8,39 @@ using System.Data.SqlClient;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 {
-    public class Instance
+    public class DeletedInstance
     {
-        public Instance(
+        public DeletedInstance(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
             long watermark,
-            byte status,
-            DateTime lastStatusUpdatedDate,
-            DateTime createdDate)
+            DateTime deletedDateTime,
+            int retryCount,
+            DateTime? retryAfter)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
             Watermark = watermark;
-            Status = status;
-            LastStatusUpdatedDate = lastStatusUpdatedDate;
-            CreatedDate = createdDate;
+            DeletedDateTime = deletedDateTime;
+            RetryCount = retryCount;
+            RetryAfter = retryAfter;
         }
 
-        public Instance(SqlDataReader sqlDataReader)
+        public DeletedInstance(SqlDataReader sqlDataReader)
         {
             StudyInstanceUid = sqlDataReader.GetString(0);
             SeriesInstanceUid = sqlDataReader.GetString(1);
             SopInstanceUid = sqlDataReader.GetString(2);
             Watermark = sqlDataReader.GetInt64(3);
-            Status = sqlDataReader.GetByte(4);
-            LastStatusUpdatedDate = sqlDataReader.GetDateTime(5);
-            CreatedDate = sqlDataReader.GetDateTime(6);
+            DeletedDateTime = sqlDataReader.GetDateTime(4);
+            RetryCount = sqlDataReader.GetInt32(5);
+
+            if (sqlDataReader.GetValue(6) != DBNull.Value)
+            {
+                RetryAfter = sqlDataReader.GetDateTime(6);
+            }
         }
 
         public string StudyInstanceUid { get; }
@@ -47,10 +51,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public long Watermark { get; }
 
-        public byte Status { get; }
+        public DateTime DeletedDateTime { get; }
 
-        public DateTime LastStatusUpdatedDate { get; }
+        public int RetryCount { get; }
 
-        public DateTime CreatedDate { get; }
+        public DateTime? RetryAfter { get; }
     }
 }

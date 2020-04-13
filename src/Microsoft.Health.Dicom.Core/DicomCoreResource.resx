@@ -132,6 +132,9 @@
   <data name="InstanceAlreadyExists" xml:space="preserve">
     <value>The DICOM instance already exists.</value>
   </data>
+  <data name="InstanceNotFound" xml:space="preserve">
+    <value>The instance specified was not found.</value>
+  </data>
   <data name="InvalidDateRangeValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
 The first part date {1} should be lesser than or equal to the second part date {2}.</value>

@@ -358,6 +358,20 @@ INCLUDE
 
 GO
 
+/*************************************************************
+    DeletedInstance Table
+    Table containing deleted instances that will be removed after the specified date
+**************************************************************/
+CREATE TABLE dbo.DeletedInstance
+(
+    StudyInstanceUid varchar(64) NOT NULL,
+    SeriesInstanceUid varchar(64) NOT NULL,
+    SopInstanceUid varchar(64) NOT NULL,
+    Watermark bigint NOT NULL,
+    DeletedDateTime DateTime2(0) NOT NULL,
+    RetryCount int NOT NULL,
+    RetryAfter DateTime2(0)
+)
 
 /*************************************************************
     Sequence for generating unique ids
@@ -508,9 +522,9 @@ GO
 /***************************************************************************************/
 CREATE PROCEDURE dbo.GetInstance (
     @invalidStatus      TINYINT,
-    @studyInstanceUid	VARCHAR(64),
-    @seriesInstanceUid	VARCHAR(64) = NULL,
-    @sopInstanceUid		VARCHAR(64) = NULL
+    @studyInstanceUid   VARCHAR(64),
+    @seriesInstanceUid  VARCHAR(64) = NULL,
+    @sopInstanceUid     VARCHAR(64) = NULL
 )
 AS
 BEGIN
@@ -552,3 +566,77 @@ BEGIN
     END
 END
 GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     DeleteInstance
+--
+-- DESCRIPTION
+--     Removes the specified instance(s) and places them in the FileCleanup table for later removal
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+/***************************************************************************************/
+CREATE PROCEDURE dbo.DeleteInstance (
+    @studyInstanceUid varchar(64),
+    @seriesInstanceUid varchar(64) = null,
+    @sopInstanceUid varchar(64) = null
+)
+AS
+    SET NOCOUNT ON
+    SET XACT_ABORT ON
+    
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+    
+    BEGIN TRANSACTION 
+
+    DECLARE @studyId bigint
+
+    -- Get the study PK
+    SELECT  @studyId = ID
+    FROM    dbo.StudyMetadataCore
+    WHERE   StudyInstanceUid = @studyInstanceUid;
+    
+    -- Delete the instance and insert the details into FileCleanup
+    DELETE  dbo.Instance
+        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, GETUTCDATE(), 0, NULL
+        INTO dbo.DeletedInstance
+    WHERE   StudyInstanceUid = @studyInstanceUid
+    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+    AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
+    
+    IF (@@ROWCOUNT = 0)
+    BEGIN
+        THROW 50404, 'Instance not found', 1;
+    END
+
+    -- If this is the last instance for a series, remove the series
+    IF NOT EXISTS ( SELECT  *
+                    FROM    dbo.Instance
+                    WHERE   StudyInstanceUid = @studyInstanceUid
+                    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid))
+    BEGIN
+        DELETE
+        FROM    dbo.SeriesMetadataCore
+        WHERE   StudyId = @studyId
+        AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+    END
+    
+    -- If we've removing the series, see if it's the last for a study and if so, remove the study
+    IF NOT EXISTS ( SELECT  *
+                    FROM    dbo.SeriesMetadataCore
+                    WHERE   StudyId = @studyId)
+    BEGIN
+        DELETE
+        FROM    dbo.StudyMetadataCore
+        WHERE   Id = @studyId
+    END
+    
+    COMMIT TRANSACTION 
+GO
+
