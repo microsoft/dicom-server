@@ -75,22 +75,22 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 cancellationToken);
         }
 
-        public static Task<DicomDeleteResourcesResponse> DeleteDicomResourcesAsync(
+        public static Task<DicomDeleteResourcesResponse> DeleteDicomStudyAsync(
             this IMediator mediator, string studyInstanceUid, CancellationToken cancellationToken = default)
         {
             return mediator.Send(new DicomDeleteResourcesRequest(studyInstanceUid), cancellationToken);
         }
 
-        public static Task<DicomDeleteResourcesResponse> DeleteDicomResourcesAsync(
+        public static Task<DicomDeleteResourcesResponse> DeleteDicomSeriesAsync(
             this IMediator mediator, string studyInstanceUid, string seriesUid, CancellationToken cancellationToken = default)
         {
             return mediator.Send(new DicomDeleteResourcesRequest(studyInstanceUid, seriesUid), cancellationToken);
         }
 
-        public static Task<DicomDeleteResourcesResponse> DeleteDicomResourcesAsync(
-            this IMediator mediator, string studyInstanceUid, string seriesid, string sopInstanceUid, CancellationToken cancellationToken = default)
+        public static Task<DicomDeleteResourcesResponse> DeleteDicomInstanceAsync(
+            this IMediator mediator, string studyInstanceUid, string seriesUid, string sopInstanceUid, CancellationToken cancellationToken = default)
         {
-            return mediator.Send(new DicomDeleteResourcesRequest(studyInstanceUid, seriesid, sopInstanceUid), cancellationToken);
+            return mediator.Send(new DicomDeleteResourcesRequest(studyInstanceUid, seriesUid, sopInstanceUid), cancellationToken);
         }
 
         public static Task<DicomQueryResourceResponse> QueryDicomResourcesAsync(

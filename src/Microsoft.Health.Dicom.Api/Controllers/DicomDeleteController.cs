@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Delete Study request received, with study instance UID '{studyInstanceUid}'.");
 
-            DicomDeleteResourcesResponse dicomDeleteResponse = await _mediator.DeleteDicomResourcesAsync(
+            DicomDeleteResourcesResponse dicomDeleteResponse = await _mediator.DeleteDicomStudyAsync(
                 studyInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
             return NoContent();
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Delete Series request received, with study instance UID '{studyInstanceUid}' and series UID '{seriesInstanceUid}'.");
 
-            DicomDeleteResourcesResponse dicomDeleteResponse = await _mediator.DeleteDicomResourcesAsync(
+            DicomDeleteResourcesResponse dicomDeleteResponse = await _mediator.DeleteDicomSeriesAsync(
                 studyInstanceUid, seriesInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
             return NoContent();
@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Delete Instance request received, with study instance UID '{studyInstanceUid}', series UID '{seriesInstanceUid}' and instance UID '{sopInstanceUid}'.");
 
-            DicomDeleteResourcesResponse dicomDeleteResponse = await _mediator.DeleteDicomResourcesAsync(
+            DicomDeleteResourcesResponse dicomDeleteResponse = await _mediator.DeleteDicomInstanceAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
             return NoContent();

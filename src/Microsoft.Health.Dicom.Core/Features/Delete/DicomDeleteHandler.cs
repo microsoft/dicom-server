@@ -14,11 +14,11 @@ using Microsoft.Health.Dicom.Core.Messages.Delete;
 
 namespace Microsoft.Health.Dicom.Core.Features.Delete
 {
-    public class DeleteDicomHandler : IRequestHandler<DicomDeleteResourcesRequest, DicomDeleteResourcesResponse>
+    public class DicomDeleteHandler : IRequestHandler<DicomDeleteResourcesRequest, DicomDeleteResourcesResponse>
     {
         private readonly IDicomDeleteService _dicomDeleteService;
 
-        public DeleteDicomHandler(IDicomDeleteService dicomDeleteService)
+        public DicomDeleteHandler(IDicomDeleteService dicomDeleteService)
         {
             EnsureArg.IsNotNull(dicomDeleteService, nameof(dicomDeleteService));
 
