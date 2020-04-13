@@ -21,7 +21,7 @@ using DicomValidationException = Dicom.DicomValidationException;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 {
-    public class DicomInstanceEntryProcessorTests
+    public class DicomStoreServiceTests
     {
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
         private static readonly DicomStoreResponse DefaultResponse = new DicomStoreResponse(HttpStatusCode.OK);
@@ -40,18 +40,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         private readonly IDicomStoreResponseBuilder _dicomStoreResponseBuilder = Substitute.For<IDicomStoreResponseBuilder>();
         private readonly IDicomDatasetMinimumRequirementValidator _dicomDatasetMinimumRequirementValidator = Substitute.For<IDicomDatasetMinimumRequirementValidator>();
-        private readonly IDicomStoreService _dicomStoreService = Substitute.For<IDicomStoreService>();
-        private readonly DicomInstanceEntryProcessor _dicomInstanceEntryProcessor;
+        private readonly IDicomStoreOrchestrator _dicomStoreOrchestrator = Substitute.For<IDicomStoreOrchestrator>();
+        private readonly DicomStoreService _dicomStoreService;
 
-        public DicomInstanceEntryProcessorTests()
+        public DicomStoreServiceTests()
         {
             _dicomStoreResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
 
-            _dicomInstanceEntryProcessor = new DicomInstanceEntryProcessor(
+            _dicomStoreService = new DicomStoreService(
                 _dicomStoreResponseBuilder,
                 _dicomDatasetMinimumRequirementValidator,
-                _dicomStoreService,
-                NullLogger<DicomInstanceEntryProcessor>.Instance);
+                _dicomStoreOrchestrator,
+                NullLogger<DicomStoreService>.Instance);
         }
 
         [Fact]
@@ -137,7 +137,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
-            _dicomStoreService
+            _dicomStoreOrchestrator
                 .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
                 .Do(_ => throw new DicomDataStoreException(HttpStatusCode.Conflict));
 
@@ -154,7 +154,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
-            _dicomStoreService
+            _dicomStoreOrchestrator
                 .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
                 .Do(_ => throw new DicomDataStoreException());
 
@@ -200,7 +200,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             string requiredStudyInstanceUid,
             params IDicomInstanceEntry[] dicomInstanceEntries)
         {
-            DicomStoreResponse response = await _dicomInstanceEntryProcessor.ProcessAsync(
+            DicomStoreResponse response = await _dicomStoreService.ProcessAsync(
                 dicomInstanceEntries,
                 requiredStudyInstanceUid,
                 cancellationToken: DefaultCancellationToken);

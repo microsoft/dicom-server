@@ -14,9 +14,9 @@ using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides logging for <see cref="IDicomStoreService"/>.
+    /// Provides logging for <see cref="IDicomStoreOrchestrator"/>.
     /// </summary>
-    public class LoggingDicomStoreService : IDicomStoreService
+    public class LoggingDicomStoreOrchestrator : IDicomStoreOrchestrator
     {
         private static readonly Action<ILogger, string, Exception> LogPersistingDicomInstanceEntryDelegate =
             LoggerMessage.Define<string>(
@@ -36,17 +36,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "Failed to store the DICOM instance entry: '{DicomInstanceEntry}'.");
 
-        private readonly IDicomStoreService _dicomStoreService;
+        private readonly IDicomStoreOrchestrator _dicomStoreOrchestrator;
         private readonly ILogger _logger;
 
-        public LoggingDicomStoreService(
-            IDicomStoreService dicomStoreService,
-            ILogger<LoggingDicomStoreService> logger)
+        public LoggingDicomStoreOrchestrator(
+            IDicomStoreOrchestrator dicomStoreOrchestrator,
+            ILogger<LoggingDicomStoreOrchestrator> logger)
         {
-            EnsureArg.IsNotNull(dicomStoreService, nameof(dicomStoreService));
+            EnsureArg.IsNotNull(dicomStoreOrchestrator, nameof(dicomStoreOrchestrator));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _dicomStoreService = dicomStoreService;
+            _dicomStoreOrchestrator = dicomStoreOrchestrator;
             _logger = logger;
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken);
+                await _dicomStoreOrchestrator.StoreDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken);
 
                 LogSuccessfullyPersistedDicomInstanceEntryDelegate(_logger, dicomInstanceIdentifier, null);
             }

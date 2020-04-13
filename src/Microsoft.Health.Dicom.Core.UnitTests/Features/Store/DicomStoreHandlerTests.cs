@@ -23,12 +23,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
         private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager = Substitute.For<IDicomInstanceEntryReaderManager>();
-        private readonly IDicomInstanceEntryProcessor _dicomInstanceEntryProcessor = Substitute.For<IDicomInstanceEntryProcessor>();
+        private readonly IDicomStoreService _dicomStoreService = Substitute.For<IDicomStoreService>();
         private readonly DicomStoreHandler _dicomStoreHandler;
 
         public DicomStoreHandlerTests()
         {
-            _dicomStoreHandler = new DicomStoreHandler(_dicomInstanceEntryReaderManager, _dicomInstanceEntryProcessor);
+            _dicomStoreHandler = new DicomStoreHandler(_dicomInstanceEntryReaderManager, _dicomStoreService);
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             DicomStoreResponse dicomStoreResponse = new DicomStoreResponse(HttpStatusCode.OK);
 
-            _dicomInstanceEntryProcessor.ProcessAsync(dicomInstanceEntries, studyInstanceUid, DefaultCancellationToken).Returns(dicomStoreResponse);
+            _dicomStoreService.ProcessAsync(dicomInstanceEntries, studyInstanceUid, DefaultCancellationToken).Returns(dicomStoreResponse);
 
             DicomStoreRequest dicomStoreRequest = new DicomStoreRequest(Stream.Null, DefaultContentType, studyInstanceUid);
 

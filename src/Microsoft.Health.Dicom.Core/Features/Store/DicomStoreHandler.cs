@@ -18,17 +18,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     public class DicomStoreHandler : IRequestHandler<DicomStoreRequest, DicomStoreResponse>
     {
         private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager;
-        private readonly IDicomInstanceEntryProcessor _dicomInstanceEntryProcessor;
+        private readonly IDicomStoreService _dicomStoreService;
 
         public DicomStoreHandler(
             IDicomInstanceEntryReaderManager dicomInstanceEntryReaderManager,
-            IDicomInstanceEntryProcessor dicomInstanceEntryProcessor)
+            IDicomStoreService dicomStoreService)
         {
             EnsureArg.IsNotNull(dicomInstanceEntryReaderManager, nameof(dicomInstanceEntryReaderManager));
-            EnsureArg.IsNotNull(dicomInstanceEntryProcessor, nameof(dicomInstanceEntryProcessor));
+            EnsureArg.IsNotNull(dicomStoreService, nameof(dicomStoreService));
 
             _dicomInstanceEntryReaderManager = dicomInstanceEntryReaderManager;
-            _dicomInstanceEntryProcessor = dicomInstanceEntryProcessor;
+            _dicomStoreService = dicomStoreService;
         }
 
         /// <inheritdoc />
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     cancellationToken);
 
             // Process list of entries.
-            return await _dicomInstanceEntryProcessor.ProcessAsync(dicomInstanceEntries, message.StudyInstanceUid, cancellationToken);
+            return await _dicomStoreService.ProcessAsync(dicomInstanceEntries, message.StudyInstanceUid, cancellationToken);
         }
     }
 }
