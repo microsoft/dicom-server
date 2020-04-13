@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public void AddFailure(DicomDataset dicomDataset = null, ushort failureReason = DicomStoreFailureCodes.ProcessingFailure)
+        public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode)
         {
             CreateDatasetIfNeeded();
 
@@ -100,7 +100,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             var failedSop = new DicomDataset()
             {
-                { DicomTag.FailureReason, failureReason },
+                { DicomTag.FailureReason, failureReasonCode },
             };
 
             failedSop.AddValueIfNotNull(

@@ -123,7 +123,7 @@
   </data>
   <data name="DuplicatedUidsNotAllowed" xml:space="preserve">
     <value>The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.</value>
-    <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the sepc and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"}</comment>
+    <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"}</comment>
   </data>
   <data name="DuplicateQueryParam" xml:space="preserve">
     <value>Invalid QIDO-RS query. Duplicate AttributeId '{0}', Each attribute is allowed to be specified once.</value>
@@ -155,7 +155,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Invalid QIDO-RS query. Specified fuzzymatch value {0} is not a valid boolean</value>
   </data>
   <data name="MismatchStudyInstanceUid" xml:space="preserve">
-    <value>Th StudyInstanceUid '{0}' in the payload does not match the specified StudyInstanceUid '{1}'.</value>
+    <value>The StudyInstanceUid '{0}' in the payload does not match the specified StudyInstanceUid '{1}'.</value>
     <comment>{0} and {1} are both StudyInstanceUid. StudyInstanceUID is defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID"}.</comment>
   </data>
   <data name="MissingRequiredTag" xml:space="preserve">

@@ -8,7 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// <summary>
     /// If any of the failure codes are modified, please check they match the DICOM conformance statement.
     /// </summary>
-    internal static class DicomStoreFailureCodes
+    internal static class DicomFailureReasonCodes
     {
         public const ushort ProcessingFailure = 272;
         public const ushort ValidationFailure = 43264;

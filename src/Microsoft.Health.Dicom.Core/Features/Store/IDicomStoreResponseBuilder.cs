@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// Adds a failed entry to the response.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset that failed to be stored.</param>
-        /// <param name="failureReason">The failure reason.</param>
-        void AddFailure(DicomDataset dicomDataset = null, ushort failureReason = DicomStoreFailureCodes.ProcessingFailure);
+        /// <param name="failureReasonCode">The failure reason code.</param>
+        void AddFailure(DicomDataset dicomDataset = null, ushort failureReasonCode = DicomFailureReasonCodes.ProcessingFailure);
     }
 }

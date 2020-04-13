@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 seriesInstanceUid == sopInstanceUid)
             {
                 throw new DicomDatasetValidationException(
-                    DicomStoreFailureCodes.ValidationFailure,
+                    DicomFailureReasonCodes.ValidationFailure,
                     DicomCoreResource.DuplicatedUidsNotAllowed);
             }
 
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 !studyInstanceUid.Equals(requiredStudyInstanceUid, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new DicomDatasetValidationException(
-                    DicomStoreFailureCodes.MismatchStudyInstanceUid,
+                    DicomFailureReasonCodes.MismatchStudyInstanceUid,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.MismatchStudyInstanceUid,
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 }
 
                 throw new DicomDatasetValidationException(
-                    DicomStoreFailureCodes.ValidationFailure,
+                    DicomFailureReasonCodes.ValidationFailure,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.MissingRequiredTag,

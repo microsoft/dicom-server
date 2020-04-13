@@ -117,12 +117,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
             catch (Exception ex)
             {
-                ushort failureCode = DicomStoreFailureCodes.ProcessingFailure;
+                ushort failureCode = DicomFailureReasonCodes.ProcessingFailure;
 
                 switch (ex)
                 {
                     case DicomValidationException _:
-                        failureCode = DicomStoreFailureCodes.ValidationFailure;
+                        failureCode = DicomFailureReasonCodes.ValidationFailure;
                         break;
 
                     case DicomDatasetValidationException dicomDatasetMinimumRequirementException:
@@ -150,13 +150,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
             catch (Exception ex)
             {
-                ushort failureCode = DicomStoreFailureCodes.ProcessingFailure;
+                ushort failureCode = DicomFailureReasonCodes.ProcessingFailure;
 
                 switch (ex)
                 {
                     case DicomDataStoreException dicomDatasStoreException
                     when dicomDatasStoreException.StatusCode == (int)HttpStatusCode.Conflict:
-                        failureCode = DicomStoreFailureCodes.SopInstanceAlreadyExists;
+                        failureCode = DicomFailureReasonCodes.SopInstanceAlreadyExists;
                         break;
                 }
 

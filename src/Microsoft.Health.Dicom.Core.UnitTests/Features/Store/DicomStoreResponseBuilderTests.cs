@@ -69,7 +69,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public void GivenOnlyFailedEntry_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
         {
-            _dicomStoreResponseBuilder.AddFailure(_dicomDataset2, 100);
+            const ushort failureReasonCode = 100;
+
+            _dicomStoreResponseBuilder.AddFailure(_dicomDataset2, failureReasonCode);
 
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse(null);
 
@@ -80,13 +82,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             ValidationHelpers.ValidateFailedSopSequence(
                 response.Dataset,
-                ("12", "13", 100));
+                ("12", "13", failureReasonCode));
         }
 
         [Fact]
         public void GivenBothSuccessAndFailedEntires_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
         {
-            _dicomStoreResponseBuilder.AddFailure(_dicomDataset1);
+            _dicomStoreResponseBuilder.AddFailure(_dicomDataset1, TestConstants.ProcessingFailureReasonCode);
             _dicomStoreResponseBuilder.AddSuccess(_dicomDataset2);
 
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse(null);
@@ -98,7 +100,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             ValidationHelpers.ValidateFailedSopSequence(
                 response.Dataset,
-                ("3", "4", 272));
+                ("3", "4", TestConstants.ProcessingFailureReasonCode));
 
             ValidationHelpers.ValidateReferencedSopSequence(
                 response.Dataset,
@@ -108,8 +110,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public void GivenMultipleSuccessAndFailedEntires_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
         {
-            _dicomStoreResponseBuilder.AddFailure(_dicomDataset1);
-            _dicomStoreResponseBuilder.AddFailure(_dicomDataset2, 100);
+            ushort failureReasonCode1 = TestConstants.ProcessingFailureReasonCode;
+            ushort failureReasonCode2 = 100;
+
+            _dicomStoreResponseBuilder.AddFailure(_dicomDataset1, failureReasonCode1);
+            _dicomStoreResponseBuilder.AddFailure(_dicomDataset2, failureReasonCode2);
 
             _dicomStoreResponseBuilder.AddSuccess(_dicomDataset2);
             _dicomStoreResponseBuilder.AddSuccess(_dicomDataset1);
@@ -123,8 +128,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             ValidationHelpers.ValidateFailedSopSequence(
                 response.Dataset,
-                ("3", "4", 272),
-                ("12", "13", 100));
+                ("3", "4", failureReasonCode1),
+                ("12", "13", failureReasonCode2));
 
             ValidationHelpers.ValidateReferencedSopSequence(
                 response.Dataset,
@@ -135,7 +140,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public void GivenNullDicomDatasetWhenAddingFailuire_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
         {
-            _dicomStoreResponseBuilder.AddFailure(failureReason: 300);
+            const ushort failureReasonCode = 300;
+
+            _dicomStoreResponseBuilder.AddFailure(dicomDataset: null, failureReasonCode: failureReasonCode);
 
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse(null);
 
@@ -146,7 +153,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             ValidationHelpers.ValidateFailedSopSequence(
                 response.Dataset,
-                (null, null, 300));
+                (null, null, failureReasonCode));
         }
 
         [Fact]
@@ -167,7 +174,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public void GivenStudyInstanceUidAndThereIsOnlyFailedEntries_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
         {
-            _dicomStoreResponseBuilder.AddFailure(failureReason: 300);
+            _dicomStoreResponseBuilder.AddFailure(dicomDataset: null, failureReasonCode: 500);
 
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse("1");
 
@@ -182,7 +189,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         public void GivenStudyInstanceUidAndThereAreSuccessAndFailureEntries_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
         {
             _dicomStoreResponseBuilder.AddSuccess(_dicomDataset1);
-            _dicomStoreResponseBuilder.AddFailure(_dicomDataset2);
+            _dicomStoreResponseBuilder.AddFailure(_dicomDataset2, failureReasonCode: 200);
 
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse("1");
 
