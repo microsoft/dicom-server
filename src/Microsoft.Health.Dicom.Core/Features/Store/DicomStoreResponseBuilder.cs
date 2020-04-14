@@ -13,9 +13,9 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// http://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_6.6.html#table_6.6.1-4
+    /// Provides functionality to build the response for the store transaction.
     /// </summary>
-    public class DicomStoreResponseBuilder
+    public class DicomStoreResponseBuilder : IDicomStoreResponseBuilder
     {
         private readonly IUrlResolver _urlResolver;
 
@@ -28,6 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _urlResolver = urlResolver;
         }
 
+        /// <inheritdoc />
         public DicomStoreResponse BuildResponse(string studyInstanceUid)
         {
             bool hasSuccess = _dataset?.TryGetSequence(DicomTag.ReferencedSOPSequence, out _) ?? false;
@@ -59,6 +60,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             return new DicomStoreResponse(statusCode, _dataset);
         }
 
+        /// <inheritdoc />
         public void AddSuccess(DicomDataset dicomDataset)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -78,16 +80,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 { DicomTag.ReferencedSOPInstanceUID, dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID) },
                 { DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveInstanceUri(dicomInstance).ToString() },
+                { DicomTag.ReferencedSOPClassUID, dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID) },
             };
-
-            referencedSop.AddValueIfNotNull(
-                DicomTag.ReferencedSOPClassUID,
-                dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID));
 
             referencedSopSequence.Items.Add(referencedSop);
         }
 
-        public void AddFailure(DicomDataset dicomDataset = null, ushort failureReason = DicomStoreFailureCodes.ProcessingFailureCode)
+        /// <inheritdoc />
+        public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode)
         {
             CreateDatasetIfNeeded();
 
@@ -100,7 +100,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             var failedSop = new DicomDataset()
             {
-                { DicomTag.FailureReason, failureReason },
+                { DicomTag.FailureReason, failureReasonCode },
             };
 
             failedSop.AddValueIfNotNull(

@@ -23,12 +23,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         bool CanRead(string contentType);
 
         /// <summary>
-        /// Reads the DICOM instance entries from stream.
+        /// Asynchronously reads the DICOM instance entries from the <paramref name="stream"/>.
         /// </summary>
         /// <param name="contentType">The content type.</param>
         /// <param name="stream">The stream to read the DICOM instances from.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A collection of <see cref="IDicomInstanceEntry"/>.</returns>
-        Task<IReadOnlyCollection<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken = default);
+        /// <returns>A task represents the asynchronous read operation.</returns>
+        Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken = default);
     }
 }
