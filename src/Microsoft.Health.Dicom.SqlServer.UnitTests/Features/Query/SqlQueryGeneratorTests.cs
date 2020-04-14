@@ -145,6 +145,28 @@ AND i.SeriesInstanceUid = se.SeriesInstanceUid";
             Assert.DoesNotContain("CROSS APPLY", stringBuilder.ToString());
         }
 
+        [Fact]
+        public void GivenPatientNameFilter_WithFuzzyMatchMultiWord_ValidateContainsFilterGenerated()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>());
+            var filters = new List<DicomQueryFilterCondition>()
+            {
+                new PersonNameFuzzyMatchCondition(DicomTag.PatientName, "Fall 6"),
+            };
+            var query = new DicomQueryExpression(QueryResource.AllStudies, includeField, true, 10, 0, filters);
+            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+            var parm = new SqlQueryParameterManager(sqlParameterCollection);
+            new SqlQueryGenerator(stringBuilder, query, parm);
+
+            string expectedParam = $"\"Fall*\" AND \"6*\"";
+
+            string expectedFilters = @"AND CONTAINS(PatientNameWords, @p0)";
+
+            Assert.Equal(expectedParam, sqlParameterCollection[0].Value.ToString());
+            Assert.Contains(expectedFilters, stringBuilder.ToString());
+        }
+
         private SqlParameterCollection CreateSqlParameterCollection()
         {
             return (SqlParameterCollection)typeof(SqlParameterCollection).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null).Invoke(null);

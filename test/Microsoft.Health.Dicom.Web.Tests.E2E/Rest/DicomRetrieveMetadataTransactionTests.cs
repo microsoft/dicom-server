@@ -192,8 +192,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> response = await _client.PostAsync(new[] { dicomFile1 });
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            DicomSequence successSequence = response.Value.GetSequence(DicomTag.ReferencedSOPSequence);
-            ValidationHelpers.ValidateSuccessSequence(successSequence, dicomFile1.Dataset);
 
             return dicomFile1.Dataset;
         }

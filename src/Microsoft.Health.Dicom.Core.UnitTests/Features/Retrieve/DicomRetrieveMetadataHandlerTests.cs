@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
             var ex = await Assert.ThrowsAsync<DicomInvalidIdentifierException>(() => _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None));
 
-            Assert.Equal($"Dicom Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
 
         [Theory]
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid);
             var ex = await Assert.ThrowsAsync<DicomInvalidIdentifierException>(() => _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None));
 
-            Assert.Equal($"Dicom Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
 
         [Theory]
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid);
             var ex = await Assert.ThrowsAsync<DicomInvalidIdentifierException>(() => _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None));
 
-            Assert.Equal($"Dicom Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal($"DICOM Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
 
         [Theory]
@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             var ex = await Assert.ThrowsAsync<DicomInvalidIdentifierException>(() => _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None));
 
-            Assert.Equal($"Dicom Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
 
         [Theory]
@@ -90,7 +90,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid, sopInstanceUid);
             var ex = await Assert.ThrowsAsync<DicomInvalidIdentifierException>(() => _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None));
 
-            Assert.Equal($"Dicom Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal($"DICOM Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
 
         [Theory]
@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid);
             var ex = await Assert.ThrowsAsync<DicomInvalidIdentifierException>(() => _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None));
 
-            Assert.Equal($"Dicom Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal($"DICOM Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
 
         [Fact]

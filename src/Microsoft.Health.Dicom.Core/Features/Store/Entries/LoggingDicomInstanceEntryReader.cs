@@ -69,13 +69,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken)
         {
             LogReadingDelegate(_logger, _readerType, null);
 
             try
             {
-                IReadOnlyCollection<IDicomInstanceEntry> dicomInstanceEntries = await _dicomInstanceEntryReader.ReadAsync(contentType, stream);
+                IReadOnlyList<IDicomInstanceEntry> dicomInstanceEntries = await _dicomInstanceEntryReader.ReadAsync(contentType, stream);
 
                 LogSuccessfullyReadDelegate(_logger, dicomInstanceEntries?.Count ?? 0, null);
 

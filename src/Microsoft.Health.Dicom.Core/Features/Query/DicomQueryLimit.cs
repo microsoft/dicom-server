@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.AccessionNumber,
             DicomTag.PatientID,
             DicomTag.PatientName,
+            DicomTag.ReferringPhysicianName,
         };
 
         public static readonly HashSet<DicomTag> StudySeriesTags = new HashSet<DicomTag>()

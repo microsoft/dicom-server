@@ -10,26 +10,26 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Delete
 {
-    public class DeleteDicomResourcesRequestTests
+    public class DicomDeleteResourcesRequestTests
     {
         [Fact]
-        public void GivenDeleteDicomResourcesRequestForStudy_OnConstruction_StudyResourceTypeIsSet()
+        public void GivenDicomDeleteResourcesRequestForStudy_OnConstruction_StudyResourceTypeIsSet()
         {
-            var request = new DeleteDicomResourcesRequest(TestUidGenerator.Generate());
+            var request = new DicomDeleteResourcesRequest(TestUidGenerator.Generate());
             Assert.Equal(ResourceType.Study, request.ResourceType);
         }
 
         [Fact]
-        public void GivenDeleteDicomResourcesRequestForSeries_OnConstruction_SeriesResourceTypeIsSet()
+        public void GivenDicomDeleteResourcesRequestForSeries_OnConstruction_SeriesResourceTypeIsSet()
         {
-            var request = new DeleteDicomResourcesRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate());
+            var request = new DicomDeleteResourcesRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate());
             Assert.Equal(ResourceType.Series, request.ResourceType);
         }
 
         [Fact]
-        public void GivenDeleteDicomResourcesRequestForInstance_OnConstruction_InstanceResourceTypeIsSet()
+        public void GivenDicomDeleteResourcesRequestForInstance_OnConstruction_InstanceResourceTypeIsSet()
         {
-            var request = new DeleteDicomResourcesRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
+            var request = new DicomDeleteResourcesRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
             Assert.Equal(ResourceType.Instance, request.ResourceType);
         }
     }
