@@ -5,7 +5,7 @@
 
 - More unit tests, less integration tests, even lesser EnE tests.
 - Unit tests are used to test all combination of valid and invalid cases for a specific component.
-- EnE tests to validate all the integrations works for a p0 scenario.
+- EnE tests to validate all the integrations works for p0 scenario.
 - Manual directed bug bashes are used to assist with automated testing.
 
 
