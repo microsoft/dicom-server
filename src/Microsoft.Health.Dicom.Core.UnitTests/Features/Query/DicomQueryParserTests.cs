@@ -79,8 +79,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.True(dicomQueryExpression.HasFilters);
             var singleValueCond = dicomQueryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
             Assert.NotNull(singleValueCond);
-            Assert.True(singleValueCond.DicomTag == DicomTag.ReferringPhysicianName);
-            Assert.True(singleValueCond.Value == value);
+            Assert.Equal(DicomTag.ReferringPhysicianName, singleValueCond.DicomTag);
+            Assert.Equal(value, singleValueCond.Value);
         }
 
         [Theory]
