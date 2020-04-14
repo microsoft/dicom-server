@@ -10,100 +10,93 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
+    /// <summary>
+    /// Provides functionalities managing the DICOM files using the Azure Blob storage.
+    /// </summary>
     public class DicomBlobFileStore : IDicomFileStore
     {
         private readonly CloudBlobContainer _container;
-        private readonly ILogger<DicomBlobFileStore> _logger;
 
         public DicomBlobFileStore(
             CloudBlobClient client,
-            IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            ILogger<DicomBlobFileStore> logger)
+            IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
-            EnsureArg.IsNotNull(logger, nameof(logger));
 
             BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
 
             _container = client.GetContainerReference(containerConfiguration.ContainerName);
-            _logger = logger;
         }
 
         /// <inheritdoc />
-        public async Task<Uri> AddAsync(
-            DicomInstanceIdentifier dicomInstanceIdentifier,
-            Stream buffer,
-            bool overwriteIfExists = false,
-            CancellationToken cancellationToken = default)
+        public async Task<Uri> AddFileAsync(
+            VersionedDicomInstanceIdentifier dicomInstanceIdentifier,
+            Stream stream,
+            bool overwriteIfExists,
+            CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceIdentifier, nameof(dicomInstanceIdentifier));
-            EnsureArg.IsNotNull(buffer, nameof(buffer));
+            EnsureArg.IsNotNull(stream, nameof(stream));
 
-            var blobName = GetBlobStorageName(dicomInstanceIdentifier);
+            CloudBlockBlob blob = GetBlockBlobReference(dicomInstanceIdentifier);
 
-            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
-            _logger.LogDebug($"Adding blob resource: {blobName}. Overwrite mode: {overwriteIfExists}.");
+            blob.Properties.ContentType = KnownContentTypes.ApplicationDicom;
 
-            return await cloudBlob.CatchStorageExceptionAndThrowDataStoreException(
-                async (blockBlob) =>
-                {
-                    // Will throw if the provided resource identifier already exists.
-                    await blockBlob.UploadFromStreamAsync(
-                            buffer,
-                            overwriteIfExists ? AccessCondition.GenerateEmptyCondition() : AccessCondition.GenerateIfNotExistsCondition(),
-                            new BlobRequestOptions(),
-                            new OperationContext(),
-                            cancellationToken);
+            await ExecuteAsync(() =>
+            {
+                // Will throw if the provided resource identifier already exists.
+                return blob.UploadFromStreamAsync(
+                    stream,
+                    overwriteIfExists ? AccessCondition.GenerateEmptyCondition() : AccessCondition.GenerateIfNotExistsCondition(),
+                    new BlobRequestOptions(),
+                    new OperationContext(),
+                    cancellationToken);
+            });
 
-                    return blockBlob.Uri;
-                });
+            return blob.Uri;
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task DeleteFileIfExistsAsync(
+            VersionedDicomInstanceIdentifier dicomInstanceIdentifier,
+            CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceIdentifier, nameof(dicomInstanceIdentifier));
 
-            var blobName = GetBlobStorageName(dicomInstanceIdentifier);
-            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
-            _logger.LogDebug($"Opening read of blob resource: {blobName}");
+            CloudBlockBlob blob = GetBlockBlobReference(dicomInstanceIdentifier);
 
-            return await cloudBlob.CatchStorageExceptionAndThrowDataStoreException(
-                async (blockBlob) =>
-                {
-                    return await blockBlob.OpenReadAsync(cancellationToken);
-                });
+            await ExecuteAsync(() => blob.DeleteIfExistsAsync(cancellationToken));
         }
 
         /// <inheritdoc />
-        public async Task DeleteIfExistsAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task<Stream> GetFileAsync(
+            VersionedDicomInstanceIdentifier dicomInstanceIdentifier,
+            CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceIdentifier, nameof(dicomInstanceIdentifier));
 
-            var blobName = GetBlobStorageName(dicomInstanceIdentifier);
+            CloudBlockBlob blob = GetBlockBlobReference(dicomInstanceIdentifier);
 
-            CloudBlockBlob cloudBlob = GetBlockBlobAndValidateName(blobName);
-            _logger.LogDebug($"Deleting blob resource: {blobName}");
+            Stream stream = null;
 
-            await cloudBlob.CatchStorageExceptionAndThrowDataStoreException(
-                async (blockBlob) =>
-                {
-                    await blockBlob.DeleteIfExistsAsync(cancellationToken);
-                });
+            await ExecuteAsync(async () => stream = await blob.OpenReadAsync(cancellationToken));
+
+            return stream;
         }
 
-        private CloudBlockBlob GetBlockBlobAndValidateName(string blobName)
+        private CloudBlockBlob GetBlockBlobReference(VersionedDicomInstanceIdentifier dicomInstanceIdentifier)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(blobName, nameof(blobName));
+            string blobName = $"{dicomInstanceIdentifier.StudyInstanceUid}/{dicomInstanceIdentifier.SeriesInstanceUid}/{dicomInstanceIdentifier.SopInstanceUid}_{dicomInstanceIdentifier.Version}";
 
             // Use the Azure storage SDK to validate the blob name; only specific values are allowed here.
             // Check here for more information: https://blogs.msdn.microsoft.com/jmstall/2014/06/12/azure-storage-naming-rules/
@@ -112,7 +105,25 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             return _container.GetBlockBlobReference(blobName);
         }
 
-        internal static string GetBlobStorageName(DicomInstanceIdentifier dicomInstance)
-            => $"{dicomInstance.StudyInstanceUid}/{dicomInstance.SeriesInstanceUid}/{dicomInstance.SopInstanceUid}";
+        private async Task ExecuteAsync(Func<Task> action)
+        {
+            try
+            {
+                await action();
+            }
+            catch (Exception ex)
+            {
+                int? statusCode = null;
+
+                switch (ex)
+                {
+                    case StorageException storageException:
+                        statusCode = storageException.RequestInformation.HttpStatusCode;
+                        break;
+                }
+
+                throw new DicomDataStoreException(statusCode, ex);
+            }
+        }
     }
 }

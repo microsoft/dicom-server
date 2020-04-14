@@ -4,8 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using Dicom;
+using Dicom.Serialization;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
@@ -77,6 +83,137 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
             Assert.True(_dicomDataset.TryGetSingleValue<string>(dicomTag, out string writtenValue));
             Assert.Equal(writtenValue, value);
+        }
+
+        [Fact]
+        public void GivenADicomDataset_WhenCopiedWithoutBulkDataItems_ThenCorrectDicomDatasetShouldBeCreated()
+        {
+            var dicomItemsToCopy = new Dictionary<Type, DicomItem>();
+
+            AddCopy(() => new DicomApplicationEntity(DicomTag.RetrieveAETitle, "ae"));
+            AddCopy(() => new DicomAgeString(DicomTag.PatientAge, "011Y"));
+            AddCopy(() => new DicomAttributeTag(DicomTag.DimensionIndexPointer, DicomTag.DimensionIndexSequence));
+            AddCopy(() => new DicomCodeString(DicomTag.Modality, "MRI"));
+            AddCopy(() => new DicomDate(DicomTag.StudyDate, "20200105"));
+            AddCopy(() => new DicomDecimalString(DicomTag.Patient​Size, "153.5"));
+            AddCopy(() => new DicomDateTime(DicomTag.AcquisitionDateTime, new DateTime(2020, 5, 1, 13, 20, 49, 403, DateTimeKind.Utc)));
+            AddCopy(() => new DicomFloatingPointSingle(DicomTag.RecommendedDisplayFrameRateInFloat, 1.5f));
+            AddCopy(() => new DicomFloatingPointDouble(DicomTag.EventTimeOffset, 1.50));
+            AddCopy(() => new DicomIntegerString(DicomTag.StageNumber, 1));
+            AddCopy(() => new DicomLongString(DicomTag.EventTimerNames, "string1", "string2"));
+            AddCopy(() => new DicomLongText(DicomTag.PatientComments, "comment"));
+            AddCopy(() => new DicomPersonName(DicomTag.PatientName, "Jon^Doe"));
+            AddCopy(() => new DicomShortString(DicomTag.Occupation, "IT"));
+            AddCopy(() => new DicomSignedLong(DicomTag.ReferencePixelX0, -123));
+            AddCopy(() => new DicomSignedShort(DicomTag.TagAngleSecondAxis, -50));
+            AddCopy(() => new DicomShortText(DicomTag.CodingSchemeName, "text"));
+            AddCopy(() => new DicomSignedVeryLong(new DicomTag(7777, 1234), -12345));
+            AddCopy(() => new DicomTime(DicomTag.Time, "172230"));
+            AddCopy(() => new DicomUnlimitedCharacters(DicomTag.LongCodeValue, "long value"));
+            AddCopy(() => new DicomUniqueIdentifier(DicomTag.StudyInstanceUID, "1.2.3"));
+            AddCopy(() => new DicomUnsignedLong(DicomTag.SimpleFrameList, 1, 2, 3));
+            AddCopy(() => new DicomUniversalResource(DicomTag.RetrieveURL, "https://localhost/"));
+            AddCopy(() => new DicomUnsignedShort(DicomTag.NumberOfElements, 50));
+            AddCopy(() => new DicomUnlimitedText(DicomTag.StrainAdditionalInformation, "unlimited text"));
+            AddCopy(() => new DicomUnsignedVeryLong(new DicomTag(7777, 9865), 243));
+
+            var dicomItemsNotToCopy = new Dictionary<Type, DicomItem>();
+
+            AddDoNotCopy(() => new DicomOtherByte(DicomTag.Bad​Pixel​Image, new byte[] { 1, 2, 3 }));
+            AddDoNotCopy(() => new DicomOtherDouble(DicomTag.VolumetricCurvePoints, 12.3));
+            AddDoNotCopy(() => new DicomOtherFloat(DicomTag.TwoDimensionalToThreeDimensionalMapData, 1.24f));
+            AddDoNotCopy(() => new DicomOtherLong(DicomTag.LongPrimitivePointIndexList, 1));
+            AddDoNotCopy(() => new DicomOtherVeryLong(DicomTag.ExtendedOffsetTable, 23242394));
+            AddDoNotCopy(() => new DicomOtherWord(DicomTag.Segmented​Alpha​Palette​Color​Lookup​Table​Data, 213));
+            AddDoNotCopy(() => new DicomUnknown(new DicomTag(7777, 1357), new byte[] { 10, 15, 20 }));
+
+            var sequence = new DicomSequence(
+                DicomTag.ReferencedSOPSequence,
+                new DicomDataset(
+                    dicomItemsNotToCopy[typeof(DicomOtherByte)],
+                    dicomItemsNotToCopy[typeof(DicomOtherDouble)],
+                    dicomItemsToCopy[typeof(DicomIntegerString)],
+                    dicomItemsNotToCopy[typeof(DicomOtherFloat)]),
+                new DicomDataset(
+                    dicomItemsNotToCopy[typeof(DicomOtherLong)],
+                    dicomItemsToCopy[typeof(DicomPersonName)],
+                    dicomItemsNotToCopy[typeof(DicomOtherVeryLong)],
+                    dicomItemsNotToCopy[typeof(DicomOtherWord)],
+                    dicomItemsToCopy[typeof(DicomShortString)],
+                    dicomItemsNotToCopy[typeof(DicomUnknown)],
+                    new DicomSequence(
+                        DicomTag.FailedSOPSequence,
+                        new DicomDataset(
+                            dicomItemsNotToCopy[typeof(DicomUnknown)]))));
+
+            // Create a dataset that includes all VR types.
+            DicomDataset dicomDataset = new DicomDataset(
+                dicomItemsToCopy.Values.Concat(dicomItemsNotToCopy.Values).Concat(new[] { sequence }));
+
+            // Make a copy of the dataset without the bulk data.
+            DicomDataset copiedDicomDataset = dicomDataset.CopyWithoutBulkDataItems();
+
+            Assert.NotNull(copiedDicomDataset);
+
+            // Make sure it's a copy.
+            Assert.NotSame(dicomDataset, copiedDicomDataset);
+
+            // Make sure the original dataset was not altered.
+            Assert.Equal(dicomItemsToCopy.Count + dicomItemsNotToCopy.Count + 1, dicomDataset.Count());
+
+            // The expected number of items are dicomItemsToCopy + sequence.
+            Assert.Equal(dicomItemsToCopy.Count + 1, copiedDicomDataset.Count());
+
+            var expectedSequence = new DicomSequence(
+                DicomTag.ReferencedSOPSequence,
+                new DicomDataset(
+                    dicomItemsToCopy[typeof(DicomIntegerString)]),
+                new DicomDataset(
+                    dicomItemsToCopy[typeof(DicomPersonName)],
+                    dicomItemsToCopy[typeof(DicomShortString)],
+                    new DicomSequence(
+                        DicomTag.FailedSOPSequence,
+                        new DicomDataset())));
+
+            var expectedDicomDataset = new DicomDataset(
+                dicomItemsToCopy.Values.Concat(new[] { expectedSequence }));
+
+            // There is no easy way to compare the DicomItem (it doesn't implement IComparable or
+            // have a consistent way of getting the value out of it. So we will cheat a little bit
+            // by serialize the DicomDataset into JSON string. The serializer ensures the items are
+            // ordered properly.
+            var jsonSerializer = new JsonSerializer();
+
+            jsonSerializer.Converters.Add(new JsonDicomConverter());
+
+            Assert.Equal(
+                ConvertToJson(expectedDicomDataset, jsonSerializer),
+                ConvertToJson(copiedDicomDataset, jsonSerializer));
+
+            void AddCopy<T>(Func<T> creator)
+                where T : DicomItem
+            {
+                dicomItemsToCopy.Add(typeof(T), creator());
+            }
+
+            void AddDoNotCopy<T>(Func<T> creator)
+                where T : DicomItem
+            {
+                dicomItemsNotToCopy.Add(typeof(T), creator());
+            }
+
+            string ConvertToJson(DicomDataset dicomDataset, JsonSerializer jsonSerializer)
+            {
+                var result = new StringBuilder();
+
+                using (StringWriter stringWriter = new StringWriter(result))
+                using (JsonWriter jsonWriter = new JsonTextWriter(stringWriter))
+                {
+                    jsonSerializer.Serialize(jsonWriter, dicomDataset);
+                }
+
+                return result.ToString();
+            }
         }
     }
 }

@@ -16,6 +16,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomInstances = entries;
         }
 
-        public IEnumerable<DicomInstanceIdentifier> DicomInstances { get; }
+        public IEnumerable<VersionedDicomInstanceIdentifier> DicomInstances { get; }
     }
 }

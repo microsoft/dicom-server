@@ -10,6 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Web
         public const string ApplicationDicom = "application/dicom";
         public const string ApplicationDicomJson = "application/dicom+json";
         public const string ApplicationOctetStream = "application/octet-stream";
+        public const string ApplicationJson = "application/json";
         public const string ImageJpeg = "image/jpeg";
         public const string ImagePng = "image/png";
         public const string MultipartRelated = "multipart/related";

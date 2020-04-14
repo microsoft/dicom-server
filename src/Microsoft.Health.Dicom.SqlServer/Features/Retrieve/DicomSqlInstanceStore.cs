@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             _sqlServerDataStoreConfiguration = sqlServerDataStoreConfiguration;
         }
 
-        public Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifierAsync(
+        public Task<IEnumerable<VersionedDicomInstanceIdentifier>> GetInstanceIdentifierAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         }
 
-        public Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+        public Task<IEnumerable<VersionedDicomInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken)
@@ -45,20 +45,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid);
         }
 
-        public Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+        public Task<IEnumerable<VersionedDicomInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
             return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken);
         }
 
-        private async Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifierImp(
+        private async Task<IEnumerable<VersionedDicomInstanceIdentifier>> GetInstanceIdentifierImp(
             string studyInstanceUid,
             CancellationToken cancellationToken,
             string seriesInstanceUid = null,
             string sopInstanceUid = null)
         {
-            var results = new List<DicomInstanceIdentifier>();
+            var results = new List<VersionedDicomInstanceIdentifier>();
 
             using (var sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
             using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 
                 VLatest.GetInstance.PopulateCommand(
                     sqlCommand,
-                    invalidStatus: DicomIndexStatus.Creating,
+                    invalidStatus: (byte)DicomIndexStatus.Creating,
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid);

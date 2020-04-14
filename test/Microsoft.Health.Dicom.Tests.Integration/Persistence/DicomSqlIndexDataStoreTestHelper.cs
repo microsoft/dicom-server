@@ -81,8 +81,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        public async Task<Instance> GetInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public async Task<IReadOnlyList<Instance>> GetInstancesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
+            var results = new List<Instance>();
+
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 await sqlConnection.OpenAsync();
@@ -99,6 +101,40 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@sopInstanceUid", sopInstanceUid);
+
+                    using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
+                    {
+                        if (await sqlDataReader.ReadAsync())
+                        {
+                            results.Add(new Instance(sqlDataReader));
+                        }
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        public async Task<Instance> GetInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long version)
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                await sqlConnection.OpenAsync();
+
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = @$"
+                        SELECT *
+                        FROM {VLatest.Instance.TableName}
+                        WHERE {VLatest.Instance.StudyInstanceUid} = @studyInstanceUid
+                            AND {VLatest.Instance.SeriesInstanceUid} = @seriesInstanceUid
+                            AND {VLatest.Instance.SopInstanceUid} = @sopInstanceUid
+                            AND {VLatest.Instance.Watermark} = @watermark";
+
+                    sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@sopInstanceUid", sopInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@watermark", version);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {

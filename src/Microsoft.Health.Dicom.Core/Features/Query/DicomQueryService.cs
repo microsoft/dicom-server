@@ -24,9 +24,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private readonly IDicomMetadataStore _metadataService;
 
         public DicomQueryService(
-                    IDicomQueryParser queryParser,
-                    IDicomQueryStore queryStore,
-                    IDicomMetadataStore metadataService)
+            IDicomQueryParser queryParser,
+            IDicomQueryStore queryStore,
+            IDicomMetadataStore metadataService)
         {
             EnsureArg.IsNotNull(queryParser, nameof(queryParser));
             EnsureArg.IsNotNull(queryStore, nameof(queryStore));
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         }
 
         private async IAsyncEnumerable<DicomDataset> GetAsyncEnumerableResponse(
-            IEnumerable<DicomInstanceIdentifier> ids,
+            IEnumerable<VersionedDicomInstanceIdentifier> ids,
             QueryResponseBuilder responseBuilder,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {

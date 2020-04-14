@@ -8,10 +8,10 @@ namespace Microsoft.Health.Dicom.Core.Models
     /// <summary>
     /// Representing the index status.
     /// </summary>
-    public static class DicomIndexStatus
+    public enum DicomIndexStatus
     {
-        public const byte Creating = 0;
+        Creating = 0,
 
-        public const byte Created = 1;
+        Created = 1,
     }
 }
