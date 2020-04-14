@@ -66,9 +66,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                 case DicomValidationException _:
                     statusCode = HttpStatusCode.BadRequest;
                     break;
-                case DicomInstanceMetadataNotFoundException _:
-                    statusCode = HttpStatusCode.NotFound;
-                    break;
                 case DicomServerException _:
                     _logger.LogWarning("Service exception: {0}", exception);
                     statusCode = HttpStatusCode.ServiceUnavailable;

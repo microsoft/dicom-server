@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             try
             {
                 IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
-                    message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
+                    message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
                 Stream[] resultStreams = await Task.WhenAll(
                     retrieveInstances.Select(x => _dicomBlobDataStore.GetAsync(x, cancellationToken)));
 

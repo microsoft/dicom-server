@@ -66,7 +66,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
 
-            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(request);
+            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid);
             Assert.Equal((int)HttpStatusCode.PartialContent, response.StatusCode);
             Assert.Single(response.ResponseMetadata);
             ValidateResponseMetadataDataset(dicomDataset, response.ResponseMetadata.First());
@@ -96,7 +96,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
 
-            await Assert.ThrowsAsync<DicomInstanceMetadataNotFoundException>(() => _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(request));
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid));
         }
 
         [Fact]
@@ -125,7 +125,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
 
-            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(request);
+            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid);
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(list.Count, response.ResponseMetadata.Count());
 

@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,48 +36,55 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _logger = logger;
         }
 
-        public async Task<DicomRetrieveMetadataResponse> GetDicomInstanceMetadataAsync(
-            DicomRetrieveMetadataRequest message,
-            CancellationToken cancellationToken)
+        public async Task<DicomRetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(message, nameof(message));
+            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetSeriesInstancesToRetrieve(
+                 studyInstanceUid,
+                 seriesInstanceUid,
+                 cancellationToken);
 
+            return await RetrieveInstanceMetadata(retrieveInstances, cancellationToken);
+        }
+
+        public async Task<DicomRetrieveMetadataResponse> RetrieveInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
+        {
             IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
-            message.ResourceType,
-            message.StudyInstanceUid,
-            message.SeriesInstanceUid,
-            message.SopInstanceUid,
-            cancellationToken);
+                 studyInstanceUid,
+                 seriesInstanceUid,
+                 sopInstanceUid,
+                 cancellationToken);
 
-            var responseCode = HttpStatusCode.OK;
+            return await RetrieveInstanceMetadata(retrieveInstances, cancellationToken);
+        }
 
+        public async Task<DicomRetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
+        {
+            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetStudyInstancesToRetrieve(
+                 studyInstanceUid,
+                 cancellationToken);
+
+            return await RetrieveInstanceMetadata(retrieveInstances, cancellationToken);
+        }
+
+        private async Task<DicomRetrieveMetadataResponse> RetrieveInstanceMetadata(IEnumerable<DicomInstanceIdentifier> retrieveInstances, CancellationToken cancellationToken)
+        {
             List<DicomDataset> dataset = new List<DicomDataset>();
 
-            try
+            foreach (var id in retrieveInstances)
             {
-                foreach (var id in retrieveInstances)
+                try
                 {
                     DicomDataset ds = await _dicomMetadataStore.GetInstanceMetadataAsync(id, cancellationToken);
                     dataset.Add(ds);
                 }
-            }
-            catch (DicomDataStoreException ex)
-            {
-                // If couldnot retrieve metadata for any instances
-                if (!dataset.Any())
+                catch (DicomDataStoreException)
                 {
-                    throw new DicomInstanceMetadataNotFoundException("Error retrieving metadata for dicom instances.");
-                }
-
-                if (dataset.Count < retrieveInstances.Count())
-                {
-                    // Metadata was retireved only for some instances
-                    _logger.LogWarning(ex, "Error retrieving metadata for all dicom instances.");
-                    responseCode = HttpStatusCode.PartialContent;
+                    _logger.LogError($"Couldnot retrieve metadata for instance id: {id}");
+                    throw new DicomInstanceNotFoundException();
                 }
             }
 
-            return new DicomRetrieveMetadataResponse(responseCode, dataset);
+            return new DicomRetrieveMetadataResponse(HttpStatusCode.OK, dataset);
         }
     }
 }

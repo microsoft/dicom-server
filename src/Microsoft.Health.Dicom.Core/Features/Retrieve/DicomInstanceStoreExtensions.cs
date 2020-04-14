@@ -4,50 +4,62 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public static class DicomInstanceStoreExtensions
     {
+        public static async Task<IEnumerable<DicomInstanceIdentifier>> GetStudyInstancesToRetrieve(
+                this IDicomInstanceStore dicomInstanceStore,
+                string studyInstanceUid,
+                CancellationToken cancellationToken)
+        {
+            IEnumerable<DicomInstanceIdentifier> instancesToRetrieve = await dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(
+                        studyInstanceUid,
+                        cancellationToken);
+
+            if (!instancesToRetrieve.Any())
+            {
+                throw new DicomInstanceNotFoundException();
+            }
+
+            return instancesToRetrieve;
+        }
+
+        public static async Task<IEnumerable<DicomInstanceIdentifier>> GetSeriesInstancesToRetrieve(
+                this IDicomInstanceStore dicomInstanceStore,
+                string studyInstanceUid,
+                string seriesInstanceUid,
+                CancellationToken cancellationToken)
+        {
+            IEnumerable<DicomInstanceIdentifier> instancesToRetrieve = await dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(
+                        studyInstanceUid,
+                        seriesInstanceUid,
+                        cancellationToken);
+
+            if (!instancesToRetrieve.Any())
+            {
+                throw new DicomInstanceNotFoundException();
+            }
+
+            return instancesToRetrieve;
+        }
+
         public static async Task<IEnumerable<DicomInstanceIdentifier>> GetInstancesToRetrieve(
                 this IDicomInstanceStore dicomInstanceStore,
-                ResourceType resourceType,
                 string studyInstanceUid,
                 string seriesInstanceUid,
                 string sopInstanceUid,
                 CancellationToken cancellationToken)
         {
-            IEnumerable<DicomInstanceIdentifier> instancesToRetrieve = Enumerable.Empty<DicomInstanceIdentifier>();
-            switch (resourceType)
-            {
-                case ResourceType.Frames:
-                case ResourceType.Instance:
-                    instancesToRetrieve = await dicomInstanceStore.GetInstanceIdentifierAsync(
+            IEnumerable<DicomInstanceIdentifier> instancesToRetrieve = await dicomInstanceStore.GetInstanceIdentifierAsync(
                         studyInstanceUid,
                         seriesInstanceUid,
                         sopInstanceUid,
                         cancellationToken);
-                    break;
-                case ResourceType.Series:
-                    instancesToRetrieve = await dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(
-                        studyInstanceUid,
-                        seriesInstanceUid,
-                        cancellationToken);
-                    break;
-                case ResourceType.Study:
-                    instancesToRetrieve = await dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(
-                        studyInstanceUid,
-                        cancellationToken);
-                    break;
-                default:
-                    Debug.Fail($"Unknown retrieve transaction type: {resourceType}", nameof(resourceType));
-                    break;
-            }
 
             if (!instancesToRetrieve.Any())
             {

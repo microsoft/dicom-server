@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -119,7 +118,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             DicomRetrieveMetadataResponse response = new DicomRetrieveMetadataResponse(HttpStatusCode.OK, responseMetadata);
-            _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(request, CancellationToken.None).Returns(response);
+            _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid).Returns(response);
 
             response = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
             Assert.NotNull(response);

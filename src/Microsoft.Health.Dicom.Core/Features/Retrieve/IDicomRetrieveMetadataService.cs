@@ -11,8 +11,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public interface IDicomRetrieveMetadataService
     {
-        Task<DicomRetrieveMetadataResponse> GetDicomInstanceMetadataAsync(
-           DicomRetrieveMetadataRequest message,
+        Task<DicomRetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(
+           string studyInstanceUid,
+           CancellationToken cancellationToken = default);
+
+        Task<DicomRetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(
+           string studyInstanceUid,
+           string seriesInstanceUid,
+           CancellationToken cancellationToken = default);
+
+        Task<DicomRetrieveMetadataResponse> RetrieveInstanceMetadataAsync(
+           string studyInstanceUid,
+           string seriesInstanceUid,
+           string sopInstanceUid,
            CancellationToken cancellationToken = default);
     }
 }
