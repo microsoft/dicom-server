@@ -157,8 +157,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Invalid QIDO-RS query. Querying is only supported at resource level Studies/Series/Instances.</value>
   </data>
   <data name="QueryResultCountMaxExceeded" xml:space="preserve">
-    <value>Invalid QIDO-RS query.  Specified limit value {0} is outside the allowed max of {1}.</value>
-    <comment>{0} Specified query result limit. {1] Supported max result count</comment>
+    <value>Invalid QIDO-RS query.  Specified limit value {0} is outside the allowed range of {1}..{2}.</value>
+    <comment>{0} Specified query result limit. {1} min allowed. {2} max allowed.</comment>
   </data>
   <data name="ServiceUnavailable" xml:space="preserve">
     <value>The operation could not be completed, because the service was unable to accept new requests. It is safe to retry the operation. If the issue persists, please contact support.</value>
