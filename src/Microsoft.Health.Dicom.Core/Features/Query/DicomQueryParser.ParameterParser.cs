@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 if (result > DicomQueryLimit.MaxQueryResultCount || result < 1)
                 {
-                    throw new DicomQueryParseException(string.Format(DicomCoreResource.QueryResultCountMaxExceeded, result, DicomQueryLimit.MaxQueryResultCount));
+                    throw new DicomQueryParseException(string.Format(DicomCoreResource.QueryResultCountMaxExceeded, result, 1, DicomQueryLimit.MaxQueryResultCount));
                 }
 
                 _parsedQuery.Limit = result;
