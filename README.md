@@ -4,6 +4,8 @@ A .NET Core implementation of the DICOM Web standard.
 
 ## Development
 - [Setup](docs/Development.md)
+- [Code Organization](docs/CodeOrganization.md)
+- [Naming Guidelines](docs/NamingGuidelines.md)
 - [Exception handling](docs/ExceptionHandling.md)
 
 ## Contributing
