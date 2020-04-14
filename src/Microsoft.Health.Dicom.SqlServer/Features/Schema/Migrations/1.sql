@@ -135,7 +135,7 @@ GO
 /*************************************************************
 Full text catalog creation
 **************************************************************/
-CREATE FULLTEXT CATALOG Dicom_Catalog AS DEFAULT 
+CREATE FULLTEXT CATALOG Dicom_Catalog AS DEFAULT
 GO
 
 /*************************************************************
@@ -160,14 +160,14 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid
-) 
+)
 
 --Filter indexes
 CREATE NONCLUSTERED INDEX IX_Instance_SeriesInstanceUid_SopInstanceUid on dbo.Instance
 (
     SeriesInstanceUid,
     SopInstanceUid
-) 
+)
 INCLUDE
 (
     StudyInstanceUid,
@@ -178,7 +178,7 @@ INCLUDE
 CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid ON dbo.Instance
 (
     SopInstanceUid
-) 
+)
 INCLUDE
 (
     StudyInstanceUid,
@@ -309,9 +309,9 @@ INCLUDE
 	StudyInstanceUid
 )
 
-CREATE FULLTEXT INDEX ON StudyMetadataCore(PatientNameWords)   
-KEY INDEX IX_StudyMetadataCore_Id 
-WITH STOPLIST = SYSTEM; 
+CREATE FULLTEXT INDEX ON StudyMetadataCore(PatientNameWords)
+KEY INDEX IX_StudyMetadataCore_Id
+WITH STOPLIST = SYSTEM;
 
 
 /*************************************************************
@@ -328,7 +328,7 @@ CREATE TABLE dbo.SeriesMetadataCore (
     --series core
     Modality                            NVARCHAR(16) NULL,
     PerformedProcedureStepStartDate     DATE NULL
-) 
+)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_SeriesMetadataCore ON dbo.SeriesMetadataCore
 (
@@ -455,9 +455,9 @@ AS
     DECLARE @currentDate DATETIME2(7) = GETUTCDATE()
     DECLARE @existingStatus TINYINT
     DECLARE @metadataId BIGINT
-    
+
     IF EXISTS
-        (SELECT * 
+        (SELECT *
         FROM dbo.Instance
         WHERE studyInstanceUid = @studyInstanceUid
         AND seriesInstanceUid = @seriesInstanceUid
@@ -590,10 +590,10 @@ CREATE PROCEDURE dbo.DeleteInstance (
 AS
     SET NOCOUNT ON
     SET XACT_ABORT ON
-    
+
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-    
-    BEGIN TRANSACTION 
+
+    BEGIN TRANSACTION
 
     DECLARE @studyId bigint
 
@@ -601,7 +601,7 @@ AS
     SELECT  @studyId = ID
     FROM    dbo.StudyMetadataCore
     WHERE   StudyInstanceUid = @studyInstanceUid;
-    
+
     -- Delete the instance and insert the details into FileCleanup
     DELETE  dbo.Instance
         OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, GETUTCDATE(), 0, NULL
@@ -609,7 +609,7 @@ AS
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
-    
+
     IF (@@ROWCOUNT = 0)
     BEGIN
         THROW 50404, 'Instance not found', 1;
@@ -626,7 +626,7 @@ AS
         WHERE   StudyId = @studyId
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     END
-    
+
     -- If we've removing the series, see if it's the last for a study and if so, remove the study
     IF NOT EXISTS ( SELECT  *
                     FROM    dbo.SeriesMetadataCore
@@ -636,7 +636,36 @@ AS
         FROM    dbo.StudyMetadataCore
         WHERE   Id = @studyId
     END
-    
-    COMMIT TRANSACTION 
+
+    COMMIT TRANSACTION
 GO
 
+CREATE PROCEDURE dbo.RetrieveDeletedInstance
+    @Count int,
+    @MaxRetries int
+AS
+    SET NOCOUNT ON
+
+    SELECT  TOP(@Count) *
+    FROM    DeletedInstance WITH (UPDLOCK, READPAST)
+    WHERE   RetryCount = 0
+    OR      (RetryCount < @MaxRetries
+    AND     RetryAfter < GETUTCDATE())
+GO
+
+CREATE PROCEDURE dbo.DeleteDeletedInstance(
+    @studyInstanceUid varchar(64),
+    @seriesInstanceUid varchar(64),
+    @sopInstanceUid varchar(64),
+    @watermark bigint
+)
+AS
+    SET NOCOUNT ON
+
+    DELETE
+    FROM    dbo.DeletedInstance
+    WHERE   StudyInstanceUid = @studyInstanceUid
+    AND     SeriesInstanceUid = @seriesInstanceUid
+    AND     SopInstanceUid = @sopInstanceUid
+    AND     Watermark = @watermark
+GO

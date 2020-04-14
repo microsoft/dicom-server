@@ -16,24 +16,24 @@ using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
-using Microsoft.Health.SqlServer.Configs;
+using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 {
     internal class DicomSqlQueryStore : IDicomQueryStore
     {
-        private readonly SqlServerDataStoreConfiguration _sqlServerDataStoreConfiguration;
+        private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
         private readonly ILogger<DicomSqlQueryStore> _logger;
 
         public DicomSqlQueryStore(
-            SqlServerDataStoreConfiguration sqlServerDataStoreConfiguration,
+            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
             ILogger<DicomSqlQueryStore> logger)
         {
-            EnsureArg.IsNotNull(sqlServerDataStoreConfiguration, nameof(sqlServerDataStoreConfiguration));
+            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _sqlServerDataStoreConfiguration = sqlServerDataStoreConfiguration;
+            _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
             _logger = logger;
         }
 
@@ -45,10 +45,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
             var results = new List<VersionedDicomInstanceIdentifier>(query.EvaluatedLimit);
 
-            using (var sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
-            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper())
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
-                await sqlCommand.Connection.OpenAsync(cancellationToken);
                 var stringBuilder = new IndentedStringBuilder(new StringBuilder());
                 var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommand.Parameters));
 

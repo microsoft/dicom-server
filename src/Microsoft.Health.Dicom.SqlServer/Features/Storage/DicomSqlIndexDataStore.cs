@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,10 +13,11 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
-using Microsoft.Health.SqlServer.Configs;
+using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
@@ -22,20 +25,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
     internal class DicomSqlIndexDataStore : IDicomIndexDataStore
     {
         private readonly DicomSqlIndexSchema _sqlServerDicomIndexSchema;
-        private readonly SqlServerDataStoreConfiguration _sqlServerDataStoreConfiguration;
         private readonly ILogger<DicomSqlIndexDataStore> _logger;
+        private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
 
         public DicomSqlIndexDataStore(
             DicomSqlIndexSchema dicomIndexSchema,
-            SqlServerDataStoreConfiguration sqlServerDataStoreConfiguration,
+            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
             ILogger<DicomSqlIndexDataStore> logger)
         {
             EnsureArg.IsNotNull(dicomIndexSchema, nameof(dicomIndexSchema));
-            EnsureArg.IsNotNull(sqlServerDataStoreConfiguration, nameof(sqlServerDataStoreConfiguration));
+            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _sqlServerDicomIndexSchema = dicomIndexSchema;
-            _sqlServerDataStoreConfiguration = sqlServerDataStoreConfiguration;
+            _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
             _logger = logger;
         }
 
@@ -67,11 +70,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
         {
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
-            using (var sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
-            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
-                await sqlCommand.Connection.OpenAsync(cancellationToken);
-
                 VLatest.DeleteInstance.PopulateCommand(
                     sqlCommand,
                     studyInstanceUid,
@@ -96,17 +97,67 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             }
         }
 
+        public async Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(CancellationToken cancellationToken = default)
+        {
+            var results = new List<VersionedDicomInstanceIdentifier>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.RetrieveDeletedInstance.PopulateCommand(
+                    sqlCommand,
+                    Count: 1,
+                    MaxRetries: 10);
+
+                using (var reader = await sqlCommand.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+                            VLatest.DeletedInstance.StudyInstanceUid,
+                            VLatest.DeletedInstance.SeriesInstanceUid,
+                            VLatest.DeletedInstance.SopInstanceUid,
+                            VLatest.DeletedInstance.Watermark);
+
+                        results.Add(new VersionedDicomInstanceIdentifier(
+                            studyInstanceUid,
+                            seriesInstanceUid,
+                            sopInstanceUid,
+                            watermark));
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        public async Task DeleteDeletedInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, CancellationToken cancellationToken = default)
+        {
+            await _sqlServerDicomIndexSchema.EnsureInitialized();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.DeleteDeletedInstance.PopulateCommand(
+                    sqlCommand,
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid,
+                    watermark);
+
+                await sqlCommand.ExecuteScalarAsync(cancellationToken);
+            }
+        }
+
         public async Task IndexInstanceAsync(DicomDataset instance, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
 
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
-            using (SqlConnection sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
-            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
-                await sqlCommand.Connection.OpenAsync(cancellationToken);
-
                 VLatest.AddInstance.PopulateCommand(
                     sqlCommand,
                     instance.GetString(DicomTag.StudyInstanceUID),

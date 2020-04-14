@@ -18,12 +18,14 @@ namespace Microsoft.Health.Dicom.Api.Modules
 
             services.Add<MultipartReaderStreamToSeekableStreamConverter>()
                 .Singleton()
+                .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Decorate<ISeekableStreamConverter, LoggingSeekableStreamConverter>();
 
             services.Add<AspNetCoreMultipartReaderFactory>()
                 .Singleton()
+                .AsSelf()
                 .AsImplementedInterfaces();
         }
     }

@@ -27,12 +27,14 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.Add<DicomStorePersistenceOrchestrator>()
                 .Scoped()
+                .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Decorate<IDicomStorePersistenceOrchestrator, LoggingDicomStorePersistenceOrchestrator>();
 
             services.Add<DicomInstanceEntryReaderForMultipartRequest>()
                 .Singleton()
+                .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Decorate<IDicomInstanceEntryReader, LoggingDicomInstanceEntryReader>();
