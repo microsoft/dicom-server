@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                             cancellationToken);
                     break;
                 case ResourceType.Instance:
-                    metadataResponse = await _dicomRetrieveMetadataService.RetrieveInstanceMetadataAsync(
+                    metadataResponse = await _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(
                            request.StudyInstanceUid,
                            request.SeriesInstanceUid,
                            request.SopInstanceUid,

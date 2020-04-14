@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
@@ -36,37 +38,43 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _logger = logger;
         }
 
-        public async Task<DicomRetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
-        {
-            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetSeriesInstancesToRetrieve(
-                 studyInstanceUid,
-                 seriesInstanceUid,
-                 cancellationToken);
-
-            return await RetrieveInstanceMetadata(retrieveInstances, cancellationToken);
-        }
-
-        public async Task<DicomRetrieveMetadataResponse> RetrieveInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
+        public async Task<DicomRetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
         {
             IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
+                ResourceType.Study,
+                studyInstanceUid,
+                seriesInstanceUid: null,
+                sopInstanceUid: null,
+                cancellationToken);
+
+            return await RetrieveMetadata(retrieveInstances, cancellationToken);
+        }
+
+        public async Task<DicomRetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
+        {
+            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
+                 ResourceType.Series,
+                 studyInstanceUid,
+                 seriesInstanceUid,
+                 sopInstanceUid: null,
+                 cancellationToken);
+
+            return await RetrieveMetadata(retrieveInstances, cancellationToken);
+        }
+
+        public async Task<DicomRetrieveMetadataResponse> RetrieveSopInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
+        {
+            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
+                 ResourceType.Instance,
                  studyInstanceUid,
                  seriesInstanceUid,
                  sopInstanceUid,
                  cancellationToken);
 
-            return await RetrieveInstanceMetadata(retrieveInstances, cancellationToken);
+            return await RetrieveMetadata(retrieveInstances, cancellationToken);
         }
 
-        public async Task<DicomRetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
-        {
-            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetStudyInstancesToRetrieve(
-                 studyInstanceUid,
-                 cancellationToken);
-
-            return await RetrieveInstanceMetadata(retrieveInstances, cancellationToken);
-        }
-
-        private async Task<DicomRetrieveMetadataResponse> RetrieveInstanceMetadata(IEnumerable<DicomInstanceIdentifier> retrieveInstances, CancellationToken cancellationToken)
+        private async Task<DicomRetrieveMetadataResponse> RetrieveMetadata(IEnumerable<DicomInstanceIdentifier> retrieveInstances, CancellationToken cancellationToken)
         {
             List<DicomDataset> dataset = new List<DicomDataset>();
 
@@ -79,7 +87,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 }
                 catch (DicomDataStoreException)
                 {
-                    _logger.LogError($"Couldnot retrieve metadata for instance id: {id}");
+                    _logger.LogError(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InstanceMetadataNotFound, id));
                     throw new DicomInstanceNotFoundException();
                 }
             }

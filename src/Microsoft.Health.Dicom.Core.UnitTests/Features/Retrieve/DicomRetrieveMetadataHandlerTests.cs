@@ -107,7 +107,44 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
-        public async Task GivenARequestWithValidInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully()
+        public async Task GivenARequestWithValidInstanceIdentifier_WhenRetrievingStudyInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+
+            List<DicomDataset> responseMetadata = new List<DicomDataset> { new DicomDataset() };
+
+            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
+
+            DicomRetrieveMetadataResponse response = new DicomRetrieveMetadataResponse(HttpStatusCode.OK, responseMetadata);
+            _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid).Returns(response);
+
+            response = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
+            Assert.NotNull(response);
+            Assert.Equal(responseMetadata.Count, response.ResponseMetadata.Count());
+            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GivenARequestWithValidInstanceIdentifier_WhenRetrievingSeriesInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+
+            List<DicomDataset> responseMetadata = new List<DicomDataset> { new DicomDataset() };
+
+            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid);
+
+            DicomRetrieveMetadataResponse response = new DicomRetrieveMetadataResponse(HttpStatusCode.OK, responseMetadata);
+            _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid).Returns(response);
+
+            response = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
+            Assert.NotNull(response);
+            Assert.Equal(responseMetadata.Count, response.ResponseMetadata.Count());
+            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GivenARequestWithValidInstanceIdentifier_WhenRetrievingSopInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
@@ -116,9 +153,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             List<DicomDataset> responseMetadata = new List<DicomDataset> { new DicomDataset() };
 
             DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-
             DicomRetrieveMetadataResponse response = new DicomRetrieveMetadataResponse(HttpStatusCode.OK, responseMetadata);
-            _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid).Returns(response);
+            _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Returns(response);
 
             response = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
             Assert.NotNull(response);

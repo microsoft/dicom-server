@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
            string seriesInstanceUid,
            CancellationToken cancellationToken = default);
 
-        Task<DicomRetrieveMetadataResponse> RetrieveInstanceMetadataAsync(
+        Task<DicomRetrieveMetadataResponse> RetrieveSopInstanceMetadataAsync(
            string studyInstanceUid,
            string seriesInstanceUid,
            string sopInstanceUid,

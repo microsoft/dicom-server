@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class DicomCoreResource {
@@ -102,6 +102,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InstanceAlreadyExists {
             get {
                 return ResourceManager.GetString("InstanceAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to retrieve metadata for the specified instaceUid &apos;{0}&apos;..
+        /// </summary>
+        internal static string InstanceMetadataNotFound {
+            get {
+                return ResourceManager.GetString("InstanceMetadataNotFound", resourceCulture);
             }
         }
         

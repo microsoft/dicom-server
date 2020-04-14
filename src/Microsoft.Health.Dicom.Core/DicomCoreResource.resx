@@ -136,6 +136,10 @@
   <data name="InstanceAlreadyExists" xml:space="preserve">
     <value>The DICOM instance already exists.</value>
   </data>
+  <data name="InstanceMetadataNotFound" xml:space="preserve">
+    <value>Unable to retrieve metadata for the specified instaceUid '{0}'.</value>
+    <comment>{0} is SopInstanceUid.</comment>
+  </data>
   <data name="InstanceNotFound" xml:space="preserve">
     <value>The instance specified was not found.</value>
   </data>
