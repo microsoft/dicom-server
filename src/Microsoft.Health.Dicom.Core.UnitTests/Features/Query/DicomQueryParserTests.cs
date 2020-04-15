@@ -121,6 +121,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
+        [InlineData("PatientName=  ")]
+        [InlineData("PatientName=&fuzzyMatching=true")]
+        [InlineData("StudyDescription=")]
+        public void GivenFilterCondition_WithInvalidAttributeIdStringValue_Throws(string queryString)
+        {
+            Assert.Throws<DicomQueryParseException>(() => _queryParser
+                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies)));
+        }
+
+        [Theory]
         [InlineData("offset", "2.5")]
         [InlineData("offset", "-1")]
         public void GivenOffset_WithNotIntValue_Throws(string key, string value)

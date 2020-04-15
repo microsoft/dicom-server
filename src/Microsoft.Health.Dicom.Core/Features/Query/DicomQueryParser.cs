@@ -148,6 +148,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
 
             var trimmedValue = queryParameter.Value.First().Trim();
+            if (string.IsNullOrWhiteSpace(trimmedValue))
+            {
+                throw new DicomQueryParseException(string.Format(DicomCoreResource.QueryEmptyAttributeValue, attributeId));
+            }
+
             var tagTypeCode = dicomTag.DictionaryEntry.ValueRepresentations.FirstOrDefault()?.Code;
             if (_valueParsers.TryGetValue(tagTypeCode, out Func<DicomTag, string, DicomQueryFilterCondition> valueParser))
             {
