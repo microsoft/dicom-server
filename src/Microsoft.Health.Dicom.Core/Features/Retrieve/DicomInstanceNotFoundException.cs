@@ -17,6 +17,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
         }
 
+        public DicomInstanceNotFoundException(string message)
+            : base(message)
+        {
+        }
+
         public override HttpStatusCode ResponseStatusCode
         {
             get

@@ -167,13 +167,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        private IActionResult CreateResult(DicomRetrieveResourceResponse response)
+        private static IActionResult CreateResult(DicomRetrieveResourceResponse response)
         {
-            if (response.ResponseStreams == null)
-            {
-                return NotFound();
-            }
-
             return new MultipartResult(response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(KnownContentTypes.ApplicationDicom, x)).ToList());
         }
 

@@ -67,6 +67,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 Stream[] resultStreams = await Task.WhenAll(
                     retrieveInstances.Select(x => _dicomBlobDataStore.GetAsync(x, cancellationToken)));
 
+                if (!resultStreams.Any())
+                {
+                    throw new DicomInstanceNotFoundException();
+                }
+
                 var responseCode = HttpStatusCode.OK;
 
                 if (message.ResourceType == ResourceType.Frames)

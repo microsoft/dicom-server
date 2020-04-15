@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -37,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             // If any missing frames, throw not found exception for the specific frames not found.
             if (missingFrames.Length > 0)
             {
-                throw new DicomDataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame(s) '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
+                throw new DicomInstanceNotFoundException(string.Format($"The frame(s) '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
             }
         }
     }
