@@ -56,8 +56,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _dicomMetadataStore.GetInstanceMetadataAsync(id1).Throws(new DicomDataStoreException());
             _dicomMetadataStore.GetInstanceMetadataAsync(id2).Throws(new DicomDataStoreException());
 
-            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
-
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid, CancellationToken.None));
         }
 
@@ -78,12 +76,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _dicomMetadataStore.GetInstanceMetadataAsync(id2, CancellationToken.None).Throws(new DicomDataStoreException());
             _dicomMetadataStore.GetInstanceMetadataAsync(id1, CancellationToken.None).Returns(new DicomDataset());
 
-            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
-
-            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid, CancellationToken.None);
-
-            Assert.Equal((int)HttpStatusCode.PartialContent, response.StatusCode);
-            Assert.True(response.ResponseMetadata.Count() < dicomInstanceIdentifiersList.Count());
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid, CancellationToken.None));
         }
 
         [Fact]
