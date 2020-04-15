@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
@@ -16,14 +18,18 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
     {
         private readonly ILogger<DeletedInstanceCleanupWorker> _logger;
         private readonly IDicomDeleteService _deleteService;
-        private const int PollingDelay = 100000;
+        private BackgroundCleanupConfiguration _backgroundCleanupConfiguration;
+        private readonly TimeSpan _pollingInterval;
 
-        public DeletedInstanceCleanupWorker(IDicomDeleteService deleteService, ILogger<DeletedInstanceCleanupWorker> logger)
+        public DeletedInstanceCleanupWorker(IDicomDeleteService deleteService, IOptions<BackgroundCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
         {
             EnsureArg.IsNotNull(deleteService, nameof(deleteService));
+            EnsureArg.IsNotNull(backgroundCleanupConfiguration?.Value, nameof(backgroundCleanupConfiguration));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _deleteService = deleteService;
+            _backgroundCleanupConfiguration = backgroundCleanupConfiguration.Value;
+            _pollingInterval = TimeSpan.FromMinutes(_backgroundCleanupConfiguration.PollingInterval);
             _logger = logger;
         }
 
@@ -33,9 +39,15 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
             {
                 try
                 {
-                    await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
+                    bool success;
+                    int rowsProcessed;
+                    do
+                    {
+                        (success, rowsProcessed) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
 
-                    await Task.Delay(PollingDelay, stoppingToken);
+                        // TODO:  Add logging
+                    }
+                    while (success && rowsProcessed > 0);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
@@ -46,6 +58,8 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
                     // The job failed.
                     _logger.LogError(ex, "Unhandled exception in the worker.");
                 }
+
+                await Task.Delay(_pollingInterval, stoppingToken);
             }
         }
     }

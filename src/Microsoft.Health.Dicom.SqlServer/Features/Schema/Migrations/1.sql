@@ -641,15 +641,17 @@ AS
 GO
 
 CREATE PROCEDURE dbo.RetrieveDeletedInstance
-    @Count int,
-    @MaxRetries int
+    @deleteDelay int,
+    @count int,
+    @maxRetries int
 AS
     SET NOCOUNT ON
 
-    SELECT  TOP(@Count) *
+    SELECT  TOP(@count) *
     FROM    DeletedInstance WITH (UPDLOCK, READPAST)
-    WHERE   RetryCount = 0
-    OR      (RetryCount < @MaxRetries
+    WHERE   (RetryCount = 0
+    AND     GETUTCDATE() > DateAdd(mi, @deleteDelay, DeletedDateTime))
+    OR      (RetryCount < @maxRetries
     AND     RetryAfter < GETUTCDATE())
 GO
 
@@ -668,4 +670,24 @@ AS
     AND     SeriesInstanceUid = @seriesInstanceUid
     AND     SopInstanceUid = @sopInstanceUid
     AND     Watermark = @watermark
+GO
+
+CREATE PROCEDURE dbo.IncrementDeletedInstanceRetry(
+    @studyInstanceUid varchar(64),
+    @seriesInstanceUid varchar(64),
+    @sopInstanceUid varchar(64),
+    @watermark bigint,
+    @retryOffset int
+)
+AS
+    SET NOCOUNT ON
+
+    UPDATE  dbo.DeletedInstance
+    SET     RetryCount = RetryCount + 1,
+            RetryAfter = DATEADD(mi, @retryOffset, GETUTCDATE())
+    WHERE   StudyInstanceUid = @studyInstanceUid
+    AND     SeriesInstanceUid = @seriesInstanceUid
+    AND     SopInstanceUid = @sopInstanceUid
+    AND     Watermark = @watermark
+
 GO

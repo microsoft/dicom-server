@@ -20,8 +20,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(CancellationToken cancellationToken = default);
+        Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(int deleteDelay, int batchSize, int maxRetries, CancellationToken cancellationToken = default);
 
         Task DeleteDeletedInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, CancellationToken cancellationToken = default);
+
+        Task IncrementDeletedInstanceRetryAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, int retryOffset, CancellationToken cancellationToken = default);
     }
 }

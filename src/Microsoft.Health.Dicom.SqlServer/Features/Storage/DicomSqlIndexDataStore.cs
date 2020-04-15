@@ -97,17 +97,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             }
         }
 
-        public async Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(int deleteDelay, int batchSize, int maxRetries, CancellationToken cancellationToken = default)
         {
             var results = new List<VersionedDicomInstanceIdentifier>();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper(true))
             using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.RetrieveDeletedInstance.PopulateCommand(
                     sqlCommand,
-                    Count: 1,
-                    MaxRetries: 10);
+                    deleteDelay,
+                    batchSize,
+                    maxRetries);
 
                 using (var reader = await sqlCommand.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
@@ -135,7 +136,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
         {
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper(true))
             using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.DeleteDeletedInstance.PopulateCommand(
@@ -144,6 +145,25 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                     seriesInstanceUid,
                     sopInstanceUid,
                     watermark);
+
+                await sqlCommand.ExecuteScalarAsync(cancellationToken);
+            }
+        }
+
+        public async Task IncrementDeletedInstanceRetryAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, int retryOffset, CancellationToken cancellationToken = default)
+        {
+            await _sqlServerDicomIndexSchema.EnsureInitialized();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper(true))
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.IncrementDeletedInstanceRetry.PopulateCommand(
+                    sqlCommand,
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid,
+                    watermark,
+                    retryOffset);
 
                 await sqlCommand.ExecuteScalarAsync(cancellationToken);
             }

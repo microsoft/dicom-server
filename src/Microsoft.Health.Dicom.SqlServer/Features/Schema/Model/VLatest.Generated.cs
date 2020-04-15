@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
+        internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
         internal readonly static SelectCurrentSchemaVersionProcedure SelectCurrentSchemaVersion = new SelectCurrentSchemaVersionProcedure();
         internal readonly static UpsertSchemaVersionProcedure UpsertSchemaVersion = new UpsertSchemaVersionProcedure();
@@ -193,20 +194,45 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class IncrementDeletedInstanceRetryProcedure : StoredProcedure
+        {
+            internal IncrementDeletedInstanceRetryProcedure(): base("dbo.IncrementDeletedInstanceRetry")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int32> _retryOffset = new ParameterDefinition<System.Int32>("@retryOffset", global::System.Data.SqlDbType.Int, false);
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Int32 retryOffset)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.IncrementDeletedInstanceRetry";
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+                _watermark.AddParameter(command.Parameters, watermark);
+                _retryOffset.AddParameter(command.Parameters, retryOffset);
+            }
+        }
+
         internal class RetrieveDeletedInstanceProcedure : StoredProcedure
         {
             internal RetrieveDeletedInstanceProcedure(): base("dbo.RetrieveDeletedInstance")
             {
             }
 
-            private readonly ParameterDefinition<System.Int32> _Count = new ParameterDefinition<System.Int32>("@Count", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int32> _MaxRetries = new ParameterDefinition<System.Int32>("@MaxRetries", global::System.Data.SqlDbType.Int, false);
-            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.Int32 Count, System.Int32 MaxRetries)
+            private readonly ParameterDefinition<System.Int32> _deleteDelay = new ParameterDefinition<System.Int32>("@deleteDelay", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _count = new ParameterDefinition<System.Int32>("@count", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _maxRetries = new ParameterDefinition<System.Int32>("@maxRetries", global::System.Data.SqlDbType.Int, false);
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.Int32 deleteDelay, System.Int32 count, System.Int32 maxRetries)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.RetrieveDeletedInstance";
-                _Count.AddParameter(command.Parameters, Count);
-                _MaxRetries.AddParameter(command.Parameters, MaxRetries);
+                _deleteDelay.AddParameter(command.Parameters, deleteDelay);
+                _count.AddParameter(command.Parameters, count);
+                _maxRetries.AddParameter(command.Parameters, maxRetries);
             }
         }
 
