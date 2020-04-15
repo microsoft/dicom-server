@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private const ushort ProcessingFailureCode = 272;
+        private const ushort ValidationFailedFailureCode = 43264;
         private const ushort SopInstanceAlreadyExistsFailureCode = 45070;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
 
@@ -148,7 +149,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
                 HttpResult<DicomDataset> response = await _client.PostMultipartContentAsync(multiContent, "studies");
                 Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-                ValidationHelpers.ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), validFile.Dataset);
+
+                ValidationHelpers.ValidateReferencedSopSequence(
+                    response.Value,
+                    ConvertToReferencedSopSequenceEntry(validFile.Dataset));
             }
             finally
             {
@@ -169,11 +173,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.NotNull(response.Value);
             Assert.True(response.Value.Count() == 1);
 
-            ValidationHelpers.ValidateFailureSequence(
-                response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                MismatchStudyInstanceUidFailureCode,
-                dicomFile1.Dataset,
-                dicomFile2.Dataset);
+            ValidationHelpers.ValidateFailedSopSequence(
+                response.Value,
+                ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, MismatchStudyInstanceUidFailureCode),
+                ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, MismatchStudyInstanceUidFailureCode));
         }
 
         [Fact]
@@ -195,11 +198,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
                 Assert.EndsWith($"studies/{studyInstanceUID1}", response.Value.GetSingleValue<string>(DicomTag.RetrieveURL));
 
-                ValidationHelpers.ValidateSuccessSequence(response.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
-                ValidationHelpers.ValidateFailureSequence(
-                    response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                    MismatchStudyInstanceUidFailureCode,
-                    dicomFile2.Dataset);
+                ValidationHelpers.ValidateReferencedSopSequence(
+                    response.Value,
+                    ConvertToReferencedSopSequenceEntry(dicomFile1.Dataset));
+
+                ValidationHelpers.ValidateFailedSopSequence(
+                    response.Value,
+                    ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, MismatchStudyInstanceUidFailureCode));
             }
             finally
             {
@@ -208,7 +213,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
         }
 
-        [Fact(Skip = "Store dataset validation pending in US#72595")]
+        [Fact]
         public async void GivenDatasetWithDuplicateIdentifiers_WhenStoring_TheServerShouldReturnConflict()
         {
             var studyInstanceUID = TestUidGenerator.Generate();
@@ -216,10 +221,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             HttpResult<DicomDataset> response = await _client.PostAsync(new[] { dicomFile1 });
             Assert.False(response.Value.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            ValidationHelpers.ValidateFailureSequence(
-                response.Value.GetSequence(DicomTag.FailedSOPSequence),
-                ProcessingFailureCode,
-                dicomFile1.Dataset);
+
+            ValidationHelpers.ValidateFailedSopSequence(
+                response.Value,
+                ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
         }
 
         [Fact]
@@ -231,20 +236,44 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);
                 HttpResult<DicomDataset> response1 = await _client.PostAsync(new[] { dicomFile1 });
                 Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
-                ValidationHelpers.ValidateSuccessSequence(response1.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
+
+                ValidationHelpers.ValidateReferencedSopSequence(
+                    response1.Value,
+                    ConvertToReferencedSopSequenceEntry(dicomFile1.Dataset));
+
                 Assert.False(response1.Value.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence _));
 
                 HttpResult<DicomDataset> response2 = await _client.PostAsync(new[] { dicomFile1 });
                 Assert.Equal(HttpStatusCode.Conflict, response2.StatusCode);
-                ValidationHelpers.ValidateFailureSequence(
-                    response2.Value.GetSequence(DicomTag.FailedSOPSequence),
-                    SopInstanceAlreadyExistsFailureCode,
-                    dicomFile1.Dataset);
+
+                ValidationHelpers.ValidateFailedSopSequence(
+                    response2.Value,
+                    ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, SopInstanceAlreadyExistsFailureCode));
             }
             finally
             {
                 await _client.DeleteAsync(studyInstanceUID);
             }
+        }
+
+        private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset)
+        {
+            string studyInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            string seriesInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            string sopInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+
+            string relativeUri = $"/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
+
+            return (dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
+                new Uri(_client.HttpClient.BaseAddress, relativeUri).ToString(),
+                dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID));
+        }
+
+        private (string SopInstanceUid, string SopClassUid, ushort FailureReason) ConvertToFailedSopSequenceEntry(DicomDataset dicomDataset, ushort failureReason)
+        {
+            return (dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
+                dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID),
+                failureReason);
         }
     }
 }

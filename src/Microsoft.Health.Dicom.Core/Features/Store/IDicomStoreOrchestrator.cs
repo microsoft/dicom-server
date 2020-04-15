@@ -10,16 +10,18 @@ using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides functionality to orchestrate persisting the DICOM instance entry to the data stores.
+    /// Provides functionality to orchestrate the storing of the DICOM instance entry.
     /// </summary>
-    public interface IDicomStorePersistenceOrchestrator
+    public interface IDicomStoreOrchestrator
     {
         /// <summary>
-        /// Persists the DICOM instance entry.
+        /// Asynchronously orchestrate the storing of a DICOM instance entry.
         /// </summary>
-        /// <param name="dicomInstanceEntry">The DICOM instance entry to persist.</param>
+        /// <param name="dicomInstanceEntry">The DICOM instance entry to store.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>An instance of <see cref="Task"/>.</returns>
-        Task PersistDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken = default);
+        /// <returns>A task that represents the asynchronous orchestration of the storing operation.</returns>
+        Task StoreDicomInstanceEntryAsync(
+            IDicomInstanceEntry dicomInstanceEntry,
+            CancellationToken cancellationToken);
     }
 }

@@ -10,10 +10,10 @@ The **Azure for Health API** supports a subset of the DICOM Web standard. Suppor
 
 This transaction uses the POST method to Store representations of Studies, Series, and Instances contained in the request payload.
 
-Method|Path|Description
-----------|----------|----------
-POST|../studies|Store instances.
-POST|../studies/{study}|Store instances for a specific study. If an instance does not belong to the provided study identifier, that specific instance will be rejected with a '`43265`' warning code.
+| Method | Path               | Description |
+| ------ | ------------------ | ----------- |
+| POST   | ../studies         | Store instances. |
+| POST   | ../studies/{study} | Store instances for a specific study. If an instance does not belong to the provided study identifier, that specific instance will be rejected with a '`43265`' warning code. |
 
 Parameter `'study'` corresponds to the DICOM attribute StudyInstanceUID.
 
@@ -36,41 +36,41 @@ Each file stored must have a unique combination of StudyInstanceUID, SeriesInsta
 
 ### Response Status Codes
 
-Code|Description
-----------|----------
-200 (OK)|When all the SOP instances in the request have been stored.
-202 (Accepted)|When some instances in the request have been stored but others have failed.
-204 (No Content)|No content was provided in the store transaction request.
-400 (Bad Request)|The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format.
-406 (Not Acceptable)|The specified `Accept` header is not supported.
-409 (Conflict) |When none of the instances in the store transaction request have been stored.
-415 (Unsupported Media Type)|The provided `Content-Type` is not supported.
+| Code                         | Description |
+| ---------------------------- | ----------- |
+| 200 (OK)                     | When all the SOP instances in the request have been stored. |
+| 202 (Accepted)               | When some instances in the request have been stored but others have failed. |
+| 204 (No Content)             | No content was provided in the store transaction request. |
+| 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format. |
+| 406 (Not Acceptable)         | The specified `Accept` header is not supported. |
+| 409 (Conflict)               | When none of the instances in the store transaction request have been stored. |
+| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
 
 ### Response Payload
 
 The response payload will populate a DICOM dataset with the following elements:
 
-Tag|Name|Description
-----------|----------|----------
-(0008, 1190)|RetrieveURL|The Retrieve URL of the study if the StudyInstanceUID was provided in the store request.
-(0008,1198)|FailedSOPSequence|The sequence of instances that failed to store.
-(0008, 1199)|ReferencedSOPSequence|The sequence of stored instances.
+| Tag          | Name                  | Description |
+| ------------ | --------------------- | ----------- |
+| (0008, 1190) | RetrieveURL           | The Retrieve URL of the study if the StudyInstanceUID was provided in the store request. |
+| (0008, 1198) | FailedSOPSequence     | The sequence of instances that failed to store. |
+| (0008, 1199) | ReferencedSOPSequence | The sequence of stored instances. |
 
 Each dataset in the `FailedSOPSequence` will have the following elements (if the DICOM file attempting to be stored could be read):
 
-Tag|Name|Description
-----------|----------|----------
-(0008, 1150)|ReferencedSOPClassUID|The SOP class unique identifier of the instance that failed to store.
-(0008, 1150)|ReferencedSOPInstanceUID|The SOP instance unique identifier of the instance that failed to store.
-(0008,1197)|FailureReason|The reason code why this instance failed to store
+| Tag          | Name                     | Description |
+| ------------ |------------------------- | ----------- |
+| (0008, 1150) | ReferencedSOPClassUID    | The SOP class unique identifier of the instance that failed to store. |
+| (0008, 1150) | ReferencedSOPInstanceUID | The SOP instance unique identifier of the instance that failed to store. |
+| (0008, 1197) | FailureReason            | The reason code why this instance failed to store. |
 
 Each dataset in the `ReferencedSOPSequence` will have the following elements:
 
-Tag|Name|Description
-----------|----------|----------
-(0008, 1150)|ReferencedSOPClassUID|The SOP class unique identifier of the instance that failed to store.
-(0008, 1150)|ReferencedSOPInstanceUID|The SOP instance unique identifier of the instance that failed to store.
-(0008,1190)|RetrieveURL|The retrieve URL of this instance on the DICOM server.
+| Tag          | Name                     | Description |
+-------------- | ------------------------ | ----------- |
+| (0008, 1150) | ReferencedSOPClassUID    | The SOP class unique identifier of the instance that failed to store. |
+| (0008, 1150) | ReferencedSOPInstanceUID | The SOP instance unique identifier of the instance that failed to store. |
+| (0008, 1190) | RetrieveURL              | The retrieve URL of this instance on the DICOM server. |
 
 An example response with `Accept` header `application/dicom+json`:
 
@@ -129,11 +129,12 @@ An example response with `Accept` header `application/dicom+json`:
 
 ### Failure Reason Codes
 
-Code|Description
-----------|----------
-272|The store transaction did not store the instance because of a general failure in processing the operation.
-43265|The provided instance StudyInstanceUID did not match the specified StudyInstanceUID in the store request.
-45070|A DICOM file with the same StudyInstanceUID, SeriesInstanceUID and SopInstanceUID has already been stored. If you wish to update the contents, delete this instance first.
+| Code  | Description |
+| ----- | ----------- |
+| 272   | The store transaction did not store the instance because of a general failure in processing the operation. |
+| 43264 | The DICOM instance failed the validation. |
+| 43265 | The provided instance StudyInstanceUID did not match the specified StudyInstanceUID in the store request. |
+| 45070 | A DICOM instance with the same StudyInstanceUID, SeriesInstanceUID and SopInstanceUID has already been stored. If you wish to update the contents, delete this instance first. |
 
 ## Retrieve Transaction
 
@@ -141,15 +142,15 @@ This Retrieve Transaction offers support for retrieving stored studies, series, 
 
 The **Azure for Health** API supports the following methods:
 
-Method|Path|Description
-----------|----------|----------
-GET|../study/{study}|Retrieves an entire study.
-GET|../study/{study}/metadata|Retrieves all the metadata for every instance in the study.
-GET|../study/{study}/series/{series}|Retrieves an series.
-GET|../study/{study}/series/{series}/metadata|Retrieves all the metadata for every instance in the series.
-GET|../study/{study}/series/{series}/instances/{instance}|Retrieves a single instance.
-GET|../study/{study}/series/{series}/instances/{instance}/metadata|Retrieves the metadata for a single instance.
-GET|../study/{study}/series/{series}/instances/{instance}/frames/{frames}|Retrieves one or many frames from a single instance. To specify more than one frame, a comma seperate each frame to return, e.g. /study/1/series/2/instance/3/frames/4,5,6
+| Method | Path                                                                  | Description |
+| ------ | --------------------------------------------------------------------- | ----------- |
+| GET    | ../study/{study}                                                      | Retrieves an entire study. |
+| GET    | ../study/{study}/metadata                                             | Retrieves all the metadata for every instance in the study. |
+| GET    | ../study/{study}/series/{series}                                      | Retrieves an series. |
+| GET    | ../study/{study}/series/{series}/metadata                             | Retrieves all the metadata for every instance in the series. |
+| GET    | ../study/{study}/series/{series}/instances/{instance}                 | Retrieves a single instance. |
+| GET    | ../study/{study}/series/{series}/instances/{instance}/metadata        | Retrieves the metadata for a single instance. |
+| GET    | ../study/{study}/series/{series}/instances/{instance}/frames/{frames} | Retrieves one or many frames from a single instance. To specify more than one frame, a comma seperate each frame to return, e.g. /study/1/series/2/instance/3/frames/4,5,6 |
 
 ### Retrieve Study or Series
 The following `'Accept'` headers are supported for retrieving study or series:
@@ -172,7 +173,6 @@ OV|Other 64-Bit Very Long
 OW|Other Word
 UN|Unkown
 
-
 ### Retrieve Frames
 The following `'Accept'` headers are supported for retrieving frames:
 - `multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1 (default)`
@@ -182,22 +182,22 @@ The following `'Accept'` headers are supported for retrieving frames:
 
 ### Response Status Codes
 
-Code|Description
-----------|----------
-200 (OK)|All requested data has been retrieved.
-400 (Bad Request)|The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported.
-404 (Not Found)|The specified DICOM resource could not be found.
+| Code              | Description |
+| ----------------- | ----------- |
+| 200 (OK)          | All requested data has been retrieved. |
+| 400 (Bad Request) | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported. |
+| 404 (Not Found)   | The specified DICOM resource could not be found. |
 
 ## Delete Transaction
 
 This transaction is not part of the official DICOMweb standard. It uses the DELETE method to remove representations of Studies, Series, and Instances from the store.
 
 
-Method|Path|Description
-----------|----------|----------
-DELETE|../studies/{study}|Delete all instances for a specific study.
-DELETE|../studies/{study}/series/{series}|Delete all instances for a specific series within a study.
-DELETE|../studies/{study}/series/{series}/instances/{instance}| Delete a specific instance within a series.
+| Method | Path                                                    | Description |
+| ------ | ------------------------------------------------------- |------------ |
+| DELETE | ../studies/{study}                                      | Delete all instances for a specific study. |
+| DELETE | ../studies/{study}/series/{series}                      | Delete all instances for a specific series within a study. |
+| DELETE | ../studies/{study}/series/{series}/instances/{instance} | Delete a specific instance within a series. |
 
 Parameters `'study'`, `'series'` and `'instance'` correspond to the DICOM attributes StudyInstanceUID, SeriesInstanceUID and SopInstanceUID respectively.
 
@@ -207,11 +207,11 @@ There are no restrictions on the request's `'Accept'` header, `'Content-Type'` h
 
 ### Response Status Codes
 
-Code|Description
-----------|----------
-200 (OK)|When all the SOP instances have been deleted.
-400 (Bad Request)|The request was badly formatted.
-404 (Not Found)|When the specified series was not found within a study, or the specified instance was not found within the series.
+| Code              | |Description |
+| ----------------- | ------------ |
+| 200 (OK)          | When all the SOP instances have been deleted. |
+| 400 (Bad Request) | The request was badly formatted. |
+| 404 (Not Found)   | When the specified series was not found within a study, or the specified instance was not found within the series. |
 
 ### Response Payload
 

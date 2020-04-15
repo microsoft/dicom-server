@@ -9,13 +9,21 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
+    /// <summary>
+    /// Provides functionality to validate an <see cref="DicomStoreRequest"/>.
+    /// </summary>
     public static class DicomStoreRequestValidator
     {
+        /// <summary>
+        /// Validates an <see cref="DicomStoreRequest"/>.
+        /// </summary>
+        /// <param name="request">The request to validate.</param>
+        /// <exception cref="DicomBadRequestException">Thrown when request body is missing.</exception>
+        /// <exception cref="DicomIdentifierValidator">Thrown when the specified StudyInstanceUID is not a valid identifier.</exception>
         // TODO cleanup this method with Unit tests #72595
         public static void ValidateRequest(DicomStoreRequest request)
         {
-            if (request.RequestBody == null
-                || string.IsNullOrWhiteSpace(request.RequestContentType))
+            if (request.RequestBody == null)
             {
                 throw new DicomBadRequestException("Invalid request");
             }

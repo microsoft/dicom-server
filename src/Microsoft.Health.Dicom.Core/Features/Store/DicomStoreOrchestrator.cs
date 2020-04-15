@@ -15,15 +15,15 @@ using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides functionality to orchestrate persisting the DICOM instance entry to the data stores.
+    /// Provides functionality to orchestrate the storing of the DICOM instance entry.
     /// </summary>
-    public class DicomStorePersistenceOrchestrator : IDicomStorePersistenceOrchestrator
+    public class DicomStoreOrchestrator : IDicomStoreOrchestrator
     {
         private readonly IDicomFileStore _dicomBlobDataStore;
         private readonly IDicomMetadataStore _dicomInstanceMetadataStore;
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
 
-        public DicomStorePersistenceOrchestrator(
+        public DicomStoreOrchestrator(
             IDicomFileStore dicomBlobDataStore,
             IDicomMetadataStore dicomInstanceMetadataStore,
             IDicomIndexDataStore dicomIndexDataStore)
@@ -38,11 +38,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task PersistDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken)
+        public async Task StoreDicomInstanceEntryAsync(
+            IDicomInstanceEntry dicomInstanceEntry,
+            CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
+
             Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
             // If a file with the same name exists, a conflict exception will be thrown.
