@@ -16,12 +16,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public static class DicomInstanceStoreExtensions
     {
         public static async Task<IEnumerable<DicomInstanceIdentifier>> GetInstancesToRetrieve(
-         this IDicomInstanceStore dicomInstanceStore,
-         ResourceType resourceType,
-         string studyInstanceUid,
-         string seriesInstanceUid,
-         string sopInstanceUid,
-         CancellationToken cancellationToken)
+                this IDicomInstanceStore dicomInstanceStore,
+                ResourceType resourceType,
+                string studyInstanceUid,
+                string seriesInstanceUid,
+                string sopInstanceUid,
+                CancellationToken cancellationToken)
         {
             IEnumerable<DicomInstanceIdentifier> instancesToRetrieve = Enumerable.Empty<DicomInstanceIdentifier>();
             switch (resourceType)
