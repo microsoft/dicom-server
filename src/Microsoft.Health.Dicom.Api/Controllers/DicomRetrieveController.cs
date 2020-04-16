@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
@@ -107,7 +107,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
                 studyInstanceUid, seriesInstanceUid, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
@@ -144,7 +144,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
                studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return StatusCode(response.StatusCode, response.ResponseMetadata);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream)]
@@ -175,16 +175,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             }
 
             return new MultipartResult(response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(KnownContentTypes.ApplicationDicom, x)).ToList());
-        }
-
-        private IActionResult CreateResult(DicomRetrieveMetadataResponse resourceResponse)
-        {
-            if (!resourceResponse.ResponseMetadata.Any())
-            {
-                return NotFound();
-            }
-
-            return StatusCode(resourceResponse.StatusCode, resourceResponse.ResponseMetadata);
         }
     }
 }

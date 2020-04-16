@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Globalization;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         private async Task<DicomRetrieveMetadataResponse> RetrieveMetadata(IEnumerable<DicomInstanceIdentifier> retrieveInstances, CancellationToken cancellationToken)
         {
-            List<DicomDataset> dataset = new List<DicomDataset>();
+            var dataset = new List<DicomDataset>();
 
             foreach (var id in retrieveInstances)
             {
@@ -85,10 +84,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     DicomDataset ds = await _dicomMetadataStore.GetInstanceMetadataAsync(id, cancellationToken);
                     dataset.Add(ds);
                 }
-                catch (DicomDataStoreException)
+                catch (DicomDataStoreException e)
                 {
-                    _logger.LogError(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InstanceMetadataNotFound, id));
-                    throw new DicomInstanceNotFoundException();
+                    if (e.StatusCode == (int)HttpStatusCode.NotFound)
+                    {
+                        _logger.LogError($"Unable to retrieve metadata for the specified SopInstanceUID: {id}");
+                        throw new DicomInstanceNotFoundException();
+                    }
+
+                    throw;
                 }
             }
 

@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -111,17 +110,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             string studyInstanceUid = TestUidGenerator.Generate();
 
-            List<DicomDataset> responseMetadata = new List<DicomDataset> { new DicomDataset() };
-
-            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
-
-            DicomRetrieveMetadataResponse response = new DicomRetrieveMetadataResponse(HttpStatusCode.OK, responseMetadata);
+            DicomRetrieveMetadataResponse response = SetupRetrieveMetadataResponse();
             _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid).Returns(response);
 
-            response = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
-            Assert.NotNull(response);
-            Assert.Equal(responseMetadata.Count, response.ResponseMetadata.Count());
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid);
+            await ValidateRetrieveMetadataResponse(response, request);
         }
 
         [Fact]
@@ -130,17 +123,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
 
-            List<DicomDataset> responseMetadata = new List<DicomDataset> { new DicomDataset() };
-
-            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid);
-
-            DicomRetrieveMetadataResponse response = new DicomRetrieveMetadataResponse(HttpStatusCode.OK, responseMetadata);
+            DicomRetrieveMetadataResponse response = SetupRetrieveMetadataResponse();
             _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid).Returns(response);
 
-            response = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
-            Assert.NotNull(response);
-            Assert.Equal(responseMetadata.Count, response.ResponseMetadata.Count());
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid);
+            await ValidateRetrieveMetadataResponse(response, request);
         }
 
         [Fact]
@@ -150,16 +137,24 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
 
-            List<DicomDataset> responseMetadata = new List<DicomDataset> { new DicomDataset() };
-
-            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            DicomRetrieveMetadataResponse response = new DicomRetrieveMetadataResponse(HttpStatusCode.OK, responseMetadata);
+            DicomRetrieveMetadataResponse response = SetupRetrieveMetadataResponse();
             _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Returns(response);
 
-            response = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
-            Assert.NotNull(response);
-            Assert.Equal(responseMetadata.Count, response.ResponseMetadata.Count());
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            DicomRetrieveMetadataRequest request = new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            await ValidateRetrieveMetadataResponse(response, request);
+        }
+
+        private static DicomRetrieveMetadataResponse SetupRetrieveMetadataResponse()
+        {
+            return new DicomRetrieveMetadataResponse(
+                HttpStatusCode.OK,
+                new List<DicomDataset> { new DicomDataset() });
+        }
+
+        private async Task ValidateRetrieveMetadataResponse(DicomRetrieveMetadataResponse response, DicomRetrieveMetadataRequest request)
+        {
+            DicomRetrieveMetadataResponse actualResponse = await _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None);
+            Assert.Same(response, actualResponse);
         }
     }
 }

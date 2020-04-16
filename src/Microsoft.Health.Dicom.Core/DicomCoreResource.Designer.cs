@@ -106,15 +106,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to retrieve metadata for the specified instaceUid &apos;{0}&apos;..
-        /// </summary>
-        internal static string InstanceMetadataNotFound {
-            get {
-                return ResourceManager.GetString("InstanceMetadataNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The instance specified was not found..
         /// </summary>
         internal static string InstanceNotFound {
