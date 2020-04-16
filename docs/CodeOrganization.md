@@ -15,41 +15,38 @@
 Dicom server code follows below **patterns** to organize code in these layer.
 
 
-### MediatoR Handler:
+### [MediatoR Handler](https://github.com/jbogard/MediatR):
 
-<em>In-proc domain messages. Uses a mediator pattern to sync/async call the registered handlers for the specific message.</em>
+<em>Used to dispatch message from the Controller methods. Used to transform request and response from the hosting layer to the service.</em>
 
-Responsibility:
-- Decoupling the event/message from the handler.
-Currently used to dispatch message from the Controller methods. Used to transform request and response from the hosting layer to the service. Ex: [DicomDeleteHandler](../src/Microsoft.Health.Dicom.Core/Features/Delete/DicomDeleteHandler.cs)
 - Naming Guidelines: Dicom`Resource`Handler
+-  Example: [DicomDeleteHandler](../src/Microsoft.Health.Dicom.Core/Features/Delete/DicomDeleteHandler.cs)
 
-### Resource Service: 
-<em>Uses Asp.net core [configuration service dependency injection](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1) to handle the service instance lifetime.</em>
+### [Resource Service](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1): 
+<em>Used to implement business logic. Like input validation(inline or call), Orchestration, Core response objects.
+</em>
 
-Responsibility:
-- Used to implement businees logic. Like input validation(inline or call), Orchestration, Core response objects.
-Keep the services scoped to the resource operations. Ex: [IDicomQueryService](../src/Microsoft.Health.Dicom.Core/Features/Query/IDicomQueryService.cs)
+- Keep the services scoped to the resource operations.
 - Naming Guidelines: Dicom`Resource`Service
+-  Example: [IDicomQueryService](../src/Microsoft.Health.Dicom.Core/Features/Query/IDicomQueryService.cs)
 
-### Store Service:
-<em>Uses Asp.net core [configuration service dependency injection](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1) to handle the service instance lifetime.</em>
+### [Store Service](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1):
+<em>Data store specific implemtation of storing/retrieving/deleting the data.  
+</em>
 
-Responsibility:
-- They are data store specific implemtation of storing/retrieving/delete the data. Interface is defined in the core and implementation in the specific persistance layer. 
-They should not be accessed outside a service.
-Ex: [DicomSqlIndexDataStore](../src/Microsoft.Health.Dicom.SqlServer/Features/Storage/DicomSqlIndexDataStore.cs)
+- Interface is defined in the core and implementation in the specific persistance layer.
+- They should not be accessed outside a service.
 - Naming Guidelines: Dicom`Resource`Store
+- Example: [DicomSqlIndexDataStore](../src/Microsoft.Health.Dicom.SqlServer/Features/Storage/DicomSqlIndexDataStore.cs)
 
-### Middleware:
- <em>Organizing app has a pipeline of components that process the request and response. Uses Asp.net core [middleware](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1).</em>
+### [Middleware](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1):
+ <em>Standard/Common concerns like authentication, routing, logging, exception handling that needs to be done for each request, are separated to its own component.</em>
 
-Responsibility: 
-- Standard/Common concerns like authentication, routing, logging, exception handling that needs to be done for each request, are now separated to its own component. Ex: [ExceptionHandlingMiddleware](../src/Microsoft.Health.Dicom.Api/Features/Exceptions/ExceptionHandlingMiddleware.cs).
 - Naming Guidelines: `Responsibility`Middleware.
+- Example: [ExceptionHandlingMiddleware](../src/Microsoft.Health.Dicom.Api/Features/Exceptions/ExceptionHandlingMiddleware.cs).
 
-### Action Filters:
-<em>Code that can be executed before or after the action. Things that are specific to an action or resource can be coded here. </em>
+### [Action Filters](https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/filters?view=aspnetcore-3.1):
+<em>Dicom code uses pre-action filters. Authorization filters for authentication and Custom filter for acceptable content-type validation.</em>
 
-Responsibility:
-- Dicom code uses pre-action filters. Authorization filters for authentication and Custom filter for acceptable content-type validation.
+- Naming Guidelines: `Responsibility`FilterAttribute.
+- Example: [AcceptContentFilterAttribute](../src/Microsoft.Health.Dicom.Api/Features/Filters\AcceptContentFilterAttribute.cs).
