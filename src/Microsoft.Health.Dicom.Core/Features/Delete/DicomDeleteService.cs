@@ -5,25 +5,35 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Delete
 {
     public class DicomDeleteService : IDicomDeleteService
     {
-        public Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
+        private readonly IDicomIndexDataStore _dicomIndexDataStore;
+
+        public DicomDeleteService(IDicomIndexDataStore dicomIndexDataStore)
         {
-            // TODO Not throwing to keep RetrieveTransactionEnETests that are cleaning up happy
-            return Task.CompletedTask;
+            EnsureArg.IsNotNull(dicomIndexDataStore, nameof(dicomIndexDataStore));
+
+            _dicomIndexDataStore = dicomIndexDataStore;
         }
 
-        public Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
+        public async Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cancellationToken);
         }
 
-        public Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+        public async Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cancellationToken);
+        }
+
+        public async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+        {
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
         }
     }
 }

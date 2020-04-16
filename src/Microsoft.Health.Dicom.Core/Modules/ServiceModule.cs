@@ -20,16 +20,25 @@ namespace Microsoft.Health.Dicom.Core.Modules
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
+            services.Add<DicomInstanceEntryReaderManager>()
+                .Singleton()
+                .AsImplementedInterfaces();
+
+            services.Add<DicomDatasetMinimumRequirementValidator>()
+                .Singleton()
+                .AsImplementedInterfaces();
+
             services.Add<DicomStoreService>()
+                .Scoped()
+                .AsImplementedInterfaces()
+                .AsFactory();
+
+            services.Add<DicomStoreOrchestrator>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomStorePersistenceOrchestrator>()
-                .Scoped()
-                .AsImplementedInterfaces();
-
-            services.Decorate<IDicomStorePersistenceOrchestrator, LoggingDicomStorePersistenceOrchestrator>();
+            services.Decorate<IDicomStoreOrchestrator, LoggingDicomStoreOrchestrator>();
 
             services.Add<DicomInstanceEntryReaderForMultipartRequest>()
                 .Singleton()
@@ -37,10 +46,15 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.Decorate<IDicomInstanceEntryReader, LoggingDicomInstanceEntryReader>();
 
+            services.Add<DicomInstanceEntryReaderManager>()
+                .Singleton()
+                .AsImplementedInterfaces();
+
+            services.Decorate<IDicomInstanceEntryReaderManager, LoggingDicomInstanceEntryReaderManager>();
+
             services.Add<DicomStoreResponseBuilder>()
                 .Transient()
-                .AsSelf()
-                .AsFactory();
+                .AsImplementedInterfaces();
 
             services.Add<DicomRetrieveMetadataService>()
                 .Scoped()

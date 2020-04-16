@@ -63,8 +63,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomInstance = dicomFile1.Dataset.ToDicomInstanceIdentifier();
             HttpResult<DicomDataset> response = await _client.PostAsync(new[] { dicomFile1 }, studyInstanceUid);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            DicomSequence successSequence = response.Value.GetSequence(DicomTag.ReferencedSOPSequence);
-            ValidationHelpers.ValidateSuccessSequence(successSequence, dicomFile1.Dataset);
 
             HttpResult<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: 1);
             Assert.NotNull(frames);
@@ -253,7 +251,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var sopInstanceUid = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFileWith8BitPixelData(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             HttpResult<DicomDataset> storeResponse = await _client.PostAsync(new[] { dicomFile1 }, studyInstanceUid);
-            ValidationHelpers.ValidateSuccessSequence(storeResponse.Value.GetSequence(DicomTag.ReferencedSOPSequence), dicomFile1.Dataset);
+            Assert.Equal(HttpStatusCode.OK, storeResponse.StatusCode);
 
             HttpResult<IReadOnlyList<DicomFile>> response5 = await _client.RetrieveSeriesAsync(studyInstanceUid, TestUidGenerator.Generate());
             Assert.Equal(HttpStatusCode.NotFound, response5.StatusCode);
@@ -274,7 +272,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             HttpResult<DicomDataset> response = await _client.PostAsync(new[] { dicomFile1 }, studyInstanceUid);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             DicomSequence successSequence = response.Value.GetSequence(DicomTag.ReferencedSOPSequence);
-            ValidationHelpers.ValidateSuccessSequence(successSequence, dicomFile1.Dataset);
 
             string studyRetrieveLocation = response.Value.GetSingleValue<string>(DicomTag.RetrieveURL);
             string instanceRetrieveLocation = successSequence.Items[0].GetSingleValue<string>(DicomTag.RetrieveURL);
@@ -389,7 +386,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             finally
             {
                 HttpStatusCode result = await _client.DeleteAsync(studyInstanceUid, seriesInstanceUid);
-                Assert.Equal(HttpStatusCode.OK, result);
+                Assert.Equal(HttpStatusCode.NoContent, result);
             }
         }
 
@@ -417,7 +414,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResult<DicomDataset> postResponse = await _client.PostAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
 
-            Assert.True(postResponse.StatusCode == HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
             HttpResult<IReadOnlyList<DicomFile>> retrieveResponse = await _client.RetrieveSeriesAsync(
                 studyInstanceUid,
@@ -480,7 +477,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             finally
             {
                 HttpStatusCode result = await _client.DeleteAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid);
-                Assert.Equal(HttpStatusCode.OK, result);
+                Assert.Equal(HttpStatusCode.NoContent, result);
             }
         }
 

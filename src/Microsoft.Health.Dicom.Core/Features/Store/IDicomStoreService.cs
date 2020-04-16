@@ -12,20 +12,22 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides functionality to process and store the DICOM instance entries.
+    /// Provides functionality to process the list of <see cref="IDicomInstanceEntry"/>.
     /// </summary>
     public interface IDicomStoreService
     {
         /// <summary>
-        /// Processes the DICOM instance entries.
+        /// Asynchronously processes the <paramref name="dicomInstanceEntries"/>.
         /// </summary>
-        /// <param name="studyInstanceUid">If not <c>null</c>, then any instances that does not have matching StudyInstanceUid will be rejected.</param>
-        /// <param name="dicomInstanceEntries">The DICOM instance entries to process.</param>
+        /// <param name="dicomInstanceEntries">The list of <see cref="IDicomInstanceEntry"/> to process.</param>
+        /// <param name="requiredStudyInstanceUid">
+        /// If supplied, the StudyInstanceUID in the <paramref name="dicomDataset"/> must match to be considered valid.
+        /// </param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>An instance of <see cref="DicomStoreResponse"/>.</returns>
-        Task<DicomStoreResponse> ProcessDicomInstanceEntriesAsync(
-            string studyInstanceUid,
-            IReadOnlyCollection<IDicomInstanceEntry> dicomInstanceEntries,
+        /// <returns>A task that represents the asynchronous process operation.</returns>
+        Task<DicomStoreResponse> ProcessAsync(
+            IReadOnlyList<IDicomInstanceEntry> dicomInstanceEntries,
+            string requiredStudyInstanceUid,
             CancellationToken cancellationToken);
     }
 }
