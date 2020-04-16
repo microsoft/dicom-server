@@ -5,6 +5,8 @@
 
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -39,6 +41,16 @@ namespace Microsoft.Health.Dicom.Api.Modules
                     options.Authority = _securityConfiguration.Authentication.Authority;
                     options.Audience = _securityConfiguration.Authentication.Audience;
                     options.RequireHttpsMetadata = true;
+                    options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{_securityConfiguration.Authentication.Audience}\", realm=\"{_securityConfiguration.Authentication.Audience}\"";
+                });
+
+                services.AddControllers(mvcOptions =>
+                {
+                    var policy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+
+                    mvcOptions.Filters.Add(new AuthorizeFilter(policy));
                 });
             }
         }
