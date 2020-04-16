@@ -3,12 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -33,14 +30,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             ValidateRetrieveMetadataRequest(request);
 
-            IEnumerable<DicomDataset> responseMetadata = await _dicomRetrieveMetadataService.GetDicomInstanceMetadataAsync(
-                request.ResourceType,
-                request.StudyInstanceUid,
-                request.SeriesInstanceUid,
-                request.SopInstanceUid,
-                cancellationToken);
+            DicomRetrieveMetadataResponse metadataResponse = null;
 
-            return new DicomRetrieveMetadataResponse(HttpStatusCode.OK, responseMetadata.ToArray());
+            switch (request.ResourceType)
+            {
+                case ResourceType.Study:
+                    metadataResponse = await _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(request.StudyInstanceUid, cancellationToken);
+                    break;
+                case ResourceType.Series:
+                    metadataResponse = await _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(request.StudyInstanceUid, request.SeriesInstanceUid, cancellationToken);
+                    break;
+                case ResourceType.Instance:
+                    metadataResponse = await _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken);
+                    break;
+                default:
+                    Debug.Fail($"Unknown retrieve metadata transaction type: {request.ResourceType}", nameof(request));
+                    break;
+            }
+
+            return metadataResponse;
         }
 
         private void ValidateRetrieveMetadataRequest(DicomRetrieveMetadataRequest request)
