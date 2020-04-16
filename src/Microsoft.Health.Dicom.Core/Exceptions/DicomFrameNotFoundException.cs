@@ -7,15 +7,15 @@ using System;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class DicomResourceNotFoundException : DicomServerException
+    public class DicomFrameNotFoundException : DicomResourceNotFoundException
     {
-        public DicomResourceNotFoundException(string message)
-            : base(message)
+        public DicomFrameNotFoundException()
+            : base(DicomCoreResource.FrameNotFound)
         {
         }
 
-        public DicomResourceNotFoundException(string message, Exception innerException)
-            : base(message, innerException)
+        public DicomFrameNotFoundException(Exception innerException)
+            : base(DicomCoreResource.FrameNotFound, innerException)
         {
         }
     }

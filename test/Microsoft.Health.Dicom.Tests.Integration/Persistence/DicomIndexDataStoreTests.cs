@@ -256,7 +256,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string sopInstanceUid = TestUidGenerator.Generate();
             await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await Assert.ThrowsAsync<DicomResourceNotFoundException>(async () => await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(async () => await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()));
             await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
         }
 
@@ -268,14 +268,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string sopInstanceUid = TestUidGenerator.Generate();
             await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await Assert.ThrowsAsync<DicomResourceNotFoundException>(async () => await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(async () => await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, TestUidGenerator.Generate()));
             await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
         }
 
         [Fact]
         public async Task GivenANonExistentStudy_WhenDeletedByStudyInstanceUid_ThenExceptionThrown()
         {
-            await Assert.ThrowsAsync<DicomResourceNotFoundException>(async () => await _dicomIndexDataStore.DeleteStudyIndexAsync(TestUidGenerator.Generate()));
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(async () => await _dicomIndexDataStore.DeleteStudyIndexAsync(TestUidGenerator.Generate()));
         }
 
         [Fact]

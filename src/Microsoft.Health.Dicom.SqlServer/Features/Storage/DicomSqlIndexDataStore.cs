@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                     switch (ex.Number)
                     {
                         case SqlErrorCodes.NotFound:
-                            throw new DicomResourceNotFoundException();
+                            throw new DicomInstanceNotFoundException();
                         default:
                             _logger.LogError(ex, $"Error from SQL database on {nameof(VLatest.DeleteInstance)}.");
                             throw;

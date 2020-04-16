@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                 if (!resultStreams.Any())
                 {
-                    throw new DicomResourceNotFoundException();
+                    throw new DicomInstanceNotFoundException();
                 }
 
                 var responseCode = HttpStatusCode.OK;

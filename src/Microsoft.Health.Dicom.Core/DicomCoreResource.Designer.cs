@@ -86,7 +86,18 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("DuplicateQueryParam", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The instance specified was not found..
+        /// </summary>
+        internal static string FrameNotFound
+        {
+            get
+            {
+                return ResourceManager.GetString("FrameNotFound", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. IncludeField has unknown attribute {0}..
         /// </summary>
@@ -106,11 +117,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The resource specified was not found..
+        ///   Looks up a localized string similar to The instance specified was not found..
         /// </summary>
-        internal static string ResourceNotFound {
+        internal static string InstanceNotFound {
             get {
-                return ResourceManager.GetString("ResourceNotFound", resourceCulture);
+                return ResourceManager.GetString("InstanceNotFound", resourceCulture);
             }
         }
         

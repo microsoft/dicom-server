@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             // If any missing frames, throw not found exception for the specific frames not found.
             if (missingFrames.Length > 0)
             {
-                throw new DicomResourceNotFoundException(new ArgumentException($"The frame(s) '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
+                throw new DicomFrameNotFoundException(new ArgumentException($"The frame(s) '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
             }
         }
     }
