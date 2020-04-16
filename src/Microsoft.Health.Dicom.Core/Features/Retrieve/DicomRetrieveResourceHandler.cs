@@ -29,6 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             EnsureArg.IsNotNull(request, nameof(request));
 
             ValidateRetrieveResourceRequest(request);
+
             return await _dicomRetrieveResourceService.GetInstanceResourceAsync(request, cancellationToken);
         }
 

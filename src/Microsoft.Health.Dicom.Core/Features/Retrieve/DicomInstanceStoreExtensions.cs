@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             if (!instancesToRetrieve.Any())
             {
-                throw new DicomInstanceNotFoundException();
+                throw new DicomResourceNotFoundException();
             }
 
             return instancesToRetrieve;

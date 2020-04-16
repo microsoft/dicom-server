@@ -106,11 +106,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The instance specified was not found..
+        ///   Looks up a localized string similar to The resource specified was not found..
         /// </summary>
-        internal static string InstanceNotFound {
+        internal static string ResourceNotFound {
             get {
-                return ResourceManager.GetString("InstanceNotFound", resourceCulture);
+                return ResourceManager.GetString("ResourceNotFound", resourceCulture);
             }
         }
         
