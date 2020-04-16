@@ -64,13 +64,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             {
                 IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
                     message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
-                Stream[] resultStreams = await Task.WhenAll(
-                    retrieveInstances.Select(x => _dicomBlobDataStore.GetAsync(x, cancellationToken)));
 
-                if (!resultStreams.Any())
+                if (!retrieveInstances.Any())
                 {
                     throw new DicomInstanceNotFoundException();
                 }
+
+                Stream[] resultStreams = await Task.WhenAll(
+                    retrieveInstances.Select(x => _dicomBlobDataStore.GetAsync(x, cancellationToken)));
 
                 var responseCode = HttpStatusCode.OK;
 
