@@ -4,7 +4,7 @@ A .NET Core implementation of the DICOM Web standard.
 
 ## Development
 - [Setup](docs/Development.md)
-- [[Exception handling](docs/ExceptionHandling.md)
+- [Exception handling](docs/ExceptionHandling.md)
 
 ## Contributing
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
