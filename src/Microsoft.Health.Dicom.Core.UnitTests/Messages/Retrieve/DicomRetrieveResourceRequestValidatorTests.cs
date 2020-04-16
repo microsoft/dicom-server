@@ -10,16 +10,16 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
 {
-    public class RetrieveDicomResourceRequestValidatorTests
+    public class DicomRetrieveResourceRequestValidatorTests
     {
         [Theory]
         [InlineData("*-")]
         [InlineData("invalid")]
         [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
-        public void GivenIncorrectTransferSyntax_OnValidationOfRetrieveRequest_ErrorReturned(string transferSyntax)
+        public void GivenIncorrectTransferSyntax_WhenValidatingRetrieveRequest_ThenErrorReturned(string transferSyntax)
         {
             const string expectedErrorMessage = "The specified condition was not met for 'Requested Representation'.";
-            var request = new RetrieveDicomResourceRequest(transferSyntax, TestUidGenerator.Generate());
+            var request = new DicomRetrieveResourceRequest(transferSyntax, TestUidGenerator.Generate());
 
             ValidateHasError(request, expectedErrorMessage);
         }
@@ -28,10 +28,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData(0)]
         [InlineData(-1)]
         [InlineData(-234)]
-        public void GivenInvalidFrameNumber_OnValidationOfRetrieveRequest_ErrorReturned(int frame)
+        public void GivenInvalidFrameNumber_WhenValidatingRetrieveRequest_ThenErrorReturned(int frame)
         {
             const string expectedErrorMessage = "The specified condition was not met for 'Frames'.";
-            var request = new RetrieveDicomResourceRequest(
+            var request = new DicomRetrieveResourceRequest(
                 studyInstanceUid: TestUidGenerator.Generate(),
                 seriesInstanceUid: TestUidGenerator.Generate(),
                 sopInstanceUid: TestUidGenerator.Generate(),
@@ -43,10 +43,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [Theory]
         [InlineData(null)]
         [InlineData(new int[0])]
-        public void GivenNoFrames_OnValidationOfRetrieveRequest_ErrorReturned(int[] frames)
+        public void GivenNoFrames_WhenValidatingRetrieveRequest_ThenErrorReturned(int[] frames)
         {
             const string expectedErrorMessage = "The specified condition was not met for 'Frames'.";
-            var request = new RetrieveDicomResourceRequest(
+            var request = new DicomRetrieveResourceRequest(
                 studyInstanceUid: TestUidGenerator.Generate(),
                 seriesInstanceUid: TestUidGenerator.Generate(),
                 sopInstanceUid: TestUidGenerator.Generate(),
@@ -59,18 +59,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("1", "1", "2")]
         [InlineData("1", "2", "1")]
         [InlineData("1", "2", "2")]
-        public void GivenRepeatedIdentifiers_OnValidationOfRetrieveRequest_ErrorReturned(
+        public void GivenRepeatedIdentifiers_WhenValidatingRetrieveRequest_ThenErrorReturned(
             string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             const string expectedErrorMessage = "The specified condition was not met for ''.";
-            var request = new RetrieveDicomResourceRequest(
+            var request = new DicomRetrieveResourceRequest(
                 studyInstanceUid: studyInstanceUid,
                 seriesInstanceUid: seriesInstanceUid,
                 sopInstanceUid: sopInstanceUid,
                 requestedTransferSyntax: "*");
             ValidateHasError(request, expectedErrorMessage);
 
-            request = new RetrieveDicomResourceRequest(
+            request = new DicomRetrieveResourceRequest(
                 studyInstanceUid: studyInstanceUid,
                 seriesInstanceUid: seriesInstanceUid,
                 sopInstanceUid: sopInstanceUid,
@@ -79,41 +79,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
             ValidateHasError(request, expectedErrorMessage);
         }
 
-        [Theory]
-        [InlineData("()")]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa65")]
-        public void GivenInvalidIdentifiers_OnValidationOfRetrieveRequest_ErrorReturned(string invalidIdentifier)
+        private static void ValidateHasError(DicomRetrieveResourceRequest request, string expectedErrorMessage)
         {
-            var request = new RetrieveDicomResourceRequest(
-                studyInstanceUid: invalidIdentifier,
-                requestedTransferSyntax: "*");
-            ValidateHasError(request, "Study Instance Uid");
-
-            request = new RetrieveDicomResourceRequest(
-                studyInstanceUid: TestUidGenerator.Generate(),
-                seriesInstanceUid: invalidIdentifier,
-                requestedTransferSyntax: "*");
-            ValidateHasError(request, "Series Instance Uid");
-
-            request = new RetrieveDicomResourceRequest(
-                studyInstanceUid: TestUidGenerator.Generate(),
-                seriesInstanceUid: TestUidGenerator.Generate(),
-                sopInstanceUid: invalidIdentifier,
-                requestedTransferSyntax: "*");
-            ValidateHasError(request, "Sop Instance Uid");
-
-            request = new RetrieveDicomResourceRequest(
-                studyInstanceUid: TestUidGenerator.Generate(),
-                seriesInstanceUid: TestUidGenerator.Generate(),
-                sopInstanceUid: invalidIdentifier,
-                frames: new[] { 1 },
-                requestedTransferSyntax: "*");
-            ValidateHasError(request, "Sop Instance Uid");
-        }
-
-        private static void ValidateHasError(RetrieveDicomResourceRequest request, string expectedErrorMessage)
-        {
-            ValidationResult result = new RetrieveDicomResourcesRequestValidator().Validate(request);
+            ValidationResult result = new DicomRetrieveResourcesRequestValidator().Validate(request);
             Assert.False(result.IsValid);
             Assert.Single(result.Errors);
             Assert.Contains(expectedErrorMessage, result.Errors[0].ErrorMessage);

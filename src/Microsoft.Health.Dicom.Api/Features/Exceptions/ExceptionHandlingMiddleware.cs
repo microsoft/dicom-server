@@ -66,7 +66,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                 case DicomValidationException _:
                     statusCode = HttpStatusCode.BadRequest;
                     break;
-                case DicomInstanceNotFoundException _:
+                case DicomResourceNotFoundException _:
                     statusCode = HttpStatusCode.NotFound;
                     break;
                 case DicomServerException _:
