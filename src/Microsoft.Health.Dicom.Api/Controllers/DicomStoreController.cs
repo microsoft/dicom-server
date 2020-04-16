@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
@@ -19,7 +18,6 @@ using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [Authorize]
     public class DicomStoreController : Controller
     {
         private readonly IMediator _mediator;

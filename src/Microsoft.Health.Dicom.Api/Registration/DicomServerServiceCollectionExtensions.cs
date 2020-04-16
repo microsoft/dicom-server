@@ -8,7 +8,6 @@ using System.Reflection;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -65,12 +64,6 @@ namespace Microsoft.AspNetCore.Builder
                 options.EnableEndpointRouting = false;
                 options.RespectBrowserAcceptHeader = true;
                 options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
-
-                if (!dicomServerConfiguration.Security.Enabled)
-                {
-                    // Removes Authentication Requirements for all endpoints
-                    options.Filters.Add(new AllowAnonymousFilter());
-                }
             });
 
             services.AddSingleton<IUrlResolver, UrlResolver>();
