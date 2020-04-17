@@ -132,7 +132,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             return results;
         }
 
-        public async Task DeleteDeletedInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, CancellationToken cancellationToken = default)
+        public async Task DeleteDeletedInstanceAsync(VersionedDicomInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
         {
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
@@ -141,16 +141,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             {
                 VLatest.DeleteDeletedInstance.PopulateCommand(
                     sqlCommand,
-                    studyInstanceUid,
-                    seriesInstanceUid,
-                    sopInstanceUid,
-                    watermark);
+                    versionedInstanceIdentifier.StudyInstanceUid,
+                    versionedInstanceIdentifier.SeriesInstanceUid,
+                    versionedInstanceIdentifier.SopInstanceUid,
+                    versionedInstanceIdentifier.Version);
 
                 await sqlCommand.ExecuteScalarAsync(cancellationToken);
             }
         }
 
-        public async Task IncrementDeletedInstanceRetryAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, int retryOffset, CancellationToken cancellationToken = default)
+        public async Task IncrementDeletedInstanceRetryAsync(VersionedDicomInstanceIdentifier versionedInstanceIdentifier, int retryOffset, CancellationToken cancellationToken = default)
         {
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
@@ -159,10 +159,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             {
                 VLatest.IncrementDeletedInstanceRetry.PopulateCommand(
                     sqlCommand,
-                    studyInstanceUid,
-                    seriesInstanceUid,
-                    sopInstanceUid,
-                    watermark,
+                    versionedInstanceIdentifier.StudyInstanceUid,
+                    versionedInstanceIdentifier.SeriesInstanceUid,
+                    versionedInstanceIdentifier.SopInstanceUid,
+                    versionedInstanceIdentifier.Version,
                     retryOffset);
 
                 await sqlCommand.ExecuteScalarAsync(cancellationToken);

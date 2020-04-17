@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -69,25 +69,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             {
                 try
                 {
-                    IEnumerable<VersionedDicomInstanceIdentifier> deletedInstanceIdentifiers = await _dicomIndexDataStore.RetrieveDeletedInstancesAsync(
+                    var deletedInstanceIdentifiers = (await _dicomIndexDataStore.RetrieveDeletedInstancesAsync(
                         _deletedInstanceCleanupConfiguration.DeleteDelay,
                         _deletedInstanceCleanupConfiguration.BatchSize,
                         _deletedInstanceCleanupConfiguration.MaxRetries,
-                        cancellationToken);
+                        cancellationToken))
+                        .ToList();
+
+                    rowsProcessed = deletedInstanceIdentifiers.Count;
 
                     foreach (VersionedDicomInstanceIdentifier deletedInstanceIdentifier in deletedInstanceIdentifiers)
                     {
                         try
                         {
                             await _dicomFileStore.DeleteIfExistsAsync(deletedInstanceIdentifier, cancellationToken);
-                            await _dicomIndexDataStore.DeleteDeletedInstanceAsync(
-                                deletedInstanceIdentifier.StudyInstanceUid,
-                                deletedInstanceIdentifier.SeriesInstanceUid,
-                                deletedInstanceIdentifier.SopInstanceUid,
-                                deletedInstanceIdentifier.Version,
-                                cancellationToken);
-
-                            rowsProcessed++;
+                            await _dicomIndexDataStore.DeleteDeletedInstanceAsync(deletedInstanceIdentifier, cancellationToken);
                         }
                         catch (Exception cleanupException)
                         {
@@ -95,13 +91,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
                             try
                             {
-                                await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(
-                                    deletedInstanceIdentifier.StudyInstanceUid,
-                                    deletedInstanceIdentifier.SeriesInstanceUid,
-                                    deletedInstanceIdentifier.SopInstanceUid,
-                                    deletedInstanceIdentifier.Version,
-                                    _deletedInstanceCleanupConfiguration.RetryBackOff,
-                                    cancellationToken);
+                                await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, _deletedInstanceCleanupConfiguration.RetryBackOff, cancellationToken);
                             }
                             catch (Exception incrementException)
                             {

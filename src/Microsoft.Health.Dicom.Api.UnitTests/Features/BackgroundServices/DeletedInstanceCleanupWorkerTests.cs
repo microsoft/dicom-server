@@ -5,7 +5,6 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
@@ -36,23 +35,17 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.BackgroundServices
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
-        [Fact]
-        public async Task GivenLessThanTheBatchSize_WhenCallingExecute_ThenDeleteShouldBeCalledSingleTime()
-        {
-            _dicomDeleteService.CleanupDeletedInstancesAsync().ReturnsForAnyArgs((true, 9)).AndDoes(x => _cancellationTokenSource.Cancel());
-            var executeTask = _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
-
-            await _dicomDeleteService.ReceivedWithAnyArgs(1).CleanupDeletedInstancesAsync();
-        }
-
         [Theory]
+        [InlineData(0, 1)]
+        [InlineData(9, 1)]
+        [InlineData(10, 2)]
         [InlineData(11, 2)]
+        [InlineData(19, 2)]
         [InlineData(20, 3)]
         [InlineData(21, 3)]
-        [InlineData(29, 3)]
-        public void GivenMoreThanTheBatchSize_WhenCallingExecute_ThenDeleteShouldBeCalledCorrectNumberOfTimes(int numberOfDeletedInstances, int expectedDeleteCount)
+        public void GivenANumberOfDeletedEntriesAndBatchSize_WhenCallingExecute_ThenDeleteShouldBeCalledCorrectNumberOfTimes(int numberOfDeletedInstances, int expectedDeleteCount)
         {
-            (bool, int) GenerateResponse()
+            (bool, int) GenerateCleanupDeletedInstancesAsyncResponse()
             {
                 var returnValue = Math.Min(numberOfDeletedInstances, BatchSize);
                 numberOfDeletedInstances = Math.Max(numberOfDeletedInstances - BatchSize, 0);
@@ -61,7 +54,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.BackgroundServices
             }
 
             _dicomDeleteService.CleanupDeletedInstancesAsync().ReturnsForAnyArgs(
-                x => GenerateResponse())
+                x => GenerateCleanupDeletedInstancesAsyncResponse())
                 .AndDoes(x =>
                 {
                     if (numberOfDeletedInstances == 0)
