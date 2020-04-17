@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
-    public class BackgroundCleanupConfiguration
+    public class DeletedInstanceCleanupConfiguration
     {
         /// <summary>
         /// The number of minutes to wait before the initial attempt to cleanup an instance
@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Configs
         public int RetryBackOff { get; set; }
 
         /// <summary>
-        /// The amount of time to wait between polling for new entries to cleanup
+        /// The amount of time to wait between polling for new entries to cleanup in seconds
         /// </summary>
         public int PollingInterval { get; set; }
 

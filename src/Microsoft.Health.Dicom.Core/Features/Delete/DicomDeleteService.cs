@@ -21,26 +21,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
     {
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
         private readonly IDicomFileStore _dicomFileStore;
-        private readonly BackgroundCleanupConfiguration _backgroundCleanupConfiguration;
+        private readonly DeletedInstanceCleanupConfiguration _deletedInstanceCleanupConfiguration;
         private readonly ITransactionHandler _transactionHandler;
         private readonly ILogger<DicomDeleteService> _logger;
 
         public DicomDeleteService(
             IDicomIndexDataStore dicomIndexDataStore,
             IDicomFileStore dicomFileStore,
-            IOptions<BackgroundCleanupConfiguration> backgroundCleanupConfiguration,
+            IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
             ITransactionHandler transactionHandler,
             ILogger<DicomDeleteService> logger)
         {
             EnsureArg.IsNotNull(dicomIndexDataStore, nameof(dicomIndexDataStore));
             EnsureArg.IsNotNull(dicomFileStore, nameof(dicomFileStore));
-            EnsureArg.IsNotNull(backgroundCleanupConfiguration?.Value, nameof(backgroundCleanupConfiguration));
+            EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
             EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _dicomIndexDataStore = dicomIndexDataStore;
             _dicomFileStore = dicomFileStore;
-            _backgroundCleanupConfiguration = backgroundCleanupConfiguration.Value;
+            _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
             _transactionHandler = transactionHandler;
             _logger = logger;
         }
@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
         public async Task<(bool success, int rowsProcessed)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken = default)
         {
-            bool success = false;
+            bool success = true;
             int rowsProcessed = 0;
 
             using (ITransactionScope transactionScope = _transactionHandler.BeginTransaction())
@@ -70,9 +70,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                 try
                 {
                     IEnumerable<VersionedDicomInstanceIdentifier> deletedInstanceIdentifiers = await _dicomIndexDataStore.RetrieveDeletedInstancesAsync(
-                        _backgroundCleanupConfiguration.DeleteDelay,
-                        _backgroundCleanupConfiguration.BatchSize,
-                        _backgroundCleanupConfiguration.MaxRetries,
+                        _deletedInstanceCleanupConfiguration.DeleteDelay,
+                        _deletedInstanceCleanupConfiguration.BatchSize,
+                        _deletedInstanceCleanupConfiguration.MaxRetries,
                         cancellationToken);
 
                     foreach (VersionedDicomInstanceIdentifier deletedInstanceIdentifier in deletedInstanceIdentifiers)
@@ -92,6 +92,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                         catch (Exception cleanupException)
                         {
                             _logger.LogError(cleanupException, "Failed to cleanup instance.");
+
                             try
                             {
                                 await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(
@@ -99,22 +100,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                                     deletedInstanceIdentifier.SeriesInstanceUid,
                                     deletedInstanceIdentifier.SopInstanceUid,
                                     deletedInstanceIdentifier.Version,
-                                    _backgroundCleanupConfiguration.RetryBackOff,
+                                    _deletedInstanceCleanupConfiguration.RetryBackOff,
                                     cancellationToken);
                             }
                             catch (Exception incrementException)
                             {
                                 _logger.LogCritical(incrementException, "Failed to increment cleanup retry.");
+                                success = false;
                             }
                         }
                     }
 
                     transactionScope.Complete();
-                    success = true;
                 }
                 catch (Exception retrieveException)
                 {
                     _logger.LogCritical(retrieveException, "Failed to retrieve instances to cleanup.");
+                    success = false;
                 }
             }
 

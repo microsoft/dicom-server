@@ -7,6 +7,6 @@ namespace Microsoft.Health.Dicom.Core.Configs
 {
     public class ServicesConfiguration
     {
-        public BackgroundCleanupConfiguration BackgroundCleanup { get; } = new BackgroundCleanupConfiguration();
+        public DeletedInstanceCleanupConfiguration DeletedInstanceCleanup { get; } = new DeletedInstanceCleanupConfiguration();
     }
 }

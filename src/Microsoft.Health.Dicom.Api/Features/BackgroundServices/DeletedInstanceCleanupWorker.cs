@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -18,18 +19,18 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
     {
         private readonly ILogger<DeletedInstanceCleanupWorker> _logger;
         private readonly IDicomDeleteService _deleteService;
-        private BackgroundCleanupConfiguration _backgroundCleanupConfiguration;
         private readonly TimeSpan _pollingInterval;
+        private readonly int _batchSize;
 
-        public DeletedInstanceCleanupWorker(IDicomDeleteService deleteService, IOptions<BackgroundCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
+        public DeletedInstanceCleanupWorker(IDicomDeleteService deleteService, IOptions<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
         {
             EnsureArg.IsNotNull(deleteService, nameof(deleteService));
             EnsureArg.IsNotNull(backgroundCleanupConfiguration?.Value, nameof(backgroundCleanupConfiguration));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _deleteService = deleteService;
-            _backgroundCleanupConfiguration = backgroundCleanupConfiguration.Value;
-            _pollingInterval = TimeSpan.FromMinutes(_backgroundCleanupConfiguration.PollingInterval);
+            _pollingInterval = TimeSpan.FromSeconds(backgroundCleanupConfiguration.Value.PollingInterval);
+            _batchSize = backgroundCleanupConfiguration.Value.BatchSize;
             _logger = logger;
         }
 
@@ -44,10 +45,8 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
                     do
                     {
                         (success, rowsProcessed) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
-
-                        // TODO:  Add logging
                     }
-                    while (success && rowsProcessed > 0);
+                    while (success && rowsProcessed == _batchSize);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
@@ -56,7 +55,7 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
                 catch (Exception ex)
                 {
                     // The job failed.
-                    _logger.LogError(ex, "Unhandled exception in the worker.");
+                    _logger.LogCritical(ex, "Unhandled exception in the deleted instance cleanup worker.");
                 }
 
                 await Task.Delay(_pollingInterval, stoppingToken);

@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(Options.Create(dicomServerConfiguration));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
-            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.BackgroundCleanup));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
             services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
