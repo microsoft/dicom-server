@@ -8,6 +8,7 @@ A .NET Core implementation of the DICOM Web standard.
 - [Naming Guidelines](docs/NamingGuidelines.md)
 - [Exception handling](docs/ExceptionHandling.md)
 - [Tests](docs/Tests.md])
+- [Authentication](docs/Authentication.md)
 
 ## Contributing
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
