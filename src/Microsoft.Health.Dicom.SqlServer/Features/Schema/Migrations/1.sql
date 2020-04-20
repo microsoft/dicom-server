@@ -640,6 +640,21 @@ AS
     COMMIT TRANSACTION
 GO
 
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     RetrieveDeletedInstance
+--
+-- DESCRIPTION
+--     Retrieves deleted instances where the specified delay has passed or it is safe to retry the delete
+--
+-- PARAMETERS
+--     @deleteDelay
+--         * The delay after the initial delete to attempt cleanup
+--     @count
+--         * The number of entries to return
+--     @maxRetries
+--         * The maximum number of times to retry a cleanup
+/***************************************************************************************/
 CREATE PROCEDURE dbo.RetrieveDeletedInstance
     @deleteDelay int,
     @count int,
@@ -647,14 +662,31 @@ CREATE PROCEDURE dbo.RetrieveDeletedInstance
 AS
     SET NOCOUNT ON
 
-    SELECT  TOP(@count) *
-    FROM    DeletedInstance WITH (UPDLOCK, READPAST)
-    WHERE   (RetryCount = 0
-    AND     GETUTCDATE() > DateAdd(s, @deleteDelay, DeletedDateTime))
+    SELECT  TOP (@count) *
+    FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
+    WHERE   ( RetryCount = 0
+            AND GETUTCDATE() > DateAdd(s, @deleteDelay, DeletedDateTime))
     OR      (RetryCount < @maxRetries
-    AND     RetryAfter < GETUTCDATE())
+            AND RetryAfter < GETUTCDATE())
 GO
 
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     DeleteDeletedInstance
+--
+-- DESCRIPTION
+--     Removes a deleted instance from the deletedInstance table
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @watermark
+--         * The watermark of the entry
+/***************************************************************************************/
 CREATE PROCEDURE dbo.DeleteDeletedInstance(
     @studyInstanceUid varchar(64),
     @seriesInstanceUid varchar(64),
@@ -672,6 +704,25 @@ AS
     AND     Watermark = @watermark
 GO
 
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     IncrementDeletedInstanceRetry
+--
+-- DESCRIPTION
+--     Increments the retryCount of and retryAfter of a deleted instance
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @watermark
+--         * The watermark of the entry
+--     @retryOffset
+--         * The amount of time to wait before attempting to delete again
+/***************************************************************************************/
 CREATE PROCEDURE dbo.IncrementDeletedInstanceRetry(
     @studyInstanceUid varchar(64),
     @seriesInstanceUid varchar(64),

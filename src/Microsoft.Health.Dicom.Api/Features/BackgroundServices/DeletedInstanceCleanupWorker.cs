@@ -47,18 +47,19 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
                         (success, rowsProcessed) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
                     }
                     while (success && rowsProcessed == _batchSize);
+
+                    await Task.Delay(_pollingInterval, stoppingToken);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     // Cancel requested.
+                    break;
                 }
                 catch (Exception ex)
                 {
                     // The job failed.
                     _logger.LogCritical(ex, "Unhandled exception in the deleted instance cleanup worker.");
                 }
-
-                await Task.Delay(_pollingInterval, stoppingToken);
             }
         }
     }
