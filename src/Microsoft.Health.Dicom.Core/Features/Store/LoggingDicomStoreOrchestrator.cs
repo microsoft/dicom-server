@@ -22,19 +22,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             LoggerMessage.Define<string>(
                 LogLevel.Information,
                 default,
-                "Storing a DICOM instance entry: '{DicomInstanceEntry}'.");
+                "Storing a DICOM instance: '{DicomInstance}'.");
 
         private static readonly Action<ILogger, string, Exception> LogSuccessfullyPersistedDicomInstanceEntryDelegate =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
                 default,
-                "Successfully stored the DICOM instance entry: '{DicomInstanceEntry}'.");
+                "Successfully stored the DICOM instance: '{DicomInstance}'.");
 
         private static readonly Action<ILogger, string, Exception> LogFailedToPersistDicomInstanceEntryDelegate =
             LoggerMessage.Define<string>(
                 LogLevel.Warning,
                 default,
-                "Failed to store the DICOM instance entry: '{DicomInstanceEntry}'.");
+                "Failed to store the DICOM instance: '{DicomInstance}'.");
 
         private readonly IDicomStoreOrchestrator _dicomStoreOrchestrator;
         private readonly ILogger _logger;

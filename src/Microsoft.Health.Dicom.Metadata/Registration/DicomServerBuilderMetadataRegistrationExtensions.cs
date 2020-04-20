@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Metadata;
 using Microsoft.Health.Dicom.Metadata.Features.Health;
@@ -65,6 +66,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
+            // However, the current implementation of the decorate method requires the concrete type to be already registered,
+            // so we need to register here. Need to some more investigation to see how we might be able to do this.
+            services.Decorate<IDicomMetadataStore, LoggingDicomMetadataStore>();
 
             return serverBuilder;
         }
