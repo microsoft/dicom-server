@@ -56,6 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<Uri> AddFileAsync(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, Stream stream, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomInstanceIdentifier, nameof(dicomInstanceIdentifier));
@@ -78,6 +79,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             }
         }
 
+        /// <inheritdoc />
         public async Task DeleteFileIfExistsAsync(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomInstanceIdentifier, nameof(dicomInstanceIdentifier));
@@ -98,6 +100,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             }
         }
 
+        /// <inheritdoc />
         public async Task<Stream> GetFileAsync(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomInstanceIdentifier, nameof(dicomInstanceIdentifier));

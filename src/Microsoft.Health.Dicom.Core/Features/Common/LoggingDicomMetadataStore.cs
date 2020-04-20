@@ -57,6 +57,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task AddInstanceMetadataAsync(DicomDataset dicomDataset, long version, CancellationToken cancellationToken)
         {
             LogAddInstanceMetadataDelegate(_logger, dicomDataset.ToVersionedDicomInstanceIdentifier(version).ToString(), null);
@@ -75,6 +76,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             }
         }
 
+        /// <inheritdoc />
         public async Task DeleteInstanceMetadataAsync(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken)
         {
             LogDeleteInstanceMetadataDelegate(_logger, dicomInstanceIdentifier.ToString(), null);
@@ -93,6 +95,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             }
         }
 
+        /// <inheritdoc />
         public async Task<DicomDataset> GetInstanceMetadataAsync(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken)
         {
             LogGetInstanceMetadataDelegate(_logger, dicomInstanceIdentifier.ToString(), null);
