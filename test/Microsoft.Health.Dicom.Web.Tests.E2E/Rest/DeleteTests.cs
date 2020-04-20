@@ -272,32 +272,32 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private async Task VerifyStudyRemoval(string studyInstanceUid)
         {
-            HttpResult<IReadOnlyList<DicomFile>> studyResult = await _client.GetStudyAsync(studyInstanceUid);
+            HttpResult<IReadOnlyList<DicomFile>> studyResult = await _client.RetrieveStudyAsync(studyInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, studyResult.StatusCode);
         }
 
         private async Task VerifySeriesRemoval(string studyInstanceUid, string seriesInstanceUid)
         {
-            HttpResult<IReadOnlyList<DicomFile>> seriesResult = await _client.GetSeriesAsync(studyInstanceUid, seriesInstanceUid);
+            HttpResult<IReadOnlyList<DicomFile>> seriesResult = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, seriesResult.StatusCode);
         }
 
         private async Task VerifySopInstanceRemoval(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            HttpResult<IReadOnlyList<DicomFile>> instanceResult = await _client.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            HttpResult<IReadOnlyList<DicomFile>> instanceResult = await _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             Assert.Equal(HttpStatusCode.NotFound, instanceResult.StatusCode);
         }
 
         private async Task VerifyRemainingSeries(string studyInstanceUid, string seriesInstanceUid, int expectedInstanceCount)
         {
-            HttpResult<IReadOnlyList<DicomFile>> seriesResult = await _client.GetSeriesAsync(studyInstanceUid, seriesInstanceUid);
+            HttpResult<IReadOnlyList<DicomFile>> seriesResult = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid);
             Assert.Equal(HttpStatusCode.OK, seriesResult.StatusCode);
             Assert.Equal(expectedInstanceCount, seriesResult.Value.Count);
         }
 
         private async Task VerifyRemainingStudy(string studyInstanceUid, int expectedInstanceCount)
         {
-            HttpResult<IReadOnlyList<DicomFile>> studyResult = await _client.GetStudyAsync(studyInstanceUid);
+            HttpResult<IReadOnlyList<DicomFile>> studyResult = await _client.RetrieveStudyAsync(studyInstanceUid);
             Assert.Equal(HttpStatusCode.OK, studyResult.StatusCode);
             Assert.Equal(expectedInstanceCount, studyResult.Value.Count);
         }

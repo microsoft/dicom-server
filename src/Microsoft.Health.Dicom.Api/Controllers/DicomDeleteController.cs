@@ -7,7 +7,6 @@ using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Routing;
@@ -16,7 +15,6 @@ using Microsoft.Health.Dicom.Core.Messages.Delete;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [Authorize]
     public class DicomDeleteController : Controller
     {
         private readonly IMediator _mediator;

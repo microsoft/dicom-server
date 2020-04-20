@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class DicomInstanceNotFoundException : DicomServerException
+    public class DicomInstanceNotFoundException : DicomResourceNotFoundException
     {
         public DicomInstanceNotFoundException()
             : base(DicomCoreResource.InstanceNotFound)

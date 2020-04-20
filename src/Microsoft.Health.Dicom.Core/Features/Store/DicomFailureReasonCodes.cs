@@ -8,10 +8,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// <summary>
     /// If any of the failure codes are modified, please check they match the DICOM conformance statement.
     /// </summary>
-    internal static class DicomStoreFailureCodes
+    internal static class DicomFailureReasonCodes
     {
-        public const ushort ProcessingFailureCode = 272;
-        public const ushort SopInstanceAlreadyExistsFailureCode = 45070;
-        public const ushort MismatchStudyInstanceUidFailureCode = 43265;
+        public const ushort ProcessingFailure = 272;
+        public const ushort ValidationFailure = 43264;
+        public const ushort MismatchStudyInstanceUid = 43265;
+        public const ushort SopInstanceAlreadyExists = 45070;
     }
 }

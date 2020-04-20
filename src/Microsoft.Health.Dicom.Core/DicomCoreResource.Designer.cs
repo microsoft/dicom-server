@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class DicomCoreResource {
@@ -61,11 +61,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
+        ///   Looks up a localized string similar to DICOM Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
         /// </summary>
         internal static string DicomIdentifierInvalid {
             get {
                 return ResourceManager.GetString("DicomIdentifierInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
+        /// </summary>
+        internal static string DuplicatedUidsNotAllowed {
+            get {
+                return ResourceManager.GetString("DuplicatedUidsNotAllowed", resourceCulture);
             }
         }
         
@@ -77,7 +86,18 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("DuplicateQueryParam", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The instance specified was not found..
+        /// </summary>
+        internal static string FrameNotFound
+        {
+            get
+            {
+                return ResourceManager.GetString("FrameNotFound", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. IncludeField has unknown attribute {0}..
         /// </summary>
@@ -152,6 +172,33 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The StudyInstanceUid &apos;{0}&apos; in the payload does not match the specified StudyInstanceUid &apos;{1}&apos;..
+        /// </summary>
+        internal static string MismatchStudyInstanceUid {
+            get {
+                return ResourceManager.GetString("MismatchStudyInstanceUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The required tag &apos;{0}&apos; is missing..
+        /// </summary>
+        internal static string MissingRequiredTag {
+            get {
+                return ResourceManager.GetString("MissingRequiredTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} has empty string value that is not supported..
+        /// </summary>
+        internal static string QueryEmptyAttributeValue {
+            get {
+                return ResourceManager.GetString("QueryEmptyAttributeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Querying is only supported at resource level Studies/Series/Instances..
         /// </summary>
         internal static string QueryInvalidResourceLevel {
@@ -161,7 +208,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query.  Specified limit value {0} is outside the allowed max of {1}..
+        ///   Looks up a localized string similar to Invalid QIDO-RS query.  Specified limit value {0} is outside the allowed range of {1}..{2}..
         /// </summary>
         internal static string QueryResultCountMaxExceeded {
             get {

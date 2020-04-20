@@ -10,19 +10,19 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
 {
-    public class RetrieveDicomResourceRequestTests
+    public class DicomRetrieveResourceRequestTests
     {
         [Fact]
-        public void GivenRetrieveDicomResourcesRequestForStudy_OnConstruction_StudyResourceTypeIsSet()
+        public void GivenRetrieveDicomResourcesRequestForStudy_WhenConstructed_ThenStudyResourceTypeIsSet()
         {
-            var request = new RetrieveDicomResourceRequest(requestedTransferSyntax: string.Empty, TestUidGenerator.Generate());
+            var request = new DicomRetrieveResourceRequest(requestedTransferSyntax: string.Empty, TestUidGenerator.Generate());
             Assert.Equal(ResourceType.Study, request.ResourceType);
         }
 
         [Fact]
-        public void GivenRetrieveDicomResourcesRequestForSeries_OnConstruction_SeriesResourceTypeIsSet()
+        public void GivenRetrieveDicomResourcesRequestForSeries_WhenConstructed_ThenSeriesResourceTypeIsSet()
         {
-            var request = new RetrieveDicomResourceRequest(
+            var request = new DicomRetrieveResourceRequest(
                 requestedTransferSyntax: string.Empty,
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
@@ -30,9 +30,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         }
 
         [Fact]
-        public void GivenRetrieveDicomResourcesRequestForInstance_OnConstruction_InstanceResourceTypeIsSet()
+        public void GivenRetrieveDicomResourcesRequestForInstance_WhenConstructed_ThenInstanceResourceTypeIsSet()
         {
-            var request = new RetrieveDicomResourceRequest(
+            var request = new DicomRetrieveResourceRequest(
                 requestedTransferSyntax: string.Empty,
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
@@ -41,9 +41,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         }
 
         [Fact]
-        public void GivenRetrieveDicomResourcesRequestForFrames_OnConstruction_FramesResourceTypeIsSet()
+        public void GivenRetrieveDicomResourcesRequestForFrames_WhenConstructed_ThenFramesResourceTypeIsSet()
         {
-            var request = new RetrieveDicomResourceRequest(
+            var request = new DicomRetrieveResourceRequest(
                 requestedTransferSyntax: string.Empty,
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),

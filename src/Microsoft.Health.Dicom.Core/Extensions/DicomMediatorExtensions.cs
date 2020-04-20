@@ -25,11 +25,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new DicomStoreRequest(requestBody, requestContentType, studyInstanceUid), cancellationToken);
         }
 
-        public static Task<RetrieveDicomResourceResponse> RetrieveDicomStudyAsync(
+        public static Task<DicomRetrieveResourceResponse> RetrieveDicomStudyAsync(
             this IMediator mediator, string studyInstanceUid, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUid),
+                new DicomRetrieveResourceRequest(requestedTransferSyntax, studyInstanceUid),
                 cancellationToken);
         }
 
@@ -39,11 +39,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new DicomRetrieveMetadataRequest(studyInstanceUid), cancellationToken);
         }
 
-        public static Task<RetrieveDicomResourceResponse> RetrieveDicomSeriesAsync(
+        public static Task<DicomRetrieveResourceResponse> RetrieveDicomSeriesAsync(
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid),
+                new DicomRetrieveResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid),
                 cancellationToken);
         }
 
@@ -53,11 +53,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid), cancellationToken);
         }
 
-        public static Task<RetrieveDicomResourceResponse> RetrieveDicomInstanceAsync(
+        public static Task<DicomRetrieveResourceResponse> RetrieveDicomInstanceAsync(
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid, sopInstanceUid),
+                new DicomRetrieveResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid, sopInstanceUid),
                 cancellationToken);
         }
 
@@ -67,11 +67,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new DicomRetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid), cancellationToken);
         }
 
-        public static Task<RetrieveDicomResourceResponse> RetrieveDicomFramesAsync(
+        public static Task<DicomRetrieveResourceResponse> RetrieveDicomFramesAsync(
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int[] frames, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveDicomResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames),
+                new DicomRetrieveResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames),
                 cancellationToken);
         }
 

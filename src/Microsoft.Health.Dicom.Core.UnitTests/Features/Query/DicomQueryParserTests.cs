@@ -71,6 +71,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
+        [InlineData("ReferringPhysicianName", "dr^joe")]
+        public void GivenFilterCondition_ValidReferringPhysicianNameTag_CheckProperties(string key, string value)
+        {
+            DicomQueryExpression dicomQueryExpression = _queryParser
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies));
+            Assert.True(dicomQueryExpression.HasFilters);
+            var singleValueCond = dicomQueryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
+            Assert.NotNull(singleValueCond);
+            Assert.Equal(DicomTag.ReferringPhysicianName, singleValueCond.DicomTag);
+            Assert.Equal(value, singleValueCond.Value);
+        }
+
+        [Theory]
         [InlineData("00080061", "CT")]
         public void GivenFilterCondition_WithNotSupportedTag_Throws(string key, string value)
         {
@@ -102,6 +115,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("PatientName=Joe&00100010=Rob")]
         [InlineData("00100010=Joe, Rob")]
         public void GivenFilterCondition_WithDuplicateQueryParam_Throws(string queryString)
+        {
+            Assert.Throws<DicomQueryParseException>(() => _queryParser
+                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies)));
+        }
+
+        [Theory]
+        [InlineData("PatientName=  ")]
+        [InlineData("PatientName=&fuzzyMatching=true")]
+        [InlineData("StudyDescription=")]
+        public void GivenFilterCondition_WithInvalidAttributeIdStringValue_Throws(string queryString)
         {
             Assert.Throws<DicomQueryParseException>(() => _queryParser
                 .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies)));
@@ -153,11 +176,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         [Theory]
         [InlineData("limit", 0)]
-        public void GivenLimit_WithZero_CheckEvaluatedLimit(string key, int value)
+        public void GivenLimit_WithZero_ThrowsException(string key, int value)
         {
-            DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies));
-            Assert.True(dicomQueryExpression.EvaluatedLimit == DicomQueryLimit.DefaultQueryResultCount);
+            Assert.Throws<DicomQueryParseException>(() => _queryParser
+                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies)));
         }
 
         [Theory]

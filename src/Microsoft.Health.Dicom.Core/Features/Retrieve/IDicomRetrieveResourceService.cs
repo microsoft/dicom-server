@@ -11,8 +11,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public interface IDicomRetrieveResourceService
     {
-        Task<RetrieveDicomResourceResponse> GetInstanceResourceAsync(
-            RetrieveDicomResourceRequest message,
+        Task<DicomRetrieveResourceResponse> GetInstanceResourceAsync(
+            DicomRetrieveResourceRequest message,
             CancellationToken cancellationToken = default);
     }
 }

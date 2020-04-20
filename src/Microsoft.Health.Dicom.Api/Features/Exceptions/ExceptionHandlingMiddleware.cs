@@ -66,23 +66,23 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                 case DicomValidationException _:
                     statusCode = HttpStatusCode.BadRequest;
                     break;
-                case DicomInstanceNotFoundException _:
+                case DicomResourceNotFoundException _:
                     statusCode = HttpStatusCode.NotFound;
                     break;
                 case DicomServerException _:
                     _logger.LogWarning("Service exception: {0}", exception);
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
-
-                // TODO remove below exception after we clean up all exceptions
-                case DicomException dicomException:
-                    statusCode = dicomException.ResponseStatusCode;
-                    break;
                 case UnsupportedMediaTypeException _:
                     statusCode = HttpStatusCode.UnsupportedMediaType;
                     break;
                 case ServiceUnavailableException _:
                     statusCode = HttpStatusCode.ServiceUnavailable;
+                    break;
+
+                // TODO remove below exception after we clean up all exceptions
+                case DicomException dicomException:
+                    statusCode = dicomException.ResponseStatusCode;
                     break;
                 default:
                     _logger.LogError("Unhandled exception: {0}", exception);

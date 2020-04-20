@@ -10,27 +10,27 @@ using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
-    public class RetrieveDicomResourceRequest : IRequest<RetrieveDicomResourceResponse>
+    public class DicomRetrieveResourceRequest : IRequest<DicomRetrieveResourceResponse>
     {
         /// <summary>
         /// If the requested transfer syntax equals '*', the caller is requesting the original transfer syntax of the uploaded file.
         /// </summary>
         private const string OriginalTransferSyntaxRequest = "*";
 
-        public RetrieveDicomResourceRequest(string requestedTransferSyntax, string studyInstanceUid)
+        public DicomRetrieveResourceRequest(string requestedTransferSyntax, string studyInstanceUid)
             : this(ResourceType.Study, requestedTransferSyntax)
         {
             StudyInstanceUid = studyInstanceUid;
         }
 
-        public RetrieveDicomResourceRequest(string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid)
+        public DicomRetrieveResourceRequest(string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid)
             : this(ResourceType.Series, requestedTransferSyntax)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
         }
 
-        public RetrieveDicomResourceRequest(
+        public DicomRetrieveResourceRequest(
             string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
             : this(ResourceType.Instance, requestedTransferSyntax)
         {
@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             SopInstanceUid = sopInstanceUid;
         }
 
-        public RetrieveDicomResourceRequest(
+        public DicomRetrieveResourceRequest(
             string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IEnumerable<int> frames)
             : this(ResourceType.Frames, requestedTransferSyntax)
         {
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             Frames = frames?.Select(x => x - 1);
         }
 
-        private RetrieveDicomResourceRequest(ResourceType resourceType, string requestedRepresentation)
+        private DicomRetrieveResourceRequest(ResourceType resourceType, string requestedRepresentation)
         {
             ResourceType = resourceType;
             RequestedRepresentation = string.IsNullOrWhiteSpace(requestedRepresentation) ? null : requestedRepresentation;

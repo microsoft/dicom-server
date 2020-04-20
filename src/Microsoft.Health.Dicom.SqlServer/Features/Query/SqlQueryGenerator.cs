@@ -292,13 +292,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         public override void Visit(PersonNameFuzzyMatchCondition fuzzyMatchCondition)
         {
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(fuzzyMatchCondition.DicomTag);
-            var wildcardValue = $"\"{fuzzyMatchCondition.Value}*\"";
+            char[] delimiterChars = { ' ' };
+            string[] words = fuzzyMatchCondition.Value.Split(delimiterChars, System.StringSplitOptions.RemoveEmptyEntries);
+
+            var fuzzyMatchString = string.Join(" AND ", words.Select(w => $"\"{w}*\""));
             var tableAlias = GetTableAlias(dicomTagSqlEntry);
             _stringBuilder
                 .Append("AND CONTAINS(")
                 .Append(dicomTagSqlEntry.FullTextIndexColumnName)
                 .Append(", ")
-                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, wildcardValue))
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, fuzzyMatchString))
                 .Append(")")
                 .AppendLine();
         }
