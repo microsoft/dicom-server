@@ -650,7 +650,7 @@ AS
     SELECT  TOP(@count) *
     FROM    DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE   (RetryCount = 0
-    AND     GETUTCDATE() > DateAdd(mi, @deleteDelay, DeletedDateTime))
+    AND     GETUTCDATE() > DateAdd(s, @deleteDelay, DeletedDateTime))
     OR      (RetryCount < @maxRetries
     AND     RetryAfter < GETUTCDATE())
 GO
@@ -684,7 +684,7 @@ AS
 
     UPDATE  dbo.DeletedInstance
     SET     RetryCount = RetryCount + 1,
-            RetryAfter = DATEADD(mi, @retryOffset, GETUTCDATE())
+            RetryAfter = DATEADD(s, @retryOffset, GETUTCDATE())
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = @seriesInstanceUid
     AND     SopInstanceUid = @sopInstanceUid

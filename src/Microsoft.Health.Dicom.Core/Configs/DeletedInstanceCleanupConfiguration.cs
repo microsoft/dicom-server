@@ -8,7 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Configs
     public class DeletedInstanceCleanupConfiguration
     {
         /// <summary>
-        /// The number of minutes to wait before the initial attempt to cleanup an instance
+        /// The number of seconds to wait before the initial attempt to cleanup an instance
         /// </summary>
         public int DeleteDelay { get; set; }
 
@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Configs
         public int MaxRetries { get; set; }
 
         /// <summary>
-        /// The amount of time to back off between retries in minutes
+        /// The amount of time to back off between retries in seconds
         /// </summary>
         public int RetryBackOff { get; set; }
 

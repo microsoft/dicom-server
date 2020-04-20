@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Features.Transactions;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -20,6 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
     public class DicomDeleteService : IDicomDeleteService
     {
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
+        private readonly IDicomMetadataStore _dicomMetadataStore;
         private readonly IDicomFileStore _dicomFileStore;
         private readonly DeletedInstanceCleanupConfiguration _deletedInstanceCleanupConfiguration;
         private readonly ITransactionHandler _transactionHandler;
@@ -27,18 +29,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
         public DicomDeleteService(
             IDicomIndexDataStore dicomIndexDataStore,
+            IDicomMetadataStore dicomMetadataStore,
             IDicomFileStore dicomFileStore,
             IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
             ITransactionHandler transactionHandler,
             ILogger<DicomDeleteService> logger)
         {
             EnsureArg.IsNotNull(dicomIndexDataStore, nameof(dicomIndexDataStore));
+            EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
             EnsureArg.IsNotNull(dicomFileStore, nameof(dicomFileStore));
             EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
             EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _dicomIndexDataStore = dicomIndexDataStore;
+            _dicomMetadataStore = dicomMetadataStore;
             _dicomFileStore = dicomFileStore;
             _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
             _transactionHandler = transactionHandler;
@@ -83,6 +88,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                         try
                         {
                             await _dicomFileStore.DeleteIfExistsAsync(deletedInstanceIdentifier, cancellationToken);
+                            await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier, cancellationToken);
                             await _dicomIndexDataStore.DeleteDeletedInstanceAsync(deletedInstanceIdentifier, cancellationToken);
                         }
                         catch (Exception cleanupException)

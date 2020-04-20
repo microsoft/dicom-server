@@ -15,6 +15,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 
         Task<DicomDataset> GetInstanceMetadataAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default);
 
-        Task DeleteInstanceMetadataAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default);
+        Task DeleteInstanceMetadataIfExistsAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken = default);
     }
 }

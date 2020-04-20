@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 retryPolicy);
         }
 
-        public async Task DeleteInstanceMetadataAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken)
+        public async Task DeleteInstanceMetadataIfExistsAsync(DicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken)
         {
             CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(dicomInstanceIdentifier);
 
@@ -98,7 +98,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 async (blockBlob) =>
                 {
                     _logger.LogDebug($"Deleting Instance Metadata: {dicomInstanceIdentifier}");
-                    await cloudBlockBlob.DeleteAsync(cancellationToken);
+                    await cloudBlockBlob.DeleteIfExistsAsync(cancellationToken);
                 },
                 retryPolicy);
         }

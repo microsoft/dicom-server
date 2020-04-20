@@ -6,12 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Features.Transactions;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
@@ -30,10 +32,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
         private readonly IDicomFileStore _dicomFileDataStore;
         private readonly ITransactionScope _transactionScope;
         private readonly DeletedInstanceCleanupConfiguration _dicomDeleteConfiguration;
+        private readonly IDicomMetadataStore _dicomMetadataStore;
 
         public DicomDeleteServiceTests()
         {
             _dicomIndexDataStore = Substitute.For<IDicomIndexDataStore>();
+            _dicomMetadataStore = Substitute.For<IDicomMetadataStore>();
             _dicomFileDataStore = Substitute.For<IDicomFileStore>();
             _dicomDeleteConfiguration = new DeletedInstanceCleanupConfiguration
             {
@@ -50,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
             _transactionScope = Substitute.For<ITransactionScope>();
             transactionHandler.BeginTransaction().Returns(_transactionScope);
 
-            _dicomDeleteService = new DicomDeleteService(_dicomIndexDataStore, _dicomFileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DicomDeleteService>.Instance);
+            _dicomDeleteService = new DicomDeleteService(_dicomIndexDataStore, _dicomMetadataStore, _dicomFileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DicomDeleteService>.Instance);
         }
 
         [Fact]
@@ -81,6 +85,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 .DidNotReceiveWithAnyArgs()
                 .DeleteIfExistsAsync(dicomInstanceIdentifier: default, CancellationToken.None);
 
+            await _dicomMetadataStore
+                .DidNotReceiveWithAnyArgs()
+                .DeleteInstanceMetadataIfExistsAsync(dicomInstanceIdentifier: default, CancellationToken.None);
+
             _transactionScope.Received(1).Complete();
         }
 
@@ -95,6 +103,29 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
 
             _dicomFileDataStore
                 .DeleteIfExistsAsync(Arg.Any<DicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
+                .ThrowsForAnyArgs(new Exception("Generic exception"));
+
+            (bool success, int rowsProcessed) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+
+            Assert.True(success);
+            Assert.Equal(1, rowsProcessed);
+
+            await _dicomIndexDataStore
+                .Received(1)
+                .IncrementDeletedInstanceRetryAsync(responseList[0], _dicomDeleteConfiguration.RetryBackOff, CancellationToken.None);
+        }
+
+        [Fact]
+        public async Task GivenADeletedInstance_WhenMetadataStoreThrowsUnhandled_ThenIncrementRetryIsCalled()
+        {
+            List<VersionedDicomInstanceIdentifier> responseList = GeneratedDeletedInstanceList(1);
+
+            _dicomIndexDataStore
+                .RetrieveDeletedInstancesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+                .ReturnsForAnyArgs(responseList);
+
+            _dicomMetadataStore
+                .DeleteInstanceMetadataIfExistsAsync(Arg.Any<DicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
             (bool success, int rowsProcessed) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -191,6 +222,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 await _dicomIndexDataStore
                     .Received(1)
                     .DeleteDeletedInstanceAsync(deletedVersion, CancellationToken.None);
+
+                await _dicomMetadataStore
+                    .Received(1)
+                    .DeleteInstanceMetadataIfExistsAsync(deletedVersion, CancellationToken.None);
 
                 await _dicomFileDataStore
                     .Received(1)
