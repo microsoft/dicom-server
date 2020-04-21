@@ -24,14 +24,14 @@ using MetadataConstants = Microsoft.Health.Dicom.Metadata.Constants;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class DicomBlobStorageTestsFixture : IAsyncLifetime
+    public class DicomDataStoreTestsFixture : IAsyncLifetime
     {
         private readonly BlobDataStoreConfiguration _blobDataStoreConfiguration;
         private readonly BlobContainerConfiguration _blobContainerConfiguration;
         private readonly BlobContainerConfiguration _metadataContainerConfiguration;
         private CloudBlobClient _blobClient;
 
-        public DicomBlobStorageTestsFixture()
+        public DicomDataStoreTestsFixture()
         {
             _blobContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
             _metadataContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
@@ -70,8 +70,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var jsonSerializer = new JsonSerializer();
             jsonSerializer.Converters.Add(new JsonDicomConverter());
 
-            DicomFileStore = new DicomBlobFileStore(_blobClient, optionsMonitor, NullLogger<DicomBlobFileStore>.Instance);
-            DicomMetadataStore = new DicomBlobMetadataStore(_blobClient, jsonSerializer, optionsMonitor, RecyclableMemoryStreamManager, NullLogger<DicomBlobMetadataStore>.Instance);
+            DicomFileStore = new DicomBlobFileStore(_blobClient, optionsMonitor);
+            DicomMetadataStore = new DicomBlobMetadataStore(_blobClient, jsonSerializer, optionsMonitor);
         }
 
         public async Task DisposeAsync()

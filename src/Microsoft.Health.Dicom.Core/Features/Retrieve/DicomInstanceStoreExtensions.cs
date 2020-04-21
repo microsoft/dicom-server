@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public static class DicomInstanceStoreExtensions
     {
-        public static async Task<IEnumerable<DicomInstanceIdentifier>> GetInstancesToRetrieve(
+        public static async Task<IEnumerable<VersionedDicomInstanceIdentifier>> GetInstancesToRetrieve(
                 this IDicomInstanceStore dicomInstanceStore,
                 ResourceType resourceType,
                 string studyInstanceUid,
@@ -23,7 +23,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 string sopInstanceUid,
                 CancellationToken cancellationToken)
         {
-            IEnumerable<DicomInstanceIdentifier> instancesToRetrieve = Enumerable.Empty<DicomInstanceIdentifier>();
+            IEnumerable<VersionedDicomInstanceIdentifier> instancesToRetrieve = Enumerable.Empty<VersionedDicomInstanceIdentifier>();
+
             switch (resourceType)
             {
                 case ResourceType.Frames:

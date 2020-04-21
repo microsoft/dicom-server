@@ -131,7 +131,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public async Task GivenADicomDataStoreExceptionWithConflictWhenStoring_WhenProcessed_ThenFailedEntryShouldBeAddedWithSopInstanceAlreadyExists()
+        public async Task GivenADicomInstanceAlreadyExistsExceptionWithConflictWhenStoring_WhenProcessed_ThenFailedEntryShouldBeAddedWithSopInstanceAlreadyExists()
         {
             IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
@@ -139,7 +139,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomStoreOrchestrator
                 .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
-                .Do(_ => throw new DicomDataStoreException(HttpStatusCode.Conflict));
+                .Do(_ => throw new DicomInstanceAlreadyExistsException());
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 

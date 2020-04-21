@@ -199,7 +199,7 @@ INCLUDE
     SeriesInstanceUid,
     SopInstanceUid
 )
-
+            
 CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_Watermark on dbo.Instance
 (
     StudyInstanceUid,
@@ -402,7 +402,7 @@ GO
 --     AddInstance
 --
 -- DESCRIPTION
---     Adds a DICOM instance
+--     Adds a DICOM instance.
 --
 -- PARAMETERS
 --     @studyInstanceUid
@@ -429,22 +429,22 @@ GO
 --         * The date when the procedure for the series was performed.
 --
 -- RETURN VALUE
---         None
+--     The watermark (version).
 --
 
 CREATE PROCEDURE dbo.AddInstance
-    @studyInstanceUid VARCHAR(64),
-    @seriesInstanceUid VARCHAR(64),
-    @sopInstanceUid VARCHAR(64),
-    @patientId NVARCHAR(64),
-    @patientName NVARCHAR(325) = NULL,
-    @referringPhysicianName NVARCHAR(325) = NULL,
-    @studyDate DATE = NULL,
-    @studyDescription NVARCHAR(64) = NULL,
-    @accessionNumber NVARCHAR(64) = NULL,
-    @modality NVARCHAR(16) = NULL,
-    @performedProcedureStepStartDate DATE = NULL,
-    @initialStatus TINYINT
+    @studyInstanceUid                   VARCHAR(64),
+    @seriesInstanceUid                  VARCHAR(64),
+    @sopInstanceUid                     VARCHAR(64),
+    @patientId                          NVARCHAR(64),
+    @patientName                        NVARCHAR(325) = NULL,
+    @referringPhysicianName             NVARCHAR(325) = NULL,
+    @studyDate                          DATE = NULL,
+    @studyDescription                   NVARCHAR(64) = NULL,
+    @accessionNumber                    NVARCHAR(64) = NULL,
+    @modality                           NVARCHAR(16) = NULL,
+    @performedProcedureStepStartDate    DATE = NULL,
+    @initialStatus                      TINYINT
 AS
     SET NOCOUNT ON
 
@@ -455,34 +455,37 @@ AS
     DECLARE @currentDate DATETIME2(7) = GETUTCDATE()
     DECLARE @existingStatus TINYINT
     DECLARE @metadataId BIGINT
-    
+    DECLARE @newVersion BIGINT
+
     IF EXISTS
         (SELECT * 
         FROM dbo.Instance
-        WHERE studyInstanceUid = @studyInstanceUid
-        AND seriesInstanceUid = @seriesInstanceUid
-        AND sopInstanceUid = @sopInstanceUid)
+        WHERE StudyInstanceUid = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid = @sopInstanceUid)
     BEGIN
         THROW 50409, 'Instance already exists', 1;
     END
 
     -- The instance does not exist, insert it.
+    SET @newVersion = NEXT VALUE FOR dbo.WatermarkSequence
+
     INSERT INTO dbo.Instance
-        (studyInstanceUid, seriesInstanceUid, sopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+        (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, NEXT VALUE FOR dbo.WatermarkSequence, @initialStatus, @currentDate, @currentDate)
+        (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newVersion, @initialStatus, @currentDate, @currentDate)
 
     -- Update the study metadata if needed.
     SELECT @metadataId = Id
     FROM dbo.StudyMetadataCore
-    WHERE studyInstanceUid = @studyInstanceUid
+    WHERE StudyInstanceUid = @studyInstanceUid
 
     IF @@ROWCOUNT = 0
     BEGIN
         SET @metadataId = NEXT VALUE FOR dbo.MetadataIdSequence
 
         INSERT INTO dbo.StudyMetadataCore
-            (Id, studyInstanceUid, Version, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            (Id, StudyInstanceUid, Version, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
             (@metadataId, @studyInstanceUid, 0, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
     END
@@ -490,10 +493,10 @@ AS
         -- TODO: handle the versioning
     --END
 
-    IF NOT EXISTS (SELECT * FROM dbo.SeriesMetadataCore WHERE StudyId = @metadataId AND seriesInstanceUid = @seriesInstanceUid)
+    IF NOT EXISTS (SELECT * FROM dbo.SeriesMetadataCore WHERE StudyId = @metadataId AND SeriesInstanceUid = @seriesInstanceUid)
     BEGIN
         INSERT INTO dbo.SeriesMetadataCore
-            (StudyId, seriesInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
+            (StudyId, SeriesInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
         VALUES
             (@metadataId, @seriesInstanceUid, 0, @modality, @performedProcedureStepStartDate)
     END
@@ -501,8 +504,65 @@ AS
         -- TODO: handle the versioning
     --END
 
+    SELECT @newVersion
+
     COMMIT TRANSACTION
 GO
+
+/*************************************************************
+    Stored procedures for updating an instance status.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     UpdateInstanceStatus
+--
+-- DESCRIPTION
+--     Updates a DICOM instance status.
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @watermark
+--         * The watermark.
+--     @status
+--         * The new status to update to.
+--
+-- RETURN VALUE
+--     None
+--
+CREATE PROCEDURE dbo.UpdateInstanceStatus
+    @studyInstanceUid   VARCHAR(64),
+    @seriesInstanceUid  VARCHAR(64),
+    @sopInstanceUid     VARCHAR(64),
+    @watermark          BIGINT,
+    @status             TINYINT
+AS
+    SET NOCOUNT ON
+
+    SET XACT_ABORT ON
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+    BEGIN TRANSACTION
+
+    UPDATE dbo.Instance
+    SET Status = @status, LastStatusUpdatedDate = GETUTCDATE()
+    WHERE StudyInstanceUid = @studyInstanceUid
+    AND SeriesInstanceUid = @seriesInstanceUid
+    AND SopInstanceUid = @sopInstanceUid
+    AND Watermark = @watermark
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        -- The instance does not exist. Perhaps it was deleted?
+        THROW 50404, 'Instance does not exist', 1;
+    END
+
+    COMMIT TRANSACTION
+GO
+
 /***************************************************************************************/
 -- STORED PROCEDURE
 --     GetInstance
