@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -20,6 +21,8 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 
         public static void Validate(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, IEnumerable<int> frames = null, string requestedTransferSyntax = null, bool isOriginalTransferSyntaxRequested = false)
         {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+
             ValidateInstanceIndentifiersAreValid(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             ValidateInstanceIdentifiersAreNotDuplicate(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             ValidateTransferSyntax(requestedTransferSyntax, isOriginalTransferSyntaxRequested);
