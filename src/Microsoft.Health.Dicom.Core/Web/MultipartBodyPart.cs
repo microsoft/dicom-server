@@ -12,7 +12,6 @@ namespace Microsoft.Health.Dicom.Core.Web
     {
         public MultipartBodyPart(string contentType, Stream body)
         {
-            EnsureArg.IsNotNull(contentType, nameof(contentType));
             EnsureArg.IsNotNull(body, nameof(body));
 
             ContentType = contentType;
