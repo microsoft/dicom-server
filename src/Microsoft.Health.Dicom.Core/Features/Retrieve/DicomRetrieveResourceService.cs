@@ -148,6 +148,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             catch (DicomDataStoreException e)
             {
                 _logger.LogError(e, "Error retrieving dicom resource.");
+
+                if (e.StatusCode.Equals((int)HttpStatusCode.NotFound))
+                {
+                    throw new DicomInstanceNotFoundException();
+                }
+
                 return new DicomRetrieveResourceResponse(e.StatusCode);
             }
         }
