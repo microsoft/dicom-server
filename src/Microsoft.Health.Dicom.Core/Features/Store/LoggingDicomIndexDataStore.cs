@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, seriesInstanceUid, cancellationToken);
+                await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }

@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 
             try
             {
-                DicomDataset dicomDataset = await GetInstanceMetadataAsync(dicomInstanceIdentifier, cancellationToken);
+                DicomDataset dicomDataset = await _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceIdentifier, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 
