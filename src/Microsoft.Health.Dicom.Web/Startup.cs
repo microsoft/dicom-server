@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.DevelopmentIdentityProvider;
+using Microsoft.Health.Development.IdentityProvider;
 
 namespace Microsoft.Health.Dicom.Web
 {
