@@ -145,6 +145,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified condition was not met for &apos;Frames&apos;. At least one frame must be present, and all requested frames must have value greater than 0..
+        /// </summary>
+        internal static string InvalidFramesValue {
+            get {
+                return ResourceManager.GetString("InvalidFramesValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified limit value {0} is not a valid integer..
         /// </summary>
         internal static string InvalidLimitValue {
@@ -159,6 +168,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidOffsetValue {
             get {
                 return ResourceManager.GetString("InvalidOffsetValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified Transfer Syntax value is not valid..
+        /// </summary>
+        internal static string InvalidTransferSyntaxValue {
+            get {
+                return ResourceManager.GetString("InvalidTransferSyntaxValue", resourceCulture);
             }
         }
         
