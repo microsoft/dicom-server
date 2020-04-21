@@ -1,0 +1,24 @@
+{
+    "users": [
+        {
+            "id": "User1"
+        },
+        {
+            "id": "User2"
+        },
+        {
+            "id": "User3"
+        }
+    ],
+    "clientApplications": [
+        {
+            "id": "globalAdminServicePrincipal"
+        },
+        {
+            "id": "nativeClient"
+        },
+        {
+            "id": "wrongAudienceClient"
+        }
+    ]
+}

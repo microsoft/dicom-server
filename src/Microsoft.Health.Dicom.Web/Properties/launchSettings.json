@@ -2,9 +2,10 @@
   "profiles": {
     "Microsoft.Health.Dicom.Web": {
       "commandName": "Project",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
+        "environmentVariables": {
+            "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json",
+            "ASPNETCORE_ENVIRONMENT": "Development"
+        },
       "applicationUrl": "https://localhost:63838/"
     }
   }
