@@ -124,6 +124,9 @@
   <data name="MissingMultipartBodyPart" xml:space="preserve">
     <value>There was an error reading the content. This is likely caused by multipart request with missing body part.</value>
   </data>
+  <data name="StartParameterIsNotSupported" xml:space="preserve">
+    <value>The start parameter in multipart/related request is not supported.</value>
+  </data>
   <data name="UnsupportedContentType" xml:space="preserve">
     <value>The specified content type '{0}' is not supported.</value>
     <comment>{0} is the specified content type. E.g., application/dicom</comment>

@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Api.Web;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 using NSubstitute;
@@ -63,10 +64,12 @@ content
                 async bodyPart => await ValidateMultipartBodyPartAsync("application/dicom", "content", bodyPart));
         }
 
-        [Fact]
-        public async Task GivenASingleBodyPartWithoutContentTypeAndRequestContentTypeWithTypeParameter_WhenReading_ThenTypeParameterFromRequestContentTypeShouldBeUsed()
+        [Theory]
+        [InlineData("type=text", "text")]
+        [InlineData("type=\"text/plain\"", "text/plain")]
+        public async Task GivenASingleBodyPartWithoutContentTypeAndRequestContentTypeWithTypeParameter_WhenReading_ThenTypeParameterFromRequestContentTypeShouldBeUsed(string typeParameterValue, string expectedTypeValue)
         {
-            const string requestContentType = "multipart/related; type=\"text/plain\"; boundary=+b+";
+            string requestContentType = $"multipart/related; {typeParameterValue}; boundary=+b+";
             const string body = @"--+b+
 
 content
@@ -76,7 +79,7 @@ content
             await ExecuteAndValidateAsync(
                 body,
                 requestContentType,
-                async bodyPart => await ValidateMultipartBodyPartAsync("text/plain", "content", bodyPart));
+                async bodyPart => await ValidateMultipartBodyPartAsync(expectedTypeValue, "content", bodyPart));
         }
 
         [Fact]
@@ -163,6 +166,14 @@ content2
 
                 Assert.Null(result);
             }
+        }
+
+        [Fact]
+        public void GivenStartParameter_WhenReading_ThenDicomNotSupportedExceptionShouldBeThrown()
+        {
+            const string requestContentType = "multipart/related; type=\"application/dicom\"; start=\"somewhere\"; boundary=+b+";
+
+            Assert.Throws<DicomNotSupportedException>(() => Create(requestContentType));
         }
 
         private AspNetCoreMultipartReader Create(string contentType, Stream body = null, ISeekableStreamConverter seekableStreamConverter = null)

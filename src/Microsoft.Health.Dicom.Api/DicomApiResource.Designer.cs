@@ -79,6 +79,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The start parameter in multipart/related request is not supported..
+        /// </summary>
+        internal static string StartParameterIsNotSupported {
+            get {
+                return ResourceManager.GetString("StartParameterIsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified content type &apos;{0}&apos; is not supported..
         /// </summary>
         internal static string UnsupportedContentType {

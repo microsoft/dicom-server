@@ -6,12 +6,12 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Abstractions.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
@@ -23,11 +23,13 @@ namespace Microsoft.Health.Dicom.Api.Web
     internal class AspNetCoreMultipartReader : IMultipartReader
     {
         private const string TypeParameterName = "type";
+        private const string StartParameterName = "start";
 
         private readonly ISeekableStreamConverter _seekableStreamConverter;
-        private readonly MultipartReader _multipartReader;
 
         private readonly string _rootContentType;
+        private readonly MultipartReader _multipartReader;
+
         private int _sectionIndex;
 
         internal AspNetCoreMultipartReader(
@@ -56,16 +58,26 @@ namespace Microsoft.Health.Dicom.Api.Web
                     string.Format(CultureInfo.InvariantCulture, DicomApiResource.InvalidMultipartContentType, contentType));
             }
 
-            _multipartReader = new MultipartReader(boundary, body);
-
             // Check to see if the root content type was specified or not.
-            NameValueHeaderValue rootContentTypeParameter = media.Parameters?.FirstOrDefault(
-                parameter => TypeParameterName.Equals(parameter.Name.ToString(), StringComparison.InvariantCultureIgnoreCase));
-
-            if (rootContentTypeParameter != null)
+            if (media.Parameters != null)
             {
-                _rootContentType = HeaderUtilities.RemoveQuotes(rootContentTypeParameter.Value).ToString();
+                foreach (NameValueHeaderValue parameter in media.Parameters)
+                {
+                    if (TypeParameterName.Equals(parameter.Name.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        _rootContentType = HeaderUtilities.RemoveQuotes(parameter.Value).ToString();
+                    }
+                    else if (StartParameterName.Equals(parameter.Name.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        // TODO: According to RFC2387 3.2, the root section can be specified by using the
+                        // start parameter. For now, we will assume that the first section is the "root" section
+                        // and will add support later. Throw exception in case start is specified.
+                        throw new DicomNotSupportedException(DicomApiResource.StartParameterIsNotSupported);
+                    }
+                }
             }
+
+            _multipartReader = new MultipartReader(boundary, body);
         }
 
         /// <inheritdoc />
@@ -88,9 +100,6 @@ namespace Microsoft.Health.Dicom.Api.Web
                     // can be specified through the request's Content-Type header. If the content
                     // type is not specified in the section and this is the "root" section,
                     // then check to see if it was specified in the request's Content-Type.
-                    // TODO: For now, we are assuming the first section is the "root". However
-                    // according to RFC2387 3.2, the root section can be specified by the
-                    // start parameter. Add support later.
                     contentType = _rootContentType;
                 }
 
