@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -154,8 +153,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                 switch (ex)
                 {
-                    case DicomDataStoreException dicomDatasStoreException
-                    when dicomDatasStoreException.StatusCode == (int)HttpStatusCode.Conflict:
+                    case DicomInstanceAlreadyExistsException _:
                         failureCode = DicomFailureReasonCodes.SopInstanceAlreadyExists;
                         break;
                 }

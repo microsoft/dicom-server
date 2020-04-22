@@ -19,12 +19,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public class DicomDeleteServiceTestsFixture : IAsyncLifetime
     {
         private readonly DicomSqlIndexDataStoreTestsFixture _dicomSqlIndexDataStoreTestsFixture;
-        private readonly DicomBlobStorageTestsFixture _dicomBlobStorageTestsFixture;
+        private readonly DicomDataStoreTestsFixture _dicomBlobStorageTestsFixture;
 
         public DicomDeleteServiceTestsFixture()
         {
             _dicomSqlIndexDataStoreTestsFixture = new DicomSqlIndexDataStoreTestsFixture();
-            _dicomBlobStorageTestsFixture = new DicomBlobStorageTestsFixture();
+            _dicomBlobStorageTestsFixture = new DicomDataStoreTestsFixture();
 
             RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         }

@@ -8,8 +8,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
@@ -31,8 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [InlineData(true, false)]
         public async Task GivenDeletedInstance_WhenCleanupCalledWithDifferentStorePersistence_FilesAndTriesAreRemoved(bool persistBlob, bool persistMetadata)
         {
-            var dicomInstanceIdentifier = CreateInstanceIdentifier();
-            await CreateAndValidateValuesInStores(dicomInstanceIdentifier, persistBlob, persistMetadata);
+            var dicomInstanceIdentifier = await CreateAndValidateValuesInStores(persistBlob, persistMetadata);
             await DeleteAndValidateInstanceForCleanup(dicomInstanceIdentifier);
 
             await Task.Delay(3000, CancellationToken.None);
@@ -48,37 +47,38 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.NotEmpty(await _fixture.DicomIndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid));
         }
 
-        private async Task CreateAndValidateValuesInStores(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, bool persistBlob, bool persistMetadata)
+        private async Task<VersionedDicomInstanceIdentifier> CreateAndValidateValuesInStores(bool persistBlob, bool persistMetadata)
         {
-            var newDataSet = CreateValidMetadataDataset(dicomInstanceIdentifier);
+            var newDataSet = CreateValidMetadataDataset();
 
-            await _fixture.DicomIndexDataStore.IndexInstanceAsync(newDataSet);
+            var version = await _fixture.DicomIndexDataStore.CreateInstanceIndexAsync(newDataSet);
+            var versionedDicomInstanceIdentifier = newDataSet.ToVersionedDicomInstanceIdentifier(version);
 
             if (persistMetadata)
             {
-                await _fixture.DicomMetadataStore.AddInstanceMetadataAsync(newDataSet);
+                await _fixture.DicomMetadataStore.AddInstanceMetadataAsync(newDataSet, versionedDicomInstanceIdentifier.Version);
 
-                var metaEntry = await _fixture.DicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceIdentifier);
-                Assert.Equal(dicomInstanceIdentifier.SopInstanceUid, metaEntry.GetSingleValue<string>(DicomTag.SOPInstanceUID));
+                var metaEntry = await _fixture.DicomMetadataStore.GetInstanceMetadataAsync(versionedDicomInstanceIdentifier);
+                Assert.Equal(versionedDicomInstanceIdentifier.SopInstanceUid, metaEntry.GetSingleValue<string>(DicomTag.SOPInstanceUID));
             }
 
             if (persistBlob)
             {
-                var fileName = DicomBlobFileStore.GetBlobStorageName(dicomInstanceIdentifier);
                 var fileData = new byte[] { 4, 7, 2 };
 
                 await using (MemoryStream stream = _fixture.RecyclableMemoryStreamManager.GetStream("GivenDeletedInstances_WhenCleanupCalled_FilesAndTriesAreRemoved.fileData", fileData, 0, fileData.Length))
                 {
-                    Uri fileLocation = await _fixture.DicomFileStore.AddAsync(dicomInstanceIdentifier, stream);
+                    Uri fileLocation = await _fixture.DicomFileStore.AddFileAsync(versionedDicomInstanceIdentifier, stream);
 
                     Assert.NotNull(fileLocation);
-                    Assert.EndsWith(fileName, fileLocation.AbsoluteUri);
                 }
 
-                var file = await _fixture.DicomFileStore.GetAsync(dicomInstanceIdentifier);
+                var file = await _fixture.DicomFileStore.GetFileAsync(versionedDicomInstanceIdentifier);
 
                 Assert.NotNull(file);
             }
+
+            return versionedDicomInstanceIdentifier;
         }
 
         private async Task ValidateRemoval(bool success, int rowsProcessed, VersionedDicomInstanceIdentifier dicomInstanceIdentifier)
@@ -87,27 +87,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(1, rowsProcessed);
 
             await Assert.ThrowsAsync<DicomDataStoreException>(async () => await _fixture.DicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceIdentifier));
-            await Assert.ThrowsAsync<DicomDataStoreException>(async () => await _fixture.DicomFileStore.GetAsync(dicomInstanceIdentifier));
+            await Assert.ThrowsAsync<DicomDataStoreException>(async () => await _fixture.DicomFileStore.GetFileAsync(dicomInstanceIdentifier));
 
             Assert.Empty(await _fixture.DicomIndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid));
         }
 
-        private VersionedDicomInstanceIdentifier CreateInstanceIdentifier()
-        {
-            return new VersionedDicomInstanceIdentifier(
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                1);
-        }
-
-        private DicomDataset CreateValidMetadataDataset(VersionedDicomInstanceIdentifier versionedDicomInstanceIdentifier)
+        private DicomDataset CreateValidMetadataDataset()
         {
             return new DicomDataset()
             {
-                { DicomTag.StudyInstanceUID, versionedDicomInstanceIdentifier.StudyInstanceUid },
-                { DicomTag.SeriesInstanceUID, versionedDicomInstanceIdentifier.SeriesInstanceUid },
-                { DicomTag.SOPInstanceUID, versionedDicomInstanceIdentifier.SopInstanceUid },
+                { DicomTag.StudyInstanceUID, TestUidGenerator.Generate() },
+                { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
+                { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
                 { DicomTag.PatientID, TestUidGenerator.Generate() },
             };
         }

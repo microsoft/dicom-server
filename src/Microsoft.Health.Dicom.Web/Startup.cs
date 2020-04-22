@@ -2,12 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Development.IdentityProvider;
 
 namespace Microsoft.Health.Dicom.Web
 {
@@ -28,6 +28,8 @@ namespace Microsoft.Health.Dicom.Web
                 options.AllowSynchronousIO = true;
             });
 
+            services.AddDevelopmentIdentityProvider(Configuration);
+
             services.AddDicomServer(Configuration)
                 .AddBlobStorageDataStore(Configuration)
                 .AddMetadataStorageDataStore(Configuration)
@@ -40,6 +42,8 @@ namespace Microsoft.Health.Dicom.Web
         public virtual void Configure(IApplicationBuilder app)
         {
             app.UseDicomServer();
+
+            app.UseDevelopmentIdentityProviderIfConfigured();
         }
 
         /// <summary>

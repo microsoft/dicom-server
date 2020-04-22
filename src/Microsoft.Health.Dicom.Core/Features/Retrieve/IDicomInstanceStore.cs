@@ -11,16 +11,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public interface IDicomInstanceStore
     {
-        Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+        Task<IEnumerable<VersionedDicomInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
             string studyInstanceUid,
             CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+        Task<IEnumerable<VersionedDicomInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<DicomInstanceIdentifier>> GetInstanceIdentifierAsync(
+        Task<IEnumerable<VersionedDicomInstanceIdentifier>> GetInstanceIdentifierAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,

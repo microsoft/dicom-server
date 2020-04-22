@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -42,7 +43,50 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             _logger = logger;
         }
 
-        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
+        public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(instance, nameof(instance));
+
+            await _sqlServerDicomIndexSchema.EnsureInitialized();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.AddInstance.PopulateCommand(
+                    sqlCommand,
+                    instance.GetString(DicomTag.StudyInstanceUID),
+                    instance.GetString(DicomTag.SeriesInstanceUID),
+                    instance.GetString(DicomTag.SOPInstanceUID),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
+                    instance.GetStringDateAsDateTime(DicomTag.StudyDate),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
+                    instance.GetStringDateAsDateTime(DicomTag.PerformedProcedureStepStartDate),
+                    (byte)DicomIndexStatus.Creating);
+
+                try
+                {
+                    return (long)(await sqlCommand.ExecuteScalarAsync(cancellationToken));
+                }
+                catch (SqlException ex)
+                {
+                    switch (ex.Number)
+                    {
+                        case SqlErrorCodes.Conflict:
+                            throw new DicomInstanceAlreadyExistsException();
+
+                        default:
+                            _logger.LogError(ex, $"Error from SQL database on {nameof(VLatest.AddInstance)}.");
+                            throw;
+                    }
+                }
+            }
+        }
+
+        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -51,7 +95,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
         }
 
-        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
+        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -59,25 +103,34 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cancellationToken);
         }
 
-        public async Task DeleteStudyIndexAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
+        public async Task DeleteStudyIndexAsync(string studyInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
             await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cancellationToken);
         }
 
-        private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
+        public async Task UpdateInstanceIndexStatusAsync(
+            VersionedDicomInstanceIdentifier dicomInstanceIdentifier,
+            DicomIndexStatus status,
+            CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(dicomInstanceIdentifier, nameof(dicomInstanceIdentifier));
+            EnsureArg.IsTrue(Enum.IsDefined(typeof(DicomIndexStatus), status));
+            EnsureArg.IsTrue((int)status < byte.MaxValue);
+
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
             using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteInstance.PopulateCommand(
+                VLatest.UpdateInstanceStatus.PopulateCommand(
                     sqlCommand,
-                    studyInstanceUid,
-                    seriesInstanceUid,
-                    sopInstanceUid);
+                    dicomInstanceIdentifier.StudyInstanceUid,
+                    dicomInstanceIdentifier.SeriesInstanceUid,
+                    dicomInstanceIdentifier.SopInstanceUid,
+                    dicomInstanceIdentifier.Version,
+                    (byte)status);
 
                 try
                 {
@@ -89,8 +142,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                     {
                         case SqlErrorCodes.NotFound:
                             throw new DicomInstanceNotFoundException();
+
                         default:
-                            _logger.LogError(ex, $"Error from SQL database on {nameof(VLatest.DeleteInstance)}.");
+                            _logger.LogError(ex, $"Error from SQL database on {nameof(VLatest.AddInstance)}.");
                             throw;
                     }
                 }
@@ -169,29 +223,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             }
         }
 
-        public async Task IndexInstanceAsync(DicomDataset instance, CancellationToken cancellationToken = default)
+        private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
             using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.AddInstance.PopulateCommand(
+                VLatest.DeleteInstance.PopulateCommand(
                     sqlCommand,
-                    instance.GetString(DicomTag.StudyInstanceUID),
-                    instance.GetString(DicomTag.SeriesInstanceUID),
-                    instance.GetString(DicomTag.SOPInstanceUID),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                    instance.GetStringDateAsDateTime(DicomTag.StudyDate),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                    instance.GetStringDateAsDateTime(DicomTag.PerformedProcedureStepStartDate),
-                    DicomIndexStatus.Created);
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid);
 
                 try
                 {
@@ -201,11 +244,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                 {
                     switch (ex.Number)
                     {
-                        case SqlErrorCodes.Conflict:
-                            throw new DicomInstanceAlreadyExistsException();
-
+                        case SqlErrorCodes.NotFound:
+                            throw new DicomInstanceNotFoundException();
                         default:
-                            _logger.LogError(ex, $"Error from SQL database on {nameof(VLatest.AddInstance)}.");
+                            _logger.LogError(ex, $"Error from SQL database on {nameof(VLatest.DeleteInstance)}.");
                             throw;
                     }
                 }

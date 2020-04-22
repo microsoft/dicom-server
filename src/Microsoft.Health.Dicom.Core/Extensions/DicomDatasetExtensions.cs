@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features;
@@ -25,6 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             DicomVR.OD,
             DicomVR.OF,
             DicomVR.OL,
+            DicomVR.OV,
             DicomVR.OW,
             DicomVR.UN,
         };
@@ -65,30 +67,43 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         /// <summary>
-        /// Removes DICOM elements who's VR types are marked as Bulk in the DicomBulkDataVr enum.
+        /// Creates a new copy of DICOM dataset with items of VR types considered to be bulk data removed.
         /// </summary>
-        /// <param name="dicomDataset">Dataset that has bulk metadata</param>
-        public static void RemoveBulkDataVrs(this DicomDataset dicomDataset)
+        /// <param name="dicomDataset">The DICOM dataset.</param>
+        /// <returns>A copy of the <paramref name="dicomDataset"/> with items of VR types considered  to be bulk data removed.</returns>
+        public static DicomDataset CopyWithoutBulkDataItems(this DicomDataset dicomDataset)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            var tagsToRemove = new List<DicomTag>();
-            foreach (DicomItem item in dicomDataset)
-            {
-                if (item.ValueRepresentation == DicomVR.SQ && item is DicomSequence sequence)
-                {
-                    foreach (DicomDataset sequenceDataset in sequence.Items)
-                    {
-                        RemoveBulkDataVrs(sequenceDataset);
-                    }
-                }
-                else if (DicomBulkDataVr.Contains(item.ValueRepresentation))
-                {
-                    tagsToRemove.Add(item.Tag);
-                }
-            }
+            return CopyDicomDatasetWithoutBulkDataItems(dicomDataset);
 
-            dicomDataset.Remove(tagsToRemove.ToArray());
+            DicomDataset CopyDicomDatasetWithoutBulkDataItems(DicomDataset dicomDatasetToCopy)
+            {
+                return new DicomDataset(dicomDatasetToCopy
+                    .Select(dicomItem =>
+                    {
+                        if (DicomBulkDataVr.Contains(dicomItem.ValueRepresentation))
+                        {
+                            // If the VR is bulk data type, return null so it can be filtered out later.
+                            return null;
+                        }
+                        else if (dicomItem.ValueRepresentation == DicomVR.SQ)
+                        {
+                            // If the VR is sequence, then process each item within the sequence.
+                            DicomSequence sequenceToCopy = (DicomSequence)dicomItem;
+
+                            return new DicomSequence(
+                                sequenceToCopy.Tag,
+                                sequenceToCopy.Select(itemToCopy => itemToCopy.CopyWithoutBulkDataItems()).ToArray());
+                        }
+                        else
+                        {
+                            // The VR is not bulk data, return it.
+                            return dicomItem;
+                        }
+                    })
+                    .Where(dicomItem => dicomItem != null));
+            }
         }
 
         /// <summary>

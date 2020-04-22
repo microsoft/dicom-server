@@ -221,7 +221,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         private void AppendStatusClause(string tableAlias)
         {
-            byte invalidStatus = DicomIndexStatus.Creating;
+            byte invalidStatus = (byte)DicomIndexStatus.Creating;
             _stringBuilder
                 .Append("AND ")
                 .Append(VLatest.Instance.Status, tableAlias)

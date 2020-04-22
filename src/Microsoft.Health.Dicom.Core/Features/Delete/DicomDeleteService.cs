@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                     {
                         try
                         {
-                            await _dicomFileStore.DeleteIfExistsAsync(deletedInstanceIdentifier, cancellationToken);
+                            await _dicomFileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier, cancellationToken);
                             await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier, cancellationToken);
                             await _dicomIndexDataStore.DeleteDeletedInstanceAsync(deletedInstanceIdentifier, cancellationToken);
                         }

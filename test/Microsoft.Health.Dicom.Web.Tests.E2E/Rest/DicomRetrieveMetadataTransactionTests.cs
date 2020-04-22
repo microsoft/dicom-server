@@ -169,9 +169,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private static void ValidateResponseMetadataDataset(DicomDataset storedDataset, DicomDataset retrievedDataset)
         {
-            // Trim the stored dataset to the expected items in the repsonse metadata dataset (remove non-supported value representations).
-            DicomDataset expectedDataset = storedDataset.Clone();
-            expectedDataset.RemoveBulkDataVrs();
+            // Trim the stored dataset to the expected items in the response metadata dataset (remove non-supported value representations).
+            DicomDataset expectedDataset = storedDataset.CopyWithoutBulkDataItems();
 
             // Compare result datasets by serializing.
             var jsonDicomConverter = new JsonDicomConverter();

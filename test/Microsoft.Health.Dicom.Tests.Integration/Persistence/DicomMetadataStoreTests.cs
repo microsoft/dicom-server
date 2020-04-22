@@ -16,21 +16,19 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class DicomMetadataStoreTests : IClassFixture<DicomBlobStorageTestsFixture>
+    public class DicomMetadataStoreTests : IClassFixture<DicomDataStoreTestsFixture>
     {
         private readonly IDicomMetadataStore _dicomMetadataStore;
 
-        public DicomMetadataStoreTests(DicomBlobStorageTestsFixture fixture)
+        public DicomMetadataStoreTests(DicomDataStoreTestsFixture fixture)
         {
             _dicomMetadataStore = fixture.DicomMetadataStore;
         }
 
         [Fact]
-        public async Task GivenInvalidParameters_WhenAddingDeletingFetchingInstanceMetadata_ArgumentExceptionIsThrown()
+        public async Task GivenInvalidParameters_WhenAddingInstanceMetadata_ArgumentExceptionIsThrown()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.AddInstanceMetadataAsync(null));
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(null));
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.GetInstanceMetadataAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.AddInstanceMetadataAsync(null, 0));
         }
 
         [Fact]
@@ -51,12 +49,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();
             var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
-            await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset);
+            await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0);
             DicomDataset storedMetadata = await _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId);
             Assert.NotNull(storedMetadata);
 
             DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(
-                () => _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset));
+                () => _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0));
             Assert.Equal((int)HttpStatusCode.Conflict, exception.StatusCode);
 
             await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
@@ -68,7 +66,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomDataset dicomDataset = CreateValidMetadataDataset();
             var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
 
-            await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset);
+            await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0);
             DicomDataset storedMetadata = await _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId);
             Assert.NotNull(storedMetadata);
 

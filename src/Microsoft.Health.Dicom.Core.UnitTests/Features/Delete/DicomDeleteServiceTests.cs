@@ -83,7 +83,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
 
             await _dicomFileDataStore
                 .DidNotReceiveWithAnyArgs()
-                .DeleteIfExistsAsync(dicomInstanceIdentifier: default, CancellationToken.None);
+                .DeleteFileIfExistsAsync(dicomInstanceIdentifier: default, CancellationToken.None);
 
             await _dicomMetadataStore
                 .DidNotReceiveWithAnyArgs()
@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 .ReturnsForAnyArgs(responseList);
 
             _dicomFileDataStore
-                .DeleteIfExistsAsync(Arg.Any<DicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
+                .DeleteFileIfExistsAsync(Arg.Any<VersionedDicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
             (bool success, int rowsProcessed) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -125,7 +125,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 .ReturnsForAnyArgs(responseList);
 
             _dicomMetadataStore
-                .DeleteInstanceMetadataIfExistsAsync(Arg.Any<DicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
+                .DeleteInstanceMetadataIfExistsAsync(Arg.Any<VersionedDicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
             (bool success, int rowsProcessed) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -148,7 +148,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 .ReturnsForAnyArgs(responseList);
 
             _dicomFileDataStore
-                .DeleteIfExistsAsync(Arg.Any<DicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
+                .DeleteFileIfExistsAsync(Arg.Any<VersionedDicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
             _dicomIndexDataStore
@@ -189,7 +189,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
 
             await _dicomFileDataStore
                 .DidNotReceiveWithAnyArgs()
-                .DeleteIfExistsAsync(dicomInstanceIdentifier: default, CancellationToken.None);
+                .DeleteFileIfExistsAsync(dicomInstanceIdentifier: default, CancellationToken.None);
         }
 
         [Theory]
@@ -229,7 +229,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
 
                 await _dicomFileDataStore
                     .Received(1)
-                    .DeleteIfExistsAsync(deletedVersion, CancellationToken.None);
+                    .DeleteFileIfExistsAsync(deletedVersion, CancellationToken.None);
             }
 
             await _dicomIndexDataStore

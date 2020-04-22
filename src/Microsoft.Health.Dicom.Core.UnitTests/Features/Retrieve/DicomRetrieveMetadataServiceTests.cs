@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenRetrieveInstanceMetadataRequestForStudy_WhenFailsToRetrieveAny_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
         {
-            List<DicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Study);
+            List<VersionedDicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Study);
 
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.First(), DefaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
 
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenRetrieveInstanceMetadataRequestForStudy_WhenFailsToRetrieveAll_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
         {
-            List<DicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Study);
+            List<VersionedDicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Study);
 
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.Last(), DefaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.First(), DefaultCancellationToken).Returns(new DicomDataset());
@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenRetrieveInstanceMetadataRequestForStudy_WhenIsSuccessful_ThenSuccessStatusCodeIsReturnedAsync()
         {
-            List<DicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Study);
+            List<VersionedDicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Study);
 
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.First(), DefaultCancellationToken).Returns(new DicomDataset());
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.Last(), DefaultCancellationToken).Returns(new DicomDataset());
@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenRetrieveInstanceMetadataRequestForSeries_WhenIsSuccessful_ThenSuccessStatusCodeIsReturnedAsync()
         {
-            List<DicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Series);
+            List<VersionedDicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Series);
 
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.First(), DefaultCancellationToken).Returns(new DicomDataset());
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.Last(), DefaultCancellationToken).Returns(new DicomDataset());
@@ -98,7 +98,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenRetrieveInstanceMetadataRequestForSeries_WhenFailsToRetrieveAll_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
         {
-            List<DicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Series);
+            List<VersionedDicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Series);
 
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.Last(), DefaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.First(), DefaultCancellationToken).Returns(new DicomDataset());
@@ -109,7 +109,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenRetrieveInstanceMetadataRequestForSeries_WhenFailsToRetrieveAny_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
         {
-            List<DicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Series);
+            List<VersionedDicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Series);
 
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.Last(), DefaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.First(), DefaultCancellationToken).Returns(new DicomDataset());
@@ -120,7 +120,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenRetrieveInstanceMetadataRequestForInstance_WhenIsSuccessful_ThenSuccessStatusCodeIsReturnedAsync()
         {
-            DicomInstanceIdentifier sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance).First();
+            VersionedDicomInstanceIdentifier sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance).First();
 
             _dicomMetadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier, DefaultCancellationToken).Returns(new DicomDataset());
 
@@ -133,31 +133,31 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenRetrieveInstanceMetadataRequestForInstance_WhenFailsToRetrieve_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
         {
-            DicomInstanceIdentifier sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance).First();
+            VersionedDicomInstanceIdentifier sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance).First();
 
             _dicomMetadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier, DefaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, DefaultCancellationToken));
         }
 
-        private List<DicomInstanceIdentifier> SetupInstanceIdentifiersList(ResourceType resourceType)
+        private List<VersionedDicomInstanceIdentifier> SetupInstanceIdentifiersList(ResourceType resourceType)
         {
-            var dicomInstanceIdentifiersList = new List<DicomInstanceIdentifier>();
+            var dicomInstanceIdentifiersList = new List<VersionedDicomInstanceIdentifier>();
 
             switch (resourceType)
             {
                 case ResourceType.Study:
-                    dicomInstanceIdentifiersList.Add(new DicomInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate()));
-                    dicomInstanceIdentifiersList.Add(new DicomInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate()));
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 0));
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 1));
                     _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(studyInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
                 case ResourceType.Series:
-                    dicomInstanceIdentifiersList.Add(new DicomInstanceIdentifier(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()));
-                    dicomInstanceIdentifiersList.Add(new DicomInstanceIdentifier(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()));
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate(), version: 0));
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate(), version: 1));
                     _dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(studyInstanceUid, seriesInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
                 case ResourceType.Instance:
-                    dicomInstanceIdentifiersList.Add(new DicomInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version: 0));
                     _dicomInstanceStore.GetInstanceIdentifierAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
             }

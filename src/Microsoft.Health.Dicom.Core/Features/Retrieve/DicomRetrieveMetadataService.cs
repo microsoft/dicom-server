@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public async Task<DicomRetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
         {
-            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
+            IEnumerable<VersionedDicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
                 ResourceType.Study,
                 studyInstanceUid,
                 seriesInstanceUid: null,
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public async Task<DicomRetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
         {
-            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
+            IEnumerable<VersionedDicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
                  ResourceType.Series,
                  studyInstanceUid,
                  seriesInstanceUid,
@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public async Task<DicomRetrieveMetadataResponse> RetrieveSopInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
         {
-            IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
+            IEnumerable<VersionedDicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
                  ResourceType.Instance,
                  studyInstanceUid,
                  seriesInstanceUid,
@@ -73,7 +73,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             return await RetrieveMetadata(retrieveInstances, cancellationToken);
         }
 
-        private async Task<DicomRetrieveMetadataResponse> RetrieveMetadata(IEnumerable<DicomInstanceIdentifier> retrieveInstances, CancellationToken cancellationToken)
+        private async Task<DicomRetrieveMetadataResponse> RetrieveMetadata(IEnumerable<VersionedDicomInstanceIdentifier> retrieveInstances, CancellationToken cancellationToken)
         {
             var dataset = new List<DicomDataset>();
 

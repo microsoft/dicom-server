@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             try
             {
-                IEnumerable<DicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
+                IEnumerable<VersionedDicomInstanceIdentifier> retrieveInstances = await _dicomInstanceStore.GetInstancesToRetrieve(
                     message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
 
                 if (!retrieveInstances.Any())
@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 }
 
                 Stream[] resultStreams = await Task.WhenAll(
-                    retrieveInstances.Select(x => _dicomBlobDataStore.GetAsync(x, cancellationToken)));
+                    retrieveInstances.Select(x => _dicomBlobDataStore.GetFileAsync(x, cancellationToken)));
 
                 var responseCode = HttpStatusCode.OK;
 
