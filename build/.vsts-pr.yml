@@ -1,24 +1,151 @@
 # DESCRIPTION: 
 # Builds, tests and packages the solution for all PR requests.
 
-name: pr$(system.pullRequest.pullRequestNumber)-$(Date:yyyyMMdd)$(Rev:-r)
-
-variables:
-  buildConfiguration: 'Release'
-
+name: pr$(system.pullRequest.pullRequestNumber)-$(Date:yyyyMMdd)-$(Rev:-r)
 trigger: none
 
-jobs:
-- job: Windows
-  pool:
-    vmImage: 'vs2017-win2016'
-  steps:
-  - template: build.yml
+variables:
+- template: pr-variables.yml
 
-- job: Linux
-  pool:
-    vmImage: 'ubuntu-16.04'
-  steps:
-  - template: build.yml
-    parameters:
-      packageArtifacts: false
+stages:
+- stage: BuildRunUnitTests
+  displayName: 'Build and run unit tests'
+  dependsOn: []
+  jobs:
+  - job: Windows
+    pool:
+      vmImage: $(windowsVmImage)
+    steps:
+    - template: build.yml
+
+  - job: Linux
+    pool:
+     vmImage: 'ubuntu-latest'
+    steps:
+    - template: build.yml
+      parameters:
+        packageArtifacts: false
+
+- stage: CreateTestEnvironment
+  displayName: 'Create test environment'
+  dependsOn: 
+  - BuildRunUnitTests
+  jobs:
+  - job: CreateResourceGroup
+    steps:
+    - task: AzurePowerShell@4
+      displayName: 'Create Resource Group'
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        azurePowerShellVersion: latestVersion
+        ScriptType: InlineScript
+        Inline: |
+          New-AzResourceGroup -Name "$(resourceGroupName)" -Location "$(resourceGroupRegion)" -Force
+
+- stage: AadTestEnvironment
+  displayName: 'Setup AAD Test Environment'
+  dependsOn:
+  - CreateTestEnvironment
+  jobs:
+  - template: ./jobs/add-aad-test-environment.yml
+
+- stage: ProvisionTestEnvironment
+  displayName: 'Provision test environment'
+  dependsOn: 
+  - CreateTestEnvironment
+  - AadTestEnvironment
+  jobs:
+  - job: Provision
+    steps:
+    - task: AzurePowerShell@4
+      displayName: 'New Azure resource group deployment'
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        azurePowerShellVersion: latestVersion
+        ScriptType: InlineScript
+      Inline: |
+        Add-Type -AssemblyName System.Web
+      
+        $deployPath = "$(System.DefaultWorkingDirectory)/samples/templates"
+     
+        $additionalProperties = @{
+            "SqlServer__DeleteAllDataOnStartup" = "true"
+        }
+     
+        $templateParameters = @{
+            appServicePlanResourceGroup = "$(resourceGroupRoot)"
+            appServicePlanName = "$(appServicePlanName)"
+            serviceName = "$(deploymentName)"
+            additionalDicomServerConfigProperties = $additionalProperties
+            sqlAdminPassword = [System.Web.Security.Membership]::GeneratePassword(15, 5).replace(";", "_").replace("$","!")
+            securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
+            securityAuthenticationAudience = "$(testEnvironmentUrl)"
+        }
+        
+        New-AzResourceGroupDeployment -Name "$(deploymentName)" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/default-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
+        
+        Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
+    - task: AzureRmWebAppDeployment@3
+      displayName: 'Azure app service deployment'
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        WebAppName: '$(deploymentName)'
+        Package: $(build.artifactStagingDirectory)/web/Microsoft.Health.Dicom.Web.zip'
+        TakeAppOfflineFlag: true
+
+- stage: RunTests
+  displayName: 'Run integration and E2E tests'
+  dependsOn:
+  - ProvisionTestEnvironment
+  jobs:
+  - job: UseDotNetCoreVersion
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Use .Net Core sdk '
+      inputs:
+        useGlobalJson: true
+    - task: AzurePowerShell@4
+      displayName: 'Prepare for Testing'
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        azurePowerShellVersion: latestVersion
+        ScriptType: InlineScript
+        Inline: |
+        $secrets = Get-AzKeyVaultSecret -VaultName $(deploymentName)
+        
+        foreach ($secret in $secrets)
+        {
+            $environmentVariableName = $secret.Name.Replace("--",":")
+            $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name $secret.Name
+            Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
+        }
+        
+        dotnet dev-certs https
+    - task:
+      displayName: 'PowerShell Script to set data store connection string'
+      - powershell: |
+        # Write your PowerShell commands here.
+        
+        Write-Host "${env:SqlServer:ConnectionString}"
+        Write-Host "${env:BlobStore:ConnectionString}"
+        
+        [System.Environment]::GetEnvironmentVariables()
+
+    - task: VSTest@2
+      displayName: 'Integration Tests'
+      inputs:
+        testAssemblyVer2: '**\*Tests.Integration.dll'
+        searchFolder: '$(System.ArtifactsDirectory)'
+   - task: VSTest@2
+      displayName: 'E2E Tests'
+      inputs:
+        testAssemblyVer2: '**\*Tests.E2E*.dll'
+        searchFolder: '$(System.ArtifactsDirectory)'   
+        
+
+- stage: Cleanup
+  displayName: 'Cleanup Azure Environment'
+  dependsOn:
+  - RunTests
+  jobs:
+  - template: ./jobs/cleanup.yml
