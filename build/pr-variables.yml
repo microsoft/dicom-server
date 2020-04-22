@@ -1,7 +1,7 @@
 variables:
     resourceGroupRoot: 'msh-dicom-pr'
-    prNumber: $(system.pullRequest.pullRequestNumber)
-    deploymentName: '$(resourceGroupRoot)-$(prNumber)-$(Rev:-r)'
+    prNumber: $(system.pullRequest.pullRequestNumber)-$(Date:yyyyMMdd)$(Rev:-r)
+    deploymentName: '$(resourceGroupRoot)-$(prNumber)'
     testEnvironmentUrl: 'https://$(deploymentName).azurewebsites.net'
     resourceGroupName: $(deploymentName)
     resourceGroupRegion: 'southcentralus'
