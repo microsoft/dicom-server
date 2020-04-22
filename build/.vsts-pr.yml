@@ -104,6 +104,7 @@ stages:
       displayName: 'Use .Net Core sdk '
       inputs:
         useGlobalJson: true
+
     - task: AzurePowerShell@4
       displayName: 'Prepare for Testing'
       inputs:
@@ -111,32 +112,24 @@ stages:
         azurePowerShellVersion: latestVersion
         ScriptType: InlineScript
         Inline: |
-        $secrets = Get-AzKeyVaultSecret -VaultName $(deploymentName)
-        
-        foreach ($secret in $secrets)
-        {
-            $environmentVariableName = $secret.Name.Replace("--","_")
-            $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name $secret.Name
-            Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
-        }
-        
-        dotnet dev-certs https
-    - task:
-      displayName: 'PowerShell Script to set data store connection string'
-      - powershell: |
-        # Write your PowerShell commands here.
-        
-        Write-Host "${env:SqlServer:ConnectionString}"
-        Write-Host "${env:BlobStore:ConnectionString}"
-        
-        [System.Environment]::GetEnvironmentVariables()
+          $secrets = Get-AzKeyVaultSecret -VaultName $(deploymentName)
+          
+          foreach ($secret in $secrets)
+          {
+              $environmentVariableName = $secret.Name.Replace("--",":")
+              $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name $secret.Name
+              Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
+          }
+          
+          dotnet dev-certs https
 
     - task: VSTest@2
       displayName: 'Integration Tests'
       inputs:
         testAssemblyVer2: '**\*Tests.Integration.dll'
         searchFolder: '$(System.ArtifactsDirectory)'
-   - task: VSTest@2
+
+    - task: VSTest@2
       displayName: 'E2E Tests'
       inputs:
         testAssemblyVer2: '**\*Tests.E2E*.dll'
