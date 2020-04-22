@@ -115,7 +115,7 @@ stages:
         
         foreach ($secret in $secrets)
         {
-            $environmentVariableName = $secret.Name.Replace("--",":")
+            $environmentVariableName = $secret.Name.Replace("--","_")
             $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name $secret.Name
             Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
         }
