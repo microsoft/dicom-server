@@ -35,19 +35,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Study
             await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebClient.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid().ToString()),
+                string.Format(DicomWebContants.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid().ToString()),
                 acceptHeader);
 
             // Series
             await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebClient.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                string.Format(DicomWebContants.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
                 acceptHeader);
 
             // Instance
             await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebClient.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                string.Format(DicomWebContants.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
                 acceptHeader);
         }
 
@@ -55,8 +55,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenRetrieveStudyMetadataRequest_WhenStudyInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
             string fakeStudyInstanceUid = "1.2.345.6.7";
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveStudyMetadataAsync(fakeStudyInstanceUid);
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveStudyMetadataAsync(fakeStudyInstanceUid));
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -64,8 +65,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             string fakeStudyInstanceUid = "1.2.345.6.7";
             string fakeSeriesInstanceUid = "1.2.345.6.8";
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid);
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid));
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -75,8 +77,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
 
             string fakeSeriesInstanceUid = "1.2.345.6.7";
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(dicomInstance.StudyInstanceUid, fakeSeriesInstanceUid);
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesMetadataAsync(dicomInstance.StudyInstanceUid, fakeSeriesInstanceUid));
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -86,8 +89,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
 
             string fakeStudyInstanceUid = "1.2.345.6.7";
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(fakeStudyInstanceUid, dicomInstance.SeriesInstanceUid);
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesMetadataAsync(fakeStudyInstanceUid, dicomInstance.SeriesInstanceUid));
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -97,8 +101,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             string fakeSeriesInstanceUid = "1.2.345.6.8";
             string fakeSopInstanceUid = "1.2.345.6.9";
 
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid, fakeSopInstanceUid);
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid, fakeSopInstanceUid));
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -109,8 +113,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             string fakeSopInstanceUid = "1.2.345.6.7";
 
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid);
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid));
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -120,8 +124,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
             string fakeSopInstanceUid = "1.2.345.6.7";
 
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid);
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid));
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -133,8 +137,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset storedInstance = await PostDicomFileAsync();
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
 
-            HttpResult<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid, dicomInstance.SopInstanceUid);
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid, dicomInstance.SopInstanceUid));
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -154,7 +158,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
 
-            HttpResult<IReadOnlyList<DicomDataset>> metadata = await _client.RetrieveStudyMetadataAsync(dicomInstance.StudyInstanceUid);
+            DicomWebResponse<IReadOnlyList<DicomDataset>> metadata = await _client.RetrieveStudyMetadataAsync(dicomInstance.StudyInstanceUid);
             Assert.Single(metadata.Value);
             ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
 
@@ -189,8 +193,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 dicomFile1.Dataset.AddOrUpdate(metadataItems);
             }
 
-            HttpResult<DicomDataset> response = await _client.PostAsync(new[] { dicomFile1 });
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            await _client.StoreAsync(new[] { dicomFile1 });
 
             return dicomFile1.Dataset;
         }
