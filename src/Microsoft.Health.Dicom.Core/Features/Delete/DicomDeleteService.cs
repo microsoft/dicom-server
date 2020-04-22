@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Features.Transactions;
+using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -52,43 +53,52 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
         public async Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
         {
-            await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cancellationToken);
+            (DateTimeOffset deletedDate, DateTimeOffset cleanupAfter) = GenerateDeletedDateAndCleanupAfter();
+            await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, deletedDate, cleanupAfter, cancellationToken);
         }
 
         public async Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
         {
-            await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cancellationToken);
+            (DateTimeOffset deletedDate, DateTimeOffset cleanupAfter) = GenerateDeletedDateAndCleanupAfter();
+            await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, deletedDate, cleanupAfter, cancellationToken);
         }
 
         public async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
-            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+            (DateTimeOffset deletedDate, DateTimeOffset cleanupAfter) = GenerateDeletedDateAndCleanupAfter();
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedDate, cleanupAfter, cancellationToken);
         }
 
-        public async Task<(bool success, int rowsProcessed)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken = default)
+        public async Task<(bool success, int instancesProcessed)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)
         {
             bool success = true;
-            int rowsProcessed = 0;
+            int instancesProcessed = 0;
 
             using (ITransactionScope transactionScope = _transactionHandler.BeginTransaction())
             {
                 try
                 {
                     var deletedInstanceIdentifiers = (await _dicomIndexDataStore.RetrieveDeletedInstancesAsync(
-                        _deletedInstanceCleanupConfiguration.DeleteDelay,
+                        Clock.UtcNow,
                         _deletedInstanceCleanupConfiguration.BatchSize,
                         _deletedInstanceCleanupConfiguration.MaxRetries,
                         cancellationToken))
                         .ToList();
 
-                    rowsProcessed = deletedInstanceIdentifiers.Count;
+                    instancesProcessed = deletedInstanceIdentifiers.Count;
 
                     foreach (VersionedDicomInstanceIdentifier deletedInstanceIdentifier in deletedInstanceIdentifiers)
                     {
                         try
                         {
-                            await _dicomFileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier, cancellationToken);
-                            await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier, cancellationToken);
+                            Task[] tasks = new[]
+                            {
+                                _dicomFileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier, cancellationToken),
+                                _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier, cancellationToken),
+                            };
+
+                            await Task.WhenAll(tasks);
+
                             await _dicomIndexDataStore.DeleteDeletedInstanceAsync(deletedInstanceIdentifier, cancellationToken);
                         }
                         catch (Exception cleanupException)
@@ -97,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
                             try
                             {
-                                await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, _deletedInstanceCleanupConfiguration.RetryBackOff, cancellationToken);
+                                await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, Clock.UtcNow + _deletedInstanceCleanupConfiguration.RetryBackOff, cancellationToken);
                             }
                             catch (Exception incrementException)
                             {
@@ -116,7 +126,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                 }
             }
 
-            return (success, rowsProcessed);
+            return (success, instancesProcessed);
+        }
+
+        private (DateTimeOffset deletedDate, DateTimeOffset cleanupAfter) GenerateDeletedDateAndCleanupAfter()
+        {
+            DateTimeOffset deletedDate = Clock.UtcNow;
+            DateTimeOffset cleanupAfter = deletedDate + _deletedInstanceCleanupConfiguration.DeleteDelay;
+
+            return (deletedDate, cleanupAfter);
         }
     }
 }

@@ -16,8 +16,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             string sopInstanceUid,
             long watermark,
             byte status,
-            DateTime lastStatusUpdatedDate,
-            DateTime createdDate)
+            DateTimeOffset lastStatusUpdatedDate,
+            DateTimeOffset createdDate)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
@@ -35,8 +35,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             SopInstanceUid = sqlDataReader.GetString(2);
             Watermark = sqlDataReader.GetInt64(3);
             Status = sqlDataReader.GetByte(4);
-            LastStatusUpdatedDate = sqlDataReader.GetDateTime(5);
-            CreatedDate = sqlDataReader.GetDateTime(6);
+            LastStatusUpdatedDate = sqlDataReader.GetDateTimeOffset(5);
+            CreatedDate = sqlDataReader.GetDateTimeOffset(6);
         }
 
         public string StudyInstanceUid { get; }
@@ -49,8 +49,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public byte Status { get; }
 
-        public DateTime LastStatusUpdatedDate { get; }
+        public DateTimeOffset LastStatusUpdatedDate { get; }
 
-        public DateTime CreatedDate { get; }
+        public DateTimeOffset CreatedDate { get; }
     }
 }

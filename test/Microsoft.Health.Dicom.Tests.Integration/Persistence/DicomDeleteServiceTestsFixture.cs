@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -49,10 +50,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var cleanupConfiguration = new DeletedInstanceCleanupConfiguration
             {
                 BatchSize = 10,
-                DeleteDelay = 1,
+                DeleteDelay = TimeSpan.FromSeconds(1),
                 MaxRetries = 3,
-                PollingInterval = 1,
-                RetryBackOff = 2,
+                PollingInterval = TimeSpan.FromSeconds(1),
+                RetryBackOff = TimeSpan.FromSeconds(2),
             };
 
             var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();

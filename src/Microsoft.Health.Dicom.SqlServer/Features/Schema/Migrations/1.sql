@@ -150,9 +150,9 @@ CREATE TABLE dbo.Instance (
     --data consitency columns
     Watermark               BIGINT NOT NULL,
     Status                  TINYINT NOT NULL,
-    LastStatusUpdatedDate   DATETIME2(7) NOT NULL,
+    LastStatusUpdatedDate   DATETIMEOFFSET(7) NOT NULL,
     --audit columns
-    CreatedDate             DATETIME2(7) NOT NULL
+    CreatedDate             DATETIMEOFFSET(7) NOT NULL
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
@@ -199,7 +199,7 @@ INCLUDE
     SeriesInstanceUid,
     SopInstanceUid
 )
-            
+
 CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_Watermark on dbo.Instance
 (
     StudyInstanceUid,
@@ -309,9 +309,9 @@ INCLUDE
 	StudyInstanceUid
 )
 
-CREATE FULLTEXT INDEX ON StudyMetadataCore(PatientNameWords LANGUAGE 1033)   
-KEY INDEX IX_StudyMetadataCore_Id 
-WITH STOPLIST = OFF; 
+CREATE FULLTEXT INDEX ON StudyMetadataCore(PatientNameWords LANGUAGE 1033)
+KEY INDEX IX_StudyMetadataCore_Id
+WITH STOPLIST = OFF;
 
 
 /*************************************************************
@@ -368,9 +368,9 @@ CREATE TABLE dbo.DeletedInstance
     SeriesInstanceUid varchar(64) NOT NULL,
     SopInstanceUid varchar(64) NOT NULL,
     Watermark bigint NOT NULL,
-    DeletedDateTime DateTime2(0) NOT NULL,
+    DeletedDateTime dateTimeOffset(0) NOT NULL,
     RetryCount int NOT NULL,
-    RetryAfter DateTime2(0)
+    CleanupAfter dateTimeOffset(0) NOT NULL
 )
 
 /*************************************************************
@@ -444,7 +444,8 @@ CREATE PROCEDURE dbo.AddInstance
     @accessionNumber                    NVARCHAR(64) = NULL,
     @modality                           NVARCHAR(16) = NULL,
     @performedProcedureStepStartDate    DATE = NULL,
-    @initialStatus                      TINYINT
+    @initialStatus                      TINYINT,
+    @createDate                         DATETIMEOFFSET(7)
 AS
     SET NOCOUNT ON
 
@@ -452,7 +453,6 @@ AS
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
     BEGIN TRANSACTION
 
-    DECLARE @currentDate DATETIME2(7) = GETUTCDATE()
     DECLARE @existingStatus TINYINT
     DECLARE @metadataId BIGINT
     DECLARE @newVersion BIGINT
@@ -473,7 +473,7 @@ AS
     INSERT INTO dbo.Instance
         (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newVersion, @initialStatus, @currentDate, @currentDate)
+        (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newVersion, @initialStatus, @createDate, @createDate)
 
     -- Update the study metadata if needed.
     SELECT @metadataId = Id
@@ -539,7 +539,8 @@ CREATE PROCEDURE dbo.UpdateInstanceStatus
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
     @watermark          BIGINT,
-    @status             TINYINT
+    @status             TINYINT,
+    @updateDate         DATETIMEOFFSET(7)
 AS
     SET NOCOUNT ON
 
@@ -548,7 +549,7 @@ AS
     BEGIN TRANSACTION
 
     UPDATE dbo.Instance
-    SET Status = @status, LastStatusUpdatedDate = GETUTCDATE()
+    SET Status = @status, LastStatusUpdatedDate = @updateDate
     WHERE StudyInstanceUid = @studyInstanceUid
     AND SeriesInstanceUid = @seriesInstanceUid
     AND SopInstanceUid = @sopInstanceUid
@@ -632,7 +633,7 @@ GO
 --     DeleteInstance
 --
 -- DESCRIPTION
---     Removes the specified instance(s) and places them in the FileCleanup table for later removal
+--     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
 --
 -- PARAMETERS
 --     @studyInstanceUid
@@ -643,6 +644,8 @@ GO
 --         * The SOP instance UID.
 /***************************************************************************************/
 CREATE PROCEDURE dbo.DeleteInstance (
+    @deletedDate dateTimeOffset(0),
+    @cleanupAfter dateTimeOffset(0),
     @studyInstanceUid varchar(64),
     @seriesInstanceUid varchar(64) = null,
     @sopInstanceUid varchar(64) = null
@@ -664,7 +667,7 @@ AS
 
     -- Delete the instance and insert the details into FileCleanup
     DELETE  dbo.Instance
-        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, GETUTCDATE(), 0, NULL
+        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, @deletedDate, 0, @cleanupAfter
         INTO dbo.DeletedInstance
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
@@ -705,29 +708,27 @@ GO
 --     RetrieveDeletedInstance
 --
 -- DESCRIPTION
---     Retrieves deleted instances where the specified delay has passed or it is safe to retry the delete
+--     Retrieves deleted instances where the cleanupAfter is less than the date passed in and the retry count hasn't been exceeded
 --
 -- PARAMETERS
---     @deleteDelay
---         * The delay after the initial delete to attempt cleanup
+--     @cleanupAfter
+--         * The date time for the cutoff on retrieving deleted instances
 --     @count
 --         * The number of entries to return
 --     @maxRetries
 --         * The maximum number of times to retry a cleanup
 /***************************************************************************************/
 CREATE PROCEDURE dbo.RetrieveDeletedInstance
-    @deleteDelay int,
+    @cleanupAfter dateTimeOffset(0),
     @count int,
     @maxRetries int
 AS
     SET NOCOUNT ON
 
-    SELECT  TOP (@count) *
+    SELECT  TOP (@count) StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
-    WHERE   ( RetryCount = 0
-            AND GETUTCDATE() > DateAdd(s, @deleteDelay, DeletedDateTime))
-    OR      (RetryCount < @maxRetries
-            AND RetryAfter < GETUTCDATE())
+    WHERE   RetryCount < @maxRetries
+    AND     CleanupAfter < @cleanupAfter
 GO
 
 /***************************************************************************************/
@@ -735,7 +736,7 @@ GO
 --     DeleteDeletedInstance
 --
 -- DESCRIPTION
---     Removes a deleted instance from the deletedInstance table
+--     Removes a deleted instance from the DeletedInstance table
 --
 -- PARAMETERS
 --     @studyInstanceUid
@@ -780,22 +781,22 @@ GO
 --         * The SOP instance UID.
 --     @watermark
 --         * The watermark of the entry
---     @retryOffset
---         * The amount of time to wait before attempting to delete again
+--     @cleanupAfter
+--         * The next date time to attempt cleanup
 /***************************************************************************************/
 CREATE PROCEDURE dbo.IncrementDeletedInstanceRetry(
     @studyInstanceUid varchar(64),
     @seriesInstanceUid varchar(64),
     @sopInstanceUid varchar(64),
     @watermark bigint,
-    @retryOffset int
+    @cleanupAfter dateTimeOffset(0)
 )
 AS
     SET NOCOUNT ON
 
     UPDATE  dbo.DeletedInstance
     SET     RetryCount = RetryCount + 1,
-            RetryAfter = DATEADD(s, @retryOffset, GETUTCDATE())
+            CleanupAfter = @cleanupAfter
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = @seriesInstanceUid
     AND     SopInstanceUid = @sopInstanceUid

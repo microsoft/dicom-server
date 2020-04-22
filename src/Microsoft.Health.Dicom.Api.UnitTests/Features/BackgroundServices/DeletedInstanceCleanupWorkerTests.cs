@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.BackgroundServices
             configuration.Value.Returns(new DeletedInstanceCleanupConfiguration
             {
                 BatchSize = BatchSize,
-                PollingInterval = 1,
+                PollingInterval = TimeSpan.FromSeconds(1),
             });
             _deletedInstanceCleanupWorker = new DeletedInstanceCleanupWorker(_dicomDeleteService, configuration, NullLogger<DeletedInstanceCleanupWorker>.Instance);
             _cancellationTokenSource = new CancellationTokenSource();

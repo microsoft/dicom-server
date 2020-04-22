@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _deleteService = deleteService;
-            _pollingInterval = TimeSpan.FromSeconds(backgroundCleanupConfiguration.Value.PollingInterval);
+            _pollingInterval = backgroundCleanupConfiguration.Value.PollingInterval;
             _batchSize = backgroundCleanupConfiguration.Value.BatchSize;
             _logger = logger;
         }
@@ -41,12 +41,12 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
                 try
                 {
                     bool success;
-                    int rowsProcessed;
+                    int instancesProcessed;
                     do
                     {
-                        (success, rowsProcessed) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
+                        (success, instancesProcessed) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
                     }
-                    while (success && rowsProcessed == _batchSize);
+                    while (success && instancesProcessed == _batchSize);
 
                     await Task.Delay(_pollingInterval, stoppingToken);
                 }

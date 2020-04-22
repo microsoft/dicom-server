@@ -80,7 +80,6 @@ namespace Microsoft.AspNetCore.Builder
 
             services.AddSingleton<RecyclableMemoryStreamManager>();
 
-            services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
             services.AddScoped<DeletedInstanceCleanupWorker>();
 
             return new DicomServerBuilder(services);
