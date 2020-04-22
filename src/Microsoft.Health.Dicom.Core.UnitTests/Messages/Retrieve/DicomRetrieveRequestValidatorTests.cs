@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("345%^&")]
         public void GivenAnInvalidStudyInstanceIdentifier_WhenValidatedForRequestedResourceTypeStudy_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
         {
-            var ex = Assert.Throws<DicomInvalidIdentifierException>(() => DicomRetrieveRequestValidator.Validate(ResourceType.Study, studyInstanceUid));
+            var ex = Assert.Throws<DicomInvalidIdentifierException>(() => DicomRetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Study, studyInstanceUid));
             Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
 
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("()")]
         public void GivenAnInvalidSeriesInstanceIdentifier_WhenValidatedForRequestedResourceTypeSeries_ThenDicomInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
         {
-            var ex = Assert.Throws<DicomInvalidIdentifierException>(() => DicomRetrieveRequestValidator.Validate(ResourceType.Series, TestUidGenerator.Generate(), seriesInstanceUid));
+            var ex = Assert.Throws<DicomInvalidIdentifierException>(() => DicomRetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Series, TestUidGenerator.Generate(), seriesInstanceUid));
             Assert.Equal($"DICOM Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
 
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             string expectedErrorMessage = $"DICOM Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.";
 
-            var ex = Assert.Throws<DicomInvalidIdentifierException>(() => DicomRetrieveRequestValidator.Validate(ResourceType.Instance, TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid));
+            var ex = Assert.Throws<DicomInvalidIdentifierException>(() => DicomRetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Instance, TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid));
             Assert.Equal(expectedErrorMessage, ex.Message);
         }
 
@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("1", "2", "2")]
         public void GivenARequestWithRepeatedIdentifiers_WhenValidatedForRequestedResourceTypeInstance_ThenBadRequestExceptionIsThrown(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.Validate(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             Assert.Equal("The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.", ex.Message);
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
             string studyInstanceUid = TestUidGenerator.Generate();
 
             // Use same identifier as studyInstanceUid and seriesInstanceUid.
-            var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.Validate(ResourceType.Series, studyInstanceUid, studyInstanceUid));
+            var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Series, studyInstanceUid, studyInstanceUid));
             Assert.Equal("The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.", ex.Message);
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
         public void GivenARequestWithIncorrectTransferSyntax_WhenValidated_ThenBadRequestExceptionIsThrown(string transferSyntax)
         {
-            var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.Validate(ResourceType.Study, TestUidGenerator.Generate(), requestedTransferSyntax: transferSyntax));
+            var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.ValidateTransferSyntax(requestedTransferSyntax: transferSyntax));
             Assert.Equal("The specified Transfer Syntax value is not valid.", ex.Message);
         }
 
@@ -85,14 +85,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             string expectedErrorMessage = "The specified condition was not met for 'Frames'. At least one frame must be present, and all requested frames must have value greater than 0.";
 
-            var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.Validate(
-               ResourceType.Frames,
-               studyInstanceUid: TestUidGenerator.Generate(),
-               seriesInstanceUid: TestUidGenerator.Generate(),
-               sopInstanceUid: TestUidGenerator.Generate(),
-               frames: frames,
-               requestedTransferSyntax: "*",
-               isOriginalTransferSyntaxRequested: true));
+            var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.ValidateFrames(frames));
             Assert.Equal(expectedErrorMessage, ex.Message);
         }
 
@@ -103,14 +96,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             string expectedErrorMessage = "The specified condition was not met for 'Frames'. At least one frame must be present, and all requested frames must have value greater than 0.";
 
-            var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.Validate(
-                ResourceType.Frames,
-                studyInstanceUid: TestUidGenerator.Generate(),
-                seriesInstanceUid: TestUidGenerator.Generate(),
-                sopInstanceUid: TestUidGenerator.Generate(),
-                frames: new[] { frame },
-                requestedTransferSyntax: "*",
-                isOriginalTransferSyntaxRequested: true));
+            var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.ValidateFrames(new[] { frame }));
 
             Assert.Equal(expectedErrorMessage, ex.Message);
         }
@@ -121,32 +107,25 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData(ResourceType.Instance)]
         public void GivenARequestWithValidInstanceIdentifiers__WhenValidatedForSpecifiedResourceType_ThenNoExceptionIsThrown(ResourceType resourceType)
         {
-            DicomRetrieveRequestValidator.Validate(resourceType, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
+            DicomRetrieveRequestValidator.ValidateInstanceIdentifiers(resourceType, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
         }
 
         [Fact]
         public void GivenARequestWithValidFramesValue_WhenValidated_ThenNoExceptionIsThrown()
         {
-            DicomRetrieveRequestValidator.Validate(
-                ResourceType.Frames,
-                studyInstanceUid: TestUidGenerator.Generate(),
-                seriesInstanceUid: TestUidGenerator.Generate(),
-                sopInstanceUid: TestUidGenerator.Generate(),
-                frames: new List<int> { 1 },
-                requestedTransferSyntax: "*",
-                isOriginalTransferSyntaxRequested: true);
+            DicomRetrieveRequestValidator.ValidateFrames(new List<int> { 1 });
         }
 
         [Fact]
         public void GivenARequestWithValidTransferSyntax_WhenValidated_ThenNoExceptionIsThrown()
         {
-            DicomRetrieveRequestValidator.Validate(
-                ResourceType.Frames,
-                studyInstanceUid: TestUidGenerator.Generate(),
-                seriesInstanceUid: TestUidGenerator.Generate(),
-                sopInstanceUid: TestUidGenerator.Generate(),
-                frames: new List<int> { 1 },
-                requestedTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
+            DicomRetrieveRequestValidator.ValidateTransferSyntax(DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
+        }
+
+        [Fact]
+        public void GivenARequestWithOriginalTransferSyntax_WhenValidated_ThenNoExceptionIsThrown()
+        {
+            DicomRetrieveRequestValidator.ValidateTransferSyntax(requestedTransferSyntax: "*", originalTransferSyntaxRequested: true);
         }
     }
 }

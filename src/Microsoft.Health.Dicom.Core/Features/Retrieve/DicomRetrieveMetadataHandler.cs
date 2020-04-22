@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         private void ValidateRetrieveMetadataRequest(DicomRetrieveMetadataRequest request)
         {
-            DicomRetrieveRequestValidator.Validate(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
+            DicomRetrieveRequestValidator.ValidateInstanceIdentifiers(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
         }
     }
 }

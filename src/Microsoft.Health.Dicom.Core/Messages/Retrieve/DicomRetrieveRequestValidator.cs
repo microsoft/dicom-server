@@ -19,18 +19,12 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         private const string SeriesInstanceUid = "SeriesInstanceUid";
         private const string SopInstanceUid = "SopInstanceUid";
 
-        public static void Validate(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, IEnumerable<int> frames = null, string requestedTransferSyntax = null, bool isOriginalTransferSyntaxRequested = false)
+        public static void ValidateInstanceIdentifiers(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
             ValidateInstanceIndentifiersAreValid(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             ValidateInstanceIdentifiersAreNotDuplicate(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            ValidateTransferSyntax(requestedTransferSyntax, isOriginalTransferSyntaxRequested);
-
-            if (resourceType == ResourceType.Frames)
-            {
-                ValidateFrames(frames);
-            }
         }
 
         private static void ValidateInstanceIndentifiersAreValid(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
@@ -74,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             }
         }
 
-        private static void ValidateFrames(IEnumerable<int> frames)
+        public static void ValidateFrames(IEnumerable<int> frames)
         {
             if (frames == null || !frames.Any())
             {
@@ -90,7 +84,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             }
         }
 
-        private static void ValidateTransferSyntax(string requestedTransferSyntax, bool originalTransferSyntaxRequested)
+        public static void ValidateTransferSyntax(string requestedTransferSyntax, bool originalTransferSyntaxRequested = false)
         {
             if (!originalTransferSyntaxRequested && requestedTransferSyntax != null)
             {

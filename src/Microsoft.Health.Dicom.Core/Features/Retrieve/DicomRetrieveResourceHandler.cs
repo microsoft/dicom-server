@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
@@ -33,7 +34,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         private void ValidateRetrieveResourceRequest(DicomRetrieveResourceRequest request)
         {
-            DicomRetrieveRequestValidator.Validate(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, request.Frames, request.RequestedRepresentation, request.OriginalTransferSyntaxRequested());
+            DicomRetrieveRequestValidator.ValidateInstanceIdentifiers(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
+            DicomRetrieveRequestValidator.ValidateTransferSyntax(request.RequestedRepresentation, request.OriginalTransferSyntaxRequested());
+
+            if (request.ResourceType == ResourceType.Frames)
+            {
+                DicomRetrieveRequestValidator.ValidateFrames(request.Frames);
+            }
         }
     }
 }
