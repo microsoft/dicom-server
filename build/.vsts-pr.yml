@@ -63,28 +63,28 @@ stages:
         azureSubscription: $(azureSubscriptionName)
         azurePowerShellVersion: latestVersion
         ScriptType: InlineScript
-      Inline: |
-        Add-Type -AssemblyName System.Web
+        Inline: |
+          Add-Type -AssemblyName System.Web
+        
+          $deployPath = "$(System.DefaultWorkingDirectory)/samples/templates"
       
-        $deployPath = "$(System.DefaultWorkingDirectory)/samples/templates"
-     
-        $additionalProperties = @{
-            "SqlServer__DeleteAllDataOnStartup" = "true"
-        }
-     
-        $templateParameters = @{
-            appServicePlanResourceGroup = "$(resourceGroupRoot)"
-            appServicePlanName = "$(appServicePlanName)"
-            serviceName = "$(deploymentName)"
-            additionalDicomServerConfigProperties = $additionalProperties
-            sqlAdminPassword = [System.Web.Security.Membership]::GeneratePassword(15, 5).replace(";", "_").replace("$","!")
-            securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
-            securityAuthenticationAudience = "$(testEnvironmentUrl)"
-        }
-        
-        New-AzResourceGroupDeployment -Name "$(deploymentName)" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/default-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
-        
-        Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
+          $additionalProperties = @{
+              "SqlServer__DeleteAllDataOnStartup" = "true"
+          }
+      
+          $templateParameters = @{
+              appServicePlanResourceGroup = "$(resourceGroupRoot)"
+              appServicePlanName = "$(appServicePlanName)"
+              serviceName = "$(deploymentName)"
+              additionalDicomServerConfigProperties = $additionalProperties
+              sqlAdminPassword = [System.Web.Security.Membership]::GeneratePassword(15, 5).replace(";", "_").replace("$","!")
+              securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
+              securityAuthenticationAudience = "$(testEnvironmentUrl)"
+          }
+          
+          New-AzResourceGroupDeployment -Name "$(deploymentName)" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/default-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
+          
+          Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
     - task: AzureRmWebAppDeployment@3
       displayName: 'Azure app service deployment'
       inputs:
