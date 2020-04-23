@@ -63,13 +63,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomInstance = dicomFile1.Dataset.ToDicomInstanceIdentifier();
             await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
 
-            DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: 1);
+            DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1 });
             Assert.NotNull(frames);
             Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
             Assert.Single(frames.Value);
             AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
 
-            frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: 2);
+            frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 2 });
             Assert.NotNull(frames);
             Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
             Assert.Single(frames.Value);
@@ -174,7 +174,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             string fakeSopInstanceUid = "1.2.345.6.7";
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid, frames: 1));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid, frames: new[] { 1 }));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
@@ -184,7 +184,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: 2);
             var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: 4));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 4 }));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
@@ -194,7 +194,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("0.6", "1")]
         public async Task GivenARequestWithNonIntegerFrames_WhenRetrievingFrames_TheServerShouldReturnBadRequest(params string[] frames)
         {
-            var requestUri = new Uri(string.Format(DicomWebContants.BaseRetrieveFramesUriFormat, DicomUID.Generate(), DicomUID.Generate(), DicomUID.Generate(), string.Join("%2C", frames)), UriKind.Relative);
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, DicomUID.Generate(), DicomUID.Generate(), DicomUID.Generate(), string.Join("%2C", frames)), UriKind.Relative);
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -255,7 +255,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [MemberData(nameof(GetInvalidTransferSyntaxData))]
         public async Task GivenARequestWithInvalidTransferSyntax_WhenRetrievingFrames_TheServerShouldReturnBadRequest(string transferSyntax)
         {
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax, 1));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax, frames: new[] { 1 }));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
@@ -271,7 +271,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
 
-            exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), frames: 1));
+            exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), frames: new[] { 1 }));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
 
             // Create a valid Study/ Series/ Instance with one frame
@@ -287,10 +287,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
 
-            DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames: 1);
+            DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames: new[] { 1 });
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames: 2));
+            exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames: new[] { 2 }));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
@@ -385,7 +385,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 seriesInstanceUid,
                 sopInstanceUid,
                 dicomTransferSyntax: "*",
-                frames: 1);
+                frames: new[] { 1 });
 
             Assert.Equal(HttpStatusCode.OK, frameResponse.StatusCode);
             Assert.NotEqual(0, frameResponse.Value.Single().Length);
@@ -497,7 +497,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     dicomInstance.SeriesInstanceUid,
                     dicomInstance.SopInstanceUid,
                     expectedTransferSyntax.UID.UID,
-                    1);
+                    frames: new[] { 1 });
 
                 Assert.Equal(HttpStatusCode.OK, retrieveResponse.StatusCode);
                 Assert.NotEqual(0, framesResponse.Value.Single().Length);
@@ -572,19 +572,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Study
             await ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebContants.BaseRetrieveStudyUriFormat, TestUidGenerator.Generate()),
+                string.Format(DicomWebConstants.BasStudyUriFormat, TestUidGenerator.Generate()),
                 acceptHeader);
 
             // Series
             await ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebContants.BaseRetrieveSeriesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate()),
+                string.Format(DicomWebConstants.BaseSeriesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate()),
                 acceptHeader);
 
             // Instance
             await ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebContants.BaseRetrieveInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
+                string.Format(DicomWebConstants.BaseeInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
                 acceptHeader);
         }
 
@@ -596,7 +596,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             await ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebContants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1),
+                string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1),
                 acceptHeader);
         }
 

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
@@ -14,112 +15,179 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 {
     public static class DicomWebClientExtensions
     {
-        public static Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveStudyAsync(this DicomWebClient dicomWebClient, string studyInstanceUid, string dicomTransferSyntax = null)
+        public static Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveStudyAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            string dicomTransferSyntax = null,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveInstancesAsync(
-                new Uri(string.Format(DicomWebContants.BaseRetrieveStudyUriFormat, studyInstanceUid), UriKind.Relative),
-                dicomTransferSyntax);
+                new Uri(string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid), UriKind.Relative),
+                dicomTransferSyntax,
+                cancellationToken);
         }
 
-        public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveStudyMetadataAsync(this DicomWebClient dicomWebClient, string studyInstanceUid)
+        public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveStudyMetadataAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveMetadataAsync(
-                new Uri(string.Format(DicomWebContants.BaseRetrieveStudyMetadataUriFormat, studyInstanceUid), UriKind.Relative));
+                new Uri(string.Format(DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, studyInstanceUid), UriKind.Relative),
+                cancellationToken);
         }
 
-        public static Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveSeriesAsync(this DicomWebClient dicomWebClient, string studyInstanceUid, string seriesInstanceUid, string dicomTransferSyntax = null)
+        public static Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveSeriesAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string dicomTransferSyntax = null,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveInstancesAsync(
-                new Uri(string.Format(DicomWebContants.BaseRetrieveSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative),
-                dicomTransferSyntax);
+                new Uri(string.Format(DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative),
+                dicomTransferSyntax,
+                cancellationToken);
         }
 
-        public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveSeriesMetadataAsync(this DicomWebClient dicomWebClient, string studyInstanceUid, string seriesInstanceUid)
+        public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveSeriesMetadataAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveMetadataAsync(
-                new Uri(string.Format(DicomWebContants.BaseRetrieveSeriesMetadataUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative));
+                new Uri(string.Format(DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative),
+                cancellationToken);
         }
 
-        public static Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstanceAsync(this DicomWebClient dicomWebClient, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string dicomTransferSyntax = null)
+        public static Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstanceAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            string dicomTransferSyntax = null,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveInstancesAsync(
-                new Uri(string.Format(DicomWebContants.BaseRetrieveInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
-                dicomTransferSyntax);
+                new Uri(string.Format(DicomWebConstants.BaseeInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
+                dicomTransferSyntax,
+                cancellationToken);
         }
 
-        public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveInstanceRenderedAsync(this DicomWebClient dicomWebClient, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUId, string format = null, bool thumbnail = false)
+        public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveInstanceRenderedAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUId,
+            string format = null,
+            bool thumbnail = false,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
-            string urlFormat = thumbnail ? DicomWebContants.BaseRetrieveInstanceThumbnailUriFormat : DicomWebContants.BaseRetrieveInstanceRenderedUriFormat;
+            string urlFormat = thumbnail ? DicomWebConstants.BaseRetrieveInstanceThumbnailUriFormat : DicomWebConstants.BaseRetrieveInstanceRenderedUriFormat;
 
             return dicomWebClient.RetrieveInstancesRenderedAsync(
                 new Uri(string.Format(urlFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUId), UriKind.Relative),
                 format,
-                thumbnail);
+                cancellationToken);
         }
 
-        public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveInstanceMetadataAsync(this DicomWebClient dicomWebClient, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveInstanceMetadataAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveMetadataAsync(
-                new Uri(string.Format(DicomWebContants.BaseRetrieveInstanceMetadataUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative));
+                new Uri(string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
+                cancellationToken);
         }
 
-        public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(this DicomWebClient dicomWebClient, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string format = null, bool thumbnail = false, params int[] frames)
+        public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            string format = null,
+            bool thumbnail = false,
+            int[] frames = null,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
-            var uriString = thumbnail ? DicomWebContants.BaseRetrieveFramesThumbnailUriFormat : DicomWebContants.BaseRetrieveFramesRenderedUriFormat;
+            var uriString = thumbnail ? DicomWebConstants.BaseRetrieveFramesThumbnailUriFormat : DicomWebConstants.BaseRetrieveFramesRenderedUriFormat;
 
             var requestUri = new Uri(string.Format(uriString, studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join(",", frames)), UriKind.Relative);
 
-            return dicomWebClient.RetrieveFramesRenderedAsync(requestUri, format);
+            return dicomWebClient.RetrieveFramesRenderedAsync(requestUri, format, cancellationToken);
         }
 
-        public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(this DicomWebClient dicomWebClient, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string dicomTransferSyntax = null, params int[] frames)
+        public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            string dicomTransferSyntax = null,
+            int[] frames = null,
+            CancellationToken cancellationToken = default)
         {
-            var requestUri = new Uri(string.Format(DicomWebContants.BaseRetrieveFramesUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join("%2C", frames)), UriKind.Relative);
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join("%2C", frames)), UriKind.Relative);
 
-            return dicomWebClient.RetrieveFramesAsync(requestUri, dicomTransferSyntax);
+            return dicomWebClient.RetrieveFramesAsync(requestUri, dicomTransferSyntax, cancellationToken);
         }
 
-        public static Task<DicomWebResponse> DeleteStudyAsync(this DicomWebClient dicomWebClient, string studyInstanceUid)
-        {
-            EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
-
-            var requestUri = new Uri(string.Format(DicomWebContants.BaseRetrieveStudyUriFormat, studyInstanceUid), UriKind.Relative);
-
-            return dicomWebClient.DeleteAsync(requestUri);
-        }
-
-        public static Task<DicomWebResponse> DeleteSeriesAsync(this DicomWebClient dicomWebClient, string studyInstanceUid, string seriesInstanceUid)
-        {
-            EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
-
-            var requestUri = new Uri(string.Format(DicomWebContants.BaseRetrieveSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative);
-
-            return dicomWebClient.DeleteAsync(requestUri);
-        }
-
-        public static Task<DicomWebResponse> DeleteInstanceAsync(this DicomWebClient dicomWebClient, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public static Task<DicomWebResponse> DeleteStudyAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
-            var requestUri = new Uri(string.Format(DicomWebContants.BaseRetrieveInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative);
+            var requestUri = new Uri(string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid), UriKind.Relative);
 
-            return dicomWebClient.DeleteAsync(requestUri);
+            return dicomWebClient.DeleteAsync(requestUri, cancellationToken);
+        }
+
+        public static Task<DicomWebResponse> DeleteSeriesAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
+
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative);
+
+            return dicomWebClient.DeleteAsync(requestUri, cancellationToken);
+        }
+
+        public static Task<DicomWebResponse> DeleteInstanceAsync(
+            this DicomWebClient dicomWebClient,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
+
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseeInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative);
+
+            return dicomWebClient.DeleteAsync(requestUri, cancellationToken);
         }
     }
 }
