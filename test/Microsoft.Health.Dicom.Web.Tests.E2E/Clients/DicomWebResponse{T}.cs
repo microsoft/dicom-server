@@ -3,25 +3,26 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net;
+using System.Net.Http;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 {
-    public class HttpResult<T>
+    public class DicomWebResponse<T> : DicomWebResponse
     {
-        public HttpResult(HttpStatusCode statusCode)
-        {
-            StatusCode = statusCode;
-        }
-
-        public HttpResult(HttpStatusCode statusCode, T value)
-            : this(statusCode)
+        public DicomWebResponse(HttpResponseMessage response, T value)
+            : base(response)
         {
             Value = value;
         }
 
-        public HttpStatusCode StatusCode { get; }
-
         public T Value { get; }
+
+        public static implicit operator T(DicomWebResponse<T> response)
+        {
+            EnsureArg.IsNotNull(response, nameof(response));
+
+            return response.Value;
+        }
     }
 }
