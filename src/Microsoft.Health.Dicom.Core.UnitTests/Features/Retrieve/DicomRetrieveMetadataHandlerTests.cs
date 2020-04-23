@@ -105,6 +105,23 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             Assert.Equal($"DICOM Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
 
+        [Theory]
+        [InlineData("1", "1", "2")]
+        [InlineData("1", "2", "1")]
+        [InlineData("1", "2", "2")]
+        public async Task GivenRepeatedIdentifiers_WhenRetrievingInstanceMetadata_ThenDicomBadRequestExceptionIsThrownAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        {
+            const string expectedErrorMessage = "The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.";
+            var request = new DicomRetrieveMetadataRequest(
+                studyInstanceUid: studyInstanceUid,
+                seriesInstanceUid: seriesInstanceUid,
+                sopInstanceUid: sopInstanceUid);
+
+            var ex = await Assert.ThrowsAsync<DicomBadRequestException>(() => _dicomRetrieveMetadataHandler.Handle(request, CancellationToken.None));
+
+            Assert.Equal(expectedErrorMessage, ex.Message);
+        }
+
         [Fact]
         public async Task GivenARequestWithValidInstanceIdentifier_WhenRetrievingStudyInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully()
         {
