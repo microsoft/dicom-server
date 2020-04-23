@@ -154,7 +154,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     throw new DicomInstanceNotFoundException();
                 }
 
-                throw new DicomDataStoreException((HttpStatusCode)e.StatusCode, e);
+                throw;
             }
         }
 
