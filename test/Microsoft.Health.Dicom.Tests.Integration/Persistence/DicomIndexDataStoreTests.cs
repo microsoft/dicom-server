@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Core;
@@ -187,7 +188,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
             Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-            Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance2), ValidateSingleDeletedInstance(instance1));
+            Assert.Collection(
+                await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null),
+                ValidateSingleDeletedInstance(instance1),
+                ValidateSingleDeletedInstance(instance2));
         }
 
         [Fact]
@@ -250,8 +254,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             Assert.Collection(
                 await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, null, null),
-                ValidateSingleDeletedInstance(instance2),
-                ValidateSingleDeletedInstance(instance1));
+                ValidateSingleDeletedInstance(instance1),
+                ValidateSingleDeletedInstance(instance2));
         }
 
         [Fact]
@@ -357,6 +361,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 () => _dicomIndexDataStore.UpdateInstanceIndexStatusAsync(dicomInstanceIdentifier, DicomIndexStatus.Created));
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+        }
+
+        [Fact]
+        public async Task GivenADeletedDicomInstance_WhenIncrementingRetryCount_NewRetryCountShouldBeReturned()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, Clock.UtcNow);
+
+            DeletedInstance deletedEntry = (await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid)).First();
+            var versionedDicomInstanceIdentifier = new VersionedDicomInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedEntry.Watermark);
+            var retryCount = await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(versionedDicomInstanceIdentifier, Clock.UtcNow);
+            Assert.Equal(1, retryCount);
         }
 
         private static void ValidateStudyMetadata(

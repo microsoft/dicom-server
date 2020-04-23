@@ -16,6 +16,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
         Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default);
 
-        Task<(bool success, int instancesProcessed)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken = default);
+        Task<(bool success, int retrievedInstanceCount)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken = default);
     }
 }

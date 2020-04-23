@@ -36,9 +36,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await DeleteAndValidateInstanceForCleanup(dicomInstanceIdentifier);
 
             await Task.Delay(3000, CancellationToken.None);
-            (bool success, int instancesProcessed) = await _fixture.DicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+            (bool success, int retrievedInstanceCount) = await _fixture.DicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
-            await ValidateRemoval(success, instancesProcessed, dicomInstanceIdentifier);
+            await ValidateRemoval(success, retrievedInstanceCount, dicomInstanceIdentifier);
         }
 
         private async Task DeleteAndValidateInstanceForCleanup(VersionedDicomInstanceIdentifier dicomInstanceIdentifier)
@@ -82,10 +82,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             return versionedDicomInstanceIdentifier;
         }
 
-        private async Task ValidateRemoval(bool success, int instancesProcessed, VersionedDicomInstanceIdentifier dicomInstanceIdentifier)
+        private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedDicomInstanceIdentifier dicomInstanceIdentifier)
         {
             Assert.True(success);
-            Assert.Equal(1, instancesProcessed);
+            Assert.Equal(1, retrievedInstanceCount);
 
             await Assert.ThrowsAsync<DicomDataStoreException>(async () => await _fixture.DicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceIdentifier));
             await Assert.ThrowsAsync<DicomDataStoreException>(async () => await _fixture.DicomFileStore.GetFileAsync(dicomInstanceIdentifier));

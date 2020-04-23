@@ -41,12 +41,12 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
                 try
                 {
                     bool success;
-                    int instancesProcessed;
+                    int retrievedInstanceCount;
                     do
                     {
-                        (success, instancesProcessed) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
+                        (success, retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
                     }
-                    while (success && instancesProcessed == _batchSize);
+                    while (success && retrievedInstanceCount == _batchSize);
 
                     await Task.Delay(_pollingInterval, stoppingToken);
                 }

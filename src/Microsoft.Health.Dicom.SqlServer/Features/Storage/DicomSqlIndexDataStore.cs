@@ -207,7 +207,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             }
         }
 
-        public async Task IncrementDeletedInstanceRetryAsync(VersionedDicomInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+        public async Task<int> IncrementDeletedInstanceRetryAsync(VersionedDicomInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
         {
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
@@ -222,7 +222,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                     versionedInstanceIdentifier.Version,
                     cleanupAfter);
 
-                await sqlCommand.ExecuteScalarAsync(cancellationToken);
+                return (int)(await sqlCommand.ExecuteScalarAsync(cancellationToken));
             }
         }
 

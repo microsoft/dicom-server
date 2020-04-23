@@ -10,28 +10,33 @@ namespace Microsoft.Health.Dicom.Core.Configs
     public class DeletedInstanceCleanupConfiguration
     {
         /// <summary>
-        /// The amount of time to wait before the initial attempt to cleanup an instance
+        /// The amount of time to wait before the initial attempt to cleanup an instance.
+        /// Default: 3 days
         /// </summary>
-        public TimeSpan DeleteDelay { get; set; }
+        public TimeSpan DeleteDelay { get; set; } = TimeSpan.FromDays(3);
 
         /// <summary>
-        /// The maximum number of times to attempt to cleanup a deleted entry
+        /// The maximum number of times to attempt to cleanup a deleted entry.
+        /// Default: 5
         /// </summary>
-        public int MaxRetries { get; set; }
+        public int MaxRetries { get; set; } = 5;
 
         /// <summary>
-        /// The amount of time to back off between retries
+        /// The amount of time to back off between cleanup retries.
+        /// Default: 1 day
         /// </summary>
-        public TimeSpan RetryBackOff { get; set; }
+        public TimeSpan RetryBackOff { get; set; } = TimeSpan.FromDays(1);
 
         /// <summary>
-        /// The amount of time to wait between polling for new entries to cleanup
+        /// The amount of time to wait between polling for new entries to cleanup.
+        /// Default: 3 minutes
         /// </summary>
-        public TimeSpan PollingInterval { get; set; }
+        public TimeSpan PollingInterval { get; set; } = TimeSpan.FromMinutes(3);
 
         /// <summary>
-        /// The number of items to grab per batch
+        /// The number of items to grab per batch.
+        /// Default: 10
         /// </summary>
-        public int BatchSize { get; set; }
+        public int BatchSize { get; set; } = 10;
     }
 }

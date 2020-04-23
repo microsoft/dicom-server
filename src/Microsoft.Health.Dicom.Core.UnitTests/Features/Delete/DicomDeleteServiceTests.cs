@@ -66,10 +66,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 .RetrieveDeletedInstancesAsync(Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(Enumerable.Empty<VersionedDicomInstanceIdentifier>());
 
-            (bool success, int instancesProcessed) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+            (bool success, int retrievedInstanceCount) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
             Assert.True(success);
-            Assert.Equal(0, instancesProcessed);
+            Assert.Equal(0, retrievedInstanceCount);
 
             await _dicomIndexDataStore
                 .ReceivedWithAnyArgs(1)
@@ -107,10 +107,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 .DeleteFileIfExistsAsync(Arg.Any<VersionedDicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-            (bool success, int instancesProcessed) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+            (bool success, int retrievedInstanceCount) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
             Assert.True(success);
-            Assert.Equal(1, instancesProcessed);
+            Assert.Equal(1, retrievedInstanceCount);
 
             await _dicomIndexDataStore
                 .Received(1)
@@ -130,10 +130,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 .DeleteInstanceMetadataIfExistsAsync(Arg.Any<VersionedDicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-            (bool success, int instancesProcessed) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+            (bool success, int retrievedInstanceCount) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
             Assert.True(success);
-            Assert.Equal(1, instancesProcessed);
+            Assert.Equal(1, retrievedInstanceCount);
 
             await _dicomIndexDataStore
                 .Received(1)
@@ -157,10 +157,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 .IncrementDeletedInstanceRetryAsync(Arg.Any<VersionedDicomInstanceIdentifier>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-            (bool success, int instancesProcessed) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+            (bool success, int retrievedInstanceCount) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
             Assert.False(success);
-            Assert.Equal(1, instancesProcessed);
+            Assert.Equal(1, retrievedInstanceCount);
 
             await _dicomIndexDataStore
                 .Received(1)
@@ -176,10 +176,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 .RetrieveDeletedInstancesAsync(Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-            (bool success, int instancesProcessed) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+            (bool success, int retrievedInstanceCount) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
             Assert.False(success);
-            Assert.Equal(0, instancesProcessed);
+            Assert.Equal(0, retrievedInstanceCount);
 
             await _dicomIndexDataStore
                 .DidNotReceiveWithAnyArgs()
@@ -205,15 +205,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 .RetrieveDeletedInstancesAsync(Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(responseList);
 
-            (bool success, int instancesProcessed) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+            (bool success, int retrievedInstanceCount) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
-            await ValidateSuccessfulCleanupDeletedInstanceCall(success, responseList, instancesProcessed);
+            await ValidateSuccessfulCleanupDeletedInstanceCall(success, responseList, retrievedInstanceCount);
         }
 
-        private async Task ValidateSuccessfulCleanupDeletedInstanceCall(bool success, IReadOnlyCollection<VersionedDicomInstanceIdentifier> responseList, int instancesProcessed)
+        private async Task ValidateSuccessfulCleanupDeletedInstanceCall(bool success, IReadOnlyCollection<VersionedDicomInstanceIdentifier> responseList, int retrievedInstanceCount)
         {
             Assert.True(success);
-            Assert.Equal(responseList.Count, instancesProcessed);
+            Assert.Equal(responseList.Count, retrievedInstanceCount);
 
             await _dicomIndexDataStore
                 .ReceivedWithAnyArgs(1)

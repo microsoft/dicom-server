@@ -364,13 +364,34 @@ GO
 **************************************************************/
 CREATE TABLE dbo.DeletedInstance
 (
-    StudyInstanceUid varchar(64) NOT NULL,
-    SeriesInstanceUid varchar(64) NOT NULL,
-    SopInstanceUid varchar(64) NOT NULL,
-    Watermark bigint NOT NULL,
-    DeletedDateTime dateTimeOffset(0) NOT NULL,
-    RetryCount int NOT NULL,
-    CleanupAfter dateTimeOffset(0) NOT NULL
+    StudyInstanceUid    VARCHAR(64) NOT NULL,
+    SeriesInstanceUid   VARCHAR(64) NOT NULL,
+    SopInstanceUid      VARCHAR(64) NOT NULL,
+    Watermark           BIGINT NOT NULL,
+    DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
+    RetryCount          INT NOT NULL,
+    CleanupAfter        DATETIMEOFFSET(0) NOT NULL
+)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
+(
+    Watermark,
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid
+)
+
+CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
+(
+    RetryCount,
+    CleanupAfter
+)
+INCLUDE
+(
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid,
+    Watermark
 )
 
 /*************************************************************
@@ -644,11 +665,11 @@ GO
 --         * The SOP instance UID.
 /***************************************************************************************/
 CREATE PROCEDURE dbo.DeleteInstance (
-    @deletedDate dateTimeOffset(0),
-    @cleanupAfter dateTimeOffset(0),
-    @studyInstanceUid varchar(64),
-    @seriesInstanceUid varchar(64) = null,
-    @sopInstanceUid varchar(64) = null
+    @deletedDate        DATETIMEOFFSET(0),
+    @cleanupAfter       DATETIMEOFFSET(0),
+    @studyInstanceUid   VARCHAR(64),
+    @seriesInstanceUid  VARCHAR(64) = null,
+    @sopInstanceUid     VARCHAR(64) = null
 )
 AS
     SET NOCOUNT ON
@@ -719,15 +740,15 @@ GO
 --         * The maximum number of times to retry a cleanup
 /***************************************************************************************/
 CREATE PROCEDURE dbo.RetrieveDeletedInstance
-    @cleanupAfter dateTimeOffset(0),
-    @count int,
-    @maxRetries int
+    @cleanupAfter   DATETIMEOFFSET(0),
+    @count          INT,
+    @maxRetries     INT
 AS
     SET NOCOUNT ON
 
     SELECT  TOP (@count) StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
-    WHERE   RetryCount < @maxRetries
+    WHERE   RetryCount <= @maxRetries
     AND     CleanupAfter < @cleanupAfter
 GO
 
@@ -749,10 +770,10 @@ GO
 --         * The watermark of the entry
 /***************************************************************************************/
 CREATE PROCEDURE dbo.DeleteDeletedInstance(
-    @studyInstanceUid varchar(64),
-    @seriesInstanceUid varchar(64),
-    @sopInstanceUid varchar(64),
-    @watermark bigint
+    @studyInstanceUid   VARCHAR(64),
+    @seriesInstanceUid  VARCHAR(64),
+    @sopInstanceUid     VARCHAR(64),
+    @watermark          BIGINT
 )
 AS
     SET NOCOUNT ON
@@ -783,23 +804,30 @@ GO
 --         * The watermark of the entry
 --     @cleanupAfter
 --         * The next date time to attempt cleanup
+--
+-- RETURN VALUE
+--     The retry count.
+--
 /***************************************************************************************/
 CREATE PROCEDURE dbo.IncrementDeletedInstanceRetry(
-    @studyInstanceUid varchar(64),
-    @seriesInstanceUid varchar(64),
-    @sopInstanceUid varchar(64),
-    @watermark bigint,
-    @cleanupAfter dateTimeOffset(0)
+    @studyInstanceUid   VARCHAR(64),
+    @seriesInstanceUid  VARCHAR(64),
+    @sopInstanceUid     VARCHAR(64),
+    @watermark          BIGINT,
+    @cleanupAfter       DATETIMEOFFSET(0)
 )
 AS
     SET NOCOUNT ON
 
+    DECLARE @retryCount INT
+
     UPDATE  dbo.DeletedInstance
-    SET     RetryCount = RetryCount + 1,
+    SET     @retryCount = RetryCount = RetryCount + 1,
             CleanupAfter = @cleanupAfter
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = @seriesInstanceUid
     AND     SopInstanceUid = @sopInstanceUid
     AND     Watermark = @watermark
 
+    SELECT @retryCount
 GO

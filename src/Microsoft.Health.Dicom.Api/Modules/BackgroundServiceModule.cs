@@ -17,6 +17,7 @@ namespace Microsoft.Health.Dicom.Api.Modules
             EnsureArg.IsNotNull(services, nameof(services));
 
             services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
+            services.AddScoped<DeletedInstanceCleanupWorker>();
         }
     }
 }

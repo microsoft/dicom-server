@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,23 +70,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedDate, cleanupAfter, cancellationToken);
         }
 
-        public async Task<(bool success, int instancesProcessed)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)
+        public async Task<(bool success, int retrievedInstanceCount)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)
         {
             bool success = true;
-            int instancesProcessed = 0;
+            int retrievedInstanceCount = 0;
 
             using (ITransactionScope transactionScope = _transactionHandler.BeginTransaction())
             {
                 try
                 {
-                    var deletedInstanceIdentifiers = (await _dicomIndexDataStore.RetrieveDeletedInstancesAsync(
+                    List<VersionedDicomInstanceIdentifier> deletedInstanceIdentifiers = (await _dicomIndexDataStore.RetrieveDeletedInstancesAsync(
                         Clock.UtcNow,
                         _deletedInstanceCleanupConfiguration.BatchSize,
                         _deletedInstanceCleanupConfiguration.MaxRetries,
                         cancellationToken))
                         .ToList();
 
-                    instancesProcessed = deletedInstanceIdentifiers.Count;
+                    retrievedInstanceCount = deletedInstanceIdentifiers.Count;
 
                     foreach (VersionedDicomInstanceIdentifier deletedInstanceIdentifier in deletedInstanceIdentifiers)
                     {
@@ -103,15 +104,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                         }
                         catch (Exception cleanupException)
                         {
-                            _logger.LogError(cleanupException, "Failed to cleanup instance.");
-
                             try
                             {
-                                await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, Clock.UtcNow + _deletedInstanceCleanupConfiguration.RetryBackOff, cancellationToken);
+                                int newRetryCount = await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, Clock.UtcNow + _deletedInstanceCleanupConfiguration.RetryBackOff, cancellationToken);
+                                if (newRetryCount > _deletedInstanceCleanupConfiguration.MaxRetries)
+                                {
+                                    _logger.LogCritical(cleanupException, $"Failed to cleanup instance {deletedInstanceIdentifier}. Retry count is now {newRetryCount} and retry will not be re-attempted.");
+                                }
+                                else
+                                {
+                                    _logger.LogError(cleanupException, $"Failed to cleanup instance {deletedInstanceIdentifier}. Retry count is now {newRetryCount}.");
+                                }
                             }
                             catch (Exception incrementException)
                             {
-                                _logger.LogCritical(incrementException, "Failed to increment cleanup retry.");
+                                _logger.LogCritical(incrementException, $"Failed to increment cleanup retry for instance {deletedInstanceIdentifier}.");
                                 success = false;
                             }
                         }
@@ -126,7 +133,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                 }
             }
 
-            return (success, instancesProcessed);
+            return (success, retrievedInstanceCount);
         }
 
         private (DateTimeOffset deletedDate, DateTimeOffset cleanupAfter) GenerateDeletedDateAndCleanupAfter()
