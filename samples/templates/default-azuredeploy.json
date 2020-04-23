@@ -207,7 +207,8 @@
                     "name": "AspNetCoreRuntime.3.1.x86",
                     "type": "siteextensions",
                     "dependsOn": [ 
-                        "[variables('appServiceResourceId')]"
+                        "[variables('appServiceResourceId')]",
+                        "[resourceId(concat('Microsoft.Web/sites', variables('serviceName'), 'config'), 'appsettings')]"
                     ],
                     "properties": {
                         "version": "3.1.3"
