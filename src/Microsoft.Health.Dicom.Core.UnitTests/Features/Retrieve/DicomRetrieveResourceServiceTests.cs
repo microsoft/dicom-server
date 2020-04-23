@@ -17,7 +17,6 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -32,21 +31,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
     public class DicomRetrieveResourceServiceTests
     {
         private readonly DicomRetrieveResourceService _dicomRetrieveResourceService;
-        private readonly IDicomIndexDataStore _dicomIndexDataStore;
         private readonly IDicomInstanceStore _dicomInstanceStore;
         private readonly IDicomFileStore _dicomFileStore;
         private readonly ILogger<DicomRetrieveResourceService> _logger;
         private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
-        private readonly string studyInstanceUid = TestUidGenerator.Generate();
-        private readonly string firstSeriesInstanceUid = TestUidGenerator.Generate();
-        private readonly string secondSeriesInstanceUid = TestUidGenerator.Generate();
-        private readonly string sopInstanceUid = TestUidGenerator.Generate();
-        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+        private readonly string _studyInstanceUid = TestUidGenerator.Generate();
+        private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
+        private readonly string _secondSeriesInstanceUid = TestUidGenerator.Generate();
+        private readonly string _sopInstanceUid = TestUidGenerator.Generate();
+        private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
 
         public DicomRetrieveResourceServiceTests()
         {
-            _dicomIndexDataStore = Substitute.For<IDicomIndexDataStore>();
             _dicomInstanceStore = Substitute.For<IDicomInstanceStore>();
             _dicomFileStore = Substitute.For<IDicomFileStore>();
             _logger = NullLogger<DicomRetrieveResourceService>.Instance;
@@ -57,67 +54,78 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenRetrieveRequestForStudy_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
         {
-            _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(studyInstanceUid).Returns(new List<VersionedDicomInstanceIdentifier>());
+            _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid).Returns(new List<VersionedDicomInstanceIdentifier>());
+
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                new DicomRetrieveResourceRequest("*", studyInstanceUid),
-                DefaultCancellationToken));
+                new DicomRetrieveResourceRequest("*", _studyInstanceUid),
+                _defaultCancellationToken));
         }
 
         [Fact]
         public async Task GivenRetrieveRequestForStudy_WhenFailsToRetrieveOne_ThenNotFoundIsThrown()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
-            instanceIdentifiers.SkipLast(1).Select(x => _dicomFileStore.GetFileAsync(x, DefaultCancellationToken).Returns(
+
+            instanceIdentifiers.SkipLast(1).Select(x => _dicomFileStore.GetFileAsync(x, _defaultCancellationToken).Returns(
                 StreamsOfStoredFilesFromDatasets(GenerateDatasetsFromIdentifiers(x)).Result));
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), DefaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                new DicomRetrieveResourceRequest("*", studyInstanceUid),
-                DefaultCancellationToken));
+                new DicomRetrieveResourceRequest("*", _studyInstanceUid),
+                _defaultCancellationToken));
         }
 
         [Fact]
         public async Task GivenRetrieveRequestForStudy_WhenIsSuccessful_ThenInstancesInStudyAreRetrievedSuccesfully()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
-            instanceIdentifiers.Select(x => _dicomFileStore.GetFileAsync(x, DefaultCancellationToken).Returns(
+
+            instanceIdentifiers.Select(x => _dicomFileStore.GetFileAsync(x, _defaultCancellationToken).Returns(
                 StreamsOfStoredFilesFromDatasets(GenerateDatasetsFromIdentifiers(x)).Result));
+
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                   new DicomRetrieveResourceRequest("*", studyInstanceUid),
-                   DefaultCancellationToken);
+                   new DicomRetrieveResourceRequest("*", _studyInstanceUid),
+                   _defaultCancellationToken);
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
         public async Task GivenRetrieveRequestForSeries_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
         {
-            _dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(studyInstanceUid, firstSeriesInstanceUid).Returns(new List<VersionedDicomInstanceIdentifier>());
+            _dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _firstSeriesInstanceUid).Returns(new List<VersionedDicomInstanceIdentifier>());
+
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                new DicomRetrieveResourceRequest("*", studyInstanceUid, firstSeriesInstanceUid),
-                DefaultCancellationToken));
+                new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid),
+                _defaultCancellationToken));
         }
 
         [Fact]
         public async Task GivenRetrieveRequestForSeries_WhenFailsToRetrieveOne_ThenNotFoundIsThrown()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
-            instanceIdentifiers.SkipLast(1).Select(x => _dicomFileStore.GetFileAsync(x, DefaultCancellationToken).Returns(
+
+            instanceIdentifiers.SkipLast(1).Select(x => _dicomFileStore.GetFileAsync(x, _defaultCancellationToken).Returns(
                 StreamsOfStoredFilesFromDatasets(GenerateDatasetsFromIdentifiers(x)).Result));
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), DefaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
+
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
+
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                new DicomRetrieveResourceRequest("*", studyInstanceUid, firstSeriesInstanceUid),
-                DefaultCancellationToken));
+                new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid),
+                _defaultCancellationToken));
         }
 
         [Fact]
         public async Task GivenRetrieveRequestForSeries_WhenIsSuccessful_ThenInstancesInSeriesAreRetrievedSuccesfully()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
-            instanceIdentifiers.Select(x => _dicomFileStore.GetFileAsync(x, DefaultCancellationToken).Returns(
+
+            instanceIdentifiers.Select(x => _dicomFileStore.GetFileAsync(x, _defaultCancellationToken).Returns(
                 StreamsOfStoredFilesFromDatasets(GenerateDatasetsFromIdentifiers(x)).Result));
+
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                   new DicomRetrieveResourceRequest("*", studyInstanceUid, firstSeriesInstanceUid),
-                   DefaultCancellationToken);
+                   new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid),
+                   _defaultCancellationToken);
+
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -125,11 +133,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public async Task GivenRetrieveRequestForInstance_WhenIsSuccessful_ThenInstanceIsRetrievedSuccesfully()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), DefaultCancellationToken).Returns(
+
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Returns(
                 StreamsOfStoredFilesFromDatasets(GenerateDatasetsFromIdentifiers(instanceIdentifiers.First())).Result);
+
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                   new DicomRetrieveResourceRequest("*", studyInstanceUid, firstSeriesInstanceUid, sopInstanceUid),
-                   DefaultCancellationToken);
+                   new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid),
+                   _defaultCancellationToken);
+
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -137,33 +148,39 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public async Task GivenRetrieveRequestForFramesInInstance_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), DefaultCancellationToken).Returns(
+
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Returns(
                 StreamsOfStoredFilesFromDatasets(GenerateDatasetsFromIdentifiers(instanceIdentifiers.First())).Result);
+
             await Assert.ThrowsAsync<DicomFrameNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                   new DicomRetrieveResourceRequest("*", studyInstanceUid, firstSeriesInstanceUid, sopInstanceUid, new List<int> { 1, 2 }),
-                   DefaultCancellationToken));
+                   new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new List<int> { 1, 2 }),
+                   _defaultCancellationToken));
         }
 
         [Fact]
         public async Task GivenRetrieveRequestForFramesInInstance_WhenFailsToRetrieveOne_ThenNotFoundIsThrown()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), DefaultCancellationToken).Returns(
+
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Returns(
                 StreamsOfStoredFilesFromDatasets(GenerateDatasetsFromIdentifiers(instanceIdentifiers.First()), 3).Result);
+
             await Assert.ThrowsAsync<DicomFrameNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                   new DicomRetrieveResourceRequest("*", studyInstanceUid, firstSeriesInstanceUid, sopInstanceUid, new List<int> { 1, 4 }),
-                   DefaultCancellationToken));
+                   new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new List<int> { 1, 4 }),
+                   _defaultCancellationToken));
         }
 
         [Fact]
         public async Task GivenRetrieveRequestForFramesInInstance_WhenIsSuccessful_ThenFramesInInstanceAreRetrievedSuccesfully()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), DefaultCancellationToken).Returns(
+
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Returns(
                 StreamsOfStoredFilesFromDatasets(GenerateDatasetsFromIdentifiers(instanceIdentifiers.First()), 3).Result);
+
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                   new DicomRetrieveResourceRequest("*", studyInstanceUid, firstSeriesInstanceUid, sopInstanceUid, new List<int> { 1, 2 }),
-                   DefaultCancellationToken);
+                   new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new List<int> { 1, 2 }),
+                   _defaultCancellationToken);
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -174,21 +191,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             switch (resourceType)
             {
                 case ResourceType.Study:
-                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, secondSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(studyInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(_studyInstanceUid, _secondSeriesInstanceUid, TestUidGenerator.Generate(), 0));
+                    _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid, _defaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
                 case ResourceType.Series:
-                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(studyInstanceUid, firstSeriesInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
+                    _dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _firstSeriesInstanceUid, _defaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
                 case ResourceType.Instance:
                 case ResourceType.Frames:
-                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, firstSeriesInstanceUid, sopInstanceUid, 0));
-                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(studyInstanceUid, firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _dicomInstanceStore.GetInstanceIdentifierAsync(studyInstanceUid, firstSeriesInstanceUid, sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1));
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, 0));
+                    dicomInstanceIdentifiersList.Add(new VersionedDicomInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
+                    _dicomInstanceStore.GetInstanceIdentifierAsync(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, _defaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1));
                     break;
             }
 
