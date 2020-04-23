@@ -36,7 +36,6 @@ stages:
       vmImage: $(windowsVmImage)
     steps:
     - template: ./jobs/add-aad-test-environment.yml
-    
     - task: AzurePowerShell@4
       displayName: 'New Resource Group'
       inputs:
