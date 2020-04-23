@@ -85,7 +85,7 @@ stages:
       inputs:
         azureSubscription: $(azureSubscriptionName)
         WebAppName: '$(deploymentName)'
-        Package: $(System.ArtifactsDirectory)/Microsoft.Health.Dicom.Web.zip'
+        Package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
         TakeAppOfflineFlag: true
 
 - stage: RunIntegrationTests
