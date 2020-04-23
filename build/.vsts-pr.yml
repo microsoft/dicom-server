@@ -72,6 +72,7 @@ stages:
           New-AzResourceGroupDeployment -Name "$(deploymentName)" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/default-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
           
           Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
+
     - task: DownloadBuildArtifacts@0
       inputs:
         buildType: 'current'
