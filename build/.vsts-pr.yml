@@ -60,7 +60,7 @@ stages:
       
           Add-Type -AssemblyName System.Web
           $templateParameters = @{
-              appServicePlanResourceGroup = "$(resourceGroupRoot)"
+              appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
               appServicePlanName = "$(appServicePlanName)"
               serviceName = "$(deploymentName)"
               additionalDicomServerConfigProperties = $additionalProperties
