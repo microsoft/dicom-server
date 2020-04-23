@@ -208,7 +208,7 @@
                     "type": "siteextensions",
                     "dependsOn": [ 
                         "[variables('appServiceResourceId')]",
-                        "[resourceId('Microsoft.Web/sites', variables('serviceName'), 'config', 'appsettings')]"
+                        "[resourceId(concat('Microsoft.Web/sites/', 'config'), concat(variable('serviceName'), '/appsettings'))]"
                     ],
                     "properties": {
                         "version": "3.1.3"
