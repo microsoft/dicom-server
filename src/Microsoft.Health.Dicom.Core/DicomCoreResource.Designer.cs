@@ -145,7 +145,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified condition was not met for &apos;Frames&apos;. At least one frame must be present, and all requested frames must have value greater than 0..
+        ///   Looks up a localized string similar to The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0..
         /// </summary>
         internal static string InvalidFramesValue {
             get {

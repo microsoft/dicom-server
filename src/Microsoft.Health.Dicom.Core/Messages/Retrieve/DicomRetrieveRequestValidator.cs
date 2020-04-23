@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
                 throw new DicomBadRequestException(DicomCoreResource.InvalidFramesValue);
             }
 
-            foreach (var x in frames)
+            foreach (int x in frames)
             {
                 if (x < 0)
                 {
@@ -90,7 +90,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             {
                 try
                 {
-                    var transferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
+                    DicomTransferSyntax transferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
 
                     if (transferSyntax?.UID == null || transferSyntax.UID.Name == UnknownDicomTransferSyntaxName)
                     {

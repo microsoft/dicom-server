@@ -109,7 +109,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData(-234)]
         public async Task GivenInvalidFrameNumber_WhenRetrievingFrames_ThenDicomBadRequestExceptionIsThrownAsync(int frame)
         {
-            const string expectedErrorMessage = "The specified condition was not met for 'Frames'. At least one frame must be present, and all requested frames must have value greater than 0.";
+            const string expectedErrorMessage = "The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.";
             var request = new DicomRetrieveResourceRequest(
                 studyInstanceUid: TestUidGenerator.Generate(),
                 seriesInstanceUid: TestUidGenerator.Generate(),
@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData(new int[0])]
         public async Task GivenNoFrames_WhenRetrievingFrames_ThenDicomBadRequestExceptionIsThrownAsync(int[] frames)
         {
-            const string expectedErrorMessage = "The specified condition was not met for 'Frames'. At least one frame must be present, and all requested frames must have value greater than 0.";
+            const string expectedErrorMessage = "The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.";
             var request = new DicomRetrieveResourceRequest(
                 studyInstanceUid: TestUidGenerator.Generate(),
                 seriesInstanceUid: TestUidGenerator.Generate(),

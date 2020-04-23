@@ -83,7 +83,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData(new int[0])]
         public void GivenARequestWithNoFrames_WhenValidated_ThenBadRequestExceptionIsThrown(int[] frames)
         {
-            string expectedErrorMessage = "The specified condition was not met for 'Frames'. At least one frame must be present, and all requested frames must have value greater than 0.";
+            string expectedErrorMessage = "The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.";
 
             var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.ValidateFrames(frames));
             Assert.Equal(expectedErrorMessage, ex.Message);
@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData(-234)]
         public void GivenARequestWithInvalidFrameNumber_WhenValidated_ThenBadRequestExceptionIsThrown(int frame)
         {
-            string expectedErrorMessage = "The specified condition was not met for 'Frames'. At least one frame must be present, and all requested frames must have value greater than 0.";
+            string expectedErrorMessage = "The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.";
 
             var ex = Assert.Throws<DicomBadRequestException>(() => DicomRetrieveRequestValidator.ValidateFrames(new[] { frame }));
 
