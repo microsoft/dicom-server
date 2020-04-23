@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Api.Web
             {
                 return await _seekableStreamConverter.ConvertAsync(stream, cancellationToken);
             }
-            catch (MissingMultipartBodyPartException ex)
+            catch (InvalidMultipartBodyPartException ex)
             {
                 LogMissingMultipartBodyPartDelegate(_logger, ex);
 

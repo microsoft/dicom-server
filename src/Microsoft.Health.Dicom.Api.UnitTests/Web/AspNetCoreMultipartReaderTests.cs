@@ -20,6 +20,8 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
     public class AspNetCoreMultipartReaderTests
     {
         private const string DefaultContentType = "multipart/related; boundary=+b+";
+        private const string DefaultBodyPartSeparator = "--+b+";
+        private const string DefaultBodyPartFinalSeparator = "--+b+--";
 
         private static readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
 
@@ -51,12 +53,12 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         [Fact]
         public async Task GivenASingleBodyPartWithContentType_WhenReading_ThenCorrectMultipartBodyPartShouldBeReturned()
         {
-            const string body = @"--+b+
-Content-Type: application/dicom
-
-content
---+b+--
-";
+            string body = GenerateBody(
+                DefaultBodyPartSeparator,
+                $"Content-Type: application/dicom",
+                string.Empty,
+                "content",
+                DefaultBodyPartFinalSeparator);
 
             await ExecuteAndValidateAsync(
                 body,
@@ -70,11 +72,11 @@ content
         public async Task GivenASingleBodyPartWithoutContentTypeAndRequestContentTypeWithTypeParameter_WhenReading_ThenTypeParameterFromRequestContentTypeShouldBeUsed(string typeParameterValue, string expectedTypeValue)
         {
             string requestContentType = $"multipart/related; {typeParameterValue}; boundary=+b+";
-            const string body = @"--+b+
-
-content
---+b+--
-";
+            string body = GenerateBody(
+                DefaultBodyPartSeparator,
+                string.Empty,
+                "content",
+                DefaultBodyPartFinalSeparator);
 
             await ExecuteAndValidateAsync(
                 body,
@@ -86,12 +88,12 @@ content
         public async Task GivenASingleBodyPartWithContentTypeAndRequestContentTypeWithTypeParameter_WhenReading_ThenContentTypeFromBodyPartShouldBeUsed()
         {
             const string requestContentType = "multipart/related; type=\"text/plain\"; boundary=+b+";
-            const string body = @"--+b+
-Content-Type: application/dicom
-
-content
---+b+--
-";
+            string body = GenerateBody(
+                DefaultBodyPartSeparator,
+                "Content-Type: application/dicom",
+                string.Empty,
+                "content",
+                DefaultBodyPartFinalSeparator);
 
             await ExecuteAndValidateAsync(
                 body,
@@ -103,14 +105,14 @@ content
         public async Task GivenMultipeBodyPartsWithoutContentTypeAndRequestContentTypeWithTypeParameter_WhenReading_ThenContentTypeFromBodyPartShouldBeUsedOnlyForFirstBodyPart()
         {
             const string requestContentType = "multipart/related; type=\"text/plain\"; boundary=+b+";
-            const string body = @"--+b+
-
-content
---+b+
-
-content2
---+b+--
-";
+            string body = GenerateBody(
+                DefaultBodyPartSeparator,
+                string.Empty,
+                "content",
+                DefaultBodyPartSeparator,
+                string.Empty,
+                "content2",
+                DefaultBodyPartFinalSeparator);
 
             await ExecuteAndValidateAsync(
                 body,
@@ -123,15 +125,15 @@ content2
         public async Task GivenMultipeBodyParts_WhenReading_ThenCorrectMultipartBodyPartShouldBeReturned()
         {
             const string requestContentType = "multipart/related; type=\"text/plain\"; boundary=+123+";
-            const string body = @"--+123+
-
-content
---+123+
-Content-Type: application/dicom+json
-
-content2
---+123+--
-";
+            string body = GenerateBody(
+                "--+123+",
+                string.Empty,
+                "content",
+                "--+123+",
+                "Content-Type: application/dicom+json",
+                string.Empty,
+                "content2",
+                "--+123+--");
 
             await ExecuteAndValidateAsync(
                 body,
@@ -143,20 +145,20 @@ content2
         [Fact]
         public async Task GivenMissingMultipartBodyPartException_WhenReading_NoMoreSectionShouldBeReturned()
         {
-            const string body = @"--+b+
-Content-Type: application/dicom
-
-content
---+b+
-Content-Type: application/dicom+json
-
-content2
---+b+--
-";
+            string body = GenerateBody(
+                DefaultBodyPartSeparator,
+                "Content-Type: application/dicom",
+                string.Empty,
+                "content",
+                DefaultBodyPartSeparator,
+                "Content-Type: application/dicom+json",
+                string.Empty,
+                "content2",
+                DefaultBodyPartFinalSeparator);
 
             ISeekableStreamConverter seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
 
-            seekableStreamConverter.ConvertAsync(default, default).ThrowsForAnyArgs(new MissingMultipartBodyPartException(new IOException()));
+            seekableStreamConverter.ConvertAsync(default, default).ThrowsForAnyArgs(new InvalidMultipartBodyPartException(new IOException()));
 
             using (MemoryStream stream = await CreateMemoryStream(body))
             {
@@ -238,6 +240,12 @@ content2
             {
                 Assert.Equal(expectedBody, await reader.ReadToEndAsync());
             }
+        }
+
+        private string GenerateBody(params string[] lines)
+        {
+            // Body part requires \r\n as separator per RFC2616.
+            return string.Join("\r\n", lines);
         }
     }
 }

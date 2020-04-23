@@ -112,7 +112,7 @@ namespace Microsoft.Health.Dicom.Api.Web
                     contentType,
                     await _seekableStreamConverter.ConvertAsync(section.Body, cancellationToken));
             }
-            catch (MissingMultipartBodyPartException)
+            catch (InvalidMultipartBodyPartException)
             {
                 // We can terminate here because it seems like after it encounters the IOException,
                 // next ReadNextSectionAsync will also throws IOException.

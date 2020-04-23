@@ -8,10 +8,10 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Api.Web
 {
-    internal class MissingMultipartBodyPartException : DicomServerException
+    internal class InvalidMultipartBodyPartException : DicomServerException
     {
-        public MissingMultipartBodyPartException(Exception innerException)
-            : base(DicomApiResource.MissingMultipartBodyPart, innerException)
+        public InvalidMultipartBodyPartException(Exception innerException)
+            : base(DicomApiResource.InvalidMultipartBodyPart, innerException)
         {
         }
     }
