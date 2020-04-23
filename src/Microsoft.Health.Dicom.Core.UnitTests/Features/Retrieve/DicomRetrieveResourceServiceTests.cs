@@ -68,6 +68,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
             instanceIdentifiers.SkipLast(1).Select(x => _dicomFileStore.GetFileAsync(x, _defaultCancellationToken).Returns(
                 StreamsOfStoredFilesFromDatasets(GenerateDatasetsFromIdentifiers(x)).Result));
+
             _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
