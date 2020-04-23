@@ -1,8 +1,3 @@
-jobs:
-- job: DeleteResourceGroup
-  displayName: 'Delete resource group'
-  pool:
-    vmImage: $(windowsVmImage)
   steps:
   - task: AzurePowerShell@4
     displayName: 'Delete resource group'
@@ -12,11 +7,6 @@ jobs:
       ScriptType: InlineScript
       Inline: 'Get-AzResourceGroup -Name $(deploymentName) | Remove-AzResourceGroup -Verbose -Force'
 
-- job: cleanupAad
-  displayName: 'Cleanup Azure Active Directory'
-  pool:
-    vmImage: $(windowsVmImage)
-  steps:
   - task: AzureKeyVault@1
     displayName: 'Azure Key Vault: resolute-oss-tenant-info'
     inputs:

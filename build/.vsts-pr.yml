@@ -26,37 +26,25 @@ stages:
       parameters:
         packageArtifacts: false
 
-- stage: CreateTestEnvironment
-  displayName: 'Create test environment'
+- stage: DeployTestEnvironment
+  displayName: 'Deploy Test Environment'
   dependsOn: 
   - BuildRunUnitTests
   jobs:
-  - job: CreateResourceGroup
+  - job: provision
+    pool:
+      vmImage: $(windowsVmImage)
     steps:
+    - template: ./jobs/add-aad-test-environment.yml
+    
     - task: AzurePowerShell@4
-      displayName: 'Create Resource Group'
+      displayName: 'New Resource Group'
       inputs:
         azureSubscription: $(azureSubscriptionName)
         azurePowerShellVersion: latestVersion
         ScriptType: InlineScript
         Inline: |
           New-AzResourceGroup -Name "$(resourceGroupName)" -Location "$(resourceGroupRegion)" -Force
-
-- stage: AadTestEnvironment
-  displayName: 'Setup AAD Test Environment'
-  dependsOn:
-  - CreateTestEnvironment
-  jobs:
-  - template: ./jobs/add-aad-test-environment.yml
-
-- stage: ProvisionTestEnvironment
-  displayName: 'Provision test environment'
-  dependsOn: 
-  - CreateTestEnvironment
-  - AadTestEnvironment
-  jobs:
-  - job: Provision
-    steps:
     - task: AzurePowerShell@4
       displayName: 'New Azure resource group deployment'
       inputs:
@@ -77,7 +65,7 @@ stages:
               appServicePlanName = "$(appServicePlanName)"
               serviceName = "$(deploymentName)"
               additionalDicomServerConfigProperties = $additionalProperties
-              sqlAdminPassword = [System.Web.Security.Membership]::GeneratePassword(15, 5).replace(";", "_").replace("$","!")
+              sqlAdminPassword = "PasswordSql1"
               securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
               securityAuthenticationAudience = "$(testEnvironmentUrl)"
           }
@@ -93,18 +81,19 @@ stages:
         Package: $(build.artifactStagingDirectory)/web/Microsoft.Health.Dicom.Web.zip'
         TakeAppOfflineFlag: true
 
-- stage: RunTests
-  displayName: 'Run integration and E2E tests'
+- stage: RunIntegrationTests
+  displayName: 'Integration tests'
   dependsOn:
-  - ProvisionTestEnvironment
+  - DeployTestEnvironment
   jobs:
-  - job: UseDotNetCoreVersion
+  - job: SetupAndRun
+    pool:
+      vmImage: $(windowsVmImage)
     steps:
     - task: UseDotNet@2
       displayName: 'Use .Net Core sdk '
       inputs:
         useGlobalJson: true
-
     - task: AzurePowerShell@4
       displayName: 'Prepare for Testing'
       inputs:
@@ -122,23 +111,64 @@ stages:
           }
           
           dotnet dev-certs https
-
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        downloadPath: '$(System.ArtifactsDirectory)'
+        artifactName: 'IntegrationTests'
     - task: VSTest@2
       displayName: 'Integration Tests'
       inputs:
         testAssemblyVer2: '**\*Tests.Integration.dll'
         searchFolder: '$(System.ArtifactsDirectory)'
-
+        
+- stage: RunE2ETests
+  displayName: 'E2E tests'
+  dependsOn:
+  - DeployTestEnvironment
+  jobs:
+  - job: SetupAndRun
+    pool:
+      vmImage: $(windowsVmImage)
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Use .Net Core sdk '
+      inputs:
+        useGlobalJson: true
+    - task: AzurePowerShell@4
+      displayName: 'Prepare for Testing'
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        azurePowerShellVersion: latestVersion
+        ScriptType: InlineScript
+        Inline: |
+          $secrets = Get-AzKeyVaultSecret -VaultName $(deploymentName)
+          
+          foreach ($secret in $secrets)
+          {
+              $environmentVariableName = $secret.Name.Replace("--",":")
+              $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name $secret.Name
+              Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
+          }
+          
+          dotnet dev-certs https
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        downloadPath: '$(System.ArtifactsDirectory)'
+        artifactName: 'IntegrationTests'
     - task: VSTest@2
       displayName: 'E2E Tests'
       inputs:
         testAssemblyVer2: '**\*Tests.E2E*.dll'
         searchFolder: '$(System.ArtifactsDirectory)'   
-        
 
 - stage: Cleanup
   displayName: 'Cleanup Azure Environment'
   dependsOn:
-  - RunTests
+  - RunIntegrationTests
+  - RunE2ETests
   jobs:
   - template: ./jobs/cleanup.yml
