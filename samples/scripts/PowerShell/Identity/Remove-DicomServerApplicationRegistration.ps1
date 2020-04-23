@@ -5,7 +5,7 @@ function Remove-DicomServerApplicationRegistration {
     .DESCRIPTION
     Deletes an AAD Application registration with a specific AppId
     .EXAMPLE
-    Remove-FhirServerApplicationRegistration -AppId 9125e524-1509-XXXX-XXXX-74137cc75422
+    Remove-DicomServerApplicationRegistration -AppId 9125e524-1509-XXXX-XXXX-74137cc75422
     #>
     [CmdletBinding(DefaultParameterSetName='ByIdentifierUri')]
     param(

@@ -143,9 +143,9 @@
             "KeyVault:Endpoint": "[variables('keyVaultEndpoint')]",
             "SqlServer:Initialize": "true",
             "DicomServer:Features:EnableOhifViewer": "[parameters('deployOhifViewer')]",
-            "FhirServer:Security:Enabled": "[variables('securityAuthenticationEnabled')]",
-            "FhirServer:Security:Authentication:Authority": "[parameters('securityAuthenticationAuthority')]",
-            "FhirServer:Security:Authentication:Audience": "[parameters('securityAuthenticationAudience')]"
+            "DicomServer:Security:Enabled": "[variables('securityAuthenticationEnabled')]",
+            "DicomServer:Security:Authentication:Authority": "[parameters('securityAuthenticationAuthority')]",
+            "DicomServer:Security:Authentication:Audience": "[parameters('securityAuthenticationAudience')]"
             
         },
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",

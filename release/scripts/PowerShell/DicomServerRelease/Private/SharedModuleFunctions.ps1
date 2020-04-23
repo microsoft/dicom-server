@@ -30,10 +30,10 @@ function Get-AzureAdApplicationByIdentifierUri {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$FhirServiceAudience
+        [string]$DicomServiceAudience
     )
 
-    return Get-AzureAdApplication -Filter "identifierUris/any(uri:uri eq '$FhirServiceAudience')"
+    return Get-AzureAdApplication -Filter "identifierUris/any(uri:uri eq '$DicomServiceAudience')"
 }
 
 function Get-AzureAdServicePrincipalByAppId {
