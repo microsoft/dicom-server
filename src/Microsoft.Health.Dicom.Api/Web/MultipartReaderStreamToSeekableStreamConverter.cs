@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Api.Web
                 }
                 catch (IOException ex)
                 {
-                    throw new MissingMultipartBodyPartException(ex);
+                    throw new InvalidMultipartBodyPartException(ex);
                 }
 
                 seekableStream.Seek(0, SeekOrigin.Begin);

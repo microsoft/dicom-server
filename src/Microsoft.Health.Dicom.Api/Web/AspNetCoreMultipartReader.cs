@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Abstractions.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
@@ -21,8 +22,15 @@ namespace Microsoft.Health.Dicom.Api.Web
     /// </summary>
     internal class AspNetCoreMultipartReader : IMultipartReader
     {
+        private const string TypeParameterName = "type";
+        private const string StartParameterName = "start";
+
         private readonly ISeekableStreamConverter _seekableStreamConverter;
+
+        private readonly string _rootContentType;
         private readonly MultipartReader _multipartReader;
+
+        private int _sectionIndex;
 
         internal AspNetCoreMultipartReader(
             string contentType,
@@ -50,6 +58,25 @@ namespace Microsoft.Health.Dicom.Api.Web
                     string.Format(CultureInfo.InvariantCulture, DicomApiResource.InvalidMultipartContentType, contentType));
             }
 
+            // Check to see if the root content type was specified or not.
+            if (media.Parameters != null)
+            {
+                foreach (NameValueHeaderValue parameter in media.Parameters)
+                {
+                    if (TypeParameterName.Equals(parameter.Name.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        _rootContentType = HeaderUtilities.RemoveQuotes(parameter.Value).ToString();
+                    }
+                    else if (StartParameterName.Equals(parameter.Name.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        // TODO: According to RFC2387 3.2, the root section can be specified by using the
+                        // start parameter. For now, we will assume that the first section is the "root" section
+                        // and will add support later. Throw exception in case start is specified.
+                        throw new DicomNotSupportedException(DicomApiResource.StartParameterIsNotSupported);
+                    }
+                }
+            }
+
             _multipartReader = new MultipartReader(boundary, body);
         }
 
@@ -65,14 +92,27 @@ namespace Microsoft.Health.Dicom.Api.Web
 
             try
             {
+                string contentType = section.ContentType;
+
+                if (contentType == null && _sectionIndex == 0)
+                {
+                    // Based on RFC2387 Section 3.1, the content type of the "root" section
+                    // can be specified through the request's Content-Type header. If the content
+                    // type is not specified in the section and this is the "root" section,
+                    // then check to see if it was specified in the request's Content-Type.
+                    contentType = _rootContentType;
+                }
+
+                _sectionIndex++;
+
                 // The stream must be consumed before the next ReadNextSectionAsync is called.
                 // Also, the stream returned by the MultipartReader is not seekable. We need to make
                 // it seekable so that we can process the stream multiple times.
                 return new MultipartBodyPart(
-                    section.ContentType,
+                    contentType,
                     await _seekableStreamConverter.ConvertAsync(section.Body, cancellationToken));
             }
-            catch (MissingMultipartBodyPartException)
+            catch (InvalidMultipartBodyPartException)
             {
                 // We can terminate here because it seems like after it encounters the IOException,
                 // next ReadNextSectionAsync will also throws IOException.

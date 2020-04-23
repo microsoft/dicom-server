@@ -3,13 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 {
-    public class DicomBadRequestException : DicomValidationException
+    public class DicomWebException<T> : DicomWebException
     {
-        public DicomBadRequestException(string message)
-            : base(message)
+        public DicomWebException(DicomWebResponse<T> response)
+            : base(response)
         {
         }
+
+        public T Value => ((DicomWebResponse<T>)Response).Value;
     }
 }

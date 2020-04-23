@@ -314,6 +314,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DateTime lastStatusUpdatedDate = instance.LastStatusUpdatedDate;
 
+            // Make sure there is delay between.
+            await Task.Delay(50);
+
             await _dicomIndexDataStore.UpdateInstanceIndexStatusAsync(
                 new VersionedDicomInstanceIdentifier(
                     studyInstanceUid,

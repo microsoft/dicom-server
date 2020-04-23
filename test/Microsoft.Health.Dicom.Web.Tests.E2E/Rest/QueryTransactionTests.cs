@@ -31,15 +31,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenSearchRequest_WithUnsupportedTag_ReturnBadRequest()
         {
-            HttpResult<string> response = await _client.QueryWithBadRequest("/studies?Modality=CT");
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal(response.Value, string.Format(DicomCoreResource.UnsupportedSearchParameter, "Modality"));
+            DicomWebException<string> exception = await Assert.ThrowsAsync<DicomWebException<string>>(
+                () => _client.QueryWithBadRequest("/studies?Modality=CT"));
+            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+            Assert.Equal(exception.Value, string.Format(DicomCoreResource.UnsupportedSearchParameter, "Modality"));
         }
 
         [Fact]
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
         {
-            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync("/studies?StudyDate=20200101");
+            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync("/studies?StudyDate=20200101");
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
@@ -56,7 +57,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
-            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
                 $"/studies?StudyDate=20190101");
 
             Assert.NotNull(response.Value);
@@ -80,7 +81,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                  { DicomTag.Modality, "CT" },
             });
 
-            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
                 $"/studies/{studyId}/series?Modality=MRI");
 
             Assert.Single(response.Value);
@@ -96,7 +97,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var seriesId = matchInstance.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
 
-            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
                 $"/series?Modality=MRI");
 
             Assert.NotNull(response.Value);
@@ -119,7 +120,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                  { DicomTag.Modality, "CT" },
             });
 
-            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
                    $"/studies/{studyId}/instances?Modality=MRI");
 
             Assert.Single(response.Value);
@@ -139,7 +140,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                  { DicomTag.SeriesInstanceUID, seriesId },
             });
 
-            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
                    $"/studies/{studyId}/series/{seriesId}/instances?SOPInstanceUID={instanceId}");
 
             Assert.Single(response.Value);
@@ -155,7 +156,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
-            HttpResult<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
                    $"/instances?Modality=XRAY");
 
             Assert.NotNull(response.Value);
@@ -183,7 +184,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Retrying the query 3 times, to give sql FT index time to catch up
             int retryCount = 0;
             DicomDataset testDataResponse1 = null;
-            HttpResult<IEnumerable<DicomDataset>> response = null;
+            DicomWebResponse<IEnumerable<DicomDataset>> response = null;
             while (retryCount < 3 || testDataResponse1 == null)
             {
                 response = await _client.QueryAsync(
@@ -219,8 +220,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 dicomFile1.Dataset.AddOrUpdate(metadataItems);
             }
 
-            HttpResult<DicomDataset> response = await _client.PostAsync(new[] { dicomFile1 });
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            await _client.StoreAsync(new[] { dicomFile1 });
 
             return dicomFile1.Dataset;
         }
