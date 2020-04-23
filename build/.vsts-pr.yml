@@ -64,14 +64,14 @@ stages:
         azurePowerShellVersion: latestVersion
         ScriptType: InlineScript
         Inline: |
-          Add-Type -AssemblyName System.Web
-        
+          
           $deployPath = "$(System.DefaultWorkingDirectory)/samples/templates"
       
           $additionalProperties = @{
               "SqlServer__DeleteAllDataOnStartup" = "true"
           }
       
+          Add-Type -AssemblyName System.Web
           $templateParameters = @{
               appServicePlanResourceGroup = "$(resourceGroupRoot)"
               appServicePlanName = "$(appServicePlanName)"
