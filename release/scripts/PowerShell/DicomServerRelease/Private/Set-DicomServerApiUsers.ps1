@@ -85,8 +85,6 @@ function Set-DicomServerApiUsers {
             environmentId = $userId
             id            = $user.id
         }
-            
-        Set-DicomServerUserAppRoleAssignments -ApiAppId $ApiAppId -UserPrincipalName $userUpn -AppRoles $user.roles
     }
 
     return $environmentUsers

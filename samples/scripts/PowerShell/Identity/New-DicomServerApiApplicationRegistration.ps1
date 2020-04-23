@@ -6,7 +6,7 @@ function New-DicomServerApiApplicationRegistration {
     Create a new AAD Application registration for a Dicom server instance. 
     A DicomServiceName or DicomServiceAudience must be supplied.
     .EXAMPLE
-    New-DicomServerApiApplicationRegistration -DicomServiceName "myfhiservice" -AppRoles admin,nurse
+    New-DicomServerApiApplicationRegistration -DicomServiceName "mydicomservice" -AppRoles admin,nurse
     .EXAMPLE
     New-DicomServerApiApplicationRegistration -DicomServiceAudience "https://mydicomservice.azurewebsites.net" -AppRoles admin,nurse
     .PARAMETER DicomServiceName

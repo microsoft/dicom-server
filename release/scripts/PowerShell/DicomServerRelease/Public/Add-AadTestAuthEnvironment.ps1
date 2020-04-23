@@ -109,7 +109,7 @@ function Add-AadTestAuthEnvironment {
         $application = Get-AzureAdApplicationByIdentifierUri $dicomServiceAudience
     }
 
-    Write-Host "Ensuring users and role assignments for API Application exist"
+    Write-Host "Ensuring users for API Application exist"
     $environmentUsers = Set-DicomServerApiUsers -UserNamePrefix $EnvironmentName -TenantDomain $tenantInfo.TenantDomain -ApiAppId $application.AppId -UserConfiguration $testAuthEnvironment.Users -KeyVaultName $KeyVaultName
 
     $environmentClientApplications = @()
@@ -119,11 +119,9 @@ function Add-AadTestAuthEnvironment {
         $displayName = Get-ApplicationDisplayName -EnvironmentName $EnvironmentName -AppId $clientApp.Id
         $aadClientApplication = Get-AzureAdApplicationByDisplayName $displayName
 
-        $publicClient = -not $clientApp.roles
-
         if (!$aadClientApplication) {
 
-            $aadClientApplication = New-DicomServerClientApplicationRegistration -ApiAppId $application.AppId -DisplayName "$displayName" -PublicClient:$publicClient
+            $aadClientApplication = New-DicomServerClientApplicationRegistration -ApiAppId $application.AppId -DisplayName "$displayName" -PublicClient:$true
 
             $secretSecureString = ConvertTo-SecureString $aadClientApplication.AppSecret -AsPlainText -Force
 
@@ -135,10 +133,7 @@ function Add-AadTestAuthEnvironment {
             $secretSecureString = ConvertTo-SecureString $newPassword.Value -AsPlainText -Force
         }
 
-        if ($publicClient) {
-            Grant-ClientAppAdminConsent -AppId $aadClientApplication.AppId -TenantAdminCredential $TenantAdminCredential
-
-        }
+        Grant-ClientAppAdminConsent -AppId $aadClientApplication.AppId -TenantAdminCredential $TenantAdminCredential
 
         $environmentClientApplications += @{
             id          = $clientApp.Id
