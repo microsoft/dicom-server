@@ -72,13 +72,19 @@ stages:
           New-AzResourceGroupDeployment -Name "$(deploymentName)" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/default-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
           
           Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        downloadPath: '$(System.ArtifactsDirectory)'
+        artifactName: 'deploy'
     
     - task: AzureRmWebAppDeployment@3
       displayName: 'Azure app service deployment'
       inputs:
         azureSubscription: $(azureSubscriptionName)
         WebAppName: '$(deploymentName)'
-        Package: $(build.artifactStagingDirectory)/web/Microsoft.Health.Dicom.Web.zip'
+        Package: $(System.ArtifactsDirectory)/Microsoft.Health.Dicom.Web.zip'
         TakeAppOfflineFlag: true
 
 - stage: RunIntegrationTests
