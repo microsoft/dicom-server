@@ -186,7 +186,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
                 request.Content = multiContent;
 
-                HttpResult<DicomDataset> response = await _client.PostMultipartContentAsync(multiContent, "studies");
+                DicomWebResponse<DicomDataset> response = await _client.PostMultipartContentAsync(multiContent, "studies");
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
                 ValidationHelpers.ValidateReferencedSopSequence(
@@ -195,7 +195,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
             finally
             {
-                await _client.DeleteAsync(studyInstanceUID);
+                await _client.DeleteStudyAsync(studyInstanceUID);
             }
         }
 
