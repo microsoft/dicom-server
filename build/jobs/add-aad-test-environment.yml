@@ -7,7 +7,7 @@ steps:
     KeyVaultName: 'resolute-oss-tenant-info'
 
 - task: AzurePowerShell@4
-  displayName: Setup Test Environment
+  displayName: Setup Aad Test Tenant
   inputs:
     azureSubscription: $(azureSubscriptionName)
     azurePowerShellVersion: latestVersion

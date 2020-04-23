@@ -35,7 +35,6 @@ stages:
     pool:
       vmImage: $(windowsVmImage)
     steps:
-    - template: ./jobs/add-aad-test-environment.yml
     - task: AzurePowerShell@4
       displayName: 'New Resource Group'
       inputs:
@@ -44,6 +43,7 @@ stages:
         ScriptType: InlineScript
         Inline: |
           New-AzResourceGroup -Name "$(resourceGroupName)" -Location "$(resourceGroupRegion)" -Force
+    - template: ./jobs/add-aad-test-environment.yml
     - task: AzurePowerShell@4
       displayName: 'New Azure resource group deployment'
       inputs:
