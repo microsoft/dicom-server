@@ -48,18 +48,18 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         }
 
         [Fact]
-        public async Task GivenAnIOExceptionReadingStream_WhenConverted_ThenMissingMultipartBodyPartExceptionShouldBeThrown()
+        public async Task GivenAnIOExceptionReadingStream_WhenConverted_ThenInvalidMultipartBodyPartExceptionShouldBeThrown()
         {
             Stream nonseekableStream = SetupNonSeeableStreamException<IOException>();
 
-            await Assert.ThrowsAsync<MissingMultipartBodyPartException>(
+            await Assert.ThrowsAsync<InvalidMultipartBodyPartException>(
                 () => _seekableStreamConverter.ConvertAsync(nonseekableStream, DefaultCancellationToken));
 
             Assert.Equal(1, _numberOfDisposeCalled);
         }
 
         [Fact]
-        public async Task GivenANoneIOExceptionReadingStream_WhenConverted_ThenMissingMultipartBodyPartExceptionShouldBeThrown()
+        public async Task GivenANoneIOExceptionReadingStream_WhenConverted_ThenExceptionShouldBeRethrown()
         {
             Stream nonseekableStream = SetupNonSeeableStreamException<InvalidOperationException>();
 

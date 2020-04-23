@@ -61,6 +61,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There was an error reading the multipart request..
+        /// </summary>
+        internal static string InvalidMultipartBodyPart {
+            get {
+                return ResourceManager.GetString("InvalidMultipartBodyPart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The content type &apos;{0}&apos; is either not multipart or is missing boundary..
         /// </summary>
         internal static string InvalidMultipartContentType {
@@ -70,11 +79,11 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There was an error reading the content. This is likely caused by multipart request with missing body part..
+        ///   Looks up a localized string similar to The start parameter in multipart/related request is not supported..
         /// </summary>
-        internal static string MissingMultipartBodyPart {
+        internal static string StartParameterIsNotSupported {
             get {
-                return ResourceManager.GetString("MissingMultipartBodyPart", resourceCulture);
+                return ResourceManager.GetString("StartParameterIsNotSupported", resourceCulture);
             }
         }
         
