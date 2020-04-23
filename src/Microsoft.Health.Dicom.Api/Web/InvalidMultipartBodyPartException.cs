@@ -3,23 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.IO;
-using EnsureThat;
+using System;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Core.Web
+namespace Microsoft.Health.Dicom.Api.Web
 {
-    public class MultipartBodyPart
+    internal class InvalidMultipartBodyPartException : DicomServerException
     {
-        public MultipartBodyPart(string contentType, Stream body)
+        public InvalidMultipartBodyPartException(Exception innerException)
+            : base(DicomApiResource.InvalidMultipartBodyPart, innerException)
         {
-            EnsureArg.IsNotNull(body, nameof(body));
-
-            ContentType = contentType;
-            Body = body;
         }
-
-        public string ContentType { get; }
-
-        public Stream Body { get; }
     }
 }

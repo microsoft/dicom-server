@@ -3,15 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using Microsoft.Health.Dicom.Core.Exceptions;
-
-namespace Microsoft.Health.Dicom.Api.Web
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    internal class MissingMultipartBodyPartException : DicomServerException
+    public class DicomNotSupportedException : DicomServerException
     {
-        public MissingMultipartBodyPartException(Exception innerException)
-            : base(DicomApiResource.MissingMultipartBodyPart, innerException)
+        public DicomNotSupportedException(string message)
+            : base(message)
         {
         }
     }

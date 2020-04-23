@@ -117,12 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="InvalidMultipartBodyPart" xml:space="preserve">
+    <value>There was an error reading the multipart request.</value>
+  </data>
   <data name="InvalidMultipartContentType" xml:space="preserve">
     <value>The content type '{0}' is either not multipart or is missing boundary.</value>
     <comment>{0} is the specified content type. E.g., application/dicom</comment>
   </data>
-  <data name="MissingMultipartBodyPart" xml:space="preserve">
-    <value>There was an error reading the content. This is likely caused by multipart request with missing body part.</value>
+  <data name="StartParameterIsNotSupported" xml:space="preserve">
+    <value>The start parameter in multipart/related request is not supported.</value>
   </data>
   <data name="UnsupportedContentType" xml:space="preserve">
     <value>The specified content type '{0}' is not supported.</value>

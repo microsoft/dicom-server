@@ -20,7 +20,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private const ushort ProcessingFailureCode = 272;
         private const ushort ValidationFailedFailureCode = 43264;
         private const ushort SopInstanceAlreadyExistsFailureCode = 45070;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
@@ -153,6 +152,44 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 ValidationHelpers.ValidateReferencedSopSequence(
                     response.Value,
                     ConvertToReferencedSopSequenceEntry(validFile.Dataset));
+            }
+            finally
+            {
+                await _client.DeleteAsync(studyInstanceUID);
+            }
+        }
+
+        [Fact]
+        public async void GivenAMultipartRequestWithTypeParameterAndFirstSectionWithoutContentType_WhenStoring_TheServerShouldReturnOK()
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "studies");
+            request.Headers.Add(HeaderNames.Accept, DicomWebClient.MediaTypeApplicationDicomJson.MediaType);
+
+            var multiContent = new MultipartContent("related");
+            multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebClient.MediaTypeApplicationDicom.MediaType}\""));
+
+            string studyInstanceUID = TestUidGenerator.Generate();
+
+            try
+            {
+                DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID);
+
+                await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
+                {
+                    await dicomFile.SaveAsync(stream);
+
+                    var byteContent = new ByteArrayContent(stream.ToArray());
+                    multiContent.Add(byteContent);
+                }
+
+                request.Content = multiContent;
+
+                HttpResult<DicomDataset> response = await _client.PostMultipartContentAsync(multiContent, "studies");
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+                ValidationHelpers.ValidateReferencedSopSequence(
+                    response.Value,
+                    ConvertToReferencedSopSequenceEntry(dicomFile.Dataset));
             }
             finally
             {
