@@ -11,7 +11,7 @@ jobs:
       ScriptType: InlineScript
       Inline: |
         New-AzResourceGroup -Name "$(resourceGroupName)" -Location "$(resourceGroupRegion)" -Force
-  - template: ./add-aad-test-environment.yml
+  - template: add-aad-test-environment.yml
   - task: AzurePowerShell@4
     displayName: 'New Azure resource group deployment'
     inputs:

@@ -31,21 +31,21 @@ stages:
   dependsOn: 
   - BuildRunUnitTests
   jobs:
-  - template: ./jobs/deploy.yml
+  - template: deploy.yml
  
 - stage: RunIntegrationTests
   displayName: 'Integration tests'
   dependsOn:
   - DeployTestEnvironment
   jobs:
-  - template: ./jobs/run-integration-tests.yml
+  - template: run-integration-tests.yml
 
 - stage: RunE2ETests
   displayName: 'E2E tests'
   dependsOn:
   - DeployTestEnvironment
   jobs:
-  - template: ./jobs/run-e2e-tests.yml
+  - template: run-e2e-tests.yml
  
 - stage: Cleanup
   displayName: 'Cleanup Azure Environment'
@@ -53,4 +53,4 @@ stages:
   - RunIntegrationTests
   - RunE2ETests
   jobs:
-  - template: ./jobs/cleanup.yml
+  - template: cleanup.yml
