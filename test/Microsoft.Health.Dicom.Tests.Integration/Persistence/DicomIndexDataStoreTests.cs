@@ -17,13 +17,13 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class DicomIndexDataStoreTests : IClassFixture<DicomSqlIndexDataStoreTestsFixture>
+    public class DicomIndexDataStoreTests : IClassFixture<DicomSqlDataStoreTestsFixture>
     {
         private readonly IDicomIndexDataStore _dicomIndexDataStore;
         private readonly IDicomIndexDataStoreTestHelper _testHelper;
         private readonly DateTime _startDateTime = DateTime.UtcNow;
 
-        public DicomIndexDataStoreTests(DicomSqlIndexDataStoreTestsFixture fixture)
+        public DicomIndexDataStoreTests(DicomSqlDataStoreTestsFixture fixture)
         {
             _dicomIndexDataStore = fixture.DicomIndexDataStore;
             _testHelper = fixture.TestHelper;
