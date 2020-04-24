@@ -1,0 +1,6 @@
+version: "3"
+services:
+  dicom-server:
+    build: 
+      context: ./../../
+      dockerfile: ./build/docker/Dockerfile
