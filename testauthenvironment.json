@@ -1,13 +1,10 @@
 {
     "users": [
         {
-            "id": "User1"
+            "id": "user1"
         },
         {
-            "id": "User2"
-        },
-        {
-            "id": "User3"
+            "id": "user2"
         }
     ],
     "clientApplications": [
@@ -15,10 +12,7 @@
             "id": "globalAdminServicePrincipal"
         },
         {
-            "id": "nativeClient"
-        },
-        {
-            "id": "wrongAudienceClient"
+            "id": "invalidClient"
         }
     ]
 }

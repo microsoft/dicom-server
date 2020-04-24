@@ -43,7 +43,7 @@ stages:
         ScriptType: InlineScript
         Inline: |
           New-AzResourceGroup -Name "$(resourceGroupName)" -Location "$(resourceGroupRegion)" -Force
-    - template: ./jobs/add-aad-test-environment.yml
+    - template: ./add-aad-test-environment.yml
     - task: AzurePowerShell@4
       displayName: 'New Azure resource group deployment'
       inputs:
@@ -51,6 +51,7 @@ stages:
         azurePowerShellVersion: latestVersion
         ScriptType: InlineScript
         Inline: |
+          Add-Type -AssemblyName System.Web
           
           $deployPath = "$(System.DefaultWorkingDirectory)/samples/templates"
       
@@ -58,13 +59,12 @@ stages:
               "SqlServer__DeleteAllDataOnStartup" = "true"
           }
       
-          Add-Type -AssemblyName System.Web
           $templateParameters = @{
               appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
               appServicePlanName = "$(appServicePlanName)"
               serviceName = "$(deploymentName)"
               additionalDicomServerConfigProperties = $additionalProperties
-              sqlAdminPassword = "PasswordSql1"
+              sqlAdminPassword = [System.Web.Security.Membership]::GeneratePassword(15, 5).replace(";", "_").replace("$","!")
               securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
               securityAuthenticationAudience = "$(testEnvironmentUrl)"
           }
@@ -139,33 +139,31 @@ stages:
     pool:
       vmImage: $(windowsVmImage)
     steps:
+
     - task: UseDotNet@2
       displayName: 'Use .Net Core sdk '
       inputs:
         useGlobalJson: true
-    - task: AzurePowerShell@4
-      displayName: 'Prepare for Testing'
+
+    - task: AzureKeyVault@1
+      displayName: 'Azure Key Vault: resolute-oss-tenant-info'
       inputs:
         azureSubscription: $(azureSubscriptionName)
-        azurePowerShellVersion: latestVersion
-        ScriptType: InlineScript
-        Inline: |
-          $secrets = Get-AzKeyVaultSecret -VaultName $(deploymentName)
-          
-          foreach ($secret in $secrets)
-          {
-              $environmentVariableName = $secret.Name.Replace("--",":")
-              $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name $secret.Name
-              Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
-          }
-          
-          dotnet dev-certs https
+        KeyVaultName: 'resolute-oss-tenant-info'
+
+    - task: AzureKeyVault@1
+      displayName: 'Azure Key Vault: $(deploymentName)-ts'
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        KeyVaultName: '$(deploymentName)-ts'
+  
     - task: DownloadBuildArtifacts@0
       inputs:
         buildType: 'current'
         downloadType: 'single'
         downloadPath: '$(System.ArtifactsDirectory)'
         artifactName: 'IntegrationTests'
+        
     - task: VSTest@2
       displayName: 'E2E Tests'
       inputs:

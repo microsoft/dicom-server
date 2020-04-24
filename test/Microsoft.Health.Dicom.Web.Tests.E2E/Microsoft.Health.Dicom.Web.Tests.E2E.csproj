@@ -30,6 +30,10 @@
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Web\Microsoft.Health.Dicom.Web.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Common\" />
+  </ItemGroup>
 
   <Target Name="VerifyExactSdkVersion" BeforeTargets="Build">
 

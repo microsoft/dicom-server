@@ -65,7 +65,7 @@
         },
         "applicationInsightsLocation": {
             "type": "string",
-            "defaultValue": "eastus",
+            "defaultValue": "[resourceGroup().location]",
             "allowedValues": [
                 "southeastasia",
                 "northeurope",

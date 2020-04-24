@@ -15,10 +15,14 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
+using IdentityModel.Client;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using static Microsoft.Health.Dicom.Tests.Common.EnvironmentVariables;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
@@ -33,6 +37,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly Dictionary<string, string> _bearerTokens = new Dictionary<string, string>();
 
         public DicomWebClient(HttpClient httpClient, RecyclableMemoryStreamManager recyclableMemoryStreamManager)
         {
@@ -44,6 +49,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
 
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+
+            SetupAuthenticationAsync(TestApplications.GlobalAdminServicePrincipal, null).GetAwaiter().GetResult();
         }
 
         public HttpClient HttpClient { get; }
@@ -338,6 +345,57 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
                 throw new DicomWebException(new DicomWebResponse(response));
             }
+        }
+
+        private async Task SetupAuthenticationAsync(TestApplication clientApplication, TestUser user = null)
+        {
+            var tokenUrl = GetEnvironmentVariableWithDefault("security_tokenUrl", string.Empty);
+            var securityEnabled = !string.IsNullOrEmpty(tokenUrl);
+
+            if (securityEnabled)
+            {
+                var tokenKey = $"{clientApplication.ClientId}:{(user == null ? string.Empty : user.UserId)}";
+
+                if (!_bearerTokens.TryGetValue(tokenKey, out string bearerToken))
+                {
+                    bearerToken = await GetBearerToken(clientApplication, user, tokenUrl);
+                    _bearerTokens[tokenKey] = bearerToken;
+                }
+
+                HttpClient.SetBearerToken(bearerToken);
+            }
+        }
+
+        private async Task<string> GetBearerToken(TestApplication clientApplication, TestUser user, string tokenUrl)
+        {
+            if (clientApplication.Equals(TestApplications.InvalidClient))
+            {
+                return null;
+            }
+
+            var formContent = new FormUrlEncodedContent(GetAppSecuritySettings(clientApplication));
+
+            HttpResponseMessage tokenResponse = await HttpClient.PostAsync(tokenUrl, formContent);
+
+            var tokenJson = JObject.Parse(await tokenResponse.Content.ReadAsStringAsync());
+
+            var bearerToken = tokenJson["access_token"].Value<string>();
+
+            return bearerToken;
+        }
+
+        private List<KeyValuePair<string, string>> GetAppSecuritySettings(TestApplication clientApplication)
+        {
+            return new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("client_id", clientApplication.ClientId),
+                new KeyValuePair<string, string>("client_secret", clientApplication.ClientSecret),
+                new KeyValuePair<string, string>("grant_type", clientApplication.GrantType),
+
+                // todo
+                new KeyValuePair<string, string>("scope", "health-api"),
+                new KeyValuePair<string, string>("resource", "health-api"),
+            };
         }
     }
 }
