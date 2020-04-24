@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
@@ -35,23 +34,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         private void ValidateRetrieveResourceRequest(DicomRetrieveResourceRequest request)
         {
-            ResourceType inputResourceType = request.ResourceType;
+            DicomRetrieveRequestValidator.ValidateInstanceIdentifiers(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
+            DicomRetrieveRequestValidator.ValidateTransferSyntax(request.RequestedRepresentation, request.OriginalTransferSyntaxRequested());
 
-            switch (inputResourceType)
+            if (request.ResourceType == ResourceType.Frames)
             {
-                case ResourceType.Study:
-                    DicomIdentifierValidator.ValidateAndThrow(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
-                    break;
-                case ResourceType.Series:
-                    DicomIdentifierValidator.ValidateAndThrow(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
-                    DicomIdentifierValidator.ValidateAndThrow(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
-                    break;
-                case ResourceType.Instance:
-                case ResourceType.Frames:
-                    DicomIdentifierValidator.ValidateAndThrow(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
-                    DicomIdentifierValidator.ValidateAndThrow(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
-                    DicomIdentifierValidator.ValidateAndThrow(request.SopInstanceUid, nameof(request.SopInstanceUid));
-                    break;
+                DicomRetrieveRequestValidator.ValidateFrames(request.Frames);
             }
         }
     }

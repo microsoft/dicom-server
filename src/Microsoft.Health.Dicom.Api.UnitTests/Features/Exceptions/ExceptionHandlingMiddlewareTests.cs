@@ -42,6 +42,22 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
         }
 
         [Fact]
+        public async Task WhenExecutingExceptionMiddleware_GivenADicomNotSupportedException_TheResponseShouldBeBadRequest()
+        {
+            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new DicomNotSupportedException(string.Empty));
+
+            baseExceptionMiddleware.ExecuteResultAsync(Arg.Any<HttpContext>(), Arg.Any<IActionResult>()).Returns(Task.CompletedTask);
+
+            await baseExceptionMiddleware.Invoke(_context);
+
+            await baseExceptionMiddleware
+                .Received()
+                .ExecuteResultAsync(
+                    Arg.Any<HttpContext>(),
+                    Arg.Is<ContentResult>(x => x.StatusCode == (int)HttpStatusCode.BadRequest));
+        }
+
+        [Fact]
         public async Task WhenExecutingExceptionMiddleware_GivenAnUnknownException_TheResponseShouldBeInternalServerError()
         {
             ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new Exception());

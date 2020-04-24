@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Numerics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -21,7 +22,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class DicomSqlIndexDataStoreTestsFixture : IAsyncLifetime
+    public class DicomSqlDataStoreTestsFixture : IAsyncLifetime
     {
         private const string LocalConnectionString = "server=(local);Integrated Security=true";
 
@@ -29,7 +30,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly string _databaseName;
         private readonly SchemaInitializer _schemaInitializer;
 
-        public DicomSqlIndexDataStoreTestsFixture()
+        public DicomSqlDataStoreTestsFixture()
         {
             string initialConnectionString = Environment.GetEnvironmentVariable("SqlServer:ConnectionString") ?? LocalConnectionString;
 
@@ -57,6 +58,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 SqlConnectionWrapperFactory,
                 NullLogger<DicomSqlIndexDataStore>.Instance);
 
+            DicomInstanceStore = new DicomSqlInstanceStore(config);
+
             TestHelper = new DicomSqlIndexDataStoreTestHelper(TestConnectionString);
         }
 
@@ -67,6 +70,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public string TestConnectionString { get; }
 
         public IDicomIndexDataStore DicomIndexDataStore { get; }
+
+        public IDicomInstanceStore DicomInstanceStore { get; }
 
         public DicomSqlIndexDataStoreTestHelper TestHelper { get; }
 

@@ -64,6 +64,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
             switch (exception)
             {
                 case DicomValidationException _:
+                case DicomNotSupportedException _:
                     statusCode = HttpStatusCode.BadRequest;
                     break;
                 case DicomResourceNotFoundException _:
