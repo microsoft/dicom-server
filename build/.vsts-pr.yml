@@ -145,17 +145,26 @@ stages:
       inputs:
         useGlobalJson: true
 
-    - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault: resolute-oss-tenant-info'
+    - task: AzurePowerShell@4
+      displayName: 'Set Variables'
       inputs:
         azureSubscription: $(azureSubscriptionName)
-        KeyVaultName: 'resolute-oss-tenant-info'
+        azurePowerShellVersion: latestVersion
+        ScriptType: inlineScript
+        Inline: |
+          $secrets = Get-AzKeyVaultSecret -VaultName $(deploymentName)-ts
 
-    - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault: $(deploymentName)-ts'
-      inputs:
-        azureSubscription: $(azureSubscriptionName)
-        KeyVaultName: '$(deploymentName)-ts'
+          foreach($secret in $secrets)
+          {
+              $environmentVariableName = $secret.Name.Replace("--","_")
+
+              $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName)-ts -Name $secret.Name
+              Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
+          }
+
+          Write-Host "##vso[task.setvariable variable=Resource]$(testEnvironmentUrl)"
+
+          dotnet dev-certs https
   
     - task: DownloadBuildArtifacts@0
       inputs:

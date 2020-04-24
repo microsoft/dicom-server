@@ -10,30 +10,22 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private readonly DicomWebClient _client;
-        private readonly ILogger<QueryTransactionTests> _logger;
 
-        public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture, ITestOutputHelper testOutputHelper)
+        public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             _client = fixture.Client;
-            var loggerFactory = new LoggerFactory();
-            loggerFactory.AddProvider(new XunitLoggerProvider(testOutputHelper));
-            _logger = loggerFactory.CreateLogger<QueryTransactionTests>();
-
-            _logger.LogInformation("Auth: ", _client.HttpClient.DefaultRequestHeaders.Authorization.ToString());
         }
 
         [Fact]
@@ -48,15 +40,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
         {
-            try
-            {
-                DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync("/studies?StudyDate=20200101");
-                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-            }
-            catch (DicomWebException e)
-            {
-                _logger.LogError(e, "Failed msg");
-            }
+            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync("/studies?StudyDate=20200101");
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [Fact]
@@ -323,65 +308,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 JsonConvert.SerializeObject(expectedDataset, jsonDicomConverter),
                 JsonConvert.SerializeObject(responseInstance, jsonDicomConverter));
             Assert.Equal(expectedDataset.Count(), responseInstance.Count());
-        }
-    }
-
-#pragma warning disable SA1402 // File may only contain a single type
-    public class XunitLoggerProvider : ILoggerProvider
-#pragma warning restore SA1402 // File may only contain a single type
-    {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public XunitLoggerProvider(ITestOutputHelper testOutputHelper)
-        {
-            _testOutputHelper = testOutputHelper;
-        }
-
-        public ILogger CreateLogger(string categoryName)
-            => new XunitLogger(_testOutputHelper, categoryName);
-
-        public void Dispose()
-        {
-        }
-    }
-
-#pragma warning disable SA1402 // File may only contain a single type
-    public class XunitLogger : ILogger
-#pragma warning restore SA1402 // File may only contain a single type
-    {
-        private readonly ITestOutputHelper _testOutputHelper;
-        private readonly string _categoryName;
-
-        public XunitLogger(ITestOutputHelper testOutputHelper, string categoryName)
-        {
-            _testOutputHelper = testOutputHelper;
-            _categoryName = categoryName;
-        }
-
-        public IDisposable BeginScope<TState>(TState state)
-            => NoopDisposable.Instance;
-
-        public bool IsEnabled(LogLevel logLevel)
-            => true;
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-            _testOutputHelper.WriteLine($"{_categoryName} [{eventId}] {formatter(state, exception)}");
-            if (exception != null)
-            {
-                _testOutputHelper.WriteLine(exception.ToString());
-            }
-        }
-
-        private class NoopDisposable : IDisposable
-        {
-#pragma warning disable SA1401 // Fields should be private
-            public static NoopDisposable Instance = new NoopDisposable();
-#pragma warning restore SA1401 // Fields should be private
-
-            public void Dispose()
-            {
-            }
         }
     }
 }
