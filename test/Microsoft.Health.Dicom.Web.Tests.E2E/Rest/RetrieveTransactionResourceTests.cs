@@ -65,7 +65,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenRetrieveInstancesInStudyRequest_WhenStudyInstanceUidExists_ThenServerShouldReturnNotFoundInstancesInStudy()
+        public async Task GivenRetrieveInstancesInStudyRequest_WhenStudyInstanceUidExists_ThenServerShouldReturnInstancesInStudy()
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData();
             var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
