@@ -15,123 +15,209 @@ Additionally, the following non-standard APIs are supported:
 
 ## Store (STOW-RS)
 
-Store Over the Web (STOW) enables you to store specific instances to the server. The specification for WADO-RS can be found in [PS3.18 10.5](http://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_10.5.html).
-**Important** STOW-RS will only support storing entire series. If the same series is posted multiple times the behaviour is to override.
+This transaction uses the POST method to Store representations of Studies, Series, and Instances contained in the request payload.
 
-Method|Path|Description
-----------|----------|----------
-POST|../studies|Store instances
-POST|../studies/{studyInstanceUID}|Store instances for a specific study. If any instance does not belong to the studyInstanceUID it will be rejected
+| Method | Path               | Description |
+| ------ | ------------------ | ----------- |
+| POST   | ../studies         | Store instances. |
+| POST   | ../studies/{study} | Store instances for a specific study. If an instance does not belong to the provided study identifier, that specific instance will be rejected with a '`43265`' warning code. |
 
-- Accept Header Supported: `application/dicom+json`
-- Content-Type: `multipart/related; type=application/dicom`
+Parameter `'study'` corresponds to the DICOM attribute StudyInstanceUID.
 
-### Dicom store semantics
+The following `'Accept'` headers for the response are supported:
+- `application/dicom+json`
 
-- Stored DICOM files should at least have the following tags:
-  - SOPInstanceUID
-  - SeriesInstanceUID
-  - StudyInstanceUID
-  - SopClassUID
-  - PatientID
-- No coercing or replacing of attributes is done by the server
+The following `'Content-Type'` headers are supported:
+- `multipart/related; type=application/dicom`
 
-### Response
+> Note: The Server will <u>not</u> coerce or replace attributes that conflict with existing data. All data will be stored as provided.
 
-Code|Name|Description
-----------|----------|----------
-200 | OK | When all the SOP instances in the request have been stored
-202 | Accepted | When some instances in the request have been stored
-204 | No Content | 
-400 | Bad Request| 
-406 | Not Acceptable |
-409 | Conflict | When none of the instances in the request have been stored
-415 | Unsupported Media Type |
-429 | Too many requests | reached the limit of a request. Need to implement
+The following DICOM elements are required to be present in every DICOM file attempting to be stored:
+- StudyInstanceUID
+- SeriesInstanceUID
+- SopInstanceUID
+- SOPClassUID
+- PatientID
 
+> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: '.', '-'.
 
-- Content-Type: `application/dicom+json`
-- DicomDataset:
-  - Retrieve URL (0008,1190)
-  - Failed SOP Sequence (0008,1198)
-    - Referenced SOP Class UID (0008,1150)
-    - Referenced SOP Instance UID (0008,1155)
-    - Failure Reason (0008,1197)
-  - Referenced SOP Sequence (0008,1199)
-    - Referenced SOP Class UID (0008,1150)
-    - Referenced SOP Instance UID (0008,1155)
-    - Retrieve URL (0008,1190)
-<br/>
-<br/>
-- Accept header application/dicom+xml is not supported.
-- Separate Metadata and Bulk data part requests are not supported.
+Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned in the result if a file with the same identifiers exists.
+
+### Response Status Codes
+
+| Code                         | Description |
+| ---------------------------- | ----------- |
+| 200 (OK)                     | When all the SOP instances in the request have been stored. |
+| 202 (Accepted)               | When some instances in the request have been stored but others have failed. |
+| 204 (No Content)             | No content was provided in the store transaction request. |
+| 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format. |
+| 406 (Not Acceptable)         | The specified `Accept` header is not supported. |
+| 409 (Conflict)               | When none of the instances in the store transaction request have been stored. |
+| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
+
+### Response Payload
+
+The response payload will populate a DICOM dataset with the following elements:
+
+| Tag          | Name                  | Description |
+| ------------ | --------------------- | ----------- |
+| (0008, 1190) | RetrieveURL           | The Retrieve URL of the study if the StudyInstanceUID was provided in the store request. |
+| (0008, 1198) | FailedSOPSequence     | The sequence of instances that failed to store. |
+| (0008, 1199) | ReferencedSOPSequence | The sequence of stored instances. |
+
+Each dataset in the `FailedSOPSequence` will have the following elements (if the DICOM file attempting to be stored could be read):
+
+| Tag          | Name                     | Description |
+| ------------ |------------------------- | ----------- |
+| (0008, 1150) | ReferencedSOPClassUID    | The SOP class unique identifier of the instance that failed to store. |
+| (0008, 1150) | ReferencedSOPInstanceUID | The SOP instance unique identifier of the instance that failed to store. |
+| (0008, 1197) | FailureReason            | The reason code why this instance failed to store. |
+
+Each dataset in the `ReferencedSOPSequence` will have the following elements:
+
+| Tag          | Name                     | Description |
+-------------- | ------------------------ | ----------- |
+| (0008, 1150) | ReferencedSOPClassUID    | The SOP class unique identifier of the instance that failed to store. |
+| (0008, 1150) | ReferencedSOPInstanceUID | The SOP instance unique identifier of the instance that failed to store. |
+| (0008, 1190) | RetrieveURL              | The retrieve URL of this instance on the DICOM server. |
+
+An example response with `Accept` header `application/dicom+json`:
+
+```json
+{
+  "00081190":
+  {
+    "vr":"UR",
+    "Value":["http://localhost/studies/d09e8215-e1e1-4c7a-8496-b4f6641ed232"]
+  },
+  "00081198":
+  {
+    "vr":"SQ",
+    "Value":
+    [{
+      "00081150":
+      {
+        "vr":"UI","Value":["cd70f89a-05bc-4dab-b6b8-1f3d2fcafeec"]
+      },
+      "00081155":
+      {
+        "vr":"UI",
+        "Value":["22c35d16-11ce-43fa-8f86-90ceed6cf4e7"]
+      },
+      "00081197":
+      {
+        "vr":"US",
+        "Value":[43265]
+      }
+    }]
+  },
+  "00081199":
+  {
+    "vr":"SQ",
+    "Value":
+    [{
+      "00081150":
+      {
+        "vr":"UI",
+        "Value":["d246deb5-18c8-4336-a591-aeb6f8596664"]
+      },
+      "00081155":
+      {
+        "vr":"UI",
+        "Value":["4a858cbb-a71f-4c01-b9b5-85f88b031365"]
+      },
+      "00081190":
+      {
+        "vr":"UR",
+        "Value":["http://localhost/studies/d09e8215-e1e1-4c7a-8496-b4f6641ed232/series/8c4915f5-cc54-4e50-aa1f-9b06f6e58485/instances/4a858cbb-a71f-4c01-b9b5-85f88b031365"]
+      }
+    }]
+  }
+}
+```
+
+### Failure Reason Codes
+
+| Code  | Description |
+| ----- | ----------- |
+| 272   | The store transaction did not store the instance because of a general failure in processing the operation. |
+| 43264 | The DICOM instance failed the validation. |
+| 43265 | The provided instance StudyInstanceUID did not match the specified StudyInstanceUID in the store request. |
+| 45070 | A DICOM instance with the same StudyInstanceUID, SeriesInstanceUID and SopInstanceUID has already been stored. If you wish to update the contents, delete this instance first. |
 
 ## Retrieve (WADO-RS)
-Web Access to DICOM Objects (WADO) enables you to retrieve specific studies, series and instances by reference. The specification for WADO-RS can be found in [PS3.18 6.5](http://dicom.nema.org/medical/dicom/2019a/output/chtml/part18/sect_6.5.html). WADO-RS can return binary DICOM instances, metadata as well as rendered instances.
 
-Following **HTTP GET** endpoints are supported:
+This Retrieve Transaction offers support for retrieving stored studies, series, instances and frames by reference.
 
-Method|Path|Description|Accept Header
-----------|----------|----------|----------
-DICOM|
-GET|../studies/{study}|Retrieve full study|application/dicom, application/octet-stream
-GET|../studies/{study}/series/{series}|Retrieve full series|application/dicom, application/octet-stream
-GET|../studies/{study}/series/{series}/instances/{instance}|Retrieve instance|application/dicom, application/octet-stream
-GET|../studies/{study}/series/{series}/instances/{instance}/frames/{frames}|Retrieve frames|application/octet-stream
-Metadata|
-GET|../studies/{study}/metadata|Retrieve full study metadata|application/dicom+json
-GET|../studies/{study}/series/{series}/metadata|Retrieve full series metadata|application/dicom+json
-GET|../studies/{study}/series/{series}/instances/{instance}/metadata|Retrieve instance metadata|application/dicom+json
+The **Azure for Health** API supports the following methods:
 
-### Supported transfer syntax for Retrieve DICOM  (*check with fo-dicom)
+| Method | Path                                                                  | Description |
+| ------ | --------------------------------------------------------------------- | ----------- |
+| GET    | ../study/{study}                                                      | Retrieves an entire study. |
+| GET    | ../study/{study}/metadata                                             | Retrieves all the metadata for every instance in the study. |
+| GET    | ../study/{study}/series/{series}                                      | Retrieves an series. |
+| GET    | ../study/{study}/series/{series}/metadata                             | Retrieves all the metadata for every instance in the series. |
+| GET    | ../study/{study}/series/{series}/instances/{instance}                 | Retrieves a single instance. |
+| GET    | ../study/{study}/series/{series}/instances/{instance}/metadata        | Retrieves the metadata for a single instance. |
+| GET    | ../study/{study}/series/{series}/instances/{instance}/frames/{frames} | Retrieves one or many frames from a single instance. To specify more than one frame, a comma seperate each frame to return, e.g. /study/1/series/2/instance/3/frames/4,5,6 |
 
-- 1.2.840.10008.1.2 (Little Endian Implicit)
-- 1.2.840.10008.1.2.1 (Little Endian Explicit)
-- 1.2.840.10008.1.2.1.99 (Deflated Explicit VR Little Endian)
-- 1.2.840.10008.1.2.2 (Explicit VR Big Endian)
-- 1.2.840.10008.1.2.4.50 (JPEG Baseline Process 1)
-- 1.2.840.10008.1.2.4.51 (JPEG Baseline Process 2 & 4)
-- 1.2.840.10008.1.2.4.90 (JPEG 2000 Lossless Only)
-- 1.2.840.10008.1.2.4.91 (JPEG 2000)
-- 1.2.840.10008.1.2.5 (RLE Lossless)
-- \* 
+### Retrieve Study or Series
+The following `'Accept'` headers are supported for retrieving study or series:
+- `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.1 (default)`
+- `multipart/related; type="application/dicom"; transfer-syntax=*`
 
-A transfer syntax of * means no transcoding will be done, so the transfer syntax of the uploaded file will be used. This is the fastest way to retrieve.
-Retrieve Metadata does not return any attribute which has a DICOM Value Representation of OB, OD, OF, OL, OW, or UN.
+### Retrieve Metadata (for Study/ Series/ or Instance)
+The following `'Accept'` headers are supported for retrieving metadata for a study, series or single instance:
+- `application/dicom+json`
 
-### Response
+Retrieving metadata will not return attributes with the following value representations:
+VR Name|Full
+----------|----------
+OB|Other Byte
+OD|Other Double
+OF|Other Float
+OL|Other Long
+OV|Other Long
+OV|Other 64-Bit Very Long
+OW|Other Word
+UN|Unkown
 
-Code|Name|Description
-----------|----------|----------
-200 | OK | Response contains all of the requested resources 
-400 | Bad Request| Invalid request
-404 | Not Found| Requested resource does not exist
-406 | Not Acceptable | Server does not support the acceptable media type
-415 | Unsupported Media Type | Server does not support the transfer syntax
+### Retrieve Frames
+The following `'Accept'` headers are supported for retrieving frames:
+- `multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1 (default)`
+- `multipart/related; type="application/octet-stream"; transfer-syntax=*`
 
-BulkData, Thumbnails and Rendered query parameters is not supported.
+> If the `'transfer-syntax'` header is not set, the Retrieve Transaction will default to 1.2.840.10008.1.2.1 (Little Endian Explicit). <br/> It is worth noting that if a file was uploaded using a compressed transfer syntax, by default, the result will be re-encoded. This could reduce the performance of the DICOM server on 'retrieve'. In this case, it is recommended to set the `transfer-syntax` header to **'`*`'**, or store all files as Little Endian explicit.
+
+### Response Status Codes
+
+| Code              | Description |
+| ----------------- | ----------- |
+| 200 (OK)          | All requested data has been retrieved. |
+| 400 (Bad Request) | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported. |
+| 404 (Not Found)   | The specified DICOM resource could not be found. |
 
 ## Search (QIDO-RS)
 
-Query based on ID for DICOM Objects (QIDO) enables you to search for studies, series and instances by attributes. More detail can be found in [PS3.18 6.7](http://dicom.nema.org/medical/dicom/2019a/output/chtml/part18/sect_6.7.html).
+Query based on ID for DICOM Objects (QIDO) enables you to search for studies, series and instances by attributes. 
 
 Following **HTTP GET** endpoints are supported:
 
-Method|Path|Description
-----------|----------|----------
-*Search for Studies*|
-GET|../studies?...|Search for studies|
-*Search for Series*|
-GET|../series?...|Search for series
-GET|../studies/{study}/series?...|Search for series in a study
-*Search for Instances*|
-GET|../instances?...|Search for instances
-GET|../studies/{study}/instances?...|Search for instances in a study
-GET|../studies/{study}/series/{series}/instances?...|Search for instances in a series
+| Method | Path                                             | Description                       |
+| ------ | ------------------------------------------------ | --------------------------------- |
+|*Search for Studies*    |
+| GET    | ../studies?...                                   | Search for studies                |
+| *Search for Series*    |
+| GET    | ../series?...                                    | Search for series                 |
+| GET    |../studies/{study}/series?...                     | Search for series in a study      |
+| *Search for Instances* |
+| GET    |../instances?...                                  | Search for instances              |
+| GET    |../studies/{study}/instances?...                  | Search for instances in a study   |
+| GET    | ../studies/{study}/series/{series}/instances?... | Search for instances in a series  |
 
 Accept Header Supported: `application/dicom+json`
 
-### Supported Query Parameters
+### Supported Search Parameters
 The following parameters for each query are supported:
 
 Key|Support Value(s)|Allowed Count|Description
@@ -142,26 +228,27 @@ Key|Support Value(s)|Allowed Count|Description
 `offset=`|{value}|0..1|Skip {value} results.<br/>If an offset is provided larger than the number of search query results, a 204 (no content) response will be returned.
 `fuzzymatching=`|true\|false|0..1|If true fuzzy matching is applied to PatientName attribute. It will do a prefix word match of any name part inside PatientName value.
 
-#### Search Parameters
+#### Search Attributes
 We support searching on below attributes and search type.
 
-- Studies:
-    - StudyInstanceUID
-    - PatientName
-    - PatientID
-    - AccessionNumber
-    - ReferringPhysicianName
-    - StudyDate
-    - StudyDescription
-   
-- Series: all study level search terms and
-    - SeriesInstanceUID
-    - Modality
-    - PerformedProcedureStepStartDate
-- Instances: all study/series level search terms and
-    - SOPInstanceUID
+| Attribute Keyword | Study | Series | Instance |
+| :--- | :---: | :---: | :---: |
+| StudyInstanceId | X | X | X |
+| PatientName | X | X | X |
+| PatientID | X | X | X |
+| AccessionNumber | X | X | X |
+| ReferringPhysicianName | X | X | X |
+| StudyDate | X | X | X |
+| StudyDescription | X | X | X |
+| SeriesInstanceUID |  | X | X |
+| Modality |  | X | X |
+| PerformedProcedureStepStartDate |  | X | X |
+| SOPInstanceUID |  |  | X |
 
-    
+
+#### Search Matching
+We support below matching types.
+
 Search Type|Supported Attribute|Example|
 ----------|----------|----------|----------|----------
 Range Query|StudyDate|{attributeID}={value1}-{value2}|For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`.
@@ -178,10 +265,6 @@ Value|Example
 {dicomKeyword}|StudyInstanceUID
 
 Example query searching for instances: **../instances?Modality=CT&00280011=512&includefield=00280010&limit=5&offset=0**
-
-*We will support expanding the search attributes by customization in the future.
-
-Querying using the `TimezoneOffsetFromUTC` (`00080201`) is not supported.
 
 ### Search Response
 
@@ -276,6 +359,9 @@ Code|Name|Description
 401|Unauthorized|The server refused to perform the query because the client is not authenticated.
 503|Busy|Service is unavailable
 
+### Additional Notes
+
+- Querying using the `TimezoneOffsetFromUTC` (`00080201`) is not supported.
 - The query API will not return 413 (request entity too large). If the requested query response limit is outside of the acceptable range, a bad request will be returned. Anything requested within the acceptable range, will be resolved.
 - When target resource is Study/Series there is a potential for inconsistent study/series level metadata across multiple instances. For example, two instances could have different patientName. In this case we will return the study of either of the patientName match.
 - Paged results are optimized to return matched *newest* instance first, this may result in duplicate records in subsequent pages if newer data matching the query was added.
@@ -283,21 +369,30 @@ Code|Name|Description
 
 ## Delete
 
-The following **HTTP DELETE** endpoints will be supported:
 
-Method    | Path                                                     | Description
-----------|----------------------------------------------------------|-------------------------
-DELETE    | ../studies/{study}                                       | Delete entire study
-DELETE    | ../studies/{study}/series/{series}                       | Delete entire series
-DELETE    | ../studies/{study}/series/{series}/instances/{instance}  | Delete entire instance
+This transaction is not part of the official DICOMweb standard. It uses the DELETE method to remove representations of Studies, Series, and Instances from the store.
 
 
-### Response Codes
+| Method | Path                                                    | Description |
+| ------ | ------------------------------------------------------- |------------ |
+| DELETE | ../studies/{study}                                      | Delete all instances for a specific study. |
+| DELETE | ../studies/{study}/series/{series}                      | Delete all instances for a specific series within a study. |
+| DELETE | ../studies/{study}/series/{series}/instances/{instance} | Delete a specific instance within a series. |
 
-The Delete API will return one of the following status codes in the response:
+Parameters `'study'`, `'series'` and `'instance'` correspond to the DICOM attributes StudyInstanceUID, SeriesInstanceUID and SopInstanceUID respectively.
 
-Code      | Name         | Description
-----------|--------------| --------------------------------------------
-204       | No content   | Requested resource was successfully deleted.
-400       | Bad request  | The request was invalid.
-404       | Not found    | The specified object wasn't found
+There are no restrictions on the request's `'Accept'` header, `'Content-Type'` header or body content.
+
+> Note: After a Delete transaction the deleted instances will not be recoverable.
+
+### Response Status Codes
+
+| Code              | |Description |
+| ----------------- | ------------ |
+| 200 (OK)          | When all the SOP instances have been deleted. |
+| 400 (Bad Request) | The request was badly formatted. |
+| 404 (Not Found)   | When the specified series was not found within a study, or the specified instance was not found within the series. |
+
+### Response Payload
+
+The response body will be empty. The status code is the only useful information returned.
