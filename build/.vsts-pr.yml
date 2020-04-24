@@ -40,11 +40,11 @@ stages:
   jobs:
   - template: ./jobs/run-integration-tests.yml
 
-  - stage: RunE2ETests
-    displayName: 'E2E tests'
-    dependsOn:
-    - DeployTestEnvironment
-    jobs:
+- stage: RunE2ETests
+  displayName: 'E2E tests'
+  dependsOn:
+  - DeployTestEnvironment
+  jobs:
   - template: ./jobs/run-e2e-tests.yml
  
 - stage: Cleanup
