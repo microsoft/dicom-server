@@ -14,7 +14,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Features.Transactions;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -54,20 +53,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
         public async Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
         {
-            (DateTimeOffset deletedDate, DateTimeOffset cleanupAfter) = GenerateDeletedDateAndCleanupAfter();
-            await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, deletedDate, cleanupAfter, cancellationToken);
+            DateTimeOffset cleanupAfter = GenerateCleanupAfter();
+            await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
         {
-            (DateTimeOffset deletedDate, DateTimeOffset cleanupAfter) = GenerateDeletedDateAndCleanupAfter();
-            await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, deletedDate, cleanupAfter, cancellationToken);
+            DateTimeOffset cleanupAfter = GenerateCleanupAfter();
+            await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
-            (DateTimeOffset deletedDate, DateTimeOffset cleanupAfter) = GenerateDeletedDateAndCleanupAfter();
-            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedDate, cleanupAfter, cancellationToken);
+            DateTimeOffset cleanupAfter = GenerateCleanupAfter();
+            await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task<(bool success, int retrievedInstanceCount)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)
@@ -80,7 +79,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                 try
                 {
                     List<VersionedDicomInstanceIdentifier> deletedInstanceIdentifiers = (await _dicomIndexDataStore.RetrieveDeletedInstancesAsync(
-                        Clock.UtcNow,
                         _deletedInstanceCleanupConfiguration.BatchSize,
                         _deletedInstanceCleanupConfiguration.MaxRetries,
                         cancellationToken))
@@ -106,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                         {
                             try
                             {
-                                int newRetryCount = await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, Clock.UtcNow + _deletedInstanceCleanupConfiguration.RetryBackOff, cancellationToken);
+                                int newRetryCount = await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, GenerateCleanupAfter(), cancellationToken);
                                 if (newRetryCount > _deletedInstanceCleanupConfiguration.MaxRetries)
                                 {
                                     _logger.LogCritical(cleanupException, $"Failed to cleanup instance {deletedInstanceIdentifier}. Retry count is now {newRetryCount} and retry will not be re-attempted.");
@@ -136,12 +134,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             return (success, retrievedInstanceCount);
         }
 
-        private (DateTimeOffset deletedDate, DateTimeOffset cleanupAfter) GenerateDeletedDateAndCleanupAfter()
+        private DateTimeOffset GenerateCleanupAfter()
         {
-            DateTimeOffset deletedDate = Clock.UtcNow;
-            DateTimeOffset cleanupAfter = deletedDate + _deletedInstanceCleanupConfiguration.DeleteDelay;
-
-            return (deletedDate, cleanupAfter);
+            return Clock.UtcNow + _deletedInstanceCleanupConfiguration.DeleteDelay;
         }
     }
 }

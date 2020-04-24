@@ -150,9 +150,9 @@ CREATE TABLE dbo.Instance (
     --data consitency columns
     Watermark               BIGINT NOT NULL,
     Status                  TINYINT NOT NULL,
-    LastStatusUpdatedDate   DATETIMEOFFSET(7) NOT NULL,
+    LastStatusUpdatedDate   DATETIME2(7) NOT NULL,
     --audit columns
-    CreatedDate             DATETIMEOFFSET(7) NOT NULL
+    CreatedDate             DATETIME2(7) NOT NULL
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
@@ -465,8 +465,7 @@ CREATE PROCEDURE dbo.AddInstance
     @accessionNumber                    NVARCHAR(64) = NULL,
     @modality                           NVARCHAR(16) = NULL,
     @performedProcedureStepStartDate    DATE = NULL,
-    @initialStatus                      TINYINT,
-    @createDate                         DATETIMEOFFSET(7)
+    @initialStatus                      TINYINT
 AS
     SET NOCOUNT ON
 
@@ -474,6 +473,7 @@ AS
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
     BEGIN TRANSACTION
 
+    DECLARE @currentDate DATETIME2(7) = GETUTCDATE()
     DECLARE @existingStatus TINYINT
     DECLARE @metadataId BIGINT
     DECLARE @newVersion BIGINT
@@ -494,7 +494,7 @@ AS
     INSERT INTO dbo.Instance
         (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newVersion, @initialStatus, @createDate, @createDate)
+        (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newVersion, @initialStatus, @currentDate, @currentDate)
 
     -- Update the study metadata if needed.
     SELECT @metadataId = Id
@@ -560,8 +560,7 @@ CREATE PROCEDURE dbo.UpdateInstanceStatus
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
     @watermark          BIGINT,
-    @status             TINYINT,
-    @updateDate         DATETIMEOFFSET(7)
+    @status             TINYINT
 AS
     SET NOCOUNT ON
 
@@ -570,7 +569,7 @@ AS
     BEGIN TRANSACTION
 
     UPDATE dbo.Instance
-    SET Status = @status, LastStatusUpdatedDate = @updateDate
+    SET Status = @status, LastStatusUpdatedDate = GETUTCDATE()
     WHERE StudyInstanceUid = @studyInstanceUid
     AND SeriesInstanceUid = @seriesInstanceUid
     AND SopInstanceUid = @sopInstanceUid
@@ -657,6 +656,8 @@ GO
 --     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
 --
 -- PARAMETERS
+--     @cleanupAfter
+--         * The date time offset that the instance can be cleaned up
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -665,7 +666,6 @@ GO
 --         * The SOP instance UID.
 /***************************************************************************************/
 CREATE PROCEDURE dbo.DeleteInstance (
-    @deletedDate        DATETIMEOFFSET(0),
     @cleanupAfter       DATETIMEOFFSET(0),
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = null,
@@ -688,7 +688,7 @@ AS
 
     -- Delete the instance and insert the details into FileCleanup
     DELETE  dbo.Instance
-        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, @deletedDate, 0, @cleanupAfter
+        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, GETUTCDATE(), 0, @cleanupAfter
         INTO dbo.DeletedInstance
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
@@ -729,18 +729,15 @@ GO
 --     RetrieveDeletedInstance
 --
 -- DESCRIPTION
---     Retrieves deleted instances where the cleanupAfter is less than the date passed in and the retry count hasn't been exceeded
+--     Retrieves deleted instances where the cleanupAfter is less than the current date in and the retry count hasn't been exceeded
 --
 -- PARAMETERS
---     @cleanupAfter
---         * The date time for the cutoff on retrieving deleted instances
 --     @count
 --         * The number of entries to return
 --     @maxRetries
 --         * The maximum number of times to retry a cleanup
 /***************************************************************************************/
 CREATE PROCEDURE dbo.RetrieveDeletedInstance
-    @cleanupAfter   DATETIMEOFFSET(0),
     @count          INT,
     @maxRetries     INT
 AS
@@ -749,7 +746,7 @@ AS
     SELECT  TOP (@count) StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE   RetryCount <= @maxRetries
-    AND     CleanupAfter < @cleanupAfter
+    AND     CleanupAfter < GETUTCDATE()
 GO
 
 /***************************************************************************************/

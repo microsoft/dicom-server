@@ -29,23 +29,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "The DICOM instance has been successfully created with version '{Version}'.");
 
-        private static readonly Action<ILogger, string, string, string, DateTimeOffset, DateTimeOffset, Exception> LogDeleteInstanceIndexDelegate =
-            LoggerMessage.Define<string, string, string, DateTimeOffset, DateTimeOffset>(
+        private static readonly Action<ILogger, string, string, string, DateTimeOffset, Exception> LogDeleteInstanceIndexDelegate =
+            LoggerMessage.Define<string, string, string, DateTimeOffset>(
                 LogLevel.Debug,
                 default,
-                "Deleting DICOM instance index with Study '{StudyInstanceUid}', Series '{SeriesInstanceUid}, and SopInstance '{SopInstanceUid}' with a date of {DeletedDate} and to be cleanedUpAfter '{CleanupAfter}'.");
+                "Deleting DICOM instance index with Study '{StudyInstanceUid}', Series '{SeriesInstanceUid}, and SopInstance '{SopInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
 
-        private static readonly Action<ILogger, string, string, DateTimeOffset, DateTimeOffset, Exception> LogDeleteSeriesIndexDelegate =
-            LoggerMessage.Define<string, string, DateTimeOffset, DateTimeOffset>(
+        private static readonly Action<ILogger, string, string, DateTimeOffset, Exception> LogDeleteSeriesIndexDelegate =
+            LoggerMessage.Define<string, string, DateTimeOffset>(
                 LogLevel.Debug,
                 default,
-                "Deleting DICOM instance index within Study's Series with Study '{StudyInstanceUid}' and Series '{SeriesInstanceUid}' with a date of {DeletedDate} and to be cleanedUpAfter '{CleanupAfter}'.");
+                "Deleting DICOM instance index within Study's Series with Study '{StudyInstanceUid}' and Series '{SeriesInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
 
-        private static readonly Action<ILogger, string, DateTimeOffset, DateTimeOffset, Exception> LogDeleteStudyInstanceIndexDelegate =
-            LoggerMessage.Define<string, DateTimeOffset, DateTimeOffset>(
+        private static readonly Action<ILogger, string, DateTimeOffset, Exception> LogDeleteStudyInstanceIndexDelegate =
+            LoggerMessage.Define<string, DateTimeOffset>(
                 LogLevel.Debug,
                 default,
-                "Deleting DICOM instance index within Study with Study '{StudyInstanceUid}' with a date of {DeletedDate} and to be cleanedUpAfter '{CleanupAfter}'.");
+                "Deleting DICOM instance index within Study with Study '{StudyInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
 
         private static readonly Action<ILogger, VersionedDicomInstanceIdentifier, DicomIndexStatus, Exception> LogUpdateInstanceIndexStatusDelegate =
             LoggerMessage.Define<VersionedDicomInstanceIdentifier, DicomIndexStatus>(
@@ -53,11 +53,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "Updating the DICOM instance index status with '{DicomInstanceIdentifier}' to '{Status}'.");
 
-        private static readonly Action<ILogger, DateTimeOffset, int, int, Exception> LogRetrieveDeletedInstancesAsyncDelegate =
-            LoggerMessage.Define<DateTimeOffset, int, int>(
+        private static readonly Action<ILogger, int, int, Exception> LogRetrieveDeletedInstancesAsyncDelegate =
+            LoggerMessage.Define<int, int>(
                 LogLevel.Debug,
                 default,
-                "Retrieving deleted instances for cleanup at: {CleanupAfter}; batchSize: {BatchSize}; maxRetries: {MaxRetries}");
+                "Retrieving {BatchSize} deleted instances with less than or equal to {MaxRetries}.");
 
         private static readonly Action<ILogger, VersionedDicomInstanceIdentifier, Exception> LogDeleteDeletedInstanceAsyncDelegate =
             LoggerMessage.Define<VersionedDicomInstanceIdentifier>(
@@ -119,13 +119,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset deletedDate, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            LogDeleteInstanceIndexDelegate(_logger, studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedDate, cleanupAfter, null);
+            LogDeleteInstanceIndexDelegate(_logger, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, null);
 
             try
             {
-                await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedDate, cleanupAfter, cancellationToken);
+                await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -138,13 +138,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset deletedDate, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            LogDeleteSeriesIndexDelegate(_logger, studyInstanceUid, seriesInstanceUid, deletedDate, cleanupAfter, null);
+            LogDeleteSeriesIndexDelegate(_logger, studyInstanceUid, seriesInstanceUid, cleanupAfter, null);
 
             try
             {
-                await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, deletedDate, cleanupAfter, cancellationToken);
+                await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -157,13 +157,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset deletedDate, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            LogDeleteStudyInstanceIndexDelegate(_logger, studyInstanceUid, deletedDate, cleanupAfter, null);
+            LogDeleteStudyInstanceIndexDelegate(_logger, studyInstanceUid, cleanupAfter, null);
 
             try
             {
-                await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, deletedDate, cleanupAfter, cancellationToken);
+                await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -195,13 +195,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(DateTimeOffset cleanupAfter, int batchSize, int maxRetries, CancellationToken cancellationToken)
+        public async Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken)
         {
-            LogRetrieveDeletedInstancesAsyncDelegate(_logger, cleanupAfter, batchSize, maxRetries, null);
+            LogRetrieveDeletedInstancesAsyncDelegate(_logger, batchSize, maxRetries, null);
 
             try
             {
-                IEnumerable<VersionedDicomInstanceIdentifier> deletedInstances = await _dicomIndexDataStore.RetrieveDeletedInstancesAsync(cleanupAfter, batchSize, maxRetries, cancellationToken);
+                IEnumerable<VersionedDicomInstanceIdentifier> deletedInstances = await _dicomIndexDataStore.RetrieveDeletedInstancesAsync(batchSize, maxRetries, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 

@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
 
             await indexDataStore.DeleteInstanceIndexAsync(
-                dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, Clock.UtcNow, Clock.UtcNow, cancellationToken);
+                dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, Clock.UtcNow, cancellationToken);
         }
     }
 }

@@ -66,8 +66,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                     instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
                     instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
                     instance.GetStringDateAsDateTime(DicomTag.PerformedProcedureStepStartDate),
-                    (byte)DicomIndexStatus.Creating,
-                    createDate: Clock.UtcNow);
+                    (byte)DicomIndexStatus.Creating);
 
                 try
                 {
@@ -88,28 +87,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             }
         }
 
-        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset deletedDate, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
             EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedDate, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset deletedDate, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, deletedDate, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset deletedDate, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, deletedDate, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
         public async Task UpdateInstanceIndexStatusAsync(
@@ -132,8 +131,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
                     dicomInstanceIdentifier.SeriesInstanceUid,
                     dicomInstanceIdentifier.SopInstanceUid,
                     dicomInstanceIdentifier.Version,
-                    (byte)status,
-                    updateDate: Clock.UtcNow);
+                    (byte)status);
 
                 try
                 {
@@ -154,7 +152,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             }
         }
 
-        public async Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(DateTimeOffset cleanupAfter, int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
         {
             var results = new List<VersionedDicomInstanceIdentifier>();
 
@@ -163,7 +161,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             {
                 VLatest.RetrieveDeletedInstance.PopulateCommand(
                     sqlCommand,
-                    cleanupAfter,
                     batchSize,
                     maxRetries);
 
@@ -226,7 +223,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             }
         }
 
-        private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset deletedDate, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
@@ -235,7 +232,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             {
                 VLatest.DeleteInstance.PopulateCommand(
                     sqlCommand,
-                    deletedDate,
                     cleanupAfter,
                     studyInstanceUid,
                     seriesInstanceUid,

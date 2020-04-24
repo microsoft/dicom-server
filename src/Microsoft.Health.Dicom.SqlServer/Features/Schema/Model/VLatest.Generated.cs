@@ -52,8 +52,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
-            internal readonly DateTimeOffsetColumn LastStatusUpdatedDate = new DateTimeOffsetColumn("LastStatusUpdatedDate", 7);
-            internal readonly DateTimeOffsetColumn CreatedDate = new DateTimeOffsetColumn("CreatedDate", 7);
+            internal readonly DateTime2Column LastStatusUpdatedDate = new DateTime2Column("LastStatusUpdatedDate", 7);
+            internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
         }
 
         internal class SchemaVersionTable : Table
@@ -115,8 +115,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
             private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
             private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.DateTimeOffset> _createDate = new ParameterDefinition<System.DateTimeOffset>("@createDate", global::System.Data.SqlDbType.DateTimeOffset, false, 7);
-            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus, System.DateTimeOffset createDate)
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddInstance";
@@ -132,7 +131,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _modality.AddParameter(command.Parameters, modality);
                 _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
                 _initialStatus.AddParameter(command.Parameters, initialStatus);
-                _createDate.AddParameter(command.Parameters, createDate);
             }
         }
 
@@ -163,16 +161,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            private readonly ParameterDefinition<System.DateTimeOffset> _deletedDate = new ParameterDefinition<System.DateTimeOffset>("@deletedDate", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
             private readonly ParameterDefinition<System.DateTimeOffset> _cleanupAfter = new ParameterDefinition<System.DateTimeOffset>("@cleanupAfter", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
-            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.DateTimeOffset deletedDate, System.DateTimeOffset cleanupAfter, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.DateTimeOffset cleanupAfter, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.DeleteInstance";
-                _deletedDate.AddParameter(command.Parameters, deletedDate);
                 _cleanupAfter.AddParameter(command.Parameters, cleanupAfter);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
@@ -230,14 +226,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            private readonly ParameterDefinition<System.DateTimeOffset> _cleanupAfter = new ParameterDefinition<System.DateTimeOffset>("@cleanupAfter", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
             private readonly ParameterDefinition<System.Int32> _count = new ParameterDefinition<System.Int32>("@count", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int32> _maxRetries = new ParameterDefinition<System.Int32>("@maxRetries", global::System.Data.SqlDbType.Int, false);
-            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.DateTimeOffset cleanupAfter, System.Int32 count, System.Int32 maxRetries)
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.Int32 count, System.Int32 maxRetries)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.RetrieveDeletedInstance";
-                _cleanupAfter.AddParameter(command.Parameters, cleanupAfter);
                 _count.AddParameter(command.Parameters, count);
                 _maxRetries.AddParameter(command.Parameters, maxRetries);
             }
@@ -267,8 +261,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.DateTimeOffset> _updateDate = new ParameterDefinition<System.DateTimeOffset>("@updateDate", global::System.Data.SqlDbType.DateTimeOffset, false, 7);
-            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status, System.DateTimeOffset updateDate)
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.UpdateInstanceStatus";
@@ -277,7 +270,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
                 _watermark.AddParameter(command.Parameters, watermark);
                 _status.AddParameter(command.Parameters, status);
-                _updateDate.AddParameter(command.Parameters, updateDate);
             }
         }
 

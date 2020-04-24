@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 DefaultCancellationToken)
                 .Throws(new ArgumentException());
 
-            _dicomIndexDataStore.DeleteInstanceIndexAsync(default, default, default, default, default, default).ThrowsForAnyArgs(new InvalidOperationException());
+            _dicomIndexDataStore.DeleteInstanceIndexAsync(default, default, default, default, default).ThrowsForAnyArgs(new InvalidOperationException());
 
             await Assert.ThrowsAsync<ArgumentException>(() => _dicomStoreOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
         }
@@ -134,7 +134,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                         DefaultStudyInstanceUid,
                         DefaultSeriesInstanceUid,
                         DefaultSopInstanceUid,
-                        Arg.Any<DateTimeOffset>(),
                         Arg.Any<DateTimeOffset>(),
                         CancellationToken.None);
 

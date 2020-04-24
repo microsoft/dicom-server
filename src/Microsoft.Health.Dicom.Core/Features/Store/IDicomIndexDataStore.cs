@@ -29,22 +29,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="studyInstanceUid"/>.
         /// </summary>
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
-        /// <param name="deletedDate">The date to record as the record being deleted.</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset deletedDate, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+        Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belong to the series specified by the <paramref name="studyInstanceUid"/> and <paramref name="seriesInstanceUid"/>.
         /// </summary>
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
         /// <param name="seriesInstanceUid">The SeriesInstanceUID.</param>
-        /// <param name="deletedDate">The date to record as the record being deleted.</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset deletedDate, DateTimeOffset cleanupAfter,  CancellationToken cancellationToken = default);
+        Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter,  CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of the instance specified by the <paramref name="studyInstanceUid"/>, <paramref name="seriesInstanceUid"/>, and <paramref name="sopInstanceUid"/>.
@@ -52,11 +50,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
         /// <param name="seriesInstanceUid">The SeriesInstanceUID.</param>
         /// <param name="sopInstanceUid">The SopInstanceUID.</param>
-        /// <param name="deletedDate">The date to record as the record being deleted.</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset deletedDate, DateTimeOffset cleanupAfter,  CancellationToken cancellationToken = default);
+        Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter,  CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously updates the status of an existing instance index.
@@ -70,12 +67,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <summary>
         /// Return a collection of deleted instances.
         /// </summary>
-        /// <param name="cleanupAfter">The cutoff date for cleaning up entries.</param>
         /// <param name="batchSize">The number of entries to return.</param>
         /// <param name="maxRetries">The maximum number of times a cleanup should be attempted.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A collection of deleted instances to cleanup.</returns>
-        Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(DateTimeOffset cleanupAfter, int batchSize, int maxRetries, CancellationToken cancellationToken = default);
+        Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes an item from the list of deleted entries that need to be cleaned up.
