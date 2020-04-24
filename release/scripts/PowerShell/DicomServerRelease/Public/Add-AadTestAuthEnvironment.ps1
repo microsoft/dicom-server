@@ -147,19 +147,13 @@ function Add-AadTestAuthEnvironment {
     }
 
     Write-Host "Set token and auth url in key vault"
-    $securityAuthenticationAudience = "https://$EnvironmentName.$WebAppSuffix"
     $aadEndpoint = (Get-AzureADCurrentSessionInfo).Environment.Endpoints["ActiveDirectory"]
     $aadTenantId = (Get-AzureADCurrentSessionInfo).Tenant.Id.ToString()
-    $securityAuthenticationAuthority = "$aadEndpoint$aadTenantId"
-    $authUrl   = "$securityAuthenticationAuthority/oauth2/authorize?resource=$securityAuthenticationAudience"
-    $tokenUrl  = "$securityAuthenticationAuthority/oauth2/token"
-    $authUrlSecureString = ConvertTo-SecureString -String $authUrl -AsPlainText -Force
+    $tokenUrl  = "$aadEndpoint$aadTenantId/oauth2/token"
     $tokenUrlSecureString = ConvertTo-SecureString -String $tokenUrl -AsPlainText -Force
         
     Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "security--tokenUrl" -SecretValue $tokenUrlSecureString | Out-Null
-    Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "security--authUrl" -SecretValue $authUrlSecureString | Out-Null
-   
-
+    
     @{
         keyVaultName                  = $KeyVaultName
         environmentUsers              = $environmentUsers

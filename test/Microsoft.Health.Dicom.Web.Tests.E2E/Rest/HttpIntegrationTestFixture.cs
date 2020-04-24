@@ -11,13 +11,16 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using IdentityModel.Client;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
@@ -25,6 +28,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     {
         private readonly string _environmentUrl;
         private readonly HttpMessageHandler _messageHandler;
+        private readonly Dictionary<string, string> _bearerTokens = new Dictionary<string, string>();
 
         public HttpIntegrationTestFixture()
             : this(Path.Combine("src"))
@@ -57,6 +61,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _environmentUrl = environmentUrl;
 
             HttpClient = CreateHttpClient();
+
+            SetupAuthenticationAsync(TestApplications.GlobalAdminServicePrincipal, null).GetAwaiter().GetResult();
 
             RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
 
@@ -140,6 +146,54 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 });
 
             Server = new TestServer(builder);
+        }
+
+        private async Task SetupAuthenticationAsync(TestApplication clientApplication, TestUser user = null)
+        {
+            var tokenUrl = AuthenticationSettings.TokenUrl;
+
+            if (AuthenticationSettings.SecurityEnabled)
+            {
+                var tokenKey = $"{clientApplication.ClientId}:{(user == null ? string.Empty : user.UserId)}";
+
+                if (!_bearerTokens.TryGetValue(tokenKey, out string bearerToken))
+                {
+                    bearerToken = await GetBearerToken(clientApplication, user, tokenUrl);
+                    _bearerTokens[tokenKey] = bearerToken;
+                }
+
+                HttpClient.SetBearerToken(bearerToken);
+            }
+        }
+
+        private async Task<string> GetBearerToken(TestApplication clientApplication, TestUser user, string tokenUrl)
+        {
+            if (clientApplication.Equals(TestApplications.InvalidClient))
+            {
+                return null;
+            }
+
+            var formContent = new FormUrlEncodedContent(GetAppSecuritySettings(clientApplication));
+
+            HttpResponseMessage tokenResponse = await HttpClient.PostAsync(tokenUrl, formContent);
+
+            var tokenJson = JObject.Parse(await tokenResponse.Content.ReadAsStringAsync());
+
+            var bearerToken = tokenJson["access_token"].Value<string>();
+
+            return bearerToken;
+        }
+
+        private List<KeyValuePair<string, string>> GetAppSecuritySettings(TestApplication clientApplication)
+        {
+            return new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("client_id", clientApplication.ClientId),
+                new KeyValuePair<string, string>("client_secret", clientApplication.ClientSecret),
+                new KeyValuePair<string, string>("grant_type", clientApplication.GrantType),
+                new KeyValuePair<string, string>("scope", AuthenticationSettings.Scope),
+                new KeyValuePair<string, string>("resource", AuthenticationSettings.Resource),
+            };
         }
 
         /// <summary>
