@@ -375,10 +375,10 @@ CREATE TABLE dbo.DeletedInstance
 
 CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
 (
-    Watermark,
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid
+    SopInstanceUid,
+    WaterMark
 )
 
 CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance

@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             LoggerMessage.Define<DateTimeOffset, int, int>(
                 LogLevel.Debug,
                 default,
-                "Retrieving deleted instances for cleanup at: {cleanupAfter}; batchSize: {batchSize}; maxRetries: {maxRetries}");
+                "Retrieving deleted instances for cleanup at: {CleanupAfter}; batchSize: {BatchSize}; maxRetries: {MaxRetries}");
 
         private static readonly Action<ILogger, VersionedDicomInstanceIdentifier, Exception> LogDeleteDeletedInstanceAsyncDelegate =
             LoggerMessage.Define<VersionedDicomInstanceIdentifier>(
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             LoggerMessage.Define<VersionedDicomInstanceIdentifier, DateTimeOffset>(
                 LogLevel.Debug,
                 default,
-                "Incrementing the retry count of deleted instances '{DicomInstanceIdentifier}' and setting next cleanup time to '{cleanupAfter}'.");
+                "Incrementing the retry count of deleted instances '{DicomInstanceIdentifier}' and setting next cleanup time to '{CleanupAfter}'.");
 
         private static readonly Action<ILogger, Exception> LogOperationSucceededDelegate =
             LoggerMessage.Define(

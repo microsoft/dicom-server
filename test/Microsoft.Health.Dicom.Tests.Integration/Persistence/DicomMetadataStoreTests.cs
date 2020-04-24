@@ -45,6 +45,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
+        public async Task GivenADeletedDicomInstance_WhenFetchingInstanceMetadata_NotFoundDataStoreExceptionIsThrown()
+        {
+            DicomDataset dicomDataset = CreateValidMetadataDataset();
+            var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
+
+            await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0);
+            DicomDataset storedMetadata = await _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId);
+            Assert.NotNull(storedMetadata);
+
+            await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
+
+            DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(
+                () => _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId));
+            Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        [Fact]
         public async Task GivenExistingMetadata_WhenAdding_ConflictExceptionIsThrown()
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();

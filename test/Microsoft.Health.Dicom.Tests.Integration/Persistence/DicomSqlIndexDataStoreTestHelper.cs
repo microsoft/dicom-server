@@ -164,7 +164,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         FROM {VLatest.DeletedInstance.TableName}
                         WHERE {VLatest.DeletedInstance.StudyInstanceUid} = @studyInstanceUid
                         AND {VLatest.DeletedInstance.SeriesInstanceUid} = ISNULL(@seriesInstanceUid, {VLatest.DeletedInstance.SeriesInstanceUid})
-                        AND {VLatest.DeletedInstance.SopInstanceUid} = ISNULL(@sopInstanceUid, {VLatest.DeletedInstance.SopInstanceUid})";
+                        AND {VLatest.DeletedInstance.SopInstanceUid} = ISNULL(@sopInstanceUid, {VLatest.DeletedInstance.SopInstanceUid})
+                        ORDER BY {VLatest.DeletedInstance.Watermark}";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", string.IsNullOrEmpty(seriesInstanceUid) ? DBNull.Value : (object)seriesInstanceUid);
