@@ -150,10 +150,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private async Task SetupAuthenticationAsync(TestApplication clientApplication, TestUser user = null)
         {
-            var tokenUrl = AuthenticationSettings.TokenUrl;
-
             if (AuthenticationSettings.SecurityEnabled)
             {
+                var tokenUrl = AuthenticationSettings.TokenUrl;
+
                 var tokenKey = $"{clientApplication.ClientId}:{(user == null ? string.Empty : user.UserId)}";
 
                 if (!_bearerTokens.TryGetValue(tokenKey, out string bearerToken))
