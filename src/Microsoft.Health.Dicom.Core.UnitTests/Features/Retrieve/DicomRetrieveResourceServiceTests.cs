@@ -156,7 +156,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
 
             KeyValuePair<DicomFile, Stream> streamAndStoredFile = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(instanceIdentifiers.First())).Result;
-
             _dicomFileStore.GetFileAsync(streamAndStoredFile.Key.Dataset.ToVersionedDicomInstanceIdentifier(0), _defaultCancellationToken).Returns(streamAndStoredFile.Value);
 
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
