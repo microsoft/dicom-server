@@ -163,6 +163,9 @@ stages:
           }
 
           Write-Host "##vso[task.setvariable variable=Resource]$(testEnvironmentUrl)"
+          Write-Host "##vso[task.setvariable variable=security_scope]$(testEnvironmentUrl)"
+          Write-Host "##vso[task.setvariable variable=security_resource]$(testEnvironmentUrl)"
+          Write-Host "##vso[task.setvariable variable=security_enabled]$true"
 
           dotnet dev-certs https
   
