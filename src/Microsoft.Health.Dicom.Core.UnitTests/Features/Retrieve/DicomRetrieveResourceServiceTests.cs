@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForStudy_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
+        public async Task GivenNoStoredInstances_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
         {
             _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid).Returns(new List<VersionedDicomInstanceIdentifier>());
 
@@ -65,13 +65,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForStudy_WhenFailsToRetrieveOne_ThenNotFoundIsThrown()
+        public async Task GivenStoredInstancesWhereOneIsMissingFile_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
 
+            // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
             instanceIdentifiers.SkipLast(1).Select(x => _dicomFileStore.GetFileAsync(x, _defaultCancellationToken).Returns(
                 StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x), frames: 0, disposeStreams: true).Result.Value));
 
+            // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
             _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
@@ -80,10 +82,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForStudy_WhenIsSuccessful_ThenInstancesInStudyAreRetrievedSuccesfully()
+        public async Task GivenStoredInstances_WhenRetrieveRequestForStudy_ThenInstancesInStudyAreRetrievedSuccesfully()
         {
+            // Add multiple instances to validate that we return the requested instance and ignore the other(s).
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
 
+            // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
             List<KeyValuePair<DicomFile, Stream>> streamsAndStoredFiles = instanceIdentifiers.Select(
                 x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x)).Result).ToList();
 
@@ -93,14 +97,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    new DicomRetrieveResourceRequest("*", _studyInstanceUid),
                    _defaultCancellationToken);
 
+            // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
             ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
 
+            // Dispose created streams.
             streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForSeries_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
+        public async Task GivenNoStoredInstances_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
         {
             _dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _firstSeriesInstanceUid).Returns(new List<VersionedDicomInstanceIdentifier>());
 
@@ -110,13 +116,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForSeries_WhenFailsToRetrieveOne_ThenNotFoundIsThrown()
+        public async Task GivenStoredInstancesWhereOneIsMissingFile_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
 
+            // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
             instanceIdentifiers.SkipLast(1).Select(x => _dicomFileStore.GetFileAsync(x, _defaultCancellationToken).Returns(
                 StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x), frames: 0, disposeStreams: true).Result.Value));
 
+            // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
             _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
@@ -125,10 +133,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForSeries_WhenIsSuccessful_ThenInstancesInSeriesAreRetrievedSuccesfully()
+        public async Task GivenStoredInstances_WhenRetrieveRequestForSeries_ThenInstancesInSeriesAreRetrievedSuccesfully()
         {
+            // Add multiple instances to validate that we return the requested instance and ignore the other(s).
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
 
+            // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
             List<KeyValuePair<DicomFile, Stream>> streamsAndStoredFiles = instanceIdentifiers.Select(
                 x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x)).Result).ToList();
 
@@ -138,17 +148,45 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid),
                    _defaultCancellationToken);
 
+            // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
             ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
 
+            // Dispose created streams.
             streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForInstance_WhenIsSuccessful_ThenInstanceIsRetrievedSuccesfully()
+        public async Task GivenNoStoredInstances_WhenRetrieveRequestForInstance_ThenNotFoundIsThrown()
         {
+            _dicomInstanceStore.GetInstanceIdentifierAsync(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid).Returns(new List<VersionedDicomInstanceIdentifier>());
+
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
+                new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid),
+                _defaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenStoredInstancesWithMissingFile_WhenRetrieveRequestForInstance_ThenNotFoundIsThrown()
+        {
+            // Add multiple instances to validate that we return the requested instance and ignore the other(s).
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
 
+            // For the first instance identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
+
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
+                new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid),
+                _defaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenStoredInstances_WhenRetrieveRequestForInstance_ThenInstanceIsRetrievedSuccesfully()
+        {
+            // Add multiple instances to validate that we return the requested instance and ignore the other(s).
+            List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
+
+            // For the first instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
             KeyValuePair<DicomFile, Stream> streamAndStoredFile = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(instanceIdentifiers.First())).Result;
             _dicomFileStore.GetFileAsync(streamAndStoredFile.Key.Dataset.ToVersionedDicomInstanceIdentifier(0), _defaultCancellationToken).Returns(streamAndStoredFile.Value);
 
@@ -156,20 +194,25 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid),
                    _defaultCancellationToken);
 
+            // Validate response status code and ensure response stream has expected file - it should be equivalent to what the store was set up to return.
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
             ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, response.ResponseStreams);
 
+            // Dispose created streams.
             streamAndStoredFile.Value.Dispose();
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForFramesInInstance_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
+        public async Task GivenStoredInstancesWithoutFrames_WhenRetrieveRequestForFrame_ThenNotFoundIsThrown()
         {
+            // Add multiple instances to validate that we evaluate the requested instance and ignore the other(s).
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
 
+            // For the instance, set up the fileStore to return a stream containing the file associated with the identifier with 3 frames.
             Stream streamOfStoredFiles = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(instanceIdentifiers.First()), frames: 0).Result.Value;
             _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Returns(streamOfStoredFiles);
 
+            // Request for a specific frame on the instance.
             await Assert.ThrowsAsync<DicomFrameNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                    new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new List<int> { 1, 2 }),
                    _defaultCancellationToken));
@@ -178,25 +221,31 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForFramesInInstance_WhenFailsToRetrieveOne_ThenNotFoundIsThrown()
+        public async Task GivenStoredInstancesWithFrames_WhenRetrieveRequestForNonExistingFrame_ThenNotFoundIsThrown()
         {
+            // Add multiple instances to validate that we evaluate the requested instance and ignore the other(s).
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
 
+            // For the instance, set up the fileStore to return a stream containing the file associated with the identifier with 3 frames.
             Stream streamOfStoredFiles = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(instanceIdentifiers.First()), frames: 3).Result.Value;
             _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Returns(streamOfStoredFiles);
 
+            // Request 2 frames - one which exists and one which doesn't.
             await Assert.ThrowsAsync<DicomFrameNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                    new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new List<int> { 1, 4 }),
                    _defaultCancellationToken));
 
+            // Dispose the stream.
             streamOfStoredFiles.Dispose();
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForFramesInInstance_WhenIsSuccessful_ThenFramesInInstanceAreRetrievedSuccesfully()
+        public async Task GivenStoredInstancesWithFrames_WhenRetrieveRequestForFrames_ThenFramesInInstanceAreRetrievedSuccesfully()
         {
+            // Add multiple instances to validate that we return the requested instance and ignore the other(s).
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
 
+            // For the first isntance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
             KeyValuePair<DicomFile, Stream> streamAndStoredFile = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(instanceIdentifiers.First()), frames: 3).Result;
             _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Returns(streamAndStoredFile.Value);
 
@@ -204,6 +253,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new List<int> { 1, 2 }),
                    _defaultCancellationToken);
 
+            // Validate response status code and ensure response streams has expected frames - it should be equivalent to what the store was set up to return.
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
 
             AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(0), response.ResponseStreams.ToList()[0]);
@@ -258,6 +308,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
         private async Task<KeyValuePair<DicomFile, Stream>> StreamAndStoredFileFromDataset(DicomDataset dataset, int frames = 0, bool disposeStreams = false)
         {
+            // Create DicomFile associated with input dataset with random pixel data.
             DicomFile dicomFile = new DicomFile(dataset);
             Samples.AppendRandomPixelData(5, 5, frames, dicomFile);
 
@@ -265,6 +316,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             {
                 using (MemoryStream disposableStream = _recyclableMemoryStreamManager.GetStream())
                 {
+                    // Save file to a stream and reset position to 0.
                     await dicomFile.SaveAsync(disposableStream);
                     disposableStream.Position = 0;
 
@@ -306,7 +358,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    throw new NotImplementedException("Transcoded files do not have an implemented validation mechanism.");
                 }
             }
         }

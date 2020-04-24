@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForStudy_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
+        public async Task GivenNoStoredInstances_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
         {
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest(requestedTransferSyntax: null, _studyInstanceUid),
@@ -59,16 +59,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForStudy_WhenFailsToRetrieveOne_ThenNotFoundIsThrown()
+        public async Task GivenStoredInstancesWithMissingFile_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
         {
-            List<Tuple<string, int, bool>> instancesToSetupPerSeriesUidWithIndicatorToStore = new List<Tuple<string, int, bool>>()
-            {
-                new Tuple<string, int, bool>(_firstSeriesInstanceUid, 1, true),
-                new Tuple<string, int, bool>(_firstSeriesInstanceUid, 1, false),
-                new Tuple<string, int, bool>(_secondSeriesInstanceUid, 1, true),
-            };
-
-            await GenerateDicomDatasets(instancesToSetupPerSeriesUidWithIndicatorToStore);
+            await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, true);
+            await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
+            await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest(requestedTransferSyntax: null, _studyInstanceUid),
@@ -76,15 +71,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForStudy_WhenIsSuccessful_ThenInstancesInStudyAreRetrievedSuccesfully()
+        public async Task GivenStoredInstances_WhenRetrieveRequestForStudy_ThenInstancesInStudyAreRetrievedSuccesfully()
         {
-            List<Tuple<string, int, bool>> instancesToSetupPerSeriesUidWithIndicatorToStore = new List<Tuple<string, int, bool>>()
-            {
-                new Tuple<string, int, bool>(_firstSeriesInstanceUid, 2, true),
-                new Tuple<string, int, bool>(_secondSeriesInstanceUid, 1, true),
-            };
-
-            List<DicomDataset> datasets = await GenerateDicomDatasets(instancesToSetupPerSeriesUidWithIndicatorToStore);
+            List<DicomDataset> datasets = new List<DicomDataset>();
+            datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
+            datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
 
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest(requestedTransferSyntax: null, _studyInstanceUid),
@@ -96,7 +87,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForSeries_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
+        public async Task GivenNoStoredInstances_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
         {
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest(requestedTransferSyntax: null, _studyInstanceUid, _firstSeriesInstanceUid),
@@ -104,15 +95,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForSeries_WhenFailsToRetrieveOne_ThenNotFoundIsThrown()
+        public async Task GivenStoredInstancesWithMissingFile_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
         {
-            List<Tuple<string, int, bool>> instancesToSetupPerSeriesUidWithIndicatorToStore = new List<Tuple<string, int, bool>>()
-            {
-                new Tuple<string, int, bool>(_firstSeriesInstanceUid, 2, true),
-                new Tuple<string, int, bool>(_firstSeriesInstanceUid, 1, false),
-            };
-
-            List<DicomDataset> datasets = await GenerateDicomDatasets(instancesToSetupPerSeriesUidWithIndicatorToStore);
+            await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true);
+            await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
+            await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest(requestedTransferSyntax: null, _studyInstanceUid, _firstSeriesInstanceUid),
@@ -120,47 +107,38 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         }
 
         [Fact]
-        public async Task GivenRetrieveRequestForSeries_WhenIsSuccessful_ThenInstancesInSeriesAreRetrievedSuccesfully()
+        public async Task GivenStoredInstances_WhenRetrieveRequestForSeries_ThenInstancesInSeriesAreRetrievedSuccesfully()
         {
-            List<Tuple<string, int, bool>> instancesToSetupPerSeriesUidWithIndicatorToStore = new List<Tuple<string, int, bool>>()
-            {
-                new Tuple<string, int, bool>(_firstSeriesInstanceUid, 2, true),
-                new Tuple<string, int, bool>(_firstSeriesInstanceUid, 1, true),
-            };
-
-            List<DicomDataset> datasets = await GenerateDicomDatasets(instancesToSetupPerSeriesUidWithIndicatorToStore);
+            List<DicomDataset> datasets = new List<DicomDataset>();
+            datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
+            datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
 
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest(requestedTransferSyntax: null, _studyInstanceUid, _firstSeriesInstanceUid),
                 _defaultCancellationToken);
             Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
 
-            ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds));
+            ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToDicomInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
         }
 
-        private async Task<List<DicomDataset>> GenerateDicomDatasets(List<Tuple<string, int, bool>> instancesToSetupPerSeriesUidWithIndicatorToStore)
+        private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile)
         {
             List<DicomDataset> dicomDatasets = new List<DicomDataset>();
-
-            foreach (Tuple<string, int, bool> instancesPerSeriesUid in instancesToSetupPerSeriesUidWithIndicatorToStore)
+            for (int i = 0; i < instancesinSeries; i++)
             {
-                for (int i = 0; i < instancesPerSeriesUid.Item2; i++)
+                var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
                 {
-                    var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
-                    {
-                        { DicomTag.StudyInstanceUID, _studyInstanceUid },
-                        { DicomTag.SeriesInstanceUID, instancesPerSeriesUid.Item1 },
-                        { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
-                        { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
-                        { DicomTag.PatientID, TestUidGenerator.Generate() },
-                        { DicomTag.BitsAllocated, (ushort)8 },
-                        { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
-                    };
+                    { DicomTag.StudyInstanceUID, _studyInstanceUid },
+                    { DicomTag.SeriesInstanceUID, seriesInstanceUid },
+                    { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
+                    { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
+                    { DicomTag.PatientID, TestUidGenerator.Generate() },
+                    { DicomTag.BitsAllocated, (ushort)8 },
+                    { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
+                };
 
-                    await StoreDatasetsAndInstances(ds, instancesPerSeriesUid.Item3);
-
-                    dicomDatasets.Add(ds);
-                }
+                await StoreDatasetsAndInstances(ds, storeInstanceFile);
+                dicomDatasets.Add(ds);
             }
 
             return dicomDatasets;
@@ -218,7 +196,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    throw new NotImplementedException("Transcoded files do not have an implemented validation mechanism.");
                 }
             }
         }
