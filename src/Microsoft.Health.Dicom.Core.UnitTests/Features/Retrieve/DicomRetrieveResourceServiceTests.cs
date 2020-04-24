@@ -87,10 +87,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             List<KeyValuePair<DicomFile, Stream>> streamsAndStoredFiles = instanceIdentifiers.Select(
                 x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x)).Result).ToList();
 
-            foreach (var streamAndStoredFile in streamsAndStoredFiles)
-            {
-                _dicomFileStore.GetFileAsync(streamAndStoredFile.Key.Dataset.ToVersionedDicomInstanceIdentifier(0), _defaultCancellationToken).Returns(streamAndStoredFile.Value);
-            }
+            streamsAndStoredFiles.ForEach(x => _dicomFileStore.GetFileAsync(x.Key.Dataset.ToVersionedDicomInstanceIdentifier(0), _defaultCancellationToken).Returns(x.Value));
 
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
                    new DicomRetrieveResourceRequest("*", _studyInstanceUid),
@@ -135,10 +132,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             List<KeyValuePair<DicomFile, Stream>> streamsAndStoredFiles = instanceIdentifiers.Select(
                 x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x)).Result).ToList();
 
-            foreach (var streamAndStoredFile in streamsAndStoredFiles)
-            {
-                _dicomFileStore.GetFileAsync(streamAndStoredFile.Key.Dataset.ToVersionedDicomInstanceIdentifier(0), _defaultCancellationToken).Returns(streamAndStoredFile.Value);
-            }
+            streamsAndStoredFiles.ForEach(x => _dicomFileStore.GetFileAsync(x.Key.Dataset.ToVersionedDicomInstanceIdentifier(0), _defaultCancellationToken).Returns(x.Value));
 
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
                    new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid),
