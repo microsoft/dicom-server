@@ -24,7 +24,7 @@ using Newtonsoft.Json;
 namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 {
     /// <summary>
-    /// Provides functionalities managing the DICOM instance metadata.
+    /// Provides functionality for managing the DICOM instance metadata.
     /// </summary>
     public class DicomBlobMetadataStore : IDicomMetadataStore
     {
@@ -80,11 +80,11 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task DeleteInstanceMetadataAsync(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken)
+        public async Task DeleteInstanceMetadataIfExistsAsync(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken)
         {
             CloudBlockBlob blob = GetInstanceBlockBlob(dicomInstanceIdentifier);
 
-            await ExecuteAsync(() => blob.DeleteAsync(cancellationToken));
+            await ExecuteAsync(() => blob.DeleteIfExistsAsync(cancellationToken));
         }
 
         /// <inheritdoc />

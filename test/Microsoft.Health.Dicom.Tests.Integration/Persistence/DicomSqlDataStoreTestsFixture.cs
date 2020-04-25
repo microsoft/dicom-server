@@ -14,7 +14,9 @@ using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.SqlServer.Configs;
+using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Storage;
 using Polly;
 using Xunit;
 
@@ -48,15 +50,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var dicomSqlIndexSchema = new DicomSqlIndexSchema(schemaInformation, NullLogger<DicomSqlIndexSchema>.Instance);
 
+            SqlTransactionHandler = new SqlTransactionHandler();
+            SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(config, SqlTransactionHandler);
+
             DicomIndexDataStore = new DicomSqlIndexDataStore(
                 dicomSqlIndexSchema,
-                config,
+                SqlConnectionWrapperFactory,
                 NullLogger<DicomSqlIndexDataStore>.Instance);
 
-            DicomInstanceStore = new DicomSqlInstanceStore(config);
+            DicomInstanceStore = new DicomSqlInstanceStore(SqlConnectionWrapperFactory);
 
             TestHelper = new DicomSqlIndexDataStoreTestHelper(TestConnectionString);
         }
+
+        public SqlTransactionHandler SqlTransactionHandler { get; }
+
+        public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
         public string TestConnectionString { get; }
 

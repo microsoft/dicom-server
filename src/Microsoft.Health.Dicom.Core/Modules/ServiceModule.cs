@@ -42,6 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.Add<DicomInstanceEntryReaderForMultipartRequest>()
                 .Singleton()
+                .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Decorate<IDicomInstanceEntryReader, LoggingDicomInstanceEntryReader>();
