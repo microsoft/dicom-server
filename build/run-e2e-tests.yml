@@ -1,0 +1,47 @@
+jobs:
+- job: SetupAndRun
+  pool:
+    vmImage: $(windowsVmImage)
+  steps:
+
+  - task: UseDotNet@2
+    displayName: 'Use .Net Core sdk '
+    inputs:
+      useGlobalJson: true
+
+  - task: AzurePowerShell@4
+    displayName: 'Set Variables'
+    inputs:
+      azureSubscription: $(azureSubscriptionName)
+      azurePowerShellVersion: latestVersion
+      ScriptType: inlineScript
+      Inline: |
+        $secrets = Get-AzKeyVaultSecret -VaultName $(deploymentName)-ts
+
+        foreach($secret in $secrets)
+        {
+            $environmentVariableName = $secret.Name.Replace("--","_")
+
+            $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName)-ts -Name $secret.Name
+            Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
+        }
+
+        Write-Host "##vso[task.setvariable variable=Resource]$(testEnvironmentUrl)"
+        Write-Host "##vso[task.setvariable variable=security_scope]$(testEnvironmentUrl)"
+        Write-Host "##vso[task.setvariable variable=security_resource]$(testEnvironmentUrl)"
+        Write-Host "##vso[task.setvariable variable=security_enabled]$true"
+
+        dotnet dev-certs https
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      downloadPath: '$(System.ArtifactsDirectory)'
+      artifactName: 'IntegrationTests'
+      
+  - task: VSTest@2
+    displayName: 'E2E Tests'
+    inputs:
+      testAssemblyVer2: '**\*Tests.E2E*.dll'
+      searchFolder: '$(System.ArtifactsDirectory)'   

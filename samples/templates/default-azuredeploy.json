@@ -65,7 +65,7 @@
         },
         "applicationInsightsLocation": {
             "type": "string",
-            "defaultValue": "eastus",
+            "defaultValue": "[resourceGroup().location]",
             "allowedValues": [
                 "southeastasia",
                 "northeurope",
@@ -103,6 +103,20 @@
                 "description": "Deploy OHIF viewer that is configured for the DICOM server."
             }
         },
+        "securityAuthenticationAuthority": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "OAuth Authority"
+            }
+        },
+        "securityAuthenticationAudience": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Audience (aud) to validate in JWT"
+            }
+        },
         "solutionType": {
             "type": "string",
             "defaultValue": "DicomServerSqlServer",
@@ -120,6 +134,7 @@
         "appServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceName'))]",
         "deployAppInsights": "[and(parameters('deployApplicationInsights'),not(variables('isMAG')))]",
         "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
+        "securityAuthenticationEnabled": "[and(not(empty(parameters('securityAuthenticationAuthority'))),not(empty(parameters('securityAuthenticationAudience'))))]",
         "staticDicomServerConfigProperties": {
             "APPINSIGHTS_PORTALINFO": "ASP.NETCORE",
             "APPINSIGHTS_PROFILERFEATURE_VERSION": "1.0.0",
@@ -127,7 +142,11 @@
             "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
             "KeyVault:Endpoint": "[variables('keyVaultEndpoint')]",
             "SqlServer:Initialize": "true",
-            "DicomServer:Features:EnableOhifViewer": "[parameters('deployOhifViewer')]"
+            "DicomServer:Features:EnableOhifViewer": "[parameters('deployOhifViewer')]",
+            "DicomServer:Security:Enabled": "[variables('securityAuthenticationEnabled')]",
+            "DicomServer:Security:Authentication:Authority": "[parameters('securityAuthenticationAuthority')]",
+            "DicomServer:Security:Authentication:Audience": "[parameters('securityAuthenticationAudience')]"
+            
         },
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
         "sqlServerResourceId": "[resourceId('Microsoft.Sql/servers/', variables('serviceName'))]",
@@ -188,7 +207,8 @@
                     "name": "AspNetCoreRuntime.3.1.x86",
                     "type": "siteextensions",
                     "dependsOn": [ 
-                        "[variables('appServiceResourceId')]"
+                        "[variables('appServiceResourceId')]",
+                        "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]"
                     ],
                     "properties": {
                         "version": "3.1.3"

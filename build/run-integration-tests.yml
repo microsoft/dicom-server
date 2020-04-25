@@ -1,0 +1,38 @@
+jobs:
+- job: SetupAndRun
+  pool:
+    vmImage: $(windowsVmImage)
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Use .Net Core sdk '
+    inputs:
+      useGlobalJson: true
+  - task: AzurePowerShell@4
+    displayName: 'Prepare for Testing'
+    inputs:
+      azureSubscription: $(azureSubscriptionName)
+      azurePowerShellVersion: latestVersion
+      ScriptType: InlineScript
+      Inline: |
+        $secrets = Get-AzKeyVaultSecret -VaultName $(deploymentName)
+        
+        foreach ($secret in $secrets)
+        {
+            $environmentVariableName = $secret.Name.Replace("--",":")
+            $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name $secret.Name
+            Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
+        }
+        
+        dotnet dev-certs https
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      downloadPath: '$(System.ArtifactsDirectory)'
+      artifactName: 'IntegrationTests'
+  - task: VSTest@2
+    displayName: 'Integration Tests'
+    inputs:
+      testAssemblyVer2: '**\*Tests.Integration.dll'
+      searchFolder: '$(System.ArtifactsDirectory)'
+      
