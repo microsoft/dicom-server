@@ -24,7 +24,7 @@ The current authentication settings exposed in configuration are the following:
 For the F5 experience and test environments, an in-process identity provider is included that can act as the authentication provider for the DicomWeb API. 
 
 ### Enabling DevelopmentIdentityProvider
-Development identity provider is automatically enabled when Security is Enabled.
+Set DicomServer:Security:Enabled to `true` in [appsettings.json](../src/Microsoft.Health.Dicom.Web/appsettings.json)
 
 [TestAuthEnvironment.json](../TestAuthEnvironment.json) file is used to configure the users and applications for Dicom API.
 
