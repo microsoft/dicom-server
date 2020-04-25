@@ -2,6 +2,9 @@
 
 A .NET Core implementation of the DICOM Web standard.
 
+## Users
+- [Conformance](docs/users/Conformance.md)
+
 ## Development
 - [Setup](docs/Development.md)
 - [Code Organization](docs/CodeOrganization.md)
