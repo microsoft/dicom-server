@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 SqlConnectionWrapperFactory,
                 NullLogger<DicomSqlIndexDataStore>.Instance);
 
-            DicomInstanceStore = new DicomSqlInstanceStore(config);
+            DicomInstanceStore = new DicomSqlInstanceStore(SqlConnectionWrapperFactory);
 
             TestHelper = new DicomSqlIndexDataStoreTestHelper(TestConnectionString);
         }

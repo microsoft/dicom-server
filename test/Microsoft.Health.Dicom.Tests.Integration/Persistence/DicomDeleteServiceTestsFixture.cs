@@ -19,12 +19,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
     public class DicomDeleteServiceTestsFixture : IAsyncLifetime
     {
-        private readonly DicomSqlIndexDataStoreTestsFixture _dicomSqlIndexDataStoreTestsFixture;
+        private readonly DicomSqlDataStoreTestsFixture _dicomSqlDataStoreTestsFixture;
         private readonly DicomDataStoreTestsFixture _dicomBlobStorageTestsFixture;
 
         public DicomDeleteServiceTestsFixture()
         {
-            _dicomSqlIndexDataStoreTestsFixture = new DicomSqlIndexDataStoreTestsFixture();
+            _dicomSqlDataStoreTestsFixture = new DicomSqlDataStoreTestsFixture();
             _dicomBlobStorageTestsFixture = new DicomDataStoreTestsFixture();
 
             RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
@@ -34,9 +34,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
-        public IDicomIndexDataStore DicomIndexDataStore => _dicomSqlIndexDataStoreTestsFixture.DicomIndexDataStore;
+        public IDicomIndexDataStore DicomIndexDataStore => _dicomSqlDataStoreTestsFixture.DicomIndexDataStore;
 
-        public IDicomIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _dicomSqlIndexDataStoreTestsFixture.TestHelper;
+        public IDicomIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _dicomSqlDataStoreTestsFixture.TestHelper;
 
         public IDicomFileStore DicomFileStore => _dicomBlobStorageTestsFixture.DicomFileStore;
 
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public async Task InitializeAsync()
         {
-            await _dicomSqlIndexDataStoreTestsFixture.InitializeAsync();
+            await _dicomSqlDataStoreTestsFixture.InitializeAsync();
             await _dicomBlobStorageTestsFixture.InitializeAsync();
 
             var cleanupConfiguration = new DeletedInstanceCleanupConfiguration
@@ -59,17 +59,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
             optionsConfiguration.Value.Returns(cleanupConfiguration);
             DicomDeleteService = new DicomDeleteService(
-                _dicomSqlIndexDataStoreTestsFixture.DicomIndexDataStore,
+                _dicomSqlDataStoreTestsFixture.DicomIndexDataStore,
                 _dicomBlobStorageTestsFixture.DicomMetadataStore,
                 _dicomBlobStorageTestsFixture.DicomFileStore,
                 optionsConfiguration,
-                _dicomSqlIndexDataStoreTestsFixture.SqlTransactionHandler,
+                _dicomSqlDataStoreTestsFixture.SqlTransactionHandler,
                 NullLogger<DicomDeleteService>.Instance);
         }
 
         public async Task DisposeAsync()
         {
-            await _dicomSqlIndexDataStoreTestsFixture.DisposeAsync();
+            await _dicomSqlDataStoreTestsFixture.DisposeAsync();
             await _dicomBlobStorageTestsFixture.DisposeAsync();
         }
     }
