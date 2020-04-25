@@ -250,7 +250,7 @@ We support searching on below attributes and search type.
 We support below matching types.
 
 |Search Type|Supported Attribute|Example|
-|----------|----------|----------|----------|----------|
+|----------|----------|----------|
 |Range Query|StudyDate|{attributeID}={value1}-{value2}. For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`.|
 |Exact Match|All supported Atrributes |{attributeID}={value1}|
 |Fuzzy Match|PatientName|Matches any component of the patientname which starts with the value|
