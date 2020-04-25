@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
         public static string TokenUrl => GetEnvironmentVariableWithDefault("security_tokenUrl", "https://localhost/connect/token");
 
         /// <summary>
-        /// Set this env in identity provider #73715
+        /// Todo: Set this env in identity provider #73715
         /// </summary>
         public static bool SecurityEnabled
         {
