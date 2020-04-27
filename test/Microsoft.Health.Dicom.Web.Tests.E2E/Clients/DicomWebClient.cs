@@ -15,10 +15,13 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
+using IdentityModel.Client;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
@@ -32,21 +35,35 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
+        private readonly TestDicomWebServer _testDicomWebServer;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly (bool Enabled, string TokenUrl) _securitySettings;
+        private readonly Dictionary<string, string> _bearerTokens = new Dictionary<string, string>();
 
-        public DicomWebClient(HttpClient httpClient, RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+        public DicomWebClient(
+            HttpClient httpClient,
+            TestDicomWebServer testDicomWebServer,
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager,
+            TestApplication testApplication,
+            (bool enabled, string tokenUrl) securitySettings)
         {
-            EnsureArg.IsNotNull(httpClient, nameof(httpClient));
-            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
-
             HttpClient = httpClient;
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
-
+            _testDicomWebServer = testDicomWebServer;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+            _securitySettings = securitySettings;
+            SetupAuthenticationAsync(HttpClient, testApplication).GetAwaiter().GetResult();
         }
 
         public HttpClient HttpClient { get; }
+
+        public bool SecurityEnabled => _securitySettings.Enabled;
+
+        public DicomWebClient CreateClientForApplication(TestApplication clientApplication)
+        {
+            return _testDicomWebServer.GetDicomWebClient(_recyclableMemoryStreamManager, clientApplication);
+        }
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(
             Uri requestUri,
@@ -338,6 +355,52 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
                 throw new DicomWebException(new DicomWebResponse(response));
             }
+        }
+
+        private async Task SetupAuthenticationAsync(HttpClient httpClient, TestApplication clientApplication, TestUser user = null)
+        {
+            if (_securitySettings.Enabled)
+            {
+                var tokenKey = $"{clientApplication.ClientId}:{(user == null ? string.Empty : user.UserId)}";
+
+                if (!_bearerTokens.TryGetValue(tokenKey, out string bearerToken))
+                {
+                    bearerToken = await GetBearerToken(clientApplication, user, _securitySettings.TokenUrl);
+                    _bearerTokens[tokenKey] = bearerToken;
+                }
+
+                httpClient.SetBearerToken(bearerToken);
+            }
+        }
+
+        private async Task<string> GetBearerToken(TestApplication clientApplication, TestUser user, string tokenUrl)
+        {
+            if (clientApplication.Equals(TestApplications.InvalidClient))
+            {
+                return null;
+            }
+
+            var formContent = new FormUrlEncodedContent(GetAppSecuritySettings(clientApplication));
+
+            HttpResponseMessage tokenResponse = await HttpClient.PostAsync(tokenUrl, formContent);
+
+            var tokenJson = JObject.Parse(await tokenResponse.Content.ReadAsStringAsync());
+
+            var bearerToken = tokenJson["access_token"].Value<string>();
+
+            return bearerToken;
+        }
+
+        private List<KeyValuePair<string, string>> GetAppSecuritySettings(TestApplication clientApplication)
+        {
+            return new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("client_id", clientApplication.ClientId),
+                new KeyValuePair<string, string>("client_secret", clientApplication.ClientSecret),
+                new KeyValuePair<string, string>("grant_type", clientApplication.GrantType),
+                new KeyValuePair<string, string>("scope", AuthenticationSettings.Scope),
+                new KeyValuePair<string, string>("resource", AuthenticationSettings.Resource),
+            };
         }
     }
 }
