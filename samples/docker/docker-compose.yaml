@@ -31,6 +31,8 @@ services:
     environment:
       SA_PASSWORD: ${SAPASSWORD}
       ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
     healthcheck:
         test: ["CMD", "/opt/mssql-tools/bin/sqlcmd","-U sa -P ${SAPASSWORD} -Q 'SELECT * FROM INFORMATION_SCHEMA.TABLES'"]
         interval: 10s
