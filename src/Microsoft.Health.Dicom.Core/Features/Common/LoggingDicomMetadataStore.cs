@@ -77,13 +77,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task DeleteInstanceMetadataAsync(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken)
+        public async Task DeleteInstanceMetadataIfExistsAsync(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, CancellationToken cancellationToken)
         {
             LogDeleteInstanceMetadataDelegate(_logger, dicomInstanceIdentifier.ToString(), null);
 
             try
             {
-                await _dicomMetadataStore.DeleteInstanceMetadataAsync(dicomInstanceIdentifier, cancellationToken);
+                await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceIdentifier, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }

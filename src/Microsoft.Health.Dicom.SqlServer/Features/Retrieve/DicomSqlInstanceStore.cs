@@ -12,20 +12,20 @@ using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
-using Microsoft.Health.SqlServer.Configs;
+using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {
     internal class DicomSqlInstanceStore : IDicomInstanceStore
     {
-        private readonly SqlServerDataStoreConfiguration _sqlServerDataStoreConfiguration;
+        private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
 
-        public DicomSqlInstanceStore(SqlServerDataStoreConfiguration sqlServerDataStoreConfiguration)
+        public DicomSqlInstanceStore(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         {
-            EnsureArg.IsNotNull(sqlServerDataStoreConfiguration, nameof(sqlServerDataStoreConfiguration));
+            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
 
-            _sqlServerDataStoreConfiguration = sqlServerDataStoreConfiguration;
+            _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
         }
 
         public Task<IEnumerable<VersionedDicomInstanceIdentifier>> GetInstanceIdentifierAsync(
@@ -60,11 +60,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         {
             var results = new List<VersionedDicomInstanceIdentifier>();
 
-            using (var sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
-            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper())
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
-                await sqlConnection.OpenAsync(cancellationToken);
-
                 VLatest.GetInstance.PopulateCommand(
                     sqlCommand,
                     invalidStatus: (byte)DicomIndexStatus.Creating,

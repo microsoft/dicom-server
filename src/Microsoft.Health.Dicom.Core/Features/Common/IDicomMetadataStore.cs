@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <param name="dicomInstanceIdentifier">The DICOM instance identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteInstanceMetadataAsync(
+        Task DeleteInstanceMetadataIfExistsAsync(
             VersionedDicomInstanceIdentifier dicomInstanceIdentifier,
             CancellationToken cancellationToken = default);
     }

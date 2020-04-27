@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;

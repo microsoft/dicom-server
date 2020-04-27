@@ -5,28 +5,19 @@
 
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Api.Web;
+using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Api.Modules
 {
-    public class WebModule : IStartupModule
+    public class BackgroundServiceModule : IStartupModule
     {
         public void Load(IServiceCollection services)
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
-            services.Add<MultipartReaderStreamToSeekableStreamConverter>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Decorate<ISeekableStreamConverter, LoggingSeekableStreamConverter>();
-
-            services.Add<AspNetCoreMultipartReaderFactory>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+            services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
+            services.AddScoped<DeletedInstanceCleanupWorker>();
         }
     }
 }

@@ -4,19 +4,22 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
-using Microsoft.Health.SqlServer.Configs;
+using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
@@ -24,20 +27,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
     internal class DicomSqlIndexDataStore : IDicomIndexDataStore
     {
         private readonly DicomSqlIndexSchema _sqlServerDicomIndexSchema;
-        private readonly SqlServerDataStoreConfiguration _sqlServerDataStoreConfiguration;
         private readonly ILogger<DicomSqlIndexDataStore> _logger;
+        private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
 
         public DicomSqlIndexDataStore(
             DicomSqlIndexSchema dicomIndexSchema,
-            SqlServerDataStoreConfiguration sqlServerDataStoreConfiguration,
+            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
             ILogger<DicomSqlIndexDataStore> logger)
         {
             EnsureArg.IsNotNull(dicomIndexSchema, nameof(dicomIndexSchema));
-            EnsureArg.IsNotNull(sqlServerDataStoreConfiguration, nameof(sqlServerDataStoreConfiguration));
+            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _sqlServerDicomIndexSchema = dicomIndexSchema;
-            _sqlServerDataStoreConfiguration = sqlServerDataStoreConfiguration;
+            _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
             _logger = logger;
         }
 
@@ -47,11 +50,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
 
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
-            using (SqlConnection sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
-            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
-                await sqlCommand.Connection.OpenAsync(cancellationToken);
-
                 VLatest.AddInstance.PopulateCommand(
                     sqlCommand,
                     instance.GetString(DicomTag.StudyInstanceUID),
@@ -86,28 +87,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             }
         }
 
-        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
             EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
+        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteStudyIndexAsync(string studyInstanceUid, CancellationToken cancellationToken)
+        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
         public async Task UpdateInstanceIndexStatusAsync(
@@ -121,11 +122,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
 
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
-            using (SqlConnection sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
-            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
-                await sqlCommand.Connection.OpenAsync(cancellationToken);
-
                 VLatest.UpdateInstanceStatus.PopulateCommand(
                     sqlCommand,
                     dicomInstanceIdentifier.StudyInstanceUid,
@@ -153,17 +152,87 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             }
         }
 
-        private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+        public async Task<IEnumerable<VersionedDicomInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+        {
+            var results = new List<VersionedDicomInstanceIdentifier>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper(true))
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.RetrieveDeletedInstance.PopulateCommand(
+                    sqlCommand,
+                    batchSize,
+                    maxRetries);
+
+                using (var reader = await sqlCommand.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+                            VLatest.DeletedInstance.StudyInstanceUid,
+                            VLatest.DeletedInstance.SeriesInstanceUid,
+                            VLatest.DeletedInstance.SopInstanceUid,
+                            VLatest.DeletedInstance.Watermark);
+
+                        results.Add(new VersionedDicomInstanceIdentifier(
+                            studyInstanceUid,
+                            seriesInstanceUid,
+                            sopInstanceUid,
+                            watermark));
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        public async Task DeleteDeletedInstanceAsync(VersionedDicomInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
         {
             await _sqlServerDicomIndexSchema.EnsureInitialized();
 
-            using (var sqlConnection = new SqlConnection(_sqlServerDataStoreConfiguration.ConnectionString))
-            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper(true))
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
             {
-                await sqlCommand.Connection.OpenAsync(cancellationToken);
+                VLatest.DeleteDeletedInstance.PopulateCommand(
+                    sqlCommand,
+                    versionedInstanceIdentifier.StudyInstanceUid,
+                    versionedInstanceIdentifier.SeriesInstanceUid,
+                    versionedInstanceIdentifier.SopInstanceUid,
+                    versionedInstanceIdentifier.Version);
 
+                await sqlCommand.ExecuteScalarAsync(cancellationToken);
+            }
+        }
+
+        public async Task<int> IncrementDeletedInstanceRetryAsync(VersionedDicomInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+        {
+            await _sqlServerDicomIndexSchema.EnsureInitialized();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper(true))
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.IncrementDeletedInstanceRetry.PopulateCommand(
+                    sqlCommand,
+                    versionedInstanceIdentifier.StudyInstanceUid,
+                    versionedInstanceIdentifier.SeriesInstanceUid,
+                    versionedInstanceIdentifier.SopInstanceUid,
+                    versionedInstanceIdentifier.Version,
+                    cleanupAfter);
+
+                return (int)(await sqlCommand.ExecuteScalarAsync(cancellationToken));
+            }
+        }
+
+        private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        {
+            await _sqlServerDicomIndexSchema.EnsureInitialized();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
+            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
+            {
                 VLatest.DeleteInstance.PopulateCommand(
                     sqlCommand,
+                    cleanupAfter,
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid);

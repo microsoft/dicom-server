@@ -16,5 +16,7 @@ namespace Microsoft.Health.Dicom.Api.Configs
         public SecurityConfiguration Security { get; } = new SecurityConfiguration();
 
         public CorsConfiguration Cors { get; } = new CorsConfiguration();
+
+        public ServicesConfiguration Services { get; } = new ServicesConfiguration();
     }
 }

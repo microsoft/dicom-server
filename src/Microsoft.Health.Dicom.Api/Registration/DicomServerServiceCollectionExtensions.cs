@@ -16,6 +16,7 @@ using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
+using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -53,6 +54,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(Options.Create(dicomServerConfiguration));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
             services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
@@ -77,6 +79,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(jsonSerializer);
 
             services.AddSingleton<RecyclableMemoryStreamManager>();
+
             return new DicomServerBuilder(services);
         }
 

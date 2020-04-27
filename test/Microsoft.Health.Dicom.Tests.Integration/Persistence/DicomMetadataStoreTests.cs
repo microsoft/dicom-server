@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
@@ -25,6 +26,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
+        public async Task GivenInvalidParameters_WhenAddingInstanceMetadata_ArgumentExceptionIsThrown()
+        {
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _dicomMetadataStore.AddInstanceMetadataAsync(null, 0));
+        }
+
+        [Fact]
         public async Task GivenAnUnknownDicomInstance_WhenFetchingInstanceMetadata_NotFoundDataStoreExceptionIsThrown()
         {
             var dicomInstanceId = new VersionedDicomInstanceIdentifier(
@@ -32,6 +39,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 seriesInstanceUid: TestUidGenerator.Generate(),
                 sopInstanceUid: TestUidGenerator.Generate(),
                 version: 0);
+            DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(
+                () => _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId));
+            Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        [Fact]
+        public async Task GivenADeletedDicomInstance_WhenFetchingInstanceMetadata_NotFoundDataStoreExceptionIsThrown()
+        {
+            DicomDataset dicomDataset = CreateValidMetadataDataset();
+            var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
+
+            await _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0);
+            DicomDataset storedMetadata = await _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId);
+            Assert.NotNull(storedMetadata);
+
+            await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
+
             DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(
                 () => _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId));
             Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
@@ -50,15 +74,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 () => _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0));
             Assert.Equal((int)HttpStatusCode.Conflict, exception.StatusCode);
 
-            await _dicomMetadataStore.DeleteInstanceMetadataAsync(dicomInstanceId);
-
-            exception = await Assert.ThrowsAsync<DicomDataStoreException>(
-                () => _dicomMetadataStore.DeleteInstanceMetadataAsync(dicomInstanceId));
-            Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
+            await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
         }
 
         [Fact]
-        public async Task GivenAddedInstanceMetadata_WhenDeletingAgain_NotFoundExceptionIsThrown()
+        public async Task GivenAddedInstanceMetadata_WhenDeletingAgain_NoExceptionIsThrown()
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();
             var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
@@ -67,11 +87,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomDataset storedMetadata = await _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId);
             Assert.NotNull(storedMetadata);
 
-            await _dicomMetadataStore.DeleteInstanceMetadataAsync(dicomInstanceId);
+            await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
 
-            DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(
-                () => _dicomMetadataStore.DeleteInstanceMetadataAsync(dicomInstanceId));
-            Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
+            await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
         }
 
         private DicomDataset CreateValidMetadataDataset()

@@ -8,17 +8,21 @@ using System.Data.SqlClient;
 using System.Numerics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.SqlServer.Configs;
+using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Storage;
 using Polly;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class DicomSqlIndexDataStoreTestsFixture : IAsyncLifetime
+    public class DicomSqlDataStoreTestsFixture : IAsyncLifetime
     {
         private const string LocalConnectionString = "server=(local);Integrated Security=true";
 
@@ -26,7 +30,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly string _databaseName;
         private readonly SchemaInitializer _schemaInitializer;
 
-        public DicomSqlIndexDataStoreTestsFixture()
+        public DicomSqlDataStoreTestsFixture()
         {
             string initialConnectionString = Environment.GetEnvironmentVariable("SqlServer:ConnectionString") ?? LocalConnectionString;
 
@@ -46,17 +50,28 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var dicomSqlIndexSchema = new DicomSqlIndexSchema(schemaInformation, NullLogger<DicomSqlIndexSchema>.Instance);
 
+            SqlTransactionHandler = new SqlTransactionHandler();
+            SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(config, SqlTransactionHandler);
+
             DicomIndexDataStore = new DicomSqlIndexDataStore(
                 dicomSqlIndexSchema,
-                config,
+                SqlConnectionWrapperFactory,
                 NullLogger<DicomSqlIndexDataStore>.Instance);
+
+            DicomInstanceStore = new DicomSqlInstanceStore(SqlConnectionWrapperFactory);
 
             TestHelper = new DicomSqlIndexDataStoreTestHelper(TestConnectionString);
         }
 
+        public SqlTransactionHandler SqlTransactionHandler { get; }
+
+        public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
+
         public string TestConnectionString { get; }
 
         public IDicomIndexDataStore DicomIndexDataStore { get; }
+
+        public IDicomInstanceStore DicomInstanceStore { get; }
 
         public DicomSqlIndexDataStoreTestHelper TestHelper { get; }
 
