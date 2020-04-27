@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     if (!message.OriginalTransferSyntaxRequested() &&
                         !dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
                     {
-                        throw new DicomDataStoreException(HttpStatusCode.NotAcceptable);
+                        throw new DicomTranscodingException();
                     }
 
                     resultStreams = message.Frames.Select(
@@ -134,7 +134,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                     if (resultStreams.Length == 0)
                     {
-                        throw new DicomDataStoreException(HttpStatusCode.NotAcceptable);
+                        throw new DicomTranscodingException();
                     }
 
                     resultStreams = resultStreams.Select(stream =>
@@ -155,11 +155,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                         message.StudyInstanceUid,
                         message.SeriesInstanceUid,
                         message.SopInstanceUid));
-
-                if (e.StatusCode.Equals((int)HttpStatusCode.NotFound))
-                {
-                    throw new DicomInstanceNotFoundException();
-                }
 
                 throw;
             }
@@ -184,7 +179,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 var pixelData = DicomPixelData.Create(dataset);
                 if (frame >= pixelData.NumberOfFrames)
                 {
-                    throw new DicomDataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame '{frame}' does not exist.", nameof(frame)));
+                    throw new DicomFrameNotFoundException();
                 }
 
                 resultByteBuffer = pixelData.GetFrame(frame);

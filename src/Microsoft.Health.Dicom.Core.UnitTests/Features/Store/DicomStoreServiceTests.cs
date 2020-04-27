@@ -156,7 +156,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomStoreOrchestrator
                 .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
-                .Do(_ => throw new DicomDataStoreException());
+                .Do(_ => throw new DicomDataStoreException("Simulated failure."));
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 

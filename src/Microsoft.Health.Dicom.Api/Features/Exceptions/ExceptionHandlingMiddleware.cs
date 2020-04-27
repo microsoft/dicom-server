@@ -70,6 +70,12 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                 case DicomResourceNotFoundException _:
                     statusCode = HttpStatusCode.NotFound;
                     break;
+                case DicomTranscodingException _:
+                    statusCode = HttpStatusCode.NotAcceptable;
+                    break;
+                case DicomDataStoreException _:
+                    statusCode = HttpStatusCode.ServiceUnavailable;
+                    break;
                 case DicomServerException _:
                     _logger.LogWarning("Service exception: {0}", exception);
                     statusCode = HttpStatusCode.ServiceUnavailable;

@@ -79,21 +79,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             foreach (var id in retrieveInstances)
             {
-                try
-                {
-                    DicomDataset ds = await _dicomMetadataStore.GetInstanceMetadataAsync(id, cancellationToken);
-                    dataset.Add(ds);
-                }
-                catch (DicomDataStoreException e)
-                {
-                    if (e.StatusCode == (int)HttpStatusCode.NotFound)
-                    {
-                        _logger.LogError($"Unable to retrieve metadata for the specified SopInstanceUID: {id}");
-                        throw new DicomInstanceNotFoundException();
-                    }
-
-                    throw;
-                }
+                DicomDataset ds = await _dicomMetadataStore.GetInstanceMetadataAsync(id, cancellationToken);
+                dataset.Add(ds);
             }
 
             return new DicomRetrieveMetadataResponse(HttpStatusCode.OK, dataset);

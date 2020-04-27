@@ -5,6 +5,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,7 +63,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
             blob.Properties.ContentType = KnownContentTypes.ApplicationJson;
 
-            await ExecuteAsync(async () =>
+            try
             {
                 Stream stream = await blob.OpenWriteAsync(
                     AccessCondition.GenerateIfNotExistsCondition(),
@@ -76,7 +77,15 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 {
                     _jsonSerializer.Serialize(jsonTextWriter, dicomDatasetWithoutBulkData);
                 }
-            });
+            }
+            catch (StorageException storageException) when (storageException.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            {
+                throw new DicomInstanceAlreadyExistsException();
+            }
+            catch (Exception ex)
+            {
+                throw new DicomDataStoreException(ex);
+            }
         }
 
         /// <inheritdoc />
@@ -124,18 +133,13 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             {
                 await action();
             }
+            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            {
+                throw new DicomInstanceNotFoundException();
+            }
             catch (Exception ex)
             {
-                int? statusCode = null;
-
-                switch (ex)
-                {
-                    case StorageException storageException:
-                        statusCode = storageException.RequestInformation.HttpStatusCode;
-                        break;
-                }
-
-                throw new DicomDataStoreException(statusCode, ex);
+                throw new DicomDataStoreException(ex);
             }
         }
     }

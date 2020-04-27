@@ -15,6 +15,9 @@ using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
+    /// <summary>
+    /// Provides logging for <see cref="IDicomIndexDataStore"/>.
+    /// </summary>
     public class LoggingDicomIndexDataStore : IDicomIndexDataStore
     {
         private static readonly Action<ILogger, DicomInstanceIdentifier, Exception> LogCreateInstanceIndexDelegate =

@@ -3,10 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using Dicom;
 using Dicom.Imaging;
 using EnsureThat;
@@ -27,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 !dataset.Contains(DicomTag.Rows) ||
                 !dataset.Contains(DicomTag.PixelData))
             {
-                throw new DicomDataStoreException(HttpStatusCode.NotFound);
+                throw new DicomFrameNotFoundException();
             }
 
             // Note: We look for any frame value that is less than zero, or greater than number of frames.
@@ -37,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             // If any missing frames, throw not found exception for the specific frames not found.
             if (missingFrames.Length > 0)
             {
-                throw new DicomFrameNotFoundException(new ArgumentException($"The frame(s) '{string.Join(", ", missingFrames)}' do not exist.", nameof(frames)));
+                throw new DicomFrameNotFoundException();
             }
         }
     }

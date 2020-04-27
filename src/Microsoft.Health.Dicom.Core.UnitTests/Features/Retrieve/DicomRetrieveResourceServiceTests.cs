@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                 StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x), frames: 0, disposeStreams: true).Result.Value));
 
             // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomInstanceNotFoundException());
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest("*", _studyInstanceUid),
@@ -125,7 +125,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                 StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x), frames: 0, disposeStreams: true).Result.Value));
 
             // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomInstanceNotFoundException());
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid),
@@ -173,7 +173,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
 
             // For the first instance identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Throws(new DicomInstanceNotFoundException());
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid),
