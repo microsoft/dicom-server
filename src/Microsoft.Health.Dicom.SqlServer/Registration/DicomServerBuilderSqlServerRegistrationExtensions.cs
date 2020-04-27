@@ -6,12 +6,14 @@
 using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
+using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.SqlServer.Api.Registration;
 using Microsoft.Health.SqlServer.Configs;
@@ -54,6 +56,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
+            // However, the current implementation of the decorate method requires the concrete type to be already registered,
+            // so we need to register here. Need to some more investigation to see how we might be able to do this.
+            services.Decorate<IDicomIndexDataStore, LoggingDicomIndexDataStore>();
+
             services.Add<DicomSqlQueryStore>()
                 .Scoped()
                 .AsSelf()
@@ -63,11 +70,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
-
-            // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
-            // However, the current implementation of the decorate method requires the concrete type to be already registered,
-            // so we need to register here. Need to some more investigation to see how we might be able to do this.
-            services.Decorate<IDicomIndexDataStore, LoggingDicomIndexDataStore>();
 
             return dicomServerBuilder;
         }

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
@@ -289,7 +290,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenAnExistingDicomInstance_WhenAdded_ThenConflictExceptionShouldBeThrown()
+        public async Task GivenAPendingDicomInstance_WhenAdded_ThenPendingDicomInstanceExceptionShouldBeThrown()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
@@ -298,6 +299,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
             await _dicomIndexDataStore.CreateInstanceIndexAsync(dataset);
+
+            await Assert.ThrowsAsync<PendingDicomInstanceException>(() => _dicomIndexDataStore.CreateInstanceIndexAsync(dataset));
+        }
+
+        [Fact]
+        public async Task GivenAnExistingDicomInstance_WhenAdded_ThenDicomInstanceAlreadyExistsExceptionShouldBeThrown()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
+
+            long version = await _dicomIndexDataStore.CreateInstanceIndexAsync(dataset);
+            await _dicomIndexDataStore.UpdateInstanceIndexStatusAsync(
+                dataset.ToVersionedDicomInstanceIdentifier(version),
+                DicomIndexStatus.Created);
 
             await Assert.ThrowsAsync<DicomInstanceAlreadyExistsException>(() => _dicomIndexDataStore.CreateInstanceIndexAsync(dataset));
         }
@@ -342,7 +360,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenANonExistingDicomInstance_WhenStatusIsUpdated_ThenItShouldThrowDicomInstanceNotFoundException()
+        public async Task GivenANonExistingDicomInstance_WhenStatusIsUpdated_ThenDicomInstanceNotFoundExceptionShouldBeThrown()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();

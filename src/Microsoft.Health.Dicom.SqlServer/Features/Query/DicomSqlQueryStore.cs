@@ -46,15 +46,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             var results = new List<VersionedDicomInstanceIdentifier>(query.EvaluatedLimit);
 
             using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper())
-            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-                var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommand.Parameters));
+                var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters));
 
-                sqlCommand.CommandText = stringBuilder.ToString();
-                LogSqlCommand(sqlCommand);
+                sqlCommandWrapper.CommandText = stringBuilder.ToString();
+                LogSqlCommand(sqlCommandWrapper);
 
-                using (var reader = await sqlCommand.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
@@ -76,10 +76,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             return new DicomQueryResult(results);
         }
 
-        private void LogSqlCommand(SqlCommand sqlCommand)
+        private void LogSqlCommand(SqlCommandWrapper sqlCommandWrapper)
         {
             var sb = new StringBuilder();
-            foreach (SqlParameter p in sqlCommand.Parameters)
+            foreach (SqlParameter p in sqlCommandWrapper.Parameters)
             {
                 sb.Append("DECLARE ")
                     .Append(p)
@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
             sb.AppendLine();
 
-            sb.AppendLine(sqlCommand.CommandText);
+            sb.AppendLine(sqlCommandWrapper.CommandText);
             _logger.LogInformation(sb.ToString());
         }
     }

@@ -153,6 +153,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                 switch (ex)
                 {
+                    case PendingDicomInstanceException _:
+                        failureCode = DicomFailureReasonCodes.PendingSopInstance;
+                        break;
+
                     case DicomInstanceAlreadyExistsException _:
                         failureCode = DicomFailureReasonCodes.SopInstanceAlreadyExists;
                         break;
