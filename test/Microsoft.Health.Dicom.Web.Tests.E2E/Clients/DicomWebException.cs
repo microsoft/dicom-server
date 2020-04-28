@@ -27,5 +27,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         public HttpContent Content => Response.Content;
 
         protected DicomWebResponse Response { get; }
+
+        public override string Message
+            => $"{StatusCode}";
     }
 }

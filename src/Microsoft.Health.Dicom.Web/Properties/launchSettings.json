@@ -1,12 +1,21 @@
 {
-  "profiles": {
-    "Microsoft.Health.Dicom.Web": {
-      "commandName": "Project",
-        "environmentVariables": {
-            "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json",
-            "ASPNETCORE_ENVIRONMENT": "Development"
+    "profiles": {
+        "DicomWebSecurityDisabled": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "DicomServer:Security:Enabled": false
+            },
+            "applicationUrl": "https://localhost:63838/"
         },
-      "applicationUrl": "https://localhost:63838/"
+        "DicomWebSecurityEnabled": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "DicomServer:Security:Enabled": true,
+                "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json"
+            },
+            "applicationUrl": "https://localhost:63838/"
+        }
     }
-  }
 }

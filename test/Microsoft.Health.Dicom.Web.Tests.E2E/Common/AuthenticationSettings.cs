@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
+using System;
 using Microsoft.Health.Development.IdentityProvider.Configuration;
 using static Microsoft.Health.Dicom.Tests.Common.EnvironmentVariables;
 
@@ -18,22 +19,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
 
         public static string Resource => GetEnvironmentVariableWithDefault("security_resource", Provider.Audience);
 
-        public static string TokenUrl => GetEnvironmentVariableWithDefault("security_tokenUrl", "https://localhost/connect/token");
+        public static string TokenUrl => GetEnvironmentVariableWithDefault("security_tokenUrl", "https://inprochost/connect/token");
 
-        /// <summary>
-        /// Todo: Set this env in identity provider #73715
-        /// </summary>
-        public static bool SecurityEnabled
-        {
-            get
-            {
-                if (bool.TryParse(GetEnvironmentVariableWithDefault("security_enabled", bool.FalseString), out bool result))
-                {
-                    return result;
-                }
-
-                return false;
-            }
-        }
+        public static bool SecurityEnabled => string.Equals(GetEnvironmentVariableWithDefault("security_enabled", bool.FalseString), bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
     }
 }
