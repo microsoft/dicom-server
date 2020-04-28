@@ -8,7 +8,7 @@ variables:
 trigger:
   branches:
     include:
-    - users/smithasa/ci
+    - master
 
 pr: none
 
@@ -36,7 +36,7 @@ stages:
   dependsOn: 
   - BuildRunUnitTests
   jobs:
-  - job: provision
+  - job: provision  
     pool:
       vmImage: $(windowsVmImage)
     steps:
