@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             if (_fixture.Client.SecurityEnabled)
             {
-                DicomWebClient client = _fixture.Client.CreateClientForApplication(TestApplications.InvalidClient);
+                DicomWebClient client = _fixture.GetDicomWebClient(TestApplications.InvalidClient);
                 DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
                     () => client.QueryAsync("/studies"));
                 Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);

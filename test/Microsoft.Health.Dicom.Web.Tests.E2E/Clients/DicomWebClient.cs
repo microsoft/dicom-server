@@ -35,14 +35,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
-        private readonly TestDicomWebServer _testDicomWebServer;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly (bool Enabled, string TokenUrl) _securitySettings;
         private readonly Dictionary<string, string> _bearerTokens = new Dictionary<string, string>();
 
         public DicomWebClient(
             HttpClient httpClient,
-            TestDicomWebServer testDicomWebServer,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
             TestApplication testApplication,
             (bool enabled, string tokenUrl) securitySettings)
@@ -50,7 +48,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             HttpClient = httpClient;
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
-            _testDicomWebServer = testDicomWebServer;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
             _securitySettings = securitySettings;
             SetupAuthenticationAsync(HttpClient, testApplication).GetAwaiter().GetResult();
@@ -59,11 +56,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         public HttpClient HttpClient { get; }
 
         public bool SecurityEnabled => _securitySettings.Enabled;
-
-        public DicomWebClient CreateClientForApplication(TestApplication clientApplication)
-        {
-            return _testDicomWebServer.GetDicomWebClient(_recyclableMemoryStreamManager, clientApplication);
-        }
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(
             Uri requestUri,

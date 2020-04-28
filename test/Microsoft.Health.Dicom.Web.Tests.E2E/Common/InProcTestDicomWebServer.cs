@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
 
         public TestServer Server { get; }
 
-        protected override HttpMessageHandler CreateMessageHandler()
+        public override HttpMessageHandler CreateMessageHandler()
         {
             return _messageHandler;
         }

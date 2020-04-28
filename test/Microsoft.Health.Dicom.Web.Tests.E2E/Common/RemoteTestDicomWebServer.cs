@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
         {
         }
 
-        protected override HttpMessageHandler CreateMessageHandler()
+        public override HttpMessageHandler CreateMessageHandler()
         {
             return new HttpClientHandler();
         }
