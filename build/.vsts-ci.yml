@@ -36,7 +36,7 @@ stages:
   dependsOn: 
   - BuildRunUnitTests
   jobs:
-  - job: Update binaries
+  - job: 'Update binaries'
     pool:
       vmImage: $(windowsVmImage)
     steps:
