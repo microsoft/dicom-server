@@ -70,15 +70,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DICOM Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
-        /// </summary>
-        internal static string DicomIdentifierInvalid {
-            get {
-                return ResourceManager.GetString("DicomIdentifierInvalid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
         /// </summary>
         internal static string DuplicatedUidsNotAllowed {
@@ -148,6 +139,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidDateValue {
             get {
                 return ResourceManager.GetString("InvalidDateValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DICOM Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
+        /// </summary>
+        internal static string InvalidDicomIdentifier {
+            get {
+                return ResourceManager.GetString("InvalidDicomIdentifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The DICOM isntance is invalid..
+        /// </summary>
+        internal static string InvalidDicomInstance {
+            get {
+                return ResourceManager.GetString("InvalidDicomInstance", resourceCulture);
             }
         }
         

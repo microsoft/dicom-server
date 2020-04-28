@@ -3,19 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net;
-
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
     /// Exception thrown when the DICOM instance is invalid.
     /// </summary>
-    public class InvalidDicomInstanceException : DicomException
+    public class InvalidDicomInstanceException : DicomValidationException
     {
-        public InvalidDicomInstanceException()
+        public InvalidDicomInstanceException(string message)
+            : base(message)
         {
         }
-
-        public override HttpStatusCode ResponseStatusCode => HttpStatusCode.BadRequest;
     }
 }

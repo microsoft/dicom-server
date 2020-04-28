@@ -76,6 +76,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                 case DicomDataStoreException _:
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
+                case DicomInstanceAlreadyExistsException _:
+                    statusCode = HttpStatusCode.Conflict;
+                    break;
                 case DicomServerException _:
                     _logger.LogWarning("Service exception: {0}", exception);
                     statusCode = HttpStatusCode.ServiceUnavailable;
@@ -85,11 +88,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     break;
                 case ServiceUnavailableException _:
                     statusCode = HttpStatusCode.ServiceUnavailable;
-                    break;
-
-                // TODO remove below exception after we clean up all exceptions
-                case DicomException dicomException:
-                    statusCode = dicomException.ResponseStatusCode;
                     break;
                 default:
                     _logger.LogError("Unhandled exception: {0}", exception);

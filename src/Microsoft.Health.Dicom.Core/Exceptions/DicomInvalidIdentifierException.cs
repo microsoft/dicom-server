@@ -8,7 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     public class DicomInvalidIdentifierException : DicomValidationException
     {
         public DicomInvalidIdentifierException(string value, string name)
-            : base(string.Format(DicomCoreResource.DicomIdentifierInvalid, name, value))
+            : base(string.Format(DicomCoreResource.InvalidDicomIdentifier, name, value))
         {
         }
     }

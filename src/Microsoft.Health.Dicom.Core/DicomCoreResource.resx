@@ -120,10 +120,6 @@
   <data name="DataStoreOperationFailed" xml:space="preserve">
     <value>The data store operation failed.</value>
   </data>
-  <data name="DicomIdentifierInvalid" xml:space="preserve">
-    <value>DICOM Identifier '{0}' value '{1}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
-    <comment>{0} Identifier Parameter name, {1} Value.</comment>
-  </data>
   <data name="DuplicatedUidsNotAllowed" xml:space="preserve">
     <value>The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.</value>
     <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"}</comment>
@@ -153,6 +149,13 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="InvalidDateValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified Date value {0} is invalid for parameter {1}. Date should be valid and formatted as yyyyMMdd.</value>
     <comment>{0} Date value. {1} parameter name.</comment>
+  </data>
+  <data name="InvalidDicomIdentifier" xml:space="preserve">
+    <value>DICOM Identifier '{0}' value '{1}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
+    <comment>{0} Identifier Parameter name, {1} Value.</comment>
+  </data>
+  <data name="InvalidDicomInstance" xml:space="preserve">
+    <value>The DICOM isntance is invalid.</value>
   </data>
   <data name="InvalidFramesValue" xml:space="preserve">
     <value>The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.</value>
