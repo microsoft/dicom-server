@@ -3,26 +3,51 @@
 name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:-r)
 
 variables:
-  buildConfiguration: 'Release'
+- template: ci-variables.yml
 
 trigger:
   branches:
     include:
-    - master
+    - users/smithasa/ci
 
 pr: none
 
-jobs:
-- job: Windows
-  pool:
-    vmImage: 'vs2017-win2016'
-  steps:
-  - template: build.yml
+stages:
+- stage: BuildRunUnitTests
+  displayName: 'Build and run unit tests'
+  dependsOn: []
+  jobs:
+  - job: Windows
+    pool:
+      vmImage: $(windowsVmImage)
+    steps:
+    - template: build.yml
 
-- job: Linux
-  pool:
-    vmImage: 'ubuntu-16.04'
-  steps:
-  - template: build.yml
-    parameters:
-      packageArtifacts: false
+  - job: Linux
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: build.yml
+      parameters:
+        packageArtifacts: false
+
+- stage: DeployTestEnvironment
+  displayName: 'Deploy Test Environment'
+  dependsOn: 
+  - BuildRunUnitTests
+  jobs:
+  - template: deploy.yml
+ 
+- stage: RunIntegrationTests
+  displayName: 'Integration tests'
+  dependsOn:
+  - DeployTestEnvironment
+  jobs:
+  - template: run-integration-tests.yml
+
+- stage: RunE2ETests
+  displayName: 'E2E tests'
+  dependsOn:
+  - DeployTestEnvironment
+  jobs:
+  - template: run-e2e-tests.yml
