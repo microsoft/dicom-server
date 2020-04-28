@@ -36,7 +36,7 @@ stages:
   dependsOn: 
   - BuildRunUnitTests
   jobs:
-  - job: 'Update binaries'
+  - job: provision
     pool:
       vmImage: $(windowsVmImage)
     steps:
@@ -57,13 +57,13 @@ stages:
 - stage: RunIntegrationTests
   displayName: 'Integration tests'
   dependsOn:
-  - DeployTestEnvironment
+  - UpdateTestEnvironment
   jobs:
   - template: run-integration-tests.yml
 
 - stage: RunE2ETests
   displayName: 'E2E tests'
   dependsOn:
-  - DeployTestEnvironment
+  - UpdateTestEnvironment
   jobs:
   - template: run-e2e-tests.yml
