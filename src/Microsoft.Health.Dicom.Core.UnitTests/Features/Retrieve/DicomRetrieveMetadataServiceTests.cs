@@ -47,6 +47,56 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
+        public async Task GivenRetrieveStudyMetadataRequest_WhenStudyInstanceUidDoesnotExists_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
+        {
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(TestUidGenerator.Generate(), DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenRetrieveSeriesMetadataRequest_WhenStudyandSeriesInstanceUidDoesnotExists_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
+        {
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenRetrieveSeriesMetadataRequest_WhenStudyInstanceUidDoesnotExists_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
+        {
+            SetupInstanceIdentifiersList(ResourceType.Series);
+
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(TestUidGenerator.Generate(), seriesInstanceUid, DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenRetrieveSeriesMetadataRequest_WhenSeriesInstanceUidDoesnotExists_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
+        {
+            SetupInstanceIdentifiersList(ResourceType.Series);
+
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(studyInstanceUid, TestUidGenerator.Generate(), DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenStudySeriesAndSopInstanceUidDoesnotExists_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
+        {
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenStudyAndSeriesDoesnotExists_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
+        {
+            SetupInstanceIdentifiersList(ResourceType.Instance);
+
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenSeriesInstanceUidDoesnotExists_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
+        {
+            SetupInstanceIdentifiersList(ResourceType.Instance);
+
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(studyInstanceUid, TestUidGenerator.Generate(), sopInstanceUid, DefaultCancellationToken));
+        }
+
+        [Fact]
         public async Task GivenRetrieveInstanceMetadataRequestForStudy_WhenFailsToRetrieveAny_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
         {
             List<VersionedDicomInstanceIdentifier> instanceIdentifiersList = SetupInstanceIdentifiersList(ResourceType.Study);
