@@ -176,7 +176,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 return;
             }
 
-            Assert.False(true, "Retrieved dataset doesnot match to stored datset");
+            Assert.False(true, "Retrieved dataset doesnot match the stored dataset");
         }
 
         private static void ValidateResponseMetadataDataset(DicomDataset storedDataset, DicomDataset retrievedDataset)
