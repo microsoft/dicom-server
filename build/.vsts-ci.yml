@@ -31,12 +31,28 @@ stages:
       parameters:
         packageArtifacts: false
 
-- stage: DeployTestEnvironment
-  displayName: 'Deploy Test Environment'
+- stage: UpdateTestEnvironment
+  displayName: 'Update Test Environment'
   dependsOn: 
   - BuildRunUnitTests
   jobs:
-  - template: deploy.yml
+  - job: Update binaries
+    pool:
+      vmImage: $(windowsVmImage)
+    steps:
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        downloadPath: '$(System.ArtifactsDirectory)'
+        artifactName: 'deploy'
+    - task: AzureRmWebAppDeployment@3
+      displayName: 'Azure app service deployment'
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        WebAppName: '$(deploymentName)'
+        Package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
+        TakeAppOfflineFlag: true
  
 - stage: RunIntegrationTests
   displayName: 'Integration tests'
