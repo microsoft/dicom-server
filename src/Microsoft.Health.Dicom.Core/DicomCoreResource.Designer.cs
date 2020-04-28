@@ -152,7 +152,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DICOM isntance is invalid..
+        ///   Looks up a localized string similar to The DICOM instance is invalid..
         /// </summary>
         internal static string InvalidDicomInstance {
             get {

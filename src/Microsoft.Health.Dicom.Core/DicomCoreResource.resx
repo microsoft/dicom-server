@@ -155,7 +155,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} Identifier Parameter name, {1} Value.</comment>
   </data>
   <data name="InvalidDicomInstance" xml:space="preserve">
-    <value>The DICOM isntance is invalid.</value>
+    <value>The DICOM instance is invalid.</value>
   </data>
   <data name="InvalidFramesValue" xml:space="preserve">
     <value>The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.</value>
