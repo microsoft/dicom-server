@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid);
 
-            VaidateRetrieveMetadataTransaction(response, firstStoredInstance, secondStoredInstance);
+            ValidateResponseMetadataDataset(response, firstStoredInstance, secondStoredInstance);
         }
 
         [Fact]
@@ -105,7 +105,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid);
 
-            VaidateRetrieveMetadataTransaction(response, firstStoredInstance, secondStoredInstance);
+            ValidateResponseMetadataDataset(response, firstStoredInstance, secondStoredInstance);
         }
 
         [Fact]
@@ -119,7 +119,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            VaidateRetrieveMetadataTransaction(response, storedInstance);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("application/dicom+json", response.Content.Headers.ContentType.MediaType);
+            Assert.Single(response.Value);
+            ValidateResponseMetadataDataset(storedInstance, response.Value.First());
         }
 
         private static DicomDataset GenerateNewDataSet()
@@ -138,22 +141,42 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             };
         }
 
-        private void VaidateRetrieveMetadataTransaction(DicomWebResponse<IReadOnlyList<DicomDataset>> response, DicomDataset firstStoredInstance, DicomDataset secondStoredInstance = null)
+        private void ValidateResponseMetadataDataset(DicomWebResponse<IReadOnlyList<DicomDataset>> response, DicomDataset storedInstance1, DicomDataset storedInstance2)
         {
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("application/dicom+json", response.Content.Headers.ContentType.MediaType);
+            Assert.Equal(2, response.Value.Count());
 
-            if (secondStoredInstance == null)
+            // Trim the stored dataset to the expected items in the response metadata dataset (remove non-supported value representations).
+            DicomDataset expectedDataset1 = storedInstance1.CopyWithoutBulkDataItems();
+            DicomDataset expectedDataset2 = storedInstance2.CopyWithoutBulkDataItems();
+
+            DicomDataset retrievedDataset1 = response.Value.First();
+            DicomDataset retrievedDataset2 = response.Value.Last();
+
+            // Compare result datasets by serializing.
+            var jsonDicomConverter = new JsonDicomConverter();
+
+            string serializedExpectedDataset1 = JsonConvert.SerializeObject(expectedDataset1, jsonDicomConverter);
+            string serializedExpectedDataset2 = JsonConvert.SerializeObject(expectedDataset2, jsonDicomConverter);
+
+            string serializedRetrievedDataset1 = JsonConvert.SerializeObject(retrievedDataset1, jsonDicomConverter);
+            string serializedRetrievedDataset2 = JsonConvert.SerializeObject(retrievedDataset2, jsonDicomConverter);
+
+            if (string.Equals(serializedExpectedDataset1, serializedRetrievedDataset1, StringComparison.InvariantCultureIgnoreCase) && string.Equals(serializedExpectedDataset2, serializedRetrievedDataset2, StringComparison.InvariantCultureIgnoreCase))
             {
-                Assert.Single(response.Value);
-                ValidateResponseMetadataDataset(firstStoredInstance, response.Value.First());
+                Assert.Equal(expectedDataset1.Count(), retrievedDataset1.Count());
+                Assert.Equal(expectedDataset2.Count(), retrievedDataset2.Count());
+                return;
             }
-            else
+            else if (string.Equals(serializedExpectedDataset2, serializedRetrievedDataset1, StringComparison.InvariantCultureIgnoreCase) && string.Equals(serializedExpectedDataset1, serializedRetrievedDataset2, StringComparison.InvariantCultureIgnoreCase))
             {
-                Assert.Equal(2, response.Value.Count());
-                ValidateResponseMetadataDataset(secondStoredInstance, response.Value.First());
-                ValidateResponseMetadataDataset(firstStoredInstance, response.Value.Last());
+                Assert.Equal(expectedDataset2.Count(), retrievedDataset1.Count());
+                Assert.Equal(expectedDataset1.Count(), retrievedDataset2.Count());
+                return;
             }
+
+            Assert.False(true, "Retrieved dataset doesnot match to stored datset");
         }
 
         private static void ValidateResponseMetadataDataset(DicomDataset storedDataset, DicomDataset retrievedDataset)
