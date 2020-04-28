@@ -3,11 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -73,7 +71,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 Stream[] resultStreams = await Task.WhenAll(
                     retrieveInstances.Select(x => _dicomBlobDataStore.GetFileAsync(x, cancellationToken)));
 
-                var responseCode = HttpStatusCode.OK;
+                bool isPartialSuccess = false;
 
                 if (message.ResourceType == ResourceType.Frames)
                 {
@@ -118,7 +116,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                             // If some of the instances are not transcodeable, Partial Content should be returned
                             if (!canTranscode)
                             {
-                                responseCode = HttpStatusCode.PartialContent;
+                                isPartialSuccess = true;
                             }
 
                             return canTranscode;
@@ -126,7 +124,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                         if (filteredStreams.Length != resultStreams.Length)
                         {
-                            responseCode = HttpStatusCode.PartialContent;
+                            isPartialSuccess = true;
                         }
 
                         resultStreams = filteredStreams;
@@ -143,7 +141,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                             s => EncodeDicomFileAsDicom(s, parsedDicomTransferSyntax))).ToArray();
                 }
 
-                return new DicomRetrieveResourceResponse(responseCode, resultStreams);
+                return new DicomRetrieveResourceResponse(isPartialSuccess, resultStreams);
             }
             catch (DicomDataStoreException e)
             {

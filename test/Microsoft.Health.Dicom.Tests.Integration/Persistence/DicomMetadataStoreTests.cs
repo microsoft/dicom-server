@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;

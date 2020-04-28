@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -164,7 +163,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         private static DicomRetrieveMetadataResponse SetupRetrieveMetadataResponse()
         {
             return new DicomRetrieveMetadataResponse(
-                HttpStatusCode.OK,
                 new List<DicomDataset> { new DicomDataset() });
         }
 

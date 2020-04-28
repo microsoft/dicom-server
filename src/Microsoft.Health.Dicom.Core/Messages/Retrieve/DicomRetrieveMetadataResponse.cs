@@ -4,21 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Net;
 using Dicom;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
-    public class DicomRetrieveMetadataResponse : BaseStatusCodeResponse
+    public class DicomRetrieveMetadataResponse
     {
-        public DicomRetrieveMetadataResponse(int statusCode)
-            : base(statusCode)
-        {
-        }
-
-        public DicomRetrieveMetadataResponse(HttpStatusCode statusCode, IEnumerable<DicomDataset> responseMetadata)
-            : base((int)statusCode)
+        public DicomRetrieveMetadataResponse(IEnumerable<DicomDataset> responseMetadata)
         {
             EnsureArg.IsNotNull(responseMetadata, nameof(responseMetadata));
             ResponseMetadata = responseMetadata;

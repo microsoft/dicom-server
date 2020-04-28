@@ -3,23 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net;
 using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Store
 {
-    public sealed class DicomStoreResponse : BaseStatusCodeResponse
+    public sealed class DicomStoreResponse
     {
-        public DicomStoreResponse(HttpStatusCode statusCode)
-            : base((int)statusCode)
+        public DicomStoreResponse(DicomStoreResponseStatus status, DicomDataset responseDataset)
         {
-        }
-
-        public DicomStoreResponse(HttpStatusCode statusCode, DicomDataset responseDataset)
-            : base((int)statusCode)
-        {
+            Status = status;
             Dataset = responseDataset;
         }
+
+        public DicomStoreResponseStatus Status { get; }
 
         public DicomDataset Dataset { get; }
     }

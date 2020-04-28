@@ -4,9 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IO;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Dicom;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomInstanceEntryReaderManager.FindReader(DefaultContentType).Returns(dicomInstanceEntryReader);
 
-            DicomStoreResponse dicomStoreResponse = new DicomStoreResponse(HttpStatusCode.OK);
+            DicomStoreResponse dicomStoreResponse = new DicomStoreResponse(DicomStoreResponseStatus.Success, new DicomDataset());
 
             _dicomStoreService.ProcessAsync(dicomInstanceEntries, studyInstanceUid, DefaultCancellationToken).Returns(dicomStoreResponse);
 
