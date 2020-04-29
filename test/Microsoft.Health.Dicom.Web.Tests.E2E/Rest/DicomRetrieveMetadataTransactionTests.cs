@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;
@@ -54,99 +55,78 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenRetrieveStudyMetadataRequest_WhenStudyInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
-            string fakeStudyInstanceUid = "1.2.345.6.7";
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveStudyMetadataAsync(fakeStudyInstanceUid));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-        }
-
-        [Fact]
-        public async Task GivenRetrieveSeriesMetadataRequest_WhenStudyandSeriesInstanceUidDoesnotExists_ThenNotFoundIsReturned()
-        {
-            string fakeStudyInstanceUid = "1.2.345.6.7";
-            string fakeSeriesInstanceUid = "1.2.345.6.8";
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveStudyMetadataAsync(TestUidGenerator.Generate()));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
         public async Task GivenRetrieveSeriesMetadataRequest_WhenSeriesInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
-            DicomDataset storedInstance = await PostDicomFileAsync();
-            var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
+            string studyInstanceUid = TestUidGenerator.Generate();
+            await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, TestUidGenerator.Generate());
 
-            string fakeSeriesInstanceUid = "1.2.345.6.7";
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesMetadataAsync(dicomInstance.StudyInstanceUid, fakeSeriesInstanceUid));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-        }
-
-        [Fact]
-        public async Task GivenRetrieveSeriesMetadataRequest_WhenStudyInstanceUidDoesnotExists_ThenNotFoundIsReturned()
-        {
-            DicomDataset storedInstance = await PostDicomFileAsync();
-            var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
-
-            string fakeStudyInstanceUid = "1.2.345.6.7";
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesMetadataAsync(fakeStudyInstanceUid, dicomInstance.SeriesInstanceUid));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-        }
-
-        [Fact]
-        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenStudySeriesAndSopInstanceUidDoesnotExists_ThenNotFoundIsReturned()
-        {
-            string fakeStudyInstanceUid = "1.2.345.6.7";
-            string fakeSeriesInstanceUid = "1.2.345.6.8";
-            string fakeSopInstanceUid = "1.2.345.6.9";
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid, fakeSopInstanceUid));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesMetadataAsync(studyInstanceUid, TestUidGenerator.Generate()));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
         public async Task GivenRetrieveSopInstanceMetadataRequest_WhenSopInstanceUidDoesnotExists_ThenNotFoundIsReturned()
         {
-            DicomDataset storedInstance = await PostDicomFileAsync();
-            var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
 
-            string fakeSopInstanceUid = "1.2.345.6.7";
+            await PostDicomFileAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate());
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
-        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenSeriesInstanceUidDoesnotExists_ThenNotFoundIsReturned()
+        public async Task GivenStoredDicomFile_WhenRetrievingMetadataForStudy_ThenMetadataIsRetrievedCorrectly()
         {
-            DicomDataset storedInstance = await PostDicomFileAsync();
-            var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
-            string fakeSopInstanceUid = "1.2.345.6.7";
+            string studyInstanceUid = TestUidGenerator.Generate();
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, fakeSopInstanceUid));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+            DicomDataset firstStoredInstance = await PostDicomFileAsync(ResourceType.Study, studyInstanceUid, dataSet: GenerateNewDataSet());
+            DicomDataset secondStoredInstance = await PostDicomFileAsync(ResourceType.Study, studyInstanceUid, dataSet: GenerateNewDataSet());
+
+            DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid);
+
+            VaidateRetrieveMetadataTransaction(response, firstStoredInstance, secondStoredInstance);
         }
 
         [Fact]
-        public async Task GivenRetrieveSopInstanceMetadataRequest_WhenStudyAndSeriesDoesnotExists_ThenNotFoundIsReturned()
+        public async Task GivenStoredDicomFile_WhenRetrievingMetadataForSeries_ThenMetadataIsRetrievedCorrectly()
         {
-            string fakeStudyInstanceUid = "1.2.345.6.7";
-            string fakeSeriesInstanceUid = "1.2.345.6.8";
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
 
-            DicomDataset storedInstance = await PostDicomFileAsync();
-            var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
+            DicomDataset firstStoredInstance = await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, seriesInstanceUid, dataSet: GenerateNewDataSet());
+            DicomDataset secondStoredInstance = await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, seriesInstanceUid, dataSet: GenerateNewDataSet());
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceMetadataAsync(fakeStudyInstanceUid, fakeSeriesInstanceUid, dicomInstance.SopInstanceUid));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+            DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid);
+
+            VaidateRetrieveMetadataTransaction(response, firstStoredInstance, secondStoredInstance);
         }
 
         [Fact]
-        public async Task GivenStoredDicomFile_WhenRetrievingMetadata_ThenMetadataIsRetrievedCorrectly()
+        public async Task GivenStoredDicomFile_WhenRetrievingMetadataForInstance_ThenMetadataIsRetrievedCorrectly()
         {
-            DicomDataset storedInstance = await PostDicomFileAsync(new DicomDataset()
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            DicomDataset storedInstance = await PostDicomFileAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid, dataSet: GenerateNewDataSet());
+
+            DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            VaidateRetrieveMetadataTransaction(response, storedInstance);
+        }
+
+        private static DicomDataset GenerateNewDataSet()
+        {
+            return new DicomDataset()
             {
-                { DicomTag.SeriesDescription, "A test series" },
+                { DicomTag.SeriesDescription, "A Test Series" },
                 { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
                 new DicomSequence(DicomTag.RegistrationSequence, new DicomDataset()
                 {
@@ -155,20 +135,25 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 }),
                 { DicomTag.StudyDate, DateTime.UtcNow },
                 { new DicomTag(0007, 0008), "Private Tag" },
-            });
-            var dicomInstance = storedInstance.ToDicomInstanceIdentifier();
+            };
+        }
 
-            DicomWebResponse<IReadOnlyList<DicomDataset>> metadata = await _client.RetrieveStudyMetadataAsync(dicomInstance.StudyInstanceUid);
-            Assert.Single(metadata.Value);
-            ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
+        private void VaidateRetrieveMetadataTransaction(DicomWebResponse<IReadOnlyList<DicomDataset>> response, DicomDataset firstStoredInstance, DicomDataset secondStoredInstance = null)
+        {
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("application/dicom+json", response.Content.Headers.ContentType.MediaType);
 
-            metadata = await _client.RetrieveSeriesMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid);
-            Assert.Single(metadata.Value);
-            ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
-
-            metadata = await _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid);
-            Assert.Single(metadata.Value);
-            ValidateResponseMetadataDataset(storedInstance, metadata.Value.Single());
+            if (secondStoredInstance == null)
+            {
+                Assert.Single(response.Value);
+                ValidateResponseMetadataDataset(firstStoredInstance, response.Value.First());
+            }
+            else
+            {
+                Assert.Equal(2, response.Value.Count());
+                ValidateResponseMetadataDataset(secondStoredInstance, response.Value.First());
+                ValidateResponseMetadataDataset(firstStoredInstance, response.Value.Last());
+            }
         }
 
         private static void ValidateResponseMetadataDataset(DicomDataset storedDataset, DicomDataset retrievedDataset)
@@ -184,18 +169,32 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(expectedDataset.Count(), retrievedDataset.Count());
         }
 
-        private async Task<DicomDataset> PostDicomFileAsync(DicomDataset metadataItems = null)
+        private async Task<DicomDataset> PostDicomFileAsync(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, DicomDataset dataSet = null)
         {
-            DicomFile dicomFile1 = Samples.CreateRandomDicomFile();
+            DicomFile dicomFile = null;
 
-            if (metadataItems != null)
+            switch (resourceType)
             {
-                dicomFile1.Dataset.AddOrUpdate(metadataItems);
+                case ResourceType.Study:
+                    dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid);
+                    break;
+                case ResourceType.Series:
+                    dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid);
+                    break;
+                case ResourceType.Instance:
+                    dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+                    break;
             }
 
-            await _client.StoreAsync(new[] { dicomFile1 });
+            if (dataSet != null)
+            {
+                dicomFile.Dataset.AddOrUpdate(dataSet);
+            }
 
-            return dicomFile1.Dataset;
+            DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile });
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            return dicomFile.Dataset;
         }
     }
 }

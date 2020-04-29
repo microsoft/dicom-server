@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             AddCopy(() => new DicomAttributeTag(DicomTag.DimensionIndexPointer, DicomTag.DimensionIndexSequence));
             AddCopy(() => new DicomCodeString(DicomTag.Modality, "MRI"));
             AddCopy(() => new DicomDate(DicomTag.StudyDate, "20200105"));
-            AddCopy(() => new DicomDecimalString(DicomTag.Patient​Size, "153.5"));
+            AddCopy(() => new DicomDecimalString(DicomTag.PatientSize, "153.5"));
             AddCopy(() => new DicomDateTime(DicomTag.AcquisitionDateTime, new DateTime(2020, 5, 1, 13, 20, 49, 403, DateTimeKind.Utc)));
             AddCopy(() => new DicomFloatingPointSingle(DicomTag.RecommendedDisplayFrameRateInFloat, 1.5f));
             AddCopy(() => new DicomFloatingPointDouble(DicomTag.EventTimeOffset, 1.50));
@@ -119,12 +119,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
             var dicomItemsNotToCopy = new Dictionary<Type, DicomItem>();
 
-            AddDoNotCopy(() => new DicomOtherByte(DicomTag.Bad​Pixel​Image, new byte[] { 1, 2, 3 }));
+            AddDoNotCopy(() => new DicomOtherByte(DicomTag.BadPixelImage, new byte[] { 1, 2, 3 }));
             AddDoNotCopy(() => new DicomOtherDouble(DicomTag.VolumetricCurvePoints, 12.3));
             AddDoNotCopy(() => new DicomOtherFloat(DicomTag.TwoDimensionalToThreeDimensionalMapData, 1.24f));
             AddDoNotCopy(() => new DicomOtherLong(DicomTag.LongPrimitivePointIndexList, 1));
             AddDoNotCopy(() => new DicomOtherVeryLong(DicomTag.ExtendedOffsetTable, 23242394));
-            AddDoNotCopy(() => new DicomOtherWord(DicomTag.Segmented​Alpha​Palette​Color​Lookup​Table​Data, 213));
+            AddDoNotCopy(() => new DicomOtherWord(DicomTag.SegmentedAlphaPaletteColorLookupTableData, 213));
             AddDoNotCopy(() => new DicomUnknown(new DicomTag(7777, 1357), new byte[] { 10, 15, 20 }));
 
             var sequence = new DicomSequence(
