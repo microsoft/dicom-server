@@ -22,7 +22,7 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite
     restart: always
     ports:
-      - "10001:1000"
+      - "10001:10001"
       - "10000:10000"
   sql:
     build: 
