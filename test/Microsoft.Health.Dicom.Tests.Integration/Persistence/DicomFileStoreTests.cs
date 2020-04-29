@@ -5,7 +5,6 @@
 
 using System;
 using System.IO;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -66,9 +65,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 Assert.Equal(fileLocation1, fileLocation2);
 
                 // Fail on exists
-                DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(
-                                    () => AddFileAsync(id, stream, overwriteIfExists: false));
-                Assert.Equal((int)HttpStatusCode.Conflict, exception.StatusCode);
+                await Assert.ThrowsAsync<DicomInstanceAlreadyExistsException>(
+                    () => AddFileAsync(id, stream, overwriteIfExists: false));
             }
 
             await _dicomBlobDataStore.DeleteFileIfExistsAsync(id);
@@ -79,9 +77,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             VersionedDicomInstanceIdentifier id = GenerateIdentifier();
 
-            DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(() => _dicomBlobDataStore.GetFileAsync(id));
-
-            Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomBlobDataStore.GetFileAsync(id));
         }
 
         [Fact]

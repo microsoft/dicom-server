@@ -4,7 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Net;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -167,12 +168,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
 
-            DicomRetrieveResourceResponse expectedResponse = new DicomRetrieveResourceResponse((int)HttpStatusCode.OK);
+            DicomRetrieveResourceResponse expectedResponse = new DicomRetrieveResourceResponse(false, Enumerable.Empty<Stream>());
             DicomRetrieveResourceRequest request = new DicomRetrieveResourceRequest("*", studyInstanceUid, seriesInstanceUid, sopInstanceUid, new List<int> { 1 });
             _dicomRetrieveResourceService.GetInstanceResourceAsync(request, CancellationToken.None).Returns(expectedResponse);
 
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceHandler.Handle(request, CancellationToken.None);
-            Assert.Equal(expectedResponse.StatusCode, response.StatusCode);
+            Assert.Same(expectedResponse, response);
         }
     }
 }

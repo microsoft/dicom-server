@@ -5,13 +5,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features;
@@ -29,21 +26,20 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 {
     public class DicomRetrieveMetadataServiceTests : IClassFixture<DicomDataStoreTestsFixture>
     {
+        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+
         private readonly DicomRetrieveMetadataService _dicomRetrieveMetadataService;
         private readonly IDicomInstanceStore _dicomInstanceStore;
         private readonly IDicomMetadataStore _dicomMetadataStore;
-        private readonly ILogger<DicomRetrieveMetadataService> _logger;
-        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
-        private readonly string studyInstanceUid = TestUidGenerator.Generate();
-        private readonly string seriesInstanceUid = TestUidGenerator.Generate();
+        private readonly string _studyInstanceUid = TestUidGenerator.Generate();
+        private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
 
         public DicomRetrieveMetadataServiceTests(DicomDataStoreTestsFixture storagefixture)
         {
             _dicomInstanceStore = Substitute.For<IDicomInstanceStore>();
             _dicomMetadataStore = storagefixture.DicomMetadataStore;
-            _logger = NullLogger<DicomRetrieveMetadataService>.Instance;
-            _dicomRetrieveMetadataService = new DicomRetrieveMetadataService(_dicomInstanceStore, _dicomMetadataStore, _logger);
+            _dicomRetrieveMetadataService = new DicomRetrieveMetadataService(_dicomInstanceStore, _dicomMetadataStore);
         }
 
         [Fact]
@@ -54,7 +50,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             // Add metadata for only one instance in the given list
             await _dicomMetadataStore.AddInstanceMetadataAsync(datasetList.Last(), version: 0);
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken));
         }
 
         [Fact]
@@ -62,7 +58,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             SetupDatasetList(ResourceType.Study);
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken));
         }
 
         [Fact]
@@ -74,8 +70,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             await _dicomMetadataStore.AddInstanceMetadataAsync(datasetList.First(), version: 0);
             await _dicomMetadataStore.AddInstanceMetadataAsync(datasetList.Last(), version: 1);
 
-            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid, DefaultCancellationToken);
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken);
 
             ValidateResponseMetadataDataset(datasetList.First(), response.ResponseMetadata.First());
             ValidateResponseMetadataDataset(datasetList.Last(), response.ResponseMetadata.Last());
@@ -89,7 +84,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             // Add metadata for only one instance in the given list
             await _dicomMetadataStore.AddInstanceMetadataAsync(datasetList.Last(), version: 1);
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken));
         }
 
         [Fact]
@@ -97,7 +92,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             SetupDatasetList(ResourceType.Series);
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken));
         }
 
         [Fact]
@@ -109,8 +104,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             await _dicomMetadataStore.AddInstanceMetadataAsync(datasetList.First(), version: 0);
             await _dicomMetadataStore.AddInstanceMetadataAsync(datasetList.Last(), version: 1);
 
-            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, DefaultCancellationToken);
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            DicomRetrieveMetadataResponse response = await _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken);
 
             ValidateResponseMetadataDataset(datasetList.First(), response.ResponseMetadata.First());
             ValidateResponseMetadataDataset(datasetList.Last(), response.ResponseMetadata.Last());
@@ -124,10 +118,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             switch (resourceType)
             {
                 case ResourceType.Study:
-                    dicomDataset1 = CreateValidMetadataDataset(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate());
-                    dicomDataset2 = CreateValidMetadataDataset(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate());
+                    dicomDataset1 = CreateValidMetadataDataset(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate());
+                    dicomDataset2 = CreateValidMetadataDataset(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate());
 
-                    _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(studyInstanceUid, DefaultCancellationToken).Returns(new List<VersionedDicomInstanceIdentifier>()
+                    _dicomInstanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid, DefaultCancellationToken).Returns(new List<VersionedDicomInstanceIdentifier>()
                     {
                         dicomDataset1.ToVersionedDicomInstanceIdentifier(version: 0),
                         dicomDataset2.ToVersionedDicomInstanceIdentifier(version: 1),
@@ -135,10 +129,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     break;
 
                 case ResourceType.Series:
-                    dicomDataset1 = CreateValidMetadataDataset(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate());
-                    dicomDataset2 = CreateValidMetadataDataset(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate());
+                    dicomDataset1 = CreateValidMetadataDataset(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate());
+                    dicomDataset2 = CreateValidMetadataDataset(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate());
 
-                    _dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(studyInstanceUid, seriesInstanceUid, DefaultCancellationToken).Returns(new List<VersionedDicomInstanceIdentifier>()
+                    _dicomInstanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken).Returns(new List<VersionedDicomInstanceIdentifier>()
                     {
                         dicomDataset1.ToVersionedDicomInstanceIdentifier(version: 0),
                         dicomDataset2.ToVersionedDicomInstanceIdentifier(version: 1),

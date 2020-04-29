@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -74,7 +73,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                 StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x), frames: 0, disposeStreams: true).Result.Value));
 
             // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomInstanceNotFoundException());
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest("*", _studyInstanceUid),
@@ -98,7 +97,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            Assert.False(response.IsPartialSuccess);
             ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
 
             // Dispose created streams.
@@ -125,7 +124,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                 StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x), frames: 0, disposeStreams: true).Result.Value));
 
             // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.Last(), _defaultCancellationToken).Throws(new DicomInstanceNotFoundException());
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid),
@@ -149,7 +148,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            Assert.False(response.IsPartialSuccess);
             ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
 
             // Dispose created streams.
@@ -173,7 +172,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
 
             // For the first instance identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
-            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Throws(new DicomDataStoreException(HttpStatusCode.NotFound));
+            _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Throws(new DicomInstanceNotFoundException());
 
             await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid),
@@ -181,7 +180,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
-        public async Task GivenStoredInstances_WhenRetrieveRequestForInstance_ThenInstanceIsRetrievedSuccesfully()
+        public async Task GivenStoredInstances_WhenRetrieveRequestForInstance_ThenInstanceIsRetrievedSuccessfully()
         {
             // Add multiple instances to validate that we return the requested instance and ignore the other(s).
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
@@ -195,7 +194,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response stream has expected file - it should be equivalent to what the store was set up to return.
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            Assert.False(response.IsPartialSuccess);
             ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, response.ResponseStreams);
 
             // Dispose created streams.
@@ -245,7 +244,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             // Add multiple instances to validate that we return the requested instance and ignore the other(s).
             List<VersionedDicomInstanceIdentifier> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
 
-            // For the first isntance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
+            // For the first instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
             KeyValuePair<DicomFile, Stream> streamAndStoredFile = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(instanceIdentifiers.First()), frames: 3).Result;
             _dicomFileStore.GetFileAsync(instanceIdentifiers.First(), _defaultCancellationToken).Returns(streamAndStoredFile.Value);
 
@@ -254,7 +253,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response streams has expected frames - it should be equivalent to what the store was set up to return.
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            Assert.False(response.IsPartialSuccess);
 
             AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(0), response.ResponseStreams.ToList()[0]);
             AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(1), response.ResponseStreams.ToList()[1]);

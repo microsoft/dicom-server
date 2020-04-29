@@ -4,37 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
-using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    [Serializable]
-    public class DicomDataStoreException : Exception
+    public class DicomDataStoreException : DicomServerException
     {
-        public DicomDataStoreException(HttpStatusCode httpStatusCode)
-        {
-            StatusCode = (int)httpStatusCode;
-        }
-
-        public DicomDataStoreException(HttpStatusCode? httpStatusCode, Exception innerException)
-            : base(innerException.Message, innerException)
-        {
-            StatusCode = httpStatusCode.HasValue ? (int)httpStatusCode.Value : (int)HttpStatusCode.InternalServerError;
-        }
-
-        public DicomDataStoreException(int? statusCode, Exception innerException)
-            : base(innerException.Message, innerException)
-        {
-            StatusCode = statusCode ?? (int)HttpStatusCode.InternalServerError;
-        }
-
-        public DicomDataStoreException()
-        {
-        }
-
         public DicomDataStoreException(string message)
             : base(message)
         {
@@ -45,23 +19,9 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
         {
         }
 
-        protected DicomDataStoreException(SerializationInfo serializationInfo, StreamingContext streamingContext)
-            : base(serializationInfo, streamingContext)
+        public DicomDataStoreException(Exception innerException)
+            : base(DicomCoreResource.DataStoreOperationFailed, innerException)
         {
-            EnsureArg.IsNotNull(serializationInfo, nameof(serializationInfo));
-
-            StatusCode = serializationInfo.GetInt32(nameof(StatusCode));
-        }
-
-        public int StatusCode { get; }
-
-        [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
-        public override void GetObjectData(SerializationInfo serializationInfo, StreamingContext context)
-        {
-            EnsureArg.IsNotNull(serializationInfo, nameof(serializationInfo));
-
-            serializationInfo.AddValue(nameof(StatusCode), StatusCode);
-            base.GetObjectData(serializationInfo, context);
         }
     }
 }

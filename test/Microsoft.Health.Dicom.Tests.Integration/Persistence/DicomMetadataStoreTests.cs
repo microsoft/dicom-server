@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -39,9 +38,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 seriesInstanceUid: TestUidGenerator.Generate(),
                 sopInstanceUid: TestUidGenerator.Generate(),
                 version: 0);
-            DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(
                 () => _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId));
-            Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -56,9 +54,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
 
-            DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(
                 () => _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId));
-            Assert.Equal((int)HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -70,9 +67,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomDataset storedMetadata = await _dicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceId);
             Assert.NotNull(storedMetadata);
 
-            DicomDataStoreException exception = await Assert.ThrowsAsync<DicomDataStoreException>(
+            DicomInstanceAlreadyExistsException exception = await Assert.ThrowsAsync<DicomInstanceAlreadyExistsException>(
                 () => _dicomMetadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0));
-            Assert.Equal((int)HttpStatusCode.Conflict, exception.StatusCode);
 
             await _dicomMetadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
         }

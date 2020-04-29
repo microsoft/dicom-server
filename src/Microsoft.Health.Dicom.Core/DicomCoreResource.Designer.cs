@@ -61,11 +61,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DICOM Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
+        ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
-        internal static string DicomIdentifierInvalid {
+        internal static string DataStoreOperationFailed {
             get {
-                return ResourceManager.GetString("DicomIdentifierInvalid", resourceCulture);
+                return ResourceManager.GetString("DataStoreOperationFailed", resourceCulture);
             }
         }
         
@@ -86,18 +86,16 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("DuplicateQueryParam", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to The instance specified was not found..
+        ///   Looks up a localized string similar to The specified frame cannot be found..
         /// </summary>
-        internal static string FrameNotFound
-        {
-            get
-            {
+        internal static string FrameNotFound {
+            get {
                 return ResourceManager.GetString("FrameNotFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. IncludeField has unknown attribute {0}..
         /// </summary>
@@ -117,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The instance specified was not found..
+        ///   Looks up a localized string similar to The specified instance cannot be found..
         /// </summary>
         internal static string InstanceNotFound {
             get {
@@ -141,6 +139,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidDateValue {
             get {
                 return ResourceManager.GetString("InvalidDateValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DICOM Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
+        /// </summary>
+        internal static string InvalidDicomIdentifier {
+            get {
+                return ResourceManager.GetString("InvalidDicomIdentifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The DICOM instance is invalid..
+        /// </summary>
+        internal static string InvalidDicomInstance {
+            get {
+                return ResourceManager.GetString("InvalidDicomInstance", resourceCulture);
             }
         }
         
@@ -267,6 +283,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string UnsupportedSearchParameter {
             get {
                 return ResourceManager.GetString("UnsupportedSearchParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified transcoding is not supported..
+        /// </summary>
+        internal static string UnsupportedTranscoding {
+            get {
+                return ResourceManager.GetString("UnsupportedTranscoding", resourceCulture);
             }
         }
     }

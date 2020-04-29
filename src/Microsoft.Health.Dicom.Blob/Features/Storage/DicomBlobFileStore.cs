@@ -5,6 +5,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -52,18 +53,26 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
             blob.Properties.ContentType = KnownContentTypes.ApplicationDicom;
 
-            await ExecuteAsync(() =>
+            try
             {
                 // Will throw if the provided resource identifier already exists.
-                return blob.UploadFromStreamAsync(
+                await blob.UploadFromStreamAsync(
                     stream,
                     overwriteIfExists ? AccessCondition.GenerateEmptyCondition() : AccessCondition.GenerateIfNotExistsCondition(),
                     new BlobRequestOptions(),
                     new OperationContext(),
                     cancellationToken);
-            });
 
-            return blob.Uri;
+                return blob.Uri;
+            }
+            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            {
+                throw new DicomInstanceAlreadyExistsException();
+            }
+            catch (Exception ex)
+            {
+                throw new DicomDataStoreException(ex);
+            }
         }
 
         /// <inheritdoc />
@@ -111,18 +120,13 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             {
                 await action();
             }
+            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            {
+                throw new DicomInstanceNotFoundException();
+            }
             catch (Exception ex)
             {
-                int? statusCode = null;
-
-                switch (ex)
-                {
-                    case StorageException storageException:
-                        statusCode = storageException.RequestInformation.HttpStatusCode;
-                        break;
-                }
-
-                throw new DicomDataStoreException(statusCode, ex);
+                throw new DicomDataStoreException(ex);
             }
         }
     }

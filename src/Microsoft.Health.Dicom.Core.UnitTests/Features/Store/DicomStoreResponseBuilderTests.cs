@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
-using System.Net;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -45,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse(studyInstanceUid);
 
             Assert.NotNull(response);
-            Assert.Equal((int)HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(DicomStoreResponseStatus.None, response.Status);
             Assert.Null(response.Dataset);
         }
 
@@ -57,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse(null);
 
             Assert.NotNull(response);
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(DicomStoreResponseStatus.Success, response.Status);
             Assert.NotNull(response.Dataset);
             Assert.Single(response.Dataset);
 
@@ -76,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse(null);
 
             Assert.NotNull(response);
-            Assert.Equal((int)HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Equal(DicomStoreResponseStatus.Failure, response.Status);
             Assert.NotNull(response.Dataset);
             Assert.Single(response.Dataset);
 
@@ -94,7 +93,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse(null);
 
             Assert.NotNull(response);
-            Assert.Equal((int)HttpStatusCode.Accepted, response.StatusCode);
+            Assert.Equal(DicomStoreResponseStatus.PartialSuccess, response.Status);
             Assert.NotNull(response.Dataset);
             Assert.Equal(2, response.Dataset.Count());
 
@@ -122,7 +121,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse(null);
 
             Assert.NotNull(response);
-            Assert.Equal((int)HttpStatusCode.Accepted, response.StatusCode);
+            Assert.Equal(DicomStoreResponseStatus.PartialSuccess, response.Status);
             Assert.NotNull(response.Dataset);
             Assert.Equal(2, response.Dataset.Count());
 
@@ -138,7 +137,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public void GivenNullDicomDatasetWhenAddingFailuire_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
+        public void GivenNullDicomDatasetWhenAddingFailure_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
         {
             const ushort failureReasonCode = 300;
 
@@ -147,7 +146,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomStoreResponse response = _dicomStoreResponseBuilder.BuildResponse(null);
 
             Assert.NotNull(response);
-            Assert.Equal((int)HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Equal(DicomStoreResponseStatus.Failure, response.Status);
             Assert.NotNull(response.Dataset);
             Assert.Single(response.Dataset);
 

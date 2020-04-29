@@ -10,6 +10,7 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -53,7 +54,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 studyInstanceUid,
                 HttpContext.RequestAborted);
 
-            return StatusCode(storeResponse.StatusCode, storeResponse.Dataset);
+            return StatusCode(
+                (int)storeResponse.Status.ToHttpStatusCode(),
+                storeResponse.Dataset);
         }
     }
 }

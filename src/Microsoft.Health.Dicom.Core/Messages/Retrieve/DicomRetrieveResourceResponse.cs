@@ -5,24 +5,21 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
-    public class DicomRetrieveResourceResponse : BaseStatusCodeResponse
+    public class DicomRetrieveResourceResponse
     {
-        public DicomRetrieveResourceResponse(int statusCode)
-            : base(statusCode)
-        {
-        }
-
-        public DicomRetrieveResourceResponse(HttpStatusCode statusCode, IEnumerable<Stream> responseStreams)
-            : base((int)statusCode)
+        public DicomRetrieveResourceResponse(bool isPartialSuccess, IEnumerable<Stream> responseStreams)
         {
             EnsureArg.IsNotNull(responseStreams, nameof(responseStreams));
+
+            IsPartialSuccess = isPartialSuccess;
             ResponseStreams = responseStreams;
         }
+
+        public bool IsPartialSuccess { get; }
 
         public IEnumerable<Stream> ResponseStreams { get; }
     }

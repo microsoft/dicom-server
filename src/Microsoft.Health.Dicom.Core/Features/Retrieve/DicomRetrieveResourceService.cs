@@ -3,11 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -73,7 +71,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 Stream[] resultStreams = await Task.WhenAll(
                     retrieveInstances.Select(x => _dicomBlobDataStore.GetFileAsync(x, cancellationToken)));
 
-                var responseCode = HttpStatusCode.OK;
+                bool isPartialSuccess = false;
 
                 if (message.ResourceType == ResourceType.Frames)
                 {
@@ -84,7 +82,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     if (!message.OriginalTransferSyntaxRequested() &&
                         !dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
                     {
-                        throw new DicomDataStoreException(HttpStatusCode.NotAcceptable);
+                        throw new DicomTranscodingException();
                     }
 
                     resultStreams = message.Frames.Select(
@@ -118,7 +116,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                             // If some of the instances are not transcodeable, Partial Content should be returned
                             if (!canTranscode)
                             {
-                                responseCode = HttpStatusCode.PartialContent;
+                                isPartialSuccess = true;
                             }
 
                             return canTranscode;
@@ -126,7 +124,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                         if (filteredStreams.Length != resultStreams.Length)
                         {
-                            responseCode = HttpStatusCode.PartialContent;
+                            isPartialSuccess = true;
                         }
 
                         resultStreams = filteredStreams;
@@ -134,7 +132,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                     if (resultStreams.Length == 0)
                     {
-                        throw new DicomDataStoreException(HttpStatusCode.NotAcceptable);
+                        throw new DicomTranscodingException();
                     }
 
                     resultStreams = resultStreams.Select(stream =>
@@ -143,7 +141,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                             s => EncodeDicomFileAsDicom(s, parsedDicomTransferSyntax))).ToArray();
                 }
 
-                return new DicomRetrieveResourceResponse(responseCode, resultStreams);
+                return new DicomRetrieveResourceResponse(isPartialSuccess, resultStreams);
             }
             catch (DicomDataStoreException e)
             {
@@ -155,11 +153,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                         message.StudyInstanceUid,
                         message.SeriesInstanceUid,
                         message.SopInstanceUid));
-
-                if (e.StatusCode.Equals((int)HttpStatusCode.NotFound))
-                {
-                    throw new DicomInstanceNotFoundException();
-                }
 
                 throw;
             }
@@ -184,7 +177,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 var pixelData = DicomPixelData.Create(dataset);
                 if (frame >= pixelData.NumberOfFrames)
                 {
-                    throw new DicomDataStoreException(HttpStatusCode.NotFound, new ArgumentException($"The frame '{frame}' does not exist.", nameof(frame)));
+                    throw new DicomFrameNotFoundException();
                 }
 
                 resultByteBuffer = pixelData.GetFrame(frame);

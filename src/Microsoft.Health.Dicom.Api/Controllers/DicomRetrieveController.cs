@@ -52,6 +52,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}'.");
 
             DicomRetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, transferSyntax, HttpContext.RequestAborted);
+
             return CreateResult(response);
         }
 
@@ -68,7 +69,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode, response.ResponseMetadata);
+            return CreateResult(response);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
@@ -87,7 +88,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
             DicomRetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
-                                studyInstanceUid, seriesInstanceUid, transferSyntax, HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, transferSyntax, HttpContext.RequestAborted);
+
             return CreateResult(response);
         }
 
@@ -105,7 +107,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
                 studyInstanceUid, seriesInstanceUid, HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode, response.ResponseMetadata);
+            return CreateResult(response);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
@@ -124,7 +126,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
             DicomRetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
-                            studyInstanceUid, seriesInstanceUid, sopInstanceUid, transferSyntax, HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, transferSyntax, HttpContext.RequestAborted);
+
             return CreateResult(response);
         }
 
@@ -142,7 +145,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             DicomRetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
                studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
 
-            return StatusCode(response.StatusCode, response.ResponseMetadata);
+            return CreateResult(response);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream)]
@@ -161,13 +164,21 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}', frames: '{string.Join(", ", frames ?? Array.Empty<int>())}'.");
             DicomRetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
-                            studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, transferSyntax, HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, transferSyntax, HttpContext.RequestAborted);
+
             return CreateResult(response);
+        }
+
+        private IActionResult CreateResult(DicomRetrieveMetadataResponse response)
+        {
+            return StatusCode((int)HttpStatusCode.OK, response.ResponseMetadata);
         }
 
         private static IActionResult CreateResult(DicomRetrieveResourceResponse response)
         {
-            return new MultipartResult(response.StatusCode, response.ResponseStreams.Select(x => new MultipartItem(KnownContentTypes.ApplicationDicom, x)).ToList());
+            return new MultipartResult(
+                response.IsPartialSuccess ? (int)HttpStatusCode.PartialContent : (int)HttpStatusCode.OK,
+                response.ResponseStreams.Select(x => new MultipartItem(KnownContentTypes.ApplicationDicom, x)).ToList());
         }
     }
 }

@@ -5,7 +5,6 @@
 
 using System;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -24,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
     public class DicomStoreServiceTests
     {
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
-        private static readonly DicomStoreResponse DefaultResponse = new DicomStoreResponse(HttpStatusCode.OK);
+        private static readonly DicomStoreResponse DefaultResponse = new DicomStoreResponse(DicomStoreResponseStatus.Success, new DicomDataset());
 
         private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
             studyInstanceUid: "1",
@@ -156,7 +155,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomStoreOrchestrator
                 .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
-                .Do(_ => throw new DicomDataStoreException());
+                .Do(_ => throw new DicomDataStoreException("Simulated failure."));
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 

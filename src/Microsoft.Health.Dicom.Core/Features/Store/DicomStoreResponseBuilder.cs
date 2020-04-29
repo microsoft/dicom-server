@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -34,22 +33,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             bool hasSuccess = _dataset?.TryGetSequence(DicomTag.ReferencedSOPSequence, out _) ?? false;
             bool hasFailure = _dataset?.TryGetSequence(DicomTag.FailedSOPSequence, out _) ?? false;
 
-            HttpStatusCode statusCode = HttpStatusCode.NoContent;
+            DicomStoreResponseStatus status = DicomStoreResponseStatus.None;
 
             if (hasSuccess && hasFailure)
             {
                 // There are both successes and failures.
-                statusCode = HttpStatusCode.Accepted;
+                status = DicomStoreResponseStatus.PartialSuccess;
             }
             else if (hasSuccess)
             {
                 // There are only success.
-                statusCode = HttpStatusCode.OK;
+                status = DicomStoreResponseStatus.Success;
             }
             else if (hasFailure)
             {
                 // There are only failures.
-                statusCode = HttpStatusCode.Conflict;
+                status = DicomStoreResponseStatus.Failure;
             }
 
             if (hasSuccess && studyInstanceUid != null)
@@ -57,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 _dataset.Add(DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid).ToString());
             }
 
-            return new DicomStoreResponse(statusCode, _dataset);
+            return new DicomStoreResponse(status, _dataset);
         }
 
         /// <inheritdoc />

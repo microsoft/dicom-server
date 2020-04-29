@@ -8,7 +8,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features;
@@ -87,8 +86,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.True(success);
             Assert.Equal(1, retrievedInstanceCount);
 
-            await Assert.ThrowsAsync<DicomDataStoreException>(async () => await _fixture.DicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceIdentifier));
-            await Assert.ThrowsAsync<DicomDataStoreException>(async () => await _fixture.DicomFileStore.GetFileAsync(dicomInstanceIdentifier));
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(async () => await _fixture.DicomMetadataStore.GetInstanceMetadataAsync(dicomInstanceIdentifier));
+            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(async () => await _fixture.DicomFileStore.GetFileAsync(dicomInstanceIdentifier));
 
             Assert.Empty(await _fixture.DicomIndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid));
         }

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -81,7 +80,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 new DicomRetrieveResourceRequest(requestedTransferSyntax: null, _studyInstanceUid),
                 _defaultCancellationToken);
 
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            Assert.False(response.IsPartialSuccess);
 
             ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds));
         }
@@ -116,7 +115,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
                 new DicomRetrieveResourceRequest(requestedTransferSyntax: null, _studyInstanceUid, _firstSeriesInstanceUid),
                 _defaultCancellationToken);
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            Assert.False(response.IsPartialSuccess);
 
             ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToDicomInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
         }

@@ -117,9 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="DicomIdentifierInvalid" xml:space="preserve">
-    <value>DICOM Identifier '{0}' value '{1}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
-    <comment>{0} Identifier Parameter name, {1} Value.</comment>
+  <data name="DataStoreOperationFailed" xml:space="preserve">
+    <value>The data store operation failed.</value>
   </data>
   <data name="DuplicatedUidsNotAllowed" xml:space="preserve">
     <value>The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.</value>
@@ -129,6 +128,9 @@
     <value>Invalid QIDO-RS query. Duplicate AttributeId '{0}', Each attribute is allowed to be specified once.</value>
     <comment>{0} specified attributeid</comment>
   </data>
+  <data name="FrameNotFound" xml:space="preserve">
+    <value>The specified frame cannot be found.</value>
+  </data>
   <data name="IncludeFieldUnknownAttribute" xml:space="preserve">
     <value>Invalid QIDO-RS query. IncludeField has unknown attribute {0}.</value>
     <comment>{0} attribute name</comment>
@@ -137,7 +139,7 @@
     <value>The DICOM instance already exists.</value>
   </data>
   <data name="InstanceNotFound" xml:space="preserve">
-    <value>The instance specified was not found.</value>
+    <value>The specified instance cannot be found.</value>
   </data>
   <data name="InvalidDateRangeValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
@@ -147,6 +149,13 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="InvalidDateValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified Date value {0} is invalid for parameter {1}. Date should be valid and formatted as yyyyMMdd.</value>
     <comment>{0} Date value. {1} parameter name.</comment>
+  </data>
+  <data name="InvalidDicomIdentifier" xml:space="preserve">
+    <value>DICOM Identifier '{0}' value '{1}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
+    <comment>{0} Identifier Parameter name, {1} Value.</comment>
+  </data>
+  <data name="InvalidDicomInstance" xml:space="preserve">
+    <value>The DICOM instance is invalid.</value>
   </data>
   <data name="InvalidFramesValue" xml:space="preserve">
     <value>The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.</value>
@@ -196,5 +205,8 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="UnsupportedSearchParameter" xml:space="preserve">
     <value>Invalid QIDO-RS query. AttributeId {0} is not queryable. </value>
     <comment>{0} AttributeId name</comment>
+  </data>
+  <data name="UnsupportedTranscoding" xml:space="preserve">
+    <value>The specified transcoding is not supported.</value>
   </data>
 </root>
