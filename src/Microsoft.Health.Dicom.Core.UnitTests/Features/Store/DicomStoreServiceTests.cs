@@ -8,8 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
+using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -50,7 +52,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 _dicomStoreResponseBuilder,
                 _dicomDatasetMinimumRequirementValidator,
                 _dicomStoreOrchestrator,
-                NullLogger<DicomStoreService>.Instance);
+                NullLogger<DicomStoreService>.Instance,
+                Substitute.For<IMediator>(),
+                Substitute.For<IUrlResolver>());
         }
 
         [Fact]

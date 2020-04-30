@@ -6,6 +6,7 @@
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.Event;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -37,6 +38,8 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            services.AddSingleton<DicomEventingService>();
 
             services.Decorate<IDicomStoreOrchestrator, LoggingDicomStoreOrchestrator>();
 

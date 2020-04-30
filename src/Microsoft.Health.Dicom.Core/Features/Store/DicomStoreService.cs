@@ -5,12 +5,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Event;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using DicomValidationException = Dicom.DicomValidationException;
@@ -50,25 +55,34 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IDicomDatasetMinimumRequirementValidator _dicomDatasetMinimumRequirementValidator;
         private readonly IDicomStoreOrchestrator _dicomStoreOrchestrator;
         private readonly ILogger _logger;
-
+        private readonly IMediator _mediator;
+        private readonly IUrlResolver _urlResolver;
         private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
         private string _requiredStudyInstanceUid;
+        private List<DicomInstanceIdentifier> _persistedInstances;
 
         public DicomStoreService(
             IDicomStoreResponseBuilder dicomStoreResponseBuilder,
             IDicomDatasetMinimumRequirementValidator dicomDatasetMinimumRequirementValidator,
             IDicomStoreOrchestrator dicomStoreOrchestrator,
-            ILogger<DicomStoreService> logger)
+            ILogger<DicomStoreService> logger,
+            IMediator mediator,
+            IUrlResolver urlResolver)
         {
             EnsureArg.IsNotNull(dicomStoreResponseBuilder, nameof(dicomStoreResponseBuilder));
             EnsureArg.IsNotNull(dicomDatasetMinimumRequirementValidator, nameof(dicomDatasetMinimumRequirementValidator));
             EnsureArg.IsNotNull(dicomStoreOrchestrator, nameof(dicomStoreOrchestrator));
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
 
             _dicomStoreResponseBuilder = dicomStoreResponseBuilder;
             _dicomDatasetMinimumRequirementValidator = dicomDatasetMinimumRequirementValidator;
             _dicomStoreOrchestrator = dicomStoreOrchestrator;
             _logger = logger;
+            _mediator = mediator;
+            _urlResolver = urlResolver;
+            _persistedInstances = new List<DicomInstanceIdentifier>();
         }
 
         /// <inheritdoc />
@@ -96,6 +110,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                         _ = Task.Run(() => DisposeResourceAsync(capturedIndex));
                     }
                 }
+            }
+
+            if (_persistedInstances.Any())
+            {
+                await _mediator.Publish(
+                    new DicomEventNotificationCollection(
+                        _persistedInstances.Select(instanceId =>
+                                                    new DicomEventNotification(
+                                                        DicomEventType.DicomInstanceCreated,
+                                                        new DicomInstanceCreatedEventData()
+                                                        {
+                                                            StudyInstanceUid = instanceId.StudyInstanceUid,
+                                                            SeriesInstanceUid = instanceId.SeriesInstanceUid,
+                                                            SopInstanceUid = instanceId.SopInstanceUid,
+                                                        },
+                                                        _urlResolver.ResolveRetrieveInstanceUri(instanceId).ToString()))
+                        .ToList()));
             }
 
             return _dicomStoreResponseBuilder.BuildResponse(requiredStudyInstanceUid);
@@ -146,6 +177,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 LogSuccessfullyStoredDelegate(_logger, index, null);
 
                 _dicomStoreResponseBuilder.AddSuccess(dicomDataset);
+
+                _persistedInstances.Add(dicomDataset.ToDicomInstanceIdentifier());
             }
             catch (Exception ex)
             {
