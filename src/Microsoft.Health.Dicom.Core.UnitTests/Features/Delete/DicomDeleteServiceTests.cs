@@ -59,48 +59,48 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
         [Fact]
         public async Task GivenADeleteStudyRequest_WhenDataStoreIsCalled_ThenCorrectDeleteDelayIsUsed()
         {
-            string studyUid = TestUidGenerator.Generate();
+            string studyInstanceUid = TestUidGenerator.Generate();
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
             using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
             {
-                await _dicomDeleteService.DeleteStudyAsync(studyUid, CancellationToken.None);
+                await _dicomDeleteService.DeleteStudyAsync(studyInstanceUid, CancellationToken.None);
                 await _dicomIndexDataStore
                     .Received(1)
-                    .DeleteStudyIndexAsync(studyUid, now + _dicomDeleteConfiguration.DeleteDelay);
+                    .DeleteStudyIndexAsync(studyInstanceUid, now + _dicomDeleteConfiguration.DeleteDelay);
             }
         }
 
         [Fact]
         public async Task GivenADeleteSeriesRequest_WhenDataStoreIsCalled_ThenCorrectDeleteDelayIsUsed()
         {
-            string studyUid = TestUidGenerator.Generate();
-            string seriesUid = TestUidGenerator.Generate();
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
             using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
             {
-                await _dicomDeleteService.DeleteSeriesAsync(studyUid, seriesUid, CancellationToken.None);
+                await _dicomDeleteService.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, CancellationToken.None);
                 await _dicomIndexDataStore
                     .Received(1)
-                    .DeleteSeriesIndexAsync(studyUid, seriesUid, now + _dicomDeleteConfiguration.DeleteDelay);
+                    .DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, now + _dicomDeleteConfiguration.DeleteDelay);
             }
         }
 
         [Fact]
         public async Task GivenADeleteInstanceRequest_WhenDataStoreIsCalled_ThenCorrectDeleteDelayIsUsed()
         {
-            string studyUid = TestUidGenerator.Generate();
-            string seriesUid = TestUidGenerator.Generate();
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
             using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
             {
-                await _dicomDeleteService.DeleteInstanceAsync(studyUid, seriesUid, sopInstanceUid, CancellationToken.None);
+                await _dicomDeleteService.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, CancellationToken.None);
                 await _dicomIndexDataStore
                     .Received(1)
-                    .DeleteInstanceIndexAsync(studyUid, seriesUid, sopInstanceUid, now + _dicomDeleteConfiguration.DeleteDelay);
+                    .DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _dicomDeleteConfiguration.DeleteDelay);
             }
         }
 
