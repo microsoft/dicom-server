@@ -13,8 +13,11 @@ using System.Threading;
 using EnsureThat;
 using NSubstitute;
 
-namespace Microsoft.Health.Fhir.Tests.Common
+namespace Microsoft.Health.Dicom.Tests.Common
 {
+    /// <summary>
+    /// Originally from Microsoft.Health.Fhir.Tests.Common.Mock.cs
+    /// </summary>
     public class Mock
     {
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> StaticPropertyConcurrency = new ConcurrentDictionary<string, SemaphoreSlim>();
