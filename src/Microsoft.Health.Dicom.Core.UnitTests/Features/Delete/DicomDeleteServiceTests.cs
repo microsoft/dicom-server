@@ -6,21 +6,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Features.Transactions;
-using Microsoft.Health.Core;
+using Microsoft.Health.Core.Internal;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Fhir.Tests.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -43,11 +41,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
             _dicomFileDataStore = Substitute.For<IDicomFileStore>();
             _dicomDeleteConfiguration = new DeletedInstanceCleanupConfiguration
             {
-                DeleteDelay = TimeSpan.FromSeconds(1),
+                DeleteDelay = TimeSpan.FromDays(1),
                 BatchSize = 10,
                 MaxRetries = 5,
                 PollingInterval = TimeSpan.FromSeconds(1),
-                RetryBackOff = TimeSpan.FromSeconds(60),
+                RetryBackOff = TimeSpan.FromDays(4),
             };
 
             IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfigurationOptions = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
@@ -57,6 +55,54 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
             transactionHandler.BeginTransaction().Returns(_transactionScope);
 
             _dicomDeleteService = new DicomDeleteService(_dicomIndexDataStore, _dicomMetadataStore, _dicomFileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DicomDeleteService>.Instance);
+        }
+
+        [Fact]
+        public async Task GivenADeleteStudyRequest_WhenDataStoreIsCalled_ThenCorrectDeleteDelayIsUsed()
+        {
+            string studyUid = TestUidGenerator.Generate();
+
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+            {
+                await _dicomDeleteService.DeleteStudyAsync(studyUid, CancellationToken.None);
+                await _dicomIndexDataStore
+                    .Received(1)
+                    .DeleteStudyIndexAsync(studyUid, now + _dicomDeleteConfiguration.DeleteDelay);
+            }
+        }
+
+        [Fact]
+        public async Task GivenADeleteSeriesRequest_WhenDataStoreIsCalled_ThenCorrectDeleteDelayIsUsed()
+        {
+            string studyUid = TestUidGenerator.Generate();
+            string seriesUid = TestUidGenerator.Generate();
+
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+            {
+                await _dicomDeleteService.DeleteSeriesAsync(studyUid, seriesUid, CancellationToken.None);
+                await _dicomIndexDataStore
+                    .Received(1)
+                    .DeleteSeriesIndexAsync(studyUid, seriesUid, now + _dicomDeleteConfiguration.DeleteDelay);
+            }
+        }
+
+        [Fact]
+        public async Task GivenADeleteInstanceRequest_WhenDataStoreIsCalled_ThenCorrectDeleteDelayIsUsed()
+        {
+            string studyUid = TestUidGenerator.Generate();
+            string seriesUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+            {
+                await _dicomDeleteService.DeleteInstanceAsync(studyUid, seriesUid, sopInstanceUid, CancellationToken.None);
+                await _dicomIndexDataStore
+                    .Received(1)
+                    .DeleteInstanceIndexAsync(studyUid, seriesUid, sopInstanceUid, now + _dicomDeleteConfiguration.DeleteDelay);
+            }
         }
 
         [Fact]
@@ -97,24 +143,28 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
         [Fact]
         public async Task GivenADeletedInstance_WhenFileStoreThrows_ThenIncrementRetryIsCalled()
         {
-            List<VersionedDicomInstanceIdentifier> responseList = GeneratedDeletedInstanceList(1);
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+            {
+                List<VersionedDicomInstanceIdentifier> responseList = GeneratedDeletedInstanceList(1);
 
-            _dicomIndexDataStore
-                .RetrieveDeletedInstancesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-                .ReturnsForAnyArgs(responseList);
+                _dicomIndexDataStore
+                    .RetrieveDeletedInstancesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+                    .ReturnsForAnyArgs(responseList);
 
-            _dicomFileDataStore
-                .DeleteFileIfExistsAsync(Arg.Any<VersionedDicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
-                .ThrowsForAnyArgs(new Exception("Generic exception"));
+                _dicomFileDataStore
+                    .DeleteFileIfExistsAsync(Arg.Any<VersionedDicomInstanceIdentifier>(), Arg.Any<CancellationToken>())
+                    .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-            (bool success, int retrievedInstanceCount) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+                (bool success, int retrievedInstanceCount) = await _dicomDeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
-            Assert.True(success);
-            Assert.Equal(1, retrievedInstanceCount);
+                Assert.True(success);
+                Assert.Equal(1, retrievedInstanceCount);
 
-            await _dicomIndexDataStore
-                .Received(1)
-                .IncrementDeletedInstanceRetryAsync(responseList[0], cleanupAfter: Arg.Any<DateTimeOffset>(), CancellationToken.None);
+                await _dicomIndexDataStore
+                    .Received(1)
+                    .IncrementDeletedInstanceRetryAsync(responseList[0], now + _dicomDeleteConfiguration.RetryBackOff, CancellationToken.None);
+            }
         }
 
         [Fact]
