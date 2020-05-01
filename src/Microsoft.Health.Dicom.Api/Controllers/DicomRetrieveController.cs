@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             DicomRetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, transferSyntax, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -90,7 +90,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             DicomRetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
                 studyInstanceUid, seriesInstanceUid, transferSyntax, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
@@ -110,7 +110,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
+        [AcceptContentFilter(KnownContentTypes.ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -128,7 +128,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             DicomRetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, transferSyntax, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
 
         [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
@@ -166,7 +166,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             DicomRetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, transferSyntax, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return CreateResult(response, KnownContentTypes.ApplicationOctetStream);
         }
 
         private IActionResult CreateResult(DicomRetrieveMetadataResponse response)
@@ -174,11 +174,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return StatusCode((int)HttpStatusCode.OK, response.ResponseMetadata);
         }
 
-        private static IActionResult CreateResult(DicomRetrieveResourceResponse response)
+        private static IActionResult CreateResult(DicomRetrieveResourceResponse response, string contentType)
         {
-            return new MultipartResult(
+            var returnVar = new MultipartResult(
                 response.IsPartialSuccess ? (int)HttpStatusCode.PartialContent : (int)HttpStatusCode.OK,
-                response.ResponseStreams.Select(x => new MultipartItem(KnownContentTypes.ApplicationDicom, x)).ToList());
+                response.ResponseStreams.Select(x => new MultipartItem(contentType, x)).ToList());
+            return returnVar;
         }
     }
 }

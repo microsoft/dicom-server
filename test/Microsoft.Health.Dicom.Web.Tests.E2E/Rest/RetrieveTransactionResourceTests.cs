@@ -15,6 +15,7 @@ using Dicom.Imaging;
 using Dicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Microsoft.IO;
@@ -182,22 +183,28 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var dicomInstance = dicomFile1.Dataset.ToDicomInstanceIdentifier();
             await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
 
-            DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1 });
+            DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(
+                dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1 }, expectedContentTypeHeader: KnownContentTypes.ApplicationOctetStream);
             Assert.NotNull(frames);
             Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
             Assert.Single(frames.Value);
+            Assert.Equal(KnownContentTypes.MultipartRelated, frames.Content.Headers.ContentType.MediaType);
             AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
 
-            frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 2 });
+            frames = await _client.RetrieveFramesAsync(
+                dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 2 }, expectedContentTypeHeader: KnownContentTypes.ApplicationOctetStream);
             Assert.NotNull(frames);
             Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
             Assert.Single(frames.Value);
+            Assert.Equal(KnownContentTypes.MultipartRelated, frames.Content.Headers.ContentType.MediaType);
             AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(1), frames.Value[0]);
 
-            frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1, 2 });
+            frames = await _client.RetrieveFramesAsync(
+                dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1, 2 }, expectedContentTypeHeader: KnownContentTypes.ApplicationOctetStream);
             Assert.NotNull(frames);
             Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
             Assert.Equal(2, frames.Value.Count);
+            Assert.Equal(KnownContentTypes.MultipartRelated, frames.Content.Headers.ContentType.MediaType);
             AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
             AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(1), frames.Value[1]);
 
@@ -645,7 +652,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             Assert.Equal(expectedStatusCode, response.StatusCode);
             Assert.Equal(expectedFiles.Length, response.Value.Count);
-            Assert.Equal("multipart/related", response.Content.Headers.ContentType.MediaType);
+            Assert.Equal(KnownContentTypes.MultipartRelated, response.Content.Headers.ContentType.MediaType);
 
             for (var i = 0; i < expectedFiles.Length; i++)
             {

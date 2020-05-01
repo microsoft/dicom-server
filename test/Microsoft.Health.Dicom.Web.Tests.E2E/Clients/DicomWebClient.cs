@@ -22,6 +22,7 @@ using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Xunit;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
@@ -80,6 +81,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
             Uri requestUri,
             string dicomTransferSyntax = null,
+            string expectedContentTypeHeader = null,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
@@ -93,7 +95,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
                     return new DicomWebResponse<IReadOnlyList<Stream>>(
                         response,
-                        (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken)).ToList());
+                        (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken, expectedContentTypeHeader)).ToList());
                 }
             }
         }
@@ -316,7 +318,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
-        private async Task<IEnumerable<Stream>> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, CancellationToken cancellationToken)
+        private async Task<IEnumerable<Stream>> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, CancellationToken cancellationToken, string expectedContentTypeHeader = null)
         {
             EnsureArg.IsNotNull(httpContent, nameof(httpContent));
 
@@ -329,6 +331,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
                 while ((part = await multipartReader.ReadNextSectionAsync(cancellationToken)) != null)
                 {
+                    if (!string.IsNullOrEmpty(expectedContentTypeHeader))
+                    {
+                        Assert.Equal(expectedContentTypeHeader, part.ContentType);
+                    }
+
                     MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream();
                     await part.Body.CopyToAsync(memoryStream, cancellationToken);
                     memoryStream.Seek(0, SeekOrigin.Begin);
