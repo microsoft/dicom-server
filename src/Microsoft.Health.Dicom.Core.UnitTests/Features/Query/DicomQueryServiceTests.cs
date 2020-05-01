@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Theory]
         [InlineData(QueryResource.StudySeries, "123.001")]
         [InlineData(QueryResource.StudyInstances, "abc.1234")]
-        public void GivenQidoQuery_WithInvalidStudyUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid)
+        public void GivenQidoQuery_WithInvalidStudyInstanceUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid)
         {
             var request = new DicomQueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),

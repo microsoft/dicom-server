@@ -235,7 +235,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenMultipleDicomInstance_WhenDeletedByStudyUid_ThenItemsBeRemovedAndAddedToDeletedInstanceTable()
+        public async Task GivenMultipleDicomInstance_WhenDeletedByStudyInstanceUid_ThenItemsBeRemovedAndAddedToDeletedInstanceTable()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
