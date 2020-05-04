@@ -387,7 +387,7 @@ There are no restrictions on the request's `'Accept'` header, `'Content-Type'` h
 
 ### Response Status Codes
 
-| Code              | |Description |
+| Code              | Description |
 | ----------------- | ------------ |
 | 200 (OK)          | When all the SOP instances have been deleted. |
 | 400 (Bad Request) | The request was badly formatted. |
