@@ -13,29 +13,29 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
     {
         private const string DefaultContentType = "test-content";
 
-        private readonly IDicomInstanceEntryReader _dicomInstanceEntryReader = Substitute.For<IDicomInstanceEntryReader>();
-        private readonly DicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager;
+        private readonly IInstanceEntryReader _instanceEntryReader = Substitute.For<IInstanceEntryReader>();
+        private readonly InstanceEntryReaderManager _instanceEntryReaderManager;
 
         public DicomInstanceEntryReaderManagerTests()
         {
-            _dicomInstanceEntryReader.CanRead(DefaultContentType).Returns(true);
+            _instanceEntryReader.CanRead(DefaultContentType).Returns(true);
 
-            _dicomInstanceEntryReaderManager = new DicomInstanceEntryReaderManager(
-                new[] { _dicomInstanceEntryReader });
+            _instanceEntryReaderManager = new InstanceEntryReaderManager(
+                new[] { _instanceEntryReader });
         }
 
         [Fact]
         public void GivenASupportedContentType_WhenFindReaderIsCalled_ThenAnInstanceOfReaderShouldBeReturned()
         {
             Assert.Same(
-                _dicomInstanceEntryReader,
-                _dicomInstanceEntryReaderManager.FindReader(DefaultContentType));
+                _instanceEntryReader,
+                _instanceEntryReaderManager.FindReader(DefaultContentType));
         }
 
         [Fact]
         public void GivenANotSupportedContentType_WhenFindReaderIsCalled_ThenNullShouldBeReturned()
         {
-            Assert.Null(_dicomInstanceEntryReaderManager.FindReader("unsupported"));
+            Assert.Null(_instanceEntryReaderManager.FindReader("unsupported"));
         }
     }
 }

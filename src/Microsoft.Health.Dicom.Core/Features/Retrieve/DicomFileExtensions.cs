@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 !dataset.Contains(DicomTag.Rows) ||
                 !dataset.Contains(DicomTag.PixelData))
             {
-                throw new DicomFrameNotFoundException();
+                throw new FrameNotFoundException();
             }
 
             // Note: We look for any frame value that is less than zero, or greater than number of frames.
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             // If any missing frames, throw not found exception for the specific frames not found.
             if (missingFrames.Length > 0)
             {
-                throw new DicomFrameNotFoundException();
+                throw new FrameNotFoundException();
             }
         }
     }

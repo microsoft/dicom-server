@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Storage;
@@ -22,12 +23,12 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
         public void GivenStudyInstanceUid_WhenIELevelSeries_ValidateDistinctStudySeries()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>());
-            var filters = new List<DicomQueryFilterCondition>()
+            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "1234"),
             };
-            var query = new DicomQueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters);
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
@@ -46,22 +47,22 @@ AND a.SeriesInstanceUid = f.SeriesInstanceUid";
             Assert.Contains(expectedCrossApply, stringBuilder.ToString());
             Assert.Contains("StudyInstanceUid=@p0", stringBuilder.ToString());
             Assert.Contains($"OFFSET 0 ROWS", stringBuilder.ToString());
-            Assert.Contains($"FETCH NEXT {DicomQueryLimit.DefaultQueryResultCount} ROWS ONLY", stringBuilder.ToString());
+            Assert.Contains($"FETCH NEXT {QueryLimit.DefaultQueryResultCount} ROWS ONLY", stringBuilder.ToString());
         }
 
         [Fact]
         public void GivenStudyDate_WhenIELevelSTudy_ValidateDistinctStudyStudies()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var minDate = new DateTime(2020, 2, 1);
             var maxDate = new DateTime(2020, 3, 1);
 
-            var filters = new List<DicomQueryFilterCondition>()
+            var filters = new List<QueryFilterCondition>()
             {
                 new DateRangeValueMatchCondition(DicomTag.StudyDate, minDate, maxDate),
             };
-            var query = new DicomQueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
@@ -84,14 +85,14 @@ AND a.StudyInstanceUid = f.StudyInstanceUid";
         public void GivenSopInstanceUid_WhenIELevelInstance_ValidateDistinctInstances()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>());
-            var filters = new List<DicomQueryFilterCondition>()
+            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "123"),
                 new StringSingleValueMatchCondition(DicomTag.SeriesInstanceUID, "456"),
                 new StringSingleValueMatchCondition(DicomTag.SOPInstanceUID, "789"),
             };
-            var query = new DicomQueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
@@ -116,12 +117,12 @@ AND i.SopInstanceUid=@p2";
         public void GivenNonUidFilter_WhenIELevelInstance_ValidateDistinctInstances()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>());
-            var filters = new List<DicomQueryFilterCondition>()
+            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(DicomTag.Modality, "123"),
             };
-            var query = new DicomQueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
@@ -149,12 +150,12 @@ AND i.SeriesInstanceUid = se.SeriesInstanceUid";
         public void GivenPatientNameFilter_WithFuzzyMatchMultiWord_ValidateContainsFilterGenerated()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>());
-            var filters = new List<DicomQueryFilterCondition>()
+            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var filters = new List<QueryFilterCondition>()
             {
                 new PersonNameFuzzyMatchCondition(DicomTag.PatientName, "Fall 6"),
             };
-            var query = new DicomQueryExpression(QueryResource.AllStudies, includeField, true, 10, 0, filters);
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, true, 10, 0, filters);
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
             new SqlQueryGenerator(stringBuilder, query, parm);

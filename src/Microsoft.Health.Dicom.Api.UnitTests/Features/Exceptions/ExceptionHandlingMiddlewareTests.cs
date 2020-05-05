@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Api.Features.Exceptions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using NSubstitute;
 using Xunit;
+using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
 {
@@ -28,7 +29,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
         [Fact]
         public async Task WhenExecutingExceptionMiddleware_GivenADicomBadRequestException_TheResponseShouldBeBadRequest()
         {
-            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new DicomBadRequestException(string.Empty));
+            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new BadRequestException(string.Empty));
 
             baseExceptionMiddleware.ExecuteResultAsync(Arg.Any<HttpContext>(), Arg.Any<IActionResult>()).Returns(Task.CompletedTask);
 
@@ -44,7 +45,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
         [Fact]
         public async Task WhenExecutingExceptionMiddleware_GivenADicomNotSupportedException_TheResponseShouldBeBadRequest()
         {
-            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new DicomNotSupportedException(string.Empty));
+            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new NotSupportedException(string.Empty));
 
             baseExceptionMiddleware.ExecuteResultAsync(Arg.Any<HttpContext>(), Arg.Any<IActionResult>()).Returns(Task.CompletedTask);
 

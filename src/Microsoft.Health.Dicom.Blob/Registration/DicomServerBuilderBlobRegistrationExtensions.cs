@@ -49,7 +49,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 containerConfiguration => configuration.GetSection(DicomServerBlobConfigurationSectionName)
                     .Bind(containerConfiguration));
 
-            services.Add<DicomBlobFileStore>()
+            services.Add<BlobFileStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -57,7 +57,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
             // However, the current implementation of the decorate method requires the concrete type to be already registered,
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
-            services.Decorate<IDicomFileStore, LoggingDicomFileStore>();
+            services.Decorate<IFileStore, LoggingFileStore>();
 
             services.Add(sp =>
                 {

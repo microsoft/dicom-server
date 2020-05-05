@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Routing
 {
@@ -19,8 +20,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Routing
         /// <summary>
         /// Resovles the URI to retrieve an instance.
         /// </summary>
-        /// <param name="dicomInstance">The identifier to the instance.</param>
+        /// <param name="instance">The identifier to the instance.</param>
         /// <returns>An instance of <see cref="Uri"/> pointing to where the instance can be retrieved.</returns>
-        Uri ResolveRetrieveInstanceUri(DicomInstanceIdentifier dicomInstance);
+        Uri ResolveRetrieveInstanceUri(InstanceIdentifier instance);
     }
 }
