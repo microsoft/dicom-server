@@ -177,7 +177,6 @@ OB|Other Byte
 OD|Other Double
 OF|Other Float
 OL|Other Long
-OV|Other Long
 OV|Other 64-Bit Very Long
 OW|Other Word
 UN|Unkown
