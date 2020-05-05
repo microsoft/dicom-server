@@ -14,12 +14,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
     public class ChangeFeedEntry
     {
         public ChangeFeedEntry(
-            int sequence,
+            long sequence,
+            DateTime timeStamp,
+            ChangeFeedAction action,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            ChangeFeedAction action,
-            DateTime timeStamp,
             ChangeFeedState state)
         {
             EnsureArg.IsNotNull(studyInstanceUid);
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             State = state;
         }
 
-        public int Sequence { get; }
+        public long Sequence { get; }
 
         public string StudyInstanceUid { get; }
 

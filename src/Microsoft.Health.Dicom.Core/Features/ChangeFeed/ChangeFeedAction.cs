@@ -7,7 +7,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 {
     public enum ChangeFeedAction
     {
-        Create,
-        Delete,
+        Create = 0,
+        Delete = 1,
     }
 }
