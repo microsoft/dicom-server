@@ -8,6 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
     public enum ChangeFeedState
     {
         Current,
+        Replaced,
         Deleted,
     }
 }

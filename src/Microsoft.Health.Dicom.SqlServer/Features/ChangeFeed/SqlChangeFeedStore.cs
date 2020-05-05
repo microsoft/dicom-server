@@ -14,14 +14,14 @@ using Microsoft.Health.SqlServer.Features.Client;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
 {
-    public class DicomSqlChangeFeedStore : IDicomChangeFeedStore
+    public class SqlChangeFeedStore : IChangeFeedStore
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
-        private readonly ILogger<DicomSqlChangeFeedStore> _logger;
+        private readonly ILogger<SqlChangeFeedStore> _logger;
 
-        public DicomSqlChangeFeedStore(
+        public SqlChangeFeedStore(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           ILogger<DicomSqlChangeFeedStore> logger)
+           ILogger<SqlChangeFeedStore> logger)
         {
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             EnsureArg.IsNotNull(logger, nameof(logger));

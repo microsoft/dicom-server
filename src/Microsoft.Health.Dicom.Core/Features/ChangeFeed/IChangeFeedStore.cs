@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 {
-    public interface IDicomChangeFeedStore
+    public interface IChangeFeedStore
     {
         Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken = default);
 
