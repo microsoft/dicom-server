@@ -14,6 +14,7 @@ using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
+using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 
 namespace Microsoft.Health.Dicom.Api.Web
 {
@@ -72,7 +73,7 @@ namespace Microsoft.Health.Dicom.Api.Web
                         // TODO: According to RFC2387 3.2, the root section can be specified by using the
                         // start parameter. For now, we will assume that the first section is the "root" section
                         // and will add support later. Throw exception in case start is specified.
-                        throw new DicomNotSupportedException(DicomApiResource.StartParameterIsNotSupported);
+                        throw new NotSupportedException(DicomApiResource.StartParameterIsNotSupported);
                     }
                 }
             }

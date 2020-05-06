@@ -6,18 +6,19 @@
 using System;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 
 namespace Microsoft.Health.Dicom.Tests.Common
 {
     public class MockUrlResolver : IUrlResolver
     {
-        public Uri ResolveRetrieveInstanceUri(DicomInstanceIdentifier dicomInstance)
+        public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
         {
-            EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
+            EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
             return new Uri(
-                $"/{dicomInstance.StudyInstanceUid}/{dicomInstance.SeriesInstanceUid}/{dicomInstance.SopInstanceUid}",
+                $"/{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}",
                 UriKind.Relative);
         }
 
