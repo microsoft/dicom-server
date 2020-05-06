@@ -11,6 +11,7 @@ using Dicom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Web;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -25,7 +26,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Formatters
         [InlineData(typeof(string))]
         [InlineData(typeof(DicomItem))]
         [InlineData(null)]
-        public void GivenAnInvalidDicomObjectAndJsonContentType_WhenCheckingCanWrite_ThenFalseShouldBeReturned(Type modelType)
+        public void GivenAnInvalidTargetObjectAndJsonContentType_WhenCheckingCanWrite_ThenFalseShouldBeReturned(Type modelType)
         {
             bool result = CanWrite(modelType, KnownContentTypes.ApplicationDicomJson);
             Assert.False(result);
@@ -36,7 +37,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Formatters
         [InlineData(typeof(IEnumerable<DicomDataset>))]
         [InlineData(typeof(IList<DicomDataset>))]
         [InlineData(typeof(IReadOnlyCollection<DicomDataset>))]
-        public void GivenAValidDicomObjectAndContentType_WhenCheckingCanWrite_ThenTrueShouldBeReturned(Type modelType)
+        [InlineData(typeof(ChangeFeedEntry))]
+        [InlineData(typeof(IReadOnlyCollection<ChangeFeedEntry>))]
+        public void GivenAValidTargetObjectAndContentType_WhenCheckingCanWrite_ThenTrueShouldBeReturned(Type modelType)
         {
             bool result = CanWrite(modelType, KnownContentTypes.ApplicationDicomJson);
             Assert.True(result);
