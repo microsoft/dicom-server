@@ -25,6 +25,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
             return dicomWebClient.RetrieveInstancesAsync(
                 new Uri(string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid), UriKind.Relative),
+                false,
                 dicomTransferSyntax,
                 cancellationToken);
         }
@@ -52,6 +53,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
             return dicomWebClient.RetrieveInstancesAsync(
                 new Uri(string.Format(DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative),
+                false,
                 dicomTransferSyntax,
                 cancellationToken);
         }
@@ -81,6 +83,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
             return dicomWebClient.RetrieveInstancesAsync(
                 new Uri(string.Format(DicomWebConstants.BaseeInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
+                true,
                 dicomTransferSyntax,
                 cancellationToken);
         }
@@ -144,12 +147,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             string sopInstanceUid,
             string dicomTransferSyntax = null,
             int[] frames = null,
-            string expectedContentTypeHeader = null,
             CancellationToken cancellationToken = default)
         {
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join("%2C", frames)), UriKind.Relative);
 
-            return dicomWebClient.RetrieveFramesAsync(requestUri, dicomTransferSyntax, expectedContentTypeHeader, cancellationToken);
+            return dicomWebClient.RetrieveFramesAsync(requestUri, frames.Length > 1 ? false : true, dicomTransferSyntax, cancellationToken);
         }
 
         public static Task<DicomWebResponse> DeleteStudyAsync(
