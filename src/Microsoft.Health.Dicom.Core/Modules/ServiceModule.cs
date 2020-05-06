@@ -3,8 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -75,6 +77,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
             services.AddTransient<IQueryParser, QueryParser>();
 
             services.Add<DeleteService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<ChangeFeedService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
