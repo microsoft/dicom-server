@@ -20,6 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
+            long version,
             ChangeFeedState state)
         {
             EnsureArg.IsNotNull(studyInstanceUid);
@@ -33,6 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             Action = action;
             TimeStamp = timeStamp;
             State = state;
+            Version = version;
         }
 
         public long Sequence { get; }
@@ -48,5 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
         public DateTime TimeStamp { get; }
 
         public ChangeFeedState State { get; }
+
+        public long Version { get; }
     }
 }

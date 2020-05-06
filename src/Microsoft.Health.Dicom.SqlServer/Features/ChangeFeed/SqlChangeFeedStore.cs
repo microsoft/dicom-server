@@ -62,6 +62,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
                                 rStudyInstanceUid,
                                 rSeriesInstanceUid,
                                 rSopInstanceUid,
+                                oWatermark,
                                 ConvertWatermarkToCurrentState(oWatermark, cWatermark));
                     }
                 }
@@ -100,6 +101,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
                                 rStudyInstanceUid,
                                 rSeriesInstanceUid,
                                 rSopInstanceUid,
+                                oWatermark,
                                 ConvertWatermarkToCurrentState(oWatermark, cWatermark)));
                     }
                 }
