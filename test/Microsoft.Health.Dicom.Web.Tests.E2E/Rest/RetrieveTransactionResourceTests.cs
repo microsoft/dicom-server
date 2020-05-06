@@ -180,7 +180,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var studyInstanceUid = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 2);
-            var dicomInstance = dicomFile1.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
             await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
 
             DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1 });
@@ -318,7 +318,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var studyInstanceUid = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid);
-            var dicomInstance = dicomFile1.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
             DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
 
             DicomSequence successSequence = response.Value.GetSequence(DicomTag.ReferencedSOPSequence);
@@ -350,7 +350,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             IEnumerable<DicomFile> dicomFiles = Samples.GetDicomFilesForTranscoding();
             DicomFile dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == "ExplicitVRLittleEndian"));
-            var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
 
             try
             {
@@ -494,7 +494,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             string tsTo)
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ((DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(tsFrom).GetValue(null)).UID.UID);
-            var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
 
             try
             {
@@ -535,7 +535,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             IEnumerable<DicomFile> dicomFiles = Samples.GetDicomFilesForTranscoding();
             DicomFile dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == tsFrom));
-            var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
 
             try
             {
@@ -562,7 +562,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             IEnumerable<DicomFile> dicomFiles = Samples.GetSampleDicomFiles();
             DicomFile dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == "XRJPEGProcess1"));
-            var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
 
             try
             {
@@ -622,7 +622,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private async Task<(InstanceIdentifier, DicomFile)> CreateAndStoreDicomFile(int numberOfFrames = 0)
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: numberOfFrames);
-            var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
             await _client.StoreAsync(new[] { dicomFile }, dicomInstance.StudyInstanceUid);
 
             return (dicomInstance, dicomFile);
@@ -651,8 +651,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             for (var i = 0; i < expectedFiles.Length; i++)
             {
                 DicomFile expectedFile = expectedFiles[i];
-                var expectedInstance = expectedFile.Dataset.ToDicomInstanceIdentifier();
-                DicomFile actualFile = response.Value.First(x => x.Dataset.ToDicomInstanceIdentifier().Equals(expectedInstance));
+                var expectedInstance = expectedFile.Dataset.ToInstanceIdentifier();
+                DicomFile actualFile = response.Value.First(x => x.Dataset.ToInstanceIdentifier().Equals(expectedInstance));
 
                 Assert.Equal(expectedTransferSyntax, response.Value[i].Dataset.InternalTransferSyntax);
 

@@ -17,11 +17,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <summary>
         /// Asynchronously orchestrate the storing of a DICOM instance entry.
         /// </summary>
-        /// <param name="instanceEntry">The DICOM instance entry to store.</param>
+        /// <param name="dicomInstanceEntry">The DICOM instance entry to store.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous orchestration of the storing operation.</returns>
         Task StoreDicomInstanceEntryAsync(
-            IInstanceEntry instanceEntry,
+            IDicomInstanceEntry dicomInstanceEntry,
             CancellationToken cancellationToken);
     }
 }

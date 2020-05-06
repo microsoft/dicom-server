@@ -42,15 +42,15 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
         /// <inheritdoc />
         public async Task<Uri> AddFileAsync(
-            VersionedInstanceIdentifier instanceIdentifier,
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
             Stream stream,
             bool overwriteIfExists,
             CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             EnsureArg.IsNotNull(stream, nameof(stream));
 
-            CloudBlockBlob blob = GetBlockBlobReference(instanceIdentifier);
+            CloudBlockBlob blob = GetBlockBlobReference(versionedInstanceIdentifier);
 
             blob.Properties.ContentType = KnownContentTypes.ApplicationDicom;
 
@@ -78,24 +78,24 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
         /// <inheritdoc />
         public async Task DeleteFileIfExistsAsync(
-            VersionedInstanceIdentifier instanceIdentifier,
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
             CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-            CloudBlockBlob blob = GetBlockBlobReference(instanceIdentifier);
+            CloudBlockBlob blob = GetBlockBlobReference(versionedInstanceIdentifier);
 
             await ExecuteAsync(() => blob.DeleteIfExistsAsync(cancellationToken));
         }
 
         /// <inheritdoc />
         public async Task<Stream> GetFileAsync(
-            VersionedInstanceIdentifier instanceIdentifier,
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
             CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-            CloudBlockBlob blob = GetBlockBlobReference(instanceIdentifier);
+            CloudBlockBlob blob = GetBlockBlobReference(versionedInstanceIdentifier);
 
             Stream stream = null;
 
@@ -104,9 +104,9 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             return stream;
         }
 
-        private CloudBlockBlob GetBlockBlobReference(VersionedInstanceIdentifier instanceIdentifier)
+        private CloudBlockBlob GetBlockBlobReference(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
-            string blobName = $"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}";
+            string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}";
 
             // Use the Azure storage SDK to validate the blob name; only specific values are allowed here.
             // Check here for more information: https://blogs.msdn.microsoft.com/jmstall/2014/06/12/azure-storage-naming-rules/

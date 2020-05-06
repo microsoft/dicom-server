@@ -113,11 +113,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
         }
 
         public async Task UpdateInstanceIndexStatusAsync(
-            VersionedInstanceIdentifier instanceIdentifier,
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
             IndexStatus status,
             CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             EnsureArg.IsTrue(Enum.IsDefined(typeof(IndexStatus), status));
             EnsureArg.IsTrue((int)status < byte.MaxValue);
 
@@ -128,10 +128,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             {
                 VLatest.UpdateInstanceStatus.PopulateCommand(
                     sqlCommand,
-                    instanceIdentifier.StudyInstanceUid,
-                    instanceIdentifier.SeriesInstanceUid,
-                    instanceIdentifier.SopInstanceUid,
-                    instanceIdentifier.Version,
+                    versionedInstanceIdentifier.StudyInstanceUid,
+                    versionedInstanceIdentifier.SeriesInstanceUid,
+                    versionedInstanceIdentifier.SopInstanceUid,
+                    versionedInstanceIdentifier.Version,
                     (byte)status);
 
                 try

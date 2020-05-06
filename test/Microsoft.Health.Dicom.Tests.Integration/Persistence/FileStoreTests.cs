@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 sopInstanceUid: TestUidGenerator.Generate(),
                 version: 0);
 
-        private Task<Uri> AddFileAsync(VersionedInstanceIdentifier instanceIdentifier, Stream stream, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
-            => _blobDataStore.AddFileAsync(instanceIdentifier, stream, overwriteIfExists, cancellationToken);
+        private Task<Uri> AddFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
+            => _blobDataStore.AddFileAsync(versionedInstanceIdentifier, stream, overwriteIfExists, cancellationToken);
     }
 }

@@ -73,7 +73,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 _dataset.Add(referencedSopSequence);
             }
 
-            var dicomInstance = dicomDataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomDataset.ToInstanceIdentifier();
 
             var referencedSop = new DicomDataset()
             {

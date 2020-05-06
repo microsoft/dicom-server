@@ -30,21 +30,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <summary>
         /// Asynchronously gets a DICOM instance metadata.
         /// </summary>
-        /// <param name="instanceIdentifier">The DICOM instance identifier.</param>
+        /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous get operation.</returns>
         Task<DicomDataset> GetInstanceMetadataAsync(
-            VersionedInstanceIdentifier instanceIdentifier,
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
             CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes a DICOM instance metadata.
         /// </summary>
-        /// <param name="instanceIdentifier">The DICOM instance identifier.</param>
+        /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
         Task DeleteInstanceMetadataIfExistsAsync(
-            VersionedInstanceIdentifier instanceIdentifier,
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
             CancellationToken cancellationToken = default);
     }
 }

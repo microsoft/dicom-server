@@ -42,48 +42,48 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         /// <inheritdoc />
         public async Task StoreDicomInstanceEntryAsync(
-            IInstanceEntry instanceEntry,
+            IDicomInstanceEntry dicomInstanceEntry,
             CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(instanceEntry, nameof(instanceEntry));
+            EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
-            DicomDataset dicomDataset = await instanceEntry.GetDicomDatasetAsync(cancellationToken);
+            DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
             long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, cancellationToken);
 
-            VersionedInstanceIdentifier instanceIdentifier = dicomDataset.ToVersionedDicomInstanceIdentifier(version);
+            VersionedInstanceIdentifier versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 
             try
             {
                 // We have successfully created the index, store the files.
                 Task[] tasks = new[]
                 {
-                    StoreBlobAsync(instanceIdentifier, instanceEntry, cancellationToken),
+                    StoreBlobAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
                     StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken),
                 };
 
                 await Task.WhenAll(tasks);
 
                 // Successfully uploaded the files. Update the status to be available.
-                await _indexDataStore.UpdateInstanceIndexStatusAsync(instanceIdentifier, IndexStatus.Created, cancellationToken);
+                await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created, cancellationToken);
             }
             catch (Exception)
             {
                 // Exception occurred while storing the file. Try delete the index.
-                _ = Task.Run(() => TryCleanupInstanceIndexAsync(instanceIdentifier));
+                _ = Task.Run(() => TryCleanupInstanceIndexAsync(versionedInstanceIdentifier));
                 throw;
             }
         }
 
         private async Task StoreBlobAsync(
-            VersionedInstanceIdentifier instanceIdentifier,
-            IInstanceEntry instanceEntry,
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
+            IDicomInstanceEntry dicomInstanceEntry,
             CancellationToken cancellationToken)
         {
-            Stream stream = await instanceEntry.GetStreamAsync(cancellationToken);
+            Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
             await _blobDataStore.AddFileAsync(
-                instanceIdentifier,
+                versionedInstanceIdentifier,
                 stream,
                 cancellationToken: cancellationToken);
         }
@@ -94,13 +94,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             CancellationToken cancellationToken)
             => _instanceMetadataStore.AddInstanceMetadataAsync(dicomDataset, version, cancellationToken);
 
-        private async Task TryCleanupInstanceIndexAsync(VersionedInstanceIdentifier instanceIdentifier)
+        private async Task TryCleanupInstanceIndexAsync(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
             try
             {
                 // In case the request is canceled and one of the operation failed, we still want to cleanup.
                 // Therefore, we will not be using the same cancellation token as the request itself.
-                await _indexDataStore.DeleteInstanceIndexAsync(instanceIdentifier, CancellationToken.None);
+                await _indexDataStore.DeleteInstanceIndexAsync(versionedInstanceIdentifier, CancellationToken.None);
             }
             catch (Exception)
             {

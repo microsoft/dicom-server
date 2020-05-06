@@ -353,16 +353,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
 
-            VersionedInstanceIdentifier instanceIdentifier = new VersionedInstanceIdentifier(
+            VersionedInstanceIdentifier versionedInstanceIdentifier = new VersionedInstanceIdentifier(
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid,
                     version);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(instanceIdentifier);
+            await _indexDataStore.DeleteInstanceIndexAsync(versionedInstanceIdentifier);
 
             await Assert.ThrowsAsync<InstanceNotFoundException>(
-                () => _indexDataStore.UpdateInstanceIndexStatusAsync(instanceIdentifier, IndexStatus.Created));
+                () => _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created));
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         }

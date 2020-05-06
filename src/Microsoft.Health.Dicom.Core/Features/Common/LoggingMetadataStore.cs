@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <inheritdoc />
         public async Task AddInstanceMetadataAsync(DicomDataset dicomDataset, long version, CancellationToken cancellationToken)
         {
-            LogAddInstanceMetadataDelegate(_logger, dicomDataset.ToVersionedDicomInstanceIdentifier(version).ToString(), null);
+            LogAddInstanceMetadataDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(version).ToString(), null);
 
             try
             {
@@ -78,13 +78,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier instanceIdentifier, CancellationToken cancellationToken)
+        public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
-            LogDeleteInstanceMetadataDelegate(_logger, instanceIdentifier.ToString(), null);
+            LogDeleteInstanceMetadataDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
 
             try
             {
-                await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier, cancellationToken);
+                await _metadataStore.DeleteInstanceMetadataIfExistsAsync(versionedInstanceIdentifier, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -97,13 +97,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier instanceIdentifier, CancellationToken cancellationToken)
+        public async Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
-            LogGetInstanceMetadataDelegate(_logger, instanceIdentifier.ToString(), null);
+            LogGetInstanceMetadataDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
 
             try
             {
-                DicomDataset dicomDataset = await _metadataStore.GetInstanceMetadataAsync(instanceIdentifier, cancellationToken);
+                DicomDataset dicomDataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 

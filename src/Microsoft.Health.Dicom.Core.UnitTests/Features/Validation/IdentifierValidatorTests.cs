@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
         public void GivenAnInvalidDicomId_WhenProcessingARequest_ThenAValidationMessageIsCreated(string id)
         {
-            Assert.Throws<InvalidIdentifierException>(() => IdentifierValidator.ValidateAndThrow(id, nameof(id)));
+            Assert.Throws<InvalidIdentifierException>(() => UidValidator.ValidateAndThrow(id, nameof(id)));
         }
 
         [Theory]
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("59.88.90.100")]
         public void GivenAValidDicomId_WhenProcessingARequest_ThenAValidationMessageIsNotCreated(string id)
         {
-            bool result = IdentifierValidator.Validate(id);
+            bool result = UidValidator.Validate(id);
             Assert.True(result);
         }
     }

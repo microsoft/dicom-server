@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -24,6 +25,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 string sopInstanceUid,
                 CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
+
             IEnumerable<VersionedInstanceIdentifier> instancesToRetrieve = Enumerable.Empty<VersionedInstanceIdentifier>();
 
             switch (resourceType)

@@ -24,13 +24,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
         {
             Stream stream = new MemoryStream();
 
-            StreamOriginatedInstanceEntry instanceEntry = CreateStreamOriginatedDicomInstanceEntry(stream);
+            StreamOriginatedDicomInstanceEntry dicomInstanceEntry = CreateStreamOriginatedDicomInstanceEntry(stream);
 
             Exception caughtException = null;
 
             try
             {
-                await instanceEntry.GetDicomDatasetAsync(default);
+                await dicomInstanceEntry.GetDicomDatasetAsync(default);
             }
             catch (Exception ex)
             {
@@ -46,9 +46,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
         {
             await using (Stream stream = await CreateStreamAsync(DefaultDicomDataset))
             {
-                StreamOriginatedInstanceEntry instanceEntry = CreateStreamOriginatedDicomInstanceEntry(stream);
+                StreamOriginatedDicomInstanceEntry dicomInstanceEntry = CreateStreamOriginatedDicomInstanceEntry(stream);
 
-                DicomDataset dicomDataset = await instanceEntry.GetDicomDatasetAsync(default);
+                DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(default);
 
                 Assert.NotNull(dicomDataset);
                 Assert.Equal(DefaultDicomDataset, dicomDataset);
@@ -63,9 +63,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
                 // Force to move to the end of stream.
                 stream.Seek(0, SeekOrigin.End);
 
-                StreamOriginatedInstanceEntry instanceEntry = CreateStreamOriginatedDicomInstanceEntry(stream);
+                StreamOriginatedDicomInstanceEntry dicomInstanceEntry = CreateStreamOriginatedDicomInstanceEntry(stream);
 
-                Stream readStream = await instanceEntry.GetStreamAsync(default);
+                Stream readStream = await dicomInstanceEntry.GetStreamAsync(default);
 
                 Assert.NotNull(readStream);
                 Assert.Equal(0, readStream.Position);
@@ -85,7 +85,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
             return stream;
         }
 
-        private StreamOriginatedInstanceEntry CreateStreamOriginatedDicomInstanceEntry(Stream stream)
-            => new StreamOriginatedInstanceEntry(stream);
+        private StreamOriginatedDicomInstanceEntry CreateStreamOriginatedDicomInstanceEntry(Stream stream)
+            => new StreamOriginatedDicomInstanceEntry(stream);
     }
 }

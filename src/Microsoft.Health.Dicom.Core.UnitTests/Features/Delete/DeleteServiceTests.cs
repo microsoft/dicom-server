@@ -130,11 +130,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
 
             await _fileDataStore
                 .DidNotReceiveWithAnyArgs()
-                .DeleteFileIfExistsAsync(instanceIdentifier: default, CancellationToken.None);
+                .DeleteFileIfExistsAsync(versionedInstanceIdentifier: default, CancellationToken.None);
 
             await _metadataStore
                 .DidNotReceiveWithAnyArgs()
-                .DeleteInstanceMetadataIfExistsAsync(instanceIdentifier: default, CancellationToken.None);
+                .DeleteInstanceMetadataIfExistsAsync(versionedInstanceIdentifier: default, CancellationToken.None);
 
             _transactionScope.Received(1).Complete();
         }
@@ -240,7 +240,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
 
             await _fileDataStore
                 .DidNotReceiveWithAnyArgs()
-                .DeleteFileIfExistsAsync(instanceIdentifier: default, CancellationToken.None);
+                .DeleteFileIfExistsAsync(versionedInstanceIdentifier: default, CancellationToken.None);
         }
 
         [Theory]

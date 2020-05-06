@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     /// <summary>
     /// Represents a DICOM instance entry that's been read from the HTTP request body.
     /// </summary>
-    public interface IInstanceEntry : IAsyncDisposable
+    public interface IDicomInstanceEntry : IAsyncDisposable
     {
         /// <summary>
         /// Gets the <see cref="DicomDataset"/> of the DICOM instance entry.

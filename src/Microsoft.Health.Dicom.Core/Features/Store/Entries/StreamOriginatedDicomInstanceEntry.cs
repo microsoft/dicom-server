@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     /// <summary>
     /// Represents a DICOM instance entry originated from stream.
     /// </summary>
-    public sealed class StreamOriginatedInstanceEntry : IInstanceEntry
+    public sealed class StreamOriginatedDicomInstanceEntry : IDicomInstanceEntry
     {
         private readonly Stream _stream;
 
@@ -24,11 +24,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         private TaskCompletionSource<bool> _dicomFileLoadingCompletionSource = new TaskCompletionSource<bool>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamOriginatedInstanceEntry"/> class.
+        /// Initializes a new instance of the <see cref="StreamOriginatedDicomInstanceEntry"/> class.
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <remarks>The <paramref name="stream"/> must be seekable.</remarks>
-        internal StreamOriginatedInstanceEntry(Stream stream)
+        internal StreamOriginatedDicomInstanceEntry(Stream stream)
         {
             // The stream must be seekable.
             EnsureArg.IsNotNull(stream, nameof(stream));

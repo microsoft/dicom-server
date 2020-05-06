@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 _defaultCancellationToken);
             Assert.False(response.IsPartialSuccess);
 
-            ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToDicomInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
+            ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
         }
 
         private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile)
@@ -147,7 +147,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
 
-            VersionedInstanceIdentifier instanceIdentifier = dataset.ToVersionedDicomInstanceIdentifier(version);
+            VersionedInstanceIdentifier versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
 
             if (flagToStoreInstance)
             {
@@ -160,12 +160,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     dicomFile.Save(stream);
                     stream.Position = 0;
                     await _fileStore.AddFileAsync(
-                        instanceIdentifier,
+                        versionedInstanceIdentifier,
                         stream);
                 }
             }
 
-            await _indexDataStore.UpdateInstanceIndexStatusAsync(instanceIdentifier, IndexStatus.Created);
+            await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created);
         }
 
         private void ValidateResponseDicomFiles(
@@ -178,7 +178,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
             foreach (DicomDataset expectedDataset in expectedDatasets)
             {
-                DicomFile actualFile = responseDicomFiles.First(x => x.Dataset.ToDicomInstanceIdentifier().Equals(expectedDataset.ToDicomInstanceIdentifier()));
+                DicomFile actualFile = responseDicomFiles.First(x => x.Dataset.ToInstanceIdentifier().Equals(expectedDataset.ToInstanceIdentifier()));
 
                 // If the same transfer syntax as original, the files should be exactly the same
                 if (expectedDataset.InternalTransferSyntax == actualFile.Dataset.InternalTransferSyntax)

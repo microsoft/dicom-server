@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     /// <summary>
     /// Provides functionality to read DICOM instance entries from stream such as HTTP request body.
     /// </summary>
-    public interface IInstanceEntryReader
+    public interface IDicomInstanceEntryReader
     {
         /// <summary>
         /// Gets a flag indicating whether this reader can read the HTTP request body with <paramref name="contentType"/>.
@@ -29,6 +29,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         /// <param name="stream">The stream to read the DICOM instances from.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task represents the asynchronous read operation.</returns>
-        Task<IReadOnlyList<IInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken = default);
     }
 }

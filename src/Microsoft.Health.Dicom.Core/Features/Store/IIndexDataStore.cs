@@ -59,11 +59,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <summary>
         /// Asynchronously updates the status of an existing instance index.
         /// </summary>
-        /// <param name="instanceIdentifier">The DICOM instance identifier.</param>
+        /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
         /// <param name="status">The status to update to.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous update operation.</returns>
-        Task UpdateInstanceIndexStatusAsync(VersionedInstanceIdentifier instanceIdentifier, IndexStatus status, CancellationToken cancellationToken = default);
+        Task UpdateInstanceIndexStatusAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, IndexStatus status, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Return a collection of deleted instances.

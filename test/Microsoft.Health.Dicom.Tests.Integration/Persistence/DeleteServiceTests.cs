@@ -40,11 +40,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await ValidateRemoval(success, retrievedInstanceCount, dicomInstanceIdentifier);
         }
 
-        private async Task DeleteAndValidateInstanceForCleanup(VersionedInstanceIdentifier instanceIdentifier)
+        private async Task DeleteAndValidateInstanceForCleanup(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
-            await _fixture.DeleteService.DeleteInstanceAsync(instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, CancellationToken.None);
+            await _fixture.DeleteService.DeleteInstanceAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid, CancellationToken.None);
 
-            Assert.NotEmpty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid));
+            Assert.NotEmpty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
         }
 
         private async Task<VersionedInstanceIdentifier> CreateAndValidateValuesInStores(bool persistBlob, bool persistMetadata)
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var newDataSet = CreateValidMetadataDataset();
 
             var version = await _fixture.IndexDataStore.CreateInstanceIndexAsync(newDataSet);
-            var versionedDicomInstanceIdentifier = newDataSet.ToVersionedDicomInstanceIdentifier(version);
+            var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 
             if (persistMetadata)
             {
@@ -81,18 +81,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             return versionedDicomInstanceIdentifier;
         }
 
-        private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier instanceIdentifier)
+        private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
             Assert.True(success);
             Assert.Equal(1, retrievedInstanceCount);
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(async () => await _fixture.MetadataStore.GetInstanceMetadataAsync(instanceIdentifier));
-            await Assert.ThrowsAsync<InstanceNotFoundException>(async () => await _fixture.FileStore.GetFileAsync(instanceIdentifier));
+            await Assert.ThrowsAsync<InstanceNotFoundException>(async () => await _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier));
+            await Assert.ThrowsAsync<InstanceNotFoundException>(async () => await _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier));
 
-            Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid));
+            Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
         }
 
-        private DicomDataset CreateValidMetadataDataset()
+        private static DicomDataset CreateValidMetadataDataset()
         {
             return new DicomDataset()
             {

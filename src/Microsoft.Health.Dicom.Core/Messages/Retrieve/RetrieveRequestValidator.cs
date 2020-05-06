@@ -29,17 +29,17 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 
         private static void ValidateInstanceIdentifiersAreValid(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            IdentifierValidator.ValidateAndThrow(studyInstanceUid, nameof(StudyInstanceUid));
+            UidValidator.ValidateAndThrow(studyInstanceUid, nameof(StudyInstanceUid));
 
             switch (resourceType)
             {
                 case ResourceType.Series:
-                    IdentifierValidator.ValidateAndThrow(seriesInstanceUid, nameof(SeriesInstanceUid));
+                    UidValidator.ValidateAndThrow(seriesInstanceUid, nameof(SeriesInstanceUid));
                     break;
                 case ResourceType.Instance:
                 case ResourceType.Frames:
-                    IdentifierValidator.ValidateAndThrow(seriesInstanceUid, nameof(SeriesInstanceUid));
-                    IdentifierValidator.ValidateAndThrow(sopInstanceUid, nameof(SopInstanceUid));
+                    UidValidator.ValidateAndThrow(seriesInstanceUid, nameof(SeriesInstanceUid));
+                    UidValidator.ValidateAndThrow(sopInstanceUid, nameof(SopInstanceUid));
                     break;
             }
         }

@@ -123,8 +123,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
                     _instanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
                     {
-                        dicomDataset1.ToVersionedDicomInstanceIdentifier(version: 0),
-                        dicomDataset2.ToVersionedDicomInstanceIdentifier(version: 1),
+                        dicomDataset1.ToVersionedInstanceIdentifier(version: 0),
+                        dicomDataset2.ToVersionedInstanceIdentifier(version: 1),
                     });
                     break;
 
@@ -134,8 +134,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
                     _instanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
                     {
-                        dicomDataset1.ToVersionedDicomInstanceIdentifier(version: 0),
-                        dicomDataset2.ToVersionedDicomInstanceIdentifier(version: 1),
+                        dicomDataset1.ToVersionedInstanceIdentifier(version: 0),
+                        dicomDataset2.ToVersionedInstanceIdentifier(version: 1),
                     });
                     break;
             }

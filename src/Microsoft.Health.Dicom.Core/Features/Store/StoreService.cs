@@ -18,7 +18,7 @@ using DicomValidationException = Dicom.DicomValidationException;
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides functionality to process the list of <see cref="IInstanceEntry"/>.
+    /// Provides functionality to process the list of <see cref="IDicomInstanceEntry"/>.
     /// </summary>
     public class StoreService : IStoreService
     {
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IStoreOrchestrator _storeOrchestrator;
         private readonly ILogger _logger;
 
-        private IReadOnlyList<IInstanceEntry> _dicomInstanceEntries;
+        private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
         private string _requiredStudyInstanceUid;
 
         public StoreService(
@@ -73,16 +73,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         /// <inheritdoc />
         public async Task<StoreResponse> ProcessAsync(
-            IReadOnlyList<IInstanceEntry> dicomInstanceEntries,
+            IReadOnlyList<IDicomInstanceEntry> instanceEntries,
             string requiredStudyInstanceUid,
             CancellationToken cancellationToken)
         {
-            if (dicomInstanceEntries != null)
+            if (instanceEntries != null)
             {
-                _dicomInstanceEntries = dicomInstanceEntries;
+                _dicomInstanceEntries = instanceEntries;
                 _requiredStudyInstanceUid = requiredStudyInstanceUid;
 
-                for (int index = 0; index < dicomInstanceEntries.Count; index++)
+                for (int index = 0; index < instanceEntries.Count; index++)
                 {
                     try
                     {
@@ -103,14 +103,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private async Task ProcessDicomInstanceEntryAsync(int index, CancellationToken cancellationToken)
         {
-            IInstanceEntry instanceEntry = _dicomInstanceEntries[index];
+            IDicomInstanceEntry dicomInstanceEntry = _dicomInstanceEntries[index];
 
             DicomDataset dicomDataset = null;
 
             try
             {
                 // Open and validate the DICOM instance.
-                dicomDataset = await instanceEntry.GetDicomDatasetAsync(cancellationToken);
+                dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
                 _dicomDatasetMinimumRequirementValidator.Validate(dicomDataset, _requiredStudyInstanceUid);
             }
@@ -140,7 +140,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 // Store the instance.
                 await _storeOrchestrator.StoreDicomInstanceEntryAsync(
-                    instanceEntry,
+                    dicomInstanceEntry,
                     cancellationToken);
 
                 LogSuccessfullyStoredDelegate(_logger, index, null);

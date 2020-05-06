@@ -21,14 +21,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     /// <summary>
     /// Provides functionality to read DICOM instance entries from HTTP multipart request.
     /// </summary>
-    public class InstanceEntryReaderForMultipartRequest : IInstanceEntryReader
+    public class DicomInstanceEntryReaderForMultipartRequest : IDicomInstanceEntryReader
     {
         private readonly IMultipartReaderFactory _multipartReaderFactory;
         private readonly ILogger _logger;
 
-        public InstanceEntryReaderForMultipartRequest(
+        public DicomInstanceEntryReaderForMultipartRequest(
             IMultipartReaderFactory multipartReaderFactory,
-            ILogger<InstanceEntryReaderForMultipartRequest> logger)
+            ILogger<DicomInstanceEntryReaderForMultipartRequest> logger)
         {
             EnsureArg.IsNotNull(multipartReaderFactory, nameof(multipartReaderFactory));
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -45,14 +45,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyList<IInstanceEntry>> ReadAsync(string contentType, Stream body, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream body, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
             EnsureArg.IsNotNull(body, nameof(body));
 
             IMultipartReader multipartReader = _multipartReaderFactory.Create(contentType, body);
 
-            var dicomInstanceEntries = new List<StreamOriginatedInstanceEntry>();
+            var dicomInstanceEntries = new List<StreamOriginatedDicomInstanceEntry>();
 
             MultipartBodyPart bodyPart;
 
@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
                             string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, bodyPart.ContentType));
                     }
 
-                    dicomInstanceEntries.Add(new StreamOriginatedInstanceEntry(bodyPart.Body));
+                    dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(bodyPart.Body));
                 }
             }
             catch (Exception)
@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
             return dicomInstanceEntries;
         }
 
-        private async Task DisposeResourceAsync(IInstanceEntry resource)
+        private async Task DisposeResourceAsync(IDicomInstanceEntry resource)
         {
             try
             {

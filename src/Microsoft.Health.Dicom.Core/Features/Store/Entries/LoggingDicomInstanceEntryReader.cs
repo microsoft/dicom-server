@@ -14,9 +14,9 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 {
     /// <summary>
-    /// Provides logging for <see cref="IInstanceEntryReader"/>.
+    /// Provides logging for <see cref="IDicomInstanceEntryReader"/>.
     /// </summary>
-    public class LoggingInstanceEntryReader : IInstanceEntryReader
+    public class LoggingDicomInstanceEntryReader : IDicomInstanceEntryReader
     {
         private static readonly Action<ILogger, string, string, Exception> LogCanReadDelegate =
             LoggerMessage.Define<string, string>(
@@ -42,22 +42,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
                 default,
                 "Failed to read DICOM instance entries.");
 
-        private readonly IInstanceEntryReader _instanceEntryReader;
+        private readonly IDicomInstanceEntryReader _dicomInstanceEntryReader;
         private readonly ILogger _logger;
 
         private readonly string _readerType;
 
-        public LoggingInstanceEntryReader(
-            IInstanceEntryReader instanceEntryReader,
-            ILogger<LoggingInstanceEntryReader> logger)
+        public LoggingDicomInstanceEntryReader(
+            IDicomInstanceEntryReader dicomInstanceEntryReader,
+            ILogger<LoggingDicomInstanceEntryReader> logger)
         {
-            EnsureArg.IsNotNull(instanceEntryReader, nameof(instanceEntryReader));
+            EnsureArg.IsNotNull(dicomInstanceEntryReader, nameof(dicomInstanceEntryReader));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _instanceEntryReader = instanceEntryReader;
+            _dicomInstanceEntryReader = dicomInstanceEntryReader;
             _logger = logger;
 
-            _readerType = _instanceEntryReader.GetType().Name;
+            _readerType = _dicomInstanceEntryReader.GetType().Name;
         }
 
         /// <inheritdoc />
@@ -65,17 +65,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         {
             LogCanReadDelegate(_logger, _readerType, contentType, null);
 
-            return _instanceEntryReader.CanRead(contentType);
+            return _dicomInstanceEntryReader.CanRead(contentType);
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyList<IInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken)
         {
             LogReadingDelegate(_logger, _readerType, null);
 
             try
             {
-                IReadOnlyList<IInstanceEntry> dicomInstanceEntries = await _instanceEntryReader.ReadAsync(contentType, stream);
+                IReadOnlyList<IDicomInstanceEntry> dicomInstanceEntries = await _dicomInstanceEntryReader.ReadAsync(contentType, stream);
 
                 LogSuccessfullyReadDelegate(_logger, dicomInstanceEntries?.Count ?? 0, null);
 

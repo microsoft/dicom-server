@@ -65,7 +65,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenEmptyDicomInstanceEntries_WhenProcessed_ThenNoContentShouldBeReturned()
         {
-            await ExecuteAndValidateAsync(new IInstanceEntry[0]);
+            await ExecuteAndValidateAsync(new IDicomInstanceEntry[0]);
 
             _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
             _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
@@ -74,11 +74,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenAValidDicomInstanceEntry_WhenProcessed_ThenSuccessfulEntryShouldBeAdded()
         {
-            IInstanceEntry instanceEntry = Substitute.For<IInstanceEntry>();
+            IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
-            instanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset1);
+            dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset1);
 
-            await ExecuteAndValidateAsync(instanceEntry);
+            await ExecuteAndValidateAsync(dicomInstanceEntry);
 
             _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1);
             _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
@@ -87,11 +87,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GiveAnInvalidDicomDataset_WhenProcessed_ThenFailedEntryShouldBeAddedWithProcessingFailure()
         {
-            IInstanceEntry instanceEntry = Substitute.For<IInstanceEntry>();
+            IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
-            instanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns<DicomDataset>(_ => throw new Exception());
+            dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns<DicomDataset>(_ => throw new Exception());
 
-            await ExecuteAndValidateAsync(instanceEntry);
+            await ExecuteAndValidateAsync(dicomInstanceEntry);
 
             _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
             _storeResponseBuilder.Received(1).AddFailure(null, TestConstants.ProcessingFailureReasonCode);
@@ -100,11 +100,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenADicomDatasetFailsToOpenDueToDicomValidationException_WhenProcessed_ThenFailedEntryShouldBeAddedWithValidationFailure()
         {
-            IInstanceEntry instanceEntry = Substitute.For<IInstanceEntry>();
+            IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
-            instanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns<DicomDataset>(_ => throw new DicomValidationException("value", DicomVR.UI, string.Empty));
+            dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns<DicomDataset>(_ => throw new DicomValidationException("value", DicomVR.UI, string.Empty));
 
-            await ExecuteAndValidateAsync(instanceEntry);
+            await ExecuteAndValidateAsync(dicomInstanceEntry);
 
             _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
             _storeResponseBuilder.Received(1).AddFailure(null, TestConstants.ValidationFailureReasonCode);
@@ -119,11 +119,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 .When(validator => validator.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Do(_ => throw new DatasetValidationException(failureCode, "test"));
 
-            IInstanceEntry instanceEntry = Substitute.For<IInstanceEntry>();
+            IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
-            instanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
+            dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
-            await ExecuteAndValidateAsync(instanceEntry);
+            await ExecuteAndValidateAsync(dicomInstanceEntry);
 
             _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
             _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, failureCode);
@@ -132,15 +132,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenADicomInstanceAlreadyExistsExceptionWithConflictWhenStoring_WhenProcessed_ThenFailedEntryShouldBeAddedWithSopInstanceAlreadyExists()
         {
-            IInstanceEntry instanceEntry = Substitute.For<IInstanceEntry>();
+            IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
-            instanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
+            dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _storeOrchestrator
-                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(instanceEntry, DefaultCancellationToken))
+                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
                 .Do(_ => throw new InstanceAlreadyExistsException());
 
-            await ExecuteAndValidateAsync(instanceEntry);
+            await ExecuteAndValidateAsync(dicomInstanceEntry);
 
             _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
             _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.SopInstanceAlreadyExistsReasonCode);
@@ -149,15 +149,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenAnExceptionWhenStoring_WhenProcessed_ThenFailedEntryShouldBeAddedWithProcessingFailure()
         {
-            IInstanceEntry instanceEntry = Substitute.For<IInstanceEntry>();
+            IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
-            instanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
+            dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _storeOrchestrator
-                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(instanceEntry, DefaultCancellationToken))
+                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
                 .Do(_ => throw new DataStoreException("Simulated failure."));
 
-            await ExecuteAndValidateAsync(instanceEntry);
+            await ExecuteAndValidateAsync(dicomInstanceEntry);
 
             _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
             _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
@@ -166,17 +166,17 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenMultipleDicomInstanceEntries_WhenProcessed_ThenCorrespondingEntryShouldBeAdded()
         {
-            IInstanceEntry instanceEntryToSucceed = Substitute.For<IInstanceEntry>();
-            IInstanceEntry instanceEntryToFail = Substitute.For<IInstanceEntry>();
+            IDicomInstanceEntry dicomInstanceEntryToSucceed = Substitute.For<IDicomInstanceEntry>();
+            IDicomInstanceEntry dicomInstanceEntryToFail = Substitute.For<IDicomInstanceEntry>();
 
-            instanceEntryToSucceed.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset1);
-            instanceEntryToFail.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
+            dicomInstanceEntryToSucceed.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset1);
+            dicomInstanceEntryToFail.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _dicomDatasetMinimumRequirementValidator
                 .When(dicomDatasetMinimumRequirementValidator => dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset2, null))
                 .Do(_ => throw new Exception());
 
-            await ExecuteAndValidateAsync(instanceEntryToSucceed, instanceEntryToFail);
+            await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToFail);
 
             _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1);
             _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
@@ -185,19 +185,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenRequiredStudyInstanceUid_WhenProcessed_ThenItShouldBePassed()
         {
-            IInstanceEntry instanceEntry = Substitute.For<IInstanceEntry>();
+            IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
-            instanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
+            dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
-            await ExecuteAndValidateAsync(instanceEntry);
+            await ExecuteAndValidateAsync(dicomInstanceEntry);
         }
 
-        private Task ExecuteAndValidateAsync(params IInstanceEntry[] dicomInstanceEntries)
+        private Task ExecuteAndValidateAsync(params IDicomInstanceEntry[] dicomInstanceEntries)
             => ExecuteAndValidateAsync(requiredStudyInstanceUid: null, dicomInstanceEntries);
 
         private async Task ExecuteAndValidateAsync(
             string requiredStudyInstanceUid,
-            params IInstanceEntry[] dicomInstanceEntries)
+            params IDicomInstanceEntry[] dicomInstanceEntries)
         {
             StoreResponse response = await _storeService.ProcessAsync(
                 dicomInstanceEntries,
@@ -210,22 +210,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             if (dicomInstanceEntries != null)
             {
-                foreach (IInstanceEntry dicomInstanceEntry in dicomInstanceEntries)
+                foreach (IDicomInstanceEntry dicomInstanceEntry in dicomInstanceEntries)
                 {
                     await ValidateDisposeAsync(dicomInstanceEntry);
                 }
             }
         }
 
-        private async Task ValidateDisposeAsync(IInstanceEntry instanceEntry)
+        private async Task ValidateDisposeAsync(IDicomInstanceEntry dicomInstanceEntry)
         {
             var timeout = DateTime.Now.AddSeconds(5);
 
             while (timeout < DateTime.Now)
             {
-                if (instanceEntry.ReceivedCalls().Any())
+                if (dicomInstanceEntry.ReceivedCalls().Any())
                 {
-                    await instanceEntry.Received(1).DisposeAsync();
+                    await dicomInstanceEntry.Received(1).DisposeAsync();
                     break;
                 }
 

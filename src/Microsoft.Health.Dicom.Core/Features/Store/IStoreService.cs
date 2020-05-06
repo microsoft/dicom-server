@@ -12,21 +12,21 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides functionality to process the list of <see cref="IInstanceEntry"/>.
+    /// Provides functionality to process the list of <see cref="IDicomInstanceEntry"/>.
     /// </summary>
     public interface IStoreService
     {
         /// <summary>
-        /// Asynchronously processes the <paramref name="dicomInstanceEntries"/>.
+        /// Asynchronously processes the <paramref name="instanceEntries"/>.
         /// </summary>
-        /// <param name="dicomInstanceEntries">The list of <see cref="IInstanceEntry"/> to process.</param>
+        /// <param name="instanceEntries">The list of <see cref="IDicomInstanceEntry"/> to process.</param>
         /// <param name="requiredStudyInstanceUid">
         /// If supplied, the StudyInstanceUID in the <paramref name="dicomDataset"/> must match to be considered valid.
         /// </param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
         Task<StoreResponse> ProcessAsync(
-            IReadOnlyList<IInstanceEntry> dicomInstanceEntries,
+            IReadOnlyList<IDicomInstanceEntry> instanceEntries,
             string requiredStudyInstanceUid,
             CancellationToken cancellationToken);
     }

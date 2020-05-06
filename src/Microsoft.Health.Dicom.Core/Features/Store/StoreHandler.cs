@@ -17,17 +17,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     public class StoreHandler : IRequestHandler<StoreRequest, StoreResponse>
     {
-        private readonly IInstanceEntryReaderManager _instanceEntryReaderManager;
+        private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager;
         private readonly IStoreService _storeService;
 
         public StoreHandler(
-            IInstanceEntryReaderManager instanceEntryReaderManager,
+            IDicomInstanceEntryReaderManager dicomInstanceEntryReaderManager,
             IStoreService storeService)
         {
-            EnsureArg.IsNotNull(instanceEntryReaderManager, nameof(instanceEntryReaderManager));
+            EnsureArg.IsNotNull(dicomInstanceEntryReaderManager, nameof(dicomInstanceEntryReaderManager));
             EnsureArg.IsNotNull(storeService, nameof(storeService));
 
-            _instanceEntryReaderManager = instanceEntryReaderManager;
+            _dicomInstanceEntryReaderManager = dicomInstanceEntryReaderManager;
             _storeService = storeService;
         }
 
@@ -41,16 +41,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             StoreRequestValidator.ValidateRequest(message);
 
             // Find a reader that can parse the request body.
-            IInstanceEntryReader instanceEntryReader = _instanceEntryReaderManager.FindReader(message.RequestContentType);
+            IDicomInstanceEntryReader dicomInstanceEntryReader = _dicomInstanceEntryReaderManager.FindReader(message.RequestContentType);
 
-            if (instanceEntryReader == null)
+            if (dicomInstanceEntryReader == null)
             {
                 throw new UnsupportedMediaTypeException(
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, message.RequestContentType));
             }
 
             // Read list of entries.
-            IReadOnlyList<IInstanceEntry> instanceEntries = await instanceEntryReader.ReadAsync(
+            IReadOnlyList<IDicomInstanceEntry> instanceEntries = await dicomInstanceEntryReader.ReadAsync(
                     message.RequestContentType,
                     message.RequestBody,
                     cancellationToken);

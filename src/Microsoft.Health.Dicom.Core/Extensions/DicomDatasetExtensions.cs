@@ -112,7 +112,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to get the identifiers from.</param>
         /// <returns>An instance of <see cref="InstanceIdentifier"/> representing the <paramref name="dicomDataset"/>.</returns>
-        public static InstanceIdentifier ToDicomInstanceIdentifier(this DicomDataset dicomDataset)
+        public static InstanceIdentifier ToInstanceIdentifier(this DicomDataset dicomDataset)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -129,7 +129,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// <param name="dicomDataset">The DICOM dataset to get the identifiers from.</param>
         /// <param name="version">The version.</param>
         /// <returns>An instance of <see cref="InstanceIdentifier"/> representing the <paramref name="dicomDataset"/>.</returns>
-        public static VersionedInstanceIdentifier ToVersionedDicomInstanceIdentifier(this DicomDataset dicomDataset, long version)
+        public static VersionedInstanceIdentifier ToVersionedInstanceIdentifier(this DicomDataset dicomDataset, long version)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 

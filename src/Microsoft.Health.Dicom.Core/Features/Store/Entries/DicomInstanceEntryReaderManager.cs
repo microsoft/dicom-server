@@ -10,13 +10,13 @@ using EnsureThat;
 namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 {
     /// <summary>
-    /// Provides functionality to find the appropriate <see cref="IInstanceEntryReader"/>.
+    /// Provides functionality to find the appropriate <see cref="IDicomInstanceEntryReader"/>.
     /// </summary>
-    public class InstanceEntryReaderManager : IInstanceEntryReaderManager
+    public class DicomInstanceEntryReaderManager : IDicomInstanceEntryReaderManager
     {
-        private readonly IEnumerable<IInstanceEntryReader> _dicomInstanceEntryReaders;
+        private readonly IEnumerable<IDicomInstanceEntryReader> _dicomInstanceEntryReaders;
 
-        public InstanceEntryReaderManager(IEnumerable<IInstanceEntryReader> dicomInstanceEntryReaders)
+        public DicomInstanceEntryReaderManager(IEnumerable<IDicomInstanceEntryReader> dicomInstanceEntryReaders)
         {
             EnsureArg.IsNotNull(dicomInstanceEntryReaders, nameof(dicomInstanceEntryReaders));
 
@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         }
 
         /// <inheritdoc />
-        public IInstanceEntryReader FindReader(string contentType)
+        public IDicomInstanceEntryReader FindReader(string contentType)
         {
             EnsureArg.IsNotNull(contentType, nameof(contentType));
 

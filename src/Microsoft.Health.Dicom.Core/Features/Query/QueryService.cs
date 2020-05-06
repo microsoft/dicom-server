@@ -77,11 +77,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 case QueryResource.StudySeries:
                 case QueryResource.StudyInstances:
-                    IdentifierValidator.ValidateAndThrow(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
+                    UidValidator.ValidateAndThrow(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
                     break;
                 case QueryResource.StudySeriesInstances:
-                    IdentifierValidator.ValidateAndThrow(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
-                    IdentifierValidator.ValidateAndThrow(message.SeriesInstanceUid, nameof(message.SeriesInstanceUid));
+                    UidValidator.ValidateAndThrow(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
+                    UidValidator.ValidateAndThrow(message.SeriesInstanceUid, nameof(message.SeriesInstanceUid));
                     break;
                 case QueryResource.AllStudies:
                 case QueryResource.AllSeries:

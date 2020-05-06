@@ -10,15 +10,15 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 {
     /// <summary>
-    /// Provides logging for <see cref="IInstanceEntryReaderManager"/>.
+    /// Provides logging for <see cref="IDicomInstanceEntryReaderManager"/>.
     /// </summary>
-    public class LoggingInstanceEntryReaderManager : IInstanceEntryReaderManager
+    public class LoggingDicomInstanceEntryReaderManager : IDicomInstanceEntryReaderManager
     {
         private static readonly Action<ILogger, string, Exception> LogFindingReaderDelegate =
             LoggerMessage.Define<string>(
                 LogLevel.Trace,
                 default,
-                $"Looking for an {nameof(IInstanceEntryReader)} that can process content type '{{ContentType}}'.");
+                $"Looking for an {nameof(IDicomInstanceEntryReader)} that can process content type '{{ContentType}}'.");
 
         private static readonly Action<ILogger, Exception> LogNoReaderFoundDelegate =
             LoggerMessage.Define(
@@ -32,37 +32,37 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
                 default,
                 "Found the reader with '{ReaderType}'.");
 
-        private readonly IInstanceEntryReaderManager _instanceEntryReaderManager;
+        private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager;
         private readonly ILogger _logger;
 
-        public LoggingInstanceEntryReaderManager(
-            IInstanceEntryReaderManager instanceEntryReaderManager,
-            ILogger<InstanceEntryReaderManager> logger)
+        public LoggingDicomInstanceEntryReaderManager(
+            IDicomInstanceEntryReaderManager dicomInstanceEntryReaderManager,
+            ILogger<DicomInstanceEntryReaderManager> logger)
         {
-            EnsureArg.IsNotNull(instanceEntryReaderManager, nameof(instanceEntryReaderManager));
+            EnsureArg.IsNotNull(dicomInstanceEntryReaderManager, nameof(dicomInstanceEntryReaderManager));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _instanceEntryReaderManager = instanceEntryReaderManager;
+            _dicomInstanceEntryReaderManager = dicomInstanceEntryReaderManager;
             _logger = logger;
         }
 
         /// <inheritdoc />
-        public IInstanceEntryReader FindReader(string contentType)
+        public IDicomInstanceEntryReader FindReader(string contentType)
         {
             LogFindingReaderDelegate(_logger, contentType, null);
 
-            IInstanceEntryReader instanceEntryReader = _instanceEntryReaderManager.FindReader(contentType);
+            IDicomInstanceEntryReader dicomInstanceEntryReader = _dicomInstanceEntryReaderManager.FindReader(contentType);
 
-            if (instanceEntryReader == null)
+            if (dicomInstanceEntryReader == null)
             {
                 LogNoReaderFoundDelegate(_logger, null);
             }
             else
             {
-                LogReaderFoundDelegate(_logger, instanceEntryReader.GetType().Name, null);
+                LogReaderFoundDelegate(_logger, dicomInstanceEntryReader.GetType().Name, null);
             }
 
-            return instanceEntryReader;
+            return dicomInstanceEntryReader;
         }
     }
 }

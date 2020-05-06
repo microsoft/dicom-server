@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     /// http://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html.
     /// http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
     /// </summary>
-    public static class IdentifierValidator
+    public static class UidValidator
     {
         private static readonly Regex ValidIdentifierFormat = new Regex("^[0-9\\.]*$", RegexOptions.Compiled);
         private static readonly Regex InvalidComponentStart = new Regex(@"[.]0\d", RegexOptions.Compiled);
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        public static bool Validate(string identifierValue)
+        public static bool Validate(string uidValue)
         {
             /*
              The UID is a series of numeric components separated by the period "." character.
@@ -37,30 +37,30 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
              "0"-"9", "." of Default Character Repertoire
              64 bytes maximum */
 
-            if (identifierValue == null)
+            if (uidValue == null)
             {
                 return false;
             }
 
             // trailing spaces are allowed
-            identifierValue = identifierValue.TrimEnd(' ');
-            if (string.IsNullOrEmpty(identifierValue))
+            uidValue = uidValue.TrimEnd(' ');
+            if (string.IsNullOrEmpty(uidValue))
             {
                 // empty values are valid
                 return true;
             }
 
-            if (identifierValue.Length > 64)
+            if (uidValue.Length > 64)
             {
                 return false;
             }
 
-            if (!ValidIdentifierFormat.IsMatch(identifierValue))
+            if (!ValidIdentifierFormat.IsMatch(uidValue))
             {
                 return false;
             }
 
-            if (identifierValue.StartsWith("0", System.StringComparison.OrdinalIgnoreCase) || InvalidComponentStart.IsMatch(identifierValue))
+            if (uidValue.StartsWith("0", System.StringComparison.OrdinalIgnoreCase) || InvalidComponentStart.IsMatch(uidValue))
             {
                 return false;
             }

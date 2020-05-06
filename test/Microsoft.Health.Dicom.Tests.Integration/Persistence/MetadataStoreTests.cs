@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenADeletedDicomInstance_WhenFetchingInstanceMetadata_NotFoundDataStoreExceptionIsThrown()
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
+            var dicomInstanceId = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
 
             await _metadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0);
             DicomDataset storedMetadata = await _metadataStore.GetInstanceMetadataAsync(dicomInstanceId);
@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenExistingMetadata_WhenAdding_ConflictExceptionIsThrown()
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
+            var dicomInstanceId = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
             await _metadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0);
             DicomDataset storedMetadata = await _metadataStore.GetInstanceMetadataAsync(dicomInstanceId);
             Assert.NotNull(storedMetadata);
@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenAddedInstanceMetadata_WhenDeletingAgain_NoExceptionIsThrown()
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var dicomInstanceId = dicomDataset.ToVersionedDicomInstanceIdentifier(version: 0);
+            var dicomInstanceId = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
 
             await _metadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0);
             DicomDataset storedMetadata = await _metadataStore.GetInstanceMetadataAsync(dicomInstanceId);

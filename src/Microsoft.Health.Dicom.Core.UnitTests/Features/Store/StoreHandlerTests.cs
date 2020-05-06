@@ -22,13 +22,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private const string DefaultContentType = "application/dicom";
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
-        private readonly IInstanceEntryReaderManager _instanceEntryReaderManager = Substitute.For<IInstanceEntryReaderManager>();
+        private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager = Substitute.For<IDicomInstanceEntryReaderManager>();
         private readonly IStoreService _storeService = Substitute.For<IStoreService>();
         private readonly StoreHandler _storeHandler;
 
         public StoreHandlerTests()
         {
-            _storeHandler = new StoreHandler(_instanceEntryReaderManager, _storeService);
+            _storeHandler = new StoreHandler(_dicomInstanceEntryReaderManager, _storeService);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenUnsupportedContentType_WhenHandled_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
         {
-            _instanceEntryReaderManager.FindReader(default).ReturnsForAnyArgs((IInstanceEntryReader)null);
+            _dicomInstanceEntryReaderManager.FindReader(default).ReturnsForAnyArgs((IDicomInstanceEntryReader)null);
 
             StoreRequest storeRequest = new StoreRequest(Stream.Null, "invalid");
 
@@ -62,13 +62,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             const string studyInstanceUid = "1.2.3";
 
-            IInstanceEntry[] dicomInstanceEntries = new IInstanceEntry[0];
+            IDicomInstanceEntry[] dicomInstanceEntries = new IDicomInstanceEntry[0];
 
-            IInstanceEntryReader instanceEntryReader = Substitute.For<IInstanceEntryReader>();
+            IDicomInstanceEntryReader dicomInstanceEntryReader = Substitute.For<IDicomInstanceEntryReader>();
 
-            instanceEntryReader.ReadAsync(DefaultContentType, Stream.Null, DefaultCancellationToken).Returns(dicomInstanceEntries);
+            dicomInstanceEntryReader.ReadAsync(DefaultContentType, Stream.Null, DefaultCancellationToken).Returns(dicomInstanceEntries);
 
-            _instanceEntryReaderManager.FindReader(DefaultContentType).Returns(instanceEntryReader);
+            _dicomInstanceEntryReaderManager.FindReader(DefaultContentType).Returns(dicomInstanceEntryReader);
 
             StoreResponse storeResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset());
 

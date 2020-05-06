@@ -57,17 +57,17 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         }
 
         /// <inheritdoc />
-        public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instance)
+        public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
         {
-            EnsureArg.IsNotNull(instance, nameof(instance));
+            EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
             return RouteUri(
                 KnownRouteNames.RetrieveInstance,
                 new RouteValueDictionary()
                 {
-                    { KnownActionParameterNames.StudyInstanceUid, instance.StudyInstanceUid },
-                    { KnownActionParameterNames.SeriesInstanceUid, instance.SeriesInstanceUid },
-                    { KnownActionParameterNames.SopInstanceUid, instance.SopInstanceUid },
+                    { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },
+                    { KnownActionParameterNames.SeriesInstanceUid, instanceIdentifier.SeriesInstanceUid },
+                    { KnownActionParameterNames.SopInstanceUid, instanceIdentifier.SopInstanceUid },
                 });
         }
 

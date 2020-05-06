@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             // Creates a copy of the dataset with bulk data removed.
             DicomDataset dicomDatasetWithoutBulkData = dicomDataset.CopyWithoutBulkDataItems();
 
-            CloudBlockBlob blob = GetInstanceBlockBlob(dicomDatasetWithoutBulkData.ToVersionedDicomInstanceIdentifier(version));
+            CloudBlockBlob blob = GetInstanceBlockBlob(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
 
             blob.Properties.ContentType = KnownContentTypes.ApplicationJson;
 
@@ -90,17 +90,17 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier instanceIdentifier, CancellationToken cancellationToken)
+        public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
-            CloudBlockBlob blob = GetInstanceBlockBlob(instanceIdentifier);
+            CloudBlockBlob blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
             await ExecuteAsync(() => blob.DeleteIfExistsAsync(cancellationToken));
         }
 
         /// <inheritdoc />
-        public async Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier instanceIdentifier, CancellationToken cancellationToken)
+        public async Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
-            CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(instanceIdentifier);
+            CloudBlockBlob cloudBlockBlob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
             DicomDataset dicomDataset = null;
 
@@ -117,9 +117,9 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             return dicomDataset;
         }
 
-        private CloudBlockBlob GetInstanceBlockBlob(VersionedInstanceIdentifier instanceIdentifier)
+        private CloudBlockBlob GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
-            var blobName = $"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}_metadata.json";
+            var blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}_metadata.json";
 
             // Use the Azure storage SDK to validate the blob name; only specific values are allowed here.
             // Check here for more information: https://blogs.msdn.microsoft.com/jmstall/2014/06/12/azure-storage-naming-rules/

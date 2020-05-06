@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            LogCreateInstanceIndexDelegate(_logger, dicomDataset.ToDicomInstanceIdentifier(), null);
+            LogCreateInstanceIndexDelegate(_logger, dicomDataset.ToInstanceIdentifier(), null);
 
             try
             {
@@ -180,13 +180,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task UpdateInstanceIndexStatusAsync(VersionedInstanceIdentifier instanceIdentifier, IndexStatus status, CancellationToken cancellationToken)
+        public async Task UpdateInstanceIndexStatusAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, IndexStatus status, CancellationToken cancellationToken)
         {
-            LogUpdateInstanceIndexStatusDelegate(_logger, instanceIdentifier, status, null);
+            LogUpdateInstanceIndexStatusDelegate(_logger, versionedInstanceIdentifier, status, null);
 
             try
             {
-                await _indexDataStore.UpdateInstanceIndexStatusAsync(instanceIdentifier, status, cancellationToken);
+                await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, status, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
