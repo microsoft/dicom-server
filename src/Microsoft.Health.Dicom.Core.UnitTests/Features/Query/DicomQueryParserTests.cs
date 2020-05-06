@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.Query;
+using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
@@ -234,15 +235,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Fact]
-        public void GivenStudyUID_WithUrl_CheckFilterCondition()
+        public void GivenStudyInstanceUID_WithUrl_CheckFilterCondition()
         {
-            var testStudyUid = DicomUID.Generate();
+            var testStudyInstanceUid = TestUidGenerator.Generate();
             DicomQueryExpression dicomQueryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllSeries, testStudyUid.UID));
+                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllSeries, testStudyInstanceUid));
             Assert.Equal(1, dicomQueryExpression.FilterConditions.Count);
             var cond = dicomQueryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
             Assert.NotNull(cond);
-            Assert.Equal(testStudyUid.UID, cond.Value);
+            Assert.Equal(testStudyInstanceUid, cond.Value);
         }
 
         [Theory]

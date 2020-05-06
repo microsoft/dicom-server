@@ -271,7 +271,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("0.6", "1")]
         public async Task GivenARequestWithNonIntegerFrames_WhenRetrievingFrames_TheServerShouldReturnBadRequest(params string[] frames)
         {
-            var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, DicomUID.Generate(), DicomUID.Generate(), DicomUID.Generate(), string.Join("%2C", frames)), UriKind.Relative);
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", frames)), UriKind.Relative);
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
                () => _client.RetrieveFramesAsync(requestUri));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);

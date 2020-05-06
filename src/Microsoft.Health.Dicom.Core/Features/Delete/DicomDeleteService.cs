@@ -53,19 +53,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
         public async Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
         {
-            DateTimeOffset cleanupAfter = GenerateCleanupAfter();
+            DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
             await _dicomIndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
         {
-            DateTimeOffset cleanupAfter = GenerateCleanupAfter();
+            DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
             await _dicomIndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
-            DateTimeOffset cleanupAfter = GenerateCleanupAfter();
+            DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
             await _dicomIndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                         {
                             try
                             {
-                                int newRetryCount = await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, GenerateCleanupAfter(), cancellationToken);
+                                int newRetryCount = await _dicomIndexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.RetryBackOff), cancellationToken);
                                 if (newRetryCount > _deletedInstanceCleanupConfiguration.MaxRetries)
                                 {
                                     _logger.LogCritical(cleanupException, $"Failed to cleanup instance {deletedInstanceIdentifier}. Retry count is now {newRetryCount} and retry will not be re-attempted.");
@@ -134,9 +134,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             return (success, retrievedInstanceCount);
         }
 
-        private DateTimeOffset GenerateCleanupAfter()
+        private static DateTimeOffset GenerateCleanupAfter(TimeSpan delay)
         {
-            return Clock.UtcNow + _deletedInstanceCleanupConfiguration.DeleteDelay;
+            return Clock.UtcNow + delay;
         }
     }
 }
