@@ -176,10 +176,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private static IActionResult CreateResult(RetrieveResourceResponse response, string contentType)
         {
-            var returnVar = new MultipartResult(
+            return new MultipartResult(
                 response.IsPartialSuccess ? (int)HttpStatusCode.PartialContent : (int)HttpStatusCode.OK,
                 response.ResponseStreams.Select(x => new MultipartItem(contentType, x)).ToList());
-            return returnVar;
         }
     }
 }
