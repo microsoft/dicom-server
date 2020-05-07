@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
-        [AcceptMultipartContentFilter(KnownContentTypes.ApplicationDicom)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
 
-        [AcceptTopLevelContentFilterAttribute(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptMultipartContentFilter(KnownContentTypes.ApplicationDicom)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -93,7 +93,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
 
-        [AcceptTopLevelContentFilterAttribute(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -110,7 +110,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptTopLevelContentFilterAttribute(KnownContentTypes.ApplicationDicom)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -131,7 +131,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
 
-        [AcceptTopLevelContentFilterAttribute(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -148,7 +148,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: true, allowMultiple: true)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]

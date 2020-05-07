@@ -12,38 +12,40 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
     public class AcceptContentFilterAttribute : ActionFilterAttribute
     {
-        protected const int NotAcceptableResponseCode = (int)HttpStatusCode.NotAcceptable;
-        protected const string TypeParameter = "type";
+        private const int NotAcceptableResponseCode = (int)HttpStatusCode.NotAcceptable;
+        private const string TypeParameter = "type";
 
-        public AcceptContentFilterAttribute(params string[] mediaTypes)
+        private readonly bool _allowSingle;
+        private readonly bool _allowMultiple;
+
+        private readonly HashSet<MediaTypeHeaderValue> _mediaTypes;
+
+        public AcceptContentFilterAttribute(string[] mediaTypes, bool allowSingle, bool allowMultiple)
         {
             Debug.Assert(mediaTypes.Length > 0, "The accept content type filter must have at least one media type specified.");
 
-            MediaTypes = new HashSet<MediaTypeHeaderValue>(mediaTypes.Length);
+            _mediaTypes = new HashSet<MediaTypeHeaderValue>(mediaTypes.Length);
 
             foreach (var mediaType in mediaTypes)
             {
                 if (MediaTypeHeaderValue.TryParse(mediaType, out MediaTypeHeaderValue parsedMediaType))
                 {
-                    MediaTypes.Add(parsedMediaType);
+                    _mediaTypes.Add(parsedMediaType);
                 }
                 else
                 {
                     Debug.Assert(false, "The values in the mediaTypes parameter must be parseable by MediaTypeHeaderValue.");
                 }
             }
-        }
 
-        protected HashSet<MediaTypeHeaderValue> MediaTypes
-        {
-            get;
+            _allowSingle = allowSingle;
+            _allowMultiple = allowMultiple;
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
@@ -55,21 +57,24 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
             // Validate the accept headers has one of the specified accepted media types.
             if (acceptHeaders != null && acceptHeaders.Count > 0)
             {
-                var multipartHeaders = acceptHeaders.Where(x => StringSegment.Equals(x.MediaType, KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase)).ToList();
-
-                if (multipartHeaders.Count > 0)
+                if (_allowMultiple)
                 {
-                    IEnumerable<MediaTypeHeaderValue> prospectiveTypes = multipartHeaders.SelectMany(
-                        x => x.Parameters.Where(p => StringSegment.Equals(p.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase))
-                            .Select(p => MediaTypeHeaderValue.TryParse(p.Value.ToString().Trim('"'), out MediaTypeHeaderValue parsedValue) ? parsedValue : null));
-
-                    if (prospectiveTypes.Any(x => MediaTypes.Contains(x)))
+                    foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
                     {
-                        acceptable = true;
+                        NameValueHeaderValue typeParameterValue = acceptHeader.Parameters.FirstOrDefault(
+                            parameter => StringSegment.Equals(parameter.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase));
+
+                        if (typeParameterValue != null &&
+                            MediaTypeHeaderValue.TryParse(HeaderUtilities.RemoveQuotes(typeParameterValue.Value), out MediaTypeHeaderValue parsedValue) &&
+                            _mediaTypes.Contains(parsedValue))
+                        {
+                            acceptable = true;
+                            break;
+                        }
                     }
                 }
 
-                if (!acceptable && acceptHeaders.Any(x => MediaTypes.Contains(x)))
+                if (_allowSingle && !acceptable && acceptHeaders.Any(x => _mediaTypes.Contains(x)))
                 {
                     acceptable = true;
                 }
