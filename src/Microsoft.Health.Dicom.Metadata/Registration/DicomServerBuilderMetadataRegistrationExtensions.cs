@@ -62,7 +62,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsService<IBlobContainerInitializer>();
 
-            services.Add<DicomBlobMetadataStore>()
+            services.Add<BlobMetadataStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -70,14 +70,14 @@ namespace Microsoft.Extensions.DependencyInjection
             // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
             // However, the current implementation of the decorate method requires the concrete type to be already registered,
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
-            services.Decorate<IDicomMetadataStore, LoggingDicomMetadataStore>();
+            services.Decorate<IMetadataStore, LoggingMetadataStore>();
 
             return serverBuilder;
         }
 
         private static IDicomServerBuilder AddMetadataHealthCheck(this IDicomServerBuilder serverBuilder)
         {
-            serverBuilder.Services.AddHealthChecks().AddCheck<DicomMetadataHealthCheck>(name: nameof(DicomMetadataHealthCheck));
+            serverBuilder.Services.AddHealthChecks().AddCheck<MetadataHealthCheck>(name: nameof(MetadataHealthCheck));
             return serverBuilder;
         }
     }

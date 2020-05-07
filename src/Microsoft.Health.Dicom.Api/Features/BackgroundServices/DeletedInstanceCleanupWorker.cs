@@ -17,11 +17,11 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
     public class DeletedInstanceCleanupWorker
     {
         private readonly ILogger<DeletedInstanceCleanupWorker> _logger;
-        private readonly IDicomDeleteService _deleteService;
+        private readonly IDeleteService _deleteService;
         private readonly TimeSpan _pollingInterval;
         private readonly int _batchSize;
 
-        public DeletedInstanceCleanupWorker(IDicomDeleteService deleteService, IOptions<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
+        public DeletedInstanceCleanupWorker(IDeleteService deleteService, IOptions<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
         {
             EnsureArg.IsNotNull(deleteService, nameof(deleteService));
             EnsureArg.IsNotNull(backgroundCleanupConfiguration?.Value, nameof(backgroundCleanupConfiguration));
