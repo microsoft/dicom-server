@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -96,7 +97,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private HashSet<DicomTag> _tagsToReturn = null;
 
-        public QueryResponseBuilder(DicomQueryExpression queryExpression)
+        public QueryResponseBuilder(QueryExpression queryExpression)
         {
             EnsureArg.IsNotNull(queryExpression, nameof(queryExpression));
             EnsureArg.IsFalse(queryExpression.IELevel == ResourceType.Frames, nameof(queryExpression.IELevel));
@@ -116,7 +117,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return dicomDataset;
         }
 
-        private void Initialize(DicomQueryExpression queryExpression)
+        private void Initialize(QueryExpression queryExpression)
         {
             HashSet<DicomTag> levelSpecificTags = null;
 

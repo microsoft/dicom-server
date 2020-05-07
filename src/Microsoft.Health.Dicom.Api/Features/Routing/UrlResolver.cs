@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Core.Features;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 
 namespace Microsoft.Health.Dicom.Api.Features.Routing
@@ -56,17 +57,17 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         }
 
         /// <inheritdoc />
-        public Uri ResolveRetrieveInstanceUri(DicomInstanceIdentifier dicomInstance)
+        public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
         {
-            EnsureArg.IsNotNull(dicomInstance, nameof(dicomInstance));
+            EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
             return RouteUri(
                 KnownRouteNames.RetrieveInstance,
                 new RouteValueDictionary()
                 {
-                    { KnownActionParameterNames.StudyInstanceUid, dicomInstance.StudyInstanceUid },
-                    { KnownActionParameterNames.SeriesInstanceUid, dicomInstance.SeriesInstanceUid },
-                    { KnownActionParameterNames.SopInstanceUid, dicomInstance.SopInstanceUid },
+                    { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },
+                    { KnownActionParameterNames.SeriesInstanceUid, instanceIdentifier.SeriesInstanceUid },
+                    { KnownActionParameterNames.SopInstanceUid, instanceIdentifier.SopInstanceUid },
                 });
         }
 

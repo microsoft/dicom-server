@@ -14,6 +14,7 @@ using Microsoft.IO;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
+using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 {
@@ -175,7 +176,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         {
             const string requestContentType = "multipart/related; type=\"application/dicom\"; start=\"somewhere\"; boundary=+b+";
 
-            Assert.Throws<DicomNotSupportedException>(() => Create(requestContentType));
+            Assert.Throws<NotSupportedException>(() => Create(requestContentType));
         }
 
         private AspNetCoreMultipartReader Create(string contentType, Stream body = null, ISeekableStreamConverter seekableStreamConverter = null)
