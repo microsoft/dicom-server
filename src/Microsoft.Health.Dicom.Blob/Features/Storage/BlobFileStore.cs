@@ -14,7 +14,6 @@ using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
@@ -41,10 +40,9 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<Uri> AddFileAsync(
+        public async Task<Uri> StoreFileAsync(
             VersionedInstanceIdentifier versionedInstanceIdentifier,
             Stream stream,
-            bool overwriteIfExists,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
@@ -56,19 +54,14 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
             try
             {
-                // Will throw if the provided resource identifier already exists.
                 await blob.UploadFromStreamAsync(
                     stream,
-                    overwriteIfExists ? AccessCondition.GenerateEmptyCondition() : AccessCondition.GenerateIfNotExistsCondition(),
+                    AccessCondition.GenerateEmptyCondition(),
                     new BlobRequestOptions(),
                     new OperationContext(),
                     cancellationToken);
 
                 return blob.Uri;
-            }
-            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
-            {
-                throw new InstanceAlreadyExistsException();
             }
             catch (Exception ex)
             {
@@ -106,7 +99,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
         private CloudBlockBlob GetBlockBlobReference(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
-            string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}";
+            string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}.dcm";
 
             // Use the Azure storage SDK to validate the blob name; only specific values are allowed here.
             // Check here for more information: https://blogs.msdn.microsoft.com/jmstall/2014/06/12/azure-storage-naming-rules/
@@ -123,7 +116,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             }
             catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
             {
-                throw new InstanceNotFoundException();
+                throw new ItemNotFoundException(ex);
             }
             catch (Exception ex)
             {

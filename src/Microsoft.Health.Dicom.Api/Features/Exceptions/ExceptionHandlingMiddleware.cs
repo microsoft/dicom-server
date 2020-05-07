@@ -80,14 +80,18 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                 case InstanceAlreadyExistsException _:
                     statusCode = HttpStatusCode.Conflict;
                     break;
-                case DicomServerException _:
-                    _logger.LogWarning("Service exception: {0}", exception);
-                    statusCode = HttpStatusCode.ServiceUnavailable;
-                    break;
                 case UnsupportedMediaTypeException _:
                     statusCode = HttpStatusCode.UnsupportedMediaType;
                     break;
                 case ServiceUnavailableException _:
+                    statusCode = HttpStatusCode.ServiceUnavailable;
+                    break;
+                case ItemNotFoundException _:
+                    // One of the required resources is missing.
+                    statusCode = HttpStatusCode.InternalServerError;
+                    break;
+                case DicomServerException _:
+                    _logger.LogWarning("Service exception: {0}", exception);
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
                 default:

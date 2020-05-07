@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 // We have successfully created the index, store the files.
                 Task[] tasks = new[]
                 {
-                    StoreBlobAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
+                    StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
                     StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken),
                 };
 
@@ -75,24 +75,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
         }
 
-        private async Task StoreBlobAsync(
+        private async Task StoreFileAsync(
             VersionedInstanceIdentifier versionedInstanceIdentifier,
             IDicomInstanceEntry dicomInstanceEntry,
             CancellationToken cancellationToken)
         {
             Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
-            await _blobDataStore.AddFileAsync(
+            await _blobDataStore.StoreFileAsync(
                 versionedInstanceIdentifier,
                 stream,
-                cancellationToken: cancellationToken);
+                cancellationToken);
         }
 
         private Task StoreInstanceMetadataAsync(
             DicomDataset dicomDataset,
             long version,
             CancellationToken cancellationToken)
-            => _instanceMetadataStore.AddInstanceMetadataAsync(dicomDataset, version, cancellationToken);
+            => _instanceMetadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
 
         private async Task TryCleanupInstanceIndexAsync(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {

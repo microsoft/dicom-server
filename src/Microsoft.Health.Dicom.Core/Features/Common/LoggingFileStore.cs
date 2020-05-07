@@ -15,11 +15,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 {
     public class LoggingFileStore : IFileStore
     {
-        private static readonly Action<ILogger, string, bool, Exception> LogAddFileDelegate =
-            LoggerMessage.Define<string, bool>(
+        private static readonly Action<ILogger, string, Exception> LogStoreFileDelegate =
+            LoggerMessage.Define<string>(
                 LogLevel.Debug,
                 default,
-                "Adding DICOM instance file with '{DicomInstanceIdentifier}' using overwrite mode '{OverwriteMode}'.");
+                "Storing DICOM instance file with '{DicomInstanceIdentifier}'.");
 
         private static readonly Action<ILogger, string, Exception> LogDeleteFileDelegate =
             LoggerMessage.Define<string>(
@@ -58,15 +58,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task<Uri> AddFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
+        public async Task<Uri> StoreFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-            LogAddFileDelegate(_logger, versionedInstanceIdentifier.ToString(), overwriteIfExists, null);
+            LogStoreFileDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
 
             try
             {
-                Uri uri = await _fileStore.AddFileAsync(versionedInstanceIdentifier, stream, overwriteIfExists, cancellationToken);
+                Uri uri = await _fileStore.StoreFileAsync(versionedInstanceIdentifier, stream, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 
@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task DeleteFileIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task DeleteFileIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task<Stream> GetFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 

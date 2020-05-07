@@ -172,6 +172,9 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="InvaludFuzzyMatchValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified fuzzymatch value {0} is not a valid boolean</value>
   </data>
+  <data name="ItemNotFound" xml:space="preserve">
+    <value>The specified item cannot be found.</value>
+  </data>
   <data name="MismatchStudyInstanceUid" xml:space="preserve">
     <value>The StudyInstanceUid '{0}' in the payload does not match the specified StudyInstanceUid '{1}'.</value>
     <comment>{0} and {1} are both StudyInstanceUid. StudyInstanceUID is defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID"}.</comment>

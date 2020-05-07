@@ -16,11 +16,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 {
     public class LoggingMetadataStore : IMetadataStore
     {
-        private static readonly Action<ILogger, string, Exception> LogAddInstanceMetadataDelegate =
+        private static readonly Action<ILogger, string, Exception> LogStoreInstanceMetadataDelegate =
                LoggerMessage.Define<string>(
                    LogLevel.Debug,
                    default,
-                   "Adding DICOM instance metadata file with '{DicomInstanceIdentifier}'.");
+                   "Storing DICOM instance metadata file with '{DicomInstanceIdentifier}'.");
 
         private static readonly Action<ILogger, string, Exception> LogDeleteInstanceMetadataDelegate =
             LoggerMessage.Define<string>(
@@ -59,13 +59,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task AddInstanceMetadataAsync(DicomDataset dicomDataset, long version, CancellationToken cancellationToken)
+        public async Task StoreInstanceMetadataAsync(DicomDataset dicomDataset, long version, CancellationToken cancellationToken)
         {
-            LogAddInstanceMetadataDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(version).ToString(), null);
+            LogStoreInstanceMetadataDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(version).ToString(), null);
 
             try
             {
-                await _metadataStore.AddInstanceMetadataAsync(dicomDataset, version, cancellationToken);
+                await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
