@@ -10,8 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 using Xunit;
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await ValidateInsertFeed(dicomInstanceIdentifier, 3);
         }
 
-        private async Task ValidateInsertFeed(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
+        private async Task ValidateInsertFeed(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
         {
             IReadOnlyList<ChangeFeedRow> result = await _fixture.DicomIndexDataStoreTestHelper.GetChangeFeedRowsAsync(
                 dicomInstanceIdentifier.StudyInstanceUid,
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        private async Task ValidateDeleteFeed(VersionedDicomInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
+        private async Task ValidateDeleteFeed(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
         {
             IReadOnlyList<ChangeFeedRow> result = await _fixture.DicomIndexDataStoreTestHelper.GetChangeFeedRowsAsync(
                 dicomInstanceIdentifier.StudyInstanceUid,
@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        private async Task<VersionedDicomInstanceIdentifier> CreateValidInstance(
+        private async Task<VersionedInstanceIdentifier> CreateValidInstance(
             string studyInstanceUid = null,
             string seriesInstanceUid = null,
             string sopInstanceUid = null)
@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             };
 
             var version = await _fixture.DicomIndexDataStore.CreateInstanceIndexAsync(newDataSet);
-            return newDataSet.ToVersionedDicomInstanceIdentifier(version);
+            return newDataSet.ToVersionedInstanceIdentifier(version);
         }
     }
 }

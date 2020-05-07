@@ -11,25 +11,25 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
     public class ChangeFeedTestsFixture : IAsyncLifetime
     {
-        private readonly DicomSqlDataStoreTestsFixture _dicomSqlDataStoreTestsFixture;
+        private readonly SqlDataStoreTestsFixture _sqlDataStoreTestsFixture;
 
         public ChangeFeedTestsFixture()
         {
-            _dicomSqlDataStoreTestsFixture = new DicomSqlDataStoreTestsFixture();
+            _sqlDataStoreTestsFixture = new SqlDataStoreTestsFixture();
         }
 
-        public IDicomIndexDataStore DicomIndexDataStore => _dicomSqlDataStoreTestsFixture.DicomIndexDataStore;
+        public IIndexDataStore DicomIndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
 
-        public IDicomIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _dicomSqlDataStoreTestsFixture.TestHelper;
+        public IIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _sqlDataStoreTestsFixture.TestHelper;
 
         public async Task InitializeAsync()
         {
-            await _dicomSqlDataStoreTestsFixture.InitializeAsync();
+            await _sqlDataStoreTestsFixture.InitializeAsync();
         }
 
         public async Task DisposeAsync()
         {
-            await _dicomSqlDataStoreTestsFixture.DisposeAsync();
+            await _sqlDataStoreTestsFixture.DisposeAsync();
         }
     }
 }
