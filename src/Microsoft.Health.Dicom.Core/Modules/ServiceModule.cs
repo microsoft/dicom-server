@@ -68,12 +68,12 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<DicomFrameHandler>()
-                .Scoped()
+                .Transient()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Add<DicomRetrieveTranscoder>()
-                .Scoped()
+                .Transient()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
