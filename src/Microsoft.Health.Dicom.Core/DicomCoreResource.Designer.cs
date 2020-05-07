@@ -251,7 +251,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified series instance cannot be found..
+        ///   Looks up a localized string similar to The specified series cannot be found..
         /// </summary>
         internal static string SeriesInstanceNotFound {
             get {
@@ -269,7 +269,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified study instance cannot be found..
+        ///   Looks up a localized string similar to The specified study cannot be found..
         /// </summary>
         internal static string StudyInstanceNotFound {
             get {
