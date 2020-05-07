@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
@@ -17,12 +18,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenStudyLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>() { DicomTag.StudyDescription, DicomTag.Modality });
-            var filters = new List<DicomQueryFilterCondition>()
+            var includeField = new QueryIncludeField(false, new List<DicomTag>() { DicomTag.StudyDescription, DicomTag.Modality });
+            var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(DicomTag.PatientAge, "35"),
             };
-            var query = new DicomQueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
@@ -39,12 +40,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenStudySeriesLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>() { DicomTag.StudyDescription, DicomTag.Modality });
-            var filters = new List<DicomQueryFilterCondition>()
+            var includeField = new QueryIncludeField(false, new List<DicomTag>() { DicomTag.StudyDescription, DicomTag.Modality });
+            var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "35"),
             };
-            var query = new DicomQueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters);
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
@@ -60,9 +61,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenAllSeriesLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new DicomQueryIncludeField(true, new List<DicomTag>() { });
-            var filters = new List<DicomQueryFilterCondition>();
-            var query = new DicomQueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters);
+            var includeField = new QueryIncludeField(true, new List<DicomTag>() { });
+            var filters = new List<QueryFilterCondition>();
+            var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters);
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
@@ -78,9 +79,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenAllInstanceLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new DicomQueryIncludeField(true, new List<DicomTag>() { });
-            var filters = new List<DicomQueryFilterCondition>();
-            var query = new DicomQueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
+            var includeField = new QueryIncludeField(true, new List<DicomTag>() { });
+            var filters = new List<QueryFilterCondition>();
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
@@ -96,12 +97,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenStudyInstanceLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>() { DicomTag.Modality });
-            var filters = new List<DicomQueryFilterCondition>()
+            var includeField = new QueryIncludeField(false, new List<DicomTag>() { DicomTag.Modality });
+            var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "35"),
             };
-            var query = new DicomQueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters);
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
@@ -117,13 +118,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenStudySeriesInstanceLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new DicomQueryIncludeField(false, new List<DicomTag>() { });
-            var filters = new List<DicomQueryFilterCondition>()
+            var includeField = new QueryIncludeField(false, new List<DicomTag>() { });
+            var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "35"),
                 new StringSingleValueMatchCondition(DicomTag.SeriesInstanceUID, "351"),
             };
-            var query = new DicomQueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters);
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());

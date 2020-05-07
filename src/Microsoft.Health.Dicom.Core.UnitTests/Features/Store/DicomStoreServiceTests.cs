@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
     public class DicomStoreServiceTests
     {
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
-        private static readonly DicomStoreResponse DefaultResponse = new DicomStoreResponse(DicomStoreResponseStatus.Success, new DicomDataset());
+        private static readonly StoreResponse DefaultResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset());
 
         private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
             studyInstanceUid: "1",
@@ -37,20 +37,20 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             sopInstanceUid: "12",
             sopClassUid: "13");
 
-        private readonly IDicomStoreResponseBuilder _dicomStoreResponseBuilder = Substitute.For<IDicomStoreResponseBuilder>();
+        private readonly IStoreResponseBuilder _storeResponseBuilder = Substitute.For<IStoreResponseBuilder>();
         private readonly IDicomDatasetMinimumRequirementValidator _dicomDatasetMinimumRequirementValidator = Substitute.For<IDicomDatasetMinimumRequirementValidator>();
-        private readonly IDicomStoreOrchestrator _dicomStoreOrchestrator = Substitute.For<IDicomStoreOrchestrator>();
-        private readonly DicomStoreService _dicomStoreService;
+        private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
+        private readonly StoreService _storeService;
 
         public DicomStoreServiceTests()
         {
-            _dicomStoreResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
+            _storeResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
 
-            _dicomStoreService = new DicomStoreService(
-                _dicomStoreResponseBuilder,
+            _storeService = new StoreService(
+                _storeResponseBuilder,
                 _dicomDatasetMinimumRequirementValidator,
-                _dicomStoreOrchestrator,
-                NullLogger<DicomStoreService>.Instance);
+                _storeOrchestrator,
+                NullLogger<StoreService>.Instance);
         }
 
         [Fact]
@@ -58,8 +58,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             await ExecuteAndValidateAsync(dicomInstanceEntries: null);
 
-            _dicomStoreResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
-            _dicomStoreResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
+            _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+            _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
         }
 
         [Fact]
@@ -67,8 +67,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             await ExecuteAndValidateAsync(new IDicomInstanceEntry[0]);
 
-            _dicomStoreResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
-            _dicomStoreResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
+            _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+            _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
         }
 
         [Fact]
@@ -80,8 +80,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-            _dicomStoreResponseBuilder.Received(1).AddSuccess(_dicomDataset1);
-            _dicomStoreResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
+            _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1);
+            _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
         }
 
         [Fact]
@@ -93,8 +93,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-            _dicomStoreResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
-            _dicomStoreResponseBuilder.Received(1).AddFailure(null, TestConstants.ProcessingFailureReasonCode);
+            _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+            _storeResponseBuilder.Received(1).AddFailure(null, TestConstants.ProcessingFailureReasonCode);
         }
 
         [Fact]
@@ -106,8 +106,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-            _dicomStoreResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
-            _dicomStoreResponseBuilder.Received(1).AddFailure(null, TestConstants.ValidationFailureReasonCode);
+            _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+            _storeResponseBuilder.Received(1).AddFailure(null, TestConstants.ValidationFailureReasonCode);
         }
 
         [Fact]
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDatasetMinimumRequirementValidator
                 .When(validator => validator.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
-                .Do(_ => throw new DicomDatasetValidationException(failureCode, "test"));
+                .Do(_ => throw new DatasetValidationException(failureCode, "test"));
 
             IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
@@ -125,8 +125,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-            _dicomStoreResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
-            _dicomStoreResponseBuilder.Received(1).AddFailure(_dicomDataset2, failureCode);
+            _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+            _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, failureCode);
         }
 
         [Fact]
@@ -136,14 +136,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
-            _dicomStoreOrchestrator
+            _storeOrchestrator
                 .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
-                .Do(_ => throw new DicomInstanceAlreadyExistsException());
+                .Do(_ => throw new InstanceAlreadyExistsException());
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-            _dicomStoreResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
-            _dicomStoreResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.SopInstanceAlreadyExistsReasonCode);
+            _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+            _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.SopInstanceAlreadyExistsReasonCode);
         }
 
         [Fact]
@@ -153,14 +153,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
-            _dicomStoreOrchestrator
+            _storeOrchestrator
                 .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
-                .Do(_ => throw new DicomDataStoreException("Simulated failure."));
+                .Do(_ => throw new DataStoreException("Simulated failure."));
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-            _dicomStoreResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
-            _dicomStoreResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
+            _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+            _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
         }
 
         [Fact]
@@ -178,8 +178,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToFail);
 
-            _dicomStoreResponseBuilder.Received(1).AddSuccess(_dicomDataset1);
-            _dicomStoreResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
+            _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1);
+            _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
         }
 
         [Fact]
@@ -199,14 +199,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             string requiredStudyInstanceUid,
             params IDicomInstanceEntry[] dicomInstanceEntries)
         {
-            DicomStoreResponse response = await _dicomStoreService.ProcessAsync(
+            StoreResponse response = await _storeService.ProcessAsync(
                 dicomInstanceEntries,
                 requiredStudyInstanceUid,
                 cancellationToken: DefaultCancellationToken);
 
             Assert.Equal(DefaultResponse, response);
 
-            _dicomStoreResponseBuilder.Received(1).BuildResponse(requiredStudyInstanceUid);
+            _storeResponseBuilder.Received(1).BuildResponse(requiredStudyInstanceUid);
 
             if (dicomInstanceEntries != null)
             {

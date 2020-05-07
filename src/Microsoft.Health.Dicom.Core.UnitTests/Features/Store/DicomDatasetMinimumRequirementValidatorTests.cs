@@ -101,7 +101,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         private void ExecuteAndValidateException(ushort failureCode, string requiredStudyInstanceUid = null)
         {
-            var exception = Assert.Throws<DicomDatasetValidationException>(
+            var exception = Assert.Throws<DatasetValidationException>(
                 () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid));
 
             Assert.Equal(failureCode, exception.FailureCode);

@@ -28,17 +28,17 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Singleton()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomStoreService>()
+            services.Add<StoreService>()
                 .Scoped()
                 .AsImplementedInterfaces()
                 .AsFactory();
 
-            services.Add<DicomStoreOrchestrator>()
+            services.Add<StoreOrchestrator>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Decorate<IDicomStoreOrchestrator, LoggingDicomStoreOrchestrator>();
+            services.Decorate<IStoreOrchestrator, LoggingStoreOrchestrator>();
 
             services.Add<DicomInstanceEntryReaderForMultipartRequest>()
                 .Singleton()
@@ -53,28 +53,28 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.Decorate<IDicomInstanceEntryReaderManager, LoggingDicomInstanceEntryReaderManager>();
 
-            services.Add<DicomStoreResponseBuilder>()
+            services.Add<StoreResponseBuilder>()
                 .Transient()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomRetrieveMetadataService>()
+            services.Add<RetrieveMetadataService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomRetrieveResourceService>()
+            services.Add<RetrieveResourceService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomQueryService>()
+            services.Add<QueryService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.AddTransient<IDicomQueryParser, DicomQueryParser>();
+            services.AddTransient<IQueryParser, QueryParser>();
 
-            services.Add<DicomDeleteService>()
+            services.Add<DeleteService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

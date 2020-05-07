@@ -15,6 +15,7 @@ using Dicom.Imaging;
 using Dicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Microsoft.IO;
@@ -74,7 +75,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenStoredInstance_WhenRetrieveRequestForStudy_ThenServerShouldReturnInstancesInStudy()
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
 
             DicomWebResponse<IReadOnlyList<DicomFile>> instancesInStudy = await _client.RetrieveStudyAsync(identifier.StudyInstanceUid);
             ValidateRetrieveTransaction(instancesInStudy, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, file);
@@ -90,7 +91,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenStoredInstance_WhenRetrieveRequestForSeriesInDifferentStudy_ThenServerShouldReturnNotFound()
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesAsync(TestUidGenerator.Generate(), identifier.SeriesInstanceUid));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
@@ -99,7 +100,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenStoredInstance_WhenRerieveRequestForDifferentSeries_ThenServerShouldReturnNotFound()
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesAsync(identifier.StudyInstanceUid, TestUidGenerator.Generate()));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
@@ -108,7 +109,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenStoredInstance_WhenRetrieveRequestForSeries_ThenServerShouldReturnInstancesInSeries()
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
 
             DicomWebResponse<IReadOnlyList<DicomFile>> instancesInSeries = await _client.RetrieveSeriesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid);
             ValidateRetrieveTransaction(instancesInSeries, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, file);
@@ -117,7 +118,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenStoredInstance_WhenRetrieveRequestForDifferentInstance_ThenServerShouldReturnNotFound()
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
                 () => _client.RetrieveInstanceAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, TestUidGenerator.Generate()));
@@ -127,7 +128,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenStoredInstance_WhenRetrieveRequestForSameInstanceInDifferentStudy_ThenServerShouldReturnNotFound()
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
                 () => _client.RetrieveInstanceAsync(TestUidGenerator.Generate(), identifier.SeriesInstanceUid, identifier.SopInstanceUid));
@@ -137,7 +138,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenStoredInstance_WhenRetrieveRequestForSameInstanceInDifferentSeries_ThenServerShouldReturnNotFound()
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
                 () => _client.RetrieveInstanceAsync(identifier.StudyInstanceUid, TestUidGenerator.Generate(), identifier.SopInstanceUid));
@@ -147,7 +148,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenStoredInstance_WhenRetrieveRequestForInstance_ThenServerShouldReturnInstance()
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
 
             DicomWebResponse<IReadOnlyList<DicomFile>> instances = await _client.RetrieveInstanceAsync(
                 identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
@@ -157,7 +158,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenInstanceWithFrames_WhenRetrieveRequestForFramesInDifferentInstance_ThenServerShouldReturnNotFound()
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
                 () => _client.RetrieveFramesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, TestUidGenerator.Generate(), frames: new[] { 1 }));
@@ -167,7 +168,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenInstanceWithFrames_WhenRetrieveRequestForNonExistingFrameInInstance_ThenServerShouldReturnNotFound()
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
                 () => _client.RetrieveFramesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, frames: new[] { 4 }));
@@ -179,7 +180,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var studyInstanceUid = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 2);
-            var dicomInstance = dicomFile1.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
             await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
 
             DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1 });
@@ -317,7 +318,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var studyInstanceUid = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid);
-            var dicomInstance = dicomFile1.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
             DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
 
             DicomSequence successSequence = response.Value.GetSequence(DicomTag.ReferencedSOPSequence);
@@ -349,7 +350,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             IEnumerable<DicomFile> dicomFiles = Samples.GetDicomFilesForTranscoding();
             DicomFile dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == "ExplicitVRLittleEndian"));
-            var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
 
             try
             {
@@ -493,7 +494,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             string tsTo)
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFileWith16BitPixelData(transferSyntax: ((DicomTransferSyntax)typeof(DicomTransferSyntax).GetField(tsFrom).GetValue(null)).UID.UID);
-            var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
 
             try
             {
@@ -534,7 +535,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             IEnumerable<DicomFile> dicomFiles = Samples.GetDicomFilesForTranscoding();
             DicomFile dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == tsFrom));
-            var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
 
             try
             {
@@ -561,7 +562,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             IEnumerable<DicomFile> dicomFiles = Samples.GetSampleDicomFiles();
             DicomFile dicomFile = dicomFiles.FirstOrDefault(f => (Path.GetFileNameWithoutExtension(f.File.Name) == "XRJPEGProcess1"));
-            var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
 
             try
             {
@@ -618,10 +619,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 acceptHeader);
         }
 
-        private async Task<(DicomInstanceIdentifier, DicomFile)> CreateAndStoreDicomFile(int numberOfFrames = 0)
+        private async Task<(InstanceIdentifier, DicomFile)> CreateAndStoreDicomFile(int numberOfFrames = 0)
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: numberOfFrames);
-            var dicomInstance = dicomFile.Dataset.ToDicomInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
             await _client.StoreAsync(new[] { dicomFile }, dicomInstance.StudyInstanceUid);
 
             return (dicomInstance, dicomFile);
@@ -650,8 +651,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             for (var i = 0; i < expectedFiles.Length; i++)
             {
                 DicomFile expectedFile = expectedFiles[i];
-                var expectedInstance = expectedFile.Dataset.ToDicomInstanceIdentifier();
-                DicomFile actualFile = response.Value.First(x => x.Dataset.ToDicomInstanceIdentifier().Equals(expectedInstance));
+                var expectedInstance = expectedFile.Dataset.ToInstanceIdentifier();
+                DicomFile actualFile = response.Value.First(x => x.Dataset.ToInstanceIdentifier().Equals(expectedInstance));
 
                 Assert.Equal(expectedTransferSyntax, response.Value[i].Dataset.InternalTransferSyntax);
 

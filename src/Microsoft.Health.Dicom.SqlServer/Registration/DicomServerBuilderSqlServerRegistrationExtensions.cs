@@ -46,21 +46,21 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsSelf();
 
-            services.Add<DicomSqlIndexSchema>()
+            services.Add<SqlIndexSchema>()
                 .Singleton()
                 .AsSelf();
 
-            services.Add<DicomSqlIndexDataStore>()
+            services.Add<SqlIndexDataStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomSqlQueryStore>()
+            services.Add<SqlQueryStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomSqlInstanceStore>()
+            services.Add<SqlInstanceStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -73,7 +73,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
             // However, the current implementation of the decorate method requires the concrete type to be already registered,
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
-            services.Decorate<IDicomIndexDataStore, LoggingDicomIndexDataStore>();
+            services.Decorate<IIndexDataStore, LoggingIndexDataStore>();
 
             return dicomServerBuilder;
         }

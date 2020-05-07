@@ -2,7 +2,7 @@
 ## Requirements
 - [Azure storage emulator](https://go.microsoft.com/fwlink/?linkid=717179)
 - Sql Server 2019 with Full text index feature
-- .Net core SDK version specificied [here](../global.json)
+- .Net core SDK version specified [here](../global.json)
 
 ## Getting Started in Visual Studio
 ### To Develop
@@ -17,7 +17,7 @@
 # Testing
 - Set Microsoft.Health.Dicom.Web as your startup project
 - Run the project
-- Webserver is now running at https://localhost:63838/
+- Web server is now running at https://localhost:63838/
 
 ## Fiddler to Post dcm files
 - [Install fiddler](https://www.telerik.com/download/fiddler)
