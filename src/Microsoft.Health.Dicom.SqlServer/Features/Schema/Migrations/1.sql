@@ -921,8 +921,7 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    SELECT  TOP(@limit)
-            Sequence,
+    SELECT  Sequence,
             TimeStamp,
             Action,
             StudyInstanceUid,
@@ -931,7 +930,7 @@ BEGIN
             OriginalWatermark,
             CurrentWatermark
     FROM    dbo.ChangeFeed
-    WHERE   Sequence > @offset
+    WHERE   Sequence BETWEEN @offset+1 AND @offset+@limit
     ORDER BY Sequence
 END
 GO
