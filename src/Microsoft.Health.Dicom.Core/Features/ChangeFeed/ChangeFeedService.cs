@@ -8,21 +8,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 {
     public class ChangeFeedService : IChangeFeedService
     {
         private readonly IChangeFeedStore _changeFeedStore;
-        private readonly IDicomMetadataStore _dicomMetadataStore;
+        private readonly IMetadataStore _metadataStore;
 
-        public ChangeFeedService(IChangeFeedStore changeFeedStore, IDicomMetadataStore dicomMetadataStore)
+        public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore)
         {
             EnsureArg.IsNotNull(changeFeedStore, nameof(changeFeedStore));
-            EnsureArg.IsNotNull(dicomMetadataStore, nameof(dicomMetadataStore));
+            EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
 
             _changeFeedStore = changeFeedStore;
-            _dicomMetadataStore = dicomMetadataStore;
+            _metadataStore = metadataStore;
         }
 
         public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(int offset, int limit, bool includeMetadata, CancellationToken cancellationToken)
@@ -61,13 +62,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 
         private async Task PopulateMetadata(ChangeFeedEntry entry, CancellationToken cancellationToken)
         {
-            if (entry.State == ChangeFeedState.Deleted || entry.CurrentWatermark == null)
+            if (entry.State == ChangeFeedState.Deleted || entry.CurrentVersion == null)
             {
                 return;
             }
 
-            var identifier = new VersionedDicomInstanceIdentifier(entry.StudyInstanceUid, entry.SeriesInstanceUid, entry.SopInstanceUid, entry.CurrentWatermark.Value);
-            entry.Metadata = await _dicomMetadataStore.GetInstanceMetadataAsync(identifier, cancellationToken);
+            var identifier = new VersionedInstanceIdentifier(entry.StudyInstanceUid, entry.SeriesInstanceUid, entry.SopInstanceUid, entry.CurrentVersion.Value);
+            entry.Metadata = await _metadataStore.GetInstanceMetadataAsync(identifier, cancellationToken);
             entry.IncludeMetadata = true;
         }
     }

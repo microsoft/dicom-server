@@ -42,9 +42,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             CurrentVersion = currentVersion;
         }
 
-        [JsonIgnore]
-        public long? CurrentWatermark { get; }
-
         public long Sequence { get; }
 
         public string StudyInstanceUid { get; }
@@ -61,8 +58,10 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
         [JsonConverter(typeof(StringEnumConverter))]
         public ChangeFeedState State { get; }
 
+        [JsonIgnore]
         public long OriginalVersion { get; }
 
+        [JsonIgnore]
         public long? CurrentVersion { get; }
 
         public DicomDataset Metadata { get; set; }
