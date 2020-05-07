@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
             }
 
             Assert.NotNull(caughtException);
-            Assert.IsType<InvalidDicomInstanceException>(caughtException);
+            Assert.IsType<InvalidInstanceException>(caughtException);
         }
 
         [Fact]

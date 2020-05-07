@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 
             if (_dicomFile == null)
             {
-                throw new InvalidDicomInstanceException(DicomCoreResource.InvalidDicomInstance);
+                throw new InvalidInstanceException(DicomCoreResource.InvalidDicomInstance);
             }
 
             return _dicomFile.Dataset;

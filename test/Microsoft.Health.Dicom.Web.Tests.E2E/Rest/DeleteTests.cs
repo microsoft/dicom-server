@@ -243,28 +243,28 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("notAStudyUid")]
-        public async Task GivenABadStudyUid_WhenDeleting_TheServerShouldReturnBackRequest(string studyUid)
+        [InlineData("notAStudyInstanceUid")]
+        public async Task GivenABadStudyInstanceUid_WhenDeleting_TheServerShouldReturnBackRequest(string studyInstanceUid)
         {
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.DeleteStudyAsync(studyUid));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.DeleteStudyAsync(studyInstanceUid));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
         [Theory]
-        [InlineData("notAStudyUid", "notASeriesUid")]
-        [InlineData("2.25.106797093114774953545959916858814568441", "notASeriesUid")]
-        public async Task GivenABadSeriesUid_WhenDeleting_TheServerShouldReturnBackRequest(string studyUid, string seriesUid)
+        [InlineData("notAStudyInstanceUid", "notASeriesInstanceUid")]
+        [InlineData("2.25.106797093114774953545959916858814568441", "notASeriesInstanceUid")]
+        public async Task GivenABadSeriesInstanceUid_WhenDeleting_TheServerShouldReturnBackRequest(string studyInstanceUid, string seriesInstanceUid)
         {
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.DeleteSeriesAsync(studyUid, seriesUid));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
         [Theory]
-        [InlineData("notAStudyUid", "notASeriesUid", "notASopInstanceUid")]
+        [InlineData("notAStudyInstanceUid", "notASeriesInstanceUid", "notASopInstanceUid")]
         [InlineData("2.25.106797093114774953545959916858814568441", "2.25.106797093114774953545959916858814568442", "notASopInstanceUid")]
-        public async Task GivenABadInstanceUid_WhenDeleting_TheServerShouldReturnBackRequest(string studyUid, string seriesUid, string instanceUid)
+        public async Task GivenABadSopInstanceUid_WhenDeleting_TheServerShouldReturnBackRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.DeleteInstanceAsync(studyUid, seriesUid, instanceUid));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 

@@ -11,18 +11,18 @@ using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class QueryHandler : IRequestHandler<DicomQueryResourceRequest, DicomQueryResourceResponse>
+    public class QueryHandler : IRequestHandler<QueryResourceRequest, QueryResourceResponse>
     {
-        private readonly IDicomQueryService _queryService;
+        private readonly IQueryService _queryService;
 
-        public QueryHandler(IDicomQueryService queryService)
+        public QueryHandler(IQueryService queryService)
         {
             EnsureArg.IsNotNull(queryService, nameof(queryService));
 
             _queryService = queryService;
         }
 
-        public async Task<DicomQueryResourceResponse> Handle(DicomQueryResourceRequest message, CancellationToken cancellationToken)
+        public async Task<QueryResourceResponse> Handle(QueryResourceRequest message, CancellationToken cancellationToken)
         {
             return await _queryService.QueryAsync(message, cancellationToken);
         }
