@@ -53,10 +53,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             if (!instancesToRetrieve.Any())
             {
-                throw new DicomInstanceNotFoundException();
+                ThrowNotFoundException(resourceType);
             }
 
             return instancesToRetrieve;
+        }
+
+        private static void ThrowNotFoundException(ResourceType resourceType)
+        {
+            switch (resourceType)
+            {
+                case ResourceType.Frames:
+                case ResourceType.Instance:
+                    throw new DicomInstanceNotFoundException();
+                case ResourceType.Series:
+                    throw new DicomInstanceNotFoundException(DicomCoreResource.SeriesInstanceNotFound);
+                case ResourceType.Study:
+                    throw new DicomInstanceNotFoundException(DicomCoreResource.StudyInstanceNotFound);
+            }
         }
     }
 }

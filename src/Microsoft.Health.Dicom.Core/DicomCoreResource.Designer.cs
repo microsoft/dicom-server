@@ -251,11 +251,29 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified series instance cannot be found..
+        /// </summary>
+        internal static string SeriesInstanceNotFound {
+            get {
+                return ResourceManager.GetString("SeriesInstanceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The operation could not be completed, because the service was unable to accept new requests. It is safe to retry the operation. If the issue persists, please contact support..
         /// </summary>
         internal static string ServiceUnavailable {
             get {
                 return ResourceManager.GetString("ServiceUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified study instance cannot be found..
+        /// </summary>
+        internal static string StudyInstanceNotFound {
+            get {
+                return ResourceManager.GetString("StudyInstanceNotFound", resourceCulture);
             }
         }
         

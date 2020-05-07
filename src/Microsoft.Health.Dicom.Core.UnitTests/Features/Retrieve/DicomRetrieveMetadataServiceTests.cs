@@ -43,13 +43,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenRetrieveStudyMetadataRequest_WhenStudyInstanceUidDoesnotExists_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
         {
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(TestUidGenerator.Generate(), DefaultCancellationToken));
+            var exception = await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(TestUidGenerator.Generate(), DefaultCancellationToken));
+            Assert.Equal("The specified study instance cannot be found.", exception.Message);
         }
 
         [Fact]
         public async Task GivenRetrieveSeriesMetadataRequest_WhenStudyandSeriesInstanceUidDoesnotExists_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
         {
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), DefaultCancellationToken));
+            var exception = await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), DefaultCancellationToken));
+            Assert.Equal("The specified series instance cannot be found.", exception.Message);
         }
 
         [Fact]
@@ -57,7 +59,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             SetupInstanceIdentifiersList(ResourceType.Series);
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(TestUidGenerator.Generate(), _seriesInstanceUid, DefaultCancellationToken));
+            var exception = await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(TestUidGenerator.Generate(), _seriesInstanceUid, DefaultCancellationToken));
+            Assert.Equal("The specified series instance cannot be found.", exception.Message);
         }
 
         [Fact]
@@ -65,13 +68,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             SetupInstanceIdentifiersList(ResourceType.Series);
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, TestUidGenerator.Generate(), DefaultCancellationToken));
+            var exception = await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, TestUidGenerator.Generate(), DefaultCancellationToken));
+            Assert.Equal("The specified series instance cannot be found.", exception.Message);
         }
 
         [Fact]
         public async Task GivenRetrieveSopInstanceMetadataRequest_WhenStudySeriesAndSopInstanceUidDoesnotExists_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
         {
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), DefaultCancellationToken));
+            var exception = await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), DefaultCancellationToken));
+            Assert.Equal("The specified instance cannot be found.", exception.Message);
         }
 
         [Fact]
@@ -79,7 +84,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             SetupInstanceIdentifiersList(ResourceType.Instance);
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), _sopInstanceUid, DefaultCancellationToken));
+            var exception = await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), _sopInstanceUid, DefaultCancellationToken));
+            Assert.Equal("The specified instance cannot be found.", exception.Message);
         }
 
         [Fact]
@@ -87,7 +93,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             SetupInstanceIdentifiersList(ResourceType.Instance);
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, TestUidGenerator.Generate(), _sopInstanceUid, DefaultCancellationToken));
+            var exception = await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, TestUidGenerator.Generate(), _sopInstanceUid, DefaultCancellationToken));
+            Assert.Equal("The specified instance cannot be found.", exception.Message);
         }
 
         [Fact]
@@ -98,7 +105,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.Last(), DefaultCancellationToken).Throws(new DicomInstanceNotFoundException());
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.First(), DefaultCancellationToken).Returns(new DicomDataset());
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken));
+            var exception = await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken));
+            Assert.Equal("The specified instance cannot be found.", exception.Message);
         }
 
         [Fact]
@@ -122,7 +130,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.Last(), DefaultCancellationToken).Throws(new DicomInstanceNotFoundException());
             _dicomMetadataStore.GetInstanceMetadataAsync(instanceIdentifiersList.First(), DefaultCancellationToken).Returns(new DicomDataset());
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken));
+            var exception = await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken));
+            Assert.Equal("The specified instance cannot be found.", exception.Message);
         }
 
         [Fact]
@@ -145,7 +154,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
             _dicomMetadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier, DefaultCancellationToken).Throws(new DicomInstanceNotFoundException());
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, DefaultCancellationToken));
+            var exception = await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, DefaultCancellationToken));
+            Assert.Equal("The specified instance cannot be found.", exception.Message);
         }
 
         [Fact]

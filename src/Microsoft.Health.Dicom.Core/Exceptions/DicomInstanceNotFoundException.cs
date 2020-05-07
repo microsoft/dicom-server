@@ -11,5 +11,10 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
             : base(DicomCoreResource.InstanceNotFound)
         {
         }
+
+        public DicomInstanceNotFoundException(string message)
+            : base(message)
+        {
+        }
     }
 }
