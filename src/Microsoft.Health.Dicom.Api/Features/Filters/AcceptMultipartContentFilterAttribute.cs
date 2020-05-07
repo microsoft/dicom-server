@@ -5,9 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -17,30 +15,11 @@ using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
-    public class AcceptMultipartContentFilterAttribute : ActionFilterAttribute
+    public class AcceptMultipartContentFilterAttribute : AcceptContentFilterAttribute
     {
-        private const int NotAcceptableResponseCode = (int)HttpStatusCode.NotAcceptable;
-        private const string TypeParameter = "type";
-
-        private readonly HashSet<MediaTypeHeaderValue> _mediaTypes;
-
         public AcceptMultipartContentFilterAttribute(params string[] mediaTypes)
+            : base(mediaTypes)
         {
-            Debug.Assert(mediaTypes.Length > 0, "The accept content type filter must have at least one media type specified.");
-
-            _mediaTypes = new HashSet<MediaTypeHeaderValue>(mediaTypes.Length);
-
-            foreach (var mediaType in mediaTypes)
-            {
-                if (MediaTypeHeaderValue.TryParse(mediaType, out MediaTypeHeaderValue parsedMediaType))
-                {
-                    _mediaTypes.Add(parsedMediaType);
-                }
-                else
-                {
-                    Debug.Assert(false, "The values in the mediaTypes parameter must be parseable by MediaTypeHeaderValue.");
-                }
-            }
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
@@ -60,7 +39,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
                         x => x.Parameters.Where(p => StringSegment.Equals(p.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase))
                             .Select(p => MediaTypeHeaderValue.TryParse(p.Value.ToString().Trim('"'), out MediaTypeHeaderValue parsedValue) ? parsedValue : null));
 
-                    if (prospectiveTypes.Any(x => _mediaTypes.Contains(x)))
+                    if (prospectiveTypes.Any(x => MediaTypes.Contains(x)))
                     {
                         acceptable = true;
                     }

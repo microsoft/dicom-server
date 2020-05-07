@@ -17,7 +17,6 @@ using Dicom.Imaging;
 using Dicom.IO.Buffer;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -187,7 +186,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData(1, 2)]
         public async Task GivenInstanceWithFrames_WhenRetrieveRequestForFrameInInstance_ValidateReturnedHeaders(params int[] frames)
         {
-            (DicomInstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, string.Join("%2C", frames)), UriKind.Relative);
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {

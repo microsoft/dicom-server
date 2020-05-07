@@ -4,9 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -14,29 +12,11 @@ using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
-    public class AcceptTopLevelContentFilterAttribute : ActionFilterAttribute
+    public class AcceptTopLevelContentFilterAttribute : AcceptContentFilterAttribute
     {
-        private const int NotAcceptableResponseCode = (int)HttpStatusCode.NotAcceptable;
-
-        private readonly HashSet<MediaTypeHeaderValue> _mediaTypes;
-
         public AcceptTopLevelContentFilterAttribute(params string[] mediaTypes)
+            : base(mediaTypes)
         {
-            Debug.Assert(mediaTypes.Length > 0, "The accept content type filter must have at least one media type specified.");
-
-            _mediaTypes = new HashSet<MediaTypeHeaderValue>(mediaTypes.Length);
-
-            foreach (var mediaType in mediaTypes)
-            {
-                if (MediaTypeHeaderValue.TryParse(mediaType, out MediaTypeHeaderValue parsedMediaType))
-                {
-                    _mediaTypes.Add(parsedMediaType);
-                }
-                else
-                {
-                    Debug.Assert(false, "The values in the mediaTypes parameter must be parseable by MediaTypeHeaderValue.");
-                }
-            }
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
@@ -46,7 +26,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
             bool acceptable = false;
 
             // Validate the accept headers has one of the specified accepted media types.
-            if (acceptHeaders != null && acceptHeaders.Count > 0 && acceptHeaders.Any(x => _mediaTypes.Contains(x)))
+            if (acceptHeaders != null && acceptHeaders.Count > 0 && acceptHeaders.Any(x => MediaTypes.Contains(x)))
             {
                 acceptable = true;
             }
