@@ -64,14 +64,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenStoredInstance_WhenRetrieveRequestForDifferentStudy_ThenServerShouldReturnNotFound()
-        {
-            await CreateAndStoreDicomFile();
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveStudyAsync(TestUidGenerator.Generate()));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-        }
-
-        [Fact]
         public async Task GivenStoredInstance_WhenRetrieveRequestForStudy_ThenServerShouldReturnInstancesInStudy()
         {
             (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
@@ -84,24 +76,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenNoStoredInstances_WhenRetrieveRequestForSeries_ThenServerShouldReturnNotFound()
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate()));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-        }
-
-        [Fact]
-        public async Task GivenStoredInstance_WhenRetrieveRequestForSeriesInDifferentStudy_ThenServerShouldReturnNotFound()
-        {
-            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesAsync(TestUidGenerator.Generate(), identifier.SeriesInstanceUid));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-        }
-
-        [Fact]
-        public async Task GivenStoredInstance_WhenRerieveRequestForDifferentSeries_ThenServerShouldReturnNotFound()
-        {
-            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesAsync(identifier.StudyInstanceUid, TestUidGenerator.Generate()));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
@@ -125,26 +99,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenStoredInstance_WhenRetrieveRequestForSameInstanceInDifferentStudy_ThenServerShouldReturnNotFound()
-        {
-            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.RetrieveInstanceAsync(TestUidGenerator.Generate(), identifier.SeriesInstanceUid, identifier.SopInstanceUid));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-        }
-
-        [Fact]
-        public async Task GivenStoredInstance_WhenRetrieveRequestForSameInstanceInDifferentSeries_ThenServerShouldReturnNotFound()
-        {
-            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.RetrieveInstanceAsync(identifier.StudyInstanceUid, TestUidGenerator.Generate(), identifier.SopInstanceUid));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-        }
-
-        [Fact]
         public async Task GivenStoredInstance_WhenRetrieveRequestForInstance_ThenServerShouldReturnInstance()
         {
             (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
@@ -152,16 +106,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomWebResponse<IReadOnlyList<DicomFile>> instances = await _client.RetrieveInstanceAsync(
                 identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
             ValidateRetrieveTransaction(instances, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, file);
-        }
-
-        [Fact]
-        public async Task GivenInstanceWithFrames_WhenRetrieveRequestForFramesInDifferentInstance_ThenServerShouldReturnNotFound()
-        {
-            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.RetrieveFramesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, TestUidGenerator.Generate(), frames: new[] { 1 }));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
@@ -175,35 +119,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenADicomInstanceWithMultipleFrames_WhenRetrievingFrames_TheServerShouldReturnOK()
+        public async Task GivenInstanceWithFrames_WhenRetrieveRequestForFramesInInstance_ThenServerShouldReturnRequestedFrames()
         {
             var studyInstanceUid = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 2);
             var dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
             await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
 
-            DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1 });
-            Assert.NotNull(frames);
-            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
-            Assert.Single(frames.Value);
-            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
-
-            frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 2 });
-            Assert.NotNull(frames);
-            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
-            Assert.Single(frames.Value);
-            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(1), frames.Value[0]);
-
-            frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1, 2 });
+            DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1, 2 });
             Assert.NotNull(frames);
             Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
             Assert.Equal(2, frames.Value.Count);
             AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
             AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(1), frames.Value[1]);
-
-            // Now check not found when 1 frame exists and the other doesn't.
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 2, 3 }));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Theory]
@@ -275,41 +203,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax, frames: new[] { 1 }));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
-        }
-
-        [Fact]
-        public async Task GivenNonExistentIdentifiers_WhenRetrieving_TheServerReturnsNotFound()
-        {
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveStudyAsync(TestUidGenerator.Generate()));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-
-            exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate()));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-
-            exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-
-            exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), frames: new[] { 1 }));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-
-            // Create a valid Study/ Series/ Instance with one frame
-            var studyInstanceUid = TestUidGenerator.Generate();
-            var seriesInstanceUid = TestUidGenerator.Generate();
-            var sopInstanceUid = TestUidGenerator.Generate();
-            DicomFile dicomFile1 = Samples.CreateRandomDicomFileWith8BitPixelData(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
-
-            exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesAsync(studyInstanceUid, TestUidGenerator.Generate()));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-
-            exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
-
-            DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames: new[] { 1 });
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames: new[] { 2 }));
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         [Fact]
