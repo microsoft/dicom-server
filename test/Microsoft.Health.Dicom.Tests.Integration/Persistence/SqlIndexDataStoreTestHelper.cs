@@ -183,5 +183,40 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 return result;
             }
         }
+
+        public async Task<IReadOnlyList<ChangeFeedRow>> GetChangeFeedRowsAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                await sqlConnection.OpenAsync();
+
+                var result = new List<ChangeFeedRow>();
+
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = @$"
+                        SELECT *
+                        FROM {VLatest.ChangeFeed.TableName}
+                        WHERE {VLatest.ChangeFeed.StudyInstanceUid} = @studyInstanceUid
+                        AND {VLatest.ChangeFeed.SeriesInstanceUid} = @seriesInstanceUid
+                        AND {VLatest.ChangeFeed.SopInstanceUid} = @sopInstanceUid
+                        ORDER BY {VLatest.ChangeFeed.Sequence}";
+
+                    sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@sopInstanceUid", sopInstanceUid);
+
+                    using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
+                    {
+                        while (await sqlDataReader.ReadAsync())
+                        {
+                            result.Add(new ChangeFeedRow(sqlDataReader));
+                        }
+                    }
+                }
+
+                return result;
+            }
+        }
     }
 }

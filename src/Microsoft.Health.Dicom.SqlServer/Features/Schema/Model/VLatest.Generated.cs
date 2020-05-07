@@ -12,6 +12,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
     internal class VLatest
     {
+        internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SchemaVersionTable SchemaVersion = new SchemaVersionTable();
@@ -20,12 +21,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
+        internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
+        internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
         internal readonly static SelectCurrentSchemaVersionProcedure SelectCurrentSchemaVersion = new SelectCurrentSchemaVersionProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
         internal readonly static UpsertSchemaVersionProcedure UpsertSchemaVersion = new UpsertSchemaVersionProcedure();
+        internal class ChangeFeedTable : Table
+        {
+            internal ChangeFeedTable(): base("dbo.ChangeFeed")
+            {
+            }
+
+            internal readonly BigIntColumn Sequence = new BigIntColumn("Sequence");
+            internal readonly DateTime2Column TimeStamp = new DateTime2Column("TimeStamp", 7);
+            internal readonly TinyIntColumn Action = new TinyIntColumn("Action");
+            internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
+            internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
+            internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
+            internal readonly BigIntColumn OriginalWatermark = new BigIntColumn("OriginalWatermark");
+            internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
+        }
+
         internal class DeletedInstanceTable : Table
         {
             internal DeletedInstanceTable(): base("dbo.DeletedInstance")
@@ -173,6 +192,36 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+            }
+        }
+
+        internal class GetChangeFeedProcedure : StoredProcedure
+        {
+            internal GetChangeFeedProcedure(): base("dbo.GetChangeFeed")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command, System.Int32 limit, System.Int64 offset)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetChangeFeed";
+                _limit.AddParameter(command.Parameters, limit);
+                _offset.AddParameter(command.Parameters, offset);
+            }
+        }
+
+        internal class GetChangeFeedLatestProcedure : StoredProcedure
+        {
+            internal GetChangeFeedLatestProcedure(): base("dbo.GetChangeFeedLatest")
+            {
+            }
+
+            public void PopulateCommand(global::System.Data.SqlClient.SqlCommand command)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetChangeFeedLatest";
             }
         }
 

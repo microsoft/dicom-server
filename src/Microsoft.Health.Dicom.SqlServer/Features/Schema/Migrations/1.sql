@@ -33,9 +33,9 @@ EXEC(@sql)
 GO
 
 IF EXISTS ( SELECT *
-			FROM sysfulltextcatalogs
-			WHERE name = 'Dicom_Catalog' )
-	DROP FULLTEXT CATALOG [Dicom_Catalog]
+            FROM sysfulltextcatalogs
+            WHERE name = 'Dicom_Catalog' )
+    DROP FULLTEXT CATALOG [Dicom_Catalog]
 GO
 
 /*************************************************************
@@ -306,7 +306,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_StudyMetadataCore_Id ON dbo.StudyMetadataCor
 )
 INCLUDE
 (
-	StudyInstanceUid
+    StudyInstanceUid
 )
 
 CREATE FULLTEXT INDEX ON StudyMetadataCore(PatientNameWords LANGUAGE 1033)
@@ -395,6 +395,40 @@ INCLUDE
 )
 
 /*************************************************************
+    Changes Table
+    Stores Add/Delete immutable actions
+    Only CurrentWatermark is updated to reflect the current state.
+    Current Instance State
+    CurrentWatermark = null,               Current State = Deleted
+    CurrentWatermark = OriginalWatermark,  Current State = Created
+    CurrentWatermark <> OriginalWatermark, Current State = Replaced
+**************************************************************/
+CREATE TABLE dbo.ChangeFeed (
+    Sequence                BIGINT IDENTITY(1,1) NOT NULL,
+    TimeStamp               DATETIME2(7)         NOT NULL,
+    Action                  TINYINT              NOT NULL,                
+    StudyInstanceUid        VARCHAR(64)          NOT NULL,
+    SeriesInstanceUid       VARCHAR(64)          NOT NULL,
+    SopInstanceUid          VARCHAR(64)          NOT NULL,
+    OriginalWatermark       BIGINT               NOT NULL,
+    CurrentWatermark        BIGINT               NULL
+)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
+(
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid,
+    Sequence
+)
+
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence on dbo.ChangeFeed
+(
+    Sequence DESC
+)
+
+
+/*************************************************************
     Sequence for generating unique ids
 **************************************************************/
 
@@ -473,7 +507,7 @@ AS
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
     BEGIN TRANSACTION
 
-    DECLARE @currentDate DATETIME2(7) = GETUTCDATE()
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @existingStatus TINYINT
     DECLARE @metadataId BIGINT
     DECLARE @newVersion BIGINT
@@ -525,6 +559,18 @@ AS
         -- TODO: handle the versioning
     --END
 
+    -- Insert to change feed
+    INSERT INTO dbo.ChangeFeed 
+    (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    VALUES
+    (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newVersion)
+
+    UPDATE dbo.ChangeFeed
+    SET CurrentWatermark      = @newVersion
+    WHERE StudyInstanceUid    = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid    = @sopInstanceUid
+
     SELECT @newVersion
 
     COMMIT TRANSACTION
@@ -569,7 +615,7 @@ AS
     BEGIN TRANSACTION
 
     UPDATE dbo.Instance
-    SET Status = @status, LastStatusUpdatedDate = GETUTCDATE()
+    SET Status = @status, LastStatusUpdatedDate = SYSUTCDATETIME()
     WHERE StudyInstanceUid = @studyInstanceUid
     AND SeriesInstanceUid = @seriesInstanceUid
     AND SopInstanceUid = @sopInstanceUid
@@ -679,17 +725,24 @@ AS
 
     BEGIN TRANSACTION
 
-    DECLARE @studyId bigint
+    DECLARE @deletedInstances AS TABLE 
+        (StudyInstanceUid VARCHAR(64),
+         SeriesInstanceUid VARCHAR(64),
+         SopInstanceUid VARCHAR(64),
+         Watermark BIGINT)
+
+    DECLARE @studyId BIGINT
+    DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
 
     -- Get the study PK
     SELECT  @studyId = ID
     FROM    dbo.StudyMetadataCore
     WHERE   StudyInstanceUid = @studyInstanceUid;
 
-    -- Delete the instance and insert the details into FileCleanup
+    -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark, GETUTCDATE(), 0, @cleanupAfter
-        INTO dbo.DeletedInstance
+        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark
+        INTO @deletedInstances
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
@@ -699,6 +752,24 @@ AS
         THROW 50404, 'Instance not found', 1;
     END
 
+    INSERT INTO dbo.DeletedInstance
+    (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
+    SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter 
+    FROM @deletedInstances
+
+    INSERT INTO dbo.ChangeFeed 
+    (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark 
+    FROM @deletedInstances
+
+    UPDATE cf
+    SET cf.CurrentWatermark = NULL
+    FROM dbo.ChangeFeed cf
+    JOIN @deletedInstances d
+    ON cf.StudyInstanceUid = d.StudyInstanceUid
+        AND cf.SeriesInstanceUid = d.SeriesInstanceUid
+        AND cf.SopInstanceUid = d.SopInstanceUid
+    
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
                     FROM    dbo.Instance
@@ -746,7 +817,7 @@ AS
     SELECT  TOP (@count) StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE   RetryCount <= @maxRetries
-    AND     CleanupAfter < GETUTCDATE()
+    AND     CleanupAfter < SYSUTCDATETIME()
 GO
 
 /***************************************************************************************/
@@ -827,4 +898,66 @@ AS
     AND     Watermark = @watermark
 
     SELECT @retryCount
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetChangeFeed
+--
+-- DESCRIPTION
+--     Gets a stream of dicom changes (instance adds and deletes)
+--
+-- PARAMETERS
+--     @limit
+--         * Max rows to return
+--     @offet
+--         * Rows to skip
+/***************************************************************************************/
+CREATE PROCEDURE dbo.GetChangeFeed (
+    @limit      INT,
+    @offset     BIGINT)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT  Sequence,
+            TimeStamp,
+            Action,
+            StudyInstanceUid,
+            SeriesInstanceUid,
+            SopInstanceUid,
+            OriginalWatermark,
+            CurrentWatermark
+    FROM    dbo.ChangeFeed
+    WHERE   Sequence BETWEEN @offset+1 AND @offset+@limit
+    ORDER BY Sequence
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetChangeFeedLatest
+--
+-- DESCRIPTION
+--     Gets the latest dicom change
+/***************************************************************************************/
+CREATE PROCEDURE dbo.GetChangeFeedLatest 
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT  TOP(1)
+            Sequence,
+            TimeStamp,
+            Action,
+            StudyInstanceUid,
+            SeriesInstanceUid,
+            SopInstanceUid,
+            OriginalWatermark,
+            CurrentWatermark
+    FROM    dbo.ChangeFeed
+    ORDER BY Sequence DESC
+END
 GO
