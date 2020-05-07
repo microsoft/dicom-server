@@ -9,6 +9,7 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
@@ -32,7 +33,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [Route("/changefeed")]
+        [Route(KnownRoutes.ChangeFeed)]
         public async Task<IActionResult> GetChangeFeed([FromQuery] int offset = 0, [FromQuery] int limit = 10, [FromQuery] bool includeMetadata = true)
         {
             _logger.LogInformation($"Change feed was read with an offset of {offset} and limit of {limit} and metadata is {(includeMetadata ? string.Empty : "not")} included.");
@@ -50,10 +51,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(ChangeFeedEntry), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [Route("/changefeed/latest")]
+        [Route(KnownRoutes.ChangeFeedLatest)]
         public async Task<IActionResult> GetChangeFeedLatest([FromQuery] bool includeMetadata = true)
         {
-            _logger.LogInformation($"Change feed was read");
+            _logger.LogInformation($"Change feed  latest was read and metadata is {(includeMetadata ? string.Empty : "not")} included.");
 
             var response = await _mediator.GetChangeFeedLatest(
                 includeMetadata,
