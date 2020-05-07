@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using NSubstitute;
 using Xunit;
 
@@ -80,7 +81,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
             const string seriesInstanceUid = "456.456";
             const string sopInstanceUid = "789.789";
 
-            var instance = new DicomInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            var instance = new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             _urlResolver.ResolveRetrieveInstanceUri(instance);
 

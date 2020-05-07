@@ -17,26 +17,26 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 {
     public class DicomQueryServiceTests
     {
-        private readonly DicomQueryService _queryService = null;
+        private readonly QueryService _queryService = null;
 
         public DicomQueryServiceTests()
         {
-            _queryService = new DicomQueryService(
-                Substitute.For<IDicomQueryParser>(),
-                Substitute.For<IDicomQueryStore>(),
-                Substitute.For<IDicomMetadataStore>());
+            _queryService = new QueryService(
+                Substitute.For<IQueryParser>(),
+                Substitute.For<IQueryStore>(),
+                Substitute.For<IMetadataStore>());
         }
 
         [Theory]
         [InlineData(QueryResource.StudySeries, "123.001")]
         [InlineData(QueryResource.StudyInstances, "abc.1234")]
-        public void GivenQidoQuery_WithInvalidStudyUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid)
+        public void GivenQidoQuery_WithInvalidStudyInstanceUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid)
         {
-            var request = new DicomQueryResourceRequest(
+            var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
                 studyInstanceUid);
-            Assert.ThrowsAsync<DicomInvalidIdentifierException>(async () => await _queryService.QueryAsync(request, CancellationToken.None));
+            Assert.ThrowsAsync<InvalidIdentifierException>(async () => await _queryService.QueryAsync(request, CancellationToken.None));
         }
 
         [Theory]
@@ -44,12 +44,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData(QueryResource.StudySeriesInstances, "123.abc", "1234.001")]
         public void GivenQidoQuery_WithInvalidStudySeriesUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid, string seriesInstanceUid)
         {
-            var request = new DicomQueryResourceRequest(
+            var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
                 studyInstanceUid,
                 seriesInstanceUid);
-            Assert.ThrowsAsync<DicomInvalidIdentifierException>(async () => await _queryService.QueryAsync(request, CancellationToken.None));
+            Assert.ThrowsAsync<InvalidIdentifierException>(async () => await _queryService.QueryAsync(request, CancellationToken.None));
         }
     }
 }

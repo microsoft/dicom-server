@@ -4,44 +4,44 @@ This article goes through the authentication settings for the Dicom server and h
 ## Authentication Settings
 The current authentication settings exposed in configuration are the following:
 ```json
-"DicomServer" : {
+{
+  "DicomServer" : {
     "Security": {
-        "Enabled":  true,
-        "Authentication": {
-            "Audience": "",
-            "Authority": ""
-        }
+      "Enabled":  true,
+      "Authentication": {
+        "Audience": "",
+        "Authority": ""
+      }
     }
+  }
 }
 ```
-|Element|Description|
-|---|---|
-|Enabled|Whether or not the server has any security enabled.|
-|Authentication:Audience|Identifies the recipient that the token is intended for. This is set automatically by the DevelopmentIdentityProvider.|
-|Authentication:Authority|The issuer of the jwt token. This is set automatically by the DevelopmentIdentityProvider|
+| Element                    | Description |
+| -------------------------- | --- |
+| Enabled                    | Whether or not the server has any security enabled. |
+| Authentication:Audience    | Identifies the recipient that the token is intended for. This is set automatically by the `DevelopmentIdentityProvider`. |
+| Authentication:Authority   | The issuer of the jwt token. This is set automatically by the `DevelopmentIdentityProvider`. |
 
 ## Development Identity Provider
 For the F5 experience and test environments, an in-process identity provider is included that can act as the authentication provider for the DicomWeb API. 
 
-### Enabling DevelopmentIdentityProvider
-Set DicomServer:Security:Enabled to `true` in [appsettings.json](../src/Microsoft.Health.Dicom.Web/appsettings.json)
-
-[TestAuthEnvironment.json](../TestAuthEnvironment.json) file is used to configure the users and applications for Dicom API.
-
 ### TestAuthEnvironment.json
-The `testauthenvironment.json` file located in the root directory holds the configuration used for the server. **This file is meant only for local and test environments.** The items represented in this file include the roles available for the API as well as users and client applications that have access to the API. During the F5 experience and local testing, the password/secret for both users and client applications is the same as the id of the item. 
+The [`testauthenvironment.json`](../testauthenvironment.json) file located in the root directory holds the configuration used for the server. **This file is meant only for local and test environments.** The items represented in this file include the roles available for the API as well as users and client applications that have access to the API. During the F5 experience and local testing, the password/secret for both users and client applications is the same as the id of the item. 
+
+### Enabling Development Identity Provider for testing
+[Launch settings](../src/Microsoft.Health.Dicom.Web/Properties/launchSettings.json) has `DicomWebSecurityEnabled` profile that has pre-set settings used to enable development identity provider.
 
 ### Authenticating using built in IdentityServer
 To obtain a token issue the following command.
 ```
 POST /connect/token HTTP/1.1
-Host: https://localhost:44348
+Host: https://localhost:63838
 Content-Type: application/x-www-form-urlencoded
 
 client_id=globalAdminServicePrincipal&client_secret=globalAdminServicePrincipal&grant_type=client_credentials&scope=health-api
 ```
 
-To authenticate with the Dicom API take the `access_token` from the previous command and attach it as an `Authorization` header with the sytax: `Bearer {access_token}`.
+To authenticate with the Dicom API take the `access_token` from the previous command and attach it as an `Authorization` header with the syntax: `Bearer {access_token}`.
 
 Example token response
 ```json

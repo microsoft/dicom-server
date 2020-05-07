@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 
 namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 {
@@ -63,20 +64,20 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 
             switch (exception)
             {
-                case DicomValidationException _:
-                case DicomNotSupportedException _:
+                case ValidationException _:
+                case NotSupportedException _:
                     statusCode = HttpStatusCode.BadRequest;
                     break;
-                case DicomResourceNotFoundException _:
+                case ResourceNotFoundException _:
                     statusCode = HttpStatusCode.NotFound;
                     break;
-                case DicomTranscodingException _:
+                case TranscodingException _:
                     statusCode = HttpStatusCode.NotAcceptable;
                     break;
-                case DicomDataStoreException _:
+                case DataStoreException _:
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
-                case DicomInstanceAlreadyExistsException _:
+                case InstanceAlreadyExistsException _:
                     statusCode = HttpStatusCode.Conflict;
                     break;
                 case DicomServerException _:

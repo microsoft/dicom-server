@@ -19,19 +19,19 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.BackgroundServices
     {
         private readonly DeletedInstanceCleanupWorker _deletedInstanceCleanupWorker;
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly IDicomDeleteService _dicomDeleteService;
+        private readonly IDeleteService _deleteService;
         private const int BatchSize = 10;
 
         public DeletedInstanceCleanupWorkerTests()
         {
-            _dicomDeleteService = Substitute.For<IDicomDeleteService>();
+            _deleteService = Substitute.For<IDeleteService>();
             var configuration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
             configuration.Value.Returns(new DeletedInstanceCleanupConfiguration
             {
                 BatchSize = BatchSize,
                 PollingInterval = TimeSpan.FromSeconds(1),
             });
-            _deletedInstanceCleanupWorker = new DeletedInstanceCleanupWorker(_dicomDeleteService, configuration, NullLogger<DeletedInstanceCleanupWorker>.Instance);
+            _deletedInstanceCleanupWorker = new DeletedInstanceCleanupWorker(_deleteService, configuration, NullLogger<DeletedInstanceCleanupWorker>.Instance);
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.BackgroundServices
                 return (true, returnValue);
             }
 
-            _dicomDeleteService.CleanupDeletedInstancesAsync().ReturnsForAnyArgs(
+            _deleteService.CleanupDeletedInstancesAsync().ReturnsForAnyArgs(
                 x => GenerateCleanupDeletedInstancesAsyncResponse())
                 .AndDoes(x =>
                 {
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.BackgroundServices
                 });
 
             _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
-            _dicomDeleteService.ReceivedWithAnyArgs(expectedDeleteCount).CleanupDeletedInstancesAsync();
+            _deleteService.ReceivedWithAnyArgs(expectedDeleteCount).CleanupDeletedInstancesAsync();
         }
     }
 }

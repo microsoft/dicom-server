@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
@@ -18,7 +19,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
     internal class SqlQueryGenerator : QueryFilterConditionVisitor
     {
         private readonly IndentedStringBuilder _stringBuilder;
-        private readonly DicomQueryExpression _queryExpression;
+        private readonly QueryExpression _queryExpression;
         private readonly SqlQueryParameterManager _parameters;
         private readonly FilterTableContext _tableContext;
         private const string SqlDateFormat = "yyyy-MM-dd";
@@ -35,7 +36,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public SqlQueryGenerator(
             IndentedStringBuilder stringBuilder,
-            DicomQueryExpression queryExpression,
+            QueryExpression queryExpression,
             SqlQueryParameterManager sqlQueryParameterManager)
         {
             _stringBuilder = stringBuilder;
@@ -221,7 +222,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         private void AppendStatusClause(string tableAlias)
         {
-            byte invalidStatus = (byte)DicomIndexStatus.Creating;
+            byte invalidStatus = (byte)IndexStatus.Creating;
             _stringBuilder
                 .Append("AND ")
                 .Append(VLatest.Instance.Status, tableAlias)

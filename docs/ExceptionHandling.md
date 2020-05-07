@@ -9,4 +9,4 @@
 
 ### The Dicom server code follows below pattern for handling exceptions
 - All DicomServerExceptions are handled in middleware [ExceptionHandlingMiddleware](../src/Microsoft.Health.Dicom.Api/Features/Exceptions/ExceptionHandlingMiddleware.cs). These exceptions are mapped to the right status code and response body.
-- All unexcepted exceptions are logged and mapped to 500 server error.
+- All unexpected exceptions are logged and mapped to 500 server error.

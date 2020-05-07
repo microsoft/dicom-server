@@ -13,6 +13,9 @@
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "DicomServer:Security:Enabled": true,
+                "DicomServer:Security:Authentication:Audience": "health-api",
+                "DicomServer:Security:Authentication:Authority": "https://localhost:63838/",
+
                 "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json"
             },
             "applicationUrl": "https://localhost:63838/"
