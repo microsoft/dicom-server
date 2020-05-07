@@ -507,7 +507,7 @@ AS
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
     BEGIN TRANSACTION
 
-    DECLARE @currentDate DATETIME2(7) = GETUTCDATE()
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @existingStatus TINYINT
     DECLARE @metadataId BIGINT
     DECLARE @newVersion BIGINT
@@ -615,7 +615,7 @@ AS
     BEGIN TRANSACTION
 
     UPDATE dbo.Instance
-    SET Status = @status, LastStatusUpdatedDate = GETUTCDATE()
+    SET Status = @status, LastStatusUpdatedDate = SYSUTCDATETIME()
     WHERE StudyInstanceUid = @studyInstanceUid
     AND SeriesInstanceUid = @seriesInstanceUid
     AND SopInstanceUid = @sopInstanceUid
@@ -732,7 +732,7 @@ AS
          Watermark BIGINT)
 
     DECLARE @studyId BIGINT
-    DECLARE @deletedDate DATETIME2 = GETUTCDATE()
+    DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
 
     -- Get the study PK
     SELECT  @studyId = ID
@@ -817,7 +817,7 @@ AS
     SELECT  TOP (@count) StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE   RetryCount <= @maxRetries
-    AND     CleanupAfter < GETUTCDATE()
+    AND     CleanupAfter < SYSUTCDATETIME()
 GO
 
 /***************************************************************************************/
