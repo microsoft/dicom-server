@@ -754,11 +754,13 @@ AS
 
     INSERT INTO dbo.DeletedInstance
     (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
-    SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter FROM @deletedInstances
+    SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter 
+    FROM @deletedInstances
 
     INSERT INTO dbo.ChangeFeed 
     (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark FROM @deletedInstances
+    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark 
+    FROM @deletedInstances
 
     UPDATE cf
     SET cf.CurrentWatermark = NULL
