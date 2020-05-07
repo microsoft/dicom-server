@@ -21,18 +21,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public class RetrieveResourceService : IRetrieveResourceService
     {
-        private readonly IDicomFileStore _dicomBlobDataStore;
-        private readonly IDicomInstanceStore _dicomInstanceStore;
-        private readonly IDicomRetrieveTranscoder _dicomRetrieveTranscoder;
-        private readonly IDicomFrameHandler _dicomFrameHandler;
+        private readonly IFileStore _blobDataStore;
+        private readonly IInstanceStore _instanceStore;
+        private readonly IRetrieveTranscoder _retrieveTranscoder;
+        private readonly IFrameHandler _dicomFrameHandler;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-        private readonly ILogger<DicomRetrieveResourceService> _logger;
+        private readonly ILogger<RetrieveResourceService> _logger;
 
-        public DicomRetrieveResourceService(
-            IDicomInstanceStore dicomInstanceStore,
-            IDicomFileStore dicomBlobDataStore,
-            IDicomRetrieveTranscoder dicomRetrieveTranscoder,
-            IDicomFrameHandler dicomFrameHandler,
+        public RetrieveResourceService(
+            IInstanceStore instanceStore,
+            IFileStore blobDataStore,
+            IRetrieveTranscoder retrieveTranscoder,
+            IFrameHandler dicomFrameHandler,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
             ILogger<RetrieveResourceService> logger)
         {
@@ -40,9 +40,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             EnsureArg.IsNotNull(logger, nameof(logger));
-            _dicomInstanceStore = dicomInstanceStore;
-            _dicomBlobDataStore = dicomBlobDataStore;
-            _dicomRetrieveTranscoder = dicomRetrieveTranscoder;
+            _instanceStore = instanceStore;
+            _blobDataStore = blobDataStore;
+            _retrieveTranscoder = retrieveTranscoder;
             _dicomFrameHandler = dicomFrameHandler;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
             _logger = logger;
@@ -70,14 +70,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                 if (message.ResourceType == ResourceType.Frames)
                 {
-                    resultStreams = _dicomFrameHandler.GetFramesResourceAsync(
-                        resultStreams.Single(), message.Frames, message.OriginalTransferSyntaxRequested(), message.RequestedRepresentation).Result;
+                    resultStreams = await _dicomFrameHandler.GetFramesResourceAsync(
+                        resultStreams.Single(), message.Frames, message.OriginalTransferSyntaxRequested(), message.RequestedRepresentation);
                 }
                 else
                 {
                     if (!message.OriginalTransferSyntaxRequested())
                     {
-                        (isPartialSuccess, resultStreams) = _dicomRetrieveTranscoder.TranscodeDicomFiles(resultStreams, message.RequestedRepresentation);
+                        (isPartialSuccess, resultStreams) = _retrieveTranscoder.TranscodeFiles(resultStreams, message.RequestedRepresentation);
                     }
 
                     resultStreams = resultStreams.Select(stream =>

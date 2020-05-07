@@ -14,19 +14,19 @@ using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class DicomRetrieveTranscoder : IDicomRetrieveTranscoder
+    public class RetrieveTranscoder : IRetrieveTranscoder
     {
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
 
-        public DicomRetrieveTranscoder(
+        public RetrieveTranscoder(
             RecyclableMemoryStreamManager recyclableMemoryStreamManager)
         {
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
-        public (bool, Stream[]) TranscodeDicomFiles(Stream[] streams, string requestedTransferSyntax)
+        public (bool, Stream[]) TranscodeFiles(Stream[] streams, string requestedTransferSyntax)
         {
             bool isPartialSuccess = false;
             DicomTransferSyntax parsedDicomTransferSyntax =
@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             if (filteredStreams.Length == 0)
             {
-                throw new DicomTranscodingException();
+                throw new TranscodingException();
             }
 
             if (filteredStreams.Length != streams.Length)
@@ -74,12 +74,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             filteredStreams = filteredStreams.Select(stream =>
                         new LazyTransformReadOnlyStream<Stream>(
                             stream,
-                            s => TranscodeDicomFile(s, parsedDicomTransferSyntax))).ToArray();
+                            s => TranscodeFile(s, parsedDicomTransferSyntax))).ToArray();
 
             return (isPartialSuccess, filteredStreams);
         }
 
-        public Stream TranscodeDicomFrame(DicomFile dicomFile, int frame, string requestedTransferSyntax)
+        public Stream TranscodeFrame(DicomFile dicomFile, int frame, string requestedTransferSyntax)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
             DicomDataset dataset = dicomFile.Dataset;
@@ -93,7 +93,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             if (!dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
             {
-                throw new DicomTranscodingException();
+                throw new TranscodingException();
             }
 
             // Decompress single frame from source dataset
@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             return _recyclableMemoryStreamManager.GetStream("RetrieveDicomResourceHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
         }
 
-        private Stream TranscodeDicomFile(Stream stream, DicomTransferSyntax requestedTransferSyntax)
+        private Stream TranscodeFile(Stream stream, DicomTransferSyntax requestedTransferSyntax)
         {
             var tempDicomFile = DicomFile.Open(stream);
 

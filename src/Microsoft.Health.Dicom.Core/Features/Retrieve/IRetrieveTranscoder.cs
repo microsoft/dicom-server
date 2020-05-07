@@ -8,10 +8,10 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public interface IDicomRetrieveTranscoder
+    public interface IRetrieveTranscoder
     {
-        (bool, Stream[]) TranscodeDicomFiles(Stream[] streams, string requestedTransferSyntax);
+        (bool, Stream[]) TranscodeFiles(Stream[] streams, string requestedTransferSyntax);
 
-        Stream TranscodeDicomFrame(DicomFile dicomFile, int frame, string requestedTransferSyntax);
+        Stream TranscodeFrame(DicomFile dicomFile, int frame, string requestedTransferSyntax);
     }
 }

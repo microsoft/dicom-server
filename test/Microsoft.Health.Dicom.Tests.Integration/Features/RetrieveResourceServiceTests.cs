@@ -30,12 +30,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 {
     public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>, IClassFixture<SqlDataStoreTestsFixture>
     {
-        private readonly DicomRetrieveResourceService _dicomRetrieveResourceService;
-        private readonly IDicomIndexDataStore _dicomIndexDataStore;
-        private readonly IDicomInstanceStore _dicomInstanceStore;
-        private readonly IDicomFileStore _dicomFileStore;
-        private readonly IDicomRetrieveTranscoder _dicomRetrieveTranscoder;
-        private readonly IDicomFrameHandler _dicomFrameHandler;
+        private readonly RetrieveResourceService _retrieveResourceService;
+        private readonly IIndexDataStore _indexDataStore;
+        private readonly IInstanceStore _instanceStore;
+        private readonly IFileStore _fileStore;
+        private readonly IRetrieveTranscoder _retrieveTranscoder;
+        private readonly IFrameHandler _frameHandler;
         private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
         private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -45,21 +45,21 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
         public RetrieveResourceServiceTests(DataStoreTestsFixture blobStorageFixture, SqlDataStoreTestsFixture sqlIndexStorageFixture)
         {
-            _dicomIndexDataStore = sqlIndexStorageFixture.DicomIndexDataStore;
-            _dicomInstanceStore = sqlIndexStorageFixture.DicomInstanceStore;
-            _dicomFileStore = blobStoragefixture.DicomFileStore;
-            _dicomRetrieveTranscoder = Substitute.For<IDicomRetrieveTranscoder>();
-            _dicomFrameHandler = Substitute.For<IDicomFrameHandler>();
-            _recyclableMemoryStreamManager = blobStoragefixture.RecyclableMemoryStreamManager;
-            _dicomRetrieveResourceService = new DicomRetrieveResourceService(
-                _dicomInstanceStore, _dicomFileStore, _dicomRetrieveTranscoder, _dicomFrameHandler, blobStoragefixture.RecyclableMemoryStreamManager, NullLogger<DicomRetrieveResourceService>.Instance);
+            _indexDataStore = sqlIndexStorageFixture.IndexDataStore;
+            _instanceStore = sqlIndexStorageFixture.InstanceStore;
+            _fileStore = blobStorageFixture.FileStore;
+            _retrieveTranscoder = Substitute.For<IRetrieveTranscoder>();
+            _frameHandler = Substitute.For<IFrameHandler>();
+            _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
+            _retrieveResourceService = new RetrieveResourceService(
+                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, blobStorageFixture.RecyclableMemoryStreamManager, NullLogger<RetrieveResourceService>.Instance);
         }
 
         [Fact]
         public async Task GivenNoStoredInstances_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
         {
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                new DicomRetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid),
+            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
+                new RetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid),
                 _defaultCancellationToken));
         }
 
@@ -70,8 +70,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
             await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                new DicomRetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid),
+            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
+                new RetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid),
                 _defaultCancellationToken));
         }
 
@@ -82,8 +82,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
             datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
 
-            DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                new DicomRetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid),
+            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+                new RetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid),
                 _defaultCancellationToken);
 
             Assert.False(response.IsPartialSuccess);
@@ -94,8 +94,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         [Fact]
         public async Task GivenNoStoredInstances_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
         {
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                new DicomRetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid, _firstSeriesInstanceUid),
+            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
+                new RetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid, _firstSeriesInstanceUid),
                 _defaultCancellationToken));
         }
 
@@ -106,8 +106,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
             await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
 
-            await Assert.ThrowsAsync<DicomInstanceNotFoundException>(() => _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                new DicomRetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid, _firstSeriesInstanceUid),
+            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
+                new RetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid, _firstSeriesInstanceUid),
                 _defaultCancellationToken));
         }
 
@@ -118,8 +118,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
             datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
 
-            DicomRetrieveResourceResponse response = await _dicomRetrieveResourceService.GetInstanceResourceAsync(
-                new DicomRetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid, _firstSeriesInstanceUid),
+            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+                new RetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid, _firstSeriesInstanceUid),
                 _defaultCancellationToken);
             Assert.False(response.IsPartialSuccess);
 

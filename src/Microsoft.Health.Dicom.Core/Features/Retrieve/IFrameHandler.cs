@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public interface IDicomFrameHandler
+    public interface IFrameHandler
     {
         Task<Stream[]> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation);
     }

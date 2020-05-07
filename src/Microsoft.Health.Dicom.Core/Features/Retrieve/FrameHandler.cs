@@ -16,13 +16,13 @@ using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class DicomFrameHandler : IDicomFrameHandler
+    public class FrameHandler : IFrameHandler
     {
-        private readonly IDicomRetrieveTranscoder _dicomRetrieveTranscoder;
+        private readonly IRetrieveTranscoder _dicomRetrieveTranscoder;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
-        public DicomFrameHandler(
-            IDicomRetrieveTranscoder dicomRetrieveTranscoder,
+        public FrameHandler(
+            IRetrieveTranscoder dicomRetrieveTranscoder,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager)
         {
             EnsureArg.IsNotNull(dicomRetrieveTranscoder, nameof(dicomRetrieveTranscoder));
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             {
                 return frames.Select(frame => new LazyTransformReadOnlyStream<DicomFile>(
                         dicomFile,
-                        df => _dicomRetrieveTranscoder.TranscodeDicomFrame(df, frame, requestedRepresentation)))
+                        df => _dicomRetrieveTranscoder.TranscodeFrame(df, frame, requestedRepresentation)))
                 .ToArray();
             }
             else
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             var pixelData = DicomPixelData.Create(dataset);
             if (frame >= pixelData.NumberOfFrames)
             {
-                throw new DicomFrameNotFoundException();
+                throw new FrameNotFoundException();
             }
 
             resultByteBuffer = pixelData.GetFrame(frame);
