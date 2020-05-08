@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
@@ -44,6 +45,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 LogLevel.Warning,
                 default,
                 "The operation failed.");
+
+        private static readonly Action<ILogger, string, Exception> LogFileDoesNotExistDelegate =
+            LoggerMessage.Define<string>(
+                LogLevel.Warning,
+                default,
+                "The DICOM instance file with '{DicomInstanceIdentifier}' does not exist.");
 
         private readonly IFileStore _fileStore;
         private readonly ILogger _logger;
@@ -106,7 +113,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-            LogGetFileDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
+            string instanceIdentifierInString = versionedInstanceIdentifier.ToString();
+
+            LogGetFileDelegate(_logger, instanceIdentifierInString, null);
 
             try
             {
@@ -115,6 +124,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 LogOperationSucceededDelegate(_logger, null);
 
                 return stream;
+            }
+            catch (ItemNotFoundException ex)
+            {
+                LogFileDoesNotExistDelegate(_logger, instanceIdentifierInString, ex);
+
+                throw;
             }
             catch (Exception ex)
             {

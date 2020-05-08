@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 
         private IActionResult MapExceptionToResult(Exception exception)
         {
-            HttpStatusCode statusCode;
+            HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
             string message = exception.Message;
 
             switch (exception)
@@ -94,11 +94,14 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     _logger.LogWarning("Service exception: {0}", exception);
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
-                default:
-                    _logger.LogError("Unhandled exception: {0}", exception);
-                    statusCode = HttpStatusCode.InternalServerError;
-                    message = string.Empty;
-                    break;
+            }
+
+            if (statusCode == HttpStatusCode.InternalServerError)
+            {
+                // In the case of InternalServerError, make sure to overwrite the message to
+                // avoid internal message.
+                _logger.LogCritical("Unhandled exception: {0}", exception);
+                message = DicomApiResource.InternalServerError;
             }
 
             return GetContentResult(statusCode, message);
