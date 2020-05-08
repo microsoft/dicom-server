@@ -260,11 +260,29 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified series cannot be found..
+        /// </summary>
+        internal static string SeriesInstanceNotFound {
+            get {
+                return ResourceManager.GetString("SeriesInstanceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server is currently unable to receive requests. Please retry your request. If the issue persists, please contact support..
         /// </summary>
         internal static string ServiceUnavailable {
             get {
                 return ResourceManager.GetString("ServiceUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified study cannot be found..
+        /// </summary>
+        internal static string StudyInstanceNotFound {
+            get {
+                return ResourceManager.GetString("StudyInstanceNotFound", resourceCulture);
             }
         }
         
