@@ -4,11 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models;
@@ -62,16 +60,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             var results = new List<VersionedInstanceIdentifier>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper())
-            using (SqlCommand sqlCommand = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.GetInstance.PopulateCommand(
-                    sqlCommand,
+                    sqlCommandWrapper,
                     invalidStatus: (byte)IndexStatus.Creating,
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid);
 
-                using (var reader = await sqlCommand.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {

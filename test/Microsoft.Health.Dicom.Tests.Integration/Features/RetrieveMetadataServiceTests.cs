@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,9 +49,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Study);
 
             // Add metadata for only one instance in the given list
-            await _metadataStore.AddInstanceMetadataAsync(datasetList.Last(), version: 0);
+            await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 0);
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken));
         }
 
         [Fact]
@@ -58,7 +59,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             SetupDatasetList(ResourceType.Study);
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken));
         }
 
         [Fact]
@@ -67,8 +68,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Study);
 
             // Add metadata for all instances in the given list
-            await _metadataStore.AddInstanceMetadataAsync(datasetList.First(), version: 0);
-            await _metadataStore.AddInstanceMetadataAsync(datasetList.Last(), version: 1);
+            await _metadataStore.StoreInstanceMetadataAsync(datasetList.First(), version: 0);
+            await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 1);
 
             RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken);
 
@@ -82,9 +83,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Series);
 
             // Add metadata for only one instance in the given list
-            await _metadataStore.AddInstanceMetadataAsync(datasetList.Last(), version: 1);
+            await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 1);
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken));
         }
 
         [Fact]
@@ -92,7 +93,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             SetupDatasetList(ResourceType.Series);
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken));
         }
 
         [Fact]
@@ -101,8 +102,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Series);
 
             // Add metadata for all instances in the given list
-            await _metadataStore.AddInstanceMetadataAsync(datasetList.First(), version: 0);
-            await _metadataStore.AddInstanceMetadataAsync(datasetList.Last(), version: 1);
+            await _metadataStore.StoreInstanceMetadataAsync(datasetList.First(), version: 0);
+            await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 1);
 
             RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken);
 

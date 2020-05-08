@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="8.1.2" />
     <PackageReference Include="fo-dicom" Version="4.0.4" />
@@ -12,11 +12,12 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.3" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.3" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="3.1.3" />
-    <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.0-master-20200416-1" />
-    <PackageReference Include="Microsoft.Health.Core" Version="1.0.0-master-20200416-1" />
-    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20200416-1" />
+    <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.0-master-20200507-1" />
+    <PackageReference Include="Microsoft.Health.Core" Version="1.0.0-master-20200507-1" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20200507-1" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.3.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Polly" Version="7.2.0" />
     <PackageReference Include="Scrutor" Version="3.2.0" />
     <PackageReference Include="System.Linq.Async" Version="4.1.1" />
   </ItemGroup>
@@ -35,5 +36,5 @@
       <LastGenOutput>DicomCoreResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
+  
 </Project>

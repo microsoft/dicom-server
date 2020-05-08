@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             if (persistMetadata)
             {
-                await _fixture.MetadataStore.AddInstanceMetadataAsync(newDataSet, versionedDicomInstanceIdentifier.Version);
+                await _fixture.MetadataStore.StoreInstanceMetadataAsync(newDataSet, versionedDicomInstanceIdentifier.Version);
 
                 var metaEntry = await _fixture.MetadataStore.GetInstanceMetadataAsync(versionedDicomInstanceIdentifier);
                 Assert.Equal(versionedDicomInstanceIdentifier.SopInstanceUid, metaEntry.GetSingleValue<string>(DicomTag.SOPInstanceUID));
@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
                 await using (MemoryStream stream = _fixture.RecyclableMemoryStreamManager.GetStream("GivenDeletedInstances_WhenCleanupCalled_FilesAndTriesAreRemoved.fileData", fileData, 0, fileData.Length))
                 {
-                    Uri fileLocation = await _fixture.FileStore.AddFileAsync(versionedDicomInstanceIdentifier, stream);
+                    Uri fileLocation = await _fixture.FileStore.StoreFileAsync(versionedDicomInstanceIdentifier, stream);
 
                     Assert.NotNull(fileLocation);
                 }
@@ -86,8 +86,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.True(success);
             Assert.Equal(1, retrievedInstanceCount);
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(async () => await _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier));
-            await Assert.ThrowsAsync<InstanceNotFoundException>(async () => await _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier));
+            await Assert.ThrowsAsync<ItemNotFoundException>(async () => await _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier));
+            await Assert.ThrowsAsync<ItemNotFoundException>(async () => await _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier));
 
             Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
         }

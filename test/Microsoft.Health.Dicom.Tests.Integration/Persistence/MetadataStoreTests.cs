@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -25,70 +24,75 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenInvalidParameters_WhenAddingInstanceMetadata_ArgumentExceptionIsThrown()
+        public async Task GivenAValidInstanceMetadata_WhenStored_ThenItCanBeRetrievedAndDeleted()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _metadataStore.AddInstanceMetadataAsync(null, 0));
+            DicomDataset dicomDataset = CreateValidMetadataDataset();
+            var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
+
+            // Store the metadata.
+            await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
+
+            // Should be able to retrieve.
+            DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(instanceIdentifier);
+
+            ValidateDicomDataset(dicomDataset, retrievedDicomDataset);
+
+            // Should be able to delete.
+            await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
+
+            // The file should no longer exists.
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _metadataStore.GetInstanceMetadataAsync(instanceIdentifier));
         }
 
         [Fact]
-        public async Task GivenAnUnknownDicomInstance_WhenFetchingInstanceMetadata_NotFoundDataStoreExceptionIsThrown()
+        public async Task GivenMetadataAlreadyExists_WhenStored_ThenExistingMetadataWillBeOverwritten()
         {
-            var dicomInstanceId = new VersionedInstanceIdentifier(
+            DicomDataset dicomDataset = CreateValidMetadataDataset();
+            dicomDataset.Add(DicomTag.SOPClassUID, "1");
+
+            await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
+
+            // Update SOPClassUID but keep the identifiers the same.
+            dicomDataset.AddOrUpdate(DicomTag.SOPClassUID, "2");
+
+            await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
+
+            // Should be able to retrieve.
+            DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(
+                dicomDataset.ToVersionedInstanceIdentifier(0));
+
+            ValidateDicomDataset(dicomDataset, retrievedDicomDataset);
+
+            Assert.Equal("2", retrievedDicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID));
+        }
+
+        [Fact]
+        public async Task GivenANonExistingMetadata_WhenRetrievingInstanceMetadata_ThenItemNotFoundExceptionShouldBeThrown()
+        {
+            var instanceIdentifier = new VersionedInstanceIdentifier(
                 studyInstanceUid: TestUidGenerator.Generate(),
                 seriesInstanceUid: TestUidGenerator.Generate(),
                 sopInstanceUid: TestUidGenerator.Generate(),
                 version: 0);
-            await Assert.ThrowsAsync<InstanceNotFoundException>(
-                () => _metadataStore.GetInstanceMetadataAsync(dicomInstanceId));
+
+            await Assert.ThrowsAsync<ItemNotFoundException>(
+                () => _metadataStore.GetInstanceMetadataAsync(instanceIdentifier));
         }
 
         [Fact]
-        public async Task GivenADeletedDicomInstance_WhenFetchingInstanceMetadata_NotFoundDataStoreExceptionIsThrown()
+        public async Task GivenANonExistenMetadata_WhenDeleting_ThenItShouldNotThrowException()
         {
             DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var dicomInstanceId = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
+            var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
 
-            await _metadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0);
-            DicomDataset storedMetadata = await _metadataStore.GetInstanceMetadataAsync(dicomInstanceId);
-            Assert.NotNull(storedMetadata);
+            await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version: 0);
 
-            await _metadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
+            await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(
-                () => _metadataStore.GetInstanceMetadataAsync(dicomInstanceId));
+            await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
         }
 
-        [Fact]
-        public async Task GivenExistingMetadata_WhenAdding_ConflictExceptionIsThrown()
-        {
-            DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var dicomInstanceId = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
-            await _metadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0);
-            DicomDataset storedMetadata = await _metadataStore.GetInstanceMetadataAsync(dicomInstanceId);
-            Assert.NotNull(storedMetadata);
-
-            InstanceAlreadyExistsException exception = await Assert.ThrowsAsync<InstanceAlreadyExistsException>(
-                () => _metadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0));
-
-            await _metadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
-        }
-
-        [Fact]
-        public async Task GivenAddedInstanceMetadata_WhenDeletingAgain_NoExceptionIsThrown()
-        {
-            DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var dicomInstanceId = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
-
-            await _metadataStore.AddInstanceMetadataAsync(dicomDataset, version: 0);
-            DicomDataset storedMetadata = await _metadataStore.GetInstanceMetadataAsync(dicomInstanceId);
-            Assert.NotNull(storedMetadata);
-
-            await _metadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
-
-            await _metadataStore.DeleteInstanceMetadataIfExistsAsync(dicomInstanceId);
-        }
-
-        private DicomDataset CreateValidMetadataDataset()
+        private static DicomDataset CreateValidMetadataDataset()
         {
             return new DicomDataset()
             {
@@ -96,6 +100,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
                 { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
             };
+        }
+
+        private static void ValidateDicomDataset(DicomDataset expectedDicomDataset, DicomDataset actualDicomDataset)
+        {
+            Assert.NotNull(actualDicomDataset);
+
+            ValidateAttribute(DicomTag.StudyInstanceUID);
+            ValidateAttribute(DicomTag.SeriesInstanceUID);
+            ValidateAttribute(DicomTag.SOPInstanceUID);
+
+            void ValidateAttribute(DicomTag dicomTag)
+            {
+                Assert.Equal(
+                    expectedDicomDataset.GetSingleValue<string>(dicomTag),
+                    actualDicomDataset.GetSingleValue<string>(dicomTag));
+            }
         }
     }
 }
