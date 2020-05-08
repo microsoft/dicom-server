@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
@@ -16,11 +17,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 {
     public class LoggingMetadataStore : IMetadataStore
     {
-        private static readonly Action<ILogger, string, Exception> LogAddInstanceMetadataDelegate =
+        private static readonly Action<ILogger, string, Exception> LogStoreInstanceMetadataDelegate =
                LoggerMessage.Define<string>(
                    LogLevel.Debug,
                    default,
-                   "Adding DICOM instance metadata file with '{DicomInstanceIdentifier}'.");
+                   "Storing DICOM instance metadata file with '{DicomInstanceIdentifier}'.");
 
         private static readonly Action<ILogger, string, Exception> LogDeleteInstanceMetadataDelegate =
             LoggerMessage.Define<string>(
@@ -46,6 +47,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 default,
                 "The operation failed.");
 
+        private static readonly Action<ILogger, string, Exception> LogMetadataDoesNotExistDelegate =
+            LoggerMessage.Define<string>(
+                LogLevel.Warning,
+                default,
+                "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.");
+
         private readonly IMetadataStore _metadataStore;
         private readonly ILogger _logger;
 
@@ -59,13 +66,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task AddInstanceMetadataAsync(DicomDataset dicomDataset, long version, CancellationToken cancellationToken)
+        public async Task StoreInstanceMetadataAsync(DicomDataset dicomDataset, long version, CancellationToken cancellationToken)
         {
-            LogAddInstanceMetadataDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(version).ToString(), null);
+            LogStoreInstanceMetadataDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(version).ToString(), null);
 
             try
             {
-                await _metadataStore.AddInstanceMetadataAsync(dicomDataset, version, cancellationToken);
+                await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -99,7 +106,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <inheritdoc />
         public async Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
-            LogGetInstanceMetadataDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+            string instanceIdentifierInString = versionedInstanceIdentifier.ToString();
+
+            LogGetInstanceMetadataDelegate(_logger, instanceIdentifierInString, null);
 
             try
             {
@@ -108,6 +119,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 LogOperationSucceededDelegate(_logger, null);
 
                 return dicomDataset;
+            }
+            catch (ItemNotFoundException ex)
+            {
+                LogMetadataDoesNotExistDelegate(_logger, instanceIdentifierInString, ex);
+
+                throw;
             }
             catch (Exception ex)
             {

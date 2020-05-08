@@ -22,21 +22,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// </summary>
     public class StoreOrchestrator : IStoreOrchestrator
     {
-        private readonly IFileStore _blobDataStore;
-        private readonly IMetadataStore _instanceMetadataStore;
+        private readonly IFileStore _fileStore;
+        private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
 
         public StoreOrchestrator(
-            IFileStore blobDataStore,
-            IMetadataStore instanceMetadataStore,
+            IFileStore fileStore,
+            IMetadataStore metadataStore,
             IIndexDataStore indexDataStore)
         {
-            EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
-            EnsureArg.IsNotNull(instanceMetadataStore, nameof(instanceMetadataStore));
+            EnsureArg.IsNotNull(fileStore, nameof(fileStore));
+            EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
 
-            _blobDataStore = blobDataStore;
-            _instanceMetadataStore = instanceMetadataStore;
+            _fileStore = fileStore;
+            _metadataStore = metadataStore;
             _indexDataStore = indexDataStore;
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 // We have successfully created the index, store the files.
                 Task[] tasks = new[]
                 {
-                    StoreBlobAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
+                    StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
                     StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken),
                 };
 
@@ -75,24 +75,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
         }
 
-        private async Task StoreBlobAsync(
+        private async Task StoreFileAsync(
             VersionedInstanceIdentifier versionedInstanceIdentifier,
             IDicomInstanceEntry dicomInstanceEntry,
             CancellationToken cancellationToken)
         {
             Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
-            await _blobDataStore.AddFileAsync(
+            await _fileStore.StoreFileAsync(
                 versionedInstanceIdentifier,
                 stream,
-                cancellationToken: cancellationToken);
+                cancellationToken);
         }
 
         private Task StoreInstanceMetadataAsync(
             DicomDataset dicomDataset,
             long version,
             CancellationToken cancellationToken)
-            => _instanceMetadataStore.AddInstanceMetadataAsync(dicomDataset, version, cancellationToken);
+            => _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
 
         private async Task TryCleanupInstanceIndexAsync(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {

@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private const string DefaultSeriesInstanceUid = "2";
         private const string DefaultSopInstanceUid = "3";
         private const long DefaultVersion = 1;
-        private static readonly VersionedInstanceIdentifier _defaultVersionedInstanceIdentifier = new VersionedInstanceIdentifier(
+        private static readonly VersionedInstanceIdentifier DefaultVersionedInstanceIdentifier = new VersionedInstanceIdentifier(
             DefaultStudyInstanceUid,
             DefaultSeriesInstanceUid,
             DefaultSopInstanceUid,
@@ -61,23 +61,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public async Task GivenFilesAreSuccessfullyStored_WhenStoreDicomInstanceEntryIsCalled_ThenStatusShouldBeUpdatedToCreated()
+        public async Task GivenFilesAreSuccessfullyStored_WhenStoringFile_ThenStatusShouldBeUpdatedToCreated()
         {
             await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
 
-            await _indexDataStore.Received(1).UpdateInstanceIndexStatusAsync(
-                Arg.Is<VersionedInstanceIdentifier>(identifier => _defaultVersionedInstanceIdentifier.Equals(identifier)),
-                IndexStatus.Created,
-                DefaultCancellationToken);
+            await ValidateStatusUpdateAsync();
         }
 
         [Fact]
-        public async Task GivenFailedToStoreFile_WhenStoreDicomInstanceEntryIsCalled_ThenCleanupShouldBeAttempted()
+        public async Task GivenFailedToStoreFile_WhenStoringFile_ThenCleanupShouldBeAttempted()
         {
-            _fileStore.AddFileAsync(
-                Arg.Is<VersionedInstanceIdentifier>(identifier => _defaultVersionedInstanceIdentifier.Equals(identifier)),
+            _fileStore.StoreFileAsync(
+                Arg.Is<VersionedInstanceIdentifier>(identifier => DefaultVersionedInstanceIdentifier.Equals(identifier)),
                 _stream,
-                overwriteIfExists: false,
                 cancellationToken: DefaultCancellationToken)
                 .Throws(new Exception());
 
@@ -91,9 +87,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public async Task GivenFailedToStoreMetadataFile_WhenStoreDicomInstanceEntryIsCalled_ThenCleanupShouldBeAttempted()
+        public async Task GivenFailedToStoreMetadataFile_WhenStoringMetadata_ThenCleanupShouldBeAttempted()
         {
-            _metadataStore.AddInstanceMetadataAsync(
+            _metadataStore.StoreInstanceMetadataAsync(
                 _dicomDataset,
                 DefaultVersion,
                 DefaultCancellationToken)
@@ -111,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenExceptionDuringCleanup_WhenStoreDicomInstanceEntryIsCalled_ThenItShouldNotInterfere()
         {
-            _metadataStore.AddInstanceMetadataAsync(
+            _metadataStore.StoreInstanceMetadataAsync(
                 _dicomDataset,
                 DefaultVersion,
                 DefaultCancellationToken)
@@ -120,6 +116,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _indexDataStore.DeleteInstanceIndexAsync(default, default, default, default, default).ThrowsForAnyArgs(new InvalidOperationException());
 
             await Assert.ThrowsAsync<ArgumentException>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
+        }
+
+        private async Task ValidateStatusUpdateAsync()
+        {
+            await _indexDataStore.Received(1).UpdateInstanceIndexStatusAsync(
+                Arg.Is<VersionedInstanceIdentifier>(identifier => DefaultVersionedInstanceIdentifier.Equals(identifier)),
+                IndexStatus.Created,
+                DefaultCancellationToken);
         }
 
         private async Task ValidateCleanupAsync()

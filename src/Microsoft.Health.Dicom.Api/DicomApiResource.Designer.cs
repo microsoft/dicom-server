@@ -61,6 +61,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The server encountered an internal error. Please retry the request. If the issue persists, please contact support..
+        /// </summary>
+        internal static string InternalServerError {
+            get {
+                return ResourceManager.GetString("InternalServerError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There was an error reading the multipart request..
         /// </summary>
         internal static string InvalidMultipartBodyPart {

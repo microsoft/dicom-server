@@ -67,13 +67,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             return await RetrieveMetadata(retrieveInstances, cancellationToken);
         }
 
-        private async Task<RetrieveMetadataResponse> RetrieveMetadata(IEnumerable<VersionedInstanceIdentifier> retrieveInstances, CancellationToken cancellationToken)
+        private async Task<RetrieveMetadataResponse> RetrieveMetadata(IEnumerable<VersionedInstanceIdentifier> instancesToRetrieve, CancellationToken cancellationToken)
         {
             var dataset = new List<DicomDataset>();
 
-            foreach (var id in retrieveInstances)
+            foreach (VersionedInstanceIdentifier versionedInstanceIdentifier in instancesToRetrieve)
             {
-                DicomDataset ds = await _metadataStore.GetInstanceMetadataAsync(id, cancellationToken);
+                DicomDataset ds = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier, cancellationToken);
                 dataset.Add(ds);
             }
 
