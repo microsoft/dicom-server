@@ -512,14 +512,16 @@ AS
     DECLARE @metadataId BIGINT
     DECLARE @newVersion BIGINT
 
-    IF EXISTS
-        (SELECT *
-        FROM dbo.Instance
-        WHERE StudyInstanceUid = @studyInstanceUid
-        AND SeriesInstanceUid = @seriesInstanceUid
-        AND SopInstanceUid = @sopInstanceUid)
+    SELECT @existingStatus = Status
+    FROM dbo.Instance
+    WHERE StudyInstanceUid = @studyInstanceUid
+    AND SeriesInstanceUid = @seriesInstanceUid
+    AND SopInstanceUid = @sopInstanceUid
+
+    IF @@ROWCOUNT <> 0
     BEGIN
-        THROW 50409, 'Instance already exists', 1;
+        -- The instance already exists. Set the state = @existingStatus to indicate what state it is in.
+        THROW 50409, 'Instance already exists', @existingStatus;
     END
 
     -- The instance does not exist, insert it.
