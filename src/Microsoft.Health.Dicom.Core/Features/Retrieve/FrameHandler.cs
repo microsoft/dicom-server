@@ -27,6 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             EnsureArg.IsNotNull(dicomRetrieveTranscoder, nameof(dicomRetrieveTranscoder));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+
             _dicomRetrieveTranscoder = dicomRetrieveTranscoder;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
@@ -69,7 +70,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             resultByteBuffer = pixelData.GetFrame(frame);
 
-            return _recyclableMemoryStreamManager.GetStream("RetrieveDicomResourceHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
+            return _recyclableMemoryStreamManager.GetStream("FrameHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
         }
     }
 }

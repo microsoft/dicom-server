@@ -354,13 +354,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             await _client.StoreAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
 
-            DicomWebResponse<IReadOnlyList<DicomFile>> retrieveResponse = await _client.RetrieveSeriesAsync(
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesAsync(
                 studyInstanceUid,
                 seriesInstanceUid,
-                DicomTransferSyntax.JPEG2000Lossy.UID.UID);
+                DicomTransferSyntax.JPEG2000Lossy.UID.UID));
 
-            Assert.Equal(HttpStatusCode.PartialContent, retrieveResponse.StatusCode);
-            Assert.Equal(2, retrieveResponse.Value.Count);
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
         public static IEnumerable<object[]> Get8BitTranscoderCombos()

@@ -48,7 +48,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _logger = logger;
         }
 
-        // TODO change the input output params and setting the status code. US #73197
         public async Task<RetrieveResourceResponse> GetInstanceResourceAsync(RetrieveResourceRequest message, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(message, nameof(message));

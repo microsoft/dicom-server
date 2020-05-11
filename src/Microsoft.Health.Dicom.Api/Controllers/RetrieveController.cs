@@ -176,8 +176,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private static IActionResult CreateResult(RetrieveResourceResponse response)
         {
+            // Currently if we have a partial retrieval, we return NotFound instead of PartialContent.
             return new MultipartResult(
-                response.IsPartialSuccess ? (int)HttpStatusCode.PartialContent : (int)HttpStatusCode.OK,
+                response.IsPartialSuccess ? (int)HttpStatusCode.NotFound : (int)HttpStatusCode.OK,
                 response.ResponseStreams.Select(x => new MultipartItem(KnownContentTypes.ApplicationDicom, x)).ToList());
         }
     }
