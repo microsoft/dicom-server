@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -53,10 +53,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, transferSyntax, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -90,10 +90,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
                 studyInstanceUid, seriesInstanceUid, transferSyntax, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -110,7 +110,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ApplicationDicom)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -128,10 +128,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, transferSyntax, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -148,7 +148,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptContentFilter(KnownContentTypes.ApplicationOctetStream)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -166,7 +166,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, transferSyntax, HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return CreateResult(response, KnownContentTypes.ApplicationOctetStream);
         }
 
         private IActionResult CreateResult(RetrieveMetadataResponse response)
@@ -174,12 +174,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return StatusCode((int)HttpStatusCode.OK, response.ResponseMetadata);
         }
 
-        private static IActionResult CreateResult(RetrieveResourceResponse response)
+        private static IActionResult CreateResult(RetrieveResourceResponse response, string contentType)
         {
             // Currently if we have a partial retrieval, we return NotFound instead of PartialContent.
             return new MultipartResult(
                 response.IsPartialSuccess ? (int)HttpStatusCode.NotFound : (int)HttpStatusCode.OK,
-                response.ResponseStreams.Select(x => new MultipartItem(KnownContentTypes.ApplicationDicom, x)).ToList());
+                response.ResponseStreams.Select(x => new MultipartItem(contentType, x)).ToList());
         }
     }
 }
