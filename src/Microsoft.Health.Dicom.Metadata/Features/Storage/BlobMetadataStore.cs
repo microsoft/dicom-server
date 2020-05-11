@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task AddInstanceMetadataAsync(
+        public async Task StoreInstanceMetadataAsync(
             DicomDataset dicomDataset,
             long version,
             CancellationToken cancellationToken)
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             try
             {
                 Stream stream = await blob.OpenWriteAsync(
-                    AccessCondition.GenerateIfNotExistsCondition(),
+                    AccessCondition.GenerateEmptyCondition(),
                     new BlobRequestOptions(),
                     new OperationContext(),
                     cancellationToken);
@@ -78,10 +78,6 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 {
                     _jsonSerializer.Serialize(jsonTextWriter, dicomDatasetWithoutBulkData);
                 }
-            }
-            catch (StorageException storageException) when (storageException.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
-            {
-                throw new InstanceAlreadyExistsException();
             }
             catch (Exception ex)
             {
@@ -136,7 +132,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             }
             catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
             {
-                throw new InstanceNotFoundException();
+                throw new ItemNotFoundException(ex);
             }
             catch (Exception ex)
             {

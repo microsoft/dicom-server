@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
             await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid),
                 _defaultCancellationToken));
         }
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
             await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid, _firstSeriesInstanceUid),
                 _defaultCancellationToken));
         }
@@ -165,7 +165,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 {
                     dicomFile.Save(stream);
                     stream.Position = 0;
-                    await _fileStore.AddFileAsync(
+                    await _fileStore.StoreFileAsync(
                         versionedInstanceIdentifier,
                         stream);
                 }
