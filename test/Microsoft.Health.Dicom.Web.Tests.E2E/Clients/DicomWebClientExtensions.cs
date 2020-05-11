@@ -25,6 +25,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
             return dicomWebClient.RetrieveInstancesAsync(
                 new Uri(string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid), UriKind.Relative),
+                false,
                 dicomTransferSyntax,
                 cancellationToken);
         }
@@ -52,6 +53,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
             return dicomWebClient.RetrieveInstancesAsync(
                 new Uri(string.Format(DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative),
+                false,
                 dicomTransferSyntax,
                 cancellationToken);
         }
@@ -81,6 +83,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
             return dicomWebClient.RetrieveInstancesAsync(
                 new Uri(string.Format(DicomWebConstants.BaseeInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
+                true,
                 dicomTransferSyntax,
                 cancellationToken);
         }
