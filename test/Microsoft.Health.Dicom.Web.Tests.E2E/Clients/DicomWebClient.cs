@@ -80,20 +80,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
             Uri requestUri,
-            bool singleFrame = false,
             string dicomTransferSyntax = null,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                if (singleFrame)
-                {
-                    request.Headers.Accept.Add(MediaTypeApplicationOctetStream);
-                }
-                else
-                {
-                    request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationOctetStream));
-                }
+                request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationOctetStream));
 
                 request.Headers.Add(TransferSyntaxHeaderName, dicomTransferSyntax);
 

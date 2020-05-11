@@ -190,19 +190,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, string.Join("%2C", frames)), UriKind.Relative);
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                if (frames.Length == 1)
-                {
-                    // If one frame is requested set accept header to application/octet-stream
-                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
-                }
-                else
-                {
-                    // If multiple frames are requested set accept header to multipart/related; type="application/octet-stream"
-                    MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(KnownContentTypes.MultipartRelated);
-                    NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + KnownContentTypes.ApplicationOctetStream + "\"");
-                    multipartHeader.Parameters.Add(contentHeader);
-                    request.Headers.Accept.Add(multipartHeader);
-                }
+                // Set accept header to multipart/related; type="application/octet-stream"
+                MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(KnownContentTypes.MultipartRelated);
+                NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + KnownContentTypes.ApplicationOctetStream + "\"");
+                multipartHeader.Parameters.Add(contentHeader);
+                request.Headers.Accept.Add(multipartHeader);
 
                 request.Headers.Add("transfer-syntax", "*");
 

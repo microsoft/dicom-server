@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         {
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join("%2C", frames)), UriKind.Relative);
 
-            return dicomWebClient.RetrieveFramesAsync(requestUri, frames.Length > 1 ? false : true, dicomTransferSyntax, cancellationToken);
+            return dicomWebClient.RetrieveFramesAsync(requestUri, dicomTransferSyntax, cancellationToken);
         }
 
         public static Task<DicomWebResponse> DeleteStudyAsync(

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
@@ -61,15 +62,18 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
                 {
                     foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
                     {
-                        NameValueHeaderValue typeParameterValue = acceptHeader.Parameters.FirstOrDefault(
-                            parameter => StringSegment.Equals(parameter.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase));
-
-                        if (typeParameterValue != null &&
-                            MediaTypeHeaderValue.TryParse(HeaderUtilities.RemoveQuotes(typeParameterValue.Value), out MediaTypeHeaderValue parsedValue) &&
-                            _mediaTypes.Contains(parsedValue))
+                        if (StringSegment.Equals(acceptHeader.MediaType, KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            acceptable = true;
-                            break;
+                            NameValueHeaderValue typeParameterValue = acceptHeader.Parameters.FirstOrDefault(
+                                parameter => StringSegment.Equals(parameter.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase));
+
+                            if (typeParameterValue != null &&
+                                MediaTypeHeaderValue.TryParse(HeaderUtilities.RemoveQuotes(typeParameterValue.Value), out MediaTypeHeaderValue parsedValue) &&
+                                _mediaTypes.Contains(parsedValue))
+                            {
+                                acceptable = true;
+                                break;
+                            }
                         }
                     }
                 }
