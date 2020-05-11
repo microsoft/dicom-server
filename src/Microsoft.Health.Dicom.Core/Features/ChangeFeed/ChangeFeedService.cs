@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
@@ -14,6 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 {
     public class ChangeFeedService : IChangeFeedService
     {
+        private const int _limitMax = 100;
         private readonly IChangeFeedStore _changeFeedStore;
         private readonly IMetadataStore _metadataStore;
 
@@ -28,6 +30,16 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 
         public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(int offset, int limit, bool includeMetadata, CancellationToken cancellationToken)
         {
+            if (offset < 0)
+            {
+                throw new InvalidChangeFeedOffsetException();
+            }
+
+            if (limit < 1 || limit > _limitMax)
+            {
+                throw new ChangeFeedLimitOutOfRangeException(_limitMax);
+            }
+
             IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(offset, limit, cancellationToken);
 
             if (!includeMetadata)

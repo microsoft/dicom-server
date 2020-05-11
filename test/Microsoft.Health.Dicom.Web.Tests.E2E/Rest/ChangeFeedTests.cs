@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
@@ -129,6 +131,25 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(1, changeFeedResults.Value.Count);
             Assert.Null(changeFeedResults.Value[0].Metadata);
             Assert.Equal(ChangeFeedState.Current, changeFeedResults.Value[0].State);
+        }
+
+        [Fact]
+        public async Task GivenANegativeOffset_WhenRetrievingChangeFeed_ThenBadRequestReturned()
+        {
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
+                () => _client.GetChangeFeed("?offset=-1"));
+            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(0)]
+        [InlineData(101)]
+        public async Task GivenAnInvalidLimit_WhenRetrievingChangeFeed_ThenBadRequestReturned(int limit)
+        {
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
+                () => _client.GetChangeFeed($"?limit={limit}"));
+            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
         private async Task CreateFile(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)

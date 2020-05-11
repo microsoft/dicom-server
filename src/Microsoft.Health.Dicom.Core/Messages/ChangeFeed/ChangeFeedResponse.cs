@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed
@@ -12,6 +13,8 @@ namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed
     {
         public ChangeFeedResponse(IReadOnlyCollection<ChangeFeedEntry> entries)
         {
+            EnsureArg.IsNotNull(entries, nameof(entries));
+
             Entries = entries;
         }
 
