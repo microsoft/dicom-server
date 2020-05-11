@@ -42,10 +42,8 @@ namespace Microsoft.Health.Blob.Features.Storage
         /// </summary>
         public void Start()
         {
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             // The result is ignored and will be awaited in EnsureInitialized(). Exceptions are logged within DocumentClientInitializer.
-            _initializationOperation.EnsureInitialized();
-#pragma warning restore CS4014
+            _ = _initializationOperation.EnsureInitialized();
         }
 
         /// <summary>

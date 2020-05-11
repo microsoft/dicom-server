@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Abstractions.Exceptions;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;

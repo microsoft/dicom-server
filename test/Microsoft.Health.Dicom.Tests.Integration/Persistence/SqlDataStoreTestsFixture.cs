@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
+using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
@@ -51,12 +52,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var dicomSqlIndexSchema = new SqlIndexSchema(schemaInformation, NullLogger<SqlIndexSchema>.Instance);
 
             SqlTransactionHandler = new SqlTransactionHandler();
-            SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(config, SqlTransactionHandler);
+
+            SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(config, SqlTransactionHandler, new SqlCommandWrapperFactory());
 
             IndexDataStore = new SqlIndexDataStore(
                 dicomSqlIndexSchema,
-                SqlConnectionWrapperFactory,
-                NullLogger<SqlIndexDataStore>.Instance);
+                SqlConnectionWrapperFactory);
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 
