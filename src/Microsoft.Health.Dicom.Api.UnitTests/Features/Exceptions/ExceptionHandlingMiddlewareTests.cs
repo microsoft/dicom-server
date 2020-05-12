@@ -4,11 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Api.Features.Exceptions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using NSubstitute;
@@ -26,10 +28,25 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
             _context = new DefaultHttpContext();
         }
 
-        [Fact]
-        public async Task WhenExecutingExceptionMiddleware_GivenADicomBadRequestException_TheResponseShouldBeBadRequest()
+        public static IEnumerable<object[]> GetExceptionToStatusCodeMapping()
         {
-            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new BadRequestException(string.Empty));
+            yield return new object[] { new CustomValidationException(), HttpStatusCode.BadRequest };
+            yield return new object[] { new NotSupportedException("Not supported."), HttpStatusCode.BadRequest };
+            yield return new object[] { new ResourceNotFoundException("Resource not found."), HttpStatusCode.NotFound };
+            yield return new object[] { new TranscodingException(), HttpStatusCode.NotAcceptable };
+            yield return new object[] { new DataStoreException("Something went wrong."), HttpStatusCode.ServiceUnavailable };
+            yield return new object[] { new InstanceAlreadyExistsException(), HttpStatusCode.Conflict };
+            yield return new object[] { new UnsupportedMediaTypeException("Media type is not supported."), HttpStatusCode.UnsupportedMediaType };
+            yield return new object[] { new ServiceUnavailableException(), HttpStatusCode.ServiceUnavailable };
+            yield return new object[] { new ItemNotFoundException(new Exception()), HttpStatusCode.InternalServerError };
+            yield return new object[] { new CustomServerException(), HttpStatusCode.ServiceUnavailable };
+        }
+
+        [Theory]
+        [MemberData(nameof(GetExceptionToStatusCodeMapping))]
+        public async Task GivenAnException_WhenMiddlewareIsExecuted_ThenCorrectStatusCodeShouldBeRetruned(Exception exception, HttpStatusCode expectedStatusCode)
+        {
+            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw exception);
 
             baseExceptionMiddleware.ExecuteResultAsync(Arg.Any<HttpContext>(), Arg.Any<IActionResult>()).Returns(Task.CompletedTask);
 
@@ -39,13 +56,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
                 .Received()
                 .ExecuteResultAsync(
                     Arg.Any<HttpContext>(),
-                    Arg.Is<ContentResult>(x => x.StatusCode == (int)HttpStatusCode.BadRequest));
+                    Arg.Is<ContentResult>(x => x.StatusCode == (int)expectedStatusCode));
         }
 
         [Fact]
-        public async Task WhenExecutingExceptionMiddleware_GivenADicomNotSupportedException_TheResponseShouldBeBadRequest()
+        public async Task GivenAnInternalServerException_WhenMiddlewareIsExecuted_ThenMessageShouldBeOverwritten()
         {
-            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new NotSupportedException(string.Empty));
+            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new Exception("Unhandled exception."));
 
             baseExceptionMiddleware.ExecuteResultAsync(Arg.Any<HttpContext>(), Arg.Any<IActionResult>()).Returns(Task.CompletedTask);
 
@@ -55,23 +72,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
                 .Received()
                 .ExecuteResultAsync(
                     Arg.Any<HttpContext>(),
-                    Arg.Is<ContentResult>(x => x.StatusCode == (int)HttpStatusCode.BadRequest));
-        }
-
-        [Fact]
-        public async Task WhenExecutingExceptionMiddleware_GivenAnUnknownException_TheResponseShouldBeInternalServerError()
-        {
-            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new Exception());
-
-            baseExceptionMiddleware.ExecuteResultAsync(Arg.Any<HttpContext>(), Arg.Any<IActionResult>()).Returns(Task.CompletedTask);
-
-            await baseExceptionMiddleware.Invoke(_context);
-
-            await baseExceptionMiddleware
-                .Received()
-                .ExecuteResultAsync(
-                    Arg.Any<HttpContext>(),
-                    Arg.Is<ContentResult>(x => x.StatusCode == (int)HttpStatusCode.InternalServerError));
+                    Arg.Is<ContentResult>(x => x.Content == DicomApiResource.InternalServerError));
         }
 
         [Fact]
@@ -89,6 +90,22 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
         private ExceptionHandlingMiddleware CreateExceptionHandlingMiddleware(RequestDelegate nextDelegate)
         {
             return Substitute.ForPartsOf<ExceptionHandlingMiddleware>(nextDelegate, NullLogger<ExceptionHandlingMiddleware>.Instance);
+        }
+
+        private class CustomValidationException : ValidationException
+        {
+            public CustomValidationException()
+                : base("Validation exception.")
+            {
+            }
+        }
+
+        private class CustomServerException : DicomServerException
+        {
+            public CustomServerException()
+                : base("Server exception.")
+            {
+            }
         }
     }
 }

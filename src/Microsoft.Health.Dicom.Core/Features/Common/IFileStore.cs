@@ -17,14 +17,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
     public interface IFileStore
     {
         /// <summary>
-        /// Asynchronously adds a file to the file store.
+        /// Asynchronously stores a file to the file store.
         /// </summary>
         /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
         /// <param name="stream">The DICOM instance stream.</param>
-        /// <param name="overwriteIfExists">A flag indicating to overwrite the existing file or not.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous add operation.</returns>
-        Task<Uri> AddFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, bool overwriteIfExists = false, CancellationToken cancellationToken = default);
+        Task<Uri> StoreFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously gets a file from the file store.

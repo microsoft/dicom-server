@@ -9,7 +9,6 @@ using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Extensions

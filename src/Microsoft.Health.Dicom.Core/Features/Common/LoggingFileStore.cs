@@ -9,17 +9,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
 {
     public class LoggingFileStore : IFileStore
     {
-        private static readonly Action<ILogger, string, bool, Exception> LogAddFileDelegate =
-            LoggerMessage.Define<string, bool>(
+        private static readonly Action<ILogger, string, Exception> LogStoreFileDelegate =
+            LoggerMessage.Define<string>(
                 LogLevel.Debug,
                 default,
-                "Adding DICOM instance file with '{DicomInstanceIdentifier}' using overwrite mode '{OverwriteMode}'.");
+                "Storing DICOM instance file with '{DicomInstanceIdentifier}'.");
 
         private static readonly Action<ILogger, string, Exception> LogDeleteFileDelegate =
             LoggerMessage.Define<string>(
@@ -45,6 +46,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 default,
                 "The operation failed.");
 
+        private static readonly Action<ILogger, string, Exception> LogFileDoesNotExistDelegate =
+            LoggerMessage.Define<string>(
+                LogLevel.Warning,
+                default,
+                "The DICOM instance file with '{DicomInstanceIdentifier}' does not exist.");
+
         private readonly IFileStore _fileStore;
         private readonly ILogger _logger;
 
@@ -58,15 +65,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task<Uri> AddFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, bool overwriteIfExists = false, CancellationToken cancellationToken = default)
+        public async Task<Uri> StoreFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-            LogAddFileDelegate(_logger, versionedInstanceIdentifier.ToString(), overwriteIfExists, null);
+            LogStoreFileDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
 
             try
             {
-                Uri uri = await _fileStore.AddFileAsync(versionedInstanceIdentifier, stream, overwriteIfExists, cancellationToken);
+                Uri uri = await _fileStore.StoreFileAsync(versionedInstanceIdentifier, stream, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 
@@ -81,7 +88,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task DeleteFileIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task DeleteFileIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
@@ -102,11 +109,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task<Stream> GetFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-            LogGetFileDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
+            string instanceIdentifierInString = versionedInstanceIdentifier.ToString();
+
+            LogGetFileDelegate(_logger, instanceIdentifierInString, null);
 
             try
             {
@@ -115,6 +124,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 LogOperationSucceededDelegate(_logger, null);
 
                 return stream;
+            }
+            catch (ItemNotFoundException ex)
+            {
+                LogFileDoesNotExistDelegate(_logger, instanceIdentifierInString, ex);
+
+                throw;
             }
             catch (Exception ex)
             {

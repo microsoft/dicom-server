@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [DisableRequestSizeLimit]
-        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]

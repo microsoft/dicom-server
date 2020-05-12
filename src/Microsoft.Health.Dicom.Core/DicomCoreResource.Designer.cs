@@ -224,6 +224,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The specified item cannot be found..
+        /// </summary>
+        internal static string ItemNotFound {
+            get {
+                return ResourceManager.GetString("ItemNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The StudyInstanceUid &apos;{0}&apos; in the payload does not match the specified StudyInstanceUid &apos;{1}&apos;..
         /// </summary>
         internal static string MismatchStudyInstanceUid {
@@ -269,7 +278,16 @@ namespace Microsoft.Health.Dicom.Core {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The operation could not be completed, because the service was unable to accept new requests. It is safe to retry the operation. If the issue persists, please contact support..
+        ///   Looks up a localized string similar to The specified series cannot be found..
+        /// </summary>
+        internal static string SeriesInstanceNotFound {
+            get {
+                return ResourceManager.GetString("SeriesInstanceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The server is currently unable to receive requests. Please retry your request. If the issue persists, please contact support..
         /// </summary>
         internal static string ServiceUnavailable {
             get {
@@ -277,6 +295,15 @@ namespace Microsoft.Health.Dicom.Core {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to The specified study cannot be found..
+        /// </summary>
+        internal static string StudyInstanceNotFound {
+            get {
+                return ResourceManager.GetString("StudyInstanceNotFound", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Unknown query parameter {0}..
         /// </summary>

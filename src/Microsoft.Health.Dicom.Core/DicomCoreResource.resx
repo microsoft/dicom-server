@@ -179,6 +179,9 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="InvaludFuzzyMatchValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified fuzzymatch value {0} is not a valid boolean</value>
   </data>
+  <data name="ItemNotFound" xml:space="preserve">
+    <value>The specified item cannot be found.</value>
+  </data>
   <data name="MismatchStudyInstanceUid" xml:space="preserve">
     <value>The StudyInstanceUid '{0}' in the payload does not match the specified StudyInstanceUid '{1}'.</value>
     <comment>{0} and {1} are both StudyInstanceUid. StudyInstanceUID is defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID"}.</comment>
@@ -198,8 +201,14 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Invalid QIDO-RS query.  Specified limit value {0} is outside the allowed range of {1}..{2}.</value>
     <comment>{0} Specified query result limit. {1} min allowed. {2} max allowed.</comment>
   </data>
+  <data name="SeriesInstanceNotFound" xml:space="preserve">
+    <value>The specified series cannot be found.</value>
+  </data>
   <data name="ServiceUnavailable" xml:space="preserve">
-    <value>The operation could not be completed, because the service was unable to accept new requests. It is safe to retry the operation. If the issue persists, please contact support.</value>
+    <value>The server is currently unable to receive requests. Please retry your request. If the issue persists, please contact support.</value>
+  </data>
+  <data name="StudyInstanceNotFound" xml:space="preserve">
+    <value>The specified study cannot be found.</value>
   </data>
   <data name="UnkownQueryParameter" xml:space="preserve">
     <value>Invalid QIDO-RS query. Unknown query parameter {0}.</value>

@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 
         private IActionResult MapExceptionToResult(Exception exception)
         {
-            HttpStatusCode statusCode;
+            HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
             string message = exception.Message;
 
             switch (exception)
@@ -80,21 +80,28 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                 case InstanceAlreadyExistsException _:
                     statusCode = HttpStatusCode.Conflict;
                     break;
-                case DicomServerException _:
-                    _logger.LogWarning("Service exception: {0}", exception);
-                    statusCode = HttpStatusCode.ServiceUnavailable;
-                    break;
                 case UnsupportedMediaTypeException _:
                     statusCode = HttpStatusCode.UnsupportedMediaType;
                     break;
                 case ServiceUnavailableException _:
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
-                default:
-                    _logger.LogError("Unhandled exception: {0}", exception);
+                case ItemNotFoundException _:
+                    // One of the required resources is missing.
                     statusCode = HttpStatusCode.InternalServerError;
-                    message = string.Empty;
                     break;
+                case DicomServerException _:
+                    _logger.LogWarning("Service exception: {0}", exception);
+                    statusCode = HttpStatusCode.ServiceUnavailable;
+                    break;
+            }
+
+            if (statusCode == HttpStatusCode.InternalServerError)
+            {
+                // In the case of InternalServerError, make sure to overwrite the message to
+                // avoid internal message.
+                _logger.LogCritical("Unhandled exception: {0}", exception);
+                message = DicomApiResource.InternalServerError;
             }
 
             return GetContentResult(statusCode, message);

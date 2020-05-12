@@ -24,14 +24,17 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.Add<DicomInstanceEntryReaderManager>()
                 .Singleton()
+                .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Add<DicomDatasetMinimumRequirementValidator>()
                 .Singleton()
+                .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Add<StoreService>()
                 .Scoped()
+                .AsSelf()
                 .AsImplementedInterfaces()
                 .AsFactory();
 
@@ -51,12 +54,14 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.Add<DicomInstanceEntryReaderManager>()
                 .Singleton()
+                .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Decorate<IDicomInstanceEntryReaderManager, LoggingDicomInstanceEntryReaderManager>();
 
             services.Add<StoreResponseBuilder>()
                 .Transient()
+                .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Add<RetrieveMetadataService>()

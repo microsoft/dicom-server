@@ -3,17 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class InstanceNotFoundException : ResourceNotFoundException
+    public class ItemNotFoundException : DicomServerException
     {
-        public InstanceNotFoundException()
-            : base(DicomCoreResource.InstanceNotFound)
-        {
-        }
-
-        public InstanceNotFoundException(string message)
-            : base(message)
+        public ItemNotFoundException(Exception innerException)
+            : base(DicomCoreResource.ItemNotFound, innerException)
         {
         }
     }
