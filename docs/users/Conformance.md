@@ -313,7 +313,7 @@ Columns|(0028, 0011)
 Bits Allocated|(0028, 0100)
 Number Of Frames|(0028, 0008)
 
-If includefield=all, blew attributes are included along with default attributes. Along with default attributes, this is the full list of attributes supported at each resource level.
+If includefield=all, below attributes are included along with default attributes. Along with default attributes, this is the full list of attributes supported at each resource level.
 
 #### Study:
 Attribute Name|
