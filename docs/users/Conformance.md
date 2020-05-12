@@ -21,13 +21,13 @@ This transaction uses the POST method to Store representations of Studies, Serie
 | POST   | ../studies         | Store instances. |
 | POST   | ../studies/{study} | Store instances for a specific study. |
 
-Parameter `'study'` corresponds to the DICOM attribute StudyInstanceUID. If specified, any instance that does not belong to the provided study will be rejected with '`43265`' warning code.
+Parameter `study` corresponds to the DICOM attribute StudyInstanceUID. If specified, any instance that does not belong to the provided study will be rejected with `43265` warning code.
 
-The following `'Accept'` header(s) for the response are supported:
+The following `Accept` header(s) for the response are supported:
 
 - `application/dicom+json`
 
-The following `'Content-Type'` header(s) are supported:
+The following `Content-Type` header(s) are supported:
 
 - `multipart/related; type="application/dicom"`
 
@@ -49,15 +49,15 @@ Each file stored must have a unique combination of StudyInstanceUID, SeriesInsta
 
 | Code                         | Description |
 | :--------------------------- | :---------- |
-| 200 (OK)                     | When all the SOP instances in the request have been stored. |
-| 202 (Accepted)               | When some instances in the request have been stored but others have failed. |
+| 200 (OK)                     | All the SOP instances in the request have been stored. |
+| 202 (Accepted)               | Some instances in the request have been stored but others have failed. |
 | 204 (No Content)             | No content was provided in the store transaction request. |
 | 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format. |
 | 401 (Unauthorized)           | The client is not authenticated. |
 | 406 (Not Acceptable)         | The specified `Accept` header is not supported. |
-| 409 (Conflict)               | When none of the instances in the store transaction request have been stored. |
+| 409 (Conflict)               | None of the instances in the store transaction request have been stored. |
 | 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
-| 503 (Service Unavailable)    | Service is unavailable or busy. Please try again later. |
+| 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
 ### Store Response Payload
 
@@ -140,7 +140,7 @@ An example response with `Accept` header `application/dicom+json`:
 }
 ```
 
-### Failure Reason Codes
+### Store Failure Reason Codes
 
 | Code  | Description |
 | :---- | :---------- |
@@ -165,27 +165,29 @@ This Retrieve Transaction offers support for retrieving stored studies, series, 
 
 ### Retrieve instances within Study or Series
 
-The following `'Accept'` header(s) are supported for retrieving instances within a study or a series:
+The following `Accept` header(s) are supported for retrieving instances within a study or a series:
 
 - `multipart/related; type="application/dicom"; transfer-syntax=*`
 
 ### Retrieve an Instance
 
-The following `'Accept'` header(s) are supported for retrieving a specific instance:
+The following `Accept` header(s) are supported for retrieving a specific instance:
 
 - `application/dicom`
 
 ### Retrieve Frames
 
-The following `'Accept'` headers are supported for retrieving frames:
+The following `Accept` headers are supported for retrieving frames:
 
 - `multipart/related; type="application/octet-stream"; transfer-syntax=*`
 
-Currently, only `transfer-syntax=*` is supported. Specifying any other `transfer-syntax` will results in `406 Not Acceptable`.
+### Retrieve Transfer Syntax
+
+Currently, only `transfer-syntax=*` is supported. Specifying any other `transfer-syntax` will result in `406 Not Acceptable`.
 
 ### Retrieve Metadata (for Study, Series, or Instance)
 
-The following `'Accept'` header(s) are supported for retrieving metadata for a study, a series, or an instance:
+The following `Accept` header(s) are supported for retrieving metadata for a study, a series, or an instance:
 
 - `application/dicom+json`
 
@@ -209,7 +211,7 @@ Retrieving metadata will not return attributes with the following value represen
 | 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported. |
 | 401 (Unauthorized)           | The client is not authenticated. |
 | 404 (Not Found)              | The specified DICOM resource could not be found. |
-| 503 (Service Unavailable)    | Service is unavailable or busy. Please try again later. |
+| 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
 ## Search (QIDO-RS)
 
@@ -227,7 +229,7 @@ Query based on ID for DICOM Objects (QIDO) enables you to search for studies, se
 | GET    |../studies/{study}/instances?...                 | Search for instances in a study   |
 | GET    |../studies/{study}/series/{series}/instances?... | Search for instances in a series  |
 
-The following `'Accept'` header(s) are supported for searching:
+The following `Accept` header(s) are supported for searching:
 
 - `application/dicom+json`
 
@@ -238,7 +240,7 @@ The following parameters for each query are supported:
 | Key              | Support Value(s)              | Allowed Count | Description |
 | :--------------- | :---------------------------- | :------------ | :---------- |
 | `{attributeID}=` | {value}                       | 0...N         | Search for attribute/ value matching in query. |
-| `includefield=`  | `{attributeID}`<br/>'`all`'   | 0...N         | The additional attributes to return in the response.<br/>When '`all`' is provided, please see [Search Response](###Search-Response) for more information about which attributes will be returned for each query type.<br/>If a mixture of {attributeID} and 'all' is provided, the server will default to using 'all'. |
+| `includefield=`  | `{attributeID}`<br/>`all`   | 0...N         | The additional attributes to return in the response.<br/>When `all` is provided, please see [Search Response](###Search-Response) for more information about which attributes will be returned for each query type.<br/>If a mixture of {attributeID} and 'all' is provided, the server will default to using 'all'. |
 | `limit=`         | {value}                       | 0..1          | Integer value to limit the number of values returned in the response.<br/>Value can be between the range 1 >= x <= 200. Defaulted to 100. |
 | `offset=`        | {value}                       | 0..1          | Skip {value} results.<br/>If an offset is provided larger than the number of search query results, a 204 (no content) response will be returned. |
 | `fuzzymatching=` | `true` \| `false`             | 0..1          | If true fuzzy matching is applied to PatientName attribute. It will do a prefix word match of any name part inside PatientName value. |
@@ -248,7 +250,7 @@ The following parameters for each query are supported:
 We support searching on below attributes and search type.
 
 | Attribute Keyword | Study | Series | Instance |
-| :---------------- | :---- | :----- | :------- |
+| :---------------- | :---: | :----: | :------: |
 | StudyInstanceId | X | X | X |
 | PatientName | X | X | X |
 | PatientID | X | X | X |
@@ -377,7 +379,7 @@ The query API will return one of the following status codes in the response:
 | 204 (No Content)          | The search completed successfully but returned no results. |
 | 400 (Bad Request)         | The server was unable to perform the query because the query component was invalid. Response body contains details of the failure. |
 | 401 (Unauthorized)        | The client is not authenticated. |
-| 503 (Service Unavailable) | Service is unavailable. |
+| 503 (Service Unavailable) | The service is unavailable or busy. Please try again later. |
 
 ### Additional Notes
 
@@ -397,9 +399,9 @@ This transaction is not part of the official DICOMweb standard. It uses the DELE
 | DELETE | ../studies/{study}/series/{series}                      | Delete all instances for a specific series within a study. |
 | DELETE | ../studies/{study}/series/{series}/instances/{instance} | Delete a specific instance within a series. |
 
-Parameters `'study'`, `'series'` and `'instance'` correspond to the DICOM attributes StudyInstanceUID, SeriesInstanceUID and SopInstanceUID respectively.
+Parameters `study`, `series` and `instance` correspond to the DICOM attributes StudyInstanceUID, SeriesInstanceUID and SopInstanceUID respectively.
 
-There are no restrictions on the request's `'Accept'` header, `'Content-Type'` header or body content.
+There are no restrictions on the request's `Accept` header, `Content-Type` header or body content.
 
 > Note: After a Delete transaction the deleted instances will not be recoverable.
 
@@ -411,7 +413,7 @@ There are no restrictions on the request's `'Accept'` header, `'Content-Type'` h
 | 400 (Bad Request)            | The request was badly formatted. |
 | 401 (Unauthorized)           | The client is not authenticated. |
 | 404 (Not Found)              | When the specified series was not found within a study, or the specified instance was not found within the series. |
-| 503 (Service Unavailable)    | Service is unavailable or busy. Please try again later. |
+| 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
 ### Delete Response Payload
 
