@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         {
             if (request.RequestBody == null)
             {
-                throw new BadRequestException("Invalid request");
+                throw new BadRequestException(DicomCoreResource.MissingRequestBody);
             }
 
             if (request.StudyInstanceUid != null)
