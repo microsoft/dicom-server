@@ -4,12 +4,12 @@ The change feed offers the ability to go through the history of the DICOM server
 
 ## API Design
 
-The API exposes two `GET` endpoints for interacting with the change feed. A typical flow for consuming the change feed is [provided below](#Example_usage_flow).
+The API exposes two `GET` endpoints for interacting with the change feed. A typical flow for consuming the change feed is [provided below](#example-usage-flow).
 
 Verb | Route              | Returns     | Description
 :--- | :----------------- | :---------- | :---
-GET  | /changefeed        | Json Array  | [Read the change feed](#Read_change_feed)
-GET  | /changefeed/latest | Json Object | [Read the latest entry in the change feed](#Get_latest_change_feed_item)
+GET  | /changefeed        | Json Array  | [Read the change feed](#read-change-feed)
+GET  | /changefeed/latest | Json Object | [Read the latest entry in the change feed](#get-latest-change-feed-item)
 
 ### Object model
 Field               | Type      | Description
@@ -20,7 +20,7 @@ SeriesInstanceUid   | string    | The series instance UID
 SopInstanceUid      | string    | The sop instance UID
 Action              | string    | The action that was performed - either `create` or `delete`
 Timestamp           | datetime  | The date and time the action was performed in UTC
-State               | string    | [The current state of the metadata](#States)
+State               | string    | [The current state of the metadata](#states)
 Metadata            | object    | Optionally, the current DICOM metadata if the instance exists
 
 #### States
