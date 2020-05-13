@@ -335,7 +335,7 @@ The response will be an array of DICOM datasets. Depending on the resource, by *
 | (0028, 0100) | BitsAllocated |
 | (0028, 0008) | NumberOfFrames |
 
-If includefield=all, blew attributes are included along with default attributes. Along with default attributes, this is the full list of attributes supported at each resource level.
+If includefield=all, below attributes are included along with default attributes. Along with default attributes, this is the full list of attributes supported at each resource level.
 
 #### Additional Study tags
 
