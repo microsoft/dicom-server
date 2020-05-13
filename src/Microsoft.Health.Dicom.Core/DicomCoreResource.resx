@@ -186,6 +186,9 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The StudyInstanceUid '{0}' in the payload does not match the specified StudyInstanceUid '{1}'.</value>
     <comment>{0} and {1} are both StudyInstanceUid. StudyInstanceUID is defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID"}.</comment>
   </data>
+  <data name="MissingRequestBody" xml:space="preserve">
+    <value>The request body is missing.</value>
+  </data>
   <data name="MissingRequiredTag" xml:space="preserve">
     <value>The required tag '{0}' is missing.</value>
     <comment>{0} is the DICOM tag name. E.g., StudyInstanceUID.</comment>

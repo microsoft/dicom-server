@@ -242,6 +242,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The request body is missing..
+        /// </summary>
+        internal static string MissingRequestBody {
+            get {
+                return ResourceManager.GetString("MissingRequestBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The required tag &apos;{0}&apos; is missing..
         /// </summary>
         internal static string MissingRequiredTag {
