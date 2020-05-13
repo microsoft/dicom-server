@@ -34,5 +34,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public const string QuerySeriesInStudyRoute = StudyRoute + "/" + SeriesRouteSegment;
         public const string QueryInstancesInStudyRoute = StudyRoute + "/" + InstancesRouteSegment;
         public const string QueryInstancesInSeriesRoute = SeriesRoute + "/" + InstancesRouteSegment;
+
+        public const string ChangeFeed = "changefeed";
+        public const string ChangeFeedLatest = ChangeFeed + "/" + "latest";
     }
 }

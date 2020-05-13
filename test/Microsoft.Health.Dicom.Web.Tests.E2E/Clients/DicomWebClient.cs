@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -17,6 +18,7 @@ using Dicom.Serialization;
 using EnsureThat;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
@@ -251,6 +253,40 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                     }
 
                     throw new DicomWebException<string>(result);
+                }
+            }
+        }
+
+        public async Task<DicomWebResponse<IReadOnlyList<ChangeFeedEntry>>> GetChangeFeed(string queryString = "", CancellationToken cancellationToken = default)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/changefeed{queryString}"))
+            {
+                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                {
+                    await EnsureSuccessStatusCodeAsync(response);
+
+                    string contentText = await response.Content.ReadAsStringAsync();
+
+                    return new DicomWebResponse<IReadOnlyList<ChangeFeedEntry>>(
+                        response,
+                        JsonConvert.DeserializeObject<IReadOnlyList<ChangeFeedEntry>>(contentText, _jsonSerializerSettings));
+                }
+            }
+        }
+
+        public async Task<DicomWebResponse<ChangeFeedEntry>> GetChangeFeedLatest(string queryString = "", CancellationToken cancellationToken = default)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/changefeed/latest{queryString}"))
+            {
+                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                {
+                    await EnsureSuccessStatusCodeAsync(response);
+
+                    string contentText = await response.Content.ReadAsStringAsync();
+
+                    return new DicomWebResponse<ChangeFeedEntry>(
+                        response,
+                        JsonConvert.DeserializeObject<ChangeFeedEntry>(contentText, _jsonSerializerSettings));
                 }
             }
         }

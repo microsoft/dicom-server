@@ -13,6 +13,7 @@ using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Web;
 using Newtonsoft.Json;
 
@@ -39,7 +40,10 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
                 return false;
             }
 
-            return _jsonDicomConverter.CanConvert(type) || typeof(IEnumerable<DicomDataset>).IsAssignableFrom(type);
+            return _jsonDicomConverter.CanConvert(type) ||
+                typeof(IEnumerable<DicomDataset>).IsAssignableFrom(type) ||
+                typeof(IEnumerable<ChangeFeedEntry>).IsAssignableFrom(type) ||
+                typeof(ChangeFeedEntry).IsAssignableFrom(type);
         }
 
         public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
