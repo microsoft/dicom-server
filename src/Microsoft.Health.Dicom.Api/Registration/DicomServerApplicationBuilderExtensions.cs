@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -35,6 +36,10 @@ namespace Microsoft.AspNetCore.Builder
                 app.UseDefaultFiles(options);
                 app.UseStaticFiles();
             }
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = featureConfiguration.Value.EnableDicomAutoValidate;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             return app;
         }

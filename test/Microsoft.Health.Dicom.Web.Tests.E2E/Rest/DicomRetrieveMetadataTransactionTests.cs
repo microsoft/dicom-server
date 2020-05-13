@@ -125,6 +125,25 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseMetadataDataset(storedInstance, response.Value.First());
         }
 
+        [Fact]
+        public async Task GivenStoredDicomFileWithInvalidVRWithDicomValidationDisabled_WhenRetrievingMetadata_ThenMetadataIsRetrievedCorrectly()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            _client.UpdateDicomValidationSettings(false);
+
+            DicomDataset storedInstance = await PostDicomFileAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid, dataSet: GenerateNewDataSetWithInvalidVR());
+
+            DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("application/dicom+json", response.Content.Headers.ContentType.MediaType);
+            Assert.Single(response.Value);
+            ValidateResponseMetadataDataset(storedInstance, response.Value.First());
+        }
+
         private static DicomDataset GenerateNewDataSet()
         {
             return new DicomDataset()
@@ -138,6 +157,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 }),
                 { DicomTag.StudyDate, DateTime.UtcNow },
                 { new DicomTag(0007, 0008), "Private Tag" },
+            };
+        }
+
+        private static DicomDataset GenerateNewDataSetWithInvalidVR()
+        {
+            return new DicomDataset()
+            {
+                { DicomTag.SeriesDescription, "CT1 abdomen\u0000" },
+                { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
+                new DicomSequence(DicomTag.RegistrationSequence, new DicomDataset()
+                {
+                    { DicomTag.PatientName, "Test^Patient" },
+                    { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
+                }),
+                { DicomTag.StudyDate, DateTime.UtcNow },
             };
         }
 
