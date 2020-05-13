@@ -11,7 +11,6 @@ using Dicom;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
@@ -25,7 +24,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     {
         private readonly IIndexDataStore _indexDataStore;
         private readonly IIndexDataStoreTestHelper _testHelper;
-        private readonly DateTime _startDateTime = DateTime.UtcNow;
+        private readonly DateTimeOffset _startDateTime = Clock.UtcNow;
 
         public IndexDataStoreTests(SqlDataStoreTestsFixture fixture)
         {
@@ -90,8 +89,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
             Assert.Equal(version, instance.Watermark);
             Assert.Equal((byte)IndexStatus.Creating, instance.Status);
-            Assert.InRange(instance.LastStatusUpdatedDate, _startDateTime.AddSeconds(-1), _startDateTime.AddSeconds(1));
-            Assert.InRange(instance.CreatedDate, _startDateTime.AddSeconds(-1), _startDateTime.AddSeconds(1));
+            Assert.InRange(instance.LastStatusUpdatedDate, _startDateTime.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
+            Assert.InRange(instance.CreatedDate, _startDateTime.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
         }
 
         [Fact]
@@ -445,9 +444,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 Assert.Equal(instance.SeriesInstanceUid, deletedInstance.SeriesInstanceUid);
                 Assert.Equal(instance.SopInstanceUid, deletedInstance.SopInstanceUid);
                 Assert.Equal(instance.Watermark, deletedInstance.Watermark);
-                Assert.InRange(deletedInstance.DeletedDateTime, _startDateTime.AddSeconds(-1), _startDateTime.AddSeconds(1));
+                Assert.InRange(deletedInstance.DeletedDateTime, _startDateTime.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
                 Assert.Equal(0, deletedInstance.RetryCount);
-                Assert.InRange(deletedInstance.CleanupAfter, _startDateTime.AddSeconds(-1), _startDateTime.AddSeconds(1));
+                Assert.InRange(deletedInstance.CleanupAfter, _startDateTime.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
             };
         }
 

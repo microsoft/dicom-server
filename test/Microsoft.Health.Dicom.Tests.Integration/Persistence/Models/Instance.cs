@@ -35,8 +35,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             SopInstanceUid = sqlDataReader.GetString(2);
             Watermark = sqlDataReader.GetInt64(3);
             Status = sqlDataReader.GetByte(4);
-            LastStatusUpdatedDate = sqlDataReader.GetDateTime(5);
-            CreatedDate = sqlDataReader.GetDateTime(6);
+
+            DateTime unspecifiedLastStatusUpdatedDate = sqlDataReader.GetDateTime(5);
+            LastStatusUpdatedDate = DateTime.SpecifyKind(unspecifiedLastStatusUpdatedDate, DateTimeKind.Utc);
+
+            DateTime unspecifiedCreatedDate = sqlDataReader.GetDateTime(6);
+            CreatedDate = DateTime.SpecifyKind(unspecifiedCreatedDate, DateTimeKind.Utc);
         }
 
         public string StudyInstanceUid { get; }
