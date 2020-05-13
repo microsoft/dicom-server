@@ -199,5 +199,30 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             Assert.Equal(3, response.Dataset.Count());
             Assert.Equal("1", response.Dataset.GetSingleValueOrDefault<string>(DicomTag.RetrieveURL));
         }
+
+        [Fact]
+        public void GivenInvalidUidValue_WhenResponseIsBuilt_ThenItShouldNotThrowException()
+        {
+            // Create a DICOM dataset with invalid UID value.
+            var dicomDataset = new DicomDataset()
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                AutoValidate = false,
+#pragma warning restore CS0618 // Type or member is obsolete
+            };
+
+            dicomDataset.Add(DicomTag.SOPClassUID, "invalid");
+
+            _storeResponseBuilder.AddFailure(dicomDataset, failureReasonCode: 500);
+
+            StoreResponse response = _storeResponseBuilder.BuildResponse(studyInstanceUid: null);
+
+            Assert.NotNull(response);
+            Assert.NotNull(response.Dataset);
+
+            ValidationHelpers.ValidateFailedSopSequence(
+                response.Dataset,
+                (null, "invalid", 500));
+        }
     }
 }
