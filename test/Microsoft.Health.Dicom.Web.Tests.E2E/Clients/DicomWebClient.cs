@@ -54,14 +54,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
             _securitySettings = securitySettings;
             SetupAuthenticationAsync(HttpClient, testApplication).GetAwaiter().GetResult();
-            UpdateDicomValidationSettings();
+            EnableDicomAutoValidation();
         }
 
         public HttpClient HttpClient { get; }
 
         public bool SecurityEnabled => _securitySettings.Enabled;
 
-        public void UpdateDicomValidationSettings(bool isValidationEnabled = true)
+        public void EnableDicomAutoValidation(bool isValidationEnabled = false)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = isValidationEnabled;

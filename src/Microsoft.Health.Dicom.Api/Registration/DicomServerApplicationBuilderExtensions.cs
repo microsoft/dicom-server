@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Builder
             }
 
 #pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = featureConfiguration.Value.EnableDicomAutoValidate;
+            DicomValidation.AutoValidation = featureConfiguration.Value.EnableDicomAutoValidation;
 #pragma warning restore CS0618 // Type or member is obsolete
 
             return app;

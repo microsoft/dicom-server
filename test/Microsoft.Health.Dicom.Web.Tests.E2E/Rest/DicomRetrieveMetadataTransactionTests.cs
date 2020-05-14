@@ -126,13 +126,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenStoredDicomFileWithInvalidVRWithDicomValidationDisabled_WhenRetrievingMetadata_ThenMetadataIsRetrievedCorrectly()
+        public async Task GivenStoredDicomFileWithInvalidVRValue_WhenMetadataIsRetrieved_ThenNoExceptionIsThrown()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-
-            _client.UpdateDicomValidationSettings(false);
 
             DicomDataset storedInstance = await PostDicomFileAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid, dataSet: GenerateNewDataSetWithInvalidVR());
 

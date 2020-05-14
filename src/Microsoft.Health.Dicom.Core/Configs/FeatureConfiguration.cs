@@ -15,6 +15,6 @@ namespace Microsoft.Health.Dicom.Core.Configs
         /// <summary>
         /// Gets or sets a value indicating dicom validation should be enabled or not.
         /// </summary>
-        public bool EnableDicomAutoValidate { get; set; }
+        public bool EnableDicomAutoValidation { get; set; }
     }
 }
