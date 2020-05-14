@@ -17,8 +17,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SchemaVersionTable SchemaVersion = new SchemaVersionTable();
-        internal readonly static SeriesMetadataCoreTable SeriesMetadataCore = new SeriesMetadataCoreTable();
-        internal readonly static StudyMetadataCoreTable StudyMetadataCore = new StudyMetadataCoreTable();
+        internal readonly static SeriesTable Series = new SeriesTable();
+        internal readonly static StudyTable Study = new StudyTable();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
@@ -86,34 +86,34 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn Status = new VarCharColumn("Status", 10);
         }
 
-        internal class SeriesMetadataCoreTable : Table
+        internal class SeriesTable : Table
         {
-            internal SeriesMetadataCoreTable(): base("dbo.SeriesMetadataCore")
+            internal SeriesTable(): base("dbo.Series")
             {
             }
 
-            internal readonly BigIntColumn StudyId = new BigIntColumn("StudyId");
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
-            internal readonly IntColumn Version = new IntColumn("Version");
+            internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
+            internal readonly VarCharColumn Version = new VarCharColumn("Version", 64);
             internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
             internal readonly NullableDateColumn PerformedProcedureStepStartDate = new NullableDateColumn("PerformedProcedureStepStartDate");
         }
 
-        internal class StudyMetadataCoreTable : Table
+        internal class StudyTable : Table
         {
-            internal StudyMetadataCoreTable(): base("dbo.StudyMetadataCore")
+            internal StudyTable(): base("dbo.Study")
             {
             }
 
-            internal readonly BigIntColumn Id = new BigIntColumn("Id");
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
-            internal readonly IntColumn Version = new IntColumn("Version");
+            internal readonly VarCharColumn Version = new VarCharColumn("Version", 64);
             internal readonly NVarCharColumn PatientId = new NVarCharColumn("PatientId", 64);
             internal readonly NullableNVarCharColumn PatientName = new NullableNVarCharColumn("PatientName", 325);
             internal readonly NullableNVarCharColumn ReferringPhysicianName = new NullableNVarCharColumn("ReferringPhysicianName", 325);
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
             internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
             internal readonly NullableNVarCharColumn AccessionNumber = new NullableNVarCharColumn("AccessionNumber", 16);
+            internal readonly BigIntColumn WordId = new BigIntColumn("WordId");
             internal const string PatientNameWords = "PatientNameWords";
         }
 
@@ -232,15 +232,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            private readonly ParameterDefinition<System.Byte> _invalidStatus = new ParameterDefinition<System.Byte>("@invalidStatus", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Byte> _validStatus = new ParameterDefinition<System.Byte>("@validStatus", global::System.Data.SqlDbType.TinyInt, false);
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
-            public void PopulateCommand(SqlCommandWrapper command, System.Byte invalidStatus, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
+            public void PopulateCommand(SqlCommandWrapper command, System.Byte validStatus, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetInstance";
-                _invalidStatus.AddParameter(command.Parameters, invalidStatus);
+                _validStatus.AddParameter(command.Parameters, validStatus);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);

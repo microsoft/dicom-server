@@ -10,9 +10,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 {
     public class SeriesMetadata
     {
-        public SeriesMetadata(long id, string seriesInstanceUid, int version, string modality, DateTime? performedProcedureStepStartDate)
+        public SeriesMetadata(string studyInstanceUid, string seriesInstanceUid, string version, string modality, DateTime? performedProcedureStepStartDate)
         {
-            ID = id;
+            StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             Version = version;
             Modality = modality;
@@ -21,18 +21,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public SeriesMetadata(SqlDataReader sqlDataReader)
         {
-            ID = sqlDataReader.GetInt64(0);
-            SeriesInstanceUid = sqlDataReader.GetString(1);
-            Version = sqlDataReader.GetInt32(2);
+            SeriesInstanceUid = sqlDataReader.GetString(0);
+            StudyInstanceUid = sqlDataReader.GetString(1);
+            Version = sqlDataReader.GetString(2);
             Modality = sqlDataReader.GetString(3);
             PerformedProcedureStepStartDate = sqlDataReader.IsDBNull(4) ? null : (DateTime?)sqlDataReader.GetDateTime(4);
         }
 
-        public long ID { get; }
+        public string StudyInstanceUid { get; }
 
         public string SeriesInstanceUid { get; }
 
-        public int Version { get; }
+        public string Version { get; }
 
         public string Modality { get; }
 

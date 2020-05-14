@@ -118,10 +118,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             else
             {
                 _stringBuilder.AppendLine("( SELECT DISTINCT");
-                _stringBuilder.AppendLine(VLatest.StudyMetadataCore.StudyInstanceUid, StudyTableAlias);
+                _stringBuilder.AppendLine(VLatest.Study.StudyInstanceUid, StudyTableAlias);
                 if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
                 {
-                    _stringBuilder.Append(",").AppendLine(VLatest.SeriesMetadataCore.SeriesInstanceUid, SeriesTableAlias);
+                    _stringBuilder.Append(",").AppendLine(VLatest.Series.SeriesInstanceUid, SeriesTableAlias);
                 }
 
                 if (_queryExpression.IsInstanceIELevel())
@@ -130,15 +130,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     _stringBuilder.Append(",").AppendLine(VLatest.Instance.Watermark, InstanceTableAlias);
                 }
 
-                _stringBuilder.AppendLine($"FROM {VLatest.StudyMetadataCore.TableName} {StudyTableAlias}");
+                _stringBuilder.AppendLine($"FROM {VLatest.Study.TableName} {StudyTableAlias}");
                 if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
                 {
-                    _stringBuilder.AppendLine($"INNER JOIN {VLatest.SeriesMetadataCore.TableName} {SeriesTableAlias}");
+                    _stringBuilder.AppendLine($"INNER JOIN {VLatest.Series.TableName} {SeriesTableAlias}");
                     _stringBuilder
                         .Append("ON ")
-                        .Append(VLatest.SeriesMetadataCore.StudyId, SeriesTableAlias)
+                        .Append(VLatest.Series.StudyInstanceUid, SeriesTableAlias)
                         .Append(" = ")
-                        .AppendLine(VLatest.StudyMetadataCore.Id, StudyTableAlias);
+                        .AppendLine(VLatest.Study.StudyInstanceUid, StudyTableAlias);
                 }
 
                 if (_queryExpression.IsInstanceIELevel())
@@ -148,12 +148,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                         .Append("ON ")
                         .Append(VLatest.Instance.StudyInstanceUid, InstanceTableAlias)
                         .Append(" = ")
-                        .AppendLine(VLatest.StudyMetadataCore.StudyInstanceUid, StudyTableAlias);
+                        .AppendLine(VLatest.Study.StudyInstanceUid, StudyTableAlias);
                     _stringBuilder
                         .Append("AND ")
                         .Append(VLatest.Instance.SeriesInstanceUid, InstanceTableAlias)
                         .Append(" = ")
-                        .AppendLine(VLatest.SeriesMetadataCore.SeriesInstanceUid, SeriesTableAlias);
+                        .AppendLine(VLatest.Series.SeriesInstanceUid, SeriesTableAlias);
                     AppendStatusClause(InstanceTableAlias);
                 }
 
@@ -191,7 +191,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     .Append("AND ")
                     .Append(VLatest.Instance.StudyInstanceUid, tableAlias)
                     .Append(" = ")
-                    .AppendLine(VLatest.StudyMetadataCore.StudyInstanceUid, filterAlias);
+                    .AppendLine(VLatest.Study.StudyInstanceUid, filterAlias);
 
                 if (_queryExpression.IsSeriesIELevel())
                 {
@@ -199,7 +199,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                         .Append("AND ")
                         .Append(VLatest.Instance.SeriesInstanceUid, tableAlias)
                         .Append(" = ")
-                        .AppendLine(VLatest.SeriesMetadataCore.SeriesInstanceUid, filterAlias);
+                        .AppendLine(VLatest.Series.SeriesInstanceUid, filterAlias);
                 }
 
                 AppendStatusClause(tableAlias);
@@ -222,11 +222,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         private void AppendStatusClause(string tableAlias)
         {
-            byte invalidStatus = (byte)IndexStatus.Creating;
+            byte validStatus = (byte)IndexStatus.Created;
             _stringBuilder
                 .Append("AND ")
                 .Append(VLatest.Instance.Status, tableAlias)
-                .AppendLine($" <> {invalidStatus} ");
+                .AppendLine($" = {validStatus} ");
         }
 
         private void AppendFilterClause()

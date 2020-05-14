@@ -69,7 +69,7 @@ AND a.SeriesInstanceUid = f.SeriesInstanceUid";
 
             string expectedDistinctSelect = @"SELECT DISTINCT
 st.StudyInstanceUid
-FROM dbo.StudyMetadataCore st";
+FROM dbo.Study st";
 
             string expectedCrossApply = @"
 FROM dbo.Instance a
@@ -132,9 +132,9 @@ st.StudyInstanceUid
 ,se.SeriesInstanceUid
 ,i.SopInstanceUid
 ,i.Watermark
-FROM dbo.StudyMetadataCore st
-INNER JOIN dbo.SeriesMetadataCore se
-ON se.StudyId = st.Id
+FROM dbo.Study st
+INNER JOIN dbo.Series se
+ON se.StudyInstanceUid = st.StudyInstanceUid
 INNER JOIN dbo.Instance i
 ON i.StudyInstanceUid = st.StudyInstanceUid
 AND i.SeriesInstanceUid = se.SeriesInstanceUid";
