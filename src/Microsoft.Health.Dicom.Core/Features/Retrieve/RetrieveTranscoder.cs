@@ -58,12 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 return canTranscode;
             }).ToArray();
 
-            if (filteredStreams.Length == 0)
-            {
-                throw new ResourceNotFoundException("InstanceNotFound", new TranscodingException());
-            }
-
-            if (filteredStreams.Length != streams.Length)
+            if (filteredStreams.Length == 0 || filteredStreams.Length != streams.Length)
             {
                 throw new ResourceNotFoundException("InstanceNotFound", new TranscodingException());
             }
