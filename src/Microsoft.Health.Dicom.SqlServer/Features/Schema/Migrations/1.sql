@@ -218,7 +218,7 @@ INCLUDE
 **************************************************************/
 CREATE TABLE dbo.Study (
     StudyInstanceUid            VARCHAR(64)                       NOT NULL, --PK
-    Version                     VARCHAR(64)                       NOT NULL,
+    SourceSopInstanceUid        VARCHAR(64)                       NOT NULL,
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(325)                     NULL,
     ReferringPhysicianName      NVARCHAR(325)                     NULL,
@@ -232,7 +232,7 @@ CREATE TABLE dbo.Study (
 CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
 (
     StudyInstanceUid,
-    Version
+    SourceSopInstanceUid
 )
 
 CREATE NONCLUSTERED INDEX IX_Study_PatientId ON dbo.Study
@@ -318,7 +318,7 @@ WITH STOPLIST = OFF;
 CREATE TABLE dbo.Series (
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL, -- PK
     StudyInstanceUid                    VARCHAR(64)                NOT NULL, -- FK
-    Version                             VARCHAR(64)                NOT NULL,
+    SourceSopInstanceUid                VARCHAR(64)                NOT NULL,
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL
 )
@@ -327,7 +327,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    Version
+    SourceSopInstanceUid
 )
 
 CREATE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid ON dbo.Series
@@ -522,10 +522,10 @@ AS
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
  
     -- Insert Study
-   IF NOT EXISTS (SELECT * FROM dbo.Study WHERE StudyInstanceUid = @studyInstanceUid)
-   BEGIN
+    IF NOT EXISTS (SELECT * FROM dbo.Study WHERE StudyInstanceUid = @studyInstanceUid)
+    BEGIN
         INSERT INTO dbo.Study
-            (StudyInstanceUid, Version, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            (StudyInstanceUid, SourceSopInstanceUid, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
             (@studyInstanceUid, @sopInstanceUid, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
     END
@@ -533,7 +533,7 @@ AS
     BEGIN
     -- Handle conflicting tag values
         INSERT INTO dbo.Study
-            (StudyInstanceUid, Version, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            (StudyInstanceUid, SourceSopInstanceUid, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         SELECT @studyInstanceUid, @sopInstanceUid, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber
         EXCEPT
         SELECT StudyInstanceUid, @sopInstanceUid, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber 
@@ -545,7 +545,7 @@ AS
    IF NOT EXISTS (SELECT * FROM dbo.Series WHERE StudyInstanceUid = @studyInstanceUid AND SeriesInstanceUid = @seriesInstanceUid)
    BEGIN
         INSERT INTO dbo.Series
-            (SeriesInstanceUid, StudyInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
+            (SeriesInstanceUid, StudyInstanceUid, SourceSopInstanceUid, Modality, PerformedProcedureStepStartDate)
         VALUES
             (@seriesInstanceUid, @studyInstanceUid, @sopInstanceUid, @modality, @performedProcedureStepStartDate)
     END
@@ -553,7 +553,7 @@ AS
     BEGIN
     -- Handle conflict tag values
         INSERT INTO dbo.Series
-            (SeriesInstanceUid, StudyInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
+            (SeriesInstanceUid, StudyInstanceUid, SourceSopInstanceUid, Modality, PerformedProcedureStepStartDate)
         SELECT @seriesInstanceUid, @studyInstanceUid, @sopInstanceUid, @modality, @performedProcedureStepStartDate
         EXCEPT
         SELECT SeriesInstanceUid, StudyInstanceUid, @sopInstanceUid, Modality, PerformedProcedureStepStartDate
@@ -567,7 +567,6 @@ AS
         (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
         (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
-
 
     SELECT @newWatermark
 
@@ -617,9 +616,9 @@ AS
     UPDATE dbo.Instance
     SET Status = @status, LastStatusUpdatedDate = @currentDate
     WHERE StudyInstanceUid = @studyInstanceUid
-    AND SeriesInstanceUid = @seriesInstanceUid
-    AND SopInstanceUid = @sopInstanceUid
-    AND Watermark = @watermark
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid = @sopInstanceUid
+        AND Watermark = @watermark
 
     IF @@ROWCOUNT = 0
     BEGIN
@@ -631,10 +630,11 @@ AS
     -- Currently this procedure is used only updating the status to created
     -- If that changes an if condition is needed.
     INSERT INTO dbo.ChangeFeed 
-    (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+        (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES
-    (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+        (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
 
+    -- Update existing instance currentWatermark to latest
     UPDATE dbo.ChangeFeed
     SET CurrentWatermark      = @watermark
     WHERE StudyInstanceUid    = @studyInstanceUid
