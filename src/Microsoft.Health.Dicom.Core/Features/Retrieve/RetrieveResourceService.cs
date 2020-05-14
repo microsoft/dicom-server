@@ -65,8 +65,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 Stream[] resultStreams = await Task.WhenAll(
                     retrieveInstances.Select(x => _blobDataStore.GetFileAsync(x, cancellationToken)));
 
-                bool isPartialSuccess = false;
-
                 if (message.ResourceType == ResourceType.Frames)
                 {
                     resultStreams = await _dicomFrameHandler.GetFramesResourceAsync(
@@ -76,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 {
                     if (!message.OriginalTransferSyntaxRequested())
                     {
-                        (isPartialSuccess, resultStreams) = _retrieveTranscoder.TranscodeFiles(resultStreams, message.RequestedRepresentation);
+                        resultStreams = _retrieveTranscoder.TranscodeFiles(resultStreams, message.RequestedRepresentation);
                     }
 
                     resultStreams = resultStreams.Select(stream =>
@@ -85,7 +83,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                             s => ResetDicomFileStream(s))).ToArray();
                 }
 
-                return new RetrieveResourceResponse(isPartialSuccess, resultStreams);
+                return new RetrieveResourceResponse(resultStreams);
             }
             catch (DataStoreException e)
             {

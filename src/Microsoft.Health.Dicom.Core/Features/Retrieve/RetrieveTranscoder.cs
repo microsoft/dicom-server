@@ -26,9 +26,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
-        public (bool, Stream[]) TranscodeFiles(Stream[] streams, string requestedTransferSyntax)
+        public Stream[] TranscodeFiles(Stream[] streams, string requestedTransferSyntax)
         {
-            bool isPartialSuccess = false;
             DicomTransferSyntax parsedDicomTransferSyntax =
                    string.IsNullOrWhiteSpace(requestedTransferSyntax) ?
                        DefaultTransferSyntax :
@@ -43,17 +42,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     var dicomFile = DicomFile.OpenAsync(x, FileReadOption.ReadLargeOnDemand).Result;
                     canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
                 }
-                catch (DicomFileException)
+                catch (DicomFileException e)
                 {
-                    canTranscode = false;
+                    throw new ResourceNotFoundException("InstanceNotFound", e);
                 }
 
                 x.Seek(0, SeekOrigin.Begin);
 
-                // If some of the instances are not transcodeable, Partial Content should be returned
+                // If some of the instances are not transcodeable, NotFound should be returned
                 if (!canTranscode)
                 {
-                    isPartialSuccess = true;
+                    throw new ResourceNotFoundException("InstanceNotFound", new TranscodingException());
                 }
 
                 return canTranscode;
@@ -61,20 +60,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             if (filteredStreams.Length == 0)
             {
-                throw new TranscodingException();
+                throw new ResourceNotFoundException("InstanceNotFound", new TranscodingException());
             }
 
             if (filteredStreams.Length != streams.Length)
             {
-                isPartialSuccess = true;
+                throw new ResourceNotFoundException("InstanceNotFound", new TranscodingException());
             }
 
-            filteredStreams = filteredStreams.Select(stream =>
+            return filteredStreams.Select(stream =>
                         new LazyTransformReadOnlyStream<Stream>(
                             stream,
                             s => TranscodeFile(s, parsedDicomTransferSyntax))).ToArray();
-
-            return (isPartialSuccess, filteredStreams);
         }
 
         public Stream TranscodeFrame(DicomFile dicomFile, int frame, string requestedTransferSyntax)
@@ -91,7 +88,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             if (!dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
             {
-                throw new TranscodingException();
+                throw new FrameNotFoundException(new TranscodingException());
             }
 
             // Decompress single frame from source dataset
@@ -114,6 +111,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
             catch
             {
+                // TODO: Reevaluate this while fixing transcoding handling.
                 // We catch all here as Transcoder can throw a wide variety of things.
                 // Basically this means codec failure - a quite extraordinary situation, but not impossible
                 // Proper solution here would be to actually try transcoding all the files that we are

@@ -101,7 +101,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            Assert.False(response.IsPartialSuccess);
             ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
 
             // Dispose created streams.
@@ -152,7 +151,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            Assert.False(response.IsPartialSuccess);
             ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
 
             // Dispose created streams.
@@ -198,7 +196,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response stream has expected file - it should be equivalent to what the store was set up to return.
-            Assert.False(response.IsPartialSuccess);
             ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, response.ResponseStreams);
 
             // Dispose created streams.
@@ -271,8 +268,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response streams has expected frames - it should be equivalent to what the store was set up to return.
-            Assert.False(response.IsPartialSuccess);
-
             AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[0]), response.ResponseStreams.ToList()[0]);
             AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[1]), response.ResponseStreams.ToList()[1]);
 

@@ -86,8 +86,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 new RetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid),
                 _defaultCancellationToken);
 
-            Assert.False(response.IsPartialSuccess);
-
             ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds));
         }
 
@@ -121,7 +119,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(requestedTransferSyntax: "*", _studyInstanceUid, _firstSeriesInstanceUid),
                 _defaultCancellationToken);
-            Assert.False(response.IsPartialSuccess);
 
             ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
         }
