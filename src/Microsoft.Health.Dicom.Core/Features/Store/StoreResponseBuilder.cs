@@ -102,6 +102,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 { DicomTag.FailureReason, failureReasonCode },
             };
 
+            // We want to turn off auto validation for FailedSOPSequence item
+            // because the failure might be caused by invalid UID value.
+#pragma warning disable CS0618 // Type or member is obsolete
+            failedSop.AutoValidate = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
             failedSop.AddValueIfNotNull(
                 DicomTag.ReferencedSOPClassUID,
                 dicomDataset?.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID));
