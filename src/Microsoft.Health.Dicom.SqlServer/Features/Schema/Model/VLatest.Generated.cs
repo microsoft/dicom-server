@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
-            internal readonly VarCharColumn Version = new VarCharColumn("Version", 64);
+            internal readonly VarCharColumn SourceSopInstanceUid = new VarCharColumn("SourceSopInstanceUid", 64);
             internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
             internal readonly NullableDateColumn PerformedProcedureStepStartDate = new NullableDateColumn("PerformedProcedureStepStartDate");
         }
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
-            internal readonly VarCharColumn Version = new VarCharColumn("Version", 64);
+            internal readonly VarCharColumn SourceSopInstanceUid = new VarCharColumn("SourceSopInstanceUid", 64);
             internal readonly NVarCharColumn PatientId = new NVarCharColumn("PatientId", 64);
             internal readonly NullableNVarCharColumn PatientName = new NullableNVarCharColumn("PatientName", 325);
             internal readonly NullableNVarCharColumn ReferringPhysicianName = new NullableNVarCharColumn("ReferringPhysicianName", 325);
