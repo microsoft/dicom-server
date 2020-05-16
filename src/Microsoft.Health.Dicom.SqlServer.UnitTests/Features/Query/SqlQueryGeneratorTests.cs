@@ -70,9 +70,9 @@ st.StudyInstanceUid
 ,i.SopInstanceUid
 ,i.Watermark
 FROM dbo.Study st
-INNER LOOP JOIN dbo.Series se
+INNER JOIN dbo.Series se
 ON se.StudyKey = st.StudyKey
-INNER LOOP JOIN dbo.Instance i
+INNER JOIN dbo.Instance i
 ON i.SeriesKey = se.SeriesKey";
 
             string expectedFilters = @"AND se.Modality=@p0";
