@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -60,6 +61,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             AppendCrossApplyTable(crossApplyAlias, filterAlias);
 
             AppendOrderBy(projectionTableAlias);
+
+            AppendOptionRecompile();
+        }
+
+        private void AppendOptionRecompile()
+        {
+            _stringBuilder.AppendLine("OPTION(RECOMPILE)");
         }
 
         private void AppendFilterTable(string filterAlias)
@@ -84,7 +92,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             _stringBuilder.AppendLine($"FROM {VLatest.Study.TableName} {StudyTableAlias}");
             if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
             {
-                _stringBuilder.AppendLine($"INNER LOOP JOIN {VLatest.Series.TableName} {SeriesTableAlias}");
+                _stringBuilder.AppendLine($"INNER JOIN {VLatest.Series.TableName} {SeriesTableAlias}");
                 _stringBuilder
                     .Append("ON ")
                     .Append(VLatest.Series.StudyKey, SeriesTableAlias)
@@ -94,7 +102,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
             if (_queryExpression.IsInstanceIELevel())
             {
-                _stringBuilder.AppendLine($"INNER LOOP JOIN {VLatest.Instance.TableName} {InstanceTableAlias}");
+                _stringBuilder.AppendLine($"INNER JOIN {VLatest.Instance.TableName} {InstanceTableAlias}");
                 _stringBuilder
                     .Append("ON ")
                     .Append(VLatest.Instance.SeriesKey, InstanceTableAlias)
