@@ -3,15 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
+using Microsoft.Health.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Query
@@ -21,15 +20,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private readonly IndentedStringBuilder _stringBuilder;
         private readonly QueryExpression _queryExpression;
         private readonly SqlQueryParameterManager _parameters;
-        private readonly FilterTableContext _tableContext;
         private const string SqlDateFormat = "yyyy-MM-dd";
-        private static HashSet<DicomTag> _dicomUidTags = new HashSet<DicomTag>()
-        {
-            DicomTag.StudyInstanceUID,
-            DicomTag.SeriesInstanceUID,
-            DicomTag.SOPInstanceUID,
-        };
-
         private const string InstanceTableAlias = "i";
         private const string StudyTableAlias = "st";
         private const string SeriesTableAlias = "se";
@@ -43,23 +34,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             _queryExpression = queryExpression;
             _parameters = sqlQueryParameterManager;
 
-            if (!_queryExpression.HasFilters
-                || IsUidOnlyQuery())
-            {
-                _tableContext = FilterTableContext.InstanceTable;
-            }
-            else
-            {
-                _tableContext = FilterTableContext.MetadataTable;
-            }
-
             Build();
-        }
-
-        private enum FilterTableContext
-        {
-            InstanceTable,
-            MetadataTable,
         }
 
         private void Build()
@@ -85,86 +60,58 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             AppendCrossApplyTable(crossApplyAlias, filterAlias);
 
             AppendOrderBy(projectionTableAlias);
-            AppendOffsetAndFetch();
         }
 
         private void AppendFilterTable(string filterAlias)
         {
-            if (_tableContext == FilterTableContext.InstanceTable)
+            _stringBuilder.AppendLine("( SELECT ");
+            if (_queryExpression.IsInstanceIELevel())
             {
-                _stringBuilder.AppendLine("( SELECT DISTINCT");
-                _stringBuilder.AppendLine(VLatest.Instance.StudyInstanceUid, InstanceTableAlias);
-                if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
-                {
-                    _stringBuilder.Append(",").AppendLine(VLatest.Instance.SeriesInstanceUid, InstanceTableAlias);
-                }
-
-                if (_queryExpression.IsInstanceIELevel())
-                {
-                    _stringBuilder.Append(",").AppendLine(VLatest.Instance.SopInstanceUid, InstanceTableAlias);
-                    _stringBuilder.Append(",").AppendLine(VLatest.Instance.Watermark, InstanceTableAlias);
-                }
-
-                _stringBuilder.AppendLine($"FROM {VLatest.Instance.TableName} {InstanceTableAlias}");
-                _stringBuilder.AppendLine("WHERE 1 = 1");
-                AppendStatusClause(InstanceTableAlias);
-                using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
-                {
-                    AppendFilterClause();
-                }
-
-                _stringBuilder.AppendLine($") {filterAlias}");
+                _stringBuilder.AppendLine(VLatest.Study.StudyInstanceUid, StudyTableAlias);
+                _stringBuilder.Append(",").AppendLine(VLatest.Series.SeriesInstanceUid, SeriesTableAlias);
+                _stringBuilder.Append(",").AppendLine(VLatest.Instance.SopInstanceUid, InstanceTableAlias);
+                _stringBuilder.Append(",").AppendLine(VLatest.Instance.Watermark, InstanceTableAlias);
             }
             else
             {
-                _stringBuilder.AppendLine("( SELECT DISTINCT");
-                _stringBuilder.AppendLine(VLatest.Study.StudyInstanceUid, StudyTableAlias);
-                if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
+                _stringBuilder.AppendLine(VLatest.Study.StudyKey, StudyTableAlias);
+                if (_queryExpression.IsSeriesIELevel())
                 {
-                    _stringBuilder.Append(",").AppendLine(VLatest.Series.SeriesInstanceUid, SeriesTableAlias);
+                    _stringBuilder.Append(",").AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
                 }
-
-                if (_queryExpression.IsInstanceIELevel())
-                {
-                    _stringBuilder.Append(",").AppendLine(VLatest.Instance.SopInstanceUid, InstanceTableAlias);
-                    _stringBuilder.Append(",").AppendLine(VLatest.Instance.Watermark, InstanceTableAlias);
-                }
-
-                _stringBuilder.AppendLine($"FROM {VLatest.Study.TableName} {StudyTableAlias}");
-                if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
-                {
-                    _stringBuilder.AppendLine($"INNER JOIN {VLatest.Series.TableName} {SeriesTableAlias}");
-                    _stringBuilder
-                        .Append("ON ")
-                        .Append(VLatest.Series.StudyInstanceUid, SeriesTableAlias)
-                        .Append(" = ")
-                        .AppendLine(VLatest.Study.StudyInstanceUid, StudyTableAlias);
-                }
-
-                if (_queryExpression.IsInstanceIELevel())
-                {
-                    _stringBuilder.AppendLine($"INNER JOIN {VLatest.Instance.TableName} {InstanceTableAlias}");
-                    _stringBuilder
-                        .Append("ON ")
-                        .Append(VLatest.Instance.StudyInstanceUid, InstanceTableAlias)
-                        .Append(" = ")
-                        .AppendLine(VLatest.Study.StudyInstanceUid, StudyTableAlias);
-                    _stringBuilder
-                        .Append("AND ")
-                        .Append(VLatest.Instance.SeriesInstanceUid, InstanceTableAlias)
-                        .Append(" = ")
-                        .AppendLine(VLatest.Series.SeriesInstanceUid, SeriesTableAlias);
-                    AppendStatusClause(InstanceTableAlias);
-                }
-
-                _stringBuilder.AppendLine("WHERE 1 = 1");
-                using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
-                {
-                    AppendFilterClause();
-                }
-
-                _stringBuilder.AppendLine($") {filterAlias}");
             }
+
+            _stringBuilder.AppendLine($"FROM {VLatest.Study.TableName} {StudyTableAlias}");
+            if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
+            {
+                _stringBuilder.AppendLine($"INNER LOOP JOIN {VLatest.Series.TableName} {SeriesTableAlias}");
+                _stringBuilder
+                    .Append("ON ")
+                    .Append(VLatest.Series.StudyKey, SeriesTableAlias)
+                    .Append(" = ")
+                    .AppendLine(VLatest.Study.StudyKey, StudyTableAlias);
+            }
+
+            if (_queryExpression.IsInstanceIELevel())
+            {
+                _stringBuilder.AppendLine($"INNER LOOP JOIN {VLatest.Instance.TableName} {InstanceTableAlias}");
+                _stringBuilder
+                    .Append("ON ")
+                    .Append(VLatest.Instance.SeriesKey, InstanceTableAlias)
+                    .Append(" = ")
+                    .AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
+                AppendStatusClause(InstanceTableAlias);
+            }
+
+            _stringBuilder.AppendLine("WHERE 1 = 1");
+            using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
+            {
+                AppendFilterClause();
+            }
+
+            AppendFilterPaging();
+
+            _stringBuilder.AppendLine($") {filterAlias}");
         }
 
         private void AppendCrossApplyTable(string crossApplyAlias, string filterAlias)
@@ -189,17 +136,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             {
                 _stringBuilder
                     .Append("AND ")
-                    .Append(VLatest.Instance.StudyInstanceUid, tableAlias)
+                    .Append(VLatest.Instance.StudyKey, tableAlias)
                     .Append(" = ")
-                    .AppendLine(VLatest.Study.StudyInstanceUid, filterAlias);
+                    .AppendLine(VLatest.Study.StudyKey, filterAlias);
 
                 if (_queryExpression.IsSeriesIELevel())
                 {
                     _stringBuilder
                         .Append("AND ")
-                        .Append(VLatest.Instance.SeriesInstanceUid, tableAlias)
+                        .Append(VLatest.Instance.SeriesKey, tableAlias)
                         .Append(" = ")
-                        .AppendLine(VLatest.Series.SeriesInstanceUid, filterAlias);
+                        .AppendLine(VLatest.Series.SeriesKey, filterAlias);
                 }
 
                 AppendStatusClause(tableAlias);
@@ -237,8 +184,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             }
         }
 
-        private void AppendOffsetAndFetch()
+        private void AppendFilterPaging()
         {
+            BigIntColumn orderColumn = VLatest.Instance.Watermark;
+            string tableAlias = InstanceTableAlias;
+            if (_queryExpression.IsStudyIELevel())
+            {
+                orderColumn = VLatest.Study.StudyKey;
+                tableAlias = StudyTableAlias;
+            }
+            else if (_queryExpression.IsSeriesIELevel())
+            {
+                orderColumn = VLatest.Series.SeriesKey;
+                tableAlias = SeriesTableAlias;
+            }
+
+            _stringBuilder.Append($"ORDER BY ")
+                .Append(orderColumn, tableAlias)
+                .AppendLine();
             _stringBuilder.AppendLine($"OFFSET {_queryExpression.Offset} ROWS");
             _stringBuilder.AppendLine($"FETCH NEXT {_queryExpression.EvaluatedLimit} ROWS ONLY");
         }
@@ -254,7 +217,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public override void Visit(StringSingleValueMatchCondition stringSingleValueMatchCondition)
         {
-            // TODO if PatientName and FuzzyMatch true generate a different condition
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(stringSingleValueMatchCondition.DicomTag);
             var tableAlias = GetTableAlias(dicomTagSqlEntry);
             _stringBuilder
@@ -307,20 +269,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .AppendLine();
         }
 
-        private bool IsUidOnlyQuery()
-        {
-            return !_queryExpression.FilterConditions
-               .Any(filter => !_dicomUidTags.Contains(filter.DicomTag));
-        }
-
         private string GetTableAlias(DicomTagSqlEntry sqlEntry)
         {
-            if (_tableContext == FilterTableContext.InstanceTable
-                && _dicomUidTags.Contains(sqlEntry.DicomTag))
-            {
-                return InstanceTableAlias;
-            }
-
             switch (sqlEntry.SqlTableType)
             {
                 case SqlTableType.InstanceTable: return InstanceTableAlias;

@@ -67,6 +67,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
+            internal readonly BigIntColumn InstanceKey = new BigIntColumn("InstanceKey");
+            internal readonly BigIntColumn SeriesKey = new BigIntColumn("SeriesKey");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
@@ -92,9 +95,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
+            internal readonly BigIntColumn SeriesKey = new BigIntColumn("SeriesKey");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
-            internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
-            internal readonly VarCharColumn SourceSopInstanceUid = new VarCharColumn("SourceSopInstanceUid", 64);
             internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
             internal readonly NullableDateColumn PerformedProcedureStepStartDate = new NullableDateColumn("PerformedProcedureStepStartDate");
         }
@@ -105,15 +108,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
-            internal readonly VarCharColumn SourceSopInstanceUid = new VarCharColumn("SourceSopInstanceUid", 64);
             internal readonly NVarCharColumn PatientId = new NVarCharColumn("PatientId", 64);
             internal readonly NullableNVarCharColumn PatientName = new NullableNVarCharColumn("PatientName", 325);
             internal readonly NullableNVarCharColumn ReferringPhysicianName = new NullableNVarCharColumn("ReferringPhysicianName", 325);
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
             internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
             internal readonly NullableNVarCharColumn AccessionNumber = new NullableNVarCharColumn("AccessionNumber", 16);
-            internal readonly BigIntColumn WordId = new BigIntColumn("WordId");
             internal const string PatientNameWords = "PatientNameWords";
         }
 

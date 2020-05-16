@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
     {
         public StudyMetadata(
             string studyInstanceUid,
-            string version,
+            int studyKey,
             string patientID,
             string patientName,
             string referringPhysicianName,
@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             string accessionNumber)
         {
             StudyInstanceUid = studyInstanceUid;
-            Version = version;
+            StudyKey = studyKey;
             PatientID = patientID;
             PatientName = patientName;
             ReferringPhysicianName = referringPhysicianName;
@@ -32,8 +32,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public StudyMetadata(SqlDataReader sqlDataReader)
         {
-            StudyInstanceUid = sqlDataReader.GetString(0);
-            Version = sqlDataReader.GetString(1);
+            StudyKey = sqlDataReader.GetInt64(0);
+            StudyInstanceUid = sqlDataReader.GetString(1);
             PatientID = sqlDataReader.GetString(2);
             PatientName = sqlDataReader.GetString(3);
             ReferringPhysicianName = sqlDataReader.GetString(4);
@@ -41,6 +41,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             StudyDescription = sqlDataReader.GetString(6);
             AccessionNumber = sqlDataReader.GetString(7);
         }
+
+        public long StudyKey { get; private set; }
 
         public string StudyInstanceUid { get; }
 

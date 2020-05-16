@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
@@ -148,7 +149,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private IActionResult CreateResult(QueryResourceResponse resourceResponse)
         {
-            if (resourceResponse.IsEmpty)
+            if (!resourceResponse.ResponseDataset.Any())
             {
                 return NoContent();
             }

@@ -20,38 +20,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
     public class SqlQueryGeneratorTests
     {
         [Fact]
-        public void GivenStudyInstanceUid_WhenIELevelSeries_ValidateDistinctStudySeries()
-        {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
-            var filters = new List<QueryFilterCondition>()
-            {
-                new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "1234"),
-            };
-            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters);
-
-            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
-            new SqlQueryGenerator(stringBuilder, query, parm);
-
-            string expectedDistinctSelect = @"SELECT DISTINCT
-i.StudyInstanceUid
-,i.SeriesInstanceUid
-FROM dbo.Instance i";
-            string expectedCrossApply = @"
-FROM dbo.Instance a
-WHERE 1 = 1
-AND a.StudyInstanceUid = f.StudyInstanceUid
-AND a.SeriesInstanceUid = f.SeriesInstanceUid";
-
-            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
-            Assert.Contains(expectedCrossApply, stringBuilder.ToString());
-            Assert.Contains("StudyInstanceUid=@p0", stringBuilder.ToString());
-            Assert.Contains($"OFFSET 0 ROWS", stringBuilder.ToString());
-            Assert.Contains($"FETCH NEXT {QueryLimit.DefaultQueryResultCount} ROWS ONLY", stringBuilder.ToString());
-        }
-
-        [Fact]
-        public void GivenStudyDate_WhenIELevelSTudy_ValidateDistinctStudyStudies()
+        public void GivenStudyDate_WhenIELevelStudy_ValidateDistinctStudyStudies()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
@@ -67,50 +36,18 @@ AND a.SeriesInstanceUid = f.SeriesInstanceUid";
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
 
-            string expectedDistinctSelect = @"SELECT DISTINCT
-st.StudyInstanceUid
+            string expectedDistinctSelect = @"SELECT 
+st.StudyKey
 FROM dbo.Study st";
 
             string expectedCrossApply = @"
 FROM dbo.Instance a
 WHERE 1 = 1
-AND a.StudyInstanceUid = f.StudyInstanceUid";
+AND a.StudyKey = f.StudyKey";
             Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
             Assert.Contains(expectedCrossApply, stringBuilder.ToString());
 
             Assert.Contains("StudyDate BETWEEN @p0 AND @p1", stringBuilder.ToString());
-        }
-
-        [Fact]
-        public void GivenSopInstanceUid_WhenIELevelInstance_ValidateDistinctInstances()
-        {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
-            var filters = new List<QueryFilterCondition>()
-            {
-                new StringSingleValueMatchCondition(DicomTag.StudyInstanceUID, "123"),
-                new StringSingleValueMatchCondition(DicomTag.SeriesInstanceUID, "456"),
-                new StringSingleValueMatchCondition(DicomTag.SOPInstanceUID, "789"),
-            };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
-
-            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
-            new SqlQueryGenerator(stringBuilder, query, parm);
-
-            string expectedDistinctSelect = @"SELECT DISTINCT
-i.StudyInstanceUid
-,i.SeriesInstanceUid
-,i.SopInstanceUid
-,i.Watermark
-FROM dbo.Instance i";
-
-            string expectedFilters = @"AND i.StudyInstanceUid=@p0
-AND i.SeriesInstanceUid=@p1
-AND i.SopInstanceUid=@p2";
-
-            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
-            Assert.Contains(expectedFilters, stringBuilder.ToString());
-            Assert.DoesNotContain("CROSS APPLY", stringBuilder.ToString());
         }
 
         [Fact]
@@ -127,17 +64,16 @@ AND i.SopInstanceUid=@p2";
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
 
-            string expectedDistinctSelect = @"SELECT DISTINCT
+            string expectedDistinctSelect = @"SELECT 
 st.StudyInstanceUid
 ,se.SeriesInstanceUid
 ,i.SopInstanceUid
 ,i.Watermark
 FROM dbo.Study st
-INNER JOIN dbo.Series se
-ON se.StudyInstanceUid = st.StudyInstanceUid
-INNER JOIN dbo.Instance i
-ON i.StudyInstanceUid = st.StudyInstanceUid
-AND i.SeriesInstanceUid = se.SeriesInstanceUid";
+INNER LOOP JOIN dbo.Series se
+ON se.StudyKey = st.StudyKey
+INNER LOOP JOIN dbo.Instance i
+ON i.SeriesKey = se.SeriesKey";
 
             string expectedFilters = @"AND se.Modality=@p0";
 

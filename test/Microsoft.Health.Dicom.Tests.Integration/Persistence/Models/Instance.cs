@@ -11,6 +11,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
     public class Instance
     {
         public Instance(
+            int studyKey,
+            int seriesKey,
+            int instanceKey,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
@@ -19,6 +22,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             DateTime lastStatusUpdatedDate,
             DateTime createdDate)
         {
+            StudyKey = studyKey;
+            SeriesKey = seriesKey;
+            InstanceKey = instanceKey;
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
@@ -30,14 +36,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public Instance(SqlDataReader sqlDataReader)
         {
-            StudyInstanceUid = sqlDataReader.GetString(0);
-            SeriesInstanceUid = sqlDataReader.GetString(1);
-            SopInstanceUid = sqlDataReader.GetString(2);
-            Watermark = sqlDataReader.GetInt64(3);
-            Status = sqlDataReader.GetByte(4);
-            LastStatusUpdatedDate = sqlDataReader.GetDateTime(5);
-            CreatedDate = sqlDataReader.GetDateTime(6);
+            InstanceKey = sqlDataReader.GetInt64(0);
+            SeriesKey = sqlDataReader.GetInt64(1);
+            InstanceKey = sqlDataReader.GetInt64(2);
+            StudyInstanceUid = sqlDataReader.GetString(3);
+            SeriesInstanceUid = sqlDataReader.GetString(4);
+            SopInstanceUid = sqlDataReader.GetString(5);
+            Watermark = sqlDataReader.GetInt64(6);
+            Status = sqlDataReader.GetByte(7);
+            LastStatusUpdatedDate = sqlDataReader.GetDateTime(8);
+            CreatedDate = sqlDataReader.GetDateTime(8);
         }
+
+        public long InstanceKey { get; private set; }
+
+        public long SeriesKey { get; private set; }
+
+        public long StudyKey { get; private set; }
 
         public string StudyInstanceUid { get; }
 

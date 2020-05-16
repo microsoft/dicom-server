@@ -55,7 +55,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 studyMetadataEntries,
                 entry => ValidateStudyMetadata(
                     studyInstanceUid,
-                    sopInstanceUid,
                     patientId,
                     patientName,
                     referringPhysicianName,
@@ -70,13 +69,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 seriesMetadataEntries,
                 entry => ValidateSeriesMetadata(
                     seriesInstanceUid,
-                    sopInstanceUid,
                     modality,
                     new DateTime(2020, 3, 2, 0, 0, 0, DateTimeKind.Utc),
                     entry));
 
             // Make sure the ID matches between the study and series metadata.
-            Assert.Equal(studyMetadataEntries[0].StudyInstanceUid, seriesMetadataEntries[0].StudyInstanceUid);
+            Assert.Equal(studyMetadataEntries[0].StudyKey, seriesMetadataEntries[0].StudyKey);
 
             IReadOnlyList<Instance> instances = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
@@ -95,26 +93,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenANewDicomInstance_WhenConflictingStudyAndSeriesTags_ThenNewVersionAdded()
+        public async Task GivenANewDicomInstance_WhenConflictingStudyAndSeriesTags_ThenLatestWins()
         {
             // create a new instance
             DicomDataset dataset = CreateTestDicomDataset();
             string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
             string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
-            string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-            string patientName = dataset.GetString(DicomTag.PatientName);
-            string modality = dataset.GetString(DicomTag.Modality);
-            long version1 = await _indexDataStore.CreateInstanceIndexAsync(dataset);
 
-            // add another instance with same study+series data and validate single study and series
-            dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
-            long version2 = await _indexDataStore.CreateInstanceIndexAsync(dataset);
-            IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
-            IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
-            Assert.Equal(1, studyMetadataEntries.Count);
-            Assert.Equal(1, seriesMetadataEntries.Count);
-
-            // add another instance in the same study+series with different patientName and modality and validate new version
+            // add another instance in the same study+series with different patientName and modality and validate latest wins
             string conflictPatientName = "pname^conflict";
             string conflictModality = "MCONFLICT";
             string newInstance = TestUidGenerator.Generate();
@@ -122,26 +108,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.AddOrUpdate(DicomTag.Modality, conflictModality);
             dataset.AddOrUpdate(DicomTag.SOPInstanceUID, newInstance);
 
-            long version3 = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            await _indexDataStore.CreateInstanceIndexAsync(dataset);
 
-            studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
-            seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
+            IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
+            IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
 
-            Assert.Equal(2, studyMetadataEntries.Count);
-            StudyMetadata v1 = studyMetadataEntries.First(x => x.Version == sopInstanceUid);
-            StudyMetadata v2 = studyMetadataEntries.First(x => x.Version == newInstance);
-            Assert.NotNull(v1);
-            Assert.NotNull(v2);
-            Assert.Equal(patientName, v1.PatientName);
-            Assert.Equal(conflictPatientName, v2.PatientName);
+            Assert.Equal(1, studyMetadataEntries.Count);
+            Assert.Equal(conflictPatientName, studyMetadataEntries.First().PatientName);
 
-            Assert.Equal(2, seriesMetadataEntries.Count);
-            SeriesMetadata sv1 = seriesMetadataEntries.First(x => x.Version == sopInstanceUid);
-            SeriesMetadata sv2 = seriesMetadataEntries.First(x => x.Version == newInstance);
-            Assert.NotNull(sv1);
-            Assert.NotNull(sv2);
-            Assert.Equal(modality, sv1.Modality);
-            Assert.Equal(conflictModality, sv2.Modality);
+            Assert.Equal(1, seriesMetadataEntries.Count);
+            Assert.Equal(conflictModality, seriesMetadataEntries.First().Modality);
         }
 
         [Fact]
@@ -453,7 +429,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private static void ValidateStudyMetadata(
             string expectedStudyInstanceUid,
-            string expectedVersion,
             string expectedPatientId,
             string expectedPatientName,
             string expectedReferringPhysicianName,
@@ -464,7 +439,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             Assert.NotNull(actual);
             Assert.Equal(expectedStudyInstanceUid, actual.StudyInstanceUid);
-            Assert.Equal(expectedVersion, actual.Version);
             Assert.Equal(expectedPatientId, actual.PatientID);
             Assert.Equal(expectedPatientName, actual.PatientName);
             Assert.Equal(expectedReferringPhysicianName, actual.ReferringPhysicianName);
@@ -475,14 +449,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private static void ValidateSeriesMetadata(
             string expectedSeriesInstanceUid,
-            string expectedVersion,
             string expectedModality,
             DateTime? expectedPerformedProcedureStepStartDate,
             SeriesMetadata actual)
         {
             Assert.NotNull(actual);
             Assert.Equal(expectedSeriesInstanceUid, actual.SeriesInstanceUid);
-            Assert.Equal(expectedVersion, actual.Version);
             Assert.Equal(expectedModality, actual.Modality);
             Assert.Equal(expectedPerformedProcedureStepStartDate, actual.PerformedProcedureStepStartDate);
         }
