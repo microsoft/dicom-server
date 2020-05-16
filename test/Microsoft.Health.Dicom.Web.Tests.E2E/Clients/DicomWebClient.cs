@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -17,6 +18,8 @@ using Dicom.Serialization;
 using EnsureThat;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
@@ -84,7 +87,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                request.Headers.Accept.Add(MediaTypeApplicationOctetStream);
+                request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationOctetStream));
+
                 request.Headers.Add(TransferSyntaxHeaderName, dicomTransferSyntax);
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
@@ -120,12 +124,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         public async Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstancesAsync(
             Uri requestUri,
+            bool singleInstance = false,
             string dicomTransferSyntax = null,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                request.Headers.Accept.Add(MediaTypeApplicationDicom);
+                if (singleInstance)
+                {
+                    request.Headers.Accept.Add(MediaTypeApplicationDicom);
+                }
+                else
+                {
+                    request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationDicom));
+                }
+
                 request.Headers.Add(TransferSyntaxHeaderName, dicomTransferSyntax);
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
@@ -240,6 +253,40 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                     }
 
                     throw new DicomWebException<string>(result);
+                }
+            }
+        }
+
+        public async Task<DicomWebResponse<IReadOnlyList<ChangeFeedEntry>>> GetChangeFeed(string queryString = "", CancellationToken cancellationToken = default)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/changefeed{queryString}"))
+            {
+                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                {
+                    await EnsureSuccessStatusCodeAsync(response);
+
+                    string contentText = await response.Content.ReadAsStringAsync();
+
+                    return new DicomWebResponse<IReadOnlyList<ChangeFeedEntry>>(
+                        response,
+                        JsonConvert.DeserializeObject<IReadOnlyList<ChangeFeedEntry>>(contentText, _jsonSerializerSettings));
+                }
+            }
+        }
+
+        public async Task<DicomWebResponse<ChangeFeedEntry>> GetChangeFeedLatest(string queryString = "", CancellationToken cancellationToken = default)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/changefeed/latest{queryString}"))
+            {
+                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                {
+                    await EnsureSuccessStatusCodeAsync(response);
+
+                    string contentText = await response.Content.ReadAsStringAsync();
+
+                    return new DicomWebResponse<ChangeFeedEntry>(
+                        response,
+                        JsonConvert.DeserializeObject<ChangeFeedEntry>(contentText, _jsonSerializerSettings));
                 }
             }
         }
@@ -393,6 +440,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 new KeyValuePair<string, string>("scope", AuthenticationSettings.Scope),
                 new KeyValuePair<string, string>("resource", AuthenticationSettings.Resource),
             };
+        }
+
+        private MediaTypeWithQualityHeaderValue CreateMultipartMediaTypeHeader(string contentType)
+        {
+            MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(KnownContentTypes.MultipartRelated);
+            NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + contentType + "\"");
+            multipartHeader.Parameters.Add(contentHeader);
+            return multipartHeader;
         }
     }
 }

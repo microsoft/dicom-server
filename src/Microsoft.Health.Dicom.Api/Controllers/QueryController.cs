@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
@@ -109,7 +109,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
@@ -128,7 +128,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [HttpGet]
-        [AcceptContentFilter(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]

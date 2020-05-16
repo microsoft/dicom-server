@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -102,6 +103,24 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             CancellationToken cancellationToken = default)
         {
             return mediator.Send(new QueryResourceRequest(requestQuery, resourceType, studyInstanceUid, seriesInstanceUid), cancellationToken);
+        }
+
+        public static Task<ChangeFeedResponse> GetChangeFeed(
+            this IMediator mediator,
+            int offset,
+            int limit,
+            bool includeMetadata,
+            CancellationToken cancellationToken = default)
+        {
+            return mediator.Send(new ChangeFeedRequest(offset, limit, includeMetadata), cancellationToken);
+        }
+
+        public static Task<ChangeFeedLatestResponse> GetChangeFeedLatest(
+            this IMediator mediator,
+            bool includeMetadata,
+            CancellationToken cancellationToken = default)
+        {
+            return mediator.Send(new ChangeFeedLatestRequest(includeMetadata), cancellationToken);
         }
     }
 }
