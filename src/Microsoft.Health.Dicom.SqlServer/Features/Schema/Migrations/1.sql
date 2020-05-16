@@ -161,6 +161,7 @@ CREATE TABLE dbo.Instance (
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
 (
+    SeriesKey,
     InstanceKey
 )
 
