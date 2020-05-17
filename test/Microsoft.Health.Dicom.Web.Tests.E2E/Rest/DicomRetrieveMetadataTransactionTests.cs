@@ -126,20 +126,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenStoredDicomFileWithInvalidVRValue_WhenMetadataIsRetrieved_ThenNoExceptionIsThrown()
+        public async Task GivenStoredDicomFileWithInvalidVrValue_WhenMetadataIsRetrieved_ThenNoExceptionIsThrown()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
 
-            DicomDataset storedInstance = await PostDicomFileAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid, dataSet: GenerateNewDataSetWithInvalidVR());
+            await PostDicomFileAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid, dataSet: GenerateNewDataSetWithInvalidVR());
 
             DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("application/dicom+json", response.Content.Headers.ContentType.MediaType);
             Assert.Single(response.Value);
-            ValidateResponseMetadataDataset(storedInstance, response.Value.First());
         }
 
         private static DicomDataset GenerateNewDataSet()
@@ -160,17 +159,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private static DicomDataset GenerateNewDataSetWithInvalidVR()
         {
-            return new DicomDataset()
-            {
-                { DicomTag.SeriesDescription, "CT1 abdomen\u0000" },
-                { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
-                new DicomSequence(DicomTag.RegistrationSequence, new DicomDataset()
-                {
-                    { DicomTag.PatientName, "Test^Patient" },
-                    { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
-                }),
-                { DicomTag.StudyDate, DateTime.UtcNow },
-            };
+            var dicomDataset = new DicomDataset();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            dicomDataset.AutoValidate = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
+
+            return dicomDataset;
         }
 
         private void ValidateResponseMetadataDataset(DicomWebResponse<IReadOnlyList<DicomDataset>> response, DicomDataset storedInstance1, DicomDataset storedInstance2)
@@ -243,6 +240,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             if (dataSet != null)
             {
+#pragma warning disable CS0618 // Type or member is obsolete
+                dicomFile.Dataset.AutoValidate = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
                 dicomFile.Dataset.AddOrUpdate(dataSet);
             }
 

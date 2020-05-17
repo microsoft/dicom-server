@@ -101,6 +101,11 @@ namespace Dicom.Serialization
         private DicomDataset ReadJsonDataset(JToken obj)
         {
             var dataset = new DicomDataset();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            dataset.AutoValidate = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
             if (obj.Type == JTokenType.Null)
             { return null; }
             if (!(obj is JObject itemObject))

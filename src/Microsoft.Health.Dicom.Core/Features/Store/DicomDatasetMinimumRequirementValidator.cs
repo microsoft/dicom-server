@@ -7,6 +7,7 @@ using System;
 using System.Globalization;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -20,13 +21,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
             // Ensure required tags are present.
-            EnsureRequiredTagIsPresent(DicomTag.PatientID);
-            EnsureRequiredTagIsPresent(DicomTag.SOPClassUID);
+            EnsureRequiredTagIsPresentAndHasValidUid(DicomTag.PatientID);
+            EnsureRequiredTagIsPresentAndHasValidUid(DicomTag.SOPClassUID);
 
             // The format of the identifiers will be validated by fo-dicom.
-            string studyInstanceUid = EnsureRequiredTagIsPresent(DicomTag.StudyInstanceUID);
-            string seriesInstanceUid = EnsureRequiredTagIsPresent(DicomTag.SeriesInstanceUID);
-            string sopInstanceUid = EnsureRequiredTagIsPresent(DicomTag.SOPInstanceUID);
+            string studyInstanceUid = EnsureRequiredTagIsPresentAndHasValidUid(DicomTag.StudyInstanceUID);
+            string seriesInstanceUid = EnsureRequiredTagIsPresentAndHasValidUid(DicomTag.SeriesInstanceUID);
+            string sopInstanceUid = EnsureRequiredTagIsPresentAndHasValidUid(DicomTag.SOPInstanceUID);
 
             // Ensure the StudyInstanceUid != SeriesInstanceUid != sopInstanceUid
             if (studyInstanceUid == seriesInstanceUid ||
@@ -51,10 +52,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                         requiredStudyInstanceUid));
             }
 
-            string EnsureRequiredTagIsPresent(DicomTag dicomTag)
+            string EnsureRequiredTagIsPresentAndHasValidUid(DicomTag dicomTag)
             {
                 if (dicomDataset.TryGetSingleValue(dicomTag, out string value))
                 {
+                    // The UID validation is not required for patientID.
+                    if (dicomTag != DicomTag.PatientID)
+                    {
+                        UidValidator.ValidateAndThrow(value, nameof(value));
+                    }
+
                     return value;
                 }
 

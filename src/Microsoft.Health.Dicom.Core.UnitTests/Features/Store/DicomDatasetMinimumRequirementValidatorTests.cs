@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
@@ -36,6 +37,82 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _dicomDatasetMinimumRequirementValidator.Validate(
                 _dicomDataset,
                 studyInstanceUid);
+        }
+
+        [Theory]
+        [InlineData("1.01")]
+        [InlineData("abc.123")]
+        [InlineData("11|")]
+        [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
+        [InlineData("1.2.826.0.1.3680043.8.1055.1.20111102150758591.96842950.07877442")]
+        public void GivenADicomDatasetWithInvalidStudyInstanceUid_WhenValidated_ThenInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
+        {
+            // Disabled autovalidation on this dataset so that invalid UId's can be added.
+#pragma warning disable CS0618 // Type or member is obsolete
+            _dicomDataset.AutoValidate = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid);
+
+            Assert.Throws<InvalidIdentifierException>(
+               () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, studyInstanceUid));
+        }
+
+        [Theory]
+        [InlineData("1.01")]
+        [InlineData("abc.123")]
+        [InlineData("11|")]
+        [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
+        [InlineData("1.2.826.0.1.3680043.8.1055.1.20111102150758591.96842950.07877442")]
+        public void GivenADicomDatasetWithInvalidSeriesInstanceUid_WhenValidated_ThenInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
+        {
+            // Disabled autovalidation on this dataset so that invalid UId's can be added.
+#pragma warning disable CS0618 // Type or member is obsolete
+            _dicomDataset.AutoValidate = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            _dicomDataset.AddOrUpdate(DicomTag.SeriesInstanceUID, seriesInstanceUid);
+
+            Assert.Throws<InvalidIdentifierException>(
+               () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null));
+        }
+
+        [Theory]
+        [InlineData("1.01")]
+        [InlineData("abc.123")]
+        [InlineData("11|")]
+        [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
+        [InlineData("1.2.826.0.1.3680043.8.1055.1.20111102150758591.96842950.07877442")]
+        public void GivenADicomDatasetWithInvalidSopInstanceUid_WhenValidated_ThenInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
+        {
+            // Disabled autovalidation on this dataset so that invalid UId's can be added.
+#pragma warning disable CS0618 // Type or member is obsolete
+            _dicomDataset.AutoValidate = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            _dicomDataset.AddOrUpdate(DicomTag.SOPInstanceUID, sopInstanceUid);
+
+            Assert.Throws<InvalidIdentifierException>(
+               () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null));
+        }
+
+        [Theory]
+        [InlineData("1.01")]
+        [InlineData("abc.123")]
+        [InlineData("11|")]
+        [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
+        [InlineData("1.2.826.0.1.3680043.8.1055.1.20111102150758591.96842950.07877442")]
+        public void GivenADicomDatasetWithInvalidSopClassUid_WhenValidated_ThenInvalidIdentifierExceptionIsThrown(string sopClassUid)
+        {
+            // Disabled autovalidation on this dataset so that invalid UId's can be added.
+#pragma warning disable CS0618 // Type or member is obsolete
+            _dicomDataset.AutoValidate = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            _dicomDataset.AddOrUpdate(DicomTag.SOPClassUID, sopClassUid);
+
+            Assert.Throws<InvalidIdentifierException>(
+               () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null));
         }
 
         public static IEnumerable<object[]> GetDicomTagsToRemove()
