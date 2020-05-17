@@ -199,6 +199,18 @@ INCLUDE
     Watermark
 )
 
+CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status on dbo.Instance
+(
+    SopInstanceUid,
+    Status
+)
+INCLUDE
+(
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    Watermark
+)
+
 CREATE NONCLUSTERED INDEX IX_Instance_Watermark on dbo.Instance
 (
     Watermark

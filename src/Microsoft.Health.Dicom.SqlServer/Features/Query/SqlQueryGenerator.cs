@@ -75,8 +75,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             _stringBuilder.AppendLine("( SELECT ");
             if (_queryExpression.IsInstanceIELevel())
             {
-                _stringBuilder.AppendLine(VLatest.Study.StudyInstanceUid, StudyTableAlias);
-                _stringBuilder.Append(",").AppendLine(VLatest.Series.SeriesInstanceUid, SeriesTableAlias);
+                _stringBuilder.AppendLine(VLatest.Study.StudyInstanceUid, InstanceTableAlias);
+                _stringBuilder.Append(",").AppendLine(VLatest.Series.SeriesInstanceUid, InstanceTableAlias);
                 _stringBuilder.Append(",").AppendLine(VLatest.Instance.SopInstanceUid, InstanceTableAlias);
                 _stringBuilder.Append(",").AppendLine(VLatest.Instance.Watermark, InstanceTableAlias);
             }
