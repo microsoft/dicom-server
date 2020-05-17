@@ -65,8 +65,8 @@ AND a.StudyKey = f.StudyKey";
             new SqlQueryGenerator(stringBuilder, query, parm);
 
             string expectedDistinctSelect = @"SELECT 
-st.StudyInstanceUid
-,se.SeriesInstanceUid
+i.StudyInstanceUid
+,i.SeriesInstanceUid
 ,i.SopInstanceUid
 ,i.Watermark
 FROM dbo.Study st
