@@ -121,7 +121,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 
             DicomDataset deserializedDataset = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
 
-            // var recoveredData = deserializedDataset.GetValues<string>(DicomTag.ModalitiesInStudy);
             var recoveredData = deserializedDataset.GetValues<string>(DicomTag.PatientAddress);
             Assert.Equal("CT1 abdomen\0", recoveredData.First());
         }
