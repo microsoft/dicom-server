@@ -398,7 +398,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 seriesInstanceUid,
                 DicomTransferSyntax.JPEG2000Lossy.UID.UID));
 
-            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+            Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
         }
 
         public static IEnumerable<object[]> Get8BitTranscoderCombos()

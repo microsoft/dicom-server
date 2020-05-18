@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public FrameHandlerTests()
         {
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-            _frameHandler = new FrameHandler(Substitute.For<IRetrieveTranscoder>(), _recyclableMemoryStreamManager);
+            _frameHandler = new FrameHandler(Substitute.For<ITranscoder>(), _recyclableMemoryStreamManager);
         }
 
         [Theory]

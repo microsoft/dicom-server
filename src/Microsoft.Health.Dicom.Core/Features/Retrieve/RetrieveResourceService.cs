@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     {
         private readonly IFileStore _blobDataStore;
         private readonly IInstanceStore _instanceStore;
-        private readonly IRetrieveTranscoder _retrieveTranscoder;
+        private readonly ITranscoder _retrieveTranscoder;
         private readonly IFrameHandler _dicomFrameHandler;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly ILogger<RetrieveResourceService> _logger;
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         public RetrieveResourceService(
             IInstanceStore instanceStore,
             IFileStore blobDataStore,
-            IRetrieveTranscoder retrieveTranscoder,
+            ITranscoder retrieveTranscoder,
             IFrameHandler dicomFrameHandler,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
             ILogger<RetrieveResourceService> logger)
@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 {
                     if (!message.OriginalTransferSyntaxRequested())
                     {
-                        resultStreams = _retrieveTranscoder.TranscodeFiles(resultStreams, message.RequestedRepresentation);
+                        resultStreams = await Task.WhenAll(resultStreams.Select(x => _retrieveTranscoder.TranscodeFile(x, message.RequestedRepresentation)));
                     }
 
                     resultStreams = resultStreams.Select(stream =>

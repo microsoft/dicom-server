@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private readonly IIndexDataStore _indexDataStore;
         private readonly IInstanceStore _instanceStore;
         private readonly IFileStore _fileStore;
-        private readonly IRetrieveTranscoder _retrieveTranscoder;
+        private readonly ITranscoder _retrieveTranscoder;
         private readonly IFrameHandler _frameHandler;
         private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
         private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _indexDataStore = sqlIndexStorageFixture.IndexDataStore;
             _instanceStore = sqlIndexStorageFixture.InstanceStore;
             _fileStore = blobStorageFixture.FileStore;
-            _retrieveTranscoder = Substitute.For<IRetrieveTranscoder>();
+            _retrieveTranscoder = Substitute.For<ITranscoder>();
             _frameHandler = Substitute.For<IFrameHandler>();
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
             _retrieveResourceService = new RetrieveResourceService(

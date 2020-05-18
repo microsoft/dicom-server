@@ -18,30 +18,31 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public class FrameHandler : IFrameHandler
     {
-        private readonly IRetrieveTranscoder _dicomRetrieveTranscoder;
+        private readonly ITranscoder _transcoder;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public FrameHandler(
-            IRetrieveTranscoder dicomRetrieveTranscoder,
+            ITranscoder transcoder,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager)
         {
-            EnsureArg.IsNotNull(dicomRetrieveTranscoder, nameof(dicomRetrieveTranscoder));
+            EnsureArg.IsNotNull(transcoder, nameof(transcoder));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
-            _dicomRetrieveTranscoder = dicomRetrieveTranscoder;
+            _transcoder = transcoder;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
         public async Task<Stream[]> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation)
         {
             var dicomFile = await DicomFile.OpenAsync(stream);
-            dicomFile.ValidateHasFrames(frames);
+            var pixelData = dicomFile.ValidateHasFrames(frames);
+            await stream.DisposeAsync();
 
-            if (!originalTransferSyntaxRequested && dicomFile.Dataset.InternalTransferSyntax.IsEncapsulated)
+            if (!originalTransferSyntaxRequested/* && dicomFile.Dataset.InternalTransferSyntax.IsEncapsulated*/)
             {
                 return frames.Select(frame => new LazyTransformReadOnlyStream<DicomFile>(
                         dicomFile,
-                        df => _dicomRetrieveTranscoder.TranscodeFrame(df, frame, requestedRepresentation)))
+                        df => _transcoder.TranscodeFrame(df, frame, requestedRepresentation)))
                 .ToArray();
             }
             else
@@ -49,26 +50,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 return frames.Select(
                         frame => new LazyTransformReadOnlyStream<DicomFile>(
                             dicomFile,
-                            df => GetFrameAsDicomData(df, frame)))
+                            df => GetFrameAsDicomData(pixelData, frame)))
                     .ToArray();
             }
         }
 
-        private Stream GetFrameAsDicomData(DicomFile dicomFile, int frame)
+        private Stream GetFrameAsDicomData(DicomPixelData pixelData, int frame)
         {
-            EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-            DicomDataset dataset = dicomFile.Dataset;
-
-            IByteBuffer resultByteBuffer;
-
-            // Pull uncompressed frame from source pixel data
-            var pixelData = DicomPixelData.Create(dataset);
+            EnsureArg.IsNotNull(pixelData, nameof(pixelData));
             if (frame >= pixelData.NumberOfFrames)
             {
                 throw new FrameNotFoundException();
             }
 
-            resultByteBuffer = pixelData.GetFrame(frame);
+            IByteBuffer resultByteBuffer = pixelData.GetFrame(frame);
 
             return _recyclableMemoryStreamManager.GetStream("FrameHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
         }

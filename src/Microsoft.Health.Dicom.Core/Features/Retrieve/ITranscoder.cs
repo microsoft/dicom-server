@@ -4,14 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IO;
+using System.Threading.Tasks;
 using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public interface IRetrieveTranscoder
+    public interface ITranscoder
     {
-        Stream[] TranscodeFiles(Stream[] streams, string requestedTransferSyntax);
+        public Task<Stream> TranscodeFile(Stream streams, string requestedTransferSyntax);
 
-        Stream TranscodeFrame(DicomFile dicomFile, int frame, string requestedTransferSyntax);
+        Stream TranscodeFrame(DicomFile dicomFile, int frameIndex, string requestedTransferSyntax);
     }
 }

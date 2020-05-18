@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IO;
-using System.Linq;
+using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
@@ -14,62 +14,49 @@ using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class RetrieveTranscoder : IRetrieveTranscoder
+    public class Transcoder : ITranscoder
     {
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
 
-        public RetrieveTranscoder(
+        public Transcoder(
             RecyclableMemoryStreamManager recyclableMemoryStreamManager)
         {
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
-        public Stream[] TranscodeFiles(Stream[] streams, string requestedTransferSyntax)
+        public async Task<Stream> TranscodeFile(Stream stream, string requestedTransferSyntax)
         {
             DicomTransferSyntax parsedDicomTransferSyntax =
                    string.IsNullOrWhiteSpace(requestedTransferSyntax) ?
                        DefaultTransferSyntax :
                        DicomTransferSyntax.Parse(requestedTransferSyntax);
 
-            Stream[] filteredStreams = streams.Where(x =>
+            var canTranscode = false;
+
+            try
             {
-                var canTranscode = false;
-
-                try
-                {
-                    var dicomFile = DicomFile.OpenAsync(x, FileReadOption.ReadLargeOnDemand).Result;
-                    canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
-                }
-                catch (DicomFileException e)
-                {
-                    throw new ResourceNotFoundException("InstanceNotFound", e);
-                }
-
-                x.Seek(0, SeekOrigin.Begin);
-
-                // If some of the instances are not transcodeable, NotFound should be returned
-                if (!canTranscode)
-                {
-                    throw new ResourceNotFoundException("InstanceNotFound", new TranscodingException());
-                }
-
-                return canTranscode;
-            }).ToArray();
-
-            if (filteredStreams.Length == 0 || filteredStreams.Length != streams.Length)
+                var dicomFile = DicomFile.Open(stream, FileReadOption.ReadLargeOnDemand);
+                canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
+            }
+            catch (DicomFileException e)
             {
-                throw new ResourceNotFoundException("InstanceNotFound", new TranscodingException());
+                throw new ResourceNotFoundException("InstanceNotFound", e);
             }
 
-            return filteredStreams.Select(stream =>
-                        new LazyTransformReadOnlyStream<Stream>(
-                            stream,
-                            s => TranscodeFile(s, parsedDicomTransferSyntax))).ToArray();
+            stream.Seek(0, SeekOrigin.Begin);
+
+            // If some of the instances are not transcodeable, NotFound should be returned
+            if (!canTranscode)
+            {
+                throw new TranscodingException();
+            }
+
+            return await TranscodeFile(stream, parsedDicomTransferSyntax);
         }
 
-        public Stream TranscodeFrame(DicomFile dicomFile, int frame, string requestedTransferSyntax)
+        public Stream TranscodeFrame(DicomFile dicomFile, int frameIndex, string requestedTransferSyntax)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
             DicomDataset dataset = dicomFile.Dataset;
@@ -83,19 +70,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             if (!dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
             {
-                throw new FrameNotFoundException(new TranscodingException());
+                throw new TranscodingException();
             }
 
             // Decompress single frame from source dataset
             var transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, parsedDicomTransferSyntax);
-            resultByteBuffer = transcoder.DecodeFrame(dataset, frame);
+            resultByteBuffer = transcoder.DecodeFrame(dataset, frameIndex);
 
             return _recyclableMemoryStreamManager.GetStream("RetrieveDicomResourceHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
         }
 
-        private Stream TranscodeFile(Stream stream, DicomTransferSyntax requestedTransferSyntax)
+        private async Task<Stream> TranscodeFile(Stream stream, DicomTransferSyntax requestedTransferSyntax)
         {
-            var tempDicomFile = DicomFile.Open(stream);
+            var tempDicomFile = await DicomFile.OpenAsync(stream);
 
             try
             {

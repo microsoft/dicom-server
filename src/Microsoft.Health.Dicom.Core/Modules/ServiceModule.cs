@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<RetrieveTranscoder>()
+            services.Add<Transcoder>()
                 .Transient()
                 .AsSelf()
                 .AsImplementedInterfaces();

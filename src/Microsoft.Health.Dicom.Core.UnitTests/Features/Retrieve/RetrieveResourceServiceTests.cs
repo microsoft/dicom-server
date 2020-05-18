@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         private readonly RetrieveResourceService _retrieveResourceService;
         private readonly IInstanceStore _instanceStore;
         private readonly IFileStore _fileStore;
-        private readonly IRetrieveTranscoder _retrieveTranscoder;
+        private readonly ITranscoder _retrieveTranscoder;
         private readonly IFrameHandler _dicomFrameHandler;
         private readonly ILogger<RetrieveResourceService> _logger;
         private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             _instanceStore = Substitute.For<IInstanceStore>();
             _fileStore = Substitute.For<IFileStore>();
-            _retrieveTranscoder = Substitute.For<IRetrieveTranscoder>();
+            _retrieveTranscoder = Substitute.For<ITranscoder>();
             _dicomFrameHandler = Substitute.For<IFrameHandler>();
             _logger = NullLogger<RetrieveResourceService>.Instance;
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
