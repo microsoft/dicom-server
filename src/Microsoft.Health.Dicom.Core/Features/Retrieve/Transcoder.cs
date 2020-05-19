@@ -60,6 +60,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
             DicomDataset dataset = dicomFile.Dataset;
+
+            // Validate requested frame index exists in file.
             DicomFileExtensions.GetFrames(dicomFile, new[] { frameIndex });
 
             DicomTransferSyntax parsedDicomTransferSyntax =
