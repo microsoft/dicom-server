@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
@@ -35,11 +37,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public async Task GivenDicomFileWithFrames_WhenRetrievingFrameWithOriginalTransferSyntax_ThenExpectedFramesAreReturned(params int[] frames)
         {
             (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
-            Stream[] framesStream = await _frameHandler.GetFramesResourceAsync(stream, frames, true, "*");
+            IReadOnlyCollection<Stream> framesStream = await _frameHandler.GetFramesResourceAsync(stream, frames, true, "*");
+            var framesOutput = framesStream.ToArray();
 
             for (int i = 0; i < frames.Length; i++)
             {
-                AssertPixelDataEqual(DicomPixelData.Create(file.Dataset).GetFrame(frames[i]), framesStream[i]);
+                AssertPixelDataEqual(DicomPixelData.Create(file.Dataset).GetFrame(frames[i]), framesOutput[i]);
             }
         }
 

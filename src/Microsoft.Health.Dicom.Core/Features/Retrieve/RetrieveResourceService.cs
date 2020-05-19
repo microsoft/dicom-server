@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -67,8 +68,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                 if (message.ResourceType == ResourceType.Frames)
                 {
-                    resultStreams = await _dicomFrameHandler.GetFramesResourceAsync(
-                        resultStreams.Single(), message.Frames, message.OriginalTransferSyntaxRequested(), message.RequestedRepresentation);
+                    return new RetrieveResourceResponse(await _dicomFrameHandler.GetFramesResourceAsync(
+                        resultStreams.Single(), message.Frames, message.OriginalTransferSyntaxRequested(), message.RequestedRepresentation));
                 }
                 else
                 {

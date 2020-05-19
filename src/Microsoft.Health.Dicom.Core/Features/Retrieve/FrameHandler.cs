@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
-        public async Task<Stream[]> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation)
+        public async Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation)
         {
             var dicomFile = await DicomFile.OpenAsync(stream);
             var pixelData = dicomFile.GetFrames(frames);
