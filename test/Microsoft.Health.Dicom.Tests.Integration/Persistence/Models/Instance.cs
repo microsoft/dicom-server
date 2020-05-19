@@ -11,9 +11,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
     public class Instance
     {
         public Instance(
-            int studyKey,
-            int seriesKey,
-            int instanceKey,
+            long studyKey,
+            long seriesKey,
+            long instanceKey,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,

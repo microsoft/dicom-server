@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
     {
         public StudyMetadata(
             string studyInstanceUid,
-            int studyKey,
+            long studyKey,
             string patientID,
             string patientName,
             string referringPhysicianName,

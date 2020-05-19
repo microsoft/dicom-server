@@ -147,7 +147,7 @@ CREATE TABLE dbo.Instance (
     SeriesKey               BIGINT                     NOT NULL, --FK
     -- StudyKey needed to join directly from Study table to find a instance
     StudyKey                BIGINT                     NOT NULL, --FK
-    --instance keys
+    --instance keys used in WADO
     StudyInstanceUid        VARCHAR(64)                NOT NULL,
     SeriesInstanceUid       VARCHAR(64)                NOT NULL,
     SopInstanceUid          VARCHAR(64)                NOT NULL,
@@ -265,7 +265,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
     StudyKey
 )
 
-CREATE NONCLUSTERED INDEX IX_Study_StudyInstanceUid ON dbo.Study
+CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyInstanceUid ON dbo.Study
 (
     StudyInstanceUid
 )
@@ -353,12 +353,12 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
     SeriesKey
 )
 
-CREATE NONCLUSTERED INDEX IX_Series_SeriesKey ON dbo.Series
+CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesKey ON dbo.Series
 (
     SeriesKey
 )
 
-CREATE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid ON dbo.Series
+CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid ON dbo.Series
 (
     SeriesInstanceUid
 )
