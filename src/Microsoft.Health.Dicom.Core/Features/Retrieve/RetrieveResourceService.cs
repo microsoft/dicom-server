@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -24,27 +23,30 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     {
         private readonly IFileStore _blobDataStore;
         private readonly IInstanceStore _instanceStore;
-        private readonly ITranscoder _retrieveTranscoder;
-        private readonly IFrameHandler _dicomFrameHandler;
+        private readonly ITranscoder _transcoder;
+        private readonly IFrameHandler _frameHandler;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly ILogger<RetrieveResourceService> _logger;
 
         public RetrieveResourceService(
             IInstanceStore instanceStore,
             IFileStore blobDataStore,
-            ITranscoder retrieveTranscoder,
-            IFrameHandler dicomFrameHandler,
+            ITranscoder transcoder,
+            IFrameHandler frameHandler,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
             ILogger<RetrieveResourceService> logger)
         {
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
+            EnsureArg.IsNotNull(transcoder, nameof(transcoder));
+            EnsureArg.IsNotNull(frameHandler, nameof(frameHandler));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             EnsureArg.IsNotNull(logger, nameof(logger));
+
             _instanceStore = instanceStore;
             _blobDataStore = blobDataStore;
-            _retrieveTranscoder = retrieveTranscoder;
-            _dicomFrameHandler = dicomFrameHandler;
+            _transcoder = transcoder;
+            _frameHandler = frameHandler;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
             _logger = logger;
         }
@@ -68,14 +70,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                 if (message.ResourceType == ResourceType.Frames)
                 {
-                    return new RetrieveResourceResponse(await _dicomFrameHandler.GetFramesResourceAsync(
+                    return new RetrieveResourceResponse(await _frameHandler.GetFramesResourceAsync(
                         resultStreams.Single(), message.Frames, message.OriginalTransferSyntaxRequested(), message.RequestedRepresentation));
                 }
                 else
                 {
                     if (!message.OriginalTransferSyntaxRequested())
                     {
-                        resultStreams = await Task.WhenAll(resultStreams.Select(x => _retrieveTranscoder.TranscodeFile(x, message.RequestedRepresentation)));
+                        resultStreams = await Task.WhenAll(resultStreams.Select(x => _transcoder.TranscodeFileAsync(x, message.RequestedRepresentation)));
                     }
 
                     resultStreams = resultStreams.Select(stream =>

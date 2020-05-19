@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
-        public async Task<Stream> TranscodeFile(Stream stream, string requestedTransferSyntax)
+        public async Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax)
         {
             DicomTransferSyntax parsedDicomTransferSyntax =
                    string.IsNullOrWhiteSpace(requestedTransferSyntax) ?
@@ -34,15 +34,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                        DicomTransferSyntax.Parse(requestedTransferSyntax);
 
             var canTranscode = false;
+            DicomFile dicomFile;
 
             try
             {
-                var dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
+                dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
                 canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
             }
-            catch (DicomFileException e)
+            catch (DicomFileException)
             {
-                throw new ResourceNotFoundException(DicomCoreResource.InstanceNotFound, e);
+                throw;
             }
 
             stream.Seek(0, SeekOrigin.Begin);
@@ -53,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 throw new TranscodingException();
             }
 
-            return await TranscodeFile(stream, parsedDicomTransferSyntax);
+            return await TranscodeFileAsync(dicomFile, parsedDicomTransferSyntax);
         }
 
         public Stream TranscodeFrame(DicomFile dicomFile, int frameIndex, string requestedTransferSyntax)
@@ -62,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             DicomDataset dataset = dicomFile.Dataset;
 
             // Validate requested frame index exists in file.
-            DicomFileExtensions.GetFrames(dicomFile, new[] { frameIndex });
+            dicomFile.GetPixelDataAndValidateFrames(new[] { frameIndex });
 
             DicomTransferSyntax parsedDicomTransferSyntax =
                    string.IsNullOrWhiteSpace(requestedTransferSyntax) ?
@@ -83,16 +84,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             return _recyclableMemoryStreamManager.GetStream("RetrieveDicomResourceHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
         }
 
-        private async Task<Stream> TranscodeFile(Stream stream, DicomTransferSyntax requestedTransferSyntax)
+        private async Task<Stream> TranscodeFileAsync(DicomFile dicomFile, DicomTransferSyntax requestedTransferSyntax)
         {
-            var tempDicomFile = await DicomFile.OpenAsync(stream);
-
             try
             {
                 var transcoder = new DicomTranscoder(
-                    tempDicomFile.Dataset.InternalTransferSyntax,
+                    dicomFile.Dataset.InternalTransferSyntax,
                     requestedTransferSyntax);
-                tempDicomFile = transcoder.Transcode(tempDicomFile);
+                dicomFile = transcoder.Transcode(dicomFile);
             }
             catch
             {
@@ -108,19 +107,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 // In the future a more optimal solution may involve maintaining a cache of transcoded images and
                 // using that to determine if transcoding is possible from within the Handle method.
 
-                tempDicomFile = null;
+                dicomFile = null;
             }
 
             MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
 
-            if (tempDicomFile != null)
+            if (dicomFile != null)
             {
-                tempDicomFile.Save(resultStream);
+                await dicomFile.SaveAsync(resultStream);
                 resultStream.Seek(offset: 0, loc: SeekOrigin.Begin);
             }
 
-            // We can dispose of the base stream as this is not needed.
-            stream.Dispose();
             return resultStream;
         }
     }

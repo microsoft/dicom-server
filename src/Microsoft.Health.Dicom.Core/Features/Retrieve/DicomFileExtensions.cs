@@ -14,7 +14,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public static class DicomFileExtensions
     {
-        public static DicomPixelData GetFrames(this DicomFile dicomFile, IEnumerable<int> frames)
+        public static DicomPixelData GetPixelDataAndValidateFrames(this DicomFile dicomFile, IEnumerable<int> frames)
+        {
+            var pixelData = GetPixelData(dicomFile);
+            ValidateFrames(pixelData, frames);
+
+            return pixelData;
+        }
+
+        public static DicomPixelData GetPixelData(this DicomFile dicomFile)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
             DicomDataset dataset = dicomFile.Dataset;
@@ -28,8 +36,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 throw new FrameNotFoundException();
             }
 
+            return DicomPixelData.Create(dataset);
+        }
+
+        public static void ValidateFrames(DicomPixelData pixelData, IEnumerable<int> frames)
+        {
             // Note: We look for any frame value that is less than zero, or greater than number of frames.
-            var pixelData = DicomPixelData.Create(dataset);
             var missingFrames = frames.Where(x => x >= pixelData.NumberOfFrames || x < 0).ToArray();
 
             // If any missing frames, throw not found exception for the specific frames not found.
@@ -37,8 +49,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             {
                 throw new FrameNotFoundException();
             }
-
-            return pixelData;
         }
     }
 }
