@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 {
     public class RetrieveController : Controller
     {
-        private const string TransferSyntaxHeaderName = "transfer-syntax";
+        private const string _defaultTransferSyntax = "*";
         private readonly IMediator _mediator;
         private readonly ILogger<RetrieveController> _logger;
 
@@ -40,6 +40,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
+        [AcceptTransferSyntaxFilter(new[] { _defaultTransferSyntax })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -47,7 +48,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.PartialContent)]
         [HttpGet]
         [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
-        public async Task<IActionResult> GetStudyAsync([FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax, string studyInstanceUid)
+        public async Task<IActionResult> GetStudyAsync([ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax, string studyInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}'.");
 
@@ -73,6 +74,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
+        [AcceptTransferSyntaxFilter(new[] { _defaultTransferSyntax })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -81,7 +83,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpGet]
         [Route(KnownRoutes.SeriesRoute)]
         public async Task<IActionResult> GetSeriesAsync(
-            [FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax,
+            [ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax,
             string studyInstanceUid,
             string seriesInstanceUid)
         {
@@ -111,6 +113,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: true, allowMultiple: false)]
+        [AcceptTransferSyntaxFilter(new[] { _defaultTransferSyntax })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -118,7 +121,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpGet]
         [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
         public async Task<IActionResult> GetInstanceAsync(
-            [FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax,
+            [ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid)
@@ -149,6 +152,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
+        [AcceptTransferSyntaxFilter(new[] { _defaultTransferSyntax })]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -156,7 +160,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpGet]
         [Route(KnownRoutes.FrameRoute)]
         public async Task<IActionResult> GetFramesAsync(
-            [FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax,
+            [ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,

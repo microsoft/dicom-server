@@ -68,7 +68,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
             TestFileBitDepth bitDepth,
             string transferSyntax,
             bool encode,
-            int frames = 1)
+            int frames = 1,
+            string photometricInterpretation = null)
         {
             var initialTs = DicomTransferSyntax.ExplicitVRLittleEndian;
 
@@ -86,7 +87,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
                     { DicomTag.SOPClassUID, sopClassUid ?? TestUidGenerator.Generate() },
                     { DicomTag.Rows, (ushort)rows },
                     { DicomTag.Columns, (ushort)cols },
-                    { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
+                    { DicomTag.PhotometricInterpretation, photometricInterpretation ?? PhotometricInterpretation.Monochrome2.Value },
                     { DicomTag.BitsAllocated, (ushort)bitDepth },
                     { DicomTag.WindowWidth, ((bitDepth == TestFileBitDepth.EightBit) ? "256" : "65536") },
                     { DicomTag.WindowCenter, ((bitDepth == TestFileBitDepth.EightBit) ? "128" : "32768") },

@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 // In the future a more optimal solution may involve maintaining a cache of transcoded images and
                 // using that to determine if transcoding is possible from within the Handle method.
 
-                tempDicomFile = null;
+                throw;
             }
 
             MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
