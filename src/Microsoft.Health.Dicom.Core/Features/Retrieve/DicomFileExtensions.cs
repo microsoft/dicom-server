@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public static class DicomFileExtensions
     {
-        public static DicomPixelData ValidateHasFrames(this DicomFile dicomFile, IEnumerable<int> frames)
+        public static DicomPixelData GetFrames(this DicomFile dicomFile, IEnumerable<int> frames)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
             DicomDataset dataset = dicomFile.Dataset;

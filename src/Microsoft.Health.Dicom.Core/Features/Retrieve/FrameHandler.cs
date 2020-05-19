@@ -35,10 +35,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         public async Task<Stream[]> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation)
         {
             var dicomFile = await DicomFile.OpenAsync(stream);
-            var pixelData = dicomFile.ValidateHasFrames(frames);
-            await stream.DisposeAsync();
+            var pixelData = dicomFile.GetFrames(frames);
 
-            if (!originalTransferSyntaxRequested/* && dicomFile.Dataset.InternalTransferSyntax.IsEncapsulated*/)
+            if (!originalTransferSyntaxRequested && dicomFile.Dataset.InternalTransferSyntax.IsEncapsulated)
             {
                 return frames.Select(frame => new LazyTransformReadOnlyStream<DicomFile>(
                         dicomFile,

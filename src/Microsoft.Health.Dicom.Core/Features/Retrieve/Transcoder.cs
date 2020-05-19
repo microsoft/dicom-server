@@ -37,17 +37,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             try
             {
-                var dicomFile = DicomFile.Open(stream, FileReadOption.ReadLargeOnDemand);
+                var dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
                 canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
             }
             catch (DicomFileException e)
             {
-                throw new ResourceNotFoundException("InstanceNotFound", e);
+                throw new ResourceNotFoundException(DicomCoreResource.InstanceNotFound, e);
             }
 
             stream.Seek(0, SeekOrigin.Begin);
 
-            // If some of the instances are not transcodeable, NotFound should be returned
+            // If the instance is not transcodeable a TranscodingException should be thrown.
             if (!canTranscode)
             {
                 throw new TranscodingException();
@@ -60,6 +60,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
             DicomDataset dataset = dicomFile.Dataset;
+            DicomFileExtensions.GetFrames(dicomFile, new[] { frameIndex });
 
             DicomTransferSyntax parsedDicomTransferSyntax =
                    string.IsNullOrWhiteSpace(requestedTransferSyntax) ?
