@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using Dicom;
 using EnsureThat;
@@ -21,13 +22,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
             // Ensure required tags are present.
-            EnsureRequiredTagIsPresentAndHasValidUid(DicomTag.PatientID);
-            EnsureRequiredTagIsPresentAndHasValidUid(DicomTag.SOPClassUID);
+            EnsureRequiredTagIsPresent(DicomTag.PatientID);
+            EnsureRequiredTagIsPresentAndValid(DicomTag.SOPClassUID, nameof(DicomTag.StudyInstanceUID));
 
             // The format of the identifiers will be validated by fo-dicom.
-            string studyInstanceUid = EnsureRequiredTagIsPresentAndHasValidUid(DicomTag.StudyInstanceUID);
-            string seriesInstanceUid = EnsureRequiredTagIsPresentAndHasValidUid(DicomTag.SeriesInstanceUID);
-            string sopInstanceUid = EnsureRequiredTagIsPresentAndHasValidUid(DicomTag.SOPInstanceUID);
+            string studyInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.StudyInstanceUID, nameof(DicomTag.StudyInstanceUID));
+            string seriesInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.SeriesInstanceUID, nameof(DicomTag.StudyInstanceUID));
+            string sopInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.SOPInstanceUID, nameof(DicomTag.StudyInstanceUID));
 
             // Ensure the StudyInstanceUid != SeriesInstanceUid != sopInstanceUid
             if (studyInstanceUid == seriesInstanceUid ||
@@ -52,16 +53,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                         requiredStudyInstanceUid));
             }
 
-            string EnsureRequiredTagIsPresentAndHasValidUid(DicomTag dicomTag)
+            string EnsureRequiredTagIsPresentAndValid(DicomTag dicomTag, string parameterName)
+            {
+                string value = EnsureRequiredTagIsPresent(dicomTag);
+
+                if (!UidValidator.Validate(value))
+                {
+                    throw new DatasetValidationException(
+                       FailureReasonCodes.ValidationFailure,
+                       string.Format(
+                           CultureInfo.InvariantCulture,
+                           DicomCoreResource.InvalidDicomIdentifier,
+                           parameterName,
+                           value));
+                }
+
+                return value;
+            }
+
+            string EnsureRequiredTagIsPresent(DicomTag dicomTag)
             {
                 if (dicomDataset.TryGetSingleValue(dicomTag, out string value))
                 {
-                    // The UID validation is not required for patientID.
-                    if (dicomTag != DicomTag.PatientID)
-                    {
-                        UidValidator.ValidateAndThrow(value, nameof(value));
-                    }
-
                     return value;
                 }
 

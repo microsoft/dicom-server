@@ -79,13 +79,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             DicomDataset CopyDicomDatasetWithoutBulkDataItems(DicomDataset dicomDatasetToCopy)
             {
-                var dataset = new DicomDataset();
-
-#pragma warning disable CS0618 // Type or member is obsolete
-                dataset.AutoValidate = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                return dataset.Add(dicomDatasetToCopy
+                return new DicomDataset(dicomDatasetToCopy
                     .Select(dicomItem =>
                     {
                         if (DicomBulkDataVr.Contains(dicomItem.ValueRepresentation))

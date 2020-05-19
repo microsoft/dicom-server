@@ -17,7 +17,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
@@ -131,6 +130,10 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
                 await action();
             }
             catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            {
+                throw new ItemNotFoundException(ex);
+            }
+            catch (DicomValidationException ex)
             {
                 throw new ItemNotFoundException(ex);
             }

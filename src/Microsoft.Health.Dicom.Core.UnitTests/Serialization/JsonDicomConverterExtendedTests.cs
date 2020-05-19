@@ -108,24 +108,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         }
 
         [Fact]
-        public static void GivenDicomJsonDatasetWithInvalidVrValue_WhenDeserialized_NotSupportedExceptionIsThrown()
-        {
-            const string json = @"
-            {
-                ""00101040"": {
-                ""vr"": ""LO"",
-                ""Value"": [ ""CT1 abdomen\u0000"" ]
-                }
-            }
-            ";
-
-            DicomDataset deserializedDataset = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
-
-            var recoveredData = deserializedDataset.GetValues<string>(DicomTag.PatientAddress);
-            Assert.Equal("CT1 abdomen\0", recoveredData.First());
-        }
-
-        [Fact]
         public static void GivenDicomJsonDatasetWithInvalidNumberVR_WhenDeserialized_NotSupportedExceptionIsThrown()
         {
             const string json = @"

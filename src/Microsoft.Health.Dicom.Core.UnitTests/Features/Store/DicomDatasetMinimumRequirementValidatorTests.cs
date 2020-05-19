@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
@@ -54,8 +53,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid);
 
-            Assert.Throws<InvalidIdentifierException>(
-               () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, studyInstanceUid));
+            ExecuteAndValidateException(ValidationFailedFailureCode);
         }
 
         [Theory]
@@ -73,8 +71,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDataset.AddOrUpdate(DicomTag.SeriesInstanceUID, seriesInstanceUid);
 
-            Assert.Throws<InvalidIdentifierException>(
-               () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null));
+            ExecuteAndValidateException(ValidationFailedFailureCode);
         }
 
         [Theory]
@@ -92,8 +89,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDataset.AddOrUpdate(DicomTag.SOPInstanceUID, sopInstanceUid);
 
-            Assert.Throws<InvalidIdentifierException>(
-               () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null));
+            ExecuteAndValidateException(ValidationFailedFailureCode);
         }
 
         [Theory]
@@ -111,8 +107,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDataset.AddOrUpdate(DicomTag.SOPClassUID, sopClassUid);
 
-            Assert.Throws<InvalidIdentifierException>(
-               () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null));
+            ExecuteAndValidateException(ValidationFailedFailureCode);
         }
 
         public static IEnumerable<object[]> GetDicomTagsToRemove()
