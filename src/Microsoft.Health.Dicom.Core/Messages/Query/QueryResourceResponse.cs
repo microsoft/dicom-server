@@ -11,14 +11,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
 {
     public sealed class QueryResourceResponse
     {
-        public QueryResourceResponse(IAsyncEnumerable<DicomDataset> responseDataset = null)
+        public QueryResourceResponse(IEnumerable<DicomDataset> responseDataset = null)
         {
-            ResponseDataset = responseDataset ?? AsyncEnumerable.Empty<DicomDataset>();
-            IsEmpty = responseDataset == null ? true : false;
+            ResponseDataset = responseDataset ?? Enumerable.Empty<DicomDataset>();
         }
 
-        public bool IsEmpty { get; }
-
-        public IAsyncEnumerable<DicomDataset> ResponseDataset { get; }
+        public IEnumerable<DicomDataset> ResponseDataset { get; }
     }
 }

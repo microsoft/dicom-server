@@ -13,16 +13,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
     {
         private static Dictionary<DicomTag, DicomTagSqlEntry> _tagToSqlMappingCache = new Dictionary<DicomTag, DicomTagSqlEntry>()
         {
-                { DicomTag.StudyInstanceUID, new DicomTagSqlEntry(DicomTag.StudyInstanceUID, SqlTableType.StudyTable, VLatest.StudyMetadataCore.StudyInstanceUid) },
-                { DicomTag.StudyDate, new DicomTagSqlEntry(DicomTag.StudyDate, SqlTableType.StudyTable, VLatest.StudyMetadataCore.StudyDate) },
-                { DicomTag.StudyDescription, new DicomTagSqlEntry(DicomTag.StudyDescription, SqlTableType.StudyTable, VLatest.StudyMetadataCore.StudyDescription) },
-                { DicomTag.AccessionNumber, new DicomTagSqlEntry(DicomTag.AccessionNumber, SqlTableType.StudyTable, VLatest.StudyMetadataCore.AccessionNumber) },
-                { DicomTag.PatientID, new DicomTagSqlEntry(DicomTag.PatientID, SqlTableType.StudyTable, VLatest.StudyMetadataCore.PatientId) },
-                { DicomTag.PatientName, new DicomTagSqlEntry(DicomTag.PatientName, SqlTableType.StudyTable, VLatest.StudyMetadataCore.PatientName, VLatest.StudyMetadataCoreTable.PatientNameWords) },
-                { DicomTag.ReferringPhysicianName, new DicomTagSqlEntry(DicomTag.ReferringPhysicianName, SqlTableType.StudyTable, VLatest.StudyMetadataCore.ReferringPhysicianName) },
-                { DicomTag.SeriesInstanceUID, new DicomTagSqlEntry(DicomTag.SeriesInstanceUID, SqlTableType.SeriesTable, VLatest.SeriesMetadataCore.SeriesInstanceUid) },
-                { DicomTag.Modality, new DicomTagSqlEntry(DicomTag.Modality, SqlTableType.SeriesTable, VLatest.SeriesMetadataCore.Modality) },
-                { DicomTag.PerformedProcedureStepStartDate, new DicomTagSqlEntry(DicomTag.PerformedProcedureStepStartDate, SqlTableType.SeriesTable, VLatest.SeriesMetadataCore.PerformedProcedureStepStartDate) },
+                { DicomTag.StudyInstanceUID, new DicomTagSqlEntry(DicomTag.StudyInstanceUID, SqlTableType.StudyTable, VLatest.Study.StudyInstanceUid) },
+                { DicomTag.StudyDate, new DicomTagSqlEntry(DicomTag.StudyDate, SqlTableType.StudyTable, VLatest.Study.StudyDate) },
+                { DicomTag.StudyDescription, new DicomTagSqlEntry(DicomTag.StudyDescription, SqlTableType.StudyTable, VLatest.Study.StudyDescription) },
+                { DicomTag.AccessionNumber, new DicomTagSqlEntry(DicomTag.AccessionNumber, SqlTableType.StudyTable, VLatest.Study.AccessionNumber) },
+                { DicomTag.PatientID, new DicomTagSqlEntry(DicomTag.PatientID, SqlTableType.StudyTable, VLatest.Study.PatientId) },
+                { DicomTag.PatientName, new DicomTagSqlEntry(DicomTag.PatientName, SqlTableType.StudyTable, VLatest.Study.PatientName, VLatest.StudyTable.PatientNameWords) },
+                { DicomTag.ReferringPhysicianName, new DicomTagSqlEntry(DicomTag.ReferringPhysicianName, SqlTableType.StudyTable, VLatest.Study.ReferringPhysicianName) },
+                { DicomTag.SeriesInstanceUID, new DicomTagSqlEntry(DicomTag.SeriesInstanceUID, SqlTableType.SeriesTable, VLatest.Series.SeriesInstanceUid) },
+                { DicomTag.Modality, new DicomTagSqlEntry(DicomTag.Modality, SqlTableType.SeriesTable, VLatest.Series.Modality) },
+                { DicomTag.PerformedProcedureStepStartDate, new DicomTagSqlEntry(DicomTag.PerformedProcedureStepStartDate, SqlTableType.SeriesTable, VLatest.Series.PerformedProcedureStepStartDate) },
                 { DicomTag.SOPInstanceUID, new DicomTagSqlEntry(DicomTag.SOPInstanceUID, SqlTableType.InstanceTable, VLatest.Instance.SopInstanceUid) },
         };
 

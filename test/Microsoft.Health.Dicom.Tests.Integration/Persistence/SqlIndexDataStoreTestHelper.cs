@@ -33,8 +33,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     sqlCommand.CommandText = @$"
                         SELECT *
-                        FROM {VLatest.StudyMetadataCore.TableName}
-                        WHERE {VLatest.StudyMetadataCore.StudyInstanceUid} = @studyInstanceUid";
+                        FROM {VLatest.Study.TableName}
+                        WHERE {VLatest.Study.StudyInstanceUid} = @studyInstanceUid";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
 
@@ -63,8 +63,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     sqlCommand.CommandText = @$"
                         SELECT *
-                        FROM {VLatest.SeriesMetadataCore.TableName}
-                        WHERE {VLatest.SeriesMetadataCore.SeriesInstanceUid} = @seriesInstanceUid";
+                        FROM {VLatest.Series.TableName}
+                        WHERE {VLatest.Series.SeriesInstanceUid} = @seriesInstanceUid";
 
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
 
