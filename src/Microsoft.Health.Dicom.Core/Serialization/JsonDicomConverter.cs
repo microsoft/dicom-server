@@ -101,7 +101,6 @@ namespace Dicom.Serialization
         private DicomDataset ReadJsonDataset(JToken obj)
         {
             var dataset = new DicomDataset();
-
             if (obj.Type == JTokenType.Null)
             { return null; }
             if (!(obj is JObject itemObject))
