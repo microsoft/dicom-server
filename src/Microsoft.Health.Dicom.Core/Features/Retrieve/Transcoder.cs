@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                        DefaultTransferSyntax :
                        DicomTransferSyntax.Parse(requestedTransferSyntax);
 
-            var canTranscode = false;
+            bool canTranscode = false;
             DicomFile dicomFile;
 
             try

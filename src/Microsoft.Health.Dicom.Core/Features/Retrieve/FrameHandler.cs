@@ -37,10 +37,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             EnsureArg.IsNotNull(stream, nameof(stream));
             EnsureArg.IsNotNull(frames, nameof(frames));
 
-            var dicomFile = await DicomFile.OpenAsync(stream);
+            DicomFile dicomFile = await DicomFile.OpenAsync(stream);
 
             // Validate requested frame index exists in file and retrieve the pixel data associated with the file.
-            var pixelData = dicomFile.GetPixelDataAndValidateFrames(frames);
+            DicomPixelData pixelData = dicomFile.GetPixelDataAndValidateFrames(frames);
 
             if (!originalTransferSyntaxRequested && dicomFile.Dataset.InternalTransferSyntax.IsEncapsulated)
             {
