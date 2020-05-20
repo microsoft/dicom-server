@@ -78,7 +78,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             // Bug in fo-dicom 4.0.1
             if ((toTransferSyntax == DicomTransferSyntax.JPEGProcess1 || toTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
                 ((photometricInterpretation == PhotometricInterpretation.Monochrome1.Value) ||
-                 (photometricInterpretation == PhotometricInterpretation.Monochrome2.Value)))
+                 (photometricInterpretation == PhotometricInterpretation.Monochrome2.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrFull.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrIct.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrRct.Value)))
             {
                 return false;
             }
