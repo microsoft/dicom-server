@@ -125,38 +125,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseMetadataDataset(storedInstance, response.Value.First());
         }
 
-        [Fact]
-        public async Task GivenStoredDicomFileWithInvalidVrValue_WhenMetadataIsRetrieved_ThenDicomWebExceptionIsThrown()
-        {
-            string studyInstanceUid = TestUidGenerator.Generate();
-            string seriesInstanceUid = TestUidGenerator.Generate();
-            string sopInstanceUid = TestUidGenerator.Generate();
-
-            // Disable autovalidation to store dicomfile with invalid VR value.
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-
-            await PostDicomFileAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid, dataSet: GenerateNewDataSetWithInvalidVR());
-
-            // Enable autovalidation now to test retrieve
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = true;
-#pragma warning restore CS0618 // Type or member is obsolete
-
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
-            Assert.Equal(HttpStatusCode.InternalServerError, exception.StatusCode);
-        }
-
-        private static DicomDataset GenerateNewDataSetWithInvalidVR()
-        {
-            var dicomDataset = new DicomDataset();
-
-            dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
-
-            return dicomDataset;
-        }
-
         private static DicomDataset GenerateNewDataSet()
         {
             return new DicomDataset()
