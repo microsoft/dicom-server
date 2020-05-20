@@ -252,7 +252,7 @@ We support searching on below attributes and search type.
 
 | Attribute Keyword | Study | Series | Instance |
 | :---------------- | :---: | :----: | :------: |
-| StudyInstanceId | X | X | X |
+| StudyInstanceUID | X | X | X |
 | PatientName | X | X | X |
 | PatientID | X | X | X |
 | AccessionNumber | X | X | X |
