@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
@@ -29,7 +30,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.BackgroundServices
             configuration.Value.Returns(new DeletedInstanceCleanupConfiguration
             {
                 BatchSize = BatchSize,
-                PollingInterval = TimeSpan.FromSeconds(1),
+                PollingInterval = TimeSpan.FromMilliseconds(100),
             });
             _deletedInstanceCleanupWorker = new DeletedInstanceCleanupWorker(_deleteService, configuration, NullLogger<DeletedInstanceCleanupWorker>.Instance);
             _cancellationTokenSource = new CancellationTokenSource();
@@ -43,28 +44,26 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.BackgroundServices
         [InlineData(19, 2)]
         [InlineData(20, 3)]
         [InlineData(21, 3)]
-        public void GivenANumberOfDeletedEntriesAndBatchSize_WhenCallingExecute_ThenDeleteShouldBeCalledCorrectNumberOfTimes(int numberOfDeletedInstances, int expectedDeleteCount)
+        public async Task GivenANumberOfDeletedEntriesAndBatchSize_WhenCallingExecute_ThenDeleteShouldBeCalledCorrectNumberOfTimes(int numberOfDeletedInstances, int expectedDeleteCount)
         {
             (bool, int) GenerateCleanupDeletedInstancesAsyncResponse()
             {
                 var returnValue = Math.Min(numberOfDeletedInstances, BatchSize);
                 numberOfDeletedInstances = Math.Max(numberOfDeletedInstances - BatchSize, 0);
 
+                if (numberOfDeletedInstances == 0)
+                {
+                    _cancellationTokenSource.Cancel();
+                }
+
                 return (true, returnValue);
             }
 
             _deleteService.CleanupDeletedInstancesAsync().ReturnsForAnyArgs(
-                x => GenerateCleanupDeletedInstancesAsyncResponse())
-                .AndDoes(x =>
-                {
-                    if (numberOfDeletedInstances == 0)
-                    {
-                        _cancellationTokenSource.Cancel();
-                    }
-                });
+                x => GenerateCleanupDeletedInstancesAsyncResponse());
 
-            _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
-            _deleteService.ReceivedWithAnyArgs(expectedDeleteCount).CleanupDeletedInstancesAsync();
+            await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
+            await _deleteService.ReceivedWithAnyArgs(expectedDeleteCount).CleanupDeletedInstancesAsync();
         }
     }
 }
