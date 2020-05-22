@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             return null;
         }
 
-        public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(int offset, int limit, CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(long offset, int limit, CancellationToken cancellationToken)
         {
             var results = new List<ChangeFeedEntry>();
 

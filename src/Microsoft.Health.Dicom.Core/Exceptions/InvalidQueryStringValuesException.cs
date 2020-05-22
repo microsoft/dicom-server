@@ -4,15 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Globalization;
 
-namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public interface IChangeFeedStore
+    public class InvalidQueryStringValuesException : ValidationException
     {
-        Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken = default);
-
-        Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(long offset, int limit, CancellationToken cancellationToken = default);
+        public InvalidQueryStringValuesException(IEnumerable<string> invalidParameters)
+            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidQueryStringValues, string.Join(", ", invalidParameters)))
+        {
+        }
     }
 }

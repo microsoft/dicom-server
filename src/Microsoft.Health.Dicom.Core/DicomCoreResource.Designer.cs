@@ -206,6 +206,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The following query parameter(s) were invalid: {0}..
+        /// </summary>
+        internal static string InvalidQueryStringValues {
+            get {
+                return ResourceManager.GetString("InvalidQueryStringValues", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The specified Transfer Syntax value is not valid..
         /// </summary>
         internal static string InvalidTransferSyntaxValue {
@@ -231,7 +240,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("ItemNotFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The StudyInstanceUid &apos;{0}&apos; in the payload does not match the specified StudyInstanceUid &apos;{1}&apos;..
         /// </summary>
@@ -249,7 +258,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("MissingRequestBody", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The required tag &apos;{0}&apos; is missing..
         /// </summary>
@@ -294,7 +303,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("SeriesInstanceNotFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The server is currently unable to receive requests. Please retry your request. If the issue persists, please contact support..
         /// </summary>
@@ -312,13 +321,13 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("StudyInstanceNotFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Unknown query parameter {0}..
         /// </summary>
-        internal static string UnkownQueryParameter {
+        internal static string UnknownQueryParameter {
             get {
-                return ResourceManager.GetString("UnkownQueryParameter", resourceCulture);
+                return ResourceManager.GetString("UnknownQueryParameter", resourceCulture);
             }
         }
 

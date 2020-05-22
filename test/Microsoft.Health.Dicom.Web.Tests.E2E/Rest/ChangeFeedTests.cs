@@ -133,22 +133,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(ChangeFeedState.Current, changeFeedResults.Value[0].State);
         }
 
-        [Fact]
-        public async Task GivenANegativeOffset_WhenRetrievingChangeFeed_ThenBadRequestReturned()
-        {
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.GetChangeFeed("?offset=-1"));
-            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
-        }
-
         [Theory]
-        [InlineData(-1)]
-        [InlineData(0)]
-        [InlineData(101)]
-        public async Task GivenAnInvalidLimit_WhenRetrievingChangeFeed_ThenBadRequestReturned(int limit)
+        [InlineData("-1", "0", "true")]
+        [InlineData("0", "0", "true")]
+        [InlineData("101", "0", "true")]
+        [InlineData("blah", "0", "true")]
+        [InlineData("1", "-1", "true")]
+        [InlineData("1", "92233720368547758070", "true")]
+        [InlineData("1", "blah", "true")]
+        [InlineData("1", "0", "0")]
+        [InlineData("1", "0", "true-ish")]
+        [InlineData("1", "0", "boolean")]
+        public async Task GivenAnInvalidParameter_WhenRetrievingChangeFeed_ThenBadRequestReturned(string limit, string offset, string includeMetadata)
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.GetChangeFeed($"?limit={limit}"));
+                () => _client.GetChangeFeed($"?limit={limit}&offset={offset}&includeMetadata={includeMetadata}"));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
