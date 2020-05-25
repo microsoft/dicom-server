@@ -169,8 +169,6 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 { DicomTag.BitsAllocated, (ushort)8 },
                 { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
                 { DicomTag.PatientID, TestUidGenerator.Generate() },
-                { DicomTag.SpecificCharacterSet, "ISO_IR 192" },
-                { DicomTag.TransferSyntaxUID, "1.2.840.10008.1.2.1" },
             };
 
             return ds;
