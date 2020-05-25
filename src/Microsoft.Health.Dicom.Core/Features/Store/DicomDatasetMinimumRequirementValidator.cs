@@ -22,6 +22,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             // Ensure required tags are present.
             EnsureRequiredTagIsPresent(DicomTag.PatientID);
             EnsureRequiredTagIsPresent(DicomTag.SOPClassUID);
+            EnsureRequiredTagIsPresent(DicomTag.SpecificCharacterSet); // Binary data will be read correctly into DicomDataset.
+            EnsureRequiredTagIsPresent(DicomTag.TransferSyntaxUID); // WADO can do a proper check if transcoding is supported.
 
             // The format of the identifiers will be validated by fo-dicom.
             string studyInstanceUid = EnsureRequiredTagIsPresent(DicomTag.StudyInstanceUID);

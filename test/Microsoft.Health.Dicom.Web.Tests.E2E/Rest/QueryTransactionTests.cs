@@ -262,6 +262,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
                 { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
                 { DicomTag.BitsAllocated, (ushort)8 },
+                { DicomTag.SpecificCharacterSet, "ISO_IR 192" },
+                { DicomTag.TransferSyntaxUID, "1.2.840.10008.1.2.1" },
             });
         }
 
