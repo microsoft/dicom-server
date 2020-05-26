@@ -206,11 +206,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The following query parameter(s) were invalid: {0}..
+        ///   Looks up a localized string similar to The following query parameter is invalid: {0}..
         /// </summary>
-        internal static string InvalidQueryStringValues {
+        internal static string InvalidQueryStringValue {
             get {
-                return ResourceManager.GetString("InvalidQueryStringValues", resourceCulture);
+                return ResourceManager.GetString("InvalidQueryStringValue", resourceCulture);
             }
         }
 

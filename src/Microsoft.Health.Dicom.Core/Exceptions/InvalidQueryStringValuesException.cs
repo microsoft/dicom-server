@@ -10,8 +10,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     public class InvalidQueryStringValuesException : ValidationException
     {
-        public InvalidQueryStringValuesException(IEnumerable<string> invalidParameters)
-            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidQueryStringValues, string.Join(", ", invalidParameters)))
+        public InvalidQueryStringValuesException(string firstInvalidParameter)
+            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidQueryStringValue, firstInvalidParameter))
         {
         }
     }

@@ -9,12 +9,14 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [ModelStateValidator]
     public class DeleteController : Controller
     {
         private readonly IMediator _mediator;

@@ -3,20 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [ModelStateValidator]
     public class ChangeFeedController : Controller
     {
         private readonly IMediator _mediator;
@@ -38,11 +38,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [Route(KnownRoutes.ChangeFeed)]
         public async Task<IActionResult> GetChangeFeed([FromQuery] long offset = 0, [FromQuery] int limit = 10, [FromQuery] bool includeMetadata = true)
         {
-            if (!ModelState.IsValid)
-            {
-                throw new InvalidQueryStringValuesException(ModelState.Where(x => x.Value.Errors.Any()).Select(x => x.Key));
-            }
-
             _logger.LogInformation($"Change feed was read with an offset of {offset} and limit of {limit} and metadata is {(includeMetadata ? string.Empty : "not")} included.");
 
             var response = await _mediator.GetChangeFeed(

@@ -7,11 +7,9 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
-using Microsoft.IO;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -19,12 +17,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private readonly DicomWebClient _client;
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             _client = fixture.Client;
-            _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
         }
 
         [Fact]
@@ -148,6 +144,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
                 () => _client.GetChangeFeed($"?limit={limit}&offset={offset}&includeMetadata={includeMetadata}"));
+            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+        }
+
+        [Fact]
+        public async Task GivenAnInvalidParameter_WhenRetrievingChangeFeedLatest_ThenBadRequestReturned()
+        {
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
+                () => _client.GetChangeFeedLatest("?includeMetadata=asdf"));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
