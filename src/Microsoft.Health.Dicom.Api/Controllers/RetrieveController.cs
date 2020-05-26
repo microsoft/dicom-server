@@ -44,7 +44,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.PartialContent)]
         [HttpGet]
         [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
         public async Task<IActionResult> GetStudyAsync([FromHeader(Name = TransferSyntaxHeaderName)] string transferSyntax, string studyInstanceUid)
@@ -77,7 +76,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.PartialContent)]
         [HttpGet]
         [Route(KnownRoutes.SeriesRoute)]
         public async Task<IActionResult> GetSeriesAsync(
@@ -150,6 +148,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
@@ -176,9 +175,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private static IActionResult CreateResult(RetrieveResourceResponse response, string contentType)
         {
-            return new MultipartResult(
-                response.IsPartialSuccess ? (int)HttpStatusCode.PartialContent : (int)HttpStatusCode.OK,
-                response.ResponseStreams.Select(x => new MultipartItem(contentType, x)).ToList());
+            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(contentType, x)).ToList());
         }
     }
 }

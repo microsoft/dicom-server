@@ -5,18 +5,12 @@
 
 using System.Collections.Generic;
 using System.IO;
-using EnsureThat;
+using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class RetrieveResourceResponse
+    public interface IFrameHandler
     {
-        public RetrieveResourceResponse(IEnumerable<Stream> responseStreams)
-        {
-            EnsureArg.IsNotNull(responseStreams, nameof(responseStreams));
-            ResponseStreams = responseStreams;
-        }
-
-        public IEnumerable<Stream> ResponseStreams { get; }
+        Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation);
     }
 }
