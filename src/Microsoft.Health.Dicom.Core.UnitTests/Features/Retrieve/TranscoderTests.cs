@@ -76,7 +76,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             (DicomFile dicomFile, Stream stream) = await StreamAndStoredFileFromDataset(photometricInterpretation, false, tsFrom);
             dicomFile.Dataset.ToInstanceIdentifier();
 
-            Stream transcodedFile = await _transcoder.TranscodeFile(stream, tsTo.UID.UID);
+            Stream transcodedFile = await _transcoder.TranscodeFileAsync(stream, tsTo.UID.UID);
 
             ValidateTransferSyntax(tsTo, transcodedFile);
         }
@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             (DicomFile dicomFile, Stream stream) = await StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom);
             dicomFile.Dataset.ToInstanceIdentifier();
-            Stream transcodedFile = await _transcoder.TranscodeFile(stream, tsTo.UID.UID);
+            Stream transcodedFile = await _transcoder.TranscodeFileAsync(stream, tsTo.UID.UID);
 
             ValidateTransferSyntax(tsTo, transcodedFile);
         }
@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             (DicomFile dicomFile, Stream stream) = await StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom);
             var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
-            var ex = Assert.ThrowsAsync<TranscodingException>(() => _transcoder.TranscodeFile(stream, tsTo.UID.UID));
+            var ex = Assert.ThrowsAsync<TranscodingException>(() => _transcoder.TranscodeFileAsync(stream, tsTo.UID.UID));
 
             Assert.Equal(DicomCoreResource.UnsupportedTranscoding, ex.Result.Message);
         }

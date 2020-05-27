@@ -49,8 +49,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             {
                 throw new FrameNotFoundException();
             }
-
-            return pixelData;
         }
     }
 }
