@@ -39,6 +39,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
             IList<MediaTypeHeaderValue> acceptHeaders = context.HttpContext.Request.GetTypedHeaders().Accept;
             bool acceptable = false;
 
+            // As model binding happens prior to filteration, use the transfer syntax that was found in TransferSyntaxModelBinder and validate if it is acceptable.
             if (context.ModelState.ContainsKey(TransferSyntaxHeaderPrefix) && _transferSyntaxes.Contains(context.ModelState[TransferSyntaxHeaderPrefix].RawValue))
             {
                 acceptable = true;

@@ -27,12 +27,12 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
             {
                 foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
                 {
-                    NameValueHeaderValue typeParameterValue = acceptHeader.Parameters.FirstOrDefault(
-                        parameter => StringSegment.Equals(parameter.Name, TransferSyntaxHeaderPrefix, StringComparison.InvariantCultureIgnoreCase));
+                    List<NameValueHeaderValue> typeParameterValue = acceptHeader.Parameters.Where(
+                        parameter => StringSegment.Equals(parameter.Name, TransferSyntaxHeaderPrefix, StringComparison.InvariantCultureIgnoreCase)).ToList();
 
-                    if (typeParameterValue != null)
+                    if (typeParameterValue != null && typeParameterValue.Count == 1)
                     {
-                        StringSegment parsedValue = HeaderUtilities.RemoveQuotes(typeParameterValue.Value);
+                        StringSegment parsedValue = HeaderUtilities.RemoveQuotes(typeParameterValue.First().Value);
 
                         ValueProviderResult valueProviderResult = new ValueProviderResult(parsedValue.ToString());
                         bindingContext.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, valueProviderResult);
