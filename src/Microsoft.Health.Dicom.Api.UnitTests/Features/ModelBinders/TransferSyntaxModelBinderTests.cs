@@ -14,15 +14,19 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders
 {
     public class TransferSyntaxModelBinderTests
     {
+        private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
+
         [Theory]
-        [InlineData(new[] { "application/dicom; traNSFer-sYNTAx=*" }, "*")]
-        [InlineData(new[] { "application/dicom", "traNSFer-sYNTAx=*" }, "*")]
-        [InlineData(new[] { "application/dicom, traNSFer-sYNTAx=  LittleEndian " }, "LittleEndian")]
-        [InlineData(new[] { "application/dicom", "   traNSFer-sYNTAx=  *" }, "*")]
-        public async Task GivenStringContent_WhenBindingTransferSyntax_ModelIsSetAndExpectedResultIsParsed(string[] contextValue, string expectedResult)
+        [InlineData("application/dicom;traNSFer-sYNTAx=*", "*")]
+        [InlineData("application/dicom;traNSFer-sYNTAx=\"*\"", "*")]
+        [InlineData("application/dicom;traNSFer-sYNTAx=\"LittleEndian\"", "LittleEndian")]
+        public async Task GivenStringContent_WhenBindingTransferSyntax_ModelIsSetAndExpectedResultIsParsed(string contextValue, string expectedResult)
         {
             ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
             bindingContext.HttpContext.Request.Headers["Accept"].Returns(new StringValues(contextValue));
+
+            ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
+            bindingContext.ModelState.Returns(modelStateDictionary);
 
             IModelBinder modelBinder = new TransferSyntaxModelBinder();
             await modelBinder.BindModelAsync(bindingContext);
@@ -31,21 +35,26 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders
 
             var actualResult = bindingContext.Result.Model as string;
             Assert.Equal(expectedResult, actualResult);
+            Assert.Equal(expectedResult, bindingContext.ModelState[TransferSyntaxHeaderPrefix].RawValue);
         }
 
         [Theory]
         [InlineData("helloworld")]
-        [InlineData("application/dicom,  traNSFer  -sYNTAx=  *")]
-        [InlineData("application/dicom", "   traNSFer  -sYNTAx=  *")]
-        public async Task GivenInvalidStringContent_WhenBindingTransferSyntax_ModelIsNotSet(params string[] contextValue)
+        [InlineData("application/dicom;traNSFer  -sYNTAx=  *")]
+        [InlineData("application/dicom;   traNSFer  -sYNTAx=  *")]
+        public async Task GivenInvalidStringContent_WhenBindingTransferSyntax_ModelIsNotSet(string contextValue)
         {
             ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
             bindingContext.HttpContext.Request.Headers["Accept"].Returns(new StringValues(contextValue));
 
+            ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
+            bindingContext.ModelState.Returns(modelStateDictionary);
+
             IModelBinder modelBinder = new TransferSyntaxModelBinder();
             await modelBinder.BindModelAsync(bindingContext);
 
-            Assert.Equal(ModelBindingResult.Success(null), bindingContext.Result);
+            Assert.Equal(bindingContext.Result, ModelBindingResult.Failed());
+            Assert.False(bindingContext.ModelState.ContainsKey(TransferSyntaxHeaderPrefix));
         }
     }
 }

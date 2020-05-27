@@ -3,9 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
 {
@@ -15,30 +20,29 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
 
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
-            var acceptHeader = bindingContext.HttpContext.Request.Headers["Accept"];
+            IList<MediaTypeHeaderValue> acceptHeaders = bindingContext.HttpContext.Request.GetTypedHeaders().Accept;
 
-            List<string> acceptHeaders = new List<string>();
-
-            if (acceptHeader.Count > 0)
+            // Validate the accept headers has one of the specified accepted media types.
+            if (acceptHeaders != null && acceptHeaders.Count > 0)
             {
-                char[] headerValueDelimiters = new char[] { ';', ',' };
-                foreach (var value in acceptHeader)
+                foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
                 {
-                    acceptHeaders.AddRange(value.Split(headerValueDelimiters));
+                    NameValueHeaderValue typeParameterValue = acceptHeader.Parameters.FirstOrDefault(
+                        parameter => StringSegment.Equals(parameter.Name, TransferSyntaxHeaderPrefix, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (typeParameterValue != null)
+                    {
+                        StringSegment parsedValue = HeaderUtilities.RemoveQuotes(typeParameterValue.Value);
+
+                        ValueProviderResult valueProviderResult = new ValueProviderResult(parsedValue.ToString());
+                        bindingContext.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, valueProviderResult);
+                        bindingContext.Result = ModelBindingResult.Success(parsedValue.ToString());
+                        return Task.CompletedTask;
+                    }
                 }
             }
 
-            foreach (string acceptHeaderValue in acceptHeaders)
-            {
-                var splitAcceptHeaderValue = acceptHeaderValue.Split("=");
-                if (splitAcceptHeaderValue.Length == 2 && splitAcceptHeaderValue[0].Trim().Equals(TransferSyntaxHeaderPrefix, System.StringComparison.InvariantCultureIgnoreCase))
-                {
-                    bindingContext.Result = ModelBindingResult.Success(splitAcceptHeaderValue[1].Trim());
-                    return Task.CompletedTask;
-                }
-            }
-
-            bindingContext.Result = ModelBindingResult.Success(null);
+            bindingContext.Result = ModelBindingResult.Failed();
             return Task.CompletedTask;
         }
     }

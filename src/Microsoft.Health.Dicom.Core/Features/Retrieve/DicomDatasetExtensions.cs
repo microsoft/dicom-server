@@ -55,6 +55,31 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
 
             if ((fromTs == DicomTransferSyntax.JPEG2000Lossless || fromTs == DicomTransferSyntax.JPEG2000Lossy) &&
+                (toTransferSyntax == DicomTransferSyntax.JPEG2000Lossless || toTransferSyntax == DicomTransferSyntax.JPEG2000Lossy) &&
+                ((photometricInterpretation == PhotometricInterpretation.YbrIct.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrRct.Value)))
+            {
+                return false;
+            }
+
+            if ((fromTs == DicomTransferSyntax.DeflatedExplicitVRLittleEndian ||
+                fromTs == DicomTransferSyntax.ExplicitVRBigEndian ||
+                fromTs == DicomTransferSyntax.ExplicitVRLittleEndian ||
+                fromTs == DicomTransferSyntax.ImplicitVRLittleEndian ||
+                fromTs == DicomTransferSyntax.RLELossless) &&
+                (toTransferSyntax == DicomTransferSyntax.JPEG2000Lossless ||
+                toTransferSyntax == DicomTransferSyntax.JPEG2000Lossy ||
+                toTransferSyntax == DicomTransferSyntax.JPEGProcess1 ||
+                toTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
+                ((photometricInterpretation == PhotometricInterpretation.Rgb.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrFull422.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrPartial422.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrPartial420.Value)))
+            {
+                return false;
+            }
+
+            if ((fromTs == DicomTransferSyntax.JPEG2000Lossless || fromTs == DicomTransferSyntax.JPEG2000Lossy) &&
                 ((photometricInterpretation == PhotometricInterpretation.Rgb.Value) ||
                  (photometricInterpretation == PhotometricInterpretation.YbrFull422.Value) ||
                  (photometricInterpretation == PhotometricInterpretation.YbrPartial422.Value) ||

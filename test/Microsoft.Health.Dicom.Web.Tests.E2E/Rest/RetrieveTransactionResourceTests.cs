@@ -138,7 +138,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(KnownContentTypes.MultipartRelated);
                 NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + KnownContentTypes.ApplicationOctetStream + "\"");
                 multipartHeader.Parameters.Add(contentHeader);
-                request.Headers.Accept.Add(multipartHeader);
+
+                string transferSyntaxHeader = ";transfer-syntax=\"*\"";
+                request.Headers.TryAddWithoutValidation("Accept", $"{multipartHeader.ToString()}{transferSyntaxHeader}");
 
                 request.Headers.Add("transfer-syntax", "*");
 
@@ -363,7 +365,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     seriesInstanceUid);
 
                 Assert.Equal(HttpStatusCode.OK, retrieveResponse.StatusCode);
-                Assert.Equal(DicomTransferSyntax.ExplicitVRLittleEndian, retrieveResponse.Value.Single().Dataset.InternalTransferSyntax);
+                Assert.Equal(DicomTransferSyntax.DeflatedExplicitVRLittleEndian, retrieveResponse.Value.Single().Dataset.InternalTransferSyntax);
             }
             finally
             {

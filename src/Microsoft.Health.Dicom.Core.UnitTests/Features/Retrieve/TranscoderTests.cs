@@ -121,9 +121,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Theory]
-        [MemberData(nameof(GetUnsupported8BitJPEGTranscoderCombos))]
+        [MemberData(nameof(GetUnsupported8BitGeneratorCombos))]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Consistency with other tests.")]
-        public void GivenUnsupported8bitFromJPEGFTransferSyntax_WhenRetrievingFileAndAskingForConversion_ErrorIsThrown(
+        public void GivenUnsupported8bitGeneratorTransferSyntax_WhenRetrievingFileAndAskingForConversion_ErrorIsThrown(
             DicomTransferSyntax tsFrom,
             DicomTransferSyntax tsTo,
             PhotometricInterpretation photometricInterpretation)
@@ -132,9 +132,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Theory]
-        [MemberData(nameof(GetUnsupported8BitJPEGTranscoderCombos))]
+        [MemberData(nameof(GetUnsupported8BitGeneratorCombos))]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Consistency with other tests.")]
-        public void GivenUnsupported8bitFromJPEGFTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ErrorIsThrown(
+        public void GivenUnsupported8bitGeneratorTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ErrorIsThrown(
             DicomTransferSyntax tsFrom,
             DicomTransferSyntax tsTo,
             PhotometricInterpretation photometricInterpretation)
@@ -143,7 +143,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Theory]
-        [MemberData(nameof(GetUnsupported8BitMonochromeTranscoderCombos))]
+        [MemberData(nameof(GetUnsupported8BitTranscoderCombos))]
         public async Task GivenUnsupported8bitMonochromeTransferSyntax_WhenRetrievingFileAndAskingForConversion_ErrorIsThrown(
             DicomTransferSyntax tsFrom,
             DicomTransferSyntax tsTo,
@@ -157,7 +157,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Theory]
-        [MemberData(nameof(GetUnsupported8BitMonochromeTranscoderCombos))]
+        [MemberData(nameof(GetUnsupported8BitTranscoderCombos))]
         public void GivenUnsupported8bitMonochromeTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ErrorIsThrown(
             DicomTransferSyntax tsFrom,
             DicomTransferSyntax tsTo,
@@ -179,8 +179,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             HashSet<(DicomTransferSyntax fromTs, DicomTransferSyntax toTs, PhotometricInterpretation photometricInterpretation)> supported8BitTranscoderCombos =
                 (from x in fromList from y in toList from z in photometricInterpretations select (x, y, z)).ToHashSet();
 
+            supported8BitTranscoderCombos.ExceptWith(GenerateUnsupported8BitFromJPEG2000GeneratorCombos());
             supported8BitTranscoderCombos.ExceptWith(GenerateUnsupported8BitFromJPEG2000TranscoderCombos());
-            supported8BitTranscoderCombos.ExceptWith(GenerateUnsupported8BitFromJPEGProcessTranscoderCombos());
+            supported8BitTranscoderCombos.ExceptWith(GenerateUnsupported8BitFromJPEGProcessGeneratorCombos());
             supported8BitTranscoderCombos.ExceptWith(GenerateUnsupported8BitToJPEGProcessTranscoderCombos());
             supported8BitTranscoderCombos.ExceptWith(GenerateUnsupported8BitToJPEGTranscoderCombos());
             supported8BitTranscoderCombos.ExceptWith(GenerateUnsupported8BitFromJPEGProcessMonochromePITranscoderCombos());
@@ -188,22 +189,23 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             return from x in supported8BitTranscoderCombos select new object[] { x.fromTs, x.toTs, x.photometricInterpretation };
         }
 
-        public static IEnumerable<object[]> GetUnsupported8BitJPEGTranscoderCombos()
+        public static IEnumerable<object[]> GetUnsupported8BitGeneratorCombos()
+        {
+            HashSet<(DicomTransferSyntax fromTs, DicomTransferSyntax toTs, PhotometricInterpretation photometricInterpretation)> supported8BitTranscoderCombos =
+                new HashSet<(DicomTransferSyntax, DicomTransferSyntax, PhotometricInterpretation)>();
+
+            supported8BitTranscoderCombos.UnionWith(GenerateUnsupported8BitFromJPEG2000GeneratorCombos());
+            supported8BitTranscoderCombos.UnionWith(GenerateUnsupported8BitFromJPEGProcessGeneratorCombos());
+
+            return from x in supported8BitTranscoderCombos select new object[] { x.fromTs, x.toTs, x.photometricInterpretation };
+        }
+
+        public static IEnumerable<object[]> GetUnsupported8BitTranscoderCombos()
         {
             HashSet<(DicomTransferSyntax fromTs, DicomTransferSyntax toTs, PhotometricInterpretation photometricInterpretation)> supported8BitTranscoderCombos =
                 new HashSet<(DicomTransferSyntax, DicomTransferSyntax, PhotometricInterpretation)>();
 
             supported8BitTranscoderCombos.UnionWith(GenerateUnsupported8BitFromJPEG2000TranscoderCombos());
-            supported8BitTranscoderCombos.UnionWith(GenerateUnsupported8BitFromJPEGProcessTranscoderCombos());
-
-            return from x in supported8BitTranscoderCombos select new object[] { x.fromTs, x.toTs, x.photometricInterpretation };
-        }
-
-        public static IEnumerable<object[]> GetUnsupported8BitMonochromeTranscoderCombos()
-        {
-            HashSet<(DicomTransferSyntax fromTs, DicomTransferSyntax toTs, PhotometricInterpretation photometricInterpretation)> supported8BitTranscoderCombos =
-                new HashSet<(DicomTransferSyntax, DicomTransferSyntax, PhotometricInterpretation)>();
-
             supported8BitTranscoderCombos.UnionWith(GenerateUnsupported8BitToJPEGProcessTranscoderCombos());
             supported8BitTranscoderCombos.UnionWith(GenerateUnsupported8BitFromJPEGProcessMonochromePITranscoderCombos());
 
@@ -219,7 +221,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             return from x in fromList from y in toList from z in photometricInterpretations select new object[] { x, y, z };
         }
 
-        public static HashSet<(DicomTransferSyntax, DicomTransferSyntax, PhotometricInterpretation)> GenerateUnsupported8BitFromJPEG2000TranscoderCombos()
+        public static HashSet<(DicomTransferSyntax, DicomTransferSyntax, PhotometricInterpretation)> GenerateUnsupported8BitFromJPEG2000GeneratorCombos()
         {
             HashSet<DicomTransferSyntax> fromTs = new HashSet<DicomTransferSyntax>
             {
@@ -244,6 +246,25 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                 PhotometricInterpretation.YbrFull422,
                 PhotometricInterpretation.YbrPartial422,
                 PhotometricInterpretation.YbrPartial420,
+            };
+
+            return (from x in fromTs from y in toTs from z in photometricInterpretations select (x, y, z)).ToHashSet();
+        }
+
+        public static HashSet<(DicomTransferSyntax, DicomTransferSyntax, PhotometricInterpretation)> GenerateUnsupported8BitFromJPEG2000TranscoderCombos()
+        {
+            HashSet<DicomTransferSyntax> fromTs = new HashSet<DicomTransferSyntax>
+            {
+                DicomTransferSyntax.JPEG2000Lossless,
+                DicomTransferSyntax.JPEG2000Lossy,
+            };
+            HashSet<DicomTransferSyntax> toTs = new HashSet<DicomTransferSyntax>
+            {
+                DicomTransferSyntax.JPEG2000Lossless,
+                DicomTransferSyntax.JPEG2000Lossy,
+            };
+            HashSet<PhotometricInterpretation> photometricInterpretations = new HashSet<PhotometricInterpretation>
+            {
                 PhotometricInterpretation.YbrIct,
                 PhotometricInterpretation.YbrRct,
             };
@@ -251,7 +272,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             return (from x in fromTs from y in toTs from z in photometricInterpretations select (x, y, z)).ToHashSet();
         }
 
-        public static HashSet<(DicomTransferSyntax, DicomTransferSyntax, PhotometricInterpretation)> GenerateUnsupported8BitFromJPEGProcessTranscoderCombos()
+        public static HashSet<(DicomTransferSyntax, DicomTransferSyntax, PhotometricInterpretation)> GenerateUnsupported8BitFromJPEGProcessGeneratorCombos()
         {
             HashSet<DicomTransferSyntax> fromTs = new HashSet<DicomTransferSyntax>
             {

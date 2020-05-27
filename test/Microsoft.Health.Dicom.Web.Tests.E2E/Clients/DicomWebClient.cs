@@ -85,11 +85,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationOctetStream));
-                if (dicomTransferSyntax != null)
-                {
-                    request.Headers.TryAddWithoutValidation("Accept", "transfer-syntax=" + dicomTransferSyntax);
-                }
+                string mediaTypeHeader = CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationOctetStream).ToString();
+                string transferSyntaxHeader = dicomTransferSyntax == null ? $";transfer-syntax=\"*\"" : $";transfer-syntax=\"{dicomTransferSyntax}\"";
+
+                request.Headers.TryAddWithoutValidation("Accept", $"{mediaTypeHeader}{transferSyntaxHeader}");
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
@@ -130,19 +129,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
+                string mediaTypeHeader = null;
+
                 if (singleInstance)
                 {
-                    request.Headers.Accept.Add(MediaTypeApplicationDicom);
+                    mediaTypeHeader = MediaTypeApplicationDicom.ToString();
                 }
                 else
                 {
-                    request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationDicom));
+                    mediaTypeHeader = CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationDicom).ToString();
                 }
 
-                if (dicomTransferSyntax != null)
-                {
-                    request.Headers.TryAddWithoutValidation("Accept", "transfer-syntax=" + dicomTransferSyntax);
-                }
+                string transferSyntaxHeader = dicomTransferSyntax == null ? $";transfer-syntax=\"*\"" : $";transfer-syntax=\"{dicomTransferSyntax}\"";
+
+                request.Headers.TryAddWithoutValidation("Accept", $"{mediaTypeHeader}{transferSyntaxHeader}");
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {

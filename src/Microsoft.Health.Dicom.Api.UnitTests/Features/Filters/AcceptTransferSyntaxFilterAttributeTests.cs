@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Xunit;
@@ -18,6 +19,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
     public class AcceptTransferSyntaxFilterAttributeTests
     {
         private const string DefaultTransferSyntax = "*";
+        private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
         private AcceptTransferSyntaxFilterAttribute _filter;
         private readonly ActionExecutingContext _context;
 
@@ -28,14 +30,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         }
 
         [Theory]
-        [InlineData("image/png;TransFer-syNtax=*\"")]
-        [InlineData("image/png;TransFer-syNtax=hello")]
-        [InlineData("image/png;TransFer-syNtax=1.2.840.10008.1.2.4.50")]
-        [InlineData("image/png;TransFer-syNtax=1.2.840.10008.1.2.4.50", "image/png;TransFer-syNtax=hello")]
-        [InlineData("image/png;TransFer-syNtax=1.2.840.10008.1.2.4.50", "  image/png;TransFer-syNtax   =      hello  ")]
-        public void GivenARequestWithUnsupportedTransferSyntax_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenCorrectStatusCodeShouldBeReturned(params string[] acceptHeaders)
+        [InlineData("hello")]
+        [InlineData("1.2.840.10008.1.2.4.50")]
+        public void GivenARequestWithUnsupportedTransferSyntax_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenCorrectStatusCodeShouldBeReturned(string parsedTransferSyntax)
         {
-            _context.HttpContext.Request.Headers.Add("Accept", acceptHeaders);
+            _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, new ValueProviderResult(parsedTransferSyntax));
 
             _filter.OnActionExecuting(_context);
 
@@ -43,29 +42,10 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         }
 
         [Theory]
-        [InlineData("image/png;transfer-syntax=*")]
-        [InlineData("image/png;transfer-syntax=*", "application/dicom")]
-        [InlineData("image/png;   transfer-syntax  =   *    ", "application/dicom")]
-        [InlineData(null)]
-        public void GivenARequestWithSupportedTransferSyntax_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenFilterShouldPass(params string[] acceptHeaders)
+        [InlineData("*")]
+        public void GivenARequestWithSupportedTransferSyntax_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenFilterShouldPass(string parsedTransferSyntax)
         {
-            _context.HttpContext.Request.Headers.Add("Accept", acceptHeaders);
-
-            _filter.OnActionExecuting(_context);
-
-            Assert.Null((_context.Result as StatusCodeResult)?.StatusCode);
-        }
-
-        [Theory]
-        [InlineData("image/png;")]
-        [InlineData("image/png;TransFersyNtax=*")]
-        [InlineData("image/png; TransFersyNtax=*")]
-        [InlineData("image/png; TransFer     syNtax=*")]
-        [InlineData("image/png; TransFersyNtax=*", "application/dicom")]
-        [InlineData(null)]
-        public void GivenARequestWithNoTransferSyntaxValue_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenFilterShouldPass(params string[] acceptHeaders)
-        {
-            _context.HttpContext.Request.Headers.Add("Accept", acceptHeaders);
+            _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, new ValueProviderResult(parsedTransferSyntax));
 
             _filter.OnActionExecuting(_context);
 
@@ -73,11 +53,21 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         }
 
         [Fact]
-        public void GivenARequestWithNoAcceptHeader_WhenValidatingTheContentTypeAgainstMultipartHeaderFilter_ThenNotAcceptableStatusCodeShouldBeReturned()
+        public void GivenARequestWithNoTransferSyntaxValue_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenFilterShouldPass()
+        {
+            _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, null, null);
+
+            _filter.OnActionExecuting(_context);
+
+            Assert.Equal((int)HttpStatusCode.NotAcceptable, (_context.Result as StatusCodeResult)?.StatusCode);
+        }
+
+        [Fact]
+        public void GivenARequestWithNoSetTransferSyntaxHeader_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenNotAcceptableStatusCodeShouldBeReturned()
         {
             _filter.OnActionExecuting(_context);
 
-            Assert.Null((_context.Result as StatusCodeResult)?.StatusCode);
+            Assert.Equal((int)HttpStatusCode.NotAcceptable, (_context.Result as StatusCodeResult)?.StatusCode);
         }
 
         private AcceptTransferSyntaxFilterAttribute CreateFilter(string[] supportedTransferSyntaxes)

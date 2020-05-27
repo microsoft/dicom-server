@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 {
     public class RetrieveController : Controller
     {
-        private const string _defaultTransferSyntax = "*";
+        private const string DefaultTransferSyntax = "*";
         private readonly IMediator _mediator;
         private readonly ILogger<RetrieveController> _logger;
 
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { _defaultTransferSyntax })]
+        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { _defaultTransferSyntax })]
+        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -113,7 +113,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: true, allowMultiple: false)]
-        [AcceptTransferSyntaxFilter(new[] { _defaultTransferSyntax })]
+        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -152,7 +152,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { _defaultTransferSyntax })]
+        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
