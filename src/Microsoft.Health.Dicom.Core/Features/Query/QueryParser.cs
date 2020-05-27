@@ -83,7 +83,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     continue;
                 }
 
-                throw new QueryParseException(string.Format(DicomCoreResource.UnkownQueryParameter, queryParam.Key));
+                throw new QueryParseException(string.Format(DicomCoreResource.UnknownQueryParameter, queryParam.Key));
             }
 
             // add UIDs as filter conditions

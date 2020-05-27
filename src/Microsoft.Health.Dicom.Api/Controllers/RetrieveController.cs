@@ -24,6 +24,7 @@ using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [ModelStateValidator]
     public class RetrieveController : Controller
     {
         private const string TransferSyntaxHeaderName = "transfer-syntax";

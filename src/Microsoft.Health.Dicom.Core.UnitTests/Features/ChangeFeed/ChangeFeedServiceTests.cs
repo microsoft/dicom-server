@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             _changeFeedStore.GetChangeFeedAsync(offset: default, limit: default, cancellationToken: default)
                 .ReturnsForAnyArgs(callInfo =>
                 {
-                    return _changeFeedEntries?.Skip(callInfo.ArgAt<int>(0)).Take(callInfo.ArgAt<int>(1)).ToList();
+                    return _changeFeedEntries?.Skip((int)callInfo.ArgAt<long>(0)).Take(callInfo.ArgAt<int>(1)).ToList();
                 });
 
             _changeFeedStore.GetChangeFeedLatestAsync(cancellationToken: default)
