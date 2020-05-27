@@ -244,7 +244,7 @@ The following parameters for each query are supported:
 | `includefield=`  | `{attributeID}`<br/>`all`   | 0...N         | The additional attributes to return in the response.<br/>When `all` is provided, please see [Search Response](###Search-Response) for more information about which attributes will be returned for each query type.<br/>If a mixture of {attributeID} and 'all' is provided, the server will default to using 'all'. |
 | `limit=`         | {value}                       | 0..1          | Integer value to limit the number of values returned in the response.<br/>Value can be between the range 1 >= x <= 200. Defaulted to 100. |
 | `offset=`        | {value}                       | 0..1          | Skip {value} results.<br/>If an offset is provided larger than the number of search query results, a 204 (no content) response will be returned. |
-| `fuzzymatching=` | `true` \| `false`             | 0..1          | If true fuzzy matching is applied to PatientName attribute. It will do a prefix word match of any name part inside PatientName value. For example, if PatientName is "John^Doe", then "joh", "do", "jo do" and "Doe", "John Doe" will all match. However "ohn" will not match. |
+| `fuzzymatching=` | `true` \| `false`             | 0..1          | If true fuzzy matching is applied to PatientName attribute. It will do a prefix word match of any name part inside PatientName value. For example, if PatientName is "John^Doe", then "joh", "do", "jo do", "Doe" and "John Doe" will all match. However "ohn" will not match. |
 
 #### Searchable Attributes
 
@@ -365,7 +365,7 @@ If includefield=all, below attributes are included along with default attributes
 Along with those below attributes are returned:
 
 - All the match query parameters and UIDs in the resource url.
-- IncludeField attributes supported at that resource level. Not supported attributes will not be returned.
+- IncludeField attributes supported at that resource level. 
 - If the target resource is All Series, then Study level attributes are also returned.
 - If the target resource is All Instances, then Study and Series level attributes are also returned.
 - If the target resource is Study's Instances, then Series level attributes are also returned.
@@ -388,7 +388,8 @@ The query API will return one of the following status codes in the response:
 - The query API will not return 413 (request entity too large). If the requested query response limit is outside of the acceptable range, a bad request will be returned. Anything requested within the acceptable range, will be resolved.
 - When target resource is Study/Series there is a potential for inconsistent study/series level metadata across multiple instances. For example, two instances could have different patientName. In this case latest will win and you can search only on the latest data.
 - Paged results are optimized to return matched *newest* instance first, this may result in duplicate records in subsequent pages if newer data matching the query was added.
-- Matching on the strings is case in-sensitive and accent in-sensitive for PN VR types and case in-sensitive for other string VR types.
+- Matching is case in-sensitive and accent in-sensitive for PN VR types.
+- Matching is case in-sensitive and accent sensitive for other string VR types.
 
 ## Delete
 
