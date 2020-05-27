@@ -45,7 +45,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.PartialContent)]
         [HttpGet]
         [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
         public async Task<IActionResult> GetStudyAsync([ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax, string studyInstanceUid)
@@ -79,7 +78,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.PartialContent)]
         [HttpGet]
         [Route(KnownRoutes.SeriesRoute)]
         public async Task<IActionResult> GetSeriesAsync(
@@ -154,6 +152,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
         [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]

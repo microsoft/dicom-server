@@ -3,14 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed
 {
-    public interface IFrameHandler
+    public class ChangeFeedLatestResponse
     {
-        Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation);
+        public ChangeFeedLatestResponse(ChangeFeedEntry entry)
+        {
+            Entry = entry;
+        }
+
+        public ChangeFeedEntry Entry { get; }
     }
 }

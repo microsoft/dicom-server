@@ -4,18 +4,20 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
-using Dicom;
+using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Query
+namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed
 {
-    public sealed class QueryResourceResponse
+    public class ChangeFeedResponse
     {
-        public QueryResourceResponse(IEnumerable<DicomDataset> responseDataset = null)
+        public ChangeFeedResponse(IReadOnlyCollection<ChangeFeedEntry> entries)
         {
-            ResponseDataset = responseDataset ?? Enumerable.Empty<DicomDataset>();
+            EnsureArg.IsNotNull(entries, nameof(entries));
+
+            Entries = entries;
         }
 
-        public IEnumerable<DicomDataset> ResponseDataset { get; }
+        public IReadOnlyCollection<ChangeFeedEntry> Entries { get; }
     }
 }

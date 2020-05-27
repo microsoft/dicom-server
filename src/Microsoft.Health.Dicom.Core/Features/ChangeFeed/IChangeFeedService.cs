@@ -4,13 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 {
-    public interface IFrameHandler
+    public interface IChangeFeedService
     {
-        Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation);
+        public Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(int offset, int limit, bool includeMetadata, CancellationToken cancellationToken = default);
+
+        public Task<ChangeFeedEntry> GetChangeFeedLatestAsync(bool includeMetadata, CancellationToken cancellationToken = default);
     }
 }

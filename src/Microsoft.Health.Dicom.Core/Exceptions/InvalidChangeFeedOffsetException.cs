@@ -3,14 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public interface IFrameHandler
+    public class InvalidChangeFeedOffsetException : ValidationException
     {
-        Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation);
+        public InvalidChangeFeedOffsetException()
+            : base(DicomCoreResource.ChangeFeedOffsetCannotBeNegative)
+        {
+        }
     }
 }

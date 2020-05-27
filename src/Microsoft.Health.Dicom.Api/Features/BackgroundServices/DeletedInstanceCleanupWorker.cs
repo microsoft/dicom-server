@@ -39,6 +39,8 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
             {
                 try
                 {
+                    await Task.Delay(_pollingInterval, stoppingToken);
+
                     bool success;
                     int retrievedInstanceCount;
                     do
@@ -46,13 +48,11 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
                         (success, retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
                     }
                     while (success && retrievedInstanceCount == _batchSize);
-
-                    await Task.Delay(_pollingInterval, stoppingToken);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     // Cancel requested.
-                    break;
+                    throw;
                 }
                 catch (Exception ex)
                 {

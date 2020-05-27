@@ -135,7 +135,7 @@ GO
 /*************************************************************
 Full text catalog creation
 **************************************************************/
-CREATE FULLTEXT CATALOG Dicom_Catalog AS DEFAULT
+CREATE FULLTEXT CATALOG Dicom_Catalog WITH ACCENT_SENSITIVITY = OFF AS DEFAULT
 GO
 
 /*************************************************************
@@ -143,174 +143,194 @@ GO
     Dicom instances with unique Study, Series and Instance Uid
 **************************************************************/
 CREATE TABLE dbo.Instance (
-    --instance keys
-    StudyInstanceUid        VARCHAR(64) NOT NULL,
-    SeriesInstanceUid       VARCHAR(64) NOT NULL,
-    SopInstanceUid          VARCHAR(64) NOT NULL,
+    InstanceKey             BIGINT                     NOT NULL, --PK
+    SeriesKey               BIGINT                     NOT NULL, --FK
+    -- StudyKey needed to join directly from Study table to find a instance
+    StudyKey                BIGINT                     NOT NULL, --FK
+    --instance keys used in WADO
+    StudyInstanceUid        VARCHAR(64)                NOT NULL,
+    SeriesInstanceUid       VARCHAR(64)                NOT NULL,
+    SopInstanceUid          VARCHAR(64)                NOT NULL,
     --data consitency columns
-    Watermark               BIGINT NOT NULL,
-    Status                  TINYINT NOT NULL,
-    LastStatusUpdatedDate   DATETIME2(7) NOT NULL,
+    Watermark               BIGINT                     NOT NULL,
+    Status                  TINYINT                    NOT NULL,
+    LastStatusUpdatedDate   DATETIME2(7)               NOT NULL,
     --audit columns
-    CreatedDate             DATETIME2(7) NOT NULL
+    CreatedDate             DATETIME2(7)               NOT NULL
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
 (
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid
+    SeriesKey,
+    InstanceKey
 )
 
 --Filter indexes
-CREATE NONCLUSTERED INDEX IX_Instance_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_Status on dbo.Instance
 (
+    StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid
+    SopInstanceUid,
+    Status
 )
 INCLUDE
 (
-    StudyInstanceUid,
-    Status,
     Watermark
 )
 
-CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid ON dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status on dbo.Instance
 (
-    SopInstanceUid
+    StudyInstanceUid,
+    Status
+)
+INCLUDE
+(
+    Watermark
+)
+
+CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status on dbo.Instance
+(
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    Status
+)
+INCLUDE
+(
+    Watermark
+)
+
+CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status on dbo.Instance
+(
+    SopInstanceUid,
+    Status
 )
 INCLUDE
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    Status,
     Watermark
 )
+
+CREATE NONCLUSTERED INDEX IX_Instance_Watermark on dbo.Instance
+(
+    Watermark
+)
+
 
 --Cross apply indexes
-CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_Watermark on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status on dbo.Instance
 (
-    StudyInstanceUid,
-    Status,
-    Watermark DESC
+    SeriesKey,
+    Status
 )
 INCLUDE
 (
+    StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid
+    SopInstanceUid,
+    Watermark
 )
 
-CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_Watermark on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status on dbo.Instance
 (
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    Status,
-    Watermark DESC
+    StudyKey,
+    Status
 )
 INCLUDE
 (
-    SopInstanceUid
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid,
+    Watermark
 )
 
 /*************************************************************
     Study Table
     Table containing normalized standard Study tags
 **************************************************************/
-CREATE TABLE dbo.StudyMetadataCore (
-    --Key
-    Id                          BIGINT NOT NULL, --PK
-    --instance keys
-    StudyInstanceUid            VARCHAR(64) NOT NULL,
-    Version                     INT NOT NULL,
-    --patient and study core
-    PatientId                   NVARCHAR(64) NOT NULL,
-    PatientName                 NVARCHAR(325) NULL,
-    ReferringPhysicianName      NVARCHAR(325) NULL,
-    StudyDate                   DATE NULL,
-    StudyDescription            NVARCHAR(64) NULL,
-    AccessionNumber             NVARCHAR(16) NULL,
-    PatientNameWords            AS REPLACE(PatientName, '^', ' ')  PERSISTED--FT index,
+CREATE TABLE dbo.Study (
+    StudyKey                    BIGINT                            NOT NULL, --PK
+    StudyInstanceUid            VARCHAR(64)                       NOT NULL, 
+    PatientId                   NVARCHAR(64)                      NOT NULL,
+    PatientName                 NVARCHAR(325)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
+    ReferringPhysicianName      NVARCHAR(325)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
+    StudyDate                   DATE                              NULL,
+    StudyDescription            NVARCHAR(64)                      NULL,
+    AccessionNumber             NVARCHAR(16)                      NULL,
+    PatientNameWords            AS REPLACE(PatientName, '^', ' ') PERSISTED,
 )
 
-CREATE UNIQUE CLUSTERED INDEX IXC_StudyMetadataCore ON dbo.StudyMetadataCore
+CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
 (
-    Id,
+    StudyKey
+)
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyInstanceUid ON dbo.Study
+(
     StudyInstanceUid
 )
+INCLUDE
+(
+    StudyKey
+)
 
-CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_PatientId ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_Study_PatientId ON dbo.Study
 (
     PatientId
 )
 INCLUDE
 (
-    Id,
-    StudyInstanceUid
+    StudyKey
 )
 
-CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_PatientName ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_Study_PatientName ON dbo.Study
 (
     PatientName
 )
 INCLUDE
 (
-    Id,
-    StudyInstanceUid
+    StudyKey
 )
 
-CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_ReferringPhysicianName ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_Study_ReferringPhysicianName ON dbo.Study
 (
     ReferringPhysicianName
 )
 INCLUDE
 (
-    Id,
-    StudyInstanceUid
+    StudyKey
 )
 
-CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_StudyDate ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_Study_StudyDate ON dbo.Study
 (
     StudyDate
 )
 INCLUDE
 (
-    Id,
-    StudyInstanceUid
+    StudyKey
 )
 
-CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_StudyDescription ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_Study_StudyDescription ON dbo.Study
 (
     StudyDescription
 )
 INCLUDE
 (
-    Id,
-    StudyInstanceUid
+    StudyKey
 )
 
-CREATE NONCLUSTERED INDEX IX_StudyMetadataCore_AccessionNumber ON dbo.StudyMetadataCore
+CREATE NONCLUSTERED INDEX IX_Study_AccessionNumber ON dbo.Study
 (
     AccessionNumber
 )
 INCLUDE
 (
-    Id,
-    StudyInstanceUid
+    StudyKey
 )
 
---Full text creation
---unique single column index for FT index
-CREATE UNIQUE NONCLUSTERED INDEX IX_StudyMetadataCore_Id ON dbo.StudyMetadataCore
-(
-    Id
-)
-INCLUDE
-(
-    StudyInstanceUid
-)
 
-CREATE FULLTEXT INDEX ON StudyMetadataCore(PatientNameWords LANGUAGE 1033)
-KEY INDEX IX_StudyMetadataCore_Id
+CREATE FULLTEXT INDEX ON Study(PatientNameWords LANGUAGE 1033)
+KEY INDEX IXC_Study
 WITH STOPLIST = OFF;
 
 
@@ -319,41 +339,52 @@ WITH STOPLIST = OFF;
     Table containing normalized standard Series tags
 **************************************************************/
 
-CREATE TABLE dbo.SeriesMetadataCore (
-    --Foreign Key
-    StudyId                             BIGINT NOT NULL, --FK
-    --instance keys
-    SeriesInstanceUid                   VARCHAR(64) NOT NULL,
-    Version                             INT NOT NULL,
-    --series core
-    Modality                            NVARCHAR(16) NULL,
-    PerformedProcedureStepStartDate     DATE NULL
+CREATE TABLE dbo.Series (
+    SeriesKey                           BIGINT                     NOT NULL, --PK
+    StudyKey                            BIGINT                     NOT NULL, --FK
+    SeriesInstanceUid                   VARCHAR(64)                NOT NULL, 
+    Modality                            NVARCHAR(16)               NULL,
+    PerformedProcedureStepStartDate     DATE                       NULL
 )
 
-CREATE UNIQUE CLUSTERED INDEX IXC_SeriesMetadataCore ON dbo.SeriesMetadataCore
+CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
 (
-    StudyId,
+    StudyKey,
+    SeriesKey
+)
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesKey ON dbo.Series
+(
+    SeriesKey
+)
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid ON dbo.Series
+(
     SeriesInstanceUid
 )
+INCLUDE
+(
+    StudyKey
+)
 
-CREATE NONCLUSTERED INDEX IX_SeriesMetadataCore_Modality ON dbo.SeriesMetadataCore
+CREATE NONCLUSTERED INDEX IX_Series_Modality ON dbo.Series
 (
     Modality
 )
 INCLUDE
 (
-    StudyId,
-    SeriesInstanceUid
+    StudyKey,
+    SeriesKey
 )
 
-CREATE NONCLUSTERED INDEX IX_SeriesMetadataCore_PerformedProcedureStepStartDate ON dbo.SeriesMetadataCore
+CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate ON dbo.Series
 (
     PerformedProcedureStepStartDate
 )
 INCLUDE
 (
-    StudyId,
-    SeriesInstanceUid
+    StudyKey,
+    SeriesKey
 )
 
 GO
@@ -364,12 +395,12 @@ GO
 **************************************************************/
 CREATE TABLE dbo.DeletedInstance
 (
-    StudyInstanceUid    VARCHAR(64) NOT NULL,
-    SeriesInstanceUid   VARCHAR(64) NOT NULL,
-    SopInstanceUid      VARCHAR(64) NOT NULL,
-    Watermark           BIGINT NOT NULL,
+    StudyInstanceUid    VARCHAR(64)       NOT NULL,
+    SeriesInstanceUid   VARCHAR(64)       NOT NULL,
+    SopInstanceUid      VARCHAR(64)       NOT NULL,
+    Watermark           BIGINT            NOT NULL,
     DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
-    RetryCount          INT NOT NULL,
+    RetryCount          INT               NOT NULL,
     CleanupAfter        DATETIMEOFFSET(0) NOT NULL
 )
 
@@ -416,39 +447,47 @@ CREATE TABLE dbo.ChangeFeed (
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
 (
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid,
     Sequence
 )
 
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence on dbo.ChangeFeed
-(
-    Sequence DESC
-)
-
-
 /*************************************************************
-    Sequence for generating unique ids
+    Sequence for generating sequential unique ids
 **************************************************************/
 
 CREATE SEQUENCE dbo.WatermarkSequence
     AS BIGINT
-    START WITH 0
+    START WITH 1
     INCREMENT BY 1
-    MINVALUE 0
+    MINVALUE 1
     NO CYCLE
     CACHE 1000000
 
-CREATE SEQUENCE dbo.MetadataIdSequence
+CREATE SEQUENCE dbo.StudyKeySequence
     AS BIGINT
-    START WITH 0
+    START WITH 1
     INCREMENT BY 1
-    MINVALUE 0
+    MINVALUE 1
     NO CYCLE
     CACHE 1000000
-GO
 
+CREATE SEQUENCE dbo.SeriesKeySequence
+    AS BIGINT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 1000000
+
+CREATE SEQUENCE dbo.InstanceKeySequence
+    AS BIGINT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 1000000
+
+
+GO
 /*************************************************************
     Stored procedures for adding an instance.
 **************************************************************/
@@ -485,7 +524,7 @@ GO
 --
 -- RETURN VALUE
 --     The watermark (version).
---
+------------------------------------------------------------------------
 
 CREATE PROCEDURE dbo.AddInstance
     @studyInstanceUid                   VARCHAR(64),
@@ -509,14 +548,16 @@ AS
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @existingStatus TINYINT
-    DECLARE @metadataId BIGINT
-    DECLARE @newVersion BIGINT
-
+    DECLARE @newWatermark BIGINT
+    DECLARE @studyKey BIGINT
+    DECLARE @seriesKey BIGINT
+    DECLARE @instanceKey BIGINT
+    
     SELECT @existingStatus = Status
     FROM dbo.Instance
     WHERE StudyInstanceUid = @studyInstanceUid
-    AND SeriesInstanceUid = @seriesInstanceUid
-    AND SopInstanceUid = @sopInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid = @sopInstanceUid
 
     IF @@ROWCOUNT <> 0
     BEGIN
@@ -525,55 +566,62 @@ AS
     END
 
     -- The instance does not exist, insert it.
-    SET @newVersion = NEXT VALUE FOR dbo.WatermarkSequence
-
-    INSERT INTO dbo.Instance
-        (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
-    VALUES
-        (@studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newVersion, @initialStatus, @currentDate, @currentDate)
-
-    -- Update the study metadata if needed.
-    SELECT @metadataId = Id
-    FROM dbo.StudyMetadataCore
+    SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
+    SET @instanceKey = NEXT VALUE FOR dbo.InstanceKeySequence
+ 
+    -- Insert Study
+    SELECT @studyKey = StudyKey
+    FROM dbo.Study 
     WHERE StudyInstanceUid = @studyInstanceUid
 
     IF @@ROWCOUNT = 0
     BEGIN
-        SET @metadataId = NEXT VALUE FOR dbo.MetadataIdSequence
-
-        INSERT INTO dbo.StudyMetadataCore
-            (Id, StudyInstanceUid, Version, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+        SET @studyKey = NEXT VALUE FOR dbo.StudyKeySequence
+ 
+        INSERT INTO dbo.Study
+            (StudyKey, StudyInstanceUid, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
-            (@metadataId, @studyInstanceUid, 0, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+            (@studyKey, @studyInstanceUid, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
     END
-    --ELSE BEGIN
-        -- TODO: handle the versioning
-    --END
-
-    IF NOT EXISTS (SELECT * FROM dbo.SeriesMetadataCore WHERE StudyId = @metadataId AND SeriesInstanceUid = @seriesInstanceUid)
+    ELSE
     BEGIN
-        INSERT INTO dbo.SeriesMetadataCore
-            (StudyId, SeriesInstanceUid, Version, Modality, PerformedProcedureStepStartDate)
-        VALUES
-            (@metadataId, @seriesInstanceUid, 0, @modality, @performedProcedureStepStartDate)
+        -- Latest wins
+        UPDATE dbo.Study
+        SET PatientId = @patientId, PatientName = @patientName, ReferringPhysicianName = @referringPhysicianName, StudyDate = @studyDate, StudyDescription = @studyDescription, AccessionNumber = @accessionNumber
+        WHERE StudyKey = @studyKey
     END
-    --ELSE BEGIN
-        -- TODO: handle the versioning
-    --END
 
-    -- Insert to change feed
-    INSERT INTO dbo.ChangeFeed 
-    (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    -- Insert Series
+    SELECT @seriesKey = SeriesKey
+    FROM dbo.Series 
+    WHERE StudyKey = @studyKey
+    AND SeriesInstanceUid = @seriesInstanceUid
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @seriesKey = NEXT VALUE FOR dbo.SeriesKeySequence
+
+        INSERT INTO dbo.Series
+            (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate)
+        VALUES
+            (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate)
+    END
+    ELSE
+    BEGIN
+        -- Latest wins
+        UPDATE dbo.Series
+        SET Modality = @modality, PerformedProcedureStepStartDate = @performedProcedureStepStartDate
+        WHERE SeriesKey = @seriesKey
+        AND StudyKey = @studyKey
+    END
+
+    -- Insert Instance
+    INSERT INTO dbo.Instance
+        (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-    (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newVersion)
+        (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
-    UPDATE dbo.ChangeFeed
-    SET CurrentWatermark      = @newVersion
-    WHERE StudyInstanceUid    = @studyInstanceUid
-        AND SeriesInstanceUid = @seriesInstanceUid
-        AND SopInstanceUid    = @sopInstanceUid
-
-    SELECT @newVersion
+    SELECT @newWatermark
 
     COMMIT TRANSACTION
 GO
@@ -616,8 +664,10 @@ AS
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
     BEGIN TRANSACTION
 
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+    
     UPDATE dbo.Instance
-    SET Status = @status, LastStatusUpdatedDate = SYSUTCDATETIME()
+    SET Status = @status, LastStatusUpdatedDate = @currentDate
     WHERE StudyInstanceUid = @studyInstanceUid
     AND SeriesInstanceUid = @seriesInstanceUid
     AND SopInstanceUid = @sopInstanceUid
@@ -628,6 +678,21 @@ AS
         -- The instance does not exist. Perhaps it was deleted?
         THROW 50404, 'Instance does not exist', 1;
     END
+
+    -- Insert to change feed. 
+    -- Currently this procedure is used only updating the status to created
+    -- If that changes an if condition is needed.
+    INSERT INTO dbo.ChangeFeed 
+        (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    VALUES
+        (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+
+    -- Update existing instance currentWatermark to latest
+    UPDATE dbo.ChangeFeed
+    SET CurrentWatermark      = @watermark
+    WHERE StudyInstanceUid    = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid    = @sopInstanceUid
 
     COMMIT TRANSACTION
 GO
@@ -650,7 +715,7 @@ GO
 --         * The SOP instance UID.
 /***************************************************************************************/
 CREATE PROCEDURE dbo.GetInstance (
-    @invalidStatus      TINYINT,
+    @validStatus        TINYINT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = NULL,
     @sopInstanceUid     VARCHAR(64) = NULL
@@ -660,39 +725,17 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    IF ( @seriesInstanceUid IS NOT NULL AND @sopInstanceUid IS NOT NULL )
-    BEGIN
+   
         SELECT  StudyInstanceUid,
                 SeriesInstanceUid,
                 SopInstanceUid,
                 Watermark
         FROM    dbo.Instance
         WHERE   StudyInstanceUid        = @studyInstanceUid
-                AND SeriesInstanceUid   = @seriesInstanceUid
-                AND SopInstanceUid      = @sopInstanceUid
-                AND Status              <> @invalidStatus
-    END
-    ELSE IF ( @seriesInstanceUid IS NOT NULL )
-    BEGIN
-        SELECT  StudyInstanceUid,
-                SeriesInstanceUid,
-                SopInstanceUid,
-                Watermark
-        FROM    dbo.Instance
-        WHERE   StudyInstanceUid        = @studyInstanceUid
-                AND SeriesInstanceUid   = @seriesInstanceUid
-                AND Status              <> @invalidStatus
-    END
-    ELSE
-    BEGIN
-        SELECT  StudyInstanceUid,
-                SeriesInstanceUid,
-                SopInstanceUid,
-                Watermark
-        FROM    dbo.Instance
-        WHERE   StudyInstanceUid        = @studyInstanceUid
-                AND Status              <> @invalidStatus
-    END
+                AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+                AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)
+                AND Status              = @validStatus
+   
 END
 GO
 
@@ -733,12 +776,12 @@ AS
          SopInstanceUid VARCHAR(64),
          Watermark BIGINT)
 
-    DECLARE @studyId BIGINT
+    DECLARE @studyKey BIGINT
     DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
 
     -- Get the study PK
-    SELECT  @studyId = ID
-    FROM    dbo.StudyMetadataCore
+    SELECT  @studyKey = StudyKey
+    FROM    dbo.Study
     WHERE   StudyInstanceUid = @studyInstanceUid;
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
@@ -779,19 +822,19 @@ AS
                     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid))
     BEGIN
         DELETE
-        FROM    dbo.SeriesMetadataCore
-        WHERE   StudyId = @studyId
+        FROM    dbo.Series
+        WHERE   Studykey = @studyKey
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     END
 
     -- If we've removing the series, see if it's the last for a study and if so, remove the study
     IF NOT EXISTS ( SELECT  *
-                    FROM    dbo.SeriesMetadataCore
-                    WHERE   StudyId = @studyId)
+                    FROM    dbo.Series
+                    WHERE   Studykey = @studyKey)
     BEGIN
         DELETE
-        FROM    dbo.StudyMetadataCore
-        WHERE   Id = @studyId
+        FROM    dbo.Study
+        WHERE   StudyInstanceUid = @studyInstanceUid
     END
 
     COMMIT TRANSACTION

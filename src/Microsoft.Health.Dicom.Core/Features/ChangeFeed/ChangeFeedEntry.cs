@@ -4,7 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Dicom;
 using EnsureThat;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 {
@@ -47,14 +50,35 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 
         public string SopInstanceUid { get; }
 
+        [JsonConverter(typeof(StringEnumConverter))]
         public ChangeFeedAction Action { get; }
 
         public DateTime TimeStamp { get; }
 
+        [JsonConverter(typeof(StringEnumConverter))]
         public ChangeFeedState State { get; }
 
+        [JsonIgnore]
         public long OriginalVersion { get; }
 
+        [JsonIgnore]
         public long? CurrentVersion { get; }
+
+        public DicomDataset Metadata { get; set; }
+
+        /// <summary>
+        /// Control variable to determine whether or not the <see cref="Metadata"/> property should be included in a serialized view.
+        /// </summary>
+        [JsonIgnore]
+        public bool IncludeMetadata { get; set; }
+
+        /// <summary>
+        /// Json.Net method for determining whether or not to serialize the <see cref="Metadata"/> property
+        /// </summary>
+        /// <returns>A boolean representing if the <see cref="Metadata"/> should be serialized.</returns>
+        public bool ShouldSerializeMetadata()
+        {
+            return IncludeMetadata;
+        }
     }
 }
