@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
 
             _transferSyntaxes = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
-            foreach (var transferSyntax in transferSyntaxes)
+            foreach (string transferSyntax in transferSyntaxes)
             {
                 _transferSyntaxes.Add(transferSyntax.ToUpperInvariant());
             }
