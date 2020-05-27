@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenStudyLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new QueryIncludeField(false, new List<DicomTag>() { DicomTag.StudyDescription, DicomTag.Modality });
+            var includeField = new QueryIncludeField(false, new List<DicomTag>() { DicomTag.StudyDescription, DicomTag.IssuerOfPatientID });
             var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(DicomTag.PatientAge, "35"),
@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.Contains<DicomTag>(DicomTag.StudyInstanceUID, tags); // Default
             Assert.Contains<DicomTag>(DicomTag.PatientAge, tags); // Match condition
             Assert.Contains<DicomTag>(DicomTag.StudyDescription, tags); // Valid include
-            Assert.DoesNotContain<DicomTag>(DicomTag.Modality, tags); // Invalid include
+            Assert.Contains<DicomTag>(DicomTag.IssuerOfPatientID, tags); // non standard include
             Assert.DoesNotContain<DicomTag>(DicomTag.SeriesInstanceUID, tags); // Invalid study resource
             Assert.DoesNotContain<DicomTag>(DicomTag.SOPInstanceUID, tags); // Invalid study resource
         }
@@ -146,6 +146,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
                 { DicomTag.PatientAge, "035Y" },
                 { DicomTag.StudyDescription, "CT scan" },
+                { DicomTag.IssuerOfPatientID, "Homeland" },
                 { DicomTag.Modality, "CT" },
             };
         }

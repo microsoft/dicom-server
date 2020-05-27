@@ -135,7 +135,7 @@ GO
 /*************************************************************
 Full text catalog creation
 **************************************************************/
-CREATE FULLTEXT CATALOG Dicom_Catalog AS DEFAULT
+CREATE FULLTEXT CATALOG Dicom_Catalog WITH ACCENT_SENSITIVITY = OFF AS DEFAULT
 GO
 
 /*************************************************************
@@ -252,8 +252,8 @@ CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL, --PK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL, 
     PatientId                   NVARCHAR(64)                      NOT NULL,
-    PatientName                 NVARCHAR(325)                     NULL,
-    ReferringPhysicianName      NVARCHAR(325)                     NULL,
+    PatientName                 NVARCHAR(325)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
+    ReferringPhysicianName      NVARCHAR(325)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
     StudyDate                   DATE                              NULL,
     StudyDescription            NVARCHAR(64)                      NULL,
     AccessionNumber             NVARCHAR(16)                      NULL,
