@@ -7,7 +7,6 @@ using System;
 using System.Globalization;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -22,12 +21,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             // Ensure required tags are present.
             EnsureRequiredTagIsPresent(DicomTag.PatientID);
-            EnsureRequiredTagIsPresentAndValid(DicomTag.SOPClassUID, nameof(DicomTag.SOPClassUID));
+            EnsureRequiredTagIsPresent(DicomTag.SOPClassUID);
 
             // The format of the identifiers will be validated by fo-dicom.
-            string studyInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.StudyInstanceUID, nameof(DicomTag.StudyInstanceUID));
-            string seriesInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.SeriesInstanceUID, nameof(DicomTag.SeriesInstanceUID));
-            string sopInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.SOPInstanceUID, nameof(DicomTag.SOPInstanceUID));
+            string studyInstanceUid = EnsureRequiredTagIsPresent(DicomTag.StudyInstanceUID);
+            string seriesInstanceUid = EnsureRequiredTagIsPresent(DicomTag.SeriesInstanceUID);
+            string sopInstanceUid = EnsureRequiredTagIsPresent(DicomTag.SOPInstanceUID);
 
             // Ensure the StudyInstanceUid != SeriesInstanceUid != sopInstanceUid
             if (studyInstanceUid == seriesInstanceUid ||
@@ -50,24 +49,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                         DicomCoreResource.MismatchStudyInstanceUid,
                         studyInstanceUid,
                         requiredStudyInstanceUid));
-            }
-
-            string EnsureRequiredTagIsPresentAndValid(DicomTag dicomTag, string parameterName)
-            {
-                string value = EnsureRequiredTagIsPresent(dicomTag);
-
-                if (!UidValidator.Validate(value))
-                {
-                    throw new DatasetValidationException(
-                       FailureReasonCodes.ValidationFailure,
-                       string.Format(
-                           CultureInfo.InvariantCulture,
-                           DicomCoreResource.InvalidDicomIdentifier,
-                           parameterName,
-                           value));
-                }
-
-                return value;
             }
 
             string EnsureRequiredTagIsPresent(DicomTag dicomTag)

@@ -133,10 +133,6 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             {
                 throw new ItemNotFoundException(ex);
             }
-            catch (DicomValidationException ex)
-            {
-                throw new ItemNotFoundException(ex);
-            }
             catch (Exception ex)
             {
                 throw new DataStoreException(ex);
