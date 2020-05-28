@@ -9,7 +9,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed
 {
     public class ChangeFeedRequest : IRequest<ChangeFeedResponse>
     {
-        public ChangeFeedRequest(int offset, int limit, bool includeMetadata)
+        public ChangeFeedRequest(long offset, int limit, bool includeMetadata)
         {
             Offset = offset;
             Limit = limit;
@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed
 
         public int Limit { get; }
 
-        public int Offset { get; }
+        public long Offset { get; }
 
         public bool IncludeMetadata { get; }
     }

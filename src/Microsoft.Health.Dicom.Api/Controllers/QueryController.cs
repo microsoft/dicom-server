@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
@@ -20,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [ModelStateValidator]
     public class QueryController : Controller
     {
         private readonly IMediator _mediator;
@@ -148,7 +150,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private IActionResult CreateResult(QueryResourceResponse resourceResponse)
         {
-            if (resourceResponse.IsEmpty)
+            if (!resourceResponse.ResponseDataset.Any())
             {
                 return NoContent();
             }

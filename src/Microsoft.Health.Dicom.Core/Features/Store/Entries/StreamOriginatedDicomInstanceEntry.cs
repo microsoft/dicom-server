@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
             if (Interlocked.CompareExchange(ref _dicomFileLoadedState, 1, 0) == 0)
             {
                 // Load the file.
-                _dicomFile = await DicomFile.OpenAsync(_stream);
+                _dicomFile = await DicomFile.OpenAsync(_stream, FileReadOption.SkipLargeTags);
                 _dicomFileLoadingCompletionSource.SetResult(true);
             }
 

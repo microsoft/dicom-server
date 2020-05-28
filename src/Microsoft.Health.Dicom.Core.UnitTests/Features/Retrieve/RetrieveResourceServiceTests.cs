@@ -34,8 +34,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         private readonly RetrieveResourceService _retrieveResourceService;
         private readonly IInstanceStore _instanceStore;
         private readonly IFileStore _fileStore;
+        private readonly ITranscoder _retrieveTranscoder;
+        private readonly IFrameHandler _dicomFrameHandler;
         private readonly ILogger<RetrieveResourceService> _logger;
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         private readonly string _studyInstanceUid = TestUidGenerator.Generate();
         private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
@@ -47,9 +49,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             _instanceStore = Substitute.For<IInstanceStore>();
             _fileStore = Substitute.For<IFileStore>();
+            _retrieveTranscoder = Substitute.For<ITranscoder>();
+            _dicomFrameHandler = Substitute.For<IFrameHandler>();
             _logger = NullLogger<RetrieveResourceService>.Instance;
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-            _retrieveResourceService = new RetrieveResourceService(_instanceStore, _fileStore, _recyclableMemoryStreamManager, _logger);
+            _retrieveResourceService = new RetrieveResourceService(
+                _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _recyclableMemoryStreamManager, _logger);
         }
 
         [Fact]
@@ -96,7 +101,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            Assert.False(response.IsPartialSuccess);
             ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
 
             // Dispose created streams.
@@ -147,7 +151,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            Assert.False(response.IsPartialSuccess);
             ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
 
             // Dispose created streams.
@@ -193,7 +196,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response stream has expected file - it should be equivalent to what the store was set up to return.
-            Assert.False(response.IsPartialSuccess);
             ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, response.ResponseStreams);
 
             // Dispose created streams.
@@ -205,14 +207,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             // Add multiple instances to validate that we evaluate the requested instance and ignore the other(s).
             List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
+            List<int> framesToRequest = new List<int> { 0 };
 
             // For the instance, set up the fileStore to return a stream containing the file associated with the identifier with 3 frames.
             Stream streamOfStoredFiles = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First()), frames: 0).Result.Value;
             _fileStore.GetFileAsync(versionedInstanceIdentifiers.First(), _defaultCancellationToken).Returns(streamOfStoredFiles);
 
+            RetrieveResourceRequest retrieveResourceRequest = new RetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest);
+            _dicomFrameHandler.GetFramesResourceAsync(streamOfStoredFiles, retrieveResourceRequest.Frames, true, "*").Throws(new FrameNotFoundException());
+
             // Request for a specific frame on the instance.
             await Assert.ThrowsAsync<FrameNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
-                   new RetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new List<int> { 1, 2 }),
+                   retrieveResourceRequest,
                    _defaultCancellationToken));
 
             streamOfStoredFiles.Dispose();
@@ -223,14 +229,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             // Add multiple instances to validate that we evaluate the requested instance and ignore the other(s).
             List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
+            List<int> framesToRequest = new List<int> { 1, 4 };
 
             // For the instance, set up the fileStore to return a stream containing the file associated with the identifier with 3 frames.
             Stream streamOfStoredFiles = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First()), frames: 3).Result.Value;
             _fileStore.GetFileAsync(versionedInstanceIdentifiers.First(), _defaultCancellationToken).Returns(streamOfStoredFiles);
 
+            RetrieveResourceRequest retrieveResourceRequest = new RetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest);
+            _dicomFrameHandler.GetFramesResourceAsync(streamOfStoredFiles, retrieveResourceRequest.Frames, true, "*").Throws(new FrameNotFoundException());
+
             // Request 2 frames - one which exists and one which doesn't.
             await Assert.ThrowsAsync<FrameNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
-                   new RetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new List<int> { 1, 4 }),
+                   retrieveResourceRequest,
                    _defaultCancellationToken));
 
             // Dispose the stream.
@@ -242,20 +252,24 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             // Add multiple instances to validate that we return the requested instance and ignore the other(s).
             List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
+            List<int> framesToRequest = new List<int> { 1, 2 };
 
             // For the first instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
             KeyValuePair<DicomFile, Stream> streamAndStoredFile = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First()), frames: 3).Result;
             _fileStore.GetFileAsync(versionedInstanceIdentifiers.First(), _defaultCancellationToken).Returns(streamAndStoredFile.Value);
 
+            // Setup frame handler to return the frames as streams from the file.
+            Stream[] frames = framesToRequest.Select(f => GetFrameFromFile(streamAndStoredFile.Key.Dataset, f)).ToArray();
+            RetrieveResourceRequest retrieveResourceRequest = new RetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest);
+            _dicomFrameHandler.GetFramesResourceAsync(streamAndStoredFile.Value, retrieveResourceRequest.Frames, true, "*").Returns(frames);
+
             RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
-                   new RetrieveResourceRequest("*", _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new List<int> { 1, 2 }),
+                   retrieveResourceRequest,
                    _defaultCancellationToken);
 
             // Validate response status code and ensure response streams has expected frames - it should be equivalent to what the store was set up to return.
-            Assert.False(response.IsPartialSuccess);
-
-            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(0), response.ResponseStreams.ToList()[0]);
-            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(1), response.ResponseStreams.ToList()[1]);
+            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[0]), response.ResponseStreams.ToList()[0]);
+            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[1]), response.ResponseStreams.ToList()[1]);
 
             streamAndStoredFile.Value.Dispose();
         }
@@ -330,22 +344,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         private void ValidateResponseStreams(
-            IEnumerable<DicomFile> expectedDicomFiles,
+            IEnumerable<DicomFile> expectedFiles,
             IEnumerable<Stream> responseStreams)
         {
-            List<DicomFile> responseDicomFiles = responseStreams.Select(x => DicomFile.Open(x)).ToList();
+            List<DicomFile> responseFiles = responseStreams.Select(x => DicomFile.Open(x)).ToList();
 
-            Assert.Equal(expectedDicomFiles.Count(), responseDicomFiles.Count);
+            Assert.Equal(expectedFiles.Count(), responseFiles.Count);
 
-            foreach (DicomFile expectedDicomFile in expectedDicomFiles)
+            foreach (DicomFile expectedFile in expectedFiles)
             {
-                DicomFile actualFile = responseDicomFiles.First(x => x.Dataset.ToInstanceIdentifier().Equals(expectedDicomFile.Dataset.ToInstanceIdentifier()));
+                DicomFile actualFile = responseFiles.First(x => x.Dataset.ToInstanceIdentifier().Equals(expectedFile.Dataset.ToInstanceIdentifier()));
 
                 // If the same transfer syntax as original, the files should be exactly the same
-                if (expectedDicomFile.Dataset.InternalTransferSyntax == actualFile.Dataset.InternalTransferSyntax)
+                if (expectedFile.Dataset.InternalTransferSyntax == actualFile.Dataset.InternalTransferSyntax)
                 {
-                    var expectedFileArray = DicomFileToByteArray(expectedDicomFile);
-                    var actualFileArray = DicomFileToByteArray(actualFile);
+                    var expectedFileArray = FileToByteArray(expectedFile);
+                    var actualFileArray = FileToByteArray(actualFile);
 
                     Assert.Equal(expectedFileArray.Length, actualFileArray.Length);
 
@@ -361,13 +375,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             }
         }
 
-        private byte[] DicomFileToByteArray(DicomFile dicomFile)
+        private byte[] FileToByteArray(DicomFile file)
         {
             using (MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream())
             {
-                dicomFile.Save(memoryStream);
+                file.Save(memoryStream);
                 return memoryStream.ToArray();
             }
+        }
+
+        private Stream GetFrameFromFile(DicomDataset dataset, int frame)
+        {
+           IByteBuffer frameData = DicomPixelData.Create(dataset).GetFrame(frame);
+           return _recyclableMemoryStreamManager.GetStream("RetrieveResourceServiceTests.GetFrameFromFile", frameData.Data, 0, frameData.Data.Length);
         }
 
         private static void AssertPixelDataEqual(IByteBuffer expectedPixelData, Stream actualPixelData)

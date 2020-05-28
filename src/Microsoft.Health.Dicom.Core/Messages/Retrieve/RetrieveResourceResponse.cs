@@ -11,15 +11,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     public class RetrieveResourceResponse
     {
-        public RetrieveResourceResponse(bool isPartialSuccess, IEnumerable<Stream> responseStreams)
+        public RetrieveResourceResponse(IEnumerable<Stream> responseStreams)
         {
             EnsureArg.IsNotNull(responseStreams, nameof(responseStreams));
-
-            IsPartialSuccess = isPartialSuccess;
             ResponseStreams = responseStreams;
         }
-
-        public bool IsPartialSuccess { get; }
 
         public IEnumerable<Stream> ResponseStreams { get; }
     }

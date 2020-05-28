@@ -55,20 +55,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 return new QueryResourceResponse();
             }
 
-            var responseBuilder = new QueryResponseBuilder(queryExpression);
-            return new QueryResourceResponse(GetAsyncEnumerableResponse(queryResult.DicomInstances, responseBuilder, cancellationToken));
-        }
+            IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
+                        queryResult.DicomInstances
+                        .Select(x => _metadataService.GetInstanceMetadataAsync(x, cancellationToken)));
 
-        private async IAsyncEnumerable<DicomDataset> GetAsyncEnumerableResponse(
-            IEnumerable<VersionedInstanceIdentifier> ids,
-            QueryResponseBuilder responseBuilder,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            foreach (var id in ids)
-            {
-                DicomDataset ds = await _metadataService.GetInstanceMetadataAsync(id, cancellationToken);
-                yield return responseBuilder.GenerateResponseDataset(ds);
-            }
+            var responseBuilder = new QueryResponseBuilder(queryExpression);
+            IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
+
+            return new QueryResourceResponse(responseMetadata);
         }
 
         private void ValidateRequestIdentifiers(QueryResourceRequest message)

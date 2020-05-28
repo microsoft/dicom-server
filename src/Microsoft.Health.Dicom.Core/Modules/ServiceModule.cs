@@ -74,6 +74,16 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.Add<FrameHandler>()
+                .Transient()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<Transcoder>()
+                .Transient()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             services.Add<QueryService>()
                 .Scoped()
                 .AsSelf()

@@ -95,7 +95,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             };
 
             var version = await _fixture.DicomIndexDataStore.CreateInstanceIndexAsync(newDataSet);
-            return newDataSet.ToVersionedInstanceIdentifier(version);
+
+            var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
+
+            await _fixture.DicomIndexDataStore.UpdateInstanceIndexStatusAsync(versionedIdentifier, Core.Models.IndexStatus.Created);
+
+            return versionedIdentifier;
         }
     }
 }

@@ -11,9 +11,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
     public class StudyMetadata
     {
         public StudyMetadata(
-            long id,
             string studyInstanceUid,
-            int version,
+            long studyKey,
             string patientID,
             string patientName,
             string referringPhysicianName,
@@ -21,9 +20,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             string studyDescription,
             string accessionNumber)
         {
-            ID = id;
             StudyInstanceUid = studyInstanceUid;
-            Version = version;
+            StudyKey = studyKey;
             PatientID = patientID;
             PatientName = patientName;
             ReferringPhysicianName = referringPhysicianName;
@@ -34,22 +32,21 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public StudyMetadata(SqlDataReader sqlDataReader)
         {
-            ID = sqlDataReader.GetInt64(0);
+            StudyKey = sqlDataReader.GetInt64(0);
             StudyInstanceUid = sqlDataReader.GetString(1);
-            Version = sqlDataReader.GetInt32(2);
-            PatientID = sqlDataReader.GetString(3);
-            PatientName = sqlDataReader.GetString(4);
-            ReferringPhysicianName = sqlDataReader.GetString(5);
-            StudyDate = sqlDataReader.IsDBNull(6) ? null : (DateTime?)sqlDataReader.GetDateTime(6);
-            StudyDescription = sqlDataReader.GetString(7);
-            AccessionNumber = sqlDataReader.GetString(8);
+            PatientID = sqlDataReader.GetString(2);
+            PatientName = sqlDataReader.GetString(3);
+            ReferringPhysicianName = sqlDataReader.GetString(4);
+            StudyDate = sqlDataReader.IsDBNull(5) ? null : (DateTime?)sqlDataReader.GetDateTime(5);
+            StudyDescription = sqlDataReader.GetString(6);
+            AccessionNumber = sqlDataReader.GetString(7);
         }
 
-        public long ID { get; }
+        public long StudyKey { get; private set; }
 
         public string StudyInstanceUid { get; }
 
-        public int Version { get; }
+        public string Version { get; }
 
         public string PatientID { get; }
 

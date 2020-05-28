@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             {
                 VLatest.GetInstance.PopulateCommand(
                     sqlCommandWrapper,
-                    invalidStatus: (byte)IndexStatus.Creating,
+                    validStatus: (byte)IndexStatus.Created,
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid);

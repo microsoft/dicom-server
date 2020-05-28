@@ -168,7 +168,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
 
-            RetrieveResourceResponse expectedResponse = new RetrieveResourceResponse(false, Enumerable.Empty<Stream>());
+            RetrieveResourceResponse expectedResponse = new RetrieveResourceResponse(Enumerable.Empty<Stream>());
             RetrieveResourceRequest request = new RetrieveResourceRequest("*", studyInstanceUid, seriesInstanceUid, sopInstanceUid, new List<int> { 1 });
             _retrieveResourceService.GetInstanceResourceAsync(request, CancellationToken.None).Returns(expectedResponse);
 

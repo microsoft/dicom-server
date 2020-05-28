@@ -3,10 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Blob.Features.Storage
+using System.IO;
+using System.Threading.Tasks;
+using Dicom;
+
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    internal static class BlobLocalEmulator
+    public interface ITranscoder
     {
-        public const string ConnectionString = "UseDevelopmentStorage=true";
+        public Task<Stream> TranscodeFileAsync(Stream streams, string requestedTransferSyntax);
+
+        Stream TranscodeFrame(DicomFile dicomFile, int frameIndex, string requestedTransferSyntax);
     }
 }
