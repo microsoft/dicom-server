@@ -10,7 +10,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Microsoft.IO;
@@ -325,29 +324,27 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("abc.123")]
         [InlineData("11|")]
         [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
-        public async void GivenDatasetWithInvalidStudyInstanceUid_WhenStoring_TheServerShouldReturnConflict(string invalidInstanceUid)
+        public async void GivenDatasetWithInvalidUid_WhenStoring_TheServerShouldReturnConflict(string studyInstanceUID)
         {
-            await ExecuteAndValidate(ResourceType.Study, invalidInstanceUid);
-        }
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
 
-        [Theory]
-        [InlineData("1.01")]
-        [InlineData("abc.123")]
-        [InlineData("11|")]
-        [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
-        public async void GivenDatasetWithInvalidSeriesInstanceUid_WhenStoring_TheServerShouldReturnConflict(string invalidInstanceUid)
-        {
-            await ExecuteAndValidate(ResourceType.Series, invalidInstanceUid);
-        }
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-        [Theory]
-        [InlineData("1.01")]
-        [InlineData("abc.123")]
-        [InlineData("11|")]
-        [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
-        public async void GivenDatasetWithInvalidSopInstanceUid_WhenStoring_TheServerShouldReturnConflict(string invalidInstanceUid)
-        {
-            await ExecuteAndValidate(ResourceType.Instance, invalidInstanceUid);
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            DicomWebException<DicomDataset> exception = await Assert.ThrowsAsync<DicomWebException<DicomDataset>>(
+           () => _client.StoreAsync(new[] { dicomFile1 }));
+
+            Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
+            Assert.False(exception.Value.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
+
+            ValidationHelpers.ValidateFailedSopSequence(
+                exception.Value,
+                ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
         }
 
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset)
@@ -368,44 +365,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             return (dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
                 dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID),
                 failureReason);
-        }
-
-        private async Task ExecuteAndValidate(ResourceType resourceType, string invalidInstanceUid)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-
-            DicomFile dicomFile1 = CreateDicomFile(resourceType, invalidInstanceUid);
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = true;
-#pragma warning restore CS0618 // Type or member is obsolete
-
-            DicomWebException<DicomDataset> exception = await Assert.ThrowsAsync<DicomWebException<DicomDataset>>(
-           () => _client.StoreAsync(new[] { dicomFile1 }));
-
-            Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
-            Assert.False(exception.Value.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
-
-            ValidationHelpers.ValidateFailedSopSequence(
-                exception.Value,
-                ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
-        }
-
-        private DicomFile CreateDicomFile(ResourceType resourceType, string invalidInstanceUid)
-        {
-            switch (resourceType)
-            {
-                case ResourceType.Study:
-                    return Samples.CreateRandomDicomFile(invalidInstanceUid);
-                case ResourceType.Series:
-                    return Samples.CreateRandomDicomFile(TestUidGenerator.Generate(), invalidInstanceUid);
-                case ResourceType.Instance:
-                    return Samples.CreateRandomDicomFile(TestUidGenerator.Generate(), TestUidGenerator.Generate(), invalidInstanceUid);
-            }
-
-            return null;
         }
     }
 }
