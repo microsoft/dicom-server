@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using Dicom;
 using EnsureThat;
@@ -23,12 +22,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             // Ensure required tags are present.
             EnsureRequiredTagIsPresent(DicomTag.PatientID);
-            EnsureRequiredTagIsPresentAndValid(DicomTag.SOPClassUID, nameof(DicomTag.StudyInstanceUID));
+            EnsureRequiredTagIsPresentAndValid(DicomTag.SOPClassUID, nameof(DicomTag.SOPClassUID));
 
             // The format of the identifiers will be validated by fo-dicom.
             string studyInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.StudyInstanceUID, nameof(DicomTag.StudyInstanceUID));
-            string seriesInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.SeriesInstanceUID, nameof(DicomTag.StudyInstanceUID));
-            string sopInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.SOPInstanceUID, nameof(DicomTag.StudyInstanceUID));
+            string seriesInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.SeriesInstanceUID, nameof(DicomTag.SeriesInstanceUID));
+            string sopInstanceUid = EnsureRequiredTagIsPresentAndValid(DicomTag.SOPInstanceUID, nameof(DicomTag.SOPInstanceUID));
 
             // Ensure the StudyInstanceUid != SeriesInstanceUid != sopInstanceUid
             if (studyInstanceUid == seriesInstanceUid ||
