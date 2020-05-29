@@ -37,41 +37,5 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders
             Assert.Equal(expectedResult, actualResult);
             Assert.Equal(expectedResult, bindingContext.ModelState[TransferSyntaxHeaderPrefix].RawValue);
         }
-
-        [Theory]
-        [InlineData("helloworld")]
-        [InlineData("application/dicom;traNSFer  -sYNTAx=  *")]
-        [InlineData("application/dicom;   traNSFer  -sYNTAx=  *")]
-        public async Task GivenHeaderWithInvalidTransferSyntax_WhenBindingTransferSyntax_ModelIsNotSet(string contextValue)
-        {
-            ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
-            bindingContext.HttpContext.Request.Headers["Accept"].Returns(new StringValues(contextValue));
-
-            ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
-            bindingContext.ModelState.Returns(modelStateDictionary);
-
-            IModelBinder modelBinder = new TransferSyntaxModelBinder();
-            await modelBinder.BindModelAsync(bindingContext);
-
-            Assert.Equal(bindingContext.Result, ModelBindingResult.Failed());
-            Assert.False(bindingContext.ModelState.ContainsKey(TransferSyntaxHeaderPrefix));
-        }
-
-        [Theory]
-        [InlineData("traNSFer-sYNTAx=\"*\";traNSFer-sYNTAx=*")]
-        public async Task GivenHeaderWithMultipleTransferSyntaxes_WhenBindingTransferSyntax_ModelIsNotSet(string contextValue)
-        {
-            ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
-            bindingContext.HttpContext.Request.Headers["Accept"].Returns(new StringValues(contextValue));
-
-            ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
-            bindingContext.ModelState.Returns(modelStateDictionary);
-
-            IModelBinder modelBinder = new TransferSyntaxModelBinder();
-            await modelBinder.BindModelAsync(bindingContext);
-
-            Assert.Equal(bindingContext.Result, ModelBindingResult.Failed());
-            Assert.False(bindingContext.ModelState.ContainsKey(TransferSyntaxHeaderPrefix));
-        }
     }
 }

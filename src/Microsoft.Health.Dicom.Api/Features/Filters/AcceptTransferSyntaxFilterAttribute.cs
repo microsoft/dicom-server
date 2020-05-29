@@ -8,10 +8,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Net.Http.Headers;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
@@ -30,17 +29,17 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
 
             foreach (string transferSyntax in transferSyntaxes)
             {
-                _transferSyntaxes.Add(transferSyntax.ToUpperInvariant());
+                _transferSyntaxes.Add(transferSyntax);
             }
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            IList<MediaTypeHeaderValue> acceptHeaders = context.HttpContext.Request.GetTypedHeaders().Accept;
             bool acceptable = false;
+            ModelStateEntry transferSyntaxValue;
 
             // As model binding happens prior to filteration, use the transfer syntax that was found in TransferSyntaxModelBinder and validate if it is acceptable.
-            if (context.ModelState.ContainsKey(TransferSyntaxHeaderPrefix) && _transferSyntaxes.Contains(context.ModelState[TransferSyntaxHeaderPrefix].RawValue))
+            if (context.ModelState.TryGetValue(TransferSyntaxHeaderPrefix, out transferSyntaxValue) && _transferSyntaxes.Contains(transferSyntaxValue.RawValue))
             {
                 acceptable = true;
             }

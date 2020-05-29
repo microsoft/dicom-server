@@ -87,9 +87,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
                 string mediaTypeHeader = CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationOctetStream).ToString();
-                string transferSyntaxHeader = dicomTransferSyntax == null ? $";transfer-syntax=\"*\"" : $";transfer-syntax=\"{dicomTransferSyntax}\"";
 
-                request.Headers.TryAddWithoutValidation("Accept", $"{mediaTypeHeader}{transferSyntaxHeader}");
+                request.Headers.TryAddWithoutValidation("Accept", CreateAcceptHeader(mediaTypeHeader, dicomTransferSyntax));
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
@@ -141,9 +140,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                     mediaTypeHeader = CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationDicom).ToString();
                 }
 
-                string transferSyntaxHeader = dicomTransferSyntax == null ? $";transfer-syntax=\"*\"" : $";transfer-syntax=\"{dicomTransferSyntax}\"";
-
-                request.Headers.TryAddWithoutValidation("Accept", $"{mediaTypeHeader}{transferSyntaxHeader}");
+                request.Headers.TryAddWithoutValidation("Accept", CreateAcceptHeader(mediaTypeHeader, dicomTransferSyntax));
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
@@ -453,6 +450,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
             multipartHeader.Parameters.Add(contentHeader);
             return multipartHeader;
+        }
+
+        private string CreateAcceptHeader(string mediaTypeHeader, string dicomTransferSyntax)
+        {
+            string transferSyntaxHeader = dicomTransferSyntax == null ? $";transfer-syntax=\"*\"" : $";transfer-syntax=\"{dicomTransferSyntax}\"";
+
+            return $"{mediaTypeHeader}{transferSyntaxHeader}";
         }
     }
 }

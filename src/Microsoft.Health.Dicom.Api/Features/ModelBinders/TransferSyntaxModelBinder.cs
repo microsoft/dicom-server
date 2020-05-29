@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
@@ -29,6 +30,11 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
                 {
                     List<NameValueHeaderValue> typeParameterValue = acceptHeader.Parameters.Where(
                         parameter => StringSegment.Equals(parameter.Name, TransferSyntaxHeaderPrefix, StringComparison.InvariantCultureIgnoreCase)).ToList();
+
+                    if (typeParameterValue.Count > 1)
+                    {
+                        throw new BadRequestException("Transfer Syntax parameter is specified more than once");
+                    }
 
                     if (typeParameterValue != null && typeParameterValue.Count == 1)
                     {

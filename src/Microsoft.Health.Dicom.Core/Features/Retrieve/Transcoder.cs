@@ -41,9 +41,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
                 canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
             }
-            catch (DicomFileException e)
+            catch (DicomFileException)
             {
-                throw new ResourceNotFoundException(DicomCoreResource.InstanceNotFound, e);
+                throw;
             }
 
             stream.Seek(0, SeekOrigin.Begin);
