@@ -10,6 +10,7 @@ using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Cors;
@@ -78,7 +79,7 @@ namespace Microsoft.AspNetCore.Builder
             jsonSerializer.Converters.Add(new JsonDicomConverter());
             services.AddSingleton(jsonSerializer);
 
-            services.AddSingleton<RecyclableMemoryStreamManager>();
+            services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
             return new DicomServerBuilder(services);
         }
