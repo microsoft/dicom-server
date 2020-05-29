@@ -10,7 +10,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -87,9 +86,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationOctetStream));
+                string mediaTypeHeader = CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationOctetStream).ToString();
 
-                request.Headers.Add(TransferSyntaxHeaderName, dicomTransferSyntax);
+                request.Headers.TryAddWithoutValidation("Accept", CreateAcceptHeader(mediaTypeHeader, dicomTransferSyntax));
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
@@ -130,16 +129,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
+                string mediaTypeHeader = null;
+
                 if (singleInstance)
                 {
-                    request.Headers.Accept.Add(MediaTypeApplicationDicom);
+                    mediaTypeHeader = MediaTypeApplicationDicom.ToString();
                 }
                 else
                 {
-                    request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationDicom));
+                    mediaTypeHeader = CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationDicom).ToString();
                 }
 
-                request.Headers.Add(TransferSyntaxHeaderName, dicomTransferSyntax);
+                request.Headers.TryAddWithoutValidation("Accept", CreateAcceptHeader(mediaTypeHeader, dicomTransferSyntax));
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
@@ -446,8 +447,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         {
             MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(KnownContentTypes.MultipartRelated);
             NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + contentType + "\"");
+
             multipartHeader.Parameters.Add(contentHeader);
             return multipartHeader;
+        }
+
+        private string CreateAcceptHeader(string mediaTypeHeader, string dicomTransferSyntax)
+        {
+            string transferSyntaxHeader = dicomTransferSyntax == null ? $";transfer-syntax=\"*\"" : $";transfer-syntax=\"{dicomTransferSyntax}\"";
+
+            return $"{mediaTypeHeader}{transferSyntaxHeader}";
         }
     }
 }

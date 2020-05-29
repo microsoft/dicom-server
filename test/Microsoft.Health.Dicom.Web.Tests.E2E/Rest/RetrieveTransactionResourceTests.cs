@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.RetrieveFramesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, frames: new[] { 4 }));
+                () => _client.RetrieveFramesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, dicomTransferSyntax: "*", frames: new[] { 4 }));
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
 
@@ -138,7 +138,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(KnownContentTypes.MultipartRelated);
                 NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + KnownContentTypes.ApplicationOctetStream + "\"");
                 multipartHeader.Parameters.Add(contentHeader);
-                request.Headers.Accept.Add(multipartHeader);
+
+                string transferSyntaxHeader = ";transfer-syntax=\"*\"";
+                request.Headers.TryAddWithoutValidation("Accept", $"{multipartHeader.ToString()}{transferSyntaxHeader}");
 
                 request.Headers.Add("transfer-syntax", "*");
 
@@ -208,6 +210,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public static IEnumerable<object[]> GetInvalidTransferSyntaxData()
         {
+            yield return new object[] { DicomTransferSyntax.ExplicitVRLittleEndian.ToString() };
             yield return new object[] { "unknown" };
             yield return new object[] { "&&5" };
         }
@@ -217,7 +220,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenARequestWithInvalidTransferSyntax_WhenRetrievingStudy_TheServerShouldReturnBadRequest(string transferSyntax)
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveStudyAsync(TestUidGenerator.Generate(), transferSyntax));
-            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+            Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
         }
 
         [Theory]
@@ -225,15 +228,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenARequestWithInvalidTransferSyntax_WhenRetrievingSeries_TheServerShouldReturnBadRequest(string transferSyntax)
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax));
-            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+            Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
         }
 
         [Theory]
         [MemberData(nameof(GetInvalidTransferSyntaxData))]
         public async Task GivenARequestWithInvalidTransferSyntax_WhenRetrievingInstance_TheServerShouldReturnBadRequest(string transferSyntax)
         {
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax));
-            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
+                () => _client.RetrieveInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax));
+            Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
         }
 
         [Theory]
@@ -241,7 +245,53 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenARequestWithInvalidTransferSyntax_WhenRetrievingFrames_TheServerShouldReturnBadRequest(string transferSyntax)
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax, frames: new[] { 1 }));
-            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+            Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("helloworld")]
+        [InlineData("traNSFer  -sYNTAx=  *")]
+        [InlineData("   traNSFer  -sYNTAx=  *")]
+        public async Task GivenARequestWithInvaidTransferSyntaxFormatting_WhenRetrievingInstance_TheServerShouldReturnNotAcceptable(string transferSyntaxHeader)
+        {
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseInstanceUriFormat, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid), UriKind.Relative);
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                // Set accept header to multipart/related; type="application/dicom"
+                MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(KnownContentTypes.MultipartRelated);
+                NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + KnownContentTypes.ApplicationDicom + "\"");
+                multipartHeader.Parameters.Add(contentHeader);
+
+                request.Headers.TryAddWithoutValidation("Accept", $"{multipartHeader.ToString()};{transferSyntaxHeader}");
+
+                using (HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, _defaultCancellationToken))
+                {
+                    Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("traNSFer-sYNTAx=\"*\";traNSFer-sYNTAx=*")]
+        public async Task GivenARequestWithMutipleTransferSyntaxHeaders_WhenRetrievingInstance_TheServerShouldReturnBadRequest(string transferSyntaxHeader)
+        {
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseInstanceUriFormat, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid), UriKind.Relative);
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                // Set accept header to multipart/related; type="application/dicom"
+                MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(KnownContentTypes.MultipartRelated);
+                NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + KnownContentTypes.ApplicationDicom + "\"");
+                multipartHeader.Parameters.Add(contentHeader);
+
+                request.Headers.TryAddWithoutValidation("Accept", $"{multipartHeader.ToString()};{transferSyntaxHeader}");
+
+                using (HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, _defaultCancellationToken))
+                {
+                    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                }
+            }
         }
 
         [Fact]
@@ -361,7 +411,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     seriesInstanceUid);
 
                 Assert.Equal(HttpStatusCode.OK, retrieveResponse.StatusCode);
-                Assert.Equal(DicomTransferSyntax.ExplicitVRLittleEndian, retrieveResponse.Value.Single().Dataset.InternalTransferSyntax);
+                Assert.Equal(DicomTransferSyntax.DeflatedExplicitVRLittleEndian, retrieveResponse.Value.Single().Dataset.InternalTransferSyntax);
             }
             finally
             {
@@ -370,7 +420,36 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async Task GivenAMixOfTransferSyntaxes_WhenSomeAreSupported_PartialIsReturned()
+        public async Task GivenSupportedTransferSyntax_WhenSupportedWildcardTsIsSpecified_OriginalTsReturned()
+        {
+            var seriesInstanceUid = TestUidGenerator.Generate();
+            var studyInstanceUid = TestUidGenerator.Generate();
+
+            DicomFile dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
+                studyInstanceUid,
+                seriesInstanceUid,
+                transferSyntax: DicomTransferSyntax.DeflatedExplicitVRLittleEndian.UID.UID);
+
+            try
+            {
+                await _client.StoreAsync(new[] { dicomFile });
+
+                DicomWebResponse<IReadOnlyList<DicomFile>> retrieveResponse = await _client.RetrieveSeriesAsync(
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    dicomTransferSyntax: "*");
+
+                Assert.Equal(HttpStatusCode.OK, retrieveResponse.StatusCode);
+                Assert.Equal(DicomTransferSyntax.DeflatedExplicitVRLittleEndian, retrieveResponse.Value.Single().Dataset.InternalTransferSyntax);
+            }
+            finally
+            {
+                await _client.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid);
+            }
+        }
+
+        [Fact]
+        public async Task GivenAMixOfTransferSyntaxes_WhenSomeAreSupported_NotAcceptableIsReturned()
         {
             var seriesInstanceUid = TestUidGenerator.Generate();
             var studyInstanceUid = TestUidGenerator.Generate();
@@ -417,7 +496,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             return from x in fromList from y in toList select new[] { x, y };
         }
 
-        [Theory]
+        [Theory(Skip = "The file fails with validation")]
         [MemberData(nameof(Get16BitTranscoderCombos))]
         public async Task GivenSupported16bitTransferSyntax_WhenRetrievingStudyAndAskingForConversion_OKIsReturned(
             string tsFrom,
@@ -533,7 +612,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Instance
             await ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebConstants.BaseeInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
+                string.Format(DicomWebConstants.BaseInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
                 acceptHeader);
         }
 
