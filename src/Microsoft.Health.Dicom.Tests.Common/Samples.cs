@@ -160,6 +160,35 @@ namespace Microsoft.Health.Dicom.Tests.Common
             return new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         }
 
+        public static DicomFile CreateRandomDicomFileWithInvalidVr(
+                   string studyInstanceUid = null,
+                   string seriesInstanceUid = null,
+                   string sopInstanceUid = null)
+        {
+            DicomFile file = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            file.Dataset.Add(GenerateNewDataSetWithInvalidVr());
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            return file;
+        }
+
+        private static DicomDataset GenerateNewDataSetWithInvalidVr()
+        {
+            var dicomDataset = new DicomDataset();
+
+            dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
+
+            return dicomDataset;
+        }
+
         public static DicomDataset CreateRandomInstanceDataset(
             string studyInstanceUid = null,
             string seriesInstanceUid = null,
