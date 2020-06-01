@@ -7,18 +7,19 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Dicom.Core;
-using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Microsoft.IO;
 using Xunit;
+using ChangeFeedAction = Microsoft.Health.Dicom.Client.ChangeFeedAction;
+using ChangeFeedState = Microsoft.Health.Dicom.Client.ChangeFeedState;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private readonly DicomWebClient _client;
+        private readonly TestDicomWebClient _client;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)

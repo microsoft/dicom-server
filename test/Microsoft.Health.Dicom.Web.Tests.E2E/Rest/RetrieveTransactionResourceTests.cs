@@ -16,6 +16,7 @@ using Dicom;
 using Dicom.Imaging;
 using Dicom.IO.Buffer;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
@@ -31,7 +32,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class RetrieveTransactionResourceTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private readonly DicomWebClient _client;
+        private readonly TestDicomWebClient _client;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
 
@@ -533,7 +534,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Instance
             await ValidateNotAcceptableResponseAsync(
                 _client,
-                string.Format(DicomWebConstants.BaseeInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
+                string.Format(DicomWebConstants.BaseInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
                 acceptHeader);
         }
 
@@ -558,7 +559,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             return (dicomInstance, dicomFile);
         }
 
-        internal static async Task ValidateNotAcceptableResponseAsync(DicomWebClient dicomWebClient, string requestUri, string acceptHeader)
+        internal static async Task ValidateNotAcceptableResponseAsync(TestDicomWebClient dicomWebClient, string requestUri, string acceptHeader)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add(HeaderNames.Accept, acceptHeader);

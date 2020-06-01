@@ -6,7 +6,7 @@
 using System.Net.Http;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
+namespace Microsoft.Health.Dicom.Client
 {
     public class DicomWebResponse<T> : DicomWebResponse
     {
@@ -23,6 +23,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             EnsureArg.IsNotNull(response, nameof(response));
 
             return response.Value;
+        }
+
+        public T ToT()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

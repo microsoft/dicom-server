@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
+namespace Microsoft.Health.Dicom.Client
 {
     public static class DicomWebClientExtensions
     {
@@ -82,7 +82,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveInstancesAsync(
-                new Uri(string.Format(DicomWebConstants.BaseeInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
+                new Uri(string.Format(DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
                 true,
                 dicomTransferSyntax,
                 cancellationToken);
@@ -188,7 +188,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
-            var requestUri = new Uri(string.Format(DicomWebConstants.BaseeInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative);
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative);
 
             return dicomWebClient.DeleteAsync(requestUri, cancellationToken);
         }

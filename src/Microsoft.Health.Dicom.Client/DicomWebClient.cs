@@ -10,25 +10,19 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
-using Dicom.Serialization;
 using EnsureThat;
-using IdentityModel.Client;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
-using Microsoft.Health.Dicom.Core.Web;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
+namespace Microsoft.Health.Dicom.Client
 {
     public class DicomWebClient
     {
@@ -36,29 +30,42 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue("application/octet-stream");
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue("application/dicom+json");
 
+        private const string ApplicationDicom = "application/dicom";
+        private const string ApplicationOctetStream = "application/octet-stream";
+        private const string MultipartRelated = "multipart/related";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-        private readonly (bool Enabled, string TokenUrl) _securitySettings;
-        private readonly Dictionary<string, string> _bearerTokens = new Dictionary<string, string>();
 
         public DicomWebClient(
             HttpClient httpClient,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-            TestApplication testApplication,
-            (bool enabled, string tokenUrl) securitySettings)
+            Uri tokenUri)
         {
             HttpClient = httpClient;
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
-            _securitySettings = securitySettings;
-            SetupAuthenticationAsync(HttpClient, testApplication).GetAwaiter().GetResult();
+            TokenUri = tokenUri;
         }
 
         public HttpClient HttpClient { get; }
 
-        public bool SecurityEnabled => _securitySettings.Enabled;
+        public bool SecurityEnabled => TokenUri != null;
+
+        public Uri TokenUri { get; }
+
+        public DateTime TokenExpiration { get; private set; }
+
+        public void SetBearerToken(string token)
+        {
+            EnsureArg.IsNotEmptyOrWhitespace(token);
+
+            var decodedToken = new JsonWebToken(token);
+            TokenExpiration = decodedToken.ValidTo;
+
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(
             Uri requestUri,
@@ -87,7 +94,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationOctetStream));
+                request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(ApplicationOctetStream));
 
                 request.Headers.Add(TransferSyntaxHeaderName, dicomTransferSyntax);
 
@@ -136,7 +143,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 }
                 else
                 {
-                    request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationDicom));
+                    request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(ApplicationDicom));
                 }
 
                 request.Headers.Add(TransferSyntaxHeaderName, dicomTransferSyntax);
@@ -318,7 +325,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                 cancellationToken);
         }
 
-        internal async Task<DicomWebResponse<DicomDataset>> PostMultipartContentAsync(
+        public async Task<DicomWebResponse<DicomDataset>> PostMultipartContentAsync(
             MultipartContent multiContent,
             string requestUri,
             CancellationToken cancellationToken = default)
@@ -386,7 +393,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             return result;
         }
 
-        private async Task EnsureSuccessStatusCodeAsync(HttpResponseMessage response)
+        private static async Task EnsureSuccessStatusCodeAsync(HttpResponseMessage response)
         {
             if (!response.IsSuccessStatusCode)
             {
@@ -396,55 +403,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
             }
         }
 
-        private async Task SetupAuthenticationAsync(HttpClient httpClient, TestApplication clientApplication, TestUser user = null)
+        private static MediaTypeWithQualityHeaderValue CreateMultipartMediaTypeHeader(string contentType)
         {
-            if (_securitySettings.Enabled)
-            {
-                var tokenKey = $"{clientApplication.ClientId}:{(user == null ? string.Empty : user.UserId)}";
-
-                if (!_bearerTokens.TryGetValue(tokenKey, out string bearerToken))
-                {
-                    bearerToken = await GetBearerToken(clientApplication, user, _securitySettings.TokenUrl);
-                    _bearerTokens[tokenKey] = bearerToken;
-                }
-
-                httpClient.SetBearerToken(bearerToken);
-            }
-        }
-
-        private async Task<string> GetBearerToken(TestApplication clientApplication, TestUser user, string tokenUrl)
-        {
-            if (clientApplication.Equals(TestApplications.InvalidClient))
-            {
-                return null;
-            }
-
-            var formContent = new FormUrlEncodedContent(GetAppSecuritySettings(clientApplication));
-
-            HttpResponseMessage tokenResponse = await HttpClient.PostAsync(tokenUrl, formContent);
-
-            var tokenJson = JObject.Parse(await tokenResponse.Content.ReadAsStringAsync());
-
-            var bearerToken = tokenJson["access_token"].Value<string>();
-
-            return bearerToken;
-        }
-
-        private List<KeyValuePair<string, string>> GetAppSecuritySettings(TestApplication clientApplication)
-        {
-            return new List<KeyValuePair<string, string>>
-            {
-                new KeyValuePair<string, string>("client_id", clientApplication.ClientId),
-                new KeyValuePair<string, string>("client_secret", clientApplication.ClientSecret),
-                new KeyValuePair<string, string>("grant_type", clientApplication.GrantType),
-                new KeyValuePair<string, string>("scope", AuthenticationSettings.Scope),
-                new KeyValuePair<string, string>("resource", AuthenticationSettings.Resource),
-            };
-        }
-
-        private MediaTypeWithQualityHeaderValue CreateMultipartMediaTypeHeader(string contentType)
-        {
-            MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(KnownContentTypes.MultipartRelated);
+            MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(MultipartRelated);
             NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + contentType + "\"");
             multipartHeader.Parameters.Add(contentHeader);
             return multipartHeader;
