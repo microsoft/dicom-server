@@ -36,7 +36,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                         clientApplication.ClientSecret,
                         AuthenticationSettings.Resource,
                         AuthenticationSettings.Scope);
+
                     _bearerTokens[tokenKey] = HttpClient.DefaultRequestHeaders?.Authorization?.Parameter;
+
+                    return;
                 }
 
                 SetBearerToken(bearerToken);
