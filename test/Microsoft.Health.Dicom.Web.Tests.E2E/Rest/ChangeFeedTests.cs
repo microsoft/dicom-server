@@ -19,7 +19,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private readonly TestDicomWebClient _client;
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
         {

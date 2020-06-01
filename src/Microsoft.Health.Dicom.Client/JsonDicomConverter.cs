@@ -233,7 +233,7 @@ namespace Microsoft.Health.Dicom.Client
                     }
                     break;
                 case "LO":
-                    item = new DicomLongString(tag, (string[])data);
+                    item = new DicomLongString(tag, _jsonTextEncoding, (string[])data);
                     break;
                 case "LT":
                     if (data is IByteBuffer dataBufferLT)
@@ -264,10 +264,10 @@ namespace Microsoft.Health.Dicom.Client
                     item = new DicomOtherVeryLong(tag, (IByteBuffer)data);
                     break;
                 case "PN":
-                    item = new DicomPersonName(tag, (string[])data);
+                    item = new DicomPersonName(tag, _jsonTextEncoding, (string[])data);
                     break;
                 case "SH":
-                    item = new DicomShortString(tag, (string[])data);
+                    item = new DicomShortString(tag, _jsonTextEncoding, (string[])data);
                     break;
                 case "SL":
                     if (data is IByteBuffer dataBufferSL)

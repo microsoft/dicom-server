@@ -95,9 +95,9 @@ namespace Microsoft.Health.Dicom.Client
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                string mediaTypeHeader = CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationOctetStream).ToString();
-
-                request.Headers.TryAddWithoutValidation("Accept", CreateAcceptHeader(mediaTypeHeader, dicomTransferSyntax));
+                request.Headers.TryAddWithoutValidation(
+                    "Accept",
+                    CreateAcceptHeader(CreateMultipartMediaTypeHeader(ApplicationOctetStreamContentType), dicomTransferSyntax));
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
@@ -138,15 +138,15 @@ namespace Microsoft.Health.Dicom.Client
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                string mediaTypeHeader = null;
+                MediaTypeWithQualityHeaderValue mediaTypeHeader;
 
                 if (singleInstance)
                 {
-                    mediaTypeHeader = MediaTypeApplicationDicom.ToString();
+                    mediaTypeHeader = MediaTypeApplicationDicom;
                 }
                 else
                 {
-                    mediaTypeHeader = CreateMultipartMediaTypeHeader(KnownContentTypes.ApplicationDicom).ToString();
+                    mediaTypeHeader = CreateMultipartMediaTypeHeader(ApplicationDicomContentType);
                 }
 
                 request.Headers.TryAddWithoutValidation("Accept", CreateAcceptHeader(mediaTypeHeader, dicomTransferSyntax));
@@ -408,16 +408,16 @@ namespace Microsoft.Health.Dicom.Client
 
         private static MediaTypeWithQualityHeaderValue CreateMultipartMediaTypeHeader(string contentType)
         {
-            MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(MultipartRelatedContentType);
-            NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + contentType + "\"");
+            var multipartHeader = new MediaTypeWithQualityHeaderValue(MultipartRelatedContentType);
+            var contentHeader = new NameValueHeaderValue("type", "\"" + contentType + "\"");
 
             multipartHeader.Parameters.Add(contentHeader);
             return multipartHeader;
         }
 
-        private string CreateAcceptHeader(string mediaTypeHeader, string dicomTransferSyntax)
+        private static string CreateAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
         {
-            string transferSyntaxHeader = dicomTransferSyntax == null ? $";transfer-syntax=\"*\"" : $";transfer-syntax=\"{dicomTransferSyntax}\"";
+            string transferSyntaxHeader = dicomTransferSyntax == null ? $";{TransferSyntaxHeaderName}=\"*\"" : $";{TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
 
             return $"{mediaTypeHeader}{transferSyntaxHeader}";
         }

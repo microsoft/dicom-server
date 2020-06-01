@@ -10,7 +10,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Dicom;
-using Dicom.Serialization;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
