@@ -26,13 +26,14 @@ namespace Microsoft.Health.Dicom.Client
 {
     public class DicomWebClient
     {
-        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue("application/dicom");
-        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue("application/octet-stream");
-        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue("application/dicom+json");
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue(ApplicationDicomContentType);
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue(ApplicationOctetStreamContentType);
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue(ApplicationDicomJsonContentType);
 
-        private const string ApplicationDicom = "application/dicom";
-        private const string ApplicationOctetStream = "application/octet-stream";
-        private const string MultipartRelated = "multipart/related";
+        private const string ApplicationDicomContentType = "application/dicom";
+        private const string ApplicationDicomJsonContentType = "application/dicom+json";
+        private const string ApplicationOctetStreamContentType = "application/octet-stream";
+        private const string MultipartRelatedContentType = "multipart/related";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -94,7 +95,7 @@ namespace Microsoft.Health.Dicom.Client
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(ApplicationOctetStream));
+                request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(ApplicationOctetStreamContentType));
 
                 request.Headers.Add(TransferSyntaxHeaderName, dicomTransferSyntax);
 
@@ -143,7 +144,7 @@ namespace Microsoft.Health.Dicom.Client
                 }
                 else
                 {
-                    request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(ApplicationDicom));
+                    request.Headers.Accept.Add(CreateMultipartMediaTypeHeader(ApplicationDicomContentType));
                 }
 
                 request.Headers.Add(TransferSyntaxHeaderName, dicomTransferSyntax);
@@ -405,7 +406,7 @@ namespace Microsoft.Health.Dicom.Client
 
         private static MediaTypeWithQualityHeaderValue CreateMultipartMediaTypeHeader(string contentType)
         {
-            MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(MultipartRelated);
+            MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(MultipartRelatedContentType);
             NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + contentType + "\"");
             multipartHeader.Parameters.Add(contentHeader);
             return multipartHeader;
