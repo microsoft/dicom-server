@@ -2,7 +2,7 @@
 
 ### The Dicom server code follows below pattern for raising exceptions
 - All exceptions thrown in the dicom-server code inherit from base type DicomServerException.
-- All user input validation errors throw a derived exception from DicomValidationException.
+- All user input validation errors throw a derived exception from ValidationException.
 - Internal classes use Ensure library to validate input. Ensure library throws .Net Argument*Exception. 
 - Exceptions from dependent libraries like fo-dicom are caught and wrapped in exception inherited from DicomServerException.
 - Exceptions from dependent services libraries like Azure storage blob are caught and wrapped in exception inherited from DicomServerException.

@@ -107,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
         public static Task<ChangeFeedResponse> GetChangeFeed(
             this IMediator mediator,
-            int offset,
+            long offset,
             int limit,
             bool includeMetadata,
             CancellationToken cancellationToken = default)

@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         }
 
         [Theory]
-        [InlineData("application/dicom+json", null)]
+        [InlineData("application/dicom+json; transfer-syntax=\"*\"", null)]
         [InlineData("applicAtion/dICOM+Json", null)]
         [InlineData("multipart/related; type=\"application/dicom+json\"", null)]
         [InlineData("multipart/related; type=\"application/dicom\"", (int)HttpStatusCode.NotAcceptable)]

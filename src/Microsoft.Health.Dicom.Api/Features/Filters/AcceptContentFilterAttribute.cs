@@ -58,29 +58,32 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
             // Validate the accept headers has one of the specified accepted media types.
             if (acceptHeaders != null && acceptHeaders.Count > 0)
             {
-                if (_allowMultiple)
+                foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
                 {
-                    foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
+                    if (_allowMultiple && StringSegment.Equals(acceptHeader.MediaType, KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        if (StringSegment.Equals(acceptHeader.MediaType, KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            NameValueHeaderValue typeParameterValue = acceptHeader.Parameters.FirstOrDefault(
-                                parameter => StringSegment.Equals(parameter.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase));
+                        NameValueHeaderValue typeParameterValue = acceptHeader.Parameters.FirstOrDefault(
+                            parameter => StringSegment.Equals(parameter.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase));
 
-                            if (typeParameterValue != null &&
-                                MediaTypeHeaderValue.TryParse(HeaderUtilities.RemoveQuotes(typeParameterValue.Value), out MediaTypeHeaderValue parsedValue) &&
-                                _mediaTypes.Contains(parsedValue))
-                            {
-                                acceptable = true;
-                                break;
-                            }
+                        if (typeParameterValue != null &&
+                            MediaTypeHeaderValue.TryParse(HeaderUtilities.RemoveQuotes(typeParameterValue.Value), out MediaTypeHeaderValue parsedValue) &&
+                            _mediaTypes.Contains(parsedValue))
+                        {
+                            acceptable = true;
+                            break;
                         }
                     }
-                }
 
-                if (_allowSingle && !acceptable && acceptHeaders.Any(x => _mediaTypes.Contains(x)))
-                {
-                    acceptable = true;
+                    if (_allowSingle)
+                    {
+                        string[] split = acceptHeader.ToString().Split(';');
+                        List<string> stringHeaders = _mediaTypes.Select(x => x.ToString()).ToList();
+                        if (split.Any(x => stringHeaders.Contains(x, StringComparer.InvariantCultureIgnoreCase)))
+                        {
+                            acceptable = true;
+                            break;
+                        }
+                    }
                 }
             }
 

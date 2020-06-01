@@ -54,10 +54,59 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 return false;
             }
 
+            if ((fromTs == DicomTransferSyntax.JPEG2000Lossless || fromTs == DicomTransferSyntax.JPEG2000Lossy) &&
+                (toTransferSyntax == DicomTransferSyntax.JPEG2000Lossless || toTransferSyntax == DicomTransferSyntax.JPEG2000Lossy) &&
+                ((photometricInterpretation == PhotometricInterpretation.YbrIct.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrRct.Value)))
+            {
+                return false;
+            }
+
+            if ((fromTs == DicomTransferSyntax.DeflatedExplicitVRLittleEndian ||
+                fromTs == DicomTransferSyntax.ExplicitVRBigEndian ||
+                fromTs == DicomTransferSyntax.ExplicitVRLittleEndian ||
+                fromTs == DicomTransferSyntax.ImplicitVRLittleEndian ||
+                fromTs == DicomTransferSyntax.RLELossless) &&
+                (toTransferSyntax == DicomTransferSyntax.JPEG2000Lossless ||
+                toTransferSyntax == DicomTransferSyntax.JPEG2000Lossy ||
+                toTransferSyntax == DicomTransferSyntax.JPEGProcess1 ||
+                toTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
+                ((photometricInterpretation == PhotometricInterpretation.Rgb.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrFull422.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrPartial422.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrPartial420.Value)))
+            {
+                return false;
+            }
+
+            if ((fromTs == DicomTransferSyntax.JPEG2000Lossless || fromTs == DicomTransferSyntax.JPEG2000Lossy) &&
+                ((photometricInterpretation == PhotometricInterpretation.Rgb.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrFull422.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrPartial422.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrPartial420.Value)))
+            {
+                return false;
+            }
+
+            if ((fromTs == DicomTransferSyntax.JPEGProcess1 || fromTs == DicomTransferSyntax.JPEGProcess2_4) &&
+                ((photometricInterpretation == PhotometricInterpretation.Rgb.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrFull.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrFull422.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrPartial422.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrPartial420.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrIct.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrRct.Value)))
+            {
+                return false;
+            }
+
             // Bug in fo-dicom 4.0.1
             if ((toTransferSyntax == DicomTransferSyntax.JPEGProcess1 || toTransferSyntax == DicomTransferSyntax.JPEGProcess2_4) &&
-                ((photometricInterpretation == PhotometricInterpretation.Monochrome2.Value) ||
-                 (photometricInterpretation == PhotometricInterpretation.Monochrome1.Value)))
+                ((photometricInterpretation == PhotometricInterpretation.Monochrome1.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.Monochrome2.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrFull.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrIct.Value) ||
+                 (photometricInterpretation == PhotometricInterpretation.YbrRct.Value)))
             {
                 return false;
             }

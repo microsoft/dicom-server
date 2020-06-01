@@ -160,6 +160,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     case InstanceAlreadyExistsException _:
                         failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
                         break;
+
+                    case DicomValidationException _:
+                        failureCode = FailureReasonCodes.ValidationFailure;
+                        break;
                 }
 
                 LogFailedToStoreDelegate(_logger, index, failureCode, ex);

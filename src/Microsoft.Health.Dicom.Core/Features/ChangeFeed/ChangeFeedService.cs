@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             _metadataStore = metadataStore;
         }
 
-        public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(int offset, int limit, bool includeMetadata, CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(long offset, int limit, bool includeMetadata, CancellationToken cancellationToken)
         {
             if (offset < 0)
             {

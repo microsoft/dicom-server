@@ -119,33 +119,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private void Initialize(QueryExpression queryExpression)
         {
-            HashSet<DicomTag> levelSpecificTags = null;
-
             switch (queryExpression.QueryResource)
             {
                 case QueryResource.AllStudies:
                     _tagsToReturn = queryExpression.IncludeFields.All ? AllStudyTags : DefaultStudyTags;
-                    levelSpecificTags = AllStudyTags;
                     break;
                 case QueryResource.AllSeries:
                     _tagsToReturn = queryExpression.IncludeFields.All ? AllStudySeriesTags : DefaultStudySeriesTags;
-                    levelSpecificTags = AllStudySeriesTags;
                     break;
                 case QueryResource.StudySeries:
                     _tagsToReturn = queryExpression.IncludeFields.All ? AllSeriesTags : DefaultSeriesTags;
-                    levelSpecificTags = AllStudySeriesTags;
                     break;
                 case QueryResource.AllInstances:
                     _tagsToReturn = queryExpression.IncludeFields.All ? AllStudySeriesInstanceTags : DefaultStudySeriesInstanceTags;
-                    levelSpecificTags = AllStudySeriesInstanceTags;
                     break;
                 case QueryResource.StudyInstances:
                     _tagsToReturn = queryExpression.IncludeFields.All ? AllSeriesInstanceTags : DefaultSeriesInstanceTags;
-                    levelSpecificTags = AllStudySeriesInstanceTags;
                     break;
                 case QueryResource.StudySeriesInstances:
                     _tagsToReturn = queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags;
-                    levelSpecificTags = AllStudySeriesInstanceTags;
                     break;
                 default:
                     Debug.Fail("A newly added queryResource is not implemeted here");
@@ -154,10 +146,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             foreach (DicomTag tag in queryExpression.IncludeFields.DicomTags)
             {
-                if (levelSpecificTags.Contains(tag))
-                {
-                    _tagsToReturn.Add(tag);
-                }
+                // we will allow any valid include tag. This will allow customers to get any custom tags in resposne.
+                _tagsToReturn.Add(tag);
             }
 
             foreach (var cond in queryExpression.FilterConditions)

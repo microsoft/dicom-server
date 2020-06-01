@@ -11,7 +11,6 @@ using Dicom;
 using Dicom.Imaging;
 using Dicom.IO.Buffer;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve

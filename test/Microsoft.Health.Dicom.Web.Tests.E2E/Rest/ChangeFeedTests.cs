@@ -10,7 +10,6 @@ using Dicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
-using Microsoft.IO;
 using Xunit;
 using ChangeFeedAction = Microsoft.Health.Dicom.Client.ChangeFeedAction;
 using ChangeFeedState = Microsoft.Health.Dicom.Client.ChangeFeedState;
@@ -25,7 +24,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             _client = fixture.Client;
-            _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
         }
 
         [Fact]
@@ -134,22 +132,29 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(ChangeFeedState.Current, changeFeedResults.Value[0].State);
         }
 
-        [Fact]
-        public async Task GivenANegativeOffset_WhenRetrievingChangeFeed_ThenBadRequestReturned()
+        [Theory]
+        [InlineData("-1", "0", "true")]
+        [InlineData("0", "0", "true")]
+        [InlineData("101", "0", "true")]
+        [InlineData("blah", "0", "true")]
+        [InlineData("1", "-1", "true")]
+        [InlineData("1", "92233720368547758070", "true")]
+        [InlineData("1", "blah", "true")]
+        [InlineData("1", "0", "0")]
+        [InlineData("1", "0", "true-ish")]
+        [InlineData("1", "0", "boolean")]
+        public async Task GivenAnInvalidParameter_WhenRetrievingChangeFeed_ThenBadRequestReturned(string limit, string offset, string includeMetadata)
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.GetChangeFeed("?offset=-1"));
+                () => _client.GetChangeFeed($"?limit={limit}&offset={offset}&includeMetadata={includeMetadata}"));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
-        [Theory]
-        [InlineData(-1)]
-        [InlineData(0)]
-        [InlineData(101)]
-        public async Task GivenAnInvalidLimit_WhenRetrievingChangeFeed_ThenBadRequestReturned(int limit)
+        [Fact]
+        public async Task GivenAnInvalidParameter_WhenRetrievingChangeFeedLatest_ThenBadRequestReturned()
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.GetChangeFeed($"?limit={limit}"));
+                () => _client.GetChangeFeedLatest("?includeMetadata=asdf"));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 

@@ -173,6 +173,10 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="InvalidOffsetValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified offset value {0} is not a valid integer.</value>
   </data>
+  <data name="InvalidQueryStringValue" xml:space="preserve">
+    <value>The following query parameter is invalid: {0}.</value>
+    <comment>{0} is a parameter name.</comment>
+  </data>
   <data name="InvalidTransferSyntaxValue" xml:space="preserve">
     <value>The specified Transfer Syntax value is not valid.</value>
   </data>
@@ -213,7 +217,7 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="StudyInstanceNotFound" xml:space="preserve">
     <value>The specified study cannot be found.</value>
   </data>
-  <data name="UnkownQueryParameter" xml:space="preserve">
+  <data name="UnknownQueryParameter" xml:space="preserve">
     <value>Invalid QIDO-RS query. Unknown query parameter {0}.</value>
     <comment>{0} Parameter name</comment>
   </data>

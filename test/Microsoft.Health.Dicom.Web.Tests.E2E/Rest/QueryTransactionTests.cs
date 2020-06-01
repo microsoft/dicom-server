@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
@@ -66,6 +67,29 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset testDataResponse = response.Value.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
             Assert.NotNull(testDataResponse);
             ValidateResponseDataset(QueryResource.AllStudies, matchInstance, testDataResponse);
+        }
+
+        [Fact]
+        public async Task GivenSearchRequest_AllStudyLevelOnPatientName_MatchIsCaseIncensitiveAndAccentIncensitive()
+        {
+            string randomNamePart = RandomString(7);
+            string patientName = $"Hall^{randomNamePart}^Tá";
+            string patientNameWithNoAccent = $"Hall^{randomNamePart}^Ta";
+
+            DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+            {
+                { DicomTag.PatientName, Encoding.UTF8, patientName },
+                { DicomTag.SpecificCharacterSet, "ISO_IR 192" },
+            });
+
+            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                $"/studies?PatientName={patientNameWithNoAccent}");
+
+            Assert.NotNull(response.Value);
+            Assert.Single(response.Value);
+            DicomDataset testDataResponse = response.Value.First();
+            Assert.NotNull(testDataResponse);
+            Assert.Equal(patientName, testDataResponse.GetString(DicomTag.PatientName));
         }
 
         [Fact]

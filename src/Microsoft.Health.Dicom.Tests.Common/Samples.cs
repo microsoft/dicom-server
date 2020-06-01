@@ -43,6 +43,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
         /// <param name="transferSyntax">Transfer Syntax</param>
         /// <param name="encode">Whether to encode image according to the supplied transfer syntax. False might result in invalid images</param>
         /// <param name="frames">Number of frames to generate</param>
+        /// <param name="photometricInterpretation">Photometric Interpretation to be set on generated file</param>
         /// <returns>DicomFile</returns>
         public static DicomFile CreateRandomDicomFileWith8BitPixelData(
             string studyInstanceUid = null,
@@ -52,7 +53,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
             int columns = 512,
             string transferSyntax = "1.2.840.10008.1.2.1",  // Explicit VR Little Endian
             bool encode = true,
-            int frames = 1)
+            int frames = 1,
+            string photometricInterpretation = null)
         {
             DicomFile dicomFile = DicomImageGenerator.GenerateDicomFile(
                studyInstanceUid,
@@ -64,7 +66,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
                TestFileBitDepth.EightBit,
                transferSyntax,
                encode,
-               frames);
+               frames,
+               photometricInterpretation);
 
             return dicomFile;
         }
@@ -79,7 +82,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
         /// <param name="columns">height</param>
         /// <param name="transferSyntax">Transfer Syntax</param>
         /// <param name="encode">Whether to encode image according to the supplied transfer syntax. False might result in invalid images</param>
-        /// /// <param name="frames">Number of frames to generate</param>
+        /// <param name="frames">Number of frames to generate</param>
+        /// <param name="photometricInterpretation">Photometric Interpretation to be set on generated file</param>
         /// <returns>DicomFile</returns>
         public static DicomFile CreateRandomDicomFileWith16BitPixelData(
             string studyInstanceUid = null,
@@ -89,7 +93,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
             int columns = 512,
             string transferSyntax = "1.2.840.10008.1.2.1", // Explicit VR Little Endian
             bool encode = true,
-            int frames = 1)
+            int frames = 1,
+            string photometricInterpretation = null)
         {
             DicomFile dicomFile = DicomImageGenerator.GenerateDicomFile(
                 studyInstanceUid,
@@ -101,7 +106,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 TestFileBitDepth.SixteenBit,
                 transferSyntax,
                 encode,
-                frames);
+                frames,
+                photometricInterpretation);
 
             return dicomFile;
         }
@@ -152,6 +158,35 @@ namespace Microsoft.Health.Dicom.Tests.Common
                     string sopInstanceUid = null)
         {
             return new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+        }
+
+        public static DicomFile CreateRandomDicomFileWithInvalidVr(
+                   string studyInstanceUid = null,
+                   string seriesInstanceUid = null,
+                   string sopInstanceUid = null)
+        {
+            DicomFile file = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            file.Dataset.Add(GenerateNewDataSetWithInvalidVr());
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            return file;
+        }
+
+        private static DicomDataset GenerateNewDataSetWithInvalidVr()
+        {
+            var dicomDataset = new DicomDataset();
+
+            dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
+
+            return dicomDataset;
         }
 
         public static DicomDataset CreateRandomInstanceDataset(

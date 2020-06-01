@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [ModelStateValidator]
     public class StoreController : Controller
     {
         private readonly IMediator _mediator;
