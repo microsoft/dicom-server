@@ -23,7 +23,7 @@
     <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.0-master-20200507-1" />
     <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="1.0.0-master-20200507-1" />
     <PackageReference Include="Microsoft.Health.SqlServer" Version="1.0.0-master-20200507-1" />
-    <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="1.0.0-master-20200507-1" />
+    <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="1.0.0-master-20200528-2" />
   </ItemGroup>
 
   <ItemGroup>
