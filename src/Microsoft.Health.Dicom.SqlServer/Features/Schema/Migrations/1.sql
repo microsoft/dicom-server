@@ -157,7 +157,7 @@ CREATE TABLE dbo.Instance (
     LastStatusUpdatedDate   DATETIME2(7)               NOT NULL,
     --audit columns
     CreatedDate             DATETIME2(7)               NOT NULL
-)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
 (
@@ -177,6 +177,7 @@ INCLUDE
 (
     Watermark
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status on dbo.Instance
 (
@@ -187,6 +188,7 @@ INCLUDE
 (
     Watermark
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status on dbo.Instance
 (
@@ -198,6 +200,7 @@ INCLUDE
 (
     Watermark
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status on dbo.Instance
 (
@@ -210,12 +213,13 @@ INCLUDE
     SeriesInstanceUid,
     Watermark
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Instance_Watermark on dbo.Instance
 (
     Watermark
 )
-
+WITH (DATA_COMPRESSION = PAGE)
 
 --Cross apply indexes
 CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status on dbo.Instance
@@ -230,6 +234,7 @@ INCLUDE
     SopInstanceUid,
     Watermark
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status on dbo.Instance
 (
@@ -243,6 +248,7 @@ INCLUDE
     SopInstanceUid,
     Watermark
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 /*************************************************************
     Study Table
@@ -258,7 +264,7 @@ CREATE TABLE dbo.Study (
     StudyDescription            NVARCHAR(64)                      NULL,
     AccessionNumber             NVARCHAR(16)                      NULL,
     PatientNameWords            AS REPLACE(PatientName, '^', ' ') PERSISTED,
-)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
 (
@@ -273,6 +279,7 @@ INCLUDE
 (
     StudyKey
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_PatientId ON dbo.Study
 (
@@ -282,6 +289,7 @@ INCLUDE
 (
     StudyKey
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_PatientName ON dbo.Study
 (
@@ -291,6 +299,7 @@ INCLUDE
 (
     StudyKey
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_ReferringPhysicianName ON dbo.Study
 (
@@ -300,6 +309,7 @@ INCLUDE
 (
     StudyKey
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_StudyDate ON dbo.Study
 (
@@ -309,6 +319,7 @@ INCLUDE
 (
     StudyKey
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_StudyDescription ON dbo.Study
 (
@@ -318,6 +329,7 @@ INCLUDE
 (
     StudyKey
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_AccessionNumber ON dbo.Study
 (
@@ -327,7 +339,7 @@ INCLUDE
 (
     StudyKey
 )
-
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE FULLTEXT INDEX ON Study(PatientNameWords LANGUAGE 1033)
 KEY INDEX IXC_Study
@@ -345,7 +357,7 @@ CREATE TABLE dbo.Series (
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL, 
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL
-)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
 (
@@ -357,6 +369,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesKey ON dbo.Series
 (
     SeriesKey
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid ON dbo.Series
 (
@@ -366,6 +379,7 @@ INCLUDE
 (
     StudyKey
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Series_Modality ON dbo.Series
 (
@@ -376,6 +390,7 @@ INCLUDE
     StudyKey,
     SeriesKey
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate ON dbo.Series
 (
@@ -386,6 +401,7 @@ INCLUDE
     StudyKey,
     SeriesKey
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 GO
 
@@ -402,7 +418,7 @@ CREATE TABLE dbo.DeletedInstance
     DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
     RetryCount          INT               NOT NULL,
     CleanupAfter        DATETIMEOFFSET(0) NOT NULL
-)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
 (
@@ -424,6 +440,7 @@ INCLUDE
     SopInstanceUid,
     Watermark
 )
+WITH (DATA_COMPRESSION = PAGE)
 
 /*************************************************************
     Changes Table
@@ -443,7 +460,7 @@ CREATE TABLE dbo.ChangeFeed (
     SopInstanceUid          VARCHAR(64)          NOT NULL,
     OriginalWatermark       BIGINT               NOT NULL,
     CurrentWatermark        BIGINT               NULL
-)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
 (
