@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.IO;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Metadata.Features.Storage
@@ -29,23 +30,29 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
     /// </summary>
     public class BlobMetadataStore : IMetadataStore
     {
+        private static readonly string GetInstanceMetadataStreamTagName = $"{nameof(BlobMetadataStore)}.{nameof(GetInstanceMetadataAsync)}";
         private static readonly Encoding _metadataEncoding = Encoding.UTF8;
+
         private readonly CloudBlobContainer _container;
         private readonly JsonSerializer _jsonSerializer;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public BlobMetadataStore(
             CloudBlobClient client,
             JsonSerializer jsonSerializer,
-            IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor)
+            IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(jsonSerializer, nameof(jsonSerializer));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
+            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
             BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
 
             _container = client.GetContainerReference(containerConfiguration.ContainerName);
             _jsonSerializer = jsonSerializer;
+            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
         /// <inheritdoc />
@@ -101,11 +108,17 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
             await ExecuteAsync(async () =>
             {
-                await using (Stream stream = await cloudBlockBlob.OpenReadAsync(cancellationToken))
-                using (var streamReader = new StreamReader(stream, _metadataEncoding))
-                using (var jsonTextReader = new JsonTextReader(streamReader))
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
                 {
-                    dicomDataset = _jsonSerializer.Deserialize<DicomDataset>(jsonTextReader);
+                    await cloudBlockBlob.DownloadToStreamAsync(stream, cancellationToken);
+
+                    stream.Seek(0, SeekOrigin.Begin);
+
+                    using (var streamReader = new StreamReader(stream, _metadataEncoding))
+                    using (var jsonTextReader = new JsonTextReader(streamReader))
+                    {
+                        dicomDataset = _jsonSerializer.Deserialize<DicomDataset>(jsonTextReader);
+                    }
                 }
             });
 
