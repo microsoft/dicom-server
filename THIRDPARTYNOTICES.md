@@ -766,7 +766,7 @@ This file is based on or incorporates material from the projects listed below (T
   > (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   > SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-## Scrutor 3.2.0
+## Scrutor 3.2.1
 * Component Source:   https://github.com/khellang/Scrutor
 * Component Copyright and License:
   > The MIT License (MIT)
