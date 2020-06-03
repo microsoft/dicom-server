@@ -6,8 +6,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 using Dicom.Serialization;
-using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly BlobDataStoreConfiguration _blobDataStoreConfiguration;
         private readonly BlobContainerConfiguration _blobContainerConfiguration;
         private readonly BlobContainerConfiguration _metadataContainerConfiguration;
-        private CloudBlobClient _blobClient;
+        private BlobServiceClient _blobClient;
 
         public DataStoreTestsFixture()
         {
@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var jsonSerializer = new JsonSerializer();
             jsonSerializer.Converters.Add(new JsonDicomConverter());
 
-            FileStore = new BlobFileStore(_blobClient, optionsMonitor);
+            FileStore = new BlobFileStore(_blobClient, optionsMonitor, RecyclableMemoryStreamManager);
             MetadataStore = new BlobMetadataStore(_blobClient, jsonSerializer, optionsMonitor, RecyclableMemoryStreamManager);
         }
 
@@ -78,10 +78,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             using (_blobClient as IDisposable)
             {
-                CloudBlobContainer blobContainer = _blobClient.GetContainerReference(_blobContainerConfiguration.ContainerName);
+                BlobContainerClient blobContainer = _blobClient.GetBlobContainerClient(_blobContainerConfiguration.ContainerName);
                 await blobContainer.DeleteIfExistsAsync();
 
-                CloudBlobContainer metadataContainer = _blobClient.GetContainerReference(_metadataContainerConfiguration.ContainerName);
+                BlobContainerClient metadataContainer = _blobClient.GetBlobContainerClient(_metadataContainerConfiguration.ContainerName);
                 await metadataContainer.DeleteIfExistsAsync();
             }
         }
