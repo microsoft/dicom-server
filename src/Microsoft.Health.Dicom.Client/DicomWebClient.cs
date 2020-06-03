@@ -16,6 +16,7 @@ using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IO;
 using Microsoft.Net.Http.Headers;

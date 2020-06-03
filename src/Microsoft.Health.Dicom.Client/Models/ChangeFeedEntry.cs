@@ -9,7 +9,7 @@ using EnsureThat;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Microsoft.Health.Dicom.Client
+namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
     /// Represents each change feed entry of a change has retrieved from the store
@@ -54,6 +54,6 @@ namespace Microsoft.Health.Dicom.Client
         [JsonConverter(typeof(StringEnumConverter))]
         public ChangeFeedState State { get; }
 
-        public DicomDataset Metadata { get; set; }
+        public DicomDataset Metadata { get; }
     }
 }
