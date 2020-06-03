@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Client
 
         public T ToT()
         {
-            throw new System.NotImplementedException();
+            return Value;
         }
     }
 }

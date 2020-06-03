@@ -10,6 +10,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Dicom;
+using Dicom.Serialization;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -17,7 +18,6 @@ using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;
 using Xunit;
-using JsonDicomConverter = Microsoft.Health.Dicom.Client.JsonDicomConverter;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {

@@ -17,7 +17,6 @@ using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;
 using Xunit;
-using JsonDicomConverter = Microsoft.Health.Dicom.Client;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
@@ -157,7 +156,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset retrievedDataset2 = response.Value.Last();
 
             // Compare result datasets by serializing.
-            var jsonDicomConverter = new JsonDicomConverter.JsonDicomConverter();
+            var jsonDicomConverter = new JsonDicomConverter();
 
             string serializedExpectedDataset1 = JsonConvert.SerializeObject(expectedDataset1, jsonDicomConverter);
             string serializedExpectedDataset2 = JsonConvert.SerializeObject(expectedDataset2, jsonDicomConverter);
@@ -187,7 +186,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset expectedDataset = storedDataset.CopyWithoutBulkDataItems();
 
             // Compare result datasets by serializing.
-            var jsonDicomConverter = new JsonDicomConverter.JsonDicomConverter();
+            var jsonDicomConverter = new JsonDicomConverter();
             Assert.Equal(
                 JsonConvert.SerializeObject(expectedDataset, jsonDicomConverter),
                 JsonConvert.SerializeObject(retrievedDataset, jsonDicomConverter));
