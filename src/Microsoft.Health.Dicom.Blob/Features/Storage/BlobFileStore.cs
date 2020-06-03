@@ -116,10 +116,6 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         {
             string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}.dcm";
 
-            // Use the Azure storage SDK to validate the blob name; only specific values are allowed here.
-            // Check here for more information: https://blogs.msdn.microsoft.com/jmstall/2014/06/12/azure-storage-naming-rules/
-            // NameValidator.ValidateBlobName(blobName);
-
             return _container.GetBlockBlobClient(blobName);
         }
 
