@@ -500,7 +500,7 @@ This file is based on or incorporates material from the projects listed below (T
   > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   > SOFTWARE.
 
-## MediatR 7.0.0
+## MediatR 8.0.1
 * Component Source:   https://github.com/jbogard/MediatR
 * Component Copyright and License:
   > Apache License
