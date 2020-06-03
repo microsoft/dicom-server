@@ -77,8 +77,7 @@
         },
         "additionalDicomServerConfigProperties": {
             "type": "object",
-            "defaultValue": {
-            },
+            "defaultValue": {},
             "metadata": {
                 "description": "Additional configuration properties for the DICOM server. In the form {\"path1\":\"value1\",\"path2\":\"value2\"}"
             }
@@ -146,7 +145,7 @@
             "DicomServer:Security:Enabled": "[variables('securityAuthenticationEnabled')]",
             "DicomServer:Security:Authentication:Authority": "[parameters('securityAuthenticationAuthority')]",
             "DicomServer:Security:Authentication:Audience": "[parameters('securityAuthenticationAudience')]"
-            
+
         },
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
         "sqlServerResourceId": "[resourceId('Microsoft.Sql/servers/', variables('serviceName'))]",
@@ -198,7 +197,8 @@
                     "type": "config",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
-                        "[if(variables('deployAppInsights'),concat('Microsoft.Insights/components/', variables('appInsightsName')),resourceId('Microsoft.KeyVault/vaults', variables('serviceName')))]"
+                        "[if(variables('deployAppInsights'),concat('Microsoft.Insights/components/', variables('appInsightsName')),resourceId('Microsoft.KeyVault/vaults', variables('serviceName')))]",
+                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.3.1.x86')]"
                     ],
                     "properties": "[if(variables('deployAppInsights'), union(variables('combinedDicomServerConfigProperties'), json(concat('{\"ApplicationInsights:InstrumentationKey\": \"', reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey, '\"}'))), variables('combinedDicomServerConfigProperties'))]"
                 },
@@ -206,9 +206,8 @@
                     "apiVersion": "2015-08-01",
                     "name": "AspNetCoreRuntime.3.1.x86",
                     "type": "siteextensions",
-                    "dependsOn": [ 
-                        "[variables('appServiceResourceId')]",
-                        "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]"
+                    "dependsOn": [
+                        "[variables('appServiceResourceId')]"
                     ],
                     "properties": {
                         "version": "3.1.3"
