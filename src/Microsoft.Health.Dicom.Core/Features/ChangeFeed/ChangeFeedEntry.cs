@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
     {
         public ChangeFeedEntry(
             long sequence,
-            DateTime timeStamp,
+            DateTimeOffset timestamp,
             ChangeFeedAction action,
             string studyInstanceUid,
             string seriesInstanceUid,
@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
             Action = action;
-            TimeStamp = timeStamp;
+            Timestamp = timestamp;
             State = state;
             OriginalVersion = originalVersion;
             CurrentVersion = currentVersion;
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
         [JsonConverter(typeof(StringEnumConverter))]
         public ChangeFeedAction Action { get; }
 
-        public DateTime TimeStamp { get; }
+        public DateTimeOffset Timestamp { get; }
 
         [JsonConverter(typeof(StringEnumConverter))]
         public ChangeFeedState State { get; }

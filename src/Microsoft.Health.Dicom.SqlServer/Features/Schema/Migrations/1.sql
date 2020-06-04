@@ -436,8 +436,8 @@ INCLUDE
 **************************************************************/
 CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
-    TimeStamp               DATETIME2(7)         NOT NULL,
-    Action                  TINYINT              NOT NULL,                
+    Timestamp               DATETIMEOFFSET(7)    NOT NULL,
+    Action                  TINYINT              NOT NULL,
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
     SeriesInstanceUid       VARCHAR(64)          NOT NULL,
     SopInstanceUid          VARCHAR(64)          NOT NULL,

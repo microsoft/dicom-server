@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Client.Models
     {
         public ChangeFeedEntry(
             long sequence,
-            DateTime timeStamp,
+            DateTime timestamp,
             ChangeFeedAction action,
             string studyInstanceUid,
             string seriesInstanceUid,
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Client.Models
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
             Action = action;
-            TimeStamp = timeStamp;
+            Timestamp = timestamp;
             State = state;
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Client.Models
         [JsonConverter(typeof(StringEnumConverter))]
         public ChangeFeedAction Action { get; }
 
-        public DateTime TimeStamp { get; }
+        public DateTimeOffset Timestamp { get; }
 
         [JsonConverter(typeof(StringEnumConverter))]
         public ChangeFeedState State { get; }
