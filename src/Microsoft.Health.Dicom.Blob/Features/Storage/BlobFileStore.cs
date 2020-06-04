@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             EnsureArg.IsNotNull(stream, nameof(stream));
 
-            BlockBlobClient blob = GetBlockBlobReference(versionedInstanceIdentifier);
+            BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
             stream.Seek(0, SeekOrigin.Begin);
 
             try
@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-            BlockBlobClient blob = GetBlockBlobReference(versionedInstanceIdentifier);
+            BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
             await ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
         }
@@ -99,7 +99,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-            BlockBlobClient blob = GetBlockBlobReference(versionedInstanceIdentifier);
+            BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
             Stream stream = null;
 
@@ -112,7 +112,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             return stream;
         }
 
-        private BlockBlobClient GetBlockBlobReference(VersionedInstanceIdentifier versionedInstanceIdentifier)
+        private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
             string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}.dcm";
 
