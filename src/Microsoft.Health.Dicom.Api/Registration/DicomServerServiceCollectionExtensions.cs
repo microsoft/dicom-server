@@ -17,7 +17,6 @@ using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
-using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
