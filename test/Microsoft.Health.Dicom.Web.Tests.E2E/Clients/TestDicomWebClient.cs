@@ -20,12 +20,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
         public TestDicomWebClient(HttpClient httpClient, RecyclableMemoryStreamManager recyclableMemoryStreamManager, TestApplication testApplication, Uri tokenUri)
             : base(httpClient, recyclableMemoryStreamManager, tokenUri)
         {
-            SetupAuthenticationAsync(HttpClient, testApplication).GetAwaiter().GetResult();
+            SetupAuthenticationAsync(testApplication).GetAwaiter().GetResult();
         }
 
-        private async Task SetupAuthenticationAsync(HttpClient httpClient, TestApplication clientApplication, TestUser user = null)
+        private async Task SetupAuthenticationAsync(TestApplication clientApplication, TestUser user = null)
         {
-            if (SecurityEnabled == true)
+            if (SecurityEnabled == true && clientApplication != TestApplications.InvalidClient)
             {
                 var tokenKey = $"{clientApplication.ClientId}:{(user == null ? string.Empty : user.UserId)}";
 

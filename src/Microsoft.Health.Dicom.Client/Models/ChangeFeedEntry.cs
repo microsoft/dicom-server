@@ -54,6 +54,6 @@ namespace Microsoft.Health.Dicom.Client.Models
         [JsonConverter(typeof(StringEnumConverter))]
         public ChangeFeedState State { get; }
 
-        public DicomDataset Metadata { get; }
+        public DicomDataset Metadata { get; set; }
     }
 }
