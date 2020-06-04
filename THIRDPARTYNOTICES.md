@@ -500,7 +500,7 @@ This file is based on or incorporates material from the projects listed below (T
   > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   > SOFTWARE.
 
-## MediatR 7.0.0
+## MediatR 8.0.1
 * Component Source:   https://github.com/jbogard/MediatR
 * Component Copyright and License:
   > Apache License
@@ -766,7 +766,7 @@ This file is based on or incorporates material from the projects listed below (T
   > (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   > SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-## Scrutor 3.2.0
+## Scrutor 3.2.1
 * Component Source:   https://github.com/khellang/Scrutor
 * Component Copyright and License:
   > The MIT License (MIT)

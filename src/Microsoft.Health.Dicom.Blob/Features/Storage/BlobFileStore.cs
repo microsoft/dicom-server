@@ -5,18 +5,20 @@
 
 using System;
 using System.IO;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
@@ -25,18 +27,23 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
     /// </summary>
     public class BlobFileStore : IFileStore
     {
-        private readonly CloudBlobContainer _container;
+        private static readonly string GetFileStreamTagName = $"{nameof(BlobFileStore)}.{nameof(GetFileAsync)}";
+        private readonly BlobContainerClient _container;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public BlobFileStore(
-            CloudBlobClient client,
-            IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor)
+            BlobServiceClient client,
+            IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
+            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
             BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
 
-            _container = client.GetContainerReference(containerConfiguration.ContainerName);
+            _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
+            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
         /// <inheritdoc />
@@ -48,17 +55,21 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             EnsureArg.IsNotNull(stream, nameof(stream));
 
-            CloudBlockBlob blob = GetBlockBlobReference(versionedInstanceIdentifier);
-
-            blob.Properties.ContentType = KnownContentTypes.ApplicationDicom;
+            BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+            stream.Seek(0, SeekOrigin.Begin);
 
             try
             {
-                await blob.UploadFromStreamAsync(
+                await blob.UploadAsync(
                     stream,
-                    AccessCondition.GenerateEmptyCondition(),
-                    new BlobRequestOptions(),
-                    new OperationContext(),
+                    new BlobHttpHeaders()
+                    {
+                        ContentType = KnownContentTypes.ApplicationDicom,
+                    },
+                    metadata: null,
+                    conditions: null,
+                    accessTier: null,
+                    progressHandler: null,
                     cancellationToken);
 
                 return blob.Uri;
@@ -76,9 +87,9 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-            CloudBlockBlob blob = GetBlockBlobReference(versionedInstanceIdentifier);
+            BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
-            await ExecuteAsync(() => blob.DeleteIfExistsAsync(cancellationToken));
+            await ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
         }
 
         /// <inheritdoc />
@@ -88,24 +99,24 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-            CloudBlockBlob blob = GetBlockBlobReference(versionedInstanceIdentifier);
+            BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
             Stream stream = null;
 
-            await ExecuteAsync(async () => stream = await blob.OpenReadAsync(cancellationToken));
-
+            await ExecuteAsync(async () =>
+            {
+                stream = _recyclableMemoryStreamManager.GetStream(GetFileStreamTagName);
+                await blob.DownloadToAsync(stream, cancellationToken);
+            });
+            stream.Seek(0, SeekOrigin.Begin);
             return stream;
         }
 
-        private CloudBlockBlob GetBlockBlobReference(VersionedInstanceIdentifier versionedInstanceIdentifier)
+        private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
             string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}.dcm";
 
-            // Use the Azure storage SDK to validate the blob name; only specific values are allowed here.
-            // Check here for more information: https://blogs.msdn.microsoft.com/jmstall/2014/06/12/azure-storage-naming-rules/
-            NameValidator.ValidateBlobName(blobName);
-
-            return _container.GetBlockBlobReference(blobName);
+            return _container.GetBlockBlobClient(blobName);
         }
 
         private async Task ExecuteAsync(Func<Task> action)
@@ -114,7 +125,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             {
                 await action();
             }
-            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
             {
                 throw new ItemNotFoundException(ex);
             }
