@@ -26,7 +26,7 @@ using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
 namespace Microsoft.Health.Dicom.Client
 {
-    public class DicomWebClient
+    public class DicomWebClient : IDicomWebClient
     {
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue(ApplicationDicomContentType);
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue(ApplicationOctetStreamContentType);
