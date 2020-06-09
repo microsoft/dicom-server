@@ -10,6 +10,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
+using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -21,7 +22,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private readonly DicomWebClient _client;
+        private readonly TestDicomWebClient _client;
 
         public DicomRetrieveMetadataTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {

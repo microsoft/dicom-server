@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
+using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -22,7 +23,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private readonly DicomWebClient _client;
+        private readonly TestDicomWebClient _client;
 
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {

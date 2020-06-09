@@ -44,9 +44,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
                 {
                     if (await reader.ReadAsync(cancellationToken))
                     {
-                        (long rSeq, DateTime rTimestamp, int rAction, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader.ReadRow(
+                        (long rSeq, DateTimeOffset rTimestamp, int rAction, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader.ReadRow(
                             VLatest.ChangeFeed.Sequence,
-                            VLatest.ChangeFeed.TimeStamp,
+                            VLatest.ChangeFeed.Timestamp,
                             VLatest.ChangeFeed.Action,
                             VLatest.ChangeFeed.StudyInstanceUid,
                             VLatest.ChangeFeed.SeriesInstanceUid,
@@ -84,9 +84,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (long rSeq, DateTime rTimestamp, int rAction, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader.ReadRow(
+                        (long rSeq, DateTimeOffset rTimestamp, int rAction, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader.ReadRow(
                             VLatest.ChangeFeed.Sequence,
-                            VLatest.ChangeFeed.TimeStamp,
+                            VLatest.ChangeFeed.Timestamp,
                             VLatest.ChangeFeed.Action,
                             VLatest.ChangeFeed.StudyInstanceUid,
                             VLatest.ChangeFeed.SeriesInstanceUid,

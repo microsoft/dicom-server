@@ -120,26 +120,5 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
             ";
             Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
         }
-
-        [Fact]
-        public static void GivenDicomJsonDatasetWithRepeatedTags_WhenDeserializedWithDuplicatePropertyNameHandling_JsonReaderExceptionIsThrown()
-        {
-            const string json = @"
-            {
-              ""00081030"": {
-                ""vr"": ""LO"",
-                ""Value"": [ ""Study1"" ]
-              },
-              ""00081030"": {
-                ""vr"": ""LO"",
-                ""Value"": [ ""Study2"" ]
-              }
-            }
-            ";
-            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(
-                json,
-                new JsonDicomConverter(
-                    writeTagsAsKeywords: false)));
-        }
     }
 }

@@ -42,20 +42,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
-        public DicomWebClient Client { get; }
+        public TestDicomWebClient Client { get; }
 
-        public DicomWebClient GetDicomWebClient()
+        public TestDicomWebClient GetDicomWebClient()
         {
             return GetDicomWebClient(TestApplications.GlobalAdminServicePrincipal);
         }
 
-        public DicomWebClient GetDicomWebClient(TestApplication clientApplication)
+        public TestDicomWebClient GetDicomWebClient(TestApplication clientApplication)
         {
             var httpClient = new HttpClient(new SessionMessageHandler(TestDicomWebServer.CreateMessageHandler())) { BaseAddress = TestDicomWebServer.BaseAddress };
 
-            (bool enabled, string tokenUrl) securitySettings = (AuthenticationSettings.SecurityEnabled, AuthenticationSettings.TokenUrl);
-
-            return new DicomWebClient(httpClient, RecyclableMemoryStreamManager, clientApplication, securitySettings);
+            return new TestDicomWebClient(httpClient, RecyclableMemoryStreamManager, clientApplication, AuthenticationSettings.SecurityEnabled ? AuthenticationSettings.TokenUri : null);
         }
 
         public void Dispose()
