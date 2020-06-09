@@ -166,15 +166,15 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
 )
 
 --Filter indexes
-CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_Status on dbo.Instance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid,
-    Status
+    SopInstanceUid
 )
 INCLUDE
 (
+    Status,
     Watermark
 )
 WITH (DATA_COMPRESSION = PAGE)
@@ -467,6 +467,13 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
     Sequence
 )
 
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
+(
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid
+)
+
 /*************************************************************
     Sequence for generating sequential unique ids
 **************************************************************/
@@ -560,7 +567,6 @@ AS
     SET NOCOUNT ON
 
     SET XACT_ABORT ON
-    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
     BEGIN TRANSACTION
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
@@ -678,7 +684,6 @@ AS
     SET NOCOUNT ON
 
     SET XACT_ABORT ON
-    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
     BEGIN TRANSACTION
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
@@ -783,8 +788,6 @@ AS
     SET NOCOUNT ON
     SET XACT_ABORT ON
 
-    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-
     BEGIN TRANSACTION
 
     DECLARE @deletedInstances AS TABLE 
@@ -834,7 +837,7 @@ AS
     
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
-                    FROM    dbo.Instance
+                    FROM    dbo.Instance WITH(UPDLOCK)
                     WHERE   StudyInstanceUid = @studyInstanceUid
                     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid))
     BEGIN
@@ -846,7 +849,7 @@ AS
 
     -- If we've removing the series, see if it's the last for a study and if so, remove the study
     IF NOT EXISTS ( SELECT  *
-                    FROM    dbo.Series
+                    FROM    dbo.Series WITH(UPDLOCK)
                     WHERE   Studykey = @studyKey)
     BEGIN
         DELETE

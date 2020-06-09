@@ -21,19 +21,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private readonly IQueryParser _queryParser;
         private readonly IQueryStore _queryStore;
-        private readonly IMetadataStore _metadataService;
+        private readonly IMetadataStore _metadataStore;
 
         public QueryService(
             IQueryParser queryParser,
             IQueryStore queryStore,
-            IMetadataStore metadataService)
+            IMetadataStore metadataStore)
         {
             EnsureArg.IsNotNull(queryParser, nameof(queryParser));
             EnsureArg.IsNotNull(queryStore, nameof(queryStore));
 
             _queryParser = queryParser;
             _queryStore = queryStore;
-            _metadataService = metadataService;
+            _metadataStore = metadataStore;
         }
 
         public async Task<QueryResourceResponse> QueryAsync(
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
                         queryResult.DicomInstances
-                        .Select(x => _metadataService.GetInstanceMetadataAsync(x, cancellationToken)));
+                        .Select(x => _metadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
 
             var responseBuilder = new QueryResponseBuilder(queryExpression);
             IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
