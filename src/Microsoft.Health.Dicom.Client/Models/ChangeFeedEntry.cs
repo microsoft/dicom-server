@@ -9,7 +9,7 @@ using EnsureThat;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
     /// Represents each change feed entry of a change has retrieved from the store
@@ -18,13 +18,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
     {
         public ChangeFeedEntry(
             long sequence,
-            DateTimeOffset timestamp,
+            DateTime timestamp,
             ChangeFeedAction action,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            long originalVersion,
-            long? currentVersion,
             ChangeFeedState state)
         {
             EnsureArg.IsNotNull(studyInstanceUid);
@@ -38,8 +36,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             Action = action;
             Timestamp = timestamp;
             State = state;
-            OriginalVersion = originalVersion;
-            CurrentVersion = currentVersion;
         }
 
         public long Sequence { get; }
@@ -58,27 +54,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
         [JsonConverter(typeof(StringEnumConverter))]
         public ChangeFeedState State { get; }
 
-        [JsonIgnore]
-        public long OriginalVersion { get; }
-
-        [JsonIgnore]
-        public long? CurrentVersion { get; }
-
         public DicomDataset Metadata { get; set; }
-
-        /// <summary>
-        /// Control variable to determine whether or not the <see cref="Metadata"/> property should be included in a serialized view.
-        /// </summary>
-        [JsonIgnore]
-        public bool IncludeMetadata { get; set; }
-
-        /// <summary>
-        /// Json.Net method for determining whether or not to serialize the <see cref="Metadata"/> property
-        /// </summary>
-        /// <returns>A boolean representing if the <see cref="Metadata"/> should be serialized.</returns>
-        public bool ShouldSerializeMetadata()
-        {
-            return IncludeMetadata;
-        }
     }
 }

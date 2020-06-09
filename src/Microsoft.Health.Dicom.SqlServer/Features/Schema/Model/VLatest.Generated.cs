@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal readonly BigIntColumn Sequence = new BigIntColumn("Sequence");
-            internal readonly DateTime2Column TimeStamp = new DateTime2Column("TimeStamp", 7);
+            internal readonly DateTimeOffsetColumn Timestamp = new DateTimeOffsetColumn("Timestamp", 7);
             internal readonly TinyIntColumn Action = new TinyIntColumn("Action");
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
+namespace Microsoft.Health.Dicom.Client
 {
     public static class DicomWebClientExtensions
     {

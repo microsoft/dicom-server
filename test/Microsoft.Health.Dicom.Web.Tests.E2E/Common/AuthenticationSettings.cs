@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
 
         public static string Resource => GetEnvironmentVariableWithDefault("security_resource", Provider.Audience);
 
-        public static string TokenUrl => GetEnvironmentVariableWithDefault("security_tokenUrl", "https://inprochost/connect/token");
+        public static Uri TokenUri => new Uri(GetEnvironmentVariableWithDefault("security_tokenUrl", "https://inprochost/connect/token"));
 
         public static bool SecurityEnabled => string.Equals(GetEnvironmentVariableWithDefault("security_enabled", bool.FalseString), bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
     }

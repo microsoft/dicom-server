@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
         public ChangeFeedRow(SqlDataReader sqlDataReader)
         {
             Sequence = sqlDataReader.GetInt64(0);
-            Timestamp = sqlDataReader.GetDateTime(1);
+            Timestamp = sqlDataReader.GetDateTimeOffset(1);
             Action = sqlDataReader.GetByte(2);
             StudyInstanceUid = sqlDataReader.GetString(3);
             SeriesInstanceUid = sqlDataReader.GetString(4);
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public long Sequence { get; }
 
-        public DateTime Timestamp { get; }
+        public DateTimeOffset Timestamp { get; }
 
         public int Action { get; }
 

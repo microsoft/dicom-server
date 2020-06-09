@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
+namespace Microsoft.Health.Dicom.Client
 {
     public class DicomWebResponse
     {
