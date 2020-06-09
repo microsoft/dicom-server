@@ -163,20 +163,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return condition != null;
         }
 
-        private bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
+        private static bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
         {
             dicomTag = null;
 
             // Try Keyword match, returns null if not found
-            // fo-dicom github bug throwing nullreference https://github.com/fo-dicom/fo-dicom/issues/996
-            try
-            {
-                dicomTag = DicomDictionary.Default[attributeId];
-            }
-            catch (NullReferenceException e)
-            {
-                _logger.LogDebug(e, $"DicomDictionary.Default[attributeId] threw exception for {attributeId}");
-            }
+            dicomTag = DicomDictionary.Default[attributeId];
 
             if (dicomTag == null)
             {
