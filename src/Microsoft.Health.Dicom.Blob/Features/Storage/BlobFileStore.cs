@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -30,20 +31,24 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         private static readonly string GetFileStreamTagName = $"{nameof(BlobFileStore)}.{nameof(GetFileAsync)}";
         private readonly BlobContainerClient _container;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly BlobDataStoreConfiguration _blobDataStoreConfiguration;
 
         public BlobFileStore(
             BlobServiceClient client,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager,
+            BlobDataStoreConfiguration blobDataStoreConfiguration)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+            EnsureArg.IsNotNull(blobDataStoreConfiguration, nameof(blobDataStoreConfiguration));
 
             BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
 
             _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+            _blobDataStoreConfiguration = blobDataStoreConfiguration;
         }
 
         /// <inheritdoc />
@@ -102,11 +107,15 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
             Stream stream = null;
+            StorageTransferOptions storageTransferOptions = new StorageTransferOptions
+            {
+                MaximumConcurrency = _blobDataStoreConfiguration.RequestOptions.DownloadMaximumConcurrency,
+            };
 
             await ExecuteAsync(async () =>
             {
                 stream = _recyclableMemoryStreamManager.GetStream(GetFileStreamTagName);
-                await blob.DownloadToAsync(stream, cancellationToken);
+                await blob.DownloadToAsync(stream, conditions: null, storageTransferOptions, cancellationToken);
             });
             stream.Seek(0, SeekOrigin.Begin);
             return stream;
