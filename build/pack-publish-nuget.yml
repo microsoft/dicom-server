@@ -1,23 +1,23 @@
 steps:
-    -   task: DotNetCoreCLI@2
-        displayName: 'dotnet pack nugets'
-        inputs:
-            command: pack
-            configuration: '$(buildConfiguration)'
-            packDirectory: '$(build.artifactStagingDirectory)/nupkgs'
-            versioningScheme: 'byEnvVar'
-            versionEnvVar: 'nuget_version'
-            nobuild: true
-            zipAfterPublish: true
-        env:
-            nuget_version: 1.0.0-$(build.buildNumber)
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet pack nugets'
+    inputs:
+      command: pack
+      configuration: '$(buildConfiguration)'
+      packDirectory: '$(build.artifactStagingDirectory)/nupkgs'
+      versioningScheme: 'byEnvVar'
+      versionEnvVar: 'nuget_version'
+      nobuild: true
+      zipAfterPublish: true
+    env:
+      nuget_version: 1.0.0-$(build.buildNumber)
 
-    -   task: NuGetAuthenticate@0
-        displayName: 'NuGet Authenticate'
+  - task: NuGetAuthenticate@0
+    displayName: 'NuGet Authenticate'
 
-    -   task: NuGetCommand@2
-        displayName: 'NuGet push'
-        inputs:
-            command: push
-            publishVstsFeed: 'Health/Resolute'
-            allowPackageConflicts: true
+  - task: NuGetCommand@2
+    displayName: 'NuGet push'
+    inputs:
+      command: push
+      publishVstsFeed: 'Health/Resolute'
+      allowPackageConflicts: true

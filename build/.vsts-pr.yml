@@ -60,4 +60,8 @@ stages:
   dependsOn:
   - Cleanup
   jobs:
-  - template: pack-publish-nuget.yml
+  - job: Windows
+    pool:
+      vmImage: $(windowsVmImage)
+    steps:
+      - template: pack-publish-nuget.yml
