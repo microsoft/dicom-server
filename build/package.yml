@@ -1,7 +1,7 @@
 steps:
 
   # Package web
-  
+
   - task: DotNetCoreCLI@2
     displayName: 'dotnet publish web'
     inputs:
@@ -67,7 +67,6 @@ steps:
 
   - task: PublishBuildArtifacts@1
     displayName: 'publish nuget artifacts'
-    enabled: false
     inputs:
       pathtoPublish: '$(build.artifactStagingDirectory)/nupkgs'
       artifactName: 'nuget'

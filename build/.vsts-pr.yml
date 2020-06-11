@@ -56,12 +56,12 @@ stages:
   - template: cleanup.yml
 
 - stage: PackPublishNuget
-  displayName: 'Pack and Publish Nugets'
+  displayName: 'Publish Nugets'
   dependsOn:
   - Cleanup
   jobs:
-  - job: Windows
+  - job: PublishNugets
     pool:
       vmImage: $(windowsVmImage)
     steps:
-      - template: pack-publish-nuget.yml
+      - template: publish-nuget.yml
