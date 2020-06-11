@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenInstance_WhenAddedAndDeletedAndAdded_ChangeFeedEntryAvailable()
         {
             // create and validate
-            var dicomInstanceIdentifier = await CreateValidInstance();
+            var dicomInstanceIdentifier = await CreateInstance();
             await ValidateInsertFeed(dicomInstanceIdentifier, 1);
 
             // delete and validate
@@ -39,8 +39,20 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await ValidateDeleteFeed(dicomInstanceIdentifier, 2);
 
             // re-create the same instance and validate
-            await CreateValidInstance(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid);
+            await CreateInstance(true, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid);
             await ValidateInsertFeed(dicomInstanceIdentifier, 3);
+        }
+
+        [Fact]
+        public async Task GivenCreatingInstance_WhenDeleted_ValidateNoChangeFeedRecord()
+        {
+            // create and validate
+            var dicomInstanceIdentifier = await CreateInstance(instanceFullyCreated: false);
+            await ValidateNoChangeFeed(dicomInstanceIdentifier);
+
+            // delete and validate
+            await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+            await ValidateNoChangeFeed(dicomInstanceIdentifier);
         }
 
         private async Task ValidateInsertFeed(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
@@ -81,7 +93,19 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        private async Task<VersionedInstanceIdentifier> CreateValidInstance(
+        private async Task ValidateNoChangeFeed(VersionedInstanceIdentifier dicomInstanceIdentifier)
+        {
+            IReadOnlyList<ChangeFeedRow> result = await _fixture.DicomIndexDataStoreTestHelper.GetChangeFeedRowsAsync(
+                dicomInstanceIdentifier.StudyInstanceUid,
+                dicomInstanceIdentifier.SeriesInstanceUid,
+                dicomInstanceIdentifier.SopInstanceUid);
+
+            Assert.NotNull(result);
+            Assert.Equal(0, result.Count);
+        }
+
+        private async Task<VersionedInstanceIdentifier> CreateInstance(
+            bool instanceFullyCreated = true,
             string studyInstanceUid = null,
             string seriesInstanceUid = null,
             string sopInstanceUid = null)
@@ -98,7 +122,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 
-            await _fixture.DicomIndexDataStore.UpdateInstanceIndexStatusAsync(versionedIdentifier, Core.Models.IndexStatus.Created);
+            if (instanceFullyCreated)
+            {
+                await _fixture.DicomIndexDataStore.UpdateInstanceIndexStatusAsync(versionedIdentifier, Core.Models.IndexStatus.Created);
+            }
 
             return versionedIdentifier;
         }
