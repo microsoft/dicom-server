@@ -54,14 +54,3 @@ stages:
   - RunE2ETests
   jobs:
   - template: cleanup.yml
-
-- stage: PackPublishNuget
-  displayName: 'Publish Nugets'
-  dependsOn:
-  - Cleanup
-  jobs:
-  - job: PublishNugets
-    pool:
-      vmImage: $(windowsVmImage)
-    steps:
-      - template: publish-nuget.yml
