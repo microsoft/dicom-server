@@ -1,4 +1,9 @@
 steps:
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk'
+    inputs:
+      useGlobalJson: true
+
   - task: DotNetCoreCLI@2
     displayName: 'dotnet pack nugets'
     inputs:
