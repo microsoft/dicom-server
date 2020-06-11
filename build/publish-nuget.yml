@@ -18,5 +18,5 @@ steps:
     displayName: 'NuGet push'
     inputs:
       command: push
-      publishVstsFeed: 'Health/Resolute'
+      publishVstsFeed: 'Resolute'
       allowPackageConflicts: true
