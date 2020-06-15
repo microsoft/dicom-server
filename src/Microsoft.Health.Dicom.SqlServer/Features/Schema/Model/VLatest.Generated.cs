@@ -184,14 +184,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             private readonly ParameterDefinition<System.DateTimeOffset> _cleanupAfter = new ParameterDefinition<System.DateTimeOffset>("@cleanupAfter", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
+            private readonly ParameterDefinition<System.Byte> _createdStatus = new ParameterDefinition<System.Byte>("@createdStatus", global::System.Data.SqlDbType.TinyInt, false);
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
-            public void PopulateCommand(SqlCommandWrapper command, System.DateTimeOffset cleanupAfter, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
+            public void PopulateCommand(SqlCommandWrapper command, System.DateTimeOffset cleanupAfter, System.Byte createdStatus, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.DeleteInstance";
                 _cleanupAfter.AddParameter(command.Parameters, cleanupAfter);
+                _createdStatus.AddParameter(command.Parameters, createdStatus);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
