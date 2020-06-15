@@ -770,7 +770,9 @@ GO
 --
 -- PARAMETERS
 --     @cleanupAfter
---         * The date time offset that the instance can be cleaned up
+--         * The date time offset that the instance can be cleaned up.
+--     @createdStatus
+--         * Status value representing the created state.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
