@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Client
 
         public void SetBearerToken(string token)
         {
-            EnsureArg.IsNotEmptyOrWhitespace(token);
+            EnsureArg.IsNotNullOrWhiteSpace(token, nameof(token));
 
             var decodedToken = new JsonWebToken(token);
             TokenExpiration = decodedToken.ValidTo;
