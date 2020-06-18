@@ -70,6 +70,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                         clientApplication.ClientSecret);
                     var credentialProvider = new OAuth2ClientCredentialProvider(new HttpClient(), credentialConfiguration);
                     var authHandler = new AuthenticationHttpMessageHandler(credentialProvider);
+
                     _authenticationHandlers.Add(clientApplication.ClientId, authHandler);
                     messageHandler.InnerHandler = authHandler;
                 }

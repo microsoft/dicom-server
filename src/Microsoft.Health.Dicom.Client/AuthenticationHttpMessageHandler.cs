@@ -20,6 +20,7 @@ namespace Microsoft.Health.Dicom.Client
             EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
 
             _credentialProvider = credentialProvider;
+            this.InnerHandler = new HttpClientHandler();
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
