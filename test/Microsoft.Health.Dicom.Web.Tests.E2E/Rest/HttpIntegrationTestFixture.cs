@@ -10,7 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
+using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
 
@@ -18,6 +18,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class HttpIntegrationTestFixture<TStartup> : IDisposable
     {
+        private Dictionary<string, AuthenticationHttpMessageHandler> _authenticationHandlers = new Dictionary<string, AuthenticationHttpMessageHandler>();
+
         public HttpIntegrationTestFixture()
             : this(Path.Combine("src"))
         {
@@ -42,18 +44,40 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
-        public TestDicomWebClient Client { get; }
+        public DicomWebClient Client { get; }
 
-        public TestDicomWebClient GetDicomWebClient()
+        public DicomWebClient GetDicomWebClient()
         {
             return GetDicomWebClient(TestApplications.GlobalAdminServicePrincipal);
         }
 
-        public TestDicomWebClient GetDicomWebClient(TestApplication clientApplication)
+        public DicomWebClient GetDicomWebClient(TestApplication clientApplication)
         {
-            var httpClient = new HttpClient(new SessionMessageHandler(TestDicomWebServer.CreateMessageHandler())) { BaseAddress = TestDicomWebServer.BaseAddress };
+            var messageHandler = new SessionMessageHandler(TestDicomWebServer.CreateMessageHandler());
+            if (AuthenticationSettings.SecurityEnabled)
+            {
+                if (_authenticationHandlers.ContainsKey(clientApplication.ClientId))
+                {
+                    messageHandler.InnerHandler = _authenticationHandlers[clientApplication.ClientId];
+                }
+                else
+                {
+                    var credentialConfiguration = new OAuth2ClientCredentialConfiguration(
+                        AuthenticationSettings.TokenUri,
+                        AuthenticationSettings.Resource,
+                        AuthenticationSettings.Scope,
+                        clientApplication.ClientId,
+                        clientApplication.ClientSecret);
+                    var credentialProvider = new OAuth2ClientCredentialProvider(new HttpClient(), credentialConfiguration);
+                    var authHandler = new AuthenticationHttpMessageHandler(credentialProvider);
+                    _authenticationHandlers.Add(clientApplication.ClientId, authHandler);
+                    messageHandler.InnerHandler = authHandler;
+                }
+            }
 
-            return new TestDicomWebClient(httpClient, RecyclableMemoryStreamManager, clientApplication, AuthenticationSettings.SecurityEnabled ? AuthenticationSettings.TokenUri : null);
+            var httpClient = new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress };
+
+            return new DicomWebClient(httpClient);
         }
 
         public void Dispose()
