@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public DicomWebClient GetDicomWebClient(TestApplication clientApplication)
         {
             var messageHandler = new SessionMessageHandler(TestDicomWebServer.CreateMessageHandler());
-            if (AuthenticationSettings.SecurityEnabled)
+            if (AuthenticationSettings.SecurityEnabled && !clientApplication.Equals(TestApplications.InvalidClient))
             {
                 if (_authenticationHandlers.ContainsKey(clientApplication.ClientId))
                 {
