@@ -204,10 +204,13 @@ AS
 
     DECLARE @timeout datetime2(0) = DATEADD(minute, @addMinutesOnTimeout, SYSUTCDATETIME())
     DECLARE @currentVersion int = (SELECT COALESCE(MAX(Version), 0)
-                                  FROM dbo.SchemaVersion
-                                  WHERE  Status = 'completed' OR Status = 'complete' AND Version <= @maxVersion)
-    IF EXISTS(SELECT * FROM dbo.InstanceSchema
-             WHERE Name = @name)
+                                    FROM dbo.SchemaVersion
+                                    WHERE  Status = 'completed'
+                                    OR Status = 'complete'
+                                    AND Version <= @maxVersion)
+    IF EXISTS(SELECT *
+                FROM dbo.InstanceSchema
+                WHERE Name = @name)
     BEGIN
         UPDATE dbo.InstanceSchema
         SET CurrentVersion = @currentVersion, MaxVersion = @maxVersion, Timeout = @timeout
@@ -282,7 +285,8 @@ BEGIN
     SET NOCOUNT ON
 
     SELECT SV.Version, SV.Status, STRING_AGG(SCH.NAME, ',')
-    FROM dbo.SchemaVersion AS SV LEFT OUTER JOIN dbo.InstanceSchema AS SCH
+    FROM dbo.SchemaVersion AS SV
+    LEFT OUTER JOIN dbo.InstanceSchema AS SCH
     ON SV.Version = SCH.CurrentVersion
     GROUP BY Version, Status
 
@@ -983,9 +987,9 @@ AS
     SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
     FROM @deletedInstances
 
-    INSERT INTO dbo.ChangeFeed 
+    INSERT INTO dbo.ChangeFeed
     (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark 
+    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM @deletedInstances
     WHERE Status = @createdStatus
 
@@ -996,7 +1000,7 @@ AS
     ON cf.StudyInstanceUid = d.StudyInstanceUid
         AND cf.SeriesInstanceUid = d.SeriesInstanceUid
         AND cf.SopInstanceUid = d.SopInstanceUid
-    
+
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
                     FROM    dbo.Instance WITH(UPDLOCK)
