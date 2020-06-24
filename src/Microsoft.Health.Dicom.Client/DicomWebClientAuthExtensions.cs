@@ -5,10 +5,10 @@
 
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.Services.AppAuthentication;
-using Microsoft.Health.Dicom.Client;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Microsoft.Health.Dicom.Client
@@ -16,37 +16,41 @@ namespace Microsoft.Health.Dicom.Client
     public static class DicomWebClientAuthExtensions
     {
         /// <summary>
-        /// Sets the authenticated token on the <see cref="DicomWebClient"/> to the supplied resource via Managed Identity.
+        /// Sets the authenticated token on the <see cref="IDicomWebClient"/> to the supplied resource via Managed Identity.
         /// </summary>
-        /// <param name="dicomWebClient">The <see cref="DicomWebClient"/> to authenticate.</param>
+        /// <param name="dicomWebClient">The <see cref="IDicomWebClient"/> to authenticate.</param>
         /// <param name="resource">The resource to obtain a token to.</param>
-        /// <returns>A task representing the successful setting of the token.</returns>
-        public static async Task AuthenticateWithManagedIdentity(this DicomWebClient dicomWebClient, string resource)
+        /// <param name="tenantId">The optional tenantId to use when requesting a token.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> for the request.</param>
+        /// <returns>A <see cref="Task"/> representing the successful setting of the token.</returns>
+        public static async Task AuthenticateWithManagedIdentity(this IDicomWebClient dicomWebClient, string resource, string tenantId = null, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
             EnsureArg.IsNotNullOrWhiteSpace(resource, nameof(resource));
 
             var azureServiceTokenProvider = new AzureServiceTokenProvider();
-            string accessToken = await azureServiceTokenProvider.GetAccessTokenAsync(resource);
+            string accessToken = await azureServiceTokenProvider.GetAccessTokenAsync(resource, tenantId, cancellationToken);
 
             dicomWebClient.SetBearerToken(accessToken);
         }
 
         /// <summary>
-        /// Sets the authenticated token on the <see cref="DicomWebClient"/> via OpenId client credentials.
+        /// Sets the authenticated token on the <see cref="IDicomWebClient"/> via OpenId client credentials.
         /// </summary>
-        /// <param name="dicomWebClient">The <see cref="DicomWebClient"/> to authenticate.</param>
+        /// <param name="dicomWebClient">The <see cref="IDicomWebClient"/> to authenticate.</param>
         /// <param name="clientId">The clientId of the application.</param>
         /// <param name="clientSecret">The clientSecret of the application.</param>
         /// <param name="resource">The resource to authenticate with.</param>
         /// <param name="scope">The scope to authenticate with.</param>
-        /// <returns>A task representing the successful setting of the token.</returns>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> for the request.</param>
+        /// <returns>A <see cref="Task"/> representing the successful setting of the token.</returns>
         public static async Task AuthenticateOpenIdClientCredentials(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string clientId,
             string clientSecret,
             string resource,
-            string scope)
+            string scope,
+            CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
             EnsureArg.IsNotNullOrWhiteSpace(clientId, nameof(clientId));
@@ -63,28 +67,30 @@ namespace Microsoft.Health.Dicom.Client
                 new KeyValuePair<string, string>(OpenIdConnectParameterNames.Resource, resource),
             };
 
-            await ObtainTokenAndSetOnClient(dicomWebClient, formData);
+            await ObtainTokenAndSetOnClient(dicomWebClient, formData, cancellationToken);
         }
 
         /// <summary>
-        /// Sets the authenticated token on the <see cref="DicomWebClient"/> via OpenId user password.
+        /// Sets the authenticated token on the <see cref="IDicomWebClient"/> via OpenId user password.
         /// </summary>
-        /// <param name="dicomWebClient">The <see cref="DicomWebClient"/> to authenticate.</param>
+        /// <param name="dicomWebClient">The <see cref="IDicomWebClient"/> to authenticate.</param>
         /// <param name="clientId">The clientId of the application.</param>
         /// <param name="clientSecret">The clientSecret of the application.</param>
         /// <param name="resource">The resource to authenticate with.</param>
         /// <param name="scope">The scope to authenticate with.</param>
         /// <param name="username">The username to authenticate.</param>
         /// <param name="password">The password to authenticate.</param>
-        /// <returns>A task representing the successful setting of the token.</returns>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> for the request.</param>
+        /// <returns>A <see cref="Task"/> representing the successful setting of the token.</returns>
         public static async Task AuthenticateOpenIdUserPassword(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string clientId,
             string clientSecret,
             string resource,
             string scope,
             string username,
-            string password)
+            string password,
+            CancellationToken cancellationToken)
         {
             var formData = new List<KeyValuePair<string, string>>
             {
@@ -97,13 +103,13 @@ namespace Microsoft.Health.Dicom.Client
                 new KeyValuePair<string, string>(OpenIdConnectParameterNames.Password, password),
             };
 
-            await ObtainTokenAndSetOnClient(dicomWebClient, formData);
+            await ObtainTokenAndSetOnClient(dicomWebClient, formData, cancellationToken);
         }
 
-        private static async Task ObtainTokenAndSetOnClient(DicomWebClient dicomWebClient, List<KeyValuePair<string, string>> formData)
+        private static async Task ObtainTokenAndSetOnClient(IDicomWebClient dicomWebClient, List<KeyValuePair<string, string>> formData, CancellationToken cancellationToken)
         {
             using var formContent = new FormUrlEncodedContent(formData);
-            using HttpResponseMessage tokenResponse = await dicomWebClient.HttpClient.PostAsync(dicomWebClient.TokenUri, formContent);
+            using HttpResponseMessage tokenResponse = await dicomWebClient.HttpClient.PostAsync(dicomWebClient.TokenUri, formContent, cancellationToken);
 
             var openIdConnectMessage = new OpenIdConnectMessage(await tokenResponse.Content.ReadAsStringAsync());
             dicomWebClient.SetBearerToken(openIdConnectMessage.AccessToken);

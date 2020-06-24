@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -47,10 +48,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
                 return changeFeedEntries;
             }
 
-            foreach (ChangeFeedEntry entry in changeFeedEntries)
-            {
-                await PopulateMetadata(entry, cancellationToken);
-            }
+            await PopulateMetadata(changeFeedEntries, cancellationToken);
 
             return changeFeedEntries;
         }
@@ -70,6 +68,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             }
 
             return result;
+        }
+
+        private async Task PopulateMetadata(IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries, CancellationToken cancellationToken)
+        {
+            await Task.WhenAll(
+                        changeFeedEntries
+                        .Select(x => PopulateMetadata(x, cancellationToken)));
         }
 
         private async Task PopulateMetadata(ChangeFeedEntry entry, CancellationToken cancellationToken)

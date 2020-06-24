@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
 
         private async Task SetupAuthenticationAsync(TestApplication clientApplication, TestUser user = null)
         {
-            if (SecurityEnabled == true && clientApplication != TestApplications.InvalidClient)
+            if (SecurityEnabled && clientApplication != TestApplications.InvalidClient)
             {
                 var tokenKey = $"{clientApplication.ClientId}:{(user == null ? string.Empty : user.UserId)}";
 
@@ -35,7 +35,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Clients
                         clientApplication.ClientId,
                         clientApplication.ClientSecret,
                         AuthenticationSettings.Resource,
-                        AuthenticationSettings.Scope);
+                        AuthenticationSettings.Scope,
+                        cancellationToken: default);
 
                     _bearerTokens[tokenKey] = HttpClient.DefaultRequestHeaders?.Authorization?.Parameter;
 

@@ -1,4 +1,4 @@
-﻿-- NOTE: This script DROPS AND RECREATES all database objects.
+-- NOTE: This script DROPS AND RECREATES all database objects.
 -- Style guide: please see: https://github.com/ktaranov/sqlserver-kit/blob/master/SQL%20Server%20Name%20Convention%20and%20T-SQL%20Programming%20Style.md
 
 
@@ -862,7 +862,7 @@ AS
     -- Currently this procedure is used only updating the status to created
     -- If that changes an if condition is needed.
     INSERT INTO dbo.ChangeFeed
-        (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+        (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES
         (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
 
@@ -927,7 +927,9 @@ GO
 --
 -- PARAMETERS
 --     @cleanupAfter
---         * The date time offset that the instance can be cleaned up
+--         * The date time offset that the instance can be cleaned up.
+--     @createdStatus
+--         * Status value representing the created state.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -937,6 +939,7 @@ GO
 /***************************************************************************************/
 CREATE PROCEDURE dbo.DeleteInstance (
     @cleanupAfter       DATETIMEOFFSET(0),
+    @createdStatus      TINYINT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = null,
     @sopInstanceUid     VARCHAR(64) = null
@@ -951,6 +954,7 @@ AS
         (StudyInstanceUid VARCHAR(64),
          SeriesInstanceUid VARCHAR(64),
          SopInstanceUid VARCHAR(64),
+         Status TINYINT,
          Watermark BIGINT)
 
     DECLARE @studyKey BIGINT
@@ -963,7 +967,7 @@ AS
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Watermark
+        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
         INTO @deletedInstances
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
@@ -979,10 +983,11 @@ AS
     SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
     FROM @deletedInstances
 
-    INSERT INTO dbo.ChangeFeed
+    INSERT INTO dbo.ChangeFeed 
     (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark 
     FROM @deletedInstances
+    WHERE Status = @createdStatus
 
     UPDATE cf
     SET cf.CurrentWatermark = NULL
@@ -991,7 +996,7 @@ AS
     ON cf.StudyInstanceUid = d.StudyInstanceUid
         AND cf.SeriesInstanceUid = d.SeriesInstanceUid
         AND cf.SopInstanceUid = d.SopInstanceUid
-
+    
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
                     FROM    dbo.Instance WITH(UPDLOCK)
@@ -1144,7 +1149,7 @@ BEGIN
     SET XACT_ABORT  ON
 
     SELECT  Sequence,
-            TimeStamp,
+            Timestamp,
             Action,
             StudyInstanceUid,
             SeriesInstanceUid,
@@ -1172,7 +1177,7 @@ BEGIN
 
     SELECT  TOP(1)
             Sequence,
-            TimeStamp,
+            Timestamp,
             Action,
             StudyInstanceUid,
             SeriesInstanceUid,

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -69,15 +70,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         private async Task<RetrieveMetadataResponse> RetrieveMetadata(IEnumerable<VersionedInstanceIdentifier> instancesToRetrieve, CancellationToken cancellationToken)
         {
-            var dataset = new List<DicomDataset>();
+            IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
+                        instancesToRetrieve
+                        .Select(x => _metadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
 
-            foreach (VersionedInstanceIdentifier versionedInstanceIdentifier in instancesToRetrieve)
-            {
-                DicomDataset ds = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier, cancellationToken);
-                dataset.Add(ds);
-            }
-
-            return new RetrieveMetadataResponse(dataset);
+            return new RetrieveMetadataResponse(instanceMetadata);
         }
     }
 }

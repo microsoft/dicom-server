@@ -253,6 +253,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 VLatest.DeleteInstance.PopulateCommand(
                     sqlCommandWrapper,
                     cleanupAfter,
+                    (byte)IndexStatus.Created,
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid);
