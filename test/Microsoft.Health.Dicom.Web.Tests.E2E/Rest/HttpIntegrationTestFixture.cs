@@ -10,6 +10,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Client;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
@@ -68,7 +70,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                         AuthenticationSettings.Scope,
                         clientApplication.ClientId,
                         clientApplication.ClientSecret);
-                    var credentialProvider = new OAuth2ClientCredentialProvider(new HttpClient(), credentialConfiguration);
+                    var credentialProvider = new OAuth2ClientCredentialProvider(new HttpClient(), Options.Create(credentialConfiguration));
                     var authHandler = new AuthenticationHttpMessageHandler(credentialProvider);
 
                     _authenticationHandlers.Add(clientApplication.ClientId, authHandler);
