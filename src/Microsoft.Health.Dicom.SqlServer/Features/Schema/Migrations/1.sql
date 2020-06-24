@@ -1,4 +1,4 @@
-﻿-- NOTE: This script DROPS AND RECREATES all database objects.
+-- NOTE: This script DROPS AND RECREATES all database objects.
 -- Style guide: please see: https://github.com/ktaranov/sqlserver-kit/blob/master/SQL%20Server%20Name%20Convention%20and%20T-SQL%20Programming%20Style.md
 
 
@@ -256,7 +256,7 @@ WITH (DATA_COMPRESSION = PAGE)
 **************************************************************/
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL, --PK
-    StudyInstanceUid            VARCHAR(64)                       NOT NULL, 
+    StudyInstanceUid            VARCHAR(64)                       NOT NULL,
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(325)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
     ReferringPhysicianName      NVARCHAR(325)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -354,7 +354,7 @@ WITH STOPLIST = OFF;
 CREATE TABLE dbo.Series (
     SeriesKey                           BIGINT                     NOT NULL, --PK
     StudyKey                            BIGINT                     NOT NULL, --FK
-    SeriesInstanceUid                   VARCHAR(64)                NOT NULL, 
+    SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL
 ) WITH (DATA_COMPRESSION = PAGE)
@@ -575,7 +575,7 @@ AS
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
-    
+
     SELECT @existingStatus = Status
     FROM dbo.Instance
     WHERE StudyInstanceUid = @studyInstanceUid
@@ -591,16 +591,16 @@ AS
     -- The instance does not exist, insert it.
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
     SET @instanceKey = NEXT VALUE FOR dbo.InstanceKeySequence
- 
+
     -- Insert Study
     SELECT @studyKey = StudyKey
-    FROM dbo.Study 
+    FROM dbo.Study
     WHERE StudyInstanceUid = @studyInstanceUid
 
     IF @@ROWCOUNT = 0
     BEGIN
         SET @studyKey = NEXT VALUE FOR dbo.StudyKeySequence
- 
+
         INSERT INTO dbo.Study
             (StudyKey, StudyInstanceUid, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
@@ -616,7 +616,7 @@ AS
 
     -- Insert Series
     SELECT @seriesKey = SeriesKey
-    FROM dbo.Series 
+    FROM dbo.Series
     WHERE StudyKey = @studyKey
     AND SeriesInstanceUid = @seriesInstanceUid
 
@@ -687,7 +687,7 @@ AS
     BEGIN TRANSACTION
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-    
+
     UPDATE dbo.Instance
     SET Status = @status, LastStatusUpdatedDate = @currentDate
     WHERE StudyInstanceUid = @studyInstanceUid
@@ -701,11 +701,11 @@ AS
         THROW 50404, 'Instance does not exist', 1;
     END
 
-    -- Insert to change feed. 
+    -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created
     -- If that changes an if condition is needed.
-    INSERT INTO dbo.ChangeFeed 
-        (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    INSERT INTO dbo.ChangeFeed
+        (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES
         (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
 
@@ -747,7 +747,7 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-   
+
         SELECT  StudyInstanceUid,
                 SeriesInstanceUid,
                 SopInstanceUid,
@@ -757,7 +757,7 @@ BEGIN
                 AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
                 AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)
                 AND Status              = @validStatus
-   
+
 END
 GO
 
@@ -793,7 +793,7 @@ AS
 
     BEGIN TRANSACTION
 
-    DECLARE @deletedInstances AS TABLE 
+    DECLARE @deletedInstances AS TABLE
         (StudyInstanceUid VARCHAR(64),
          SeriesInstanceUid VARCHAR(64),
          SopInstanceUid VARCHAR(64),
@@ -823,12 +823,12 @@ AS
 
     INSERT INTO dbo.DeletedInstance
     (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
-    SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter 
+    SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
     FROM @deletedInstances
 
-    INSERT INTO dbo.ChangeFeed 
-    (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark 
+    INSERT INTO dbo.ChangeFeed
+    (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM @deletedInstances
     WHERE Status = @createdStatus
 
@@ -993,7 +993,7 @@ BEGIN
     SET XACT_ABORT  ON
 
     SELECT  Sequence,
-            TimeStamp,
+            Timestamp,
             Action,
             StudyInstanceUid,
             SeriesInstanceUid,
@@ -1013,7 +1013,7 @@ GO
 -- DESCRIPTION
 --     Gets the latest dicom change
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetChangeFeedLatest 
+CREATE PROCEDURE dbo.GetChangeFeedLatest
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -1021,7 +1021,7 @@ BEGIN
 
     SELECT  TOP(1)
             Sequence,
-            TimeStamp,
+            Timestamp,
             Action,
             StudyInstanceUid,
             SeriesInstanceUid,
