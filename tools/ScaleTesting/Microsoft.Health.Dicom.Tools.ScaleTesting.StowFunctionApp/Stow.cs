@@ -5,13 +5,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using Dicom;
 using EnsureThat;
-using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
@@ -23,7 +21,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.StowFunctionApp
         private const string TopicName = "stow-rs";
         private const string SubscriptionName = "s1";
 
-        private static CloudBlobContainer container;
+        // private static CloudBlobContainer container;
 
         private const string WebServerUrl = "http://dicom-server-ii.azurewebsites.net";
         private static DicomWebClient client;
@@ -68,7 +66,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.StowFunctionApp
             return;
         }
 
-        private static void ProcessMessageWithInstanceReference(byte[] message, ILogger log)
+        /* private static void ProcessMessageWithInstanceReference(byte[] message, ILogger log)
         {
             // Get a reference to a blob named "sample-file"
             CloudBlob blob = container.GetBlobReference(Encoding.UTF8.GetString(message));
@@ -107,7 +105,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.StowFunctionApp
 
                 log.LogInformation("Successfully stored file.");
             }
-        }
+        } */
 
         private static void ProcessMessageWithPreGeneratedData(byte[] message, ILogger log)
         {
