@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29920.165
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader", "Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader.csproj", "{06CF3C85-BFA6-4F66-86B1-4F80CCD7FED4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{06CF3C85-BFA6-4F66-86B1-4F80CCD7FED4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06CF3C85-BFA6-4F66-86B1-4F80CCD7FED4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06CF3C85-BFA6-4F66-86B1-4F80CCD7FED4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06CF3C85-BFA6-4F66-86B1-4F80CCD7FED4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1D3B926B-3BBC-4FA1-972E-F2896BE927E2}
+	EndGlobalSection
+EndGlobal
