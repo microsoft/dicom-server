@@ -67,6 +67,8 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
             // Register subscription message handler and receive messages in a loop
             RegisterOnMessageHandlerAndReceiveMessages();
 
+            Console.ReadKey();
+
             await subscriptionClient.CloseAsync();
         }
 
@@ -99,6 +101,9 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
 
         private static async Task ProcessMessagesAsync(Message message, CancellationToken token)
         {
+            // Process the message.
+            Console.WriteLine($"Received message: SequenceNumber:{message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}");
+
             switch (_topicName)
             {
                 case "stow-rs":
@@ -107,16 +112,19 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
                 case "wado-rs":
                     await Wado(message, token);
                     break;
-                case "wado-metadata":
+                case "wado-rs-metadata":
                     await WadoMetadata(message, token);
                     break;
-                case "qido":
+                case "qido-test":
                     await Qido(message, token);
                     break;
                 default:
                     System.Diagnostics.Trace.TraceError("Unsupported run type!");
                     break;
             }
+
+            // Complete the message so that it is not received again.
+            await subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
         }
 
         private static async Task Stow(Message message, CancellationToken token)
