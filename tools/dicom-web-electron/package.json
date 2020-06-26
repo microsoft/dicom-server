@@ -1,0 +1,38 @@
+{
+    "build": {
+        "appId": "dicom-web-electron",
+        "mac": {
+            "category": "development"
+        },
+        "win": {
+            "target": [
+                {
+                    "target": "portable"
+                }
+            ]
+        },
+        "nsis": {
+            "useZip": true
+        }
+    },
+    "name": "dicom-web-electron",
+    "version": "1.0.0",
+    "description": "An electron client for Dicom Web",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder"
+    },
+    "author": "Microsoft",
+    "license": "ISC",
+    "devDependencies": {
+        "electron": "^9.0.5",
+        "electron-builder": "^22.7.0"
+    },
+    "dependencies": {
+        "axios": "^0.19.2",
+        "form-data": "^3.0.0",
+        "jquery": "^3.5.1"
+    }
+}
