@@ -49,10 +49,16 @@ async function createWindow() {
             });
         }
 
+        let authorizationHeader = ''
+        if (args.bearerToken !== '') {
+            authorizationHeader = 'Bearer ' + args.bearerToken
+        }
+
         axios.post(args.url, form, {
                 headers: {
                     'Content-Type': 'multipart/related; ' + 'boundary=' + form._boundary,
-                    'Accept': 'application/dicom+json'
+                    'Accept': 'application/dicom+json',
+                    'Authorization': authorizationHeader
                 },
                 httpsAgent: httpsAgent
             })
