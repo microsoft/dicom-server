@@ -285,6 +285,8 @@ Tags can be encoded in a number of ways for the query parameter. We have partial
 
 Example query searching for instances: **../instances?Modality=CT&00280011=512&includefield=00280010&limit=5&offset=0**
 
+> Note that non-PN attributes are case and accent sensitive, as required in [PS3.4 C.2.2.2.1](http://dicom.nema.org/medical/dicom/current/output/chtml/part04/sect_C.2.2.2.html).
+
 ### Search Response
 
 The response will be an array of DICOM datasets. Depending on the resource, by *default* the following attributes are returned:
