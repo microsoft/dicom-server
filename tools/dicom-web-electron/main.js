@@ -75,6 +75,35 @@ async function createWindow() {
 
     });
 
+    ipcMain.on("getChangeFeed", (event, args) => {
+        let form = new FormData();
+
+        let authorizationHeader = ''
+        if (args.bearerToken !== '') {
+            authorizationHeader = 'Bearer ' + args.bearerToken
+        }
+
+        axios.get(args.url, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': authorizationHeader
+                },
+                httpsAgent: httpsAgent
+            })
+            .then(function(response) {
+                win.webContents.send("changeFeedRetrieved", response.data);
+            })
+            .catch(function(error) {
+                console.log(error)
+                if (error.response === undefined) {
+                    win.webContents.send("errorEncountered", error.code);
+                } else {
+                    win.webContents.send("errorEncountered", error.response.status);
+                }
+            })
+
+    });
+
     ipcMain.on("selectFile", (event, args) => {
         dialog.showOpenDialog({
             filters: [

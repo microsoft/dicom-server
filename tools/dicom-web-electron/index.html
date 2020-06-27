@@ -24,17 +24,17 @@
             <ul class="menu-list">
                 <li><a class="is-active" id="file-upload-menu">File Upload</a></li>
                 <li><a id="server-settings-menu">Server Settings</a></li>
+                <li><a id="change-feed-menu">Change Feed</a></li>
             </ul>
         </aside>
         <div class="column" style="min-height: 100vh; height: 100%;">
             <div id="server-settings-section" style="display:none;">
                 <div class="container box">
                     <h3 class="title is-3">Server Settings</h3>
-
                     <div class="field">
                         <label class="label">Address</label>
                         <div class="control">
-                            <input type="text" id="server-address" class="input" value="https://localhost:63838" placeholder="Enter a server address..." disabled="true"></input>
+                            <input type="text" id="server-address-input" class="input" value="https://localhost:63838" placeholder="Enter a server address..." disabled="true"></input>
                         </div>
                     </div>
                     <div class="field">
@@ -53,17 +53,25 @@
                     <input type="button" id="select-file" value="Select File(s)" class="button is-small" />
                     <input type="button" id="post-file" value="Post File(s)" disabled="true" class="button is-small" />
                 </div>
-                <div class="container box has-background-danger-light" id="error-display" style="display: none;">
-                    <h3 class="title is-3">Error Encountered</h3>
-                    <div id="error-status"></div>
-                </div>
                 <div class="container box has-background-success-light" id="success-display" style="display: none;">
                     <h3 class="title is-3">Upload Successful</h3>
                 </div>
                 <div class="container box" style="display: none;" id="selected-files">
-                    <h4 class="title is-4">Selected Files</h3>
-                        <table class="table" id="file-name-table"></table>
+                    <h4 class="title is-4">Selected Files</h4>
+                    <table class="table" id="file-name-table"></table>
                 </div>
+            </div>
+            <div id="change-feed-section" style="display:none;">
+                <div class="container box content">
+                    <h3 class="title is-3">Change Feed</h3>
+                    <input type="button" id="change-feed-button" value="Get Change Feed" class="button is-small" />
+                    <table class="table" id="change-feed-table"></table>
+                </div>
+            </div>
+
+            <div class="container box has-background-danger-light" id="error-display" style="display: none;">
+                <h3 class="title is-3">Error Encountered</h3>
+                <div id="error-status"></div>
             </div>
         </div>
     </div>

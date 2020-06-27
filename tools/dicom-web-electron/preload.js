@@ -14,13 +14,13 @@ const {
 contextBridge.exposeInMainWorld(
     "api", {
         send: (channel, data) => {
-            let validChannels = ["postFile", "selectFile"];
+            let validChannels = ["postFile", "selectFile", "getChangeFeed"];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
             }
         },
         receive: (channel, func) => {
-            let validChannels = ["filePosted", "fileSelected", "errorEncountered", "success"];
+            let validChannels = ["filePosted", "fileSelected", "errorEncountered", "success", "changeFeedRetrieved"];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 
                 ipcRenderer.on(channel, (event, ...args) => func(...args));
