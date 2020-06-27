@@ -23,8 +23,8 @@
         <aside class="column is-3 aside menu has-background-grey-light">
             <ul class="menu-list">
                 <li><a class="is-active" id="file-upload-menu">File Upload</a></li>
-                <li><a id="server-settings-menu">Server Settings</a></li>
                 <li><a id="change-feed-menu">Change Feed</a></li>
+                <li><a id="server-settings-menu">Server Settings</a></li>
             </ul>
         </aside>
         <div class="column" style="min-height: 100vh; height: 100%;">
@@ -48,13 +48,17 @@
             </div>
             <div id="file-upload-section">
                 <div class="container box content">
-                    <h3 class="title is-3">Files</h3>
+                    <h3 class="title is-3">File Upload</h3>
                     <p>Uploading to: <span id="server-address-display"></span></p>
                     <input type="button" id="select-file" value="Select File(s)" class="button is-small" />
                     <input type="button" id="post-file" value="Post File(s)" disabled="true" class="button is-small" />
                 </div>
                 <div class="container box has-background-success-light" id="success-display" style="display: none;">
                     <h3 class="title is-3">Upload Successful</h3>
+                </div>
+                <div class="container box has-background-danger-light" id="error-display" style="display: none;">
+                    <h3 class="title is-3">Error Encountered</h3>
+                    <div id="error-status"></div>
                 </div>
                 <div class="container box" style="display: none;" id="selected-files">
                     <h4 class="title is-4">Selected Files</h4>
@@ -64,14 +68,17 @@
             <div id="change-feed-section" style="display:none;">
                 <div class="container box content">
                     <h3 class="title is-3">Change Feed</h3>
+                    <div class="field">
+                        <label class="label">Offset</label>
+                        <div class="control">
+                            <input type="number" id="offset-input" class="input" value="0" min="0"></input>
+                        </div>
+                    </div>
                     <input type="button" id="change-feed-button" value="Get Change Feed" class="button is-small" />
-                    <table class="table" id="change-feed-table"></table>
                 </div>
-            </div>
-
-            <div class="container box has-background-danger-light" id="error-display" style="display: none;">
-                <h3 class="title is-3">Error Encountered</h3>
-                <div id="error-status"></div>
+                <div class="container box content" id="change-feed-results" style="display:none">
+                    <div id="change-feed-table"></div>
+                </div>
             </div>
         </div>
     </div>

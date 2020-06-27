@@ -26,6 +26,10 @@ $(() => {
     let changeFeedMenu = $('#change-feed-menu')
     let changeFeedButton = $('#change-feed-button')
     let changeFeedTable = $('#change-feed-table')
+    let changeFeedResults = $('#change-feed-results')
+    let offsetInput = $('#offset-input')
+
+    let offset = 0;
 
     serverAddressDisplay.html(postUrl)
 
@@ -124,7 +128,9 @@ $(() => {
     changeFeedButton.click(() => {
         errorDisplay.toggle(false)
 
-        let url = serverAddressInput.val() + "/changefeed?includemetadata=false"
+        offset = offsetInput.val()
+
+        let url = serverAddressInput.val() + "/changefeed?includemetadata=false&offset=" + offset
         let bearerToken = bearerTokenInput.val()
 
         hideErrorSuccess()
@@ -133,13 +139,20 @@ $(() => {
     })
 
     window.api.receive("changeFeedRetrieved", (data) => {
+
         var html = ''
         console.log(data);
-        for (let item of data) {
-            html += "<tr><td>" + item.Sequence + "</td><td>" + item.SopInstanceUid + "</td></tr>"
+        if (!Array.isArray(data) || !data.length) {
+            html = "<p>No results</p>"
+        } else {
+            for (let item of data) {
+                html += "<div class='card'><div class='card-content'><div class='columns'><div class='column is-1'><h1>" + item.Sequence + "</h1></div><div class='column'><div class='level'><div class='level-left'><div class='level-item'>" + item.Action + "</div><div class='level-item'>" + item.State + "</div></div><div class='level-right'><div class='level-item'>" + item.Timestamp + "</div></div></div><p>StudyInstanceUid: " + item.StudyInstanceUid + "<br />SeriesInstanceUid: " + item.SeriesInstanceUid + "<br />SopInstanceUid: " + item.SopInstanceUid + "</p></div></div></div></div>"
+                offset = item.Sequence
+            }
         }
 
-        console.log()
+        offsetInput.val(offset)
         changeFeedTable.html(html)
+        changeFeedResults.toggle(true)
     })
 })
