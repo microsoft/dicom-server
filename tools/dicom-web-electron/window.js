@@ -106,7 +106,7 @@ $(() => {
 
     window.api.receive("fileSelected", (data) => {
         files = data
-        var html = ''
+        let html = ''
         for (let file of files) {
             html += "<tr><td>" + file + "</td></tr>"
         }
@@ -140,13 +140,17 @@ $(() => {
 
     window.api.receive("changeFeedRetrieved", (data) => {
 
-        var html = ''
+        let html = ''
         console.log(data);
         if (!Array.isArray(data) || !data.length) {
             html = "<p>No results</p>"
         } else {
-            for (let item of data) {
-                html += "<div class='card'><div class='card-content'><div class='columns'><div class='column is-1'><h1>" + item.Sequence + "</h1></div><div class='column'><div class='level'><div class='level-left'><div class='level-item'>" + item.Action + "</div><div class='level-item'>" + item.State + "</div></div><div class='level-right'><div class='level-item'>" + item.Timestamp + "</div></div></div><p>StudyInstanceUid: " + item.StudyInstanceUid + "<br />SeriesInstanceUid: " + item.SeriesInstanceUid + "<br />SopInstanceUid: " + item.SopInstanceUid + "</p></div></div></div></div>"
+            for (let [i, item] of data.entries()) {
+                let backgroundClass = ''
+                if (i % 2 == 0) {
+                    backgroundClass = 'has-background-white-ter'
+                }
+                html += "<div class='card " + backgroundClass + "'><div class='card-content'><div class='columns'><div class='column is-1'><h1>" + item.Sequence + "</h1></div><div class='column'><div class='level'><div class='level-left'><div class='level-item'>" + item.Action + "</div><div class='level-item'>" + item.State + "</div></div><div class='level-right'><div class='level-item'>" + item.Timestamp + "</div></div></div><p>StudyInstanceUid: " + item.StudyInstanceUid + "<br />SeriesInstanceUid: " + item.SeriesInstanceUid + "<br />SopInstanceUid: " + item.SopInstanceUid + "</p></div></div></div></div>"
                 offset = item.Sequence
             }
         }
