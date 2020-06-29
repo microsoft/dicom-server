@@ -4,7 +4,7 @@
             "commandName": "Project",
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "DicomServer:Security:Enabled": false
+                "DicomServer:Security:Enabled": "false"
             },
             "applicationUrl": "https://localhost:63838/"
         },
@@ -12,7 +12,7 @@
             "commandName": "Project",
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "DicomServer:Security:Enabled": true,
+                "DicomServer:Security:Enabled": "true",
                 "DicomServer:Security:Authentication:Audience": "health-api",
                 "DicomServer:Security:Authentication:Authority": "https://localhost:63838/",
 

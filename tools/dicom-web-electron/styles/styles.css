@@ -1,0 +1,12 @@
+body {
+    height: auto;
+    min-height: 100vh;
+}
+
+.columns {
+    margin: 0
+}
+
+.column.menu {
+    padding: 0
+}

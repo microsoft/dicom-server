@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <title>DICOM Web Uploader</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="./styles/bulma.min.css">
+    <link rel="stylesheet" href="./styles/styles.css">
+
+    <!-- Scripts -->
+    <script>
+    </script>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="./window.js" charset="utf-8"></script>
+
+</head>
+
+<body class="has-background-light">
+    <div class="columns">
+        <aside class="column is-3 aside menu has-background-grey-light">
+            <ul class="menu-list">
+                <li><a class="is-active" id="file-upload-menu">File Upload</a></li>
+                <li><a id="change-feed-menu">Change Feed</a></li>
+                <li><a id="server-settings-menu">Server Settings</a></li>
+            </ul>
+        </aside>
+        <div class="column" style="min-height: 100vh; height: 100%;">
+            <div id="server-settings-section" style="display:none;" class="content">
+                <div class="container box content">
+                    <h3 class="title is-3">Server Settings</h3>
+                    <div class="field">
+                        <label class="label">Address</label>
+                        <div class="control">
+                            <input type="text" id="server-address-input" class="input" value="https://localhost:63838" placeholder="Enter a server address..." disabled="true"></input>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Bearer Token</label>
+                        <div class="control">
+                            <input type="text" id="bearer-token-input" class="input" value="" placeholder="Enter a bearer token..." disabled="true"></input>
+                        </div>
+                    </div>
+                    <input type="button" id="set-server-address" value="Change" class="button is-small" />
+                </div>
+            </div>
+            <div id="file-upload-section" class="content">
+                <div class="container box content">
+                    <h3 class="title is-3">File Upload</h3>
+                    <p>Uploading to: <span id="server-address-display"></span></p>
+                    <input type="button" id="select-file" value="Select File(s)" class="button is-small" />
+                    <input type="button" id="post-file" value="Post File(s)" disabled="true" class="button is-small" />
+                </div>
+            </div>
+            <div id="change-feed-section" style="display:none;" class="content">
+                <div class="container box content">
+                    <h3 class="title is-3">Change Feed</h3>
+                    <div class="field">
+                        <label class="label">Offset</label>
+                        <div class="control">
+                            <input type="number" id="offset-input" class="input" value="0" min="0"></input>
+                        </div>
+                    </div>
+                    <input type="button" id="change-feed-button" value="Get Change Feed" class="button is-small" />
+                </div>
+                <div class="container box content" id="change-feed-results" style="display:none">
+                    <div id="change-feed-table"></div>
+                </div>
+            </div>
+            <div id="response-section" class="content">
+                <div class="container box has-background-success-light content" id="success-display" style="display: none;">
+                    <h3 class="title is-3">Upload Successful</h3>
+                </div>
+                <div class="container box has-background-danger-light content" id="error-display" style="display: none;">
+                    <h3 class="title is-3">Error Encountered</h3>
+                    <div id="error-status"></div>
+                </div>
+            </div>
+            <div id="selected-files-section" class="content">
+                <div class="container box content" style="display: none;" id="selected-files">
+                    <h4 class="title is-4">Selected Files</h4>
+                    <table class="table" id="file-name-table"></table>
+                </div>
+            </div>
+        </div>
+</body>
+
+</html>
