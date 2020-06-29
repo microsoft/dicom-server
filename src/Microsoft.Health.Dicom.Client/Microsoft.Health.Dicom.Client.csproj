@@ -3,17 +3,18 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
     </PropertyGroup>
-  
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="8.1.2" />
     <PackageReference Include="fo-dicom" Version="4.0.5" NoWarn="NU1701" />
     <PackageReference Include="fo-dicom.json" Version="4.0.5" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
+    <PackageReference Include="Microsoft.Health.Client" Version="1.0.0-master-20200629-1" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.5.1" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.5.1" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.3.2" />
