@@ -18,6 +18,7 @@ $(() => {
     let fileDisplay = $('#selected-files')
     let fileUploadMenu = $('#file-upload-menu')
     let fileUploadSection = $('#file-upload-section')
+    let selectedFilesSection = $('#selected-files-section')
     let serverSettingsMenu = $('#server-settings-menu')
     let serverSettingsSection = $('#server-settings-section')
     let serverAddressDisplay = $('#server-address-display')
@@ -28,6 +29,7 @@ $(() => {
     let changeFeedTable = $('#change-feed-table')
     let changeFeedResults = $('#change-feed-results')
     let offsetInput = $('#offset-input')
+    let resultsSection = $('#resultsSection')
 
     let offset = 0;
 
@@ -40,29 +42,38 @@ $(() => {
 
     fileUploadMenu.click(() => {
         fileUploadSection.toggle(true)
+        selectedFilesSection.toggle(true)
         serverSettingsSection.toggle(false)
         changeFeedSection.toggle(false)
         fileUploadMenu.toggleClass('is-active', true)
         serverSettingsMenu.toggleClass('is-active', false)
         changeFeedMenu.toggleClass('is-active', false)
+
+        hideErrorSuccess()
     })
 
     serverSettingsMenu.click(() => {
         fileUploadSection.toggle(false)
+        selectedFilesSection.toggle(false)
         serverSettingsSection.toggle(true)
         changeFeedSection.toggle(false)
         fileUploadMenu.toggleClass('is-active', false)
         serverSettingsMenu.toggleClass('is-active', true)
         changeFeedMenu.toggleClass('is-active', false)
+
+        hideErrorSuccess()
     })
 
     changeFeedMenu.click(() => {
         fileUploadSection.toggle(false)
+        selectedFilesSection.toggle(false)
         serverSettingsSection.toggle(false)
         changeFeedSection.toggle(true)
         fileUploadMenu.toggleClass('is-active', false)
         serverSettingsMenu.toggleClass('is-active', false)
         changeFeedMenu.toggleClass('is-active', true)
+
+        hideErrorSuccess()
     })
 
     serverAddressButton.click(() => {
