@@ -94,7 +94,6 @@ async function createWindow() {
                 win.webContents.send("changeFeedRetrieved", response.data);
             })
             .catch(function(error) {
-                console.log(error)
                 if (error.response === undefined) {
                     win.webContents.send("errorEncountered", error.code);
                 } else {

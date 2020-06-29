@@ -152,7 +152,6 @@ $(() => {
     window.api.receive("changeFeedRetrieved", (data) => {
 
         let html = ''
-        console.log(data);
         if (!Array.isArray(data) || !data.length) {
             html = "<p>No results</p>"
         } else {
