@@ -22,12 +22,12 @@
 ## Fiddler to Post dcm files
 - [Install fiddler](https://www.telerik.com/download/fiddler)
 - Download DCM example file from [here](https://microsofthealth.visualstudio.com/Health/_git/dicom-samples?path=%2Fvisus.com%2Fcase1%2Fcase1_008.dcm) 
-	- Upload DCM file (use upload file button at request body section as shown in picture below) 
-	- Update request header:
-		- Accept: application/dicom+json
-		- Content-Type: multipart/related
-   - Update request body:
-	   - Content-Type: application/dicom
+- Upload DCM file (use upload file button at request body section as shown in picture below) 
+- Update request header:
+	- Accept: application/dicom+json
+	- Content-Type: multipart/related
+- Update request body:
+   - Content-Type: application/dicom
    - Post the request to https://localhost:63838/studies
 
 ![Post A Dicom Image](images/FiddlerPost.png)
