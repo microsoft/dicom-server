@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
             else
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.InvaludFuzzyMatchValue, trimmedValue));
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidFuzzyMatchValue, trimmedValue));
             }
         }
 

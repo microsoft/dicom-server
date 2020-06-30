@@ -10,8 +10,8 @@
 
 namespace Microsoft.Health.Dicom.Core {
     using System;
-
-
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +23,15 @@ namespace Microsoft.Health.Dicom.Core {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class DicomCoreResource {
-
+        
         private static global::System.Resources.ResourceManager resourceMan;
-
+        
         private static global::System.Globalization.CultureInfo resourceCulture;
-
+        
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal DicomCoreResource() {
         }
-
+        
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return resourceMan;
             }
         }
-
+        
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core {
                 resourceCulture = value;
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The limit must be between 1 and {0}..
         /// </summary>
@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("ChangeFeedLimitOutOfRange", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The offset cannot be a negative value..
         /// </summary>
@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("ChangeFeedOffsetCannotBeNegative", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("DataStoreOperationFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
         /// </summary>
@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("DuplicatedUidsNotAllowed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Duplicate AttributeId &apos;{0}&apos;, Each attribute is allowed to be specified once..
         /// </summary>
@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("DuplicateQueryParam", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified frame cannot be found..
         /// </summary>
@@ -113,7 +113,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("FrameNotFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. IncludeField has unknown attribute {0}..
         /// </summary>
@@ -122,7 +122,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("IncludeFieldUnknownAttribute", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The DICOM instance already exists..
         /// </summary>
@@ -131,7 +131,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InstanceAlreadyExists", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified instance cannot be found..
         /// </summary>
@@ -140,7 +140,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InstanceNotFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
         ///The first part date {1} should be lesser than or equal to the second part date {2}..
@@ -150,7 +150,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InvalidDateRangeValue", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value {0} is invalid for parameter {1}. Date should be valid and formatted as yyyyMMdd..
         /// </summary>
@@ -159,7 +159,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InvalidDateValue", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to DICOM Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
         /// </summary>
@@ -168,7 +168,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InvalidDicomIdentifier", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The DICOM instance is invalid..
         /// </summary>
@@ -177,7 +177,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InvalidDicomInstance", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0..
         /// </summary>
@@ -186,7 +186,16 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InvalidFramesValue", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified fuzzymatch value {0} is not a valid boolean.
+        /// </summary>
+        internal static string InvalidFuzzyMatchValue {
+            get {
+                return ResourceManager.GetString("InvalidFuzzyMatchValue", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified limit value {0} is not a valid integer..
         /// </summary>
@@ -195,7 +204,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InvalidLimitValue", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified offset value {0} is not a valid integer..
         /// </summary>
@@ -204,7 +213,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InvalidOffsetValue", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The following query parameter is invalid: {0}..
         /// </summary>
@@ -213,7 +222,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InvalidQueryStringValue", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified Transfer Syntax value is not valid..
         /// </summary>
@@ -222,16 +231,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("InvalidTransferSyntaxValue", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified fuzzymatch value {0} is not a valid boolean.
-        /// </summary>
-        internal static string InvaludFuzzyMatchValue {
-            get {
-                return ResourceManager.GetString("InvaludFuzzyMatchValue", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified item cannot be found..
         /// </summary>
@@ -240,7 +240,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("ItemNotFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The StudyInstanceUid &apos;{0}&apos; in the payload does not match the specified StudyInstanceUid &apos;{1}&apos;..
         /// </summary>
@@ -249,7 +249,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("MismatchStudyInstanceUid", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The request body is missing..
         /// </summary>
@@ -258,7 +258,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("MissingRequestBody", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The required tag &apos;{0}&apos; is missing..
         /// </summary>
@@ -267,7 +267,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("MissingRequiredTag", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} has empty string value that is not supported..
         /// </summary>
@@ -276,7 +276,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("QueryEmptyAttributeValue", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Querying is only supported at resource level Studies/Series/Instances..
         /// </summary>
@@ -285,7 +285,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("QueryInvalidResourceLevel", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query.  Specified limit value {0} is outside the allowed range of {1}..{2}..
         /// </summary>
@@ -294,7 +294,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("QueryResultCountMaxExceeded", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified series cannot be found..
         /// </summary>
@@ -303,7 +303,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("SeriesInstanceNotFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The server is currently unable to receive requests. Please retry your request. If the issue persists, please contact support..
         /// </summary>
@@ -312,7 +312,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("ServiceUnavailable", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified study cannot be found..
         /// </summary>
@@ -321,16 +321,16 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("StudyInstanceNotFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Unknown query parameter {0}..
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Unknown query parameter &apos;{0}&apos;. If the parameter is attribute keyword, check the casing, attribute keywords are case-sensitive. Conformance also has supported query parameters and queryable attributes..
         /// </summary>
         internal static string UnknownQueryParameter {
             get {
                 return ResourceManager.GetString("UnknownQueryParameter", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified content type &apos;{0}&apos; is not supported..
         /// </summary>
@@ -339,7 +339,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("UnsupportedContentType", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} is not queryable. .
         /// </summary>
@@ -348,7 +348,7 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("UnsupportedSearchParameter", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified transcoding is not supported..
         /// </summary>
