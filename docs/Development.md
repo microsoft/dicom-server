@@ -21,6 +21,9 @@
 
 ## Fiddler to Post dcm files
 - [Install fiddler](https://www.telerik.com/download/fiddler)
+- Go to Tools->Options->HTTPS on fiddler. Click protocols and add "tls1.2" to the list of protocols.
+
+![Fiddler Config Image](images/FiddlerConfig.png)
 - Download DCM example file from [here](https://microsofthealth.visualstudio.com/Health/_git/dicom-samples?path=%2Fvisus.com%2Fcase1%2Fcase1_008.dcm) 
 - Upload DCM file (use upload file button at request body section as shown in picture below) 
 - Update request header:
@@ -31,7 +34,7 @@
    - Post the request to https://localhost:63838/studies
 
 ![Post A Dicom Image](images/FiddlerPost.png)
-- Note: you cannot upload same DICOM file again unless deleting it at first
+- Note: you cannot upload same DCM file again unless deleting it at first
 
 ## Postman for Get
 - [Install Postman](https://www.postman.com/downloads/)
