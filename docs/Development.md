@@ -21,31 +21,18 @@
 
 ## Fiddler to Post dcm files
 - [Install fiddler](https://www.telerik.com/download/fiddler)
-- Go to Tools->Options->Https on fiddler. Click protocols and add "tls1.2" to the list of protocols.
-- Use fiddler composer to post a request with (use upload file button at request body section as shown in picture below) 
-   - Content-type: multipart/related
-   - accept: application/dicom+json
-   - multi-part Content-type: application/dicom
+- Download DCM example file from [here](https://microsofthealth.visualstudio.com/Health/_git/dicom-samples?path=%2Fvisus.com%2Fcase1%2Fcase1_008.dcm) 
+	- Upload DCM file (use upload file button at request body section as shown in picture below) 
+	- Update request header:
+		- Accept: application/dicom+json
+		- Content-Type: multipart/related
+   - Update request body:
+	   - Content-Type: application/dicom
+   - Post the request to https://localhost:63838/studies
 
 ![Post A Dicom Image](images/FiddlerPost.png)
+- Note: you cannot upload same DICOM file again unless deleting it at first
 
-You should see the request body populated as below.
-
-```http
-POST https://localhost:63838/studies/
-
-Content-Type: multipart/related; boundary=-------------------------acebdf13572468
-User-Agent: Fiddler
-accept: application/dicom+json
-
----------------------------acebdf13572468
-Content-Disposition: form-data; name="fieldNameHere"; filename="Slice1.dcm"
-Content-Type: application/dicom
-
-<@INCLUDE *C:\dicomfiles\Output\Study437_Series1\Slice1.dcm*@>
----------------------------acebdf13572468--
-
-```
 ## Postman for Get
 - [Install Postman](https://www.postman.com/downloads/)
 - Example QIDO to get all studies
