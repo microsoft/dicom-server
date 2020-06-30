@@ -42,9 +42,16 @@ namespace Microsoft.Health.Dicom.Client
             HttpClient = httpClient;
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
+            GetMemoryStream = () => new MemoryStream();
         }
 
         public HttpClient HttpClient { get; }
+
+        /// <summary>
+        /// Func used to obtain a <see cref="MemoryStream" />. The default value returns a new memory stream.
+        /// This can be used in conjunction with a <see cref="RecyclableMemoryStreamManager"/> to provide a way to obtain a memory stream from the pool.
+        /// </summary>
+        public Func<MemoryStream> GetMemoryStream { get; set; }
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(
             Uri requestUri,
@@ -168,7 +175,7 @@ namespace Microsoft.Health.Dicom.Client
 
             foreach (DicomFile dicomFile in dicomFiles)
             {
-                await using (var stream = new MemoryStream())
+                await using (var stream = GetMemoryStream())
                 {
                     await dicomFile.SaveAsync(stream);
                     postContent.Add(stream.ToArray());
@@ -342,7 +349,7 @@ namespace Microsoft.Health.Dicom.Client
 
         private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream, CancellationToken cancellationToken)
         {
-            await using (var memory = new MemoryStream())
+            await using (var memory = GetMemoryStream())
             {
                 await stream.CopyToAsync(memory, cancellationToken);
                 return memory.ToArray();
@@ -362,7 +369,7 @@ namespace Microsoft.Health.Dicom.Client
 
                 while ((part = await multipartReader.ReadNextSectionAsync(cancellationToken)) != null)
                 {
-                    var memoryStream = new MemoryStream();
+                    var memoryStream = GetMemoryStream();
                     await part.Body.CopyToAsync(memoryStream, cancellationToken);
                     memoryStream.Seek(0, SeekOrigin.Begin);
                     result.Add(memoryStream);
