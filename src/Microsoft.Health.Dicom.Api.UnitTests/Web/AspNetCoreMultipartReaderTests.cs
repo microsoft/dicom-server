@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Web;
@@ -26,7 +27,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
         public AspNetCoreMultipartReaderTests()
         {
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter();
+            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
         }
 
         [Fact]

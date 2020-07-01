@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Api.Web;
 using NSubstitute;
@@ -23,7 +24,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
         public MultipartReaderStreamToSeekableStreamConverterTests()
         {
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter();
+            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
         }
 
         [Fact]

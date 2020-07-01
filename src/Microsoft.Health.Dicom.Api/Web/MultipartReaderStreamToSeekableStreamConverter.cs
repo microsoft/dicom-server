@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace Microsoft.Health.Dicom.Api.Web
@@ -18,6 +19,14 @@ namespace Microsoft.Health.Dicom.Api.Web
     internal class MultipartReaderStreamToSeekableStreamConverter : ISeekableStreamConverter
     {
         private const int DefaultBufferThreshold = 1024 * 30; // 30KB
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public MultipartReaderStreamToSeekableStreamConverter(IHttpContextAccessor httpContextAccessor)
+        {
+            EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
+
+            _httpContextAccessor = httpContextAccessor;
+        }
 
         /// <inheritdoc />
         public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default)
@@ -33,6 +42,7 @@ namespace Microsoft.Health.Dicom.Api.Web
                 try
                 {
                     seekableStream = new FileBufferingReadStream(stream, bufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
+                    _httpContextAccessor.HttpContext?.Response.RegisterForDisposeAsync(seekableStream);
                     await seekableStream.DrainAsync(cancellationToken);
                 }
                 catch (InvalidDataException)
@@ -43,15 +53,6 @@ namespace Microsoft.Health.Dicom.Api.Web
                 catch (IOException ex)
                 {
                     throw new InvalidMultipartBodyPartException(ex);
-                }
-                catch (Exception)
-                {
-                    if (seekableStream != null)
-                    {
-                        await seekableStream.DisposeAsync();
-                    }
-
-                    throw;
                 }
             }
             else
