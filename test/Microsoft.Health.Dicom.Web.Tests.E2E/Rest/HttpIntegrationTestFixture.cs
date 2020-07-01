@@ -55,12 +55,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public DicomWebClient GetDicomWebClient(TestApplication clientApplication)
         {
-            var messageHandler = new SessionMessageHandler(TestDicomWebServer.CreateMessageHandler());
+            HttpMessageHandler messageHandler = TestDicomWebServer.CreateMessageHandler();
             if (AuthenticationSettings.SecurityEnabled && !clientApplication.Equals(TestApplications.InvalidClient))
             {
                 if (_authenticationHandlers.ContainsKey(clientApplication.ClientId))
                 {
-                    messageHandler.InnerHandler = _authenticationHandlers[clientApplication.ClientId];
+                    messageHandler = _authenticationHandlers[clientApplication.ClientId];
                 }
                 else
                 {
@@ -70,14 +70,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                         AuthenticationSettings.Scope,
                         clientApplication.ClientId,
                         clientApplication.ClientSecret);
-                    var credentialProvider = new OAuth2ClientCredentialProvider(Options.Create(credentialConfiguration), new HttpClient(new SessionMessageHandler(TestDicomWebServer.CreateMessageHandler())));
+                    var credentialProvider = new OAuth2ClientCredentialProvider(Options.Create(credentialConfiguration), new HttpClient(messageHandler));
                     var authHandler = new AuthenticationHttpMessageHandler(credentialProvider)
                     {
-                        InnerHandler = messageHandler.InnerHandler,
+                        InnerHandler = messageHandler,
                     };
 
                     _authenticationHandlers.Add(clientApplication.ClientId, authHandler);
-                    messageHandler.InnerHandler = authHandler;
+                    messageHandler = authHandler;
                 }
             }
 
@@ -94,38 +94,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             HttpClient.Dispose();
             TestDicomWebServer?.Dispose();
-        }
-
-        /// <summary>
-        /// An <see cref="HttpMessageHandler"/> that maintains session consistency between requests.
-        /// </summary>
-        private class SessionMessageHandler : DelegatingHandler
-        {
-            private string _sessionToken;
-
-            public SessionMessageHandler(HttpMessageHandler innerHandler)
-                : base(innerHandler)
-            {
-            }
-
-            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                if (!string.IsNullOrEmpty(_sessionToken))
-                {
-                    request.Headers.TryAddWithoutValidation("x-ms-session-token", _sessionToken);
-                }
-
-                request.Headers.TryAddWithoutValidation("x-ms-consistency-level", "Session");
-
-                HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
-
-                if (response.Headers.TryGetValues("x-ms-session-token", out IEnumerable<string> tokens))
-                {
-                    _sessionToken = tokens.SingleOrDefault();
-                }
-
-                return response;
-            }
         }
     }
 }
