@@ -10,7 +10,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Client;
+using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
 
@@ -18,6 +20,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class HttpIntegrationTestFixture<TStartup> : IDisposable
     {
+        private Dictionary<string, AuthenticationHttpMessageHandler> _authenticationHandlers = new Dictionary<string, AuthenticationHttpMessageHandler>();
+
         public HttpIntegrationTestFixture()
             : this(Path.Combine("src"))
         {
@@ -42,56 +46,54 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
-        public TestDicomWebClient Client { get; }
+        public DicomWebClient Client { get; }
 
-        public TestDicomWebClient GetDicomWebClient()
+        public DicomWebClient GetDicomWebClient()
         {
             return GetDicomWebClient(TestApplications.GlobalAdminServicePrincipal);
         }
 
-        public TestDicomWebClient GetDicomWebClient(TestApplication clientApplication)
+        public DicomWebClient GetDicomWebClient(TestApplication clientApplication)
         {
-            var httpClient = new HttpClient(new SessionMessageHandler(TestDicomWebServer.CreateMessageHandler())) { BaseAddress = TestDicomWebServer.BaseAddress };
+            HttpMessageHandler messageHandler = TestDicomWebServer.CreateMessageHandler();
+            if (AuthenticationSettings.SecurityEnabled && !clientApplication.Equals(TestApplications.InvalidClient))
+            {
+                if (_authenticationHandlers.ContainsKey(clientApplication.ClientId))
+                {
+                    messageHandler = _authenticationHandlers[clientApplication.ClientId];
+                }
+                else
+                {
+                    var credentialConfiguration = new OAuth2ClientCredentialConfiguration(
+                        AuthenticationSettings.TokenUri,
+                        AuthenticationSettings.Resource,
+                        AuthenticationSettings.Scope,
+                        clientApplication.ClientId,
+                        clientApplication.ClientSecret);
+                    var credentialProvider = new OAuth2ClientCredentialProvider(Options.Create(credentialConfiguration), new HttpClient(messageHandler));
+                    var authHandler = new AuthenticationHttpMessageHandler(credentialProvider)
+                    {
+                        InnerHandler = messageHandler,
+                    };
 
-            return new TestDicomWebClient(httpClient, RecyclableMemoryStreamManager, clientApplication, AuthenticationSettings.SecurityEnabled ? AuthenticationSettings.TokenUri : null);
+                    _authenticationHandlers.Add(clientApplication.ClientId, authHandler);
+                    messageHandler = authHandler;
+                }
+            }
+
+            var httpClient = new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress };
+
+            var dicomWebClient = new DicomWebClient(httpClient)
+            {
+                GetMemoryStream = () => RecyclableMemoryStreamManager.GetStream(),
+            };
+            return dicomWebClient;
         }
 
         public void Dispose()
         {
             HttpClient.Dispose();
             TestDicomWebServer?.Dispose();
-        }
-
-        /// <summary>
-        /// An <see cref="HttpMessageHandler"/> that maintains session consistency between requests.
-        /// </summary>
-        private class SessionMessageHandler : DelegatingHandler
-        {
-            private string _sessionToken;
-
-            public SessionMessageHandler(HttpMessageHandler innerHandler)
-                : base(innerHandler)
-            {
-            }
-
-            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                if (!string.IsNullOrEmpty(_sessionToken))
-                {
-                    request.Headers.TryAddWithoutValidation("x-ms-session-token", _sessionToken);
-                }
-
-                request.Headers.TryAddWithoutValidation("x-ms-consistency-level", "Session");
-
-                HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
-
-                if (response.Headers.TryGetValues("x-ms-session-token", out IEnumerable<string> tokens))
-                {
-                    _sessionToken = tokens.SingleOrDefault();
-                }
-
-                return response;
-            }
         }
     }
 }
