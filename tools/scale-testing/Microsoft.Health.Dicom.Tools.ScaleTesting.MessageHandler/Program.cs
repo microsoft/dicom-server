@@ -17,6 +17,7 @@ using Azure.Security.KeyVault.Secrets;
 using Dicom;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
@@ -74,10 +75,12 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
 
         private static void SetupDicomWebClient()
         {
-            var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri(WebServerUrl);
+            var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(WebServerUrl),
+            };
 
-            client = new DicomWebClient(httpClient, new Microsoft.IO.RecyclableMemoryStreamManager());
+            client = new DicomWebClient(httpClient);
         }
 
         public static void RegisterOnMessageHandlerAndReceiveMessages()

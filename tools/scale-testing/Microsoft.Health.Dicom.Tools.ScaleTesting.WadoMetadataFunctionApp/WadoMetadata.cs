@@ -11,6 +11,7 @@ using System.Text;
 using Dicom;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.WadoMetadataFunctionApp
@@ -41,10 +42,12 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.WadoMetadataFunctionApp
 
         private static void SetupDicomWebClient()
         {
-            var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri(WebServerUrl);
+            var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(WebServerUrl),
+            };
 
-            client = new DicomWebClient(httpClient, new Microsoft.IO.RecyclableMemoryStreamManager());
+            client = new DicomWebClient(httpClient);
         }
 
         private static void RetrieveInstanceMetadata(string studyUid, string seriesUid, string instanceUid)
