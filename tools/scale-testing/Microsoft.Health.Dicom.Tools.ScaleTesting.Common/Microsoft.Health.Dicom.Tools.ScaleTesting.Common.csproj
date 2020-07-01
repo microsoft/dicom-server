@@ -9,9 +9,12 @@
     <PackageReference Include="fo-dicom" Version="4.0.5" NoWarn="NU1701" />
     <PackageReference Include="fo-dicom.json" Version="4.0.5" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Health.Dicom.Client" Version="1.0.0-master-20200701-2" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.3.4" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj" />
   </ItemGroup>
 
 </Project>
