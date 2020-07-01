@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Builder
 {
     public static class DicomServerApplicationBuilderExtensions
     {
-        private const string IndexPagePath = "index.html";
+        private const string OhifViewerIndexPagePath = "index.html";
 
         /// <summary>
         /// Adds DICOM server functionality to the pipeline.
@@ -33,14 +33,14 @@ namespace Microsoft.AspNetCore.Builder
                 // In order to make OHIF viewer work with direct link to studies, we need to rewrite any path under viewer
                 // back to the index page so the viewer can display accordingly.
                 RewriteOptions rewriteOptions = new RewriteOptions()
-                    .AddRewrite("^viewer/(.*?)", IndexPagePath, true);
+                    .AddRewrite("^viewer/(.*?)", OhifViewerIndexPagePath, true);
 
                 app.UseRewriter(rewriteOptions);
 
                 var options = new DefaultFilesOptions();
 
                 options.DefaultFileNames.Clear();
-                options.DefaultFileNames.Add(IndexPagePath);
+                options.DefaultFileNames.Add(OhifViewerIndexPagePath);
 
                 app.UseDefaultFiles(options);
                 app.UseStaticFiles();
