@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -12,6 +13,8 @@ namespace Microsoft.AspNetCore.Builder
 {
     public static class DicomServerApplicationBuilderExtensions
     {
+        private const string OhifViewerIndexPagePath = "index.html";
+
         /// <summary>
         /// Adds DICOM server functionality to the pipeline.
         /// </summary>
@@ -27,10 +30,17 @@ namespace Microsoft.AspNetCore.Builder
 
             if (featureConfiguration.Value.EnableOhifViewer)
             {
+                // In order to make OHIF viewer work with direct link to studies, we need to rewrite any path under viewer
+                // back to the index page so the viewer can display accordingly.
+                RewriteOptions rewriteOptions = new RewriteOptions()
+                    .AddRewrite("^viewer/(.*?)", OhifViewerIndexPagePath, true);
+
+                app.UseRewriter(rewriteOptions);
+
                 var options = new DefaultFilesOptions();
 
                 options.DefaultFileNames.Clear();
-                options.DefaultFileNames.Add("index.html");
+                options.DefaultFileNames.Add(OhifViewerIndexPagePath);
 
                 app.UseDefaultFiles(options);
                 app.UseStaticFiles();
