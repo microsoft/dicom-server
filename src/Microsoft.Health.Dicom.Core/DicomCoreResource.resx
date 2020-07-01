@@ -139,7 +139,7 @@
     <value>The specified frame cannot be found.</value>
   </data>
   <data name="IncludeFieldUnknownAttribute" xml:space="preserve">
-    <value>Invalid QIDO-RS query. IncludeField has unknown attribute {0}.</value>
+    <value>Invalid QIDO-RS query. IncludeField has unknown attribute '{0}'.</value>
     <comment>{0} attribute name</comment>
   </data>
   <data name="InstanceAlreadyExists" xml:space="preserve">
@@ -154,7 +154,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} date range with &lt;date1&gt;-&lt;date2&gt; format. {1} is date1. {2} is date2.</comment>
   </data>
   <data name="InvalidDateValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified Date value {0} is invalid for parameter {1}. Date should be valid and formatted as yyyyMMdd.</value>
+    <value>Invalid QIDO-RS query. Specified Date value '{0}' is invalid for parameter '{1}'. Date should be valid and formatted as yyyyMMdd.</value>
     <comment>{0} Date value. {1} parameter name.</comment>
   </data>
   <data name="InvalidDicomIdentifier" xml:space="preserve">
@@ -168,13 +168,13 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.</value>
   </data>
   <data name="InvalidFuzzyMatchValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified fuzzymatch value {0} is not a valid boolean</value>
+    <value>Invalid QIDO-RS query. Specified fuzzymatch value '{0}' is not a valid boolean</value>
   </data>
   <data name="InvalidLimitValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified limit value {0} is not a valid integer.</value>
+    <value>Invalid QIDO-RS query. Specified limit value '{0}' is not a valid integer.</value>
   </data>
   <data name="InvalidOffsetValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified offset value {0} is not a valid integer.</value>
+    <value>Invalid QIDO-RS query. Specified offset value '{0}' is not a valid integer.</value>
   </data>
   <data name="InvalidQueryStringValue" xml:space="preserve">
     <value>The following query parameter is invalid: {0}.</value>
@@ -198,7 +198,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} is the DICOM tag name. E.g., StudyInstanceUID.</comment>
   </data>
   <data name="QueryEmptyAttributeValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. AttributeId {0} has empty string value that is not supported.</value>
+    <value>Invalid QIDO-RS query. AttributeId '{0}' has empty string value that is not supported.</value>
     <comment>{0} AttributeId name</comment>
   </data>
   <data name="QueryInvalidResourceLevel" xml:space="preserve">
@@ -218,7 +218,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The specified study cannot be found.</value>
   </data>
   <data name="UnknownQueryParameter" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Unknown query parameter '{0}'. If the parameter is attribute keyword, check the casing, attribute keywords are case-sensitive. Conformance also has supported query parameters and queryable attributes.</value>
+    <value>Invalid QIDO-RS query. Unknown query parameter '{0}'. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and queryable attributes.</value>
     <comment>{0} Parameter name</comment>
   </data>
   <data name="UnsupportedContentType" xml:space="preserve">
