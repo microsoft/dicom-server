@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Web;
@@ -46,26 +45,20 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
                 typeof(ChangeFeedEntry).IsAssignableFrom(type);
         }
 
-        public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
+        public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(selectedEncoding, nameof(selectedEncoding));
-
-            var bodyControlFeature = context.HttpContext.Features.Get<IHttpBodyControlFeature>();
-            if (bodyControlFeature != null)
-            {
-                bodyControlFeature.AllowSynchronousIO = true;
-            }
 
             using (TextWriter textWriter = context.WriterFactory(context.HttpContext.Response.Body, selectedEncoding))
             {
                 using (var writer = new JsonTextWriter(textWriter))
                 {
                     _jsonSerializer.Serialize(writer, context.Object);
+
+                    await writer.FlushAsync();
                 }
             }
-
-            return Task.CompletedTask;
         }
     }
 }

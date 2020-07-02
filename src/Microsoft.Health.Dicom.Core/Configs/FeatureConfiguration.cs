@@ -11,5 +11,10 @@ namespace Microsoft.Health.Dicom.Core.Configs
         /// Gets or sets a value indicating OHIF viewer should be enabled or not.
         /// </summary>
         public bool EnableOhifViewer { get; set; }
+
+        /// <summary>
+        /// Enables stricter validation of each DicomItem value based on their VR type
+        /// </summary>
+        public bool EnableFullDicomItemValidation { get; set; }
     }
 }

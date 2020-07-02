@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 "Failed to dispose the DICOM instance entry at index '{DicomInstanceEntryIndex}'.");
 
         private readonly IStoreResponseBuilder _storeResponseBuilder;
-        private readonly IDicomDatasetMinimumRequirementValidator _dicomDatasetMinimumRequirementValidator;
+        private readonly IDicomDatasetValidator _dicomDatasetValidator;
         private readonly IStoreOrchestrator _storeOrchestrator;
         private readonly ILogger _logger;
 
@@ -56,17 +56,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         public StoreService(
             IStoreResponseBuilder storeResponseBuilder,
-            IDicomDatasetMinimumRequirementValidator dicomDatasetMinimumRequirementValidator,
+            IDicomDatasetValidator dicomDatasetValidator,
             IStoreOrchestrator storeOrchestrator,
             ILogger<StoreService> logger)
         {
             EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
-            EnsureArg.IsNotNull(dicomDatasetMinimumRequirementValidator, nameof(dicomDatasetMinimumRequirementValidator));
+            EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
             EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _storeResponseBuilder = storeResponseBuilder;
-            _dicomDatasetMinimumRequirementValidator = dicomDatasetMinimumRequirementValidator;
+            _dicomDatasetValidator = dicomDatasetValidator;
             _storeOrchestrator = storeOrchestrator;
             _logger = logger;
         }
@@ -112,7 +112,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 // Open and validate the DICOM instance.
                 dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-                _dicomDatasetMinimumRequirementValidator.Validate(dicomDataset, _requiredStudyInstanceUid);
+                _dicomDatasetValidator.Validate(dicomDataset, _requiredStudyInstanceUid);
             }
             catch (Exception ex)
             {
@@ -159,10 +159,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                     case InstanceAlreadyExistsException _:
                         failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
-                        break;
-
-                    case DicomValidationException _:
-                        failureCode = FailureReasonCodes.ValidationFailure;
                         break;
                 }
 
