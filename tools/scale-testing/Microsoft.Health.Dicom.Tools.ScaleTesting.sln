@@ -22,6 +22,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tool
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tools.ScaleTesting.WadoMetadataFunctionApp", "Microsoft.Health.Dicom.Tools.ScaleTesting.WadoMetadataFunctionApp\Microsoft.Health.Dicom.Tools.ScaleTesting.WadoMetadataFunctionApp.csproj", "{77EF4558-04CB-48B5-9338-32155FBB42AF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Client", "..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{400F6200-8F9E-43A5-85AE-669B4E89D2FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{77EF4558-04CB-48B5-9338-32155FBB42AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77EF4558-04CB-48B5-9338-32155FBB42AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77EF4558-04CB-48B5-9338-32155FBB42AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{400F6200-8F9E-43A5-85AE-669B4E89D2FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{400F6200-8F9E-43A5-85AE-669B4E89D2FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{400F6200-8F9E-43A5-85AE-669B4E89D2FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{400F6200-8F9E-43A5-85AE-669B4E89D2FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

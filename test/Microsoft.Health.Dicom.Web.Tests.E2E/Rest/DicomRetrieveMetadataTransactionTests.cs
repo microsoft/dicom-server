@@ -14,7 +14,6 @@ using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Tests.Common;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -22,7 +21,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private readonly TestDicomWebClient _client;
+        private readonly DicomWebClient _client;
 
         public DicomRetrieveMetadataTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {

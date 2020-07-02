@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
 using Xunit;
 using ChangeFeedAction = Microsoft.Health.Dicom.Client.Models.ChangeFeedAction;
 using ChangeFeedState = Microsoft.Health.Dicom.Client.Models.ChangeFeedState;
@@ -18,7 +17,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private readonly TestDicomWebClient _client;
+        private readonly DicomWebClient _client;
 
         public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
         {

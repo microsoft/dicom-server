@@ -18,12 +18,6 @@ namespace Microsoft.Health.Dicom.Client
     {
         HttpClient HttpClient { get; }
 
-        bool SecurityEnabled { get; }
-
-        DateTime TokenExpiration { get; }
-
-        Uri TokenUri { get; }
-
         Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken = default);
 
         Task<DicomWebResponse<IReadOnlyList<ChangeFeedEntry>>> GetChangeFeed(string queryString = "", CancellationToken cancellationToken = default);
@@ -45,8 +39,6 @@ namespace Microsoft.Health.Dicom.Client
         Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveInstancesRenderedAsync(Uri requestUri, string format = null, CancellationToken cancellationToken = default);
 
         Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveMetadataAsync(Uri requestUri, CancellationToken cancellationToken = default);
-
-        void SetBearerToken(string token);
 
         Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUid = null, CancellationToken cancellationToken = default);
 
