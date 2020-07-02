@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomDatasetMinimumRequirementValidator>()
+            services.Add<DicomDatasetValidator>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();

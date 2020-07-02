@@ -5,6 +5,7 @@
 
 using System;
 using System.Reflection;
+using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
@@ -79,6 +80,13 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(jsonSerializer);
 
             services.TryAddSingleton<RecyclableMemoryStreamManager>();
+
+            // Disable fo-dicom data item validation. Disabling at global level
+            // Opt-in validation instead of opt-out
+            // De-serializing to Dataset while read has no Dataset level option to disable validation
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             return new DicomServerBuilder(services);
         }

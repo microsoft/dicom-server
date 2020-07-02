@@ -5,25 +5,38 @@
 
 using System.Collections.Generic;
 using Dicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
+using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 {
-    public class DicomDatasetMinimumRequirementValidatorTests
+    public class DicomDatasetValidatorTests
     {
         private const ushort ValidationFailedFailureCode = 43264;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
 
-        private readonly DicomDatasetMinimumRequirementValidator _dicomDatasetMinimumRequirementValidator = new DicomDatasetMinimumRequirementValidator();
+        private DicomDatasetValidator _dicomDatasetValidator;
 
         private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset();
+
+        public DicomDatasetValidatorTests()
+        {
+            var featureConfiguration = Substitute.For<IOptions<FeatureConfiguration>>();
+            featureConfiguration.Value.Returns(new FeatureConfiguration
+            {
+                EnableFullDicomItemValidation = false,
+            });
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration);
+        }
 
         [Fact]
         public void GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
         {
-            _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null);
+            _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null);
         }
 
         [Fact]
@@ -33,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid);
 
-            _dicomDatasetMinimumRequirementValidator.Validate(
+            _dicomDatasetValidator.Validate(
                 _dicomDataset,
                 studyInstanceUid);
         }
@@ -52,7 +65,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         [Theory]
         [MemberData(nameof(GetDicomTagsToRemove))]
-        public void GivenAMissingTag_WhenValidated_ThenDicomDatasetMinimumRequirementExceptionShouldBeThrown(string dicomTagInString)
+        public void GivenAMissingTag_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown(string dicomTagInString)
         {
             DicomTag dicomTag = DicomTag.Parse(dicomTagInString);
 
@@ -73,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         [Theory]
         [MemberData(nameof(GetDuplicatedDicomIdentifierValues))]
-        public void GivenDuplicatedIdentifiers_WhenValidated_ThenDicomDatasetMinimumRequirementExceptionShouldBeThrown(string firstDicomTagInString, string secondDicomTagInString)
+        public void GivenDuplicatedIdentifiers_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown(string firstDicomTagInString, string secondDicomTagInString)
         {
             DicomTag firstDicomTag = DicomTag.Parse(firstDicomTagInString);
             DicomTag secondDicomTag = DicomTag.Parse(secondDicomTagInString);
@@ -85,7 +98,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public void GivenStudyInstanceUidDoesNotMatchWithRequiredStudyInstanceUid_WhenValidated_ThenDicomDatasetMinimumRequirementExceptionShouldBeThrown()
+        public void GivenStudyInstanceUidDoesNotMatchWithRequiredStudyInstanceUid_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown()
         {
             string requiredStudyInstanceUid = null;
             string studyInstanceUid = _dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
@@ -99,10 +112,51 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             ExecuteAndValidateException(MismatchStudyInstanceUidFailureCode, requiredStudyInstanceUid);
         }
 
+        [Fact]
+        public void GivenDatasetWithInvalidVrValue_WhenValidating_ThenDatasetValidationExceptionShouldBeThrown()
+        {
+            var featureConfiguration = Substitute.For<IOptions<FeatureConfiguration>>();
+            featureConfiguration.Value.Returns(new FeatureConfiguration
+            {
+                EnableFullDicomItemValidation = true,
+            });
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            // LO VR, invalid characters
+            _dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            ExecuteAndValidateException(ValidationFailedFailureCode);
+        }
+
+        [Fact]
+        public void GivenDatasetWithInvalidIndexedTagValue_WhenValidating_ThenDatasetValidationExceptionShouldBeThrown()
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            // CS VR, lower case alphabets not allowed
+            _dicomDataset.Add(DicomTag.Modality, "abcd");
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            ExecuteAndValidateException(ValidationFailedFailureCode);
+        }
+
         private void ExecuteAndValidateException(ushort failureCode, string requiredStudyInstanceUid = null)
         {
             var exception = Assert.Throws<DatasetValidationException>(
-                () => _dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset, requiredStudyInstanceUid));
+                () => _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid));
 
             Assert.Equal(failureCode, exception.FailureCode);
         }
