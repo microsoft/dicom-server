@@ -19,6 +19,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.ServiceBus;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
 {
@@ -26,7 +27,6 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
     {
         private static string _serviceBusConnectionString;
         private static string _topicName;
-        private const string SubscriptionName = "s1";
 
         private static ISubscriptionClient subscriptionClient;
 
@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
             var runType = config["RunType"];
             _topicName = runType;
 
-            subscriptionClient = new SubscriptionClient(_serviceBusConnectionString, _topicName, SubscriptionName, ReceiveMode.PeekLock);
+            subscriptionClient = new SubscriptionClient(_serviceBusConnectionString, _topicName, KnownSubscriptions.S1, ReceiveMode.PeekLock);
 
             SetupDicomWebClient();
 
@@ -109,20 +109,20 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
 
             switch (_topicName)
             {
-                case "stow-rs":
-                case "stow-rs-test":
+                case KnownTopics.StowRs:
+                case KnownTopics.StowRsTest:
                     await Stow(message, token);
                     break;
-                case "wado-rs":
-                case "wado-rs-test":
+                case KnownTopics.WadoRs:
+                case KnownTopics.WadoRsTest:
                     await Wado(message, token);
                     break;
-                case "wado-rs-metadata":
-                case "wado-rs-metadata-test":
+                case KnownTopics.WadoRsMetadata:
+                case KnownTopics.WadoRsMetadataTest:
                     await WadoMetadata(message, token);
                     break;
-                case "qido":
-                case "qido-test":
+                case KnownTopics.Qido:
+                case KnownTopics.QidoTest:
                     await Qido(message, token);
                     break;
                 default:
