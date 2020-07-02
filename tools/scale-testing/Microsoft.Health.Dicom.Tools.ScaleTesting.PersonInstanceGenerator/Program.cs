@@ -15,6 +15,7 @@ using Azure.Security.KeyVault.Secrets;
 using Dicom;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.ServiceBus;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator
 {
@@ -122,7 +123,6 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator
         private static Random rand;
 
         private static string _serviceBusConnectionString;
-        private const string TopicName = "stow-rs";
         private static ITopicClient topicClient;
 
         public static async Task Main(string[] args)
@@ -147,7 +147,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator
             var patientNames = File.ReadAllLines(args[0]);
             var physiciansNames = File.ReadAllLines(args[1]);
             string path = args[2];
-            topicClient = new TopicClient(_serviceBusConnectionString, TopicName);
+            topicClient = new TopicClient(_serviceBusConnectionString, KnownTopics.StowRs);
             int tracker = 0;
 
             using (StreamWriter sw = File.Exists(path) ? File.AppendText(path) : File.CreateText(path))

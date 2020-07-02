@@ -12,19 +12,17 @@ using Dicom;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.ServiceBus;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.WadoMetadataFunctionApp
 {
     public static class WadoMetadata
     {
-        private const string TopicName = "wado-rs";
-        private const string SubscriptionName = "s1";
-
         private const string WebServerUrl = "http://dicom-server-ii.azurewebsites.net";
         private static DicomWebClient client;
 
         [FunctionName("WadoMetadata")]
-        public static void Run([ServiceBusTrigger(TopicName, SubscriptionName, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
+        public static void Run([ServiceBusTrigger(KnownTopics.WadoRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
         {
             log.LogInformation($"C# ServiceBus topic trigger function processed message: {message}");
             SetupDicomWebClient();
