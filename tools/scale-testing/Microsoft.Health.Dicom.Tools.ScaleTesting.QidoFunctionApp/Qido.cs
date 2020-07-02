@@ -9,19 +9,17 @@ using System.Text;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.ServiceBus;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.QidoFunctionApp
 {
     public static class Qido
     {
-        private const string TopicName = "qido";
-        private const string SubscriptionName = "s1";
-
         private const string WebServerUrl = "http://dicom-server-ii.azurewebsites.net";
         private static DicomWebClient client;
 
         [FunctionName("Qido")]
-        public static void Run([ServiceBusTrigger(TopicName, SubscriptionName, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
+        public static void Run([ServiceBusTrigger(KnownTopics.Qido, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
         {
             log.LogInformation($"C# ServiceBus topic trigger function processed message: {Encoding.UTF8.GetString(message)}");
             SetupDicomWebClient();

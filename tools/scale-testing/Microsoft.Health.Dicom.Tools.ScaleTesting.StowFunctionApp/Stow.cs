@@ -13,21 +13,19 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.ServiceBus;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.StowFunctionApp
 {
     public static class Stow
     {
-        private const string TopicName = "stow-rs";
-        private const string SubscriptionName = "s1";
-
         // private static CloudBlobContainer container;
 
         private const string WebServerUrl = "http://dicom-server-ii.azurewebsites.net";
         private static DicomWebClient client;
 
         [FunctionName("StorePreGeneratedData")]
-        public static void Run([ServiceBusTrigger(TopicName, SubscriptionName, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
+        public static void Run([ServiceBusTrigger(KnownTopics.StowRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
         {
             log.LogInformation($"C# ServiceBus topic trigger function processed message: {Encoding.UTF8.GetString(message)}");
 
