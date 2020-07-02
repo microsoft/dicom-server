@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration)
         {
-            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+            EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
 
             _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
         }
@@ -96,34 +96,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             foreach (DicomTag indexableTag in indexableTags)
             {
-                try
-                {
-                    // We can implement our own minimal validators for each VR type if fo-dicom validation is  still more than needed.
-                    dicomDataset.GetDicomItem<DicomItem>(indexableTag)?.Validate();
-                }
-                catch (DicomValidationException ex)
-                {
-                    throw new DatasetValidationException(
-                        FailureReasonCodes.ValidationFailure,
-                        ex.Message,
-                        ex);
-                }
+                // We can implement our own minimal validators for each VR type if fo-dicom validation is  still more than needed.
+                dicomDataset.GetDicomItem<DicomItem>(indexableTag)?.ValidateDicomItem();
             }
         }
 
         private void ValidateAllItems(DicomDataset dicomDataset)
         {
-            try
+            dicomDataset.Each(item =>
             {
-                dicomDataset.Each(item => item.Validate());
-            }
-            catch (DicomValidationException ex)
-            {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    ex.Message,
-                    ex);
-            }
+                item.ValidateDicomItem();
+            });
         }
     }
 }

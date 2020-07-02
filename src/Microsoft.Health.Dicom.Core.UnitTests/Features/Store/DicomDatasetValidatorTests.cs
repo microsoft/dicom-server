@@ -14,6 +14,8 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 {
+    // Run these tests exclusively serial since they change the global autovalidation
+    [CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
     public class DicomDatasetValidatorTests
     {
         private const ushort ValidationFailedFailureCode = 43264;
@@ -113,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public void GivenDatasetWithInvalidVrValue_WhenValidating_ThenDatasetValidationExceptionShouldBeThrown()
+        public void GivenDatasetWithInvalidVrValue_WhenValidatingWithFullValidation_ThenDatasetValidationExceptionShouldBeThrown()
         {
             var featureConfiguration = Substitute.For<IOptions<FeatureConfiguration>>();
             featureConfiguration.Value.Returns(new FeatureConfiguration
