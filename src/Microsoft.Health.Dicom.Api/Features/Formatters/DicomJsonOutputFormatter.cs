@@ -51,12 +51,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(selectedEncoding, nameof(selectedEncoding));
 
-            var bodyControlFeature = context.HttpContext.Features.Get<IHttpBodyControlFeature>();
-            if (bodyControlFeature != null)
-            {
-                bodyControlFeature.AllowSynchronousIO = true;
-            }
-
             using (TextWriter textWriter = context.WriterFactory(context.HttpContext.Response.Body, selectedEncoding))
             {
                 using (var writer = new JsonTextWriter(textWriter))
@@ -67,6 +61,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
                     await writer.FlushAsync();
                     await textWriter.FlushAsync();
                     await context.HttpContext.Response.Body.FlushAsync();
+                    await writer.CloseAsync();
+                    await textWriter.DisposeAsync();
+                    await context.HttpContext.Response.Body.DisposeAsync();
                 }
             }
         }
