@@ -57,6 +57,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
                     _jsonSerializer.Serialize(writer, context.Object);
 
                     await writer.FlushAsync();
+                    await writer.CloseAsync();
                 }
             }
         }
