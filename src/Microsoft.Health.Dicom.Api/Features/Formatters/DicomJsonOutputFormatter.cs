@@ -12,7 +12,6 @@ using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Web;
 using Newtonsoft.Json;
@@ -69,35 +68,12 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(selectedEncoding, nameof(selectedEncoding));
 
-            var response = context.HttpContext.Response;
-            var responseStream = response.Body;
-
-            var fileBufferingWriteStream = new FileBufferingWriteStream();
-            responseStream = fileBufferingWriteStream;
-
-            try
+            await using (TextWriter textWriter = context.WriterFactory(context.HttpContext.Response.Body, selectedEncoding))
             {
-                await using (TextWriter textWriter = context.WriterFactory(responseStream, selectedEncoding))
+                using (var jsonWriter = CreateJsonWriter(textWriter))
                 {
-                    using (var jsonWriter = CreateJsonWriter(textWriter))
-                    {
-                        _jsonSerializer.Serialize(jsonWriter, context.Object);
-
-                        await jsonWriter.FlushAsync();
-                    }
-                }
-
-                if (fileBufferingWriteStream != null)
-                {
-                    response.ContentLength = fileBufferingWriteStream.Length;
-                    await fileBufferingWriteStream.DrainBufferAsync(response.Body);
-                }
-            }
-            finally
-            {
-                if (fileBufferingWriteStream != null)
-                {
-                    await fileBufferingWriteStream.DisposeAsync();
+                    _jsonSerializer.Serialize(jsonWriter, context.Object);
+                    await jsonWriter.FlushAsync();
                 }
             }
         }
