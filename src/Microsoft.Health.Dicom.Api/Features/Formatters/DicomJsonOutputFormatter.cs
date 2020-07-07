@@ -71,7 +71,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
             EnsureArg.IsNotNull(selectedEncoding, nameof(selectedEncoding));
 
             HttpResponse response = context.HttpContext.Response;
-
             await using var fileBufferingWriteStream = new FileBufferingWriteStream();
 
             await using (TextWriter textWriter = context.WriterFactory(fileBufferingWriteStream, selectedEncoding))
