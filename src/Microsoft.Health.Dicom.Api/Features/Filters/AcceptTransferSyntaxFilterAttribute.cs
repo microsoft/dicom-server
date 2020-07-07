@@ -20,11 +20,17 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
         private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
 
         private readonly HashSet<string> _transferSyntaxes;
+        private readonly bool _allowMissing;
 
         public AcceptTransferSyntaxFilterAttribute(string[] transferSyntaxes)
+            : this(transferSyntaxes, false)
+        {
+        }
+
+        public AcceptTransferSyntaxFilterAttribute(string[] transferSyntaxes, bool allowMissing)
         {
             Debug.Assert(transferSyntaxes.Length > 0, "The accept transfer syntax filter must have at least one transfer syntax specified.");
-
+            _allowMissing = allowMissing;
             _transferSyntaxes = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
             foreach (string transferSyntax in transferSyntaxes)
@@ -37,11 +43,13 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
         {
             bool acceptable = false;
             ModelStateEntry transferSyntaxValue;
-
-            // As model binding happens prior to filteration, use the transfer syntax that was found in TransferSyntaxModelBinder and validate if it is acceptable.
-            if (context.ModelState.TryGetValue(TransferSyntaxHeaderPrefix, out transferSyntaxValue) && _transferSyntaxes.Contains(transferSyntaxValue.RawValue))
+            if (context.ModelState.TryGetValue(TransferSyntaxHeaderPrefix, out transferSyntaxValue))
             {
-                acceptable = true;
+                acceptable = _transferSyntaxes.Contains(transferSyntaxValue.RawValue);
+            }
+            else
+            {
+                acceptable = _allowMissing;
             }
 
             if (!acceptable)

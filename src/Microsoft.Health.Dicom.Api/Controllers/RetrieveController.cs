@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
+        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax }, allowMissing: true)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -167,6 +167,11 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             [ModelBinder(typeof(IntArrayModelBinder))] int[] frames)
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}', frames: '{string.Join(", ", frames ?? Array.Empty<int>())}'.");
+            if (string.IsNullOrEmpty(transferSyntax))
+            {
+                transferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID;
+            }
+
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, transferSyntax, HttpContext.RequestAborted);
 
