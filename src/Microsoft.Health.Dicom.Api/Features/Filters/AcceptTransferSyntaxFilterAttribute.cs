@@ -22,28 +22,17 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
         private readonly HashSet<string> _transferSyntaxes;
         private readonly bool _allowMissing;
 
-        public AcceptTransferSyntaxFilterAttribute(string[] transferSyntaxes)
-            : this(transferSyntaxes, false)
-        {
-        }
-
-        public AcceptTransferSyntaxFilterAttribute(string[] transferSyntaxes, bool allowMissing)
+        public AcceptTransferSyntaxFilterAttribute(string[] transferSyntaxes, bool allowMissing = false)
         {
             Debug.Assert(transferSyntaxes.Length > 0, "The accept transfer syntax filter must have at least one transfer syntax specified.");
             _allowMissing = allowMissing;
-            _transferSyntaxes = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-
-            foreach (string transferSyntax in transferSyntaxes)
-            {
-                _transferSyntaxes.Add(transferSyntax);
-            }
+            _transferSyntaxes = new HashSet<string>(transferSyntaxes, StringComparer.InvariantCultureIgnoreCase);
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            bool acceptable = false;
-            ModelStateEntry transferSyntaxValue;
-            if (context.ModelState.TryGetValue(TransferSyntaxHeaderPrefix, out transferSyntaxValue))
+            bool acceptable;
+            if (context.ModelState.TryGetValue(TransferSyntaxHeaderPrefix, out ModelStateEntry transferSyntaxValue))
             {
                 acceptable = _transferSyntaxes.Contains(transferSyntaxValue.RawValue);
             }

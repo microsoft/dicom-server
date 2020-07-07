@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     public class RetrieveController : Controller
     {
         private const string DefaultTransferSyntax = "*";
-        private const string ExplicitVRLittleEndianUID = "1.2.840.10008.1.2.1";
+        private const string ExplicitVRLittleEndianUid = "1.2.840.10008.1.2.1";
         private readonly IMediator _mediator;
         private readonly ILogger<RetrieveController> _logger;
 
@@ -152,7 +152,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax, ExplicitVRLittleEndianUID }, allowMissing: true)]
+        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax, ExplicitVRLittleEndianUid }, allowMissing: true)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -170,7 +170,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}', frames: '{string.Join(", ", frames ?? Array.Empty<int>())}'.");
             if (string.IsNullOrEmpty(transferSyntax))
             {
-                transferSyntax = ExplicitVRLittleEndianUID;
+                transferSyntax = ExplicitVRLittleEndianUid;
             }
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
