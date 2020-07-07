@@ -61,6 +61,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed while running health check..
+        /// </summary>
+        internal static string FailedHealthCheckMessage {
+            get {
+                return ResourceManager.GetString("FailedHealthCheckMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server encountered an internal error. Please retry the request. If the issue persists, please contact support..
         /// </summary>
         internal static string InternalServerError {

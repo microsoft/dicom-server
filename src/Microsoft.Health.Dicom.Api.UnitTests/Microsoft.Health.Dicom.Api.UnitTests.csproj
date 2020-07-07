@@ -6,13 +6,19 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
-    <PackageReference Include="NSubstitute" Version="3.1.0" />
+    <PackageReference Include="NSubstitute" Version="4.2.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Api\Microsoft.Health.Dicom.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Health.Test.Utilities">
+      <HintPath>..\..\..\..\..\Users\v-shaaal\.nuget\packages\microsoft.health.test.utilities\1.0.0-master-20200611-1\lib\netcoreapp3.1\Microsoft.Health.Test.Utilities.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
