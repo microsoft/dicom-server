@@ -17,8 +17,6 @@ using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Client.Models;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
@@ -38,37 +36,22 @@ namespace Microsoft.Health.Dicom.Client
         private const string MultipartRelatedContentType = "multipart/related";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
-        public DicomWebClient(
-            HttpClient httpClient,
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-            Uri tokenUri)
+        public DicomWebClient(HttpClient httpClient)
         {
             HttpClient = httpClient;
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
-            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
-            TokenUri = tokenUri;
+            GetMemoryStream = () => new MemoryStream();
         }
 
         public HttpClient HttpClient { get; }
 
-        public bool SecurityEnabled => TokenUri != null;
-
-        public Uri TokenUri { get; }
-
-        public DateTime TokenExpiration { get; private set; }
-
-        public void SetBearerToken(string token)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(token, nameof(token));
-
-            var decodedToken = new JsonWebToken(token);
-            TokenExpiration = decodedToken.ValidTo;
-
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
+        /// <summary>
+        /// Func used to obtain a <see cref="MemoryStream" />. The default value returns a new memory stream.
+        /// This can be used in conjunction with a <see cref="RecyclableMemoryStreamManager"/> to provide a way to obtain a memory stream from the pool.
+        /// </summary>
+        public Func<MemoryStream> GetMemoryStream { get; set; }
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(
             Uri requestUri,
@@ -192,7 +175,7 @@ namespace Microsoft.Health.Dicom.Client
 
             foreach (DicomFile dicomFile in dicomFiles)
             {
-                await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
+                await using (var stream = GetMemoryStream())
                 {
                     await dicomFile.SaveAsync(stream);
                     postContent.Add(stream.ToArray());
@@ -220,14 +203,12 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken = default)
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Delete, requestUri))
+            using var request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+            using (HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken))
             {
-                using (HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken))
-                {
-                    await EnsureSuccessStatusCodeAsync(response);
+                await EnsureSuccessStatusCodeAsync(response);
 
-                    return new DicomWebResponse(response);
-                }
+                return new DicomWebResponse(response);
             }
         }
 
@@ -368,7 +349,7 @@ namespace Microsoft.Health.Dicom.Client
 
         private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream, CancellationToken cancellationToken)
         {
-            await using (MemoryStream memory = _recyclableMemoryStreamManager.GetStream())
+            await using (var memory = GetMemoryStream())
             {
                 await stream.CopyToAsync(memory, cancellationToken);
                 return memory.ToArray();
@@ -388,7 +369,7 @@ namespace Microsoft.Health.Dicom.Client
 
                 while ((part = await multipartReader.ReadNextSectionAsync(cancellationToken)) != null)
                 {
-                    MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream();
+                    var memoryStream = GetMemoryStream();
                     await part.Body.CopyToAsync(memoryStream, cancellationToken);
                     memoryStream.Seek(0, SeekOrigin.Begin);
                     result.Add(memoryStream);

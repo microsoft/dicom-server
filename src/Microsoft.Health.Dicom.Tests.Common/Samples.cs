@@ -184,7 +184,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
         {
             var dicomDataset = new DicomDataset();
 
-            dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
+            // CS VR type, char length should be less than or equal to 16
+            dicomDataset.Add(DicomTag.Modality, "123456789ABCDEFGHIJK");
 
             return dicomDataset;
         }

@@ -4,17 +4,30 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Dicom;
 using EnsureThat;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
     /// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement.
     /// </summary>
-    public class DicomDatasetMinimumRequirementValidator : IDicomDatasetMinimumRequirementValidator
+    public class DicomDatasetValidator : IDicomDatasetValidator
     {
+        private readonly bool _enableFullDicomItemValidation;
+
+        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration)
+        {
+            EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
+
+            _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
+        }
+
         public void Validate(DicomDataset dicomDataset, string requiredStudyInstanceUid)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -65,6 +78,35 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                         DicomCoreResource.MissingRequiredTag,
                         dicomTag.ToString()));
             }
+
+            // validate input data elements
+            if (_enableFullDicomItemValidation)
+            {
+                ValidateAllItems(dicomDataset);
+            }
+            else
+            {
+                ValidateIndexedItems(dicomDataset);
+            }
+        }
+
+        private void ValidateIndexedItems(DicomDataset dicomDataset)
+        {
+            HashSet<DicomTag> indexableTags = QueryLimit.AllInstancesTags;
+
+            foreach (DicomTag indexableTag in indexableTags)
+            {
+                // We can implement our own minimal validators for each VR type if fo-dicom validation is  still more than needed.
+                dicomDataset.GetDicomItem<DicomItem>(indexableTag)?.ValidateDicomItem();
+            }
+        }
+
+        private void ValidateAllItems(DicomDataset dicomDataset)
+        {
+            dicomDataset.Each(item =>
+            {
+                item.ValidateDicomItem();
+            });
         }
     }
 }
