@@ -129,17 +129,6 @@
             "resources": [
                 {
                     "apiVersion": "2015-08-01",
-                    "name": "appsettings",
-                    "type": "config",
-                    "dependsOn": [
-                        "[variables('appServiceResourceId')]",
-                        "[if(variables('deployAppInsights'),concat('Microsoft.Insights/components/', variables('appInsightsName')),resourceId('Microsoft.KeyVault/vaults', variables('serviceName')))]",
-                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.3.1.x86')]"
-                    ],
-                    "properties": "[if(variables('deployAppInsights'), json(concat('{\"ApplicationInsights:InstrumentationKey\": \"', reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey, '\"}')), '')]"
-                },
-                {
-                    "apiVersion": "2015-08-01",
                     "name": "AspNetCoreRuntime.3.1.x86",
                     "type": "siteextensions",
                     "dependsOn": [
@@ -299,6 +288,19 @@
             "dependsOn": [
                 "[variables('keyVaultResourceId')]",
                 "[variables('appConfigurationStoresResourceId')]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('serviceName'), '/ApplicationInsights--InstrumentationKey')]",
+            "apiVersion": "2015-06-01",
+            "properties": {
+                "contentType": "text/plain",
+                "value": "[reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey]"
+            },
+            "dependsOn": [
+                "[variables('keyVaultResourceId')]",
+                "[concat('Microsoft.Insights/components/', variables('appInsightsName'))]"
             ]
         }
     ]
