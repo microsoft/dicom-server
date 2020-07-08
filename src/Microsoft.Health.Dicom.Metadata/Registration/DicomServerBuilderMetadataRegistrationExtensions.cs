@@ -34,7 +34,8 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             return serverBuilder
-                        .AddMetadataPersistence(configuration);
+                        .AddMetadataPersistence(configuration)
+                        .AddMetadataHealthCheck();
         }
 
         private static IDicomServerBuilder AddMetadataPersistence(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
