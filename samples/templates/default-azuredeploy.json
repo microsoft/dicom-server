@@ -122,6 +122,13 @@
             "metadata": {
                 "description": "The type of the solution"
             }
+        },
+        "deployPackageUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Webdeploy package to use as depoyment code. If blank, the latest code package will be deployed."
+            }
         }
     },
     "variables": {
@@ -153,7 +160,11 @@
         "storageAccountName": "[concat(substring(replace(variables('serviceName'), '-', ''), 0, min(11, length(variables('serviceName')))), uniquestring(resourceGroup().id))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "keyVaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('serviceName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('serviceName'), '.vault.azure.net/'))]",
-        "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]"
+        "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
+        "defaultDeployPackageUrl": "[concat('https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Web.zip')]",
+        "deployPackageUrlToUse": "[if(empty(parameters('deployPackageUrl')),variables('defaultDeployPackageUrl'),parameters('deployPackageUrl'))]"
+        
+        
     },
     "resources": [
         {
@@ -211,6 +222,18 @@
                     ],
                     "properties": {
                         "version": "3.1.3"
+                    }
+                },
+                {
+                    "apiVersion": "2015-08-01",
+                    "type": "extensions",
+                    "name": "MSDeploy",
+                    "dependsOn": [
+                        "[variables('appServiceResourceId')]",
+                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.3.1.x86')]"
+                    ],
+                    "properties": {
+                        "packageUri": "[variables('deployPackageUrlToUse')]"
                     }
                 }
             ]
