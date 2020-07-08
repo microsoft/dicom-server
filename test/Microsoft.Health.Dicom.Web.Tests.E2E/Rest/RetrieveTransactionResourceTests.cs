@@ -167,6 +167,51 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        public async Task GivenInstanceWithFrames_WhenRetrieveRequestForFramesInInstanceWithDefaultTransferSyntax_ThenServerShouldReturnRequestedFrames()
+        {
+            var studyInstanceUid = TestUidGenerator.Generate();
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 2);
+            var dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
+            await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
+
+            DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1, 2 }, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
+            Assert.NotNull(frames);
+            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
+            Assert.Equal(2, frames.Value.Count);
+            Assert.Equal(KnownContentTypes.MultipartRelated, frames.Content.Headers.ContentType.MediaType);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(1), frames.Value[1]);
+        }
+
+        [Fact]
+        public async Task GivenInstanceWithFrames_WhenRetrieveRequestForFrameInInstanceWithoutTransferSyntax_ThenServerShouldReturnRequestedFrames()
+        {
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, string.Join("%2C", new int[] { 1, 2 })), UriKind.Relative);
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                // Set accept header to multipart/related; type="application/octet-stream"
+                MediaTypeWithQualityHeaderValue multipartHeader = new MediaTypeWithQualityHeaderValue(KnownContentTypes.MultipartRelated);
+                NameValueHeaderValue contentHeader = new NameValueHeaderValue("type", "\"" + KnownContentTypes.ApplicationOctetStream + "\"");
+                multipartHeader.Parameters.Add(contentHeader);
+                request.Headers.TryAddWithoutValidation("Accept", $"{multipartHeader}");
+
+                using (HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, _defaultCancellationToken))
+                {
+                    Assert.True(response.IsSuccessStatusCode);
+
+                    DicomWebResponse<IReadOnlyList<Stream>> frames = new DicomWebResponse<IReadOnlyList<Stream>>(response, (await ReadMultipartResponseAsStreamsAsync(response.Content, _defaultCancellationToken)).ToList());
+                    Assert.NotNull(frames);
+                    Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
+                    Assert.Equal(2, frames.Value.Count);
+                    Assert.Equal(KnownContentTypes.MultipartRelated, frames.Content.Headers.ContentType.MediaType);
+                    AssertPixelDataEqual(DicomPixelData.Create(file.Dataset).GetFrame(0), frames.Value[0]);
+                    AssertPixelDataEqual(DicomPixelData.Create(file.Dataset).GetFrame(1), frames.Value[1]);
+                }
+            }
+        }
+
+        [Fact]
         public async Task GivenInstanceWithFrames_WhenRetrieveRequestForFramesInInstance_ThenServerShouldReturnRequestedFrames()
         {
             var studyInstanceUid = TestUidGenerator.Generate();
@@ -246,7 +291,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenARequestWithInvalidTransferSyntax_WhenRetrievingFrames_TheServerShouldReturnBadRequest(string transferSyntax)
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax, frames: new[] { 1 }));
-            Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
         [Theory]
@@ -703,6 +748,27 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 Assert.Equal(expectedPixelData.Data[i], actualPixelData.ReadByte());
             }
+        }
+
+        private async Task<IEnumerable<Stream>> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, CancellationToken cancellationToken)
+        {
+            var result = new List<Stream>();
+            await using (Stream stream = await httpContent.ReadAsStreamAsync())
+            {
+                MultipartSection part;
+                var media = MediaTypeHeaderValue.Parse(httpContent.Headers.ContentType.ToString());
+                var multipartReader = new MultipartReader(HeaderUtilities.RemoveQuotes(media.Boundary).Value, stream, 100);
+
+                while ((part = await multipartReader.ReadNextSectionAsync(cancellationToken)) != null)
+                {
+                    MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream();
+                    await part.Body.CopyToAsync(memoryStream, cancellationToken);
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    result.Add(memoryStream);
+                }
+            }
+
+            return result;
         }
     }
 }
