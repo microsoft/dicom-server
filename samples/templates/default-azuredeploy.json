@@ -123,6 +123,13 @@
                 "description": "The type of the solution"
             }
         },
+        "deployPackage": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Webdeploy package specified by deployPackageUrl."
+            }
+        },
         "deployPackageUrl": {
             "type": "string",
             "defaultValue": "",
@@ -161,10 +168,8 @@
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "keyVaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('serviceName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('serviceName'), '.vault.azure.net/'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
-        "defaultDeployPackageUrl": "[concat('https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Web.zip')]",
+        "defaultDeployPackageUrl": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Web.zip",
         "deployPackageUrlToUse": "[if(empty(parameters('deployPackageUrl')),variables('defaultDeployPackageUrl'),parameters('deployPackageUrl'))]"
-        
-        
     },
     "resources": [
         {
@@ -209,7 +214,8 @@
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[if(variables('deployAppInsights'),concat('Microsoft.Insights/components/', variables('appInsightsName')),resourceId('Microsoft.KeyVault/vaults', variables('serviceName')))]",
-                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.3.1.x86')]"
+                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.3.1.x86')]",
+                        "[concat(variables('appServiceResourceId'), '/extensions/MSDeploy')]"
                     ],
                     "properties": "[if(variables('deployAppInsights'), union(variables('combinedDicomServerConfigProperties'), json(concat('{\"ApplicationInsights:InstrumentationKey\": \"', reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey, '\"}'))), variables('combinedDicomServerConfigProperties'))]"
                 },
@@ -228,6 +234,7 @@
                     "apiVersion": "2015-08-01",
                     "type": "extensions",
                     "name": "MSDeploy",
+                    "condition": "[parameters('deployPackage')]",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.3.1.x86')]"
