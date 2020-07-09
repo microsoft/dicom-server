@@ -54,3 +54,16 @@ stages:
   - RunE2ETests
   jobs:
   - template: cleanup.yml
+
+- stage: PublishContainer
+  displayName: 'Publish Docker CI Container'
+  dependsOn:
+    - BuildRunUnitTests
+  jobs:
+    - job: 'Docker'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+      - template: docker-build-push.yml
+        parameters:
+          tag: $(ImageTag)
