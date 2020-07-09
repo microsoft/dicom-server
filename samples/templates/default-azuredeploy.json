@@ -134,7 +134,7 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "Webdeploy package to use as depoyment code. If blank, the latest code package will be deployed."
+                "description": "Webdeploy package to use as depoyment code. If blank, the latest CI code package will be deployed."
             }
         }
     },
@@ -169,7 +169,7 @@
         "keyVaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('serviceName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('serviceName'), '.vault.azure.net/'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
         "defaultDeployPackageUrl": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Web.zip",
-        "deployPackageUrlToUse": "[if(empty(parameters('deployPackageUrl')),variables('defaultDeployPackageUrl'),parameters('deployPackageUrl'))]"
+        "deployPackageUrl": "[if(empty(parameters('deployPackageUrl')),variables('defaultDeployPackageUrl'),parameters('deployPackageUrl'))]"
     },
     "resources": [
         {
@@ -240,7 +240,7 @@
                         "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.3.1.x86')]"
                     ],
                     "properties": {
-                        "packageUri": "[variables('deployPackageUrlToUse')]"
+                        "packageUri": "[variables('deployPackageUrl')]"
                     }
                 }
             ]
