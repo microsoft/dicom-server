@@ -179,9 +179,10 @@ The following `Accept` header(s) are supported for retrieving a specific instanc
 ### Retrieve Frames
 
 The following `Accept` headers are supported for retrieving frames:
-
+- `multipart/related; type="application/octet-stream";`
 - `multipart/related; type="application/octet-stream"; transfer-syntax=*`
-- `multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1`
+- `multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1` (Default)
+
 
 ### Retrieve Metadata (for Study, Series, or Instance)
 

@@ -37,6 +37,7 @@ namespace Microsoft.Health.Dicom.Client
         private const string ApplicationOctetStreamContentType = "application/octet-stream";
         private const string MultipartRelatedContentType = "multipart/related";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
+        private const string DefaultTransferSyntax = "*";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -92,7 +93,7 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
             Uri requestUri,
-            string dicomTransferSyntax = null,
+            string dicomTransferSyntax = DefaultTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
@@ -135,7 +136,7 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstancesAsync(
             Uri requestUri,
             bool singleInstance = false,
-            string dicomTransferSyntax = null,
+            string dicomTransferSyntax = DefaultTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
@@ -419,7 +420,7 @@ namespace Microsoft.Health.Dicom.Client
 
         private static string CreateAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
         {
-            string transferSyntaxHeader = dicomTransferSyntax == null ? $";{TransferSyntaxHeaderName}=\"*\"" : $";{TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
+            string transferSyntaxHeader = dicomTransferSyntax == null ? string.Empty : $";{TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
 
             return $"{mediaTypeHeader}{transferSyntaxHeader}";
         }
