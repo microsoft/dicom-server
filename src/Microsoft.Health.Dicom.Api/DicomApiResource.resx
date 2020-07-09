@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="FailedHealthCheckMessage" xml:space="preserve">
-    <value>Failed while running health check.</value>
-  </data>
   <data name="InternalServerError" xml:space="preserve">
     <value>The server encountered an internal error. Please retry the request. If the issue persists, please contact support.</value>
   </data>

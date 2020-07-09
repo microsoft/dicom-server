@@ -3,19 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Linq;
-using System.Net.Mime;
 using EnsureThat;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Api.Registration;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -34,26 +29,7 @@ namespace Microsoft.AspNetCore.Builder
 
             app.UseMvc();
 
-            app.UseHealthChecks(new PathString(KnownRoutes.HealthCheck), new HealthCheckOptions
-            {
-                ResponseWriter = async (httpContext, healthReport) =>
-                {
-                    var response = JsonConvert.SerializeObject(
-                        new
-                        {
-                            overallStatus = healthReport.Status.ToString(),
-                            details = healthReport.Entries.Select(entry => new
-                            {
-                                name = entry.Key,
-                                status = Enum.GetName(typeof(HealthStatus), entry.Value.Status),
-                                description = entry.Value.Description,
-                            }),
-                        });
-
-                    httpContext.Response.ContentType = MediaTypeNames.Application.Json;
-                    await httpContext.Response.WriteAsync(response);
-                },
-            });
+            app.UseHealthChecksExtension(new PathString(KnownRoutes.HealthCheck));
 
             var featureConfiguration = app.ApplicationServices.GetRequiredService<IOptions<FeatureConfiguration>>();
 
