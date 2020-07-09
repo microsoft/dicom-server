@@ -11,3 +11,4 @@ variables:
     buildConfiguration: 'Release'
     ImageTag: '$(build.BuildNumber)'
     azureContainerRegistry: 'dicomoss.azurecr.io'
+    composeLocation: 'build/docker/docker-compose.yaml'
