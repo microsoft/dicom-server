@@ -16,7 +16,7 @@ Once you have your subscription, click the link below:
 
 Note that the Service Name will be included in the URL you will use to access the application. 
 
-Once deployment is complete, you can go to the newly created App Service to see the details. Here you will get the URL to access your FHIR Converter (https://<SERVICE NAME>.azurewebsites.net).
+Once deployment is complete, you can go to the newly created App Service to see the details. Here you will get the URL to access your Dicom server (https://<SERVICE NAME>.azurewebsites.net).
 
 ### Deploy locally
 Follow the steps [here](docs/Development.md) to deploy a local copy of the Dicom Server
@@ -55,4 +55,3 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-FHIR&reg; is the registered trademark of HL7 and is used with the permission of HL7.
