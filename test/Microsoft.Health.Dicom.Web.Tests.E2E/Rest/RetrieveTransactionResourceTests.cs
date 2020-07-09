@@ -183,6 +183,25 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
+        [InlineData(null)]
+        [InlineData("1.2.840.10008.1.2.1")]
+        public async Task GivenInstanceWithFrames_WhenRetrieveRequestForFramesInInstanceWithSupportedTransferSyntax_ThenServerShouldReturnRequestedFrames(string transferSyntaxUid)
+        {
+            var studyInstanceUid = TestUidGenerator.Generate();
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 2);
+            var dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
+            await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
+
+            DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1, 2 }, dicomTransferSyntax: transferSyntaxUid);
+            Assert.NotNull(frames);
+            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
+            Assert.Equal(2, frames.Value.Count);
+            Assert.Equal(KnownContentTypes.MultipartRelated, frames.Content.Headers.ContentType.MediaType);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(0), frames.Value[0]);
+            AssertPixelDataEqual(DicomPixelData.Create(dicomFile1.Dataset).GetFrame(1), frames.Value[1]);
+        }
+
+        [Theory]
         [InlineData("test")]
         [InlineData("0", "1", "invalid")]
         [InlineData("0.6", "1")]

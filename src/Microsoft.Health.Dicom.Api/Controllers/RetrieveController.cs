@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
+        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax, "1.2.840.10008.1.2.1", }, allowMissing: true)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
