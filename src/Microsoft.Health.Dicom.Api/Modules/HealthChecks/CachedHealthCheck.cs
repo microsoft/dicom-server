@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Health.Dicom.Api.Modules.HealthChecks
 {
-    internal sealed class CachedHealthCheck : Microsoft.Health.Api.Modules.HealthChecks.CachedHealthCheck, IHealthCheck, IDisposable
+    internal sealed class CachedHealthCheck : Microsoft.Health.Api.Modules.HealthChecks.CachedHealthCheck
     {
         public CachedHealthCheck(IServiceProvider provider, Func<IServiceProvider, IHealthCheck> healthCheck, ILogger<CachedHealthCheck> logger)
             : base(provider, healthCheck, logger)

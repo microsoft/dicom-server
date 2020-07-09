@@ -4,12 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.Health.Dicom.Api.Modules.HealthChecks
 {
-    public class HealthCheckConfiguration : Microsoft.Health.Api.Modules.HealthChecks.HealthCheckConfiguration, IPostConfigureOptions<HealthCheckServiceOptions>
+    public class HealthCheckConfiguration : Microsoft.Health.Api.Modules.HealthChecks.HealthCheckConfiguration
     {
         public HealthCheckConfiguration(IServiceProvider serviceProvider)
             : base(serviceProvider)
