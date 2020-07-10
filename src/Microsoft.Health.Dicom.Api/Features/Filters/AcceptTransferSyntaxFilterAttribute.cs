@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
                 }
                 else
                 {
-                    acceptable = _allowMissing && transferSyntaxValue.RawValue == null;
+                    acceptable = _allowMissing && string.IsNullOrWhiteSpace($"{transferSyntaxValue.RawValue}");
                 }
             }
             else
