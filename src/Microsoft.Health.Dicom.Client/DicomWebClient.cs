@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
             Uri requestUri,
-            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
+            string dicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
@@ -117,8 +117,8 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstancesAsync(
             Uri requestUri,
-            bool singleInstance = false,
-            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
+            bool singleInstance,
+            string dicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))

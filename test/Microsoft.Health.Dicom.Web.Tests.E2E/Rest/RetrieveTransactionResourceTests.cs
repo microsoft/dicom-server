@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class RetrieveTransactionResourceTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private readonly DicomWebClient _client;
+        private readonly IDicomWebClient _client;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
 
@@ -656,7 +656,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             return (dicomInstance, dicomFile);
         }
 
-        internal static async Task ValidateNotAcceptableResponseAsync(DicomWebClient dicomWebClient, string requestUri, string acceptHeader)
+        internal static async Task ValidateNotAcceptableResponseAsync(IDicomWebClient dicomWebClient, string requestUri, string acceptHeader)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
