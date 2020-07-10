@@ -9,6 +9,3 @@ variables:
     azureSubscriptionName: 'Resolute Open Source Service Connection'
     windowsVmImage: 'windows-latest'
     buildConfiguration: 'Release'
-    ImageTag: '$(build.BuildNumber)'
-    azureContainerRegistry: 'dicomoss.azurecr.io'
-    composeLocation: 'build/docker/docker-compose.yaml'
