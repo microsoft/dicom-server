@@ -35,7 +35,6 @@ namespace Microsoft.Health.Dicom.Client
         private const string ApplicationOctetStreamContentType = "application/octet-stream";
         private const string MultipartRelatedContentType = "multipart/related";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
-        private const string DefaultTransferSyntax = "*";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         public DicomWebClient(HttpClient httpClient)
@@ -76,7 +75,7 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
             Uri requestUri,
-            string dicomTransferSyntax = DefaultTransferSyntax,
+            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
@@ -119,7 +118,7 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstancesAsync(
             Uri requestUri,
             bool singleInstance = false,
-            string dicomTransferSyntax = DefaultTransferSyntax,
+            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
