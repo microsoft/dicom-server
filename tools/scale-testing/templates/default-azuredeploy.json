@@ -210,7 +210,7 @@
                 "name": "s1",
                 "type": "Subscriptions",
                 "dependsOn": [
-                    "[concat(variables('serviceBusTopics')[copyIndex()])]"
+                    "[variables('serviceBusTopics')[copyIndex()]]"
                 ],
                 "properties": {
                     "lockDuration": "00:02:30"
