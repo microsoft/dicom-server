@@ -90,4 +90,4 @@ stages:
     steps:
     - template: docker-build-push.yml
       parameters:
-        tag: $(ImageTag)
+        tag: $(imageTag)
