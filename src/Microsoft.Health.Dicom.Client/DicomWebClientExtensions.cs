@@ -13,7 +13,7 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Client
 {
-    public static class IDicomWebClientExtensions
+    public static class DicomWebClientExtensions
     {
         public static Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveStudyAsync(
             this IDicomWebClient dicomWebClient,
