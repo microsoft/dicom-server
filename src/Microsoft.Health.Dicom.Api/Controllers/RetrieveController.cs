@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
@@ -27,7 +28,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [ModelStateValidator]
     public class RetrieveController : Controller
     {
-        private const string DefaultTransferSyntax = "*";
         private readonly IMediator _mediator;
         private readonly ILogger<RetrieveController> _logger;
 
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
+        [AcceptTransferSyntaxFilter(new[] { DicomTransferSyntaxUids.Original })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
+        [AcceptTransferSyntaxFilter(new[] { DicomTransferSyntaxUids.Original })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -112,7 +112,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: true, allowMultiple: false)]
-        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
+        [AcceptTransferSyntaxFilter(new[] { DicomTransferSyntaxUids.Original })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { DefaultTransferSyntax })]
+        [AcceptTransferSyntaxFilter(new[] { DicomTransferSyntaxUids.Original, DicomTransferSyntaxUids.ExplicitVRLittleEndian, }, allowMissing: true)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
