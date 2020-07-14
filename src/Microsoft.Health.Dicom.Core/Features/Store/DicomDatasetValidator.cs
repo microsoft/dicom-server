@@ -10,7 +10,9 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -20,12 +22,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     public class DicomDatasetValidator : IDicomDatasetValidator
     {
         private readonly bool _enableFullDicomItemValidation;
+        private readonly IDicomElementMinimumValidator _minimumValidator;
 
-        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration)
+        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator)
         {
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
+            EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
 
             _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
+            _minimumValidator = minimumValidator;
         }
 
         public void Validate(DicomDataset dicomDataset, string requiredStudyInstanceUid)
@@ -96,8 +101,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             foreach (DicomTag indexableTag in indexableTags)
             {
-                // We can implement our own minimal validators for each VR type if fo-dicom validation is  still more than needed.
-                dicomDataset.GetDicomItem<DicomItem>(indexableTag)?.ValidateDicomItem();
+                var dicomElement = dicomDataset.GetDicomItem<DicomElement>(indexableTag);
+
+                if (dicomElement != null)
+                {
+                    MinimumValidation(dicomElement);
+                }
             }
         }
 
@@ -107,6 +116,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 item.ValidateDicomItem();
             });
+        }
+
+        public void MinimumValidation(DicomElement dicomItem)
+        {
+            try
+            {
+                _minimumValidator.Validate(dicomItem);
+            }
+            catch (Exception ex) when (ex is DicomElementValidationException || ex is InvalidIdentifierException)
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    ex.Message,
+                    ex);
+            }
         }
     }
 }

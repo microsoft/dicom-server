@@ -69,11 +69,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 case QueryResource.StudySeries:
                 case QueryResource.StudyInstances:
-                    UidValidator.ValidateAndThrow(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
+                    DicomElementMinimumValidation.ValidateUI(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
                     break;
                 case QueryResource.StudySeriesInstances:
-                    UidValidator.ValidateAndThrow(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
-                    UidValidator.ValidateAndThrow(message.SeriesInstanceUid, nameof(message.SeriesInstanceUid));
+                    DicomElementMinimumValidation.ValidateUI(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
+                    DicomElementMinimumValidation.ValidateUI(message.SeriesInstanceUid, nameof(message.SeriesInstanceUid));
                     break;
                 case QueryResource.AllStudies:
                 case QueryResource.AllSeries:

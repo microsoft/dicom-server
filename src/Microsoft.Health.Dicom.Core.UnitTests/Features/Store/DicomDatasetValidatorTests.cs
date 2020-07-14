@@ -8,6 +8,7 @@ using Dicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using Xunit;
@@ -32,7 +33,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             {
                 EnableFullDicomItemValidation = false,
             });
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration);
+            var minValidator = new DicomElementMinimumValidator();
+
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator);
         }
 
         [Fact]
@@ -122,7 +125,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             {
                 EnableFullDicomItemValidation = true,
             });
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration);
+            var minValidator = new DicomElementMinimumValidator();
+
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator);
 
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = false;
@@ -145,8 +150,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = false;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            // CS VR, lower case alphabets not allowed
-            _dicomDataset.Add(DicomTag.Modality, "abcd");
+            // CS VR, > 16 characters is not allowed
+            _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
 
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = true;
