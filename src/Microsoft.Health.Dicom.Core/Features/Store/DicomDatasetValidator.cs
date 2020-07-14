@@ -124,7 +124,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 _minimumValidator.Validate(dicomItem);
             }
-            catch (Exception ex) when (ex is DicomElementValidationException || ex is InvalidIdentifierException)
+            catch (ValidationException ex)
             {
                 throw new DatasetValidationException(
                     FailureReasonCodes.ValidationFailure,
