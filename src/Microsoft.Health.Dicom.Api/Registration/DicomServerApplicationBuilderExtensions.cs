@@ -4,9 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Api.Registration;
+using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.AspNetCore.Builder
@@ -25,6 +28,8 @@ namespace Microsoft.AspNetCore.Builder
             EnsureArg.IsNotNull(app, nameof(app));
 
             app.UseMvc();
+
+            app.UseHealthChecksExtension(new PathString(KnownRoutes.HealthCheck));
 
             var featureConfiguration = app.ApplicationServices.GetRequiredService<IOptions<FeatureConfiguration>>();
 

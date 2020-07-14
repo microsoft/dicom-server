@@ -37,5 +37,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
         public const string ChangeFeed = "changefeed";
         public const string ChangeFeedLatest = ChangeFeed + "/" + "latest";
+
+        public const string HealthCheck = "/health/check";
     }
 }
