@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Dicom;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
@@ -12,6 +13,10 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
         public DicomElementValidationException(string name, string value, DicomVR vr, string message)
            : base(message)
         {
+            EnsureArg.IsNotNull(name, nameof(name));
+            EnsureArg.IsNotNull(value, nameof(value));
+            EnsureArg.IsNotNull(message, nameof(message));
+
             Name = name;
             Value = value;
             VR = vr;
@@ -19,10 +24,10 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
 
         public override string Message => string.Format(DicomCoreResource.DicomElementValidationFailed, Name, Value, VR.Code, base.Message);
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
-        public string Value { get; private set; }
+        public string Value { get; }
 
-        public DicomVR VR { get; private set; }
+        public DicomVR VR { get; }
     }
 }

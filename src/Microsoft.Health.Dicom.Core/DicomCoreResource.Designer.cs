@@ -395,7 +395,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Value cannot be parsed has a valid date..
+        ///   Looks up a localized string similar to Value cannot be parsed as a valid date..
         /// </summary>
         internal static string ValueIsInvalidDate {
             get {

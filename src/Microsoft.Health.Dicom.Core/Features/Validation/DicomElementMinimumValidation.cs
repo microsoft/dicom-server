@@ -19,6 +19,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         public static void ValidateCS(string value, string name)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
             if (value.Length > 16)
             {
                 throw new DicomElementValidationException(name, value, DicomVR.CS, DicomCoreResource.ValueLengthExceeds16Characters);
@@ -93,6 +98,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         public static void ValidateSH(string value, string name)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
             if (value.Length > 16)
             {
                 throw new DicomElementValidationException(name, value, DicomVR.SH, DicomCoreResource.ValueLengthExceeds16Characters);

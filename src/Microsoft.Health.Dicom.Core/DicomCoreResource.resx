@@ -246,7 +246,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Value contains more than 3 groups.</value>
   </data>
   <data name="ValueIsInvalidDate" xml:space="preserve">
-    <value>Value cannot be parsed has a valid date.</value>
+    <value>Value cannot be parsed as a valid date.</value>
   </data>
   <data name="ValueLengthExceeds16Characters" xml:space="preserve">
     <value>Value exceeds maximum length of 16 characters.</value>

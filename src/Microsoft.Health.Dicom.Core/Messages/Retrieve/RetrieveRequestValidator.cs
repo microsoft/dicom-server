@@ -34,12 +34,12 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             switch (resourceType)
             {
                 case ResourceType.Series:
-                    DicomElementMinimumValidation.ValidateUI(seriesInstanceUid, nameof(SeriesInstanceUid));
+                    UidValidator.Validate(seriesInstanceUid, nameof(SeriesInstanceUid));
                     break;
                 case ResourceType.Instance:
                 case ResourceType.Frames:
-                    DicomElementMinimumValidation.ValidateUI(seriesInstanceUid, nameof(SeriesInstanceUid));
-                    DicomElementMinimumValidation.ValidateUI(sopInstanceUid, nameof(SopInstanceUid));
+                    UidValidator.Validate(seriesInstanceUid, nameof(SeriesInstanceUid));
+                    UidValidator.Validate(sopInstanceUid, nameof(SopInstanceUid));
                     break;
             }
         }
