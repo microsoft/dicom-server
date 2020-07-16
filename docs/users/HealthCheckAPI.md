@@ -10,6 +10,23 @@ Verb | Route              | Returns
 :--- | :----------------- | :---------- 
 GET  | /health/check      | Json Object 
 
+## Object Model
+
+Following is the details on the JSON object that is returned in response to the GET request:
+
+Field         | Type   | Description
+:------------ | :----- | :----------
+overallStatus | string | Status `Healthy` or `Unhealthy`
+details       | array  | Array of objects with details on underlying services
+
+Objects of the `details` array have the following model:
+
+Field         | Type   | Description
+:------------ | :----- | :----------
+name		  | string | Name of the service
+status		  | string | Status `Healthy` or `Unhealthy`
+description   | string | Description of the status
+
 ## Get Health Status
 
 To check the health status of DICOM server, user needs to issue a GET request at /health/check. Following is a sample JSON response if all the underlying services are healthy:
