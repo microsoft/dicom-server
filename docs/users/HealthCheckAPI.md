@@ -29,6 +29,8 @@ description   | string | Description of the status
 
 ## Get Health Status
 
+Internally, Microsoft.Extensions.Diagnostics.HealthChecks nuget is used for getting the health status.Its documentation can be found [here](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.diagnostics.healthchecks?view=dotnet-plat-ext-3.1).
+
 To check the health status of DICOM server, user needs to issue a GET request at /health/check. Following is a sample JSON response if all the underlying services are healthy:
 ```
 {
