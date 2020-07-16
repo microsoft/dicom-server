@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Dicom.Api.Modules.HealthChecks
 {
-    public class HealthCheckModule : Microsoft.Health.Api.Modules.HealthChecks.HealthCheckModule
+    public class HealthCheckModule : Microsoft.Health.Api.Modules.HealthCheckModule
     {
     }
 }

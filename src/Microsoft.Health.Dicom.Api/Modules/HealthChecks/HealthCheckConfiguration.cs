@@ -7,7 +7,7 @@ using System;
 
 namespace Microsoft.Health.Dicom.Api.Modules.HealthChecks
 {
-    public class HealthCheckConfiguration : Microsoft.Health.Api.Modules.HealthChecks.HealthCheckConfiguration
+    public class HealthCheckConfiguration : Microsoft.Health.Api.Features.HealthChecks.HealthCheckConfiguration
     {
         public HealthCheckConfiguration(IServiceProvider serviceProvider)
             : base(serviceProvider)
