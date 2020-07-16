@@ -149,10 +149,11 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator
             string path = args[2];
             topicClient = new TopicClient(_serviceBusConnectionString, KnownTopics.StowRs);
             int tracker = 0;
+            int totalCount = int.Parse(args[3]);
 
             using (StreamWriter sw = File.Exists(path) ? File.AppendText(path) : File.CreateText(path))
             {
-                for (int count = 0; count < 2000; count++)
+                while (tracker < totalCount)
                 {
                     var patientName = patientNames.RandomElement();
                     var patientId = PatientId();
