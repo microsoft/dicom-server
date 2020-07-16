@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 
         private static void ValidateInstanceIdentifiersAreValid(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            DicomElementMinimumValidation.ValidateUI(studyInstanceUid, nameof(StudyInstanceUid));
+            UidValidator.Validate(studyInstanceUid, nameof(StudyInstanceUid));
 
             switch (resourceType)
             {

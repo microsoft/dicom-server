@@ -127,6 +127,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     case DatasetValidationException dicomDatasetValidationException:
                         failureCode = dicomDatasetValidationException.FailureCode;
                         break;
+
+                    case ValidationException _:
+                        failureCode = FailureReasonCodes.ValidationFailure;
+                        break;
                 }
 
                 LogValidationFailedDelegate(_logger, index, failureCode, ex);

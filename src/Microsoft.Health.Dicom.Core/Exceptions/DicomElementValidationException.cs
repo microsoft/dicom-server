@@ -15,6 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
         {
             EnsureArg.IsNotNull(name, nameof(name));
             EnsureArg.IsNotNull(value, nameof(value));
+            EnsureArg.IsNotNull(vr, nameof(vr));
             EnsureArg.IsNotNull(message, nameof(message));
 
             Name = name;

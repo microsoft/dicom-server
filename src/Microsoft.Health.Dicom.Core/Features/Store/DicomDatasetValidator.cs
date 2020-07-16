@@ -105,7 +105,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                 if (dicomElement != null)
                 {
-                    MinimumValidation(dicomElement);
+                    _minimumValidator.Validate(dicomElement);
                 }
             }
         }
@@ -116,21 +116,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 item.ValidateDicomItem();
             });
-        }
-
-        public void MinimumValidation(DicomElement dicomItem)
-        {
-            try
-            {
-                _minimumValidator.Validate(dicomItem);
-            }
-            catch (ValidationException ex)
-            {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    ex.Message,
-                    ex);
-            }
         }
     }
 }
