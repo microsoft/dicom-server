@@ -3,11 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using Dicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using Xunit;
@@ -32,7 +35,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             {
                 EnableFullDicomItemValidation = false,
             });
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration);
+            var minValidator = new DicomElementMinimumValidator();
+
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator);
         }
 
         [Fact]
@@ -73,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDataset.Remove(dicomTag);
 
-            ExecuteAndValidateException(ValidationFailedFailureCode);
+            ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
         }
 
         public static IEnumerable<object[]> GetDuplicatedDicomIdentifierValues()
@@ -96,7 +101,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             string value = _dicomDataset.GetSingleValue<string>(firstDicomTag);
             _dicomDataset.AddOrUpdate(secondDicomTag, value);
 
-            ExecuteAndValidateException(ValidationFailedFailureCode);
+            ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
         }
 
         [Fact]
@@ -111,7 +116,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             }
             while (string.Equals(requiredStudyInstanceUid, studyInstanceUid, System.StringComparison.InvariantCultureIgnoreCase));
 
-            ExecuteAndValidateException(MismatchStudyInstanceUidFailureCode, requiredStudyInstanceUid);
+            ExecuteAndValidateException<DatasetValidationException>(MismatchStudyInstanceUidFailureCode, requiredStudyInstanceUid);
         }
 
         [Fact]
@@ -122,7 +127,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             {
                 EnableFullDicomItemValidation = true,
             });
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration);
+            var minValidator = new DicomElementMinimumValidator();
+
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator);
 
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = false;
@@ -135,32 +142,37 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            ExecuteAndValidateException(ValidationFailedFailureCode);
+            ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
         }
 
         [Fact]
-        public void GivenDatasetWithInvalidIndexedTagValue_WhenValidating_ThenDatasetValidationExceptionShouldBeThrown()
+        public void GivenDatasetWithInvalidIndexedTagValue_WhenValidating_ThenValidationExceptionShouldBeThrown()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = false;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            // CS VR, lower case alphabets not allowed
-            _dicomDataset.Add(DicomTag.Modality, "abcd");
+            // CS VR, > 16 characters is not allowed
+            _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
 
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            ExecuteAndValidateException(ValidationFailedFailureCode);
+            ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }
 
-        private void ExecuteAndValidateException(ushort failureCode, string requiredStudyInstanceUid = null)
+        private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
+            where T : Exception
         {
-            var exception = Assert.Throws<DatasetValidationException>(
+            var exception = Assert.Throws<T>(
                 () => _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid));
 
-            Assert.Equal(failureCode, exception.FailureCode);
+            if (exception is DatasetValidationException)
+            {
+                var datasetValidationException = exception as DatasetValidationException;
+                Assert.Equal(failureCode, datasetValidationException.FailureCode);
+            }
         }
     }
 }

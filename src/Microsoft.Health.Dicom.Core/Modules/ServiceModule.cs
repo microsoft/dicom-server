@@ -11,6 +11,7 @@ using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Core.Modules
@@ -97,6 +98,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.Add<ChangeFeedService>()
                 .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<DicomElementMinimumValidator>()
+                .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
         }
