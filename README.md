@@ -24,6 +24,7 @@ Follow the steps [here](docs/Development.md) to deploy a local copy of the Dicom
 ## Users
 - [Conformance](docs/users/Conformance.md)
 - [ChangeFeed](docs/users/ChangeFeed.md)
+- [Health Check API](docs/users/HealthCheckAPI.md)
 
 ## Development
 - [Setup](docs/Development.md)
