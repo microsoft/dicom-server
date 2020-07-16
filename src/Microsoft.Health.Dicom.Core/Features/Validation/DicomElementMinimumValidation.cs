@@ -111,13 +111,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         public static void ValidateUI(string value, string name)
         {
-            // trailling spaces are allowed
-            value = value.TrimEnd(' ');
             if (string.IsNullOrEmpty(value))
             {
-                // empty values are valid
                 return;
             }
+
+            // trailling spaces are allowed
+            value = value.TrimEnd(' ');
 
             if (value.Length > 64)
             {
