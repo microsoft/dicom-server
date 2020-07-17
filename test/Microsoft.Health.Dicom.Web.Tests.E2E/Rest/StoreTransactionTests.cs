@@ -320,10 +320,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("1.01")]
         [InlineData("abc.123")]
         [InlineData("11|")]
-        [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
         public async void GivenDatasetWithInvalidUid_WhenStoring_TheServerShouldReturnConflict(string studyInstanceUID)
         {
 #pragma warning disable CS0618 // Type or member is obsolete

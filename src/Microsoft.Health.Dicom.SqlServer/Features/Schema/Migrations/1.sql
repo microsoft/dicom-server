@@ -419,12 +419,12 @@ CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL, --PK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
     PatientId                   NVARCHAR(64)                      NOT NULL,
-    PatientName                 NVARCHAR(325)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
-    ReferringPhysicianName      NVARCHAR(325)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
+    PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
+    ReferringPhysicianName      NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
     StudyDate                   DATE                              NULL,
     StudyDescription            NVARCHAR(64)                      NULL,
     AccessionNumber             NVARCHAR(16)                      NULL,
-    PatientNameWords            AS REPLACE(PatientName, '^', ' ') PERSISTED,
+    PatientNameWords            AS REPLACE(REPLACE(PatientName, '^', ' '), '=', ' ') PERSISTED,
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study

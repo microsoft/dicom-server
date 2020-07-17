@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Theory]
-        [InlineData("1.01.2")]
+        [InlineData("1.a1.2")]
         [InlineData("invalid")]
         public void GivenAnInvalidStudyInstanceUid_WhenValidated_ThenInvalidIdentifierExceptionShouldBeThrown(string studyInstanceUid)
         {
