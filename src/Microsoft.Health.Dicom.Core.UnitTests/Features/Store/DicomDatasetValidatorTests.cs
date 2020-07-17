@@ -162,6 +162,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }
 
+        [Fact]
+        public void GivenDatasetWithEmptyIndexedTagValue_WhenValidating_ThenValidationPasses()
+        {
+            _dicomDataset.AddOrUpdate(DicomTag.ReferringPhysicianName, string.Empty);
+            _dicomDatasetValidator.Validate(_dicomDataset, null);
+        }
+
         private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
             where T : Exception
         {
