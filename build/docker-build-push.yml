@@ -17,7 +17,7 @@ steps:
       additionalImageTags: ${{parameters.tag}}
 
   - task: DockerCompose@0
-    displayName: 'Push Dicom cast Server Image'
+    displayName: 'Push Dicom Server Image'
     inputs:
       action: Push services
       azureSubscriptionEndpoint: $(azureSubscriptionName)
