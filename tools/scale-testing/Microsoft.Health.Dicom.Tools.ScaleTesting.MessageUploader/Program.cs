@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader
             };
             var client = new SecretClient(new Uri("https://dicom-client.vault.azure.net/"), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = client.GetSecret("_serviceBusConnectionString");
+            KeyVaultSecret secret = client.GetSecret("ServiceBusConnectionString");
 
             _serviceBusConnectionString = secret.Value;
             _topicName = args[0];
@@ -43,17 +43,18 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader
             string filePath = args[1];
             file = File.ReadAllLines(filePath);
 
-            // int start = Int32.Parse(args[2]);
-            // int end = Int32.Parse(args[3]);
+            int start = int.Parse(args[2]);
+            int end = int.Parse(args[3]);
 
             Console.WriteLine("======================================================");
             Console.WriteLine("Press ENTER key to exit after sending all the messages.");
             Console.WriteLine("======================================================");
 
             // Send messages.
-            // await SendMessagesAsync(start, end);
+            await SendMessagesAsync(start, end);
+
             // await SendMessagesAsync();
-            await SendAllMessagesAsync();
+            // await SendAllMessagesAsync();
 
             await topicClient.CloseAsync();
         }
