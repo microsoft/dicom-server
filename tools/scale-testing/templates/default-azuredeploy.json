@@ -205,6 +205,17 @@
                 "sizeInBytes": 0,
                 "supportOrdering": false
             },
+            "resources": [{
+                "apiVersion": "2015-08-01",
+                "name": "s1",
+                "type": "Subscriptions",
+                "dependsOn": [
+                    "[variables('serviceBusTopics')[copyIndex()]]"
+                ],
+                "properties": {
+                    "lockDuration": "00:02:30"
+                }
+            }],
             "copy": {
                 "name": "topicCopy",
                 "count": "[length(variables('serviceBusTopics'))]"
