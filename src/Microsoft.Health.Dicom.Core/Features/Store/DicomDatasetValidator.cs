@@ -10,7 +10,6 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -101,11 +100,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             foreach (DicomTag indexableTag in indexableTags)
             {
-                var dicomElement = dicomDataset.GetDicomItem<DicomElement>(indexableTag);
+                DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(indexableTag);
 
                 if (dicomElement != null)
                 {
-                    _minimumValidator.Validate(dicomElement);
+                    string value = dicomDataset.GetSingleValueOrDefault<string>(indexableTag, default);
+                    _minimumValidator.Validate(indexableTag, value);
                 }
             }
         }
