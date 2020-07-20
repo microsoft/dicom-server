@@ -5,7 +5,7 @@ This tool is an Electron application used to interact with your DICOM server. It
 To use the DICOM Electron tool, install the latest version of Node JS. The installer is available at [https://nodejs.org/en/download/](https://nodejs.org/en/download/).
 
 ## Getting Started
-Once Node JS is installed, run the following commands in a Terminal window to launch the DICOM web electron tool:
+Once Node JS is installed, run the following commands in a terminal window to launch the DICOM web electron tool:
 
 1. Run `npm install`
 2. Run `npm start`
@@ -27,9 +27,11 @@ To upload files stored locally on your device, click 'Select File(s)'. You can u
 
 ## Change Feed
 The change feed offers the ability to go through the history of the DICOM server and act upon the creates and deletes in the service. Learn more about Change Feed here:
-- [DICOM Change Feed](microsoft/dicom-server/blob/master/docs/users/ChangeFeed.md)
+- [DICOM Change Feed](https://github.com/microsoft/dicom-server/blob/master/docs/users/ChangeFeed.md)
 
-Navigate to Change Feed to update the Offset value, which is the number of records to skip before the values to return.
+Navigate to the 'Change Feed' tab to enable change feed and to set the Offset value, which is the number of records to skip before the values to return:
+
+![Electron tool change feed](images/electron-tool-change-feed.png)
 
 ## Packaging
 The application is packed with [`electron-builder`](https://www.electron.build/)
