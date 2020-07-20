@@ -105,7 +105,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 if (dicomElement != null)
                 {
                     string value = dicomDataset.GetSingleValueOrDefault<string>(indexableTag, default);
-                    _minimumValidator.Validate(dicomElement, value);
+                    _minimumValidator.Validate(indexableTag, value);
                 }
             }
         }

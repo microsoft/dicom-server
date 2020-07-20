@@ -26,9 +26,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         }
 
         // only works for single value dicom element
-        public void Validate(DicomElement item, string value)
+        public void Validate(DicomTag dicomTag, string value)
         {
-            DicomVR dicomVR = item.Tag.DictionaryEntry.ValueRepresentations.FirstOrDefault();
+            DicomVR dicomVR = dicomTag.DictionaryEntry.ValueRepresentations.FirstOrDefault();
 
             if (dicomVR == null)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             if (_minValidators.TryGetValue(dicomVR, out Action<string, string> validator))
             {
-                validator(value, item.Tag.DictionaryEntry.Keyword);
+                validator(value, dicomTag.DictionaryEntry.Keyword);
             }
             else
             {
