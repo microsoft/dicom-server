@@ -42,7 +42,7 @@
             ],
             "defaultValue": "S1",
             "metadata": {
-                "description": "Choose an App Service Plan SKU, or pricing tier. S1 is the default tier enabled.",
+                "description": "Choose an App Service Plan SKU, or pricing tier. S1 is the default tier enabled."
             }
         },
         "storageAccountSku": {
@@ -59,7 +59,7 @@
             ],
             "defaultValue": "Standard_LRS",
             "metadata": {
-                "description": "Choose a SKU for your storage account. By default Standard Locally Redundant Storage is selected.",
+                "description": "Choose a SKU for your storage account. By default, Standard Locally Redundant Storage is selected."
             }
         },
         "deployApplicationInsights": {
@@ -81,7 +81,7 @@
                 "westus2"
             ],
             "metadata": {
-                "description": "Select a location for Application Insights. If empty, the region closet to your deployment location is set by default."
+                "description": "Select a location for Application Insights. If empty, the region closet to your deployment location is used."
             }
         },
         "additionalDicomServerConfigProperties": {
@@ -94,14 +94,14 @@
         "sqlAdminPassword": {
             "type": "securestring",
             "metadata": {
-                "description": "The password for the sql admin user if using SQL server."
+                "description": "Set a password for the sql admin."
             }
         },
         "sqlLocation": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]",
             "metadata": {
-                "description": "An override location for the sql server database."
+                "description": "Set an override location for the default sql server database location."
             }
         },
         "deployOhifViewer": {
