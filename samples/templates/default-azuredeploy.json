@@ -7,7 +7,7 @@
             "minLength": 3,
             "maxLength": 24,
             "metadata": {
-                "description": "Name of the DICOM service Web App."
+                "description": "Name of the DICOM service Web Application."
             }
         },
         "appServicePlanResourceGroup": {
