@@ -174,7 +174,7 @@ The following `Accept` header(s) are supported for retrieving instances within a
 
 The following `Accept` header(s) are supported for retrieving a specific instance:
 
-- `application/dicom`
+- `application/dicom; transfer-syntax=*`
 
 ### Retrieve Frames
 
@@ -213,6 +213,7 @@ Retrieving metadata will not return attributes with the following value represen
 | 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported. |
 | 401 (Unauthorized)           | The client is not authenticated. |
 | 404 (Not Found)              | The specified DICOM resource could not be found. |
+| 406 (Not Acceptable)         | The specified `Accept` header is not supported. |
 | 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
 ## Search (QIDO-RS)
