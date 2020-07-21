@@ -18,7 +18,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     public sealed class StreamOriginatedDicomInstanceEntry : IDicomInstanceEntry
     {
         private readonly Stream _stream;
-        private readonly Stream _innerStream;
         private DicomFile _dicomFile;
         private int _dicomFileLoadedState = 0;
         private TaskCompletionSource<bool> _dicomFileLoadingCompletionSource = new TaskCompletionSource<bool>();
@@ -27,16 +26,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         /// Initializes a new instance of the <see cref="StreamOriginatedDicomInstanceEntry"/> class.
         /// </summary>
         /// <param name="seekableStream">The stream.</param>
-        /// <param name="innerStream">Inner stream of the seekable stream if used.</param>
         /// <remarks>The <paramref name="seekableStream"/> must be seekable.</remarks>
-        internal StreamOriginatedDicomInstanceEntry(Stream seekableStream, Stream innerStream = null)
+        internal StreamOriginatedDicomInstanceEntry(Stream seekableStream)
         {
             // The stream must be seekable.
             EnsureArg.IsNotNull(seekableStream, nameof(seekableStream));
             EnsureArg.IsTrue(seekableStream.CanSeek, nameof(seekableStream));
 
             _stream = seekableStream;
-            _innerStream = innerStream;
         }
 
         /// <inheritdoc />
@@ -67,14 +64,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
             return new ValueTask<Stream>(_stream);
         }
 
-        public async ValueTask DisposeAsync()
-        {
-            await _stream.DisposeAsync();
-
-            if (_innerStream != null)
-            {
-                await _innerStream.DisposeAsync();
-            }
-        }
+        public async ValueTask DisposeAsync() => await _stream.DisposeAsync();
     }
 }

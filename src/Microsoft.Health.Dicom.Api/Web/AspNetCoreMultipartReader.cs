@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Api.Web
     /// </summary>
     internal class AspNetCoreMultipartReader : IMultipartReader
     {
-        public const long DicomFileSizeLimit = 8589934592; // 8 GB
+        public const long DicomFileSizeLimit = 1073741824; // 1 GB
         private const string TypeParameterName = "type";
         private const string StartParameterName = "start";
         private readonly ISeekableStreamConverter _seekableStreamConverter;
@@ -113,8 +113,7 @@ namespace Microsoft.Health.Dicom.Api.Web
                 // it seekable so that we can process the stream multiple times.
                 return new MultipartBodyPart(
                     contentType,
-                    await _seekableStreamConverter.ConvertAsync(section.Body, cancellationToken),
-                    section.Body);
+                    await _seekableStreamConverter.ConvertAsync(section.Body, cancellationToken));
             }
             catch (InvalidMultipartBodyPartException)
             {

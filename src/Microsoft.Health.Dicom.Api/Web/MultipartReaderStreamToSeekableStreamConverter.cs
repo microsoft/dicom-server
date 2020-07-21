@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Api.Web
     /// </summary>
     internal class MultipartReaderStreamToSeekableStreamConverter : ISeekableStreamConverter
     {
-        private const int DefaultBufferThreshold = 1024 * 30; // 30KB
+        private const int DefaultBufferThreshold = 1024 * 30000; // 30MB
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public MultipartReaderStreamToSeekableStreamConverter(IHttpContextAccessor httpContextAccessor)
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Api.Web
         /// <inheritdoc />
         public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(stream);
+            EnsureArg.IsNotNull(stream, nameof(stream));
 
             int bufferThreshold = DefaultBufferThreshold;
             long? bufferLimit = null;
@@ -75,8 +75,8 @@ namespace Microsoft.Health.Dicom.Api.Web
                     if (_tempDirectory == null)
                     {
                         // Look for folders in the following order.
-                        var temp = Environment.GetEnvironmentVariable("ASPNETCORE_TEMP") ?? // ASPNETCORE_TEMP - User set temporary location.
-                                   Path.GetTempPath();                                      // Fall back.
+                        string temp = Environment.GetEnvironmentVariable("ASPNETCORE_TEMP") ?? // ASPNETCORE_TEMP - User set temporary location.
+                                      Path.GetTempPath();                                      // Fall back.
 
                         if (!Directory.Exists(temp))
                         {

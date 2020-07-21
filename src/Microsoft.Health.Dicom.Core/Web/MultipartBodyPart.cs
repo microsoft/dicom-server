@@ -10,19 +10,16 @@ namespace Microsoft.Health.Dicom.Core.Web
 {
     public class MultipartBodyPart
     {
-        public MultipartBodyPart(string contentType, Stream seekableStream, Stream innerStream = null)
+        public MultipartBodyPart(string contentType, Stream seekableStream)
         {
             EnsureArg.IsNotNull(seekableStream, nameof(seekableStream));
 
             ContentType = contentType;
             SeekableStream = seekableStream;
-            InnerStream = innerStream;
         }
 
         public string ContentType { get; }
 
         public Stream SeekableStream { get; }
-
-        public Stream InnerStream { get; }
     }
 }
