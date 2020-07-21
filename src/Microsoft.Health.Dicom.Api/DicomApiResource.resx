@@ -117,6 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DicomFileLengthLimitExceeded" xml:space="preserve">
+    <value>The dicom file in the request section exceeded the allowed limit of {0} bytes.</value>
+    <comment>{0} Max number of bytes allowed per dicom file.</comment>
+  </data>
   <data name="InternalServerError" xml:space="preserve">
     <value>The server encountered an internal error. Please retry the request. If the issue persists, please contact support.</value>
   </data>
