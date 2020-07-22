@@ -61,6 +61,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The dicom file in the request section exceeded the allowed limit of {0} bytes..
+        /// </summary>
+        internal static string DicomFileLengthLimitExceeded {
+            get {
+                return ResourceManager.GetString("DicomFileLengthLimitExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server encountered an internal error. Please retry the request. If the issue persists, please contact support..
         /// </summary>
         internal static string InternalServerError {
