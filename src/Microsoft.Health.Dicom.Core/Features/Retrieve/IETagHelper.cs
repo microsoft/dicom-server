@@ -3,15 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Messages;
 
-namespace Microsoft.Health.Dicom.Api.Modules.HealthChecks
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class HealthCheckConfiguration : Microsoft.Health.Api.Modules.HealthChecks.HealthCheckConfiguration
+    public interface IETagHelper
     {
-        public HealthCheckConfiguration(IServiceProvider serviceProvider)
-            : base(serviceProvider)
-        {
-        }
+        public Task<string> GetETag(ResourceType resourceType, string uid, CancellationToken cancellationToken);
     }
 }

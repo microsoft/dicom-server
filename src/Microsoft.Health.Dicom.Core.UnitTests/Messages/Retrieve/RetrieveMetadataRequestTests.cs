@@ -12,14 +12,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
 {
     public class RetrieveMetadataRequestTests
     {
+        private readonly Random _random = new Random();
+
         [Fact]
         public void GivenRetrieveStudyMetadataRequest_WhenConstructed_ThenResourceTypeAndInstanceUidIsSetCorrectly()
         {
             string studyInstanceUid = Guid.NewGuid().ToString();
-            var request = new RetrieveMetadataRequest(studyInstanceUid);
+            string ifNoneMatch = $"{_random.Next()}-{_random.Next()}";
+            var request = new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch);
 
             Assert.Equal(ResourceType.Study, request.ResourceType);
             Assert.Equal(studyInstanceUid, request.StudyInstanceUid);
+            Assert.Equal(ifNoneMatch, request.IfNoneMatch);
         }
 
         [Fact]
@@ -27,11 +31,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             string studyInstanceUid = Guid.NewGuid().ToString();
             string seriesInstanceUid = Guid.NewGuid().ToString();
-            var request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid);
+            string ifNoneMatch = $"{_random.Next()}-{_random.Next()}";
+            var request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch);
 
             Assert.Equal(ResourceType.Series, request.ResourceType);
             Assert.Equal(studyInstanceUid, request.StudyInstanceUid);
             Assert.Equal(seriesInstanceUid, request.SeriesInstanceUid);
+            Assert.Equal(ifNoneMatch, request.IfNoneMatch);
         }
 
         [Fact]
@@ -40,13 +46,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
             string studyInstanceUid = Guid.NewGuid().ToString();
             string seriesInstanceUid = Guid.NewGuid().ToString();
             string sopInstanceUid = Guid.NewGuid().ToString();
-
-            var request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            string ifNoneMatch = $"{_random.Next()}-{_random.Next()}";
+            var request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch);
 
             Assert.Equal(ResourceType.Instance, request.ResourceType);
             Assert.Equal(studyInstanceUid, request.StudyInstanceUid);
             Assert.Equal(seriesInstanceUid, request.SeriesInstanceUid);
             Assert.Equal(sopInstanceUid, request.SopInstanceUid);
+            Assert.Equal(ifNoneMatch, request.IfNoneMatch);
         }
     }
 }

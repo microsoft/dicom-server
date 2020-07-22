@@ -14,6 +14,7 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
@@ -68,7 +69,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}'.");
 
-            RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, HttpContext.RequestAborted);
+            string ifNoneMatch = GetIfNoneMatch();
+            RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, HttpContext.RequestAborted, ifNoneMatch);
 
             return CreateResult(response);
         }
@@ -105,8 +107,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
+            string ifNoneMatch = GetIfNoneMatch();
             RetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
-                studyInstanceUid, seriesInstanceUid, HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, HttpContext.RequestAborted, ifNoneMatch);
 
             return CreateResult(response);
         }
@@ -144,8 +147,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
+            string ifNoneMatch = GetIfNoneMatch();
             RetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
-               studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
+               studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted, ifNoneMatch);
 
             return CreateResult(response);
         }
@@ -175,12 +179,39 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private IActionResult CreateResult(RetrieveMetadataResponse response)
         {
-            return StatusCode((int)HttpStatusCode.OK, response.ResponseMetadata);
+            // If cache is valid, just return the 304 status code (Not Modified)
+            if (response.IsCacheValid)
+            {
+                return StatusCode((int)HttpStatusCode.NotModified);
+            }
+            else
+            {
+                // If response contains an ETag, add it to the headers.
+                if (!string.IsNullOrEmpty(response.ETag))
+                {
+                    HttpContext.Response.Headers.Add("ETag", new StringValues(response.ETag));
+                }
+
+                return StatusCode((int)HttpStatusCode.OK, response.ResponseMetadata);
+            }
         }
 
         private static IActionResult CreateResult(RetrieveResourceResponse response, string contentType)
         {
             return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(contentType, x)).ToList());
+        }
+
+        /// <summary>
+        /// Try to fetch If-None-Match field from the headers.
+        /// Returns null if If-None-Match field is not present.
+        /// </summary>
+        /// <returns>Returns If-None-Match string value.</returns>
+        private string GetIfNoneMatch()
+        {
+            StringValues ifNoneMatchValues;
+            HttpContext.Request.Headers.TryGetValue("If-None-Match", out ifNoneMatchValues);
+            string ifNoneMatch = ifNoneMatchValues.FirstOrDefault();
+            return ifNoneMatch;
         }
     }
 }

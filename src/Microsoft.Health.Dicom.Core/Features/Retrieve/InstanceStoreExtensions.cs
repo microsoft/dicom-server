@@ -63,6 +63,43 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             return instancesToRetrieve;
         }
 
+        /// <summary>
+        /// Get ETag for Resource Type.
+        /// If resource type is not valid or if resource Uid is not found, empty string will be returned.
+        /// </summary>
+        /// <param name="instanceStore">Instance store.</param>
+        /// <param name="resourceType">Resource type. Valid resource types include Study, Series, and Instance.</param>
+        /// <param name="uid">Uid of the respective resource.</param>
+        /// <param name="cancellationToken">Cancellation Token.</param>
+        /// <returns>ETag.</returns>
+        public static async Task<string> GetETag(
+            this IInstanceStore instanceStore,
+            ResourceType resourceType,
+            string uid,
+            CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
+            string eTag = string.Empty;
+
+            switch (resourceType)
+            {
+                case ResourceType.Study:
+                    eTag = await instanceStore.GetETagForStudyAsync(uid, cancellationToken);
+                    break;
+                case ResourceType.Series:
+                    eTag = await instanceStore.GetETagForSeriesAsync(uid, cancellationToken);
+                    break;
+                case ResourceType.Instance:
+                    eTag = await instanceStore.GetETagForInstanceAsync(uid, cancellationToken);
+                    break;
+                case ResourceType.Frames:
+                default:
+                    break;
+            }
+
+            return eTag;
+        }
+
         private static void ThrowNotFoundException(ResourceType resourceType)
         {
             switch (resourceType)

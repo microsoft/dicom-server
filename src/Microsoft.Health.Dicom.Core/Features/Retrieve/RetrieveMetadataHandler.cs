@@ -34,13 +34,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             switch (request.ResourceType)
             {
                 case ResourceType.Study:
-                    metadataResponse = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(request.StudyInstanceUid, cancellationToken);
+                    metadataResponse = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(request.StudyInstanceUid, request.IfNoneMatch, cancellationToken);
                     break;
                 case ResourceType.Series:
-                    metadataResponse = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(request.StudyInstanceUid, request.SeriesInstanceUid, cancellationToken);
+                    metadataResponse = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.IfNoneMatch, cancellationToken);
                     break;
                 case ResourceType.Instance:
-                    metadataResponse = await _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken);
+                    metadataResponse = await _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, request.IfNoneMatch, cancellationToken);
                     break;
                 default:
                     Debug.Fail($"Unknown retrieve metadata transaction type: {request.ResourceType}", nameof(request));

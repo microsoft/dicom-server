@@ -11,12 +11,18 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     public class RetrieveMetadataResponse
     {
-        public RetrieveMetadataResponse(IEnumerable<DicomDataset> responseMetadata)
+        public RetrieveMetadataResponse(IEnumerable<DicomDataset> responseMetadata, bool isCacheValid = false, string eTag = null)
         {
             EnsureArg.IsNotNull(responseMetadata, nameof(responseMetadata));
             ResponseMetadata = responseMetadata;
+            IsCacheValid = isCacheValid;
+            ETag = eTag;
         }
 
         public IEnumerable<DicomDataset> ResponseMetadata { get; }
+
+        public bool IsCacheValid { get; }
+
+        public string ETag { get; }
     }
 }

@@ -26,5 +26,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             string seriesInstanceUid,
             string sopInstanceUid,
             CancellationToken cancellationToken = default);
+
+        Task<string> GetETagForStudyAsync(
+            string studyInstanceUid,
+            CancellationToken cancellationToken);
+
+        Task<string> GetETagForSeriesAsync(
+            string seriesInstanceUid,
+            CancellationToken cancellationToken);
+
+        Task<string> GetETagForInstanceAsync(
+            string sopInstanceUid,
+            CancellationToken cancellationToken);
     }
 }
