@@ -968,7 +968,7 @@ AS
     SELECT  @studyKey = StudyKey
     FROM    dbo.Instance
     WHERE   StudyInstanceUid = @studyInstanceUid
-	AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
