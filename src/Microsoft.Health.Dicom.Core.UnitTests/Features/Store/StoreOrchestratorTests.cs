@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
@@ -37,6 +38,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private readonly IFileStore _fileStore = Substitute.For<IFileStore>();
         private readonly IMetadataStore _metadataStore = Substitute.For<IMetadataStore>();
         private readonly IIndexDataStore _indexDataStore = Substitute.For<IIndexDataStore>();
+        private readonly IDeleteService _deleteService = Substitute.For<IDeleteService>();
         private readonly StoreOrchestrator _storeOrchestrator;
 
         private readonly DicomDataset _dicomDataset;
@@ -57,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _indexDataStore.CreateInstanceIndexAsync(_dicomDataset, DefaultCancellationToken).Returns(DefaultVersion);
 
-            _storeOrchestrator = new StoreOrchestrator(_fileStore, _metadataStore, _indexDataStore);
+            _storeOrchestrator = new StoreOrchestrator(_fileStore, _metadataStore, _indexDataStore, _deleteService);
         }
 
         [Fact]
