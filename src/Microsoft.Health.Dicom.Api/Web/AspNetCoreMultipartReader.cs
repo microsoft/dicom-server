@@ -22,9 +22,9 @@ namespace Microsoft.Health.Dicom.Api.Web
     /// </summary>
     internal class AspNetCoreMultipartReader : IMultipartReader
     {
+        public const long DicomFileSizeLimit = 1073741824; // 1 GB
         private const string TypeParameterName = "type";
         private const string StartParameterName = "start";
-
         private readonly ISeekableStreamConverter _seekableStreamConverter;
 
         private readonly string _rootContentType;
@@ -78,6 +78,9 @@ namespace Microsoft.Health.Dicom.Api.Web
             }
 
             _multipartReader = new MultipartReader(boundary, body);
+
+            // set the max length of each section in bytes
+            _multipartReader.BodyLengthLimit = DicomFileSizeLimit;
         }
 
         /// <inheritdoc />
@@ -117,10 +120,6 @@ namespace Microsoft.Health.Dicom.Api.Web
                 // We can terminate here because it seems like after it encounters the IOException,
                 // next ReadNextSectionAsync will also throws IOException.
                 return null;
-            }
-            finally
-            {
-                await section.Body.DisposeAsync();
             }
         }
     }

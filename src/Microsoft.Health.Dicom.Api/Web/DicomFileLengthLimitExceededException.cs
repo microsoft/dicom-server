@@ -3,12 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Dicom;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation
+namespace Microsoft.Health.Dicom.Api.Web
 {
-    public interface IDicomElementMinimumValidator
+    public class DicomFileLengthLimitExceededException : ValidationException
     {
-        void Validate(DicomTag dicomTag, string value);
+        public DicomFileLengthLimitExceededException(long maxAllowedLength)
+           : base(string.Format(DicomApiResource.DicomFileLengthLimitExceeded, maxAllowedLength))
+        {
+        }
     }
 }

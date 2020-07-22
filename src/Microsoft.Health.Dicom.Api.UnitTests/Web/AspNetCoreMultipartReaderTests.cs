@@ -6,10 +6,10 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Web;
-using Microsoft.IO;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -23,13 +23,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         private const string DefaultBodyPartSeparator = "--+b+";
         private const string DefaultBodyPartFinalSeparator = "--+b+--";
 
-        private static readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-
         private readonly ISeekableStreamConverter _seekableStreamConverter;
 
         public AspNetCoreMultipartReaderTests()
         {
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(_recyclableMemoryStreamManager);
+            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
         }
 
         [Fact]
@@ -236,7 +234,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             Assert.NotNull(actual);
             Assert.Equal(expectedContentType, actual.ContentType);
 
-            using (StreamReader reader = new StreamReader(actual.Body))
+            using (StreamReader reader = new StreamReader(actual.SeekableStream))
             {
                 Assert.Equal(expectedBody, await reader.ReadToEndAsync());
             }

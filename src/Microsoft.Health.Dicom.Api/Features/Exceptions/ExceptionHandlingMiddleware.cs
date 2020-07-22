@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     statusCode = HttpStatusCode.InternalServerError;
                     break;
                 case DicomServerException _:
-                    _logger.LogWarning("Service exception: {0}", exception);
+                    _logger.LogWarning(exception, "Service exception.");
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
             }
@@ -100,7 +100,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
             {
                 // In the case of InternalServerError, make sure to overwrite the message to
                 // avoid internal message.
-                _logger.LogCritical("Unhandled exception: {0}", exception);
+                _logger.LogCritical(exception, "Unhandled exception.");
                 message = DicomApiResource.InternalServerError;
             }
 
