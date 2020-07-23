@@ -1,7 +1,9 @@
 # How to Use the Scale Testing Tool
 
 ## **Initial Setup:**
-To use the scale testing tool, first use the [ARM template](templates/default-azuredeploy.json) and deploy your Azure Resource using Template Deployment. In the same resource group, deploy the Dicom Server using the [Dicom Server ARM template](../../samples/templates/default-azuredeploy.json). In [KnownApplicationUrls.cs](Microsoft.Health.Dicom.Tools.ScaleTesting.Common/KnownApplicationUrls.cs), update the KeyVaultUrl and DicomServerUrl with the urls of the KeyVault resource and the Dicom Server App Service resource respectively.
+To use the scale testing tool, first use the [ARM template](templates/default-azuredeploy.json) and deploy your Azure Resource using Template Deployment. In the same resource group, deploy the Dicom Server using the [Dicom Server ARM template](../../samples/templates/default-azuredeploy.json). In [KnownApplicationUrls.cs](Microsoft.Health.Dicom.Tools.ScaleTesting.Common/KnownApplicationUrls.cs), update the KeyVaultUrl and DicomServerUrl with the urls of the KeyVault resource (the one deployed using the Scale Testing ARM template) and the Dicom Server App Service resource respectively. In the App Configuration resource, add a key-value in the configuration explorer named 'Run-Type'. The individual runs will tell you what the value should be (e.g. 'stow-rs' for [STOW-RS](#stow-rs)).
+
+To setup monitoring correctly, ensure Application Insights is enabled in both the Scale Testing App Service and the Dicom Server App Service.
 
 After, you need to determine what level of permissions you have over your subscription. If you are able to grant yourself elevated permissions, you can follow the second set of powershell scripts which further automate the process. Elevated permissions here means that in Service Bus you are a [Data Owner](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#azure-service-bus-data-owner) and in the App Service you are a [Website Contributor](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#website-contributor).
 
