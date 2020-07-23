@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Tools.ScaleTesting.Common.KeyVault
+namespace Microsoft.Health.Dicom.Tools.ScaleTesting.Common
 {
-    public static class KnownSecretNames
+    public static class KnownApplicationUrls
     {
-        public const string ServiceBusConnectionString = "ServiceBusConnectionString";
-        public const string AppConfiguration = "AppConfiguration";
+        public const string KeyVaultUrl = "";
+        public const string DicomServerUrl = "";
     }
 }

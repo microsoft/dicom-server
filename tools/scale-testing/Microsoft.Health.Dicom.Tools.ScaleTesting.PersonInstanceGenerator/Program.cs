@@ -138,7 +138,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator
                     Mode = RetryMode.Exponential,
                 },
             };
-            var client = new SecretClient(new Uri("https://dicom-client.vault.azure.net/"), new DefaultAzureCredential(), options);
+            var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
 
             KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
 

@@ -1,8 +1,9 @@
 # How to Use the Scale Testing Tool
 
-To use the scale testing tool, first use the [ARM template](templates/default-azuredeploy.json) and deploy your Azure Resource using Template Deployment.
+## **Initial Setup:**
+To use the scale testing tool, first use the [ARM template](templates/default-azuredeploy.json) and deploy your Azure Resource using Template Deployment. In the same resource group, deploy the Dicom Server using the [Dicom Server ARM template](../../samples/templates/default-azuredeploy.json). In [KnownApplicationUrls.cs](Microsoft.Health.Dicom.Tools.ScaleTesting.Common/KnownApplicationUrls.cs), update the KeyVaultUrl and DicomServerUrl with the urls of the KeyVault resource and the Dicom Server App Service resource respectively.
 
-After, you need to determine what level of permissions you have over your subscription. If you are able to grant yourself elevated permissions, you can follow the second set of powershell scripts which further automate the process. Elevated permissions means that in Service Bus you are a [Data Owner](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#azure-service-bus-data-owner) and in the App Service you are a [Website Contributor](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#website-contributor).
+After, you need to determine what level of permissions you have over your subscription. If you are able to grant yourself elevated permissions, you can follow the second set of powershell scripts which further automate the process. Elevated permissions here means that in Service Bus you are a [Data Owner](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#azure-service-bus-data-owner) and in the App Service you are a [Website Contributor](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#website-contributor).
 
 Also, while DownloadBlobNames.psm1 can be used to download the names of successfully stored instances, series and studies, at the [end](#download-successfully-stored-instances-series-and-studies-using-ssms) of this readme, another simpler and faster (but more manual) way is laid out.
 
