@@ -63,7 +63,7 @@ Execute WADO-RSElevated.psm1 instead. The script will also ask for the service b
 Execute WADO-RSForMetadataElevated.psm1 instead. The script will also ask for the service bus namespace and app service name, both of which can be retrieved from the resource group. Steps 4 & 5 can be ignored and once the run is over, you can skip to 6.
 
 ### QIDO-RS
-Execute WIDO-RSElevated.psm1 instead. The script will also ask for the service bus namespace and app service name, both of which can be retrieved from the resource group. Steps 4 & 5 can be ignored and once the run is over, you can skip to 6.
+Execute QIDO-RSElevated.psm1 instead. The script will also ask for the service bus namespace and app service name, both of which can be retrieved from the resource group. Steps 4 & 5 can be ignored and once the run is over, you can skip to 6.
   
   
 ## **Download successfully stored instances, series and studies using SSMS**
