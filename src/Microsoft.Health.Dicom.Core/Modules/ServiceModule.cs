@@ -3,8 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Globalization;
+using System.Reflection;
+using Dicom.Imaging.Codec;
+using Dicom.Imaging.NativeCodec;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -18,6 +24,14 @@ namespace Microsoft.Health.Dicom.Core.Modules
 {
     public class ServiceModule : IStartupModule
     {
+        private readonly FeatureConfiguration _featureConfiguration;
+
+        public ServiceModule(FeatureConfiguration featureConfiguration)
+        {
+            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+            _featureConfiguration = featureConfiguration;
+        }
+
         public void Load(IServiceCollection services)
         {
             EnsureArg.IsNotNull(services, nameof(services));
@@ -83,6 +97,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Transient()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            if (_featureConfiguration.TranscoderType == TranscoderType.Efferent)
+            {
+                services.AddSingleton<TranscoderManager, NativeTranscoderManager>();
+            }
 
             services.Add<QueryService>()
                 .Scoped()

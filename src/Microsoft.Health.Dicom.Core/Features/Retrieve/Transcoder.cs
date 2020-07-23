@@ -9,6 +9,7 @@ using Dicom;
 using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
 using EnsureThat;
+
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.IO;
 
@@ -17,13 +18,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public class Transcoder : ITranscoder
     {
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly TranscoderManager _transcoderManager;
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
 
         public Transcoder(
             RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+            : this(recyclableMemoryStreamManager, null)
+        {
+        }
+
+        public Transcoder(
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager, TranscoderManager transcoderManager)
         {
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+            _transcoderManager = transcoderManager;
+            if (_transcoderManager != null)
+            {
+                TranscoderManager.SetImplementation(transcoderManager);
+            }
         }
 
         public async Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax)
