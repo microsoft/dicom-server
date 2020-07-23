@@ -11,6 +11,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.KeyVault;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader
 {
@@ -35,7 +36,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader
             };
             var client = new SecretClient(new Uri("https://dicom-client.vault.azure.net/"), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = client.GetSecret("ServiceBusConnectionString");
+            KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
 
             _serviceBusConnectionString = secret.Value;
             _topicName = args[0];
