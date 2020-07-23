@@ -37,7 +37,7 @@ The following DICOM elements are required to be present in every DICOM file atte
 
 - StudyInstanceUID
 - SeriesInstanceUID
-- SopInstanceUID
+- SOPInstanceUID
 - SOPClassUID
 - PatientID
 
