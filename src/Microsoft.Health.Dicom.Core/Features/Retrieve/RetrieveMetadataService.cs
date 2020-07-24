@@ -21,82 +21,61 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     {
         private readonly IInstanceStore _instanceStore;
         private readonly IMetadataStore _metadataStore;
-        private readonly IETagHelper _eTagHelper;
+        private readonly IETagGenerator _eTagGenerator;
 
         public RetrieveMetadataService(
             IInstanceStore instanceStore,
             IMetadataStore metadataStore,
-            IETagHelper eTagHelper)
+            IETagGenerator eTagGenerator)
         {
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-            EnsureArg.IsNotNull(eTagHelper, nameof(eTagHelper));
+            EnsureArg.IsNotNull(eTagGenerator, nameof(eTagGenerator));
 
             _instanceStore = instanceStore;
             _metadataStore = metadataStore;
-            _eTagHelper = eTagHelper;
+            _eTagGenerator = eTagGenerator;
         }
 
         public async Task<RetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
         {
-            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = Enumerable.Empty<VersionedInstanceIdentifier>();
-
-            string eTag = await _eTagHelper.GetETag(ResourceType.Study, studyInstanceUid, cancellationToken);
-            bool isCacheValid = IsCacheValid(eTag, ifNoneMatch);
-
-            // Retrieve study metadata only if the cache is not valid.
-            if (!isCacheValid)
-            {
-                retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
+            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                 ResourceType.Study,
                 studyInstanceUid,
                 seriesInstanceUid: null,
                 sopInstanceUid: null,
                 cancellationToken);
-            }
 
+            string eTag = _eTagGenerator.GetETag(ResourceType.Study, retrieveInstances);
+            bool isCacheValid = IsCacheValid(eTag, ifNoneMatch);
             return await RetrieveMetadata(retrieveInstances, isCacheValid, eTag, cancellationToken);
         }
 
         public async Task<RetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
         {
-            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = Enumerable.Empty<VersionedInstanceIdentifier>();
+            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
+                    ResourceType.Series,
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid: null,
+                    cancellationToken);
 
-            string eTag = await _eTagHelper.GetETag(ResourceType.Series, seriesInstanceUid, cancellationToken);
+            string eTag = _eTagGenerator.GetETag(ResourceType.Series, retrieveInstances);
             bool isCacheValid = IsCacheValid(eTag, ifNoneMatch);
-
-            // Retrieve series metadata only if the cache is not valid.
-            if (!isCacheValid)
-            {
-                retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
-                     ResourceType.Series,
-                     studyInstanceUid,
-                     seriesInstanceUid,
-                     sopInstanceUid: null,
-                     cancellationToken);
-            }
-
             return await RetrieveMetadata(retrieveInstances, isCacheValid, eTag, cancellationToken);
         }
 
         public async Task<RetrieveMetadataResponse> RetrieveSopInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
         {
-            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = Enumerable.Empty<VersionedInstanceIdentifier>();
+            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
+                ResourceType.Instance,
+                studyInstanceUid,
+                seriesInstanceUid,
+                sopInstanceUid,
+                cancellationToken);
 
-            string eTag = await _eTagHelper.GetETag(ResourceType.Instance, sopInstanceUid, cancellationToken);
+            string eTag = _eTagGenerator.GetETag(ResourceType.Instance, retrieveInstances);
             bool isCacheValid = IsCacheValid(eTag, ifNoneMatch);
-
-            // Retrieve instance metadata only if the cache is not valid.
-            if (!isCacheValid)
-            {
-                retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
-                     ResourceType.Instance,
-                     studyInstanceUid,
-                     seriesInstanceUid,
-                     sopInstanceUid,
-                     cancellationToken);
-            }
-
             return await RetrieveMetadata(retrieveInstances, isCacheValid, eTag, cancellationToken);
         }
 

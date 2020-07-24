@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private readonly RetrieveMetadataService _retrieveMetadataService;
         private readonly IInstanceStore _instanceStore;
         private readonly IMetadataStore _metadataStore;
-        private readonly IETagHelper _eTagHelper;
+        private readonly IETagGenerator _eTagGenerator;
 
         private readonly string _studyInstanceUid = TestUidGenerator.Generate();
         private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
@@ -40,8 +40,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             _instanceStore = Substitute.For<IInstanceStore>();
             _metadataStore = storagefixture.MetadataStore;
-            _eTagHelper = Substitute.For<IETagHelper>();
-            _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore, _eTagHelper);
+            _eTagGenerator = Substitute.For<IETagGenerator>();
+            _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore, _eTagGenerator);
         }
 
         [Fact]

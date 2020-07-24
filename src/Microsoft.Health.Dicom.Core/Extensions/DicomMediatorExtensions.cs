@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<RetrieveMetadataResponse> RetrieveDicomStudyMetadataAsync(
-            this IMediator mediator, string studyInstanceUid, CancellationToken cancellationToken, string ifNoneMatch = null)
+            this IMediator mediator, string studyInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
         {
             return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch), cancellationToken);
         }
@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<RetrieveMetadataResponse> RetrieveDicomSeriesMetadataAsync(
-           this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken, string ifNoneMatch = null)
+           this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
         {
             return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch), cancellationToken);
         }
@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<RetrieveMetadataResponse> RetrieveDicomInstanceMetadataAsync(
-            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken, string ifNoneMatch = null)
+            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
         {
             return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch), cancellationToken);
         }

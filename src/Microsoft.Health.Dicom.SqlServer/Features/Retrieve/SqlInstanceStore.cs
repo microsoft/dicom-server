@@ -90,56 +90,5 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 
             return results;
         }
-
-        public async Task<string> GetETagForStudyAsync(
-            string studyInstanceUid,
-            CancellationToken cancellationToken)
-        {
-            return await GetETagImp(cancellationToken, studyInstanceUid: studyInstanceUid);
-        }
-
-        public async Task<string> GetETagForSeriesAsync(
-            string seriesInstanceUid,
-            CancellationToken cancellationToken)
-        {
-            return await GetETagImp(cancellationToken, seriesInstanceUid: seriesInstanceUid);
-        }
-
-        public async Task<string> GetETagForInstanceAsync(
-            string sopInstanceUid,
-            CancellationToken cancellationToken)
-        {
-            return await GetETagImp(cancellationToken, sopInstanceUid: sopInstanceUid);
-        }
-
-        private async Task<string> GetETagImp(
-            CancellationToken cancellationToken,
-            string studyInstanceUid = null,
-            string seriesInstanceUid = null,
-            string sopInstanceUid = null)
-        {
-            string result = string.Empty;
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper())
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.GetETag.PopulateCommand(
-                    sqlCommandWrapper,
-                    validStatus: (byte)IndexStatus.Created,
-                    studyInstanceUid,
-                    seriesInstanceUid,
-                    sopInstanceUid);
-
-                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-                {
-                    while (await reader.ReadAsync(cancellationToken))
-                    {
-                        result = reader.GetString(0);
-                    }
-                }
-            }
-
-            return result;
-        }
     }
 }

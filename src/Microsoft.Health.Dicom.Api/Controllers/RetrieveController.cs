@@ -23,6 +23,7 @@ using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
@@ -63,14 +64,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
         [Route(KnownRoutes.StudyMetadataRoute)]
-        public async Task<IActionResult> GetStudyMetadataAsync(string studyInstanceUid)
+        public async Task<IActionResult> GetStudyMetadataAsync([ModelBinder(typeof(IfNoneMatchModelBinder))] string ifNoneMatch, string studyInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}'.");
 
-            string ifNoneMatch = GetIfNoneMatch();
-            RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, HttpContext.RequestAborted, ifNoneMatch);
+            RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
 
             return CreateResult(response);
         }
@@ -101,15 +102,15 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
         [Route(KnownRoutes.SeriesMetadataRoute)]
-        public async Task<IActionResult> GetSeriesMetadataAsync(string studyInstanceUid, string seriesInstanceUid)
+        public async Task<IActionResult> GetSeriesMetadataAsync([ModelBinder(typeof(IfNoneMatchModelBinder))] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
-            string ifNoneMatch = GetIfNoneMatch();
             RetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
-                studyInstanceUid, seriesInstanceUid, HttpContext.RequestAborted, ifNoneMatch);
+                studyInstanceUid, seriesInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
 
             return CreateResult(response);
         }
@@ -141,15 +142,19 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
         [Route(KnownRoutes.InstanceMetadataRoute)]
-        public async Task<IActionResult> GetInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public async Task<IActionResult> GetInstanceMetadataAsync(
+            [ModelBinder(typeof(IfNoneMatchModelBinder))] string ifNoneMatch,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
-            string ifNoneMatch = GetIfNoneMatch();
             RetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
-               studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted, ifNoneMatch);
+               studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
 
             return CreateResult(response);
         }
@@ -189,7 +194,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 // If response contains an ETag, add it to the headers.
                 if (!string.IsNullOrEmpty(response.ETag))
                 {
-                    HttpContext.Response.Headers.Add("ETag", new StringValues(response.ETag));
+                    HttpContext.Response.Headers.Add(HeaderNames.ETag, new StringValues(response.ETag));
                 }
 
                 return StatusCode((int)HttpStatusCode.OK, response.ResponseMetadata);
@@ -199,19 +204,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         private static IActionResult CreateResult(RetrieveResourceResponse response, string contentType)
         {
             return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(contentType, x)).ToList());
-        }
-
-        /// <summary>
-        /// Try to fetch If-None-Match field from the headers.
-        /// Returns null if If-None-Match field is not present.
-        /// </summary>
-        /// <returns>Returns If-None-Match string value.</returns>
-        private string GetIfNoneMatch()
-        {
-            StringValues ifNoneMatchValues;
-            HttpContext.Request.Headers.TryGetValue("If-None-Match", out ifNoneMatchValues);
-            string ifNoneMatch = ifNoneMatchValues.FirstOrDefault();
-            return ifNoneMatch;
         }
     }
 }

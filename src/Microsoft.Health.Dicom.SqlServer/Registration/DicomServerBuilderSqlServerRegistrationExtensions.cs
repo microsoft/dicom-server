@@ -78,7 +78,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<ETagHelper>()
+            services.Add<ETagGenerator>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
