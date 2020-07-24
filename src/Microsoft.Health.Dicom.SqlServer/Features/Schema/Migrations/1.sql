@@ -755,7 +755,7 @@ AS
 
     -- Insert Study
     SELECT @studyKey = StudyKey
-    FROM dbo.Study
+    FROM dbo.Study WITH(UPDLOCK)
     WHERE StudyInstanceUid = @studyInstanceUid
 
     IF @@ROWCOUNT = 0
@@ -777,7 +777,7 @@ AS
 
     -- Insert Series
     SELECT @seriesKey = SeriesKey
-    FROM dbo.Series
+    FROM dbo.Series WITH(UPDLOCK)
     WHERE StudyKey = @studyKey
     AND SeriesInstanceUid = @seriesInstanceUid
 
@@ -1005,7 +1005,7 @@ AS
 
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
-                    FROM    dbo.Instance WITH(UPDLOCK)
+                    FROM    dbo.Instance WITH(HOLDLOCK, UPDLOCK)
                     WHERE   StudyKey = @studyKey
                     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid))
     BEGIN
@@ -1017,7 +1017,7 @@ AS
 
     -- If we've removing the series, see if it's the last for a study and if so, remove the study
     IF NOT EXISTS ( SELECT  *
-                    FROM    dbo.Series WITH(UPDLOCK)
+                    FROM    dbo.Series WITH(HOLDLOCK, UPDLOCK)
                     WHERE   Studykey = @studyKey)
     BEGIN
         DELETE
