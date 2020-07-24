@@ -14,7 +14,6 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
@@ -23,7 +22,6 @@ using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
-using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
@@ -182,23 +180,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response, KnownContentTypes.ApplicationOctetStream);
         }
 
-        private IActionResult CreateResult(RetrieveMetadataResponse response)
+        private static IActionResult CreateResult(RetrieveMetadataResponse response)
         {
-            // If cache is valid, just return the 304 status code (Not Modified)
-            if (response.IsCacheValid)
-            {
-                return StatusCode((int)HttpStatusCode.NotModified);
-            }
-            else
-            {
-                // If response contains an ETag, add it to the headers.
-                if (!string.IsNullOrEmpty(response.ETag))
-                {
-                    HttpContext.Response.Headers.Add(HeaderNames.ETag, new StringValues(response.ETag));
-                }
-
-                return StatusCode((int)HttpStatusCode.OK, response.ResponseMetadata);
-            }
+            return new MetadataResult(response);
         }
 
         private static IActionResult CreateResult(RetrieveResourceResponse response, string contentType)
