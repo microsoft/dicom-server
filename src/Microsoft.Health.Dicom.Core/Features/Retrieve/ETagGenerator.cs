@@ -13,14 +13,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public class ETagGenerator : IETagGenerator
     {
-        private readonly IInstanceStore _instanceStore;
-
-        public ETagGenerator(IInstanceStore instanceStore)
-        {
-            EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
-            _instanceStore = instanceStore;
-        }
-
         public string GetETag(ResourceType resourceType, IEnumerable<VersionedInstanceIdentifier> retrieveInstances)
         {
             EnsureArg.IsTrue(
