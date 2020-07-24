@@ -5,7 +5,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -130,24 +129,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         private async Task ValidateCleanupAsync()
         {
-            var timeout = DateTime.Now.AddSeconds(5);
-
-            while (timeout < DateTime.Now)
-            {
-                if (_indexDataStore.ReceivedCalls().Any())
-                {
-                    await _indexDataStore.Received(1).DeleteInstanceIndexAsync(
-                        DefaultStudyInstanceUid,
-                        DefaultSeriesInstanceUid,
-                        DefaultSopInstanceUid,
-                        Arg.Any<DateTimeOffset>(),
-                        CancellationToken.None);
-
-                    break;
-                }
-
-                await Task.Delay(100);
-            }
+            await _deleteService.Received(1).DeleteInstanceNowAsync(
+                       DefaultStudyInstanceUid,
+                       DefaultSeriesInstanceUid,
+                       DefaultSopInstanceUid,
+                       CancellationToken.None);
         }
     }
 }
