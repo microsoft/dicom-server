@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 {
                     try
                     {
-                        await ProcessDicomInstanceEntryAsync(index, cancellationToken);
+                        await ProcessDicomInstanceEntryAsync(index, true, cancellationToken);
                     }
                     finally
                     {
@@ -101,7 +101,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid);
         }
 
-        private async Task ProcessDicomInstanceEntryAsync(int index, CancellationToken cancellationToken)
+        /// <inheritdoc />
+        public async Task ProcessAsync(
+            IDicomInstanceEntry instanceEntry,
+            CancellationToken cancellationToken)
+        {
+            _dicomInstanceEntries = new IDicomInstanceEntry[] { instanceEntry };
+
+            try
+            {
+                await ProcessDicomInstanceEntryAsync(0, false, cancellationToken);
+            }
+            finally
+            {
+                // Fire and forget.
+                _ = Task.Run(() => DisposeResourceAsync(0));
+            }
+        }
+
+        private async Task ProcessDicomInstanceEntryAsync(int index, bool requireResponse, CancellationToken cancellationToken)
         {
             IDicomInstanceEntry dicomInstanceEntry = _dicomInstanceEntries[index];
 
@@ -135,7 +153,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                 LogValidationFailedDelegate(_logger, index, failureCode, ex);
 
-                _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
+                if (requireResponse)
+                {
+                    _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
+                }
 
                 return;
             }
@@ -149,7 +170,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                 LogSuccessfullyStoredDelegate(_logger, index, null);
 
-                _storeResponseBuilder.AddSuccess(dicomDataset);
+                if (requireResponse)
+                {
+                    _storeResponseBuilder.AddSuccess(dicomDataset);
+                }
             }
             catch (Exception ex)
             {
@@ -168,7 +192,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                 LogFailedToStoreDelegate(_logger, index, failureCode, ex);
 
-                _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
+                if (requireResponse)
+                {
+                    _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
+                }
             }
         }
 

@@ -636,6 +636,41 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
 )
 
 /*************************************************************
+    Changes Table
+**************************************************************/
+CREATE TABLE dbo.BulkImportSource (
+    SourceId                INT IDENTITY(1,1) NOT NULL,
+    AccountName             VARCHAR(24)       NOT NULL,
+    Timestamp               DATETIMEOFFSET(7) NOT NULL,
+    Status                  TINYINT           NOT NULL
+) WITH (DATA_COMPRESSION = PAGE)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_BulkImportSource ON dbo.BulkImportSource
+(
+    SourceId
+)
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_BulkImportSource_AccountName ON dbo.BulkImportSource
+(
+    AccountName
+)
+WITH (DATA_COMPRESSION = PAGE)
+
+CREATE TABLE dbo.BulkImportEntry (
+    Sequence                BIGINT IDENTITY(1,1) NOT NULL,
+    SourceId                INT                  NOT NULL, --FK
+    Timestamp               DATETIMEOFFSET(7)    NOT NULL,
+    ContainerName           VARCHAR(63)          NOT NULL,
+    BlobName                VARCHAR(1024)        NOT NULL,
+    Status                  TINYINT              NOT NULL,
+)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_BulkImportEntry ON dbo.BulkImportEntry
+(
+    Sequence
+)
+
+/*************************************************************
     Sequence for generating sequential unique ids
 **************************************************************/
 
@@ -1192,5 +1227,119 @@ BEGIN
             CurrentWatermark
     FROM    dbo.ChangeFeed
     ORDER BY Sequence DESC
+END
+GO
+
+CREATE PROCEDURE dbo.EnableBulkImportSource(
+    @accountName VARCHAR(24),
+    @status      TINYINT
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    INSERT INTO dbo.BulkImportSource
+        (Timestamp, AccountName, Status)
+    VALUES
+        (SYSUTCDATETIME(), @accountName, @status)
+END
+GO
+
+CREATE PROCEDURE dbo.UpdateBulkImportSourceStatus(
+    @accountName VARCHAR(24),
+    @status      TINYINT
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    UPDATE dbo.BulkImportSource
+    SET Status = @status
+    WHERE AccountName = @accountName
+END
+GO
+
+CREATE TYPE dbo.BulkImportEntryTableType AS TABLE (
+    ContainerName   VARCHAR(63),
+    BlobName        VARCHAR(1024)
+)
+GO
+
+CREATE PROCEDURE dbo.AddBulkImportEntries(
+    @accountName    VARCHAR(24),
+    @entries        dbo.BulkImportEntryTableType READONLY,
+    @initialStatus  TINYINT
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    BEGIN TRANSACTION
+
+    DECLARE @sourceId INT
+    DECLARE @timestamp DATETIME2 = SYSUTCDATETIME()
+
+    -- Get the source PK
+    SELECT  @sourceId = SourceId
+    FROM    dbo.BulkImportSource
+    WHERE   AccountName = @accountName
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        THROW 50404, 'Source does not exist', 1;
+    END
+
+    INSERT INTO dbo.BulkImportEntry
+        (SourceId, Timestamp, Status, ContainerName, BlobName)
+    SELECT @sourceId, @timestamp, @initialStatus, *
+    FROM @entries
+
+    COMMIT TRANSACTION
+END
+GO
+
+CREATE PROCEDURE dbo.GetBulkImportEntries(
+    @sourceStatus   TINYINT,
+    @entryStatus    TINYINT,
+    @limit          INT
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT TOP (@limit) Sequence, AccountName, BulkImportEntry.Timestamp, ContainerName, BlobName
+    FROM dbo.BulkImportEntry 
+    INNER JOIN dbo.BulkImportSource ON BulkImportEntry.SourceId = BulkImportSource.SourceId
+    WHERE BulkImportEntry.Status = @entryStatus
+    AND BulkImportSource.Status = @sourceStatus
+    ORDER BY BulkImportEntry.Sequence ASC
+END
+GO
+
+CREATE TYPE dbo.UpdateBulkImportEntryTableType AS TABLE (
+    Sequence        BIGINT,
+    Status          TINYINT
+)
+GO
+
+CREATE PROCEDURE dbo.UpdateBulkImportEntries(
+    @entries        dbo.UpdateBulkImportEntryTableType READONLY
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    BEGIN TRANSACTION
+
+    UPDATE dbo.BulkImportEntry SET BulkImportEntry.Status = entries.Status
+    FROM @entries entries
+    JOIN dbo.BulkImportEntry ON BulkImportEntry.Sequence = entries.Sequence
+
+    COMMIT TRANSACTION
 END
 GO

@@ -29,5 +29,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             IReadOnlyList<IDicomInstanceEntry> instanceEntries,
             string requiredStudyInstanceUid,
             CancellationToken cancellationToken);
+
+        Task ProcessAsync(
+            IDicomInstanceEntry instanceEntry,
+            CancellationToken cancellationToken);
     }
 }

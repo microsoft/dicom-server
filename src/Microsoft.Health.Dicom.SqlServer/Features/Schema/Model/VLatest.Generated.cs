@@ -13,6 +13,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
     internal class VLatest
     {
+        internal readonly static BulkImportEntryTable BulkImportEntry = new BulkImportEntryTable();
+        internal readonly static BulkImportSourceTable BulkImportSource = new BulkImportSourceTable();
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
@@ -20,10 +22,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static SchemaVersionTable SchemaVersion = new SchemaVersionTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
+        internal readonly static AddBulkImportEntriesProcedure AddBulkImportEntries = new AddBulkImportEntriesProcedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static DeleteInstanceSchemaProcedure DeleteInstanceSchema = new DeleteInstanceSchemaProcedure();
+        internal readonly static EnableBulkImportSourceProcedure EnableBulkImportSource = new EnableBulkImportSourceProcedure();
+        internal readonly static GetBulkImportEntriesProcedure GetBulkImportEntries = new GetBulkImportEntriesProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
@@ -33,9 +38,37 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static SelectCompatibleSchemaVersionsProcedure SelectCompatibleSchemaVersions = new SelectCompatibleSchemaVersionsProcedure();
         internal readonly static SelectCurrentSchemaVersionProcedure SelectCurrentSchemaVersion = new SelectCurrentSchemaVersionProcedure();
         internal readonly static SelectCurrentVersionsInformationProcedure SelectCurrentVersionsInformation = new SelectCurrentVersionsInformationProcedure();
+        internal readonly static UpdateBulkImportEntriesProcedure UpdateBulkImportEntries = new UpdateBulkImportEntriesProcedure();
+        internal readonly static UpdateBulkImportSourceStatusProcedure UpdateBulkImportSourceStatus = new UpdateBulkImportSourceStatusProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
         internal readonly static UpsertInstanceSchemaProcedure UpsertInstanceSchema = new UpsertInstanceSchemaProcedure();
         internal readonly static UpsertSchemaVersionProcedure UpsertSchemaVersion = new UpsertSchemaVersionProcedure();
+        internal class BulkImportEntryTable : Table
+        {
+            internal BulkImportEntryTable(): base("dbo.BulkImportEntry")
+            {
+            }
+
+            internal readonly BigIntColumn Sequence = new BigIntColumn("Sequence");
+            internal readonly IntColumn SourceId = new IntColumn("SourceId");
+            internal readonly DateTimeOffsetColumn Timestamp = new DateTimeOffsetColumn("Timestamp", 7);
+            internal readonly VarCharColumn ContainerName = new VarCharColumn("ContainerName", 63);
+            internal readonly VarCharColumn BlobName = new VarCharColumn("BlobName", 1024);
+            internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
+        }
+
+        internal class BulkImportSourceTable : Table
+        {
+            internal BulkImportSourceTable(): base("dbo.BulkImportSource")
+            {
+            }
+
+            internal readonly IntColumn SourceId = new IntColumn("SourceId");
+            internal readonly VarCharColumn AccountName = new VarCharColumn("AccountName", 24);
+            internal readonly DateTimeOffsetColumn Timestamp = new DateTimeOffsetColumn("Timestamp", 7);
+            internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
+        }
+
         internal class ChangeFeedTable : Table
         {
             internal ChangeFeedTable(): base("dbo.ChangeFeed")
@@ -138,6 +171,57 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal const string PatientNameWords = "PatientNameWords";
         }
 
+        internal class AddBulkImportEntriesProcedure : StoredProcedure
+        {
+            internal AddBulkImportEntriesProcedure(): base("dbo.AddBulkImportEntries")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _accountName = new ParameterDefinition<System.String>("@accountName", global::System.Data.SqlDbType.VarChar, false, 24);
+            private readonly BulkImportEntryTableTypeTableValuedParameterDefinition _entries = new BulkImportEntryTableTypeTableValuedParameterDefinition("@entries");
+            private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
+            public void PopulateCommand(SqlCommandWrapper command, System.String accountName, global::System.Collections.Generic.IEnumerable<BulkImportEntryTableTypeRow> entries, System.Byte initialStatus)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.AddBulkImportEntries";
+                _accountName.AddParameter(command.Parameters, accountName);
+                _entries.AddParameter(command.Parameters, entries);
+                _initialStatus.AddParameter(command.Parameters, initialStatus);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String accountName, System.Byte initialStatus, AddBulkImportEntriesTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, accountName: accountName, initialStatus: initialStatus, entries: tableValuedParameters.Entries);
+            }
+        }
+
+        internal class AddBulkImportEntriesTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddBulkImportEntriesTableValuedParameters>
+        {
+            public AddBulkImportEntriesTvpGenerator(ITableValuedParameterRowGenerator<TInput, BulkImportEntryTableTypeRow> BulkImportEntryTableTypeRowGenerator)
+            {
+                this.BulkImportEntryTableTypeRowGenerator = BulkImportEntryTableTypeRowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, BulkImportEntryTableTypeRow> BulkImportEntryTableTypeRowGenerator;
+            public AddBulkImportEntriesTableValuedParameters Generate(TInput input)
+            {
+                return new AddBulkImportEntriesTableValuedParameters(BulkImportEntryTableTypeRowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct AddBulkImportEntriesTableValuedParameters
+        {
+            internal AddBulkImportEntriesTableValuedParameters(global::System.Collections.Generic.IEnumerable<BulkImportEntryTableTypeRow> Entries)
+            {
+                this.Entries = Entries;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<BulkImportEntryTableTypeRow> Entries
+            {
+                get;
+            }
+        }
+
         internal class AddInstanceProcedure : StoredProcedure
         {
             internal AddInstanceProcedure(): base("dbo.AddInstance")
@@ -229,6 +313,42 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.DeleteInstanceSchema";
+            }
+        }
+
+        internal class EnableBulkImportSourceProcedure : StoredProcedure
+        {
+            internal EnableBulkImportSourceProcedure(): base("dbo.EnableBulkImportSource")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _accountName = new ParameterDefinition<System.String>("@accountName", global::System.Data.SqlDbType.VarChar, false, 24);
+            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
+            public void PopulateCommand(SqlCommandWrapper command, System.String accountName, System.Byte status)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.EnableBulkImportSource";
+                _accountName.AddParameter(command.Parameters, accountName);
+                _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        internal class GetBulkImportEntriesProcedure : StoredProcedure
+        {
+            internal GetBulkImportEntriesProcedure(): base("dbo.GetBulkImportEntries")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Byte> _sourceStatus = new ParameterDefinition<System.Byte>("@sourceStatus", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Byte> _entryStatus = new ParameterDefinition<System.Byte>("@entryStatus", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            public void PopulateCommand(SqlCommandWrapper command, System.Byte sourceStatus, System.Byte entryStatus, System.Int32 limit)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetBulkImportEntries";
+                _sourceStatus.AddParameter(command.Parameters, sourceStatus);
+                _entryStatus.AddParameter(command.Parameters, entryStatus);
+                _limit.AddParameter(command.Parameters, limit);
             }
         }
 
@@ -377,6 +497,70 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class UpdateBulkImportEntriesProcedure : StoredProcedure
+        {
+            internal UpdateBulkImportEntriesProcedure(): base("dbo.UpdateBulkImportEntries")
+            {
+            }
+
+            private readonly UpdateBulkImportEntryTableTypeTableValuedParameterDefinition _entries = new UpdateBulkImportEntryTableTypeTableValuedParameterDefinition("@entries");
+            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<UpdateBulkImportEntryTableTypeRow> entries)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.UpdateBulkImportEntries";
+                _entries.AddParameter(command.Parameters, entries);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, UpdateBulkImportEntriesTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, entries: tableValuedParameters.Entries);
+            }
+        }
+
+        internal class UpdateBulkImportEntriesTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, UpdateBulkImportEntriesTableValuedParameters>
+        {
+            public UpdateBulkImportEntriesTvpGenerator(ITableValuedParameterRowGenerator<TInput, UpdateBulkImportEntryTableTypeRow> UpdateBulkImportEntryTableTypeRowGenerator)
+            {
+                this.UpdateBulkImportEntryTableTypeRowGenerator = UpdateBulkImportEntryTableTypeRowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, UpdateBulkImportEntryTableTypeRow> UpdateBulkImportEntryTableTypeRowGenerator;
+            public UpdateBulkImportEntriesTableValuedParameters Generate(TInput input)
+            {
+                return new UpdateBulkImportEntriesTableValuedParameters(UpdateBulkImportEntryTableTypeRowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct UpdateBulkImportEntriesTableValuedParameters
+        {
+            internal UpdateBulkImportEntriesTableValuedParameters(global::System.Collections.Generic.IEnumerable<UpdateBulkImportEntryTableTypeRow> Entries)
+            {
+                this.Entries = Entries;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<UpdateBulkImportEntryTableTypeRow> Entries
+            {
+                get;
+            }
+        }
+
+        internal class UpdateBulkImportSourceStatusProcedure : StoredProcedure
+        {
+            internal UpdateBulkImportSourceStatusProcedure(): base("dbo.UpdateBulkImportSourceStatus")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _accountName = new ParameterDefinition<System.String>("@accountName", global::System.Data.SqlDbType.VarChar, false, 24);
+            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
+            public void PopulateCommand(SqlCommandWrapper command, System.String accountName, System.Byte status)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.UpdateBulkImportSourceStatus";
+                _accountName.AddParameter(command.Parameters, accountName);
+                _status.AddParameter(command.Parameters, status);
+            }
+        }
+
         internal class UpdateInstanceStatusProcedure : StoredProcedure
         {
             internal UpdateInstanceStatusProcedure(): base("dbo.UpdateInstanceStatus")
@@ -435,6 +619,76 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandText = "dbo.UpsertSchemaVersion";
                 _version.AddParameter(command.Parameters, version);
                 _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        private class BulkImportEntryTableTypeTableValuedParameterDefinition : TableValuedParameterDefinition<BulkImportEntryTableTypeRow>
+        {
+            internal BulkImportEntryTableTypeTableValuedParameterDefinition(System.String parameterName): base(parameterName, "dbo.BulkImportEntryTableType")
+            {
+            }
+
+            internal readonly VarCharColumn ContainerName = new VarCharColumn("ContainerName", 63);
+            internal readonly VarCharColumn BlobName = new VarCharColumn("BlobName", 1024);
+            protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[]{ContainerName, BlobName};
+            protected override void FillSqlDataRecord(global::Microsoft.SqlServer.Server.SqlDataRecord record, BulkImportEntryTableTypeRow rowData)
+            {
+                ContainerName.Set(record, 0, rowData.ContainerName);
+                BlobName.Set(record, 1, rowData.BlobName);
+            }
+        }
+
+        internal struct BulkImportEntryTableTypeRow
+        {
+            internal BulkImportEntryTableTypeRow(System.String ContainerName, System.String BlobName)
+            {
+                this.ContainerName = ContainerName;
+                this.BlobName = BlobName;
+            }
+
+            internal System.String ContainerName
+            {
+                get;
+            }
+
+            internal System.String BlobName
+            {
+                get;
+            }
+        }
+
+        private class UpdateBulkImportEntryTableTypeTableValuedParameterDefinition : TableValuedParameterDefinition<UpdateBulkImportEntryTableTypeRow>
+        {
+            internal UpdateBulkImportEntryTableTypeTableValuedParameterDefinition(System.String parameterName): base(parameterName, "dbo.UpdateBulkImportEntryTableType")
+            {
+            }
+
+            internal readonly BigIntColumn Sequence = new BigIntColumn("Sequence");
+            internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
+            protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[]{Sequence, Status};
+            protected override void FillSqlDataRecord(global::Microsoft.SqlServer.Server.SqlDataRecord record, UpdateBulkImportEntryTableTypeRow rowData)
+            {
+                Sequence.Set(record, 0, rowData.Sequence);
+                Status.Set(record, 1, rowData.Status);
+            }
+        }
+
+        internal struct UpdateBulkImportEntryTableTypeRow
+        {
+            internal UpdateBulkImportEntryTableTypeRow(System.Int64 Sequence, System.Byte Status)
+            {
+                this.Sequence = Sequence;
+                this.Status = Status;
+            }
+
+            internal System.Int64 Sequence
+            {
+                get;
+            }
+
+            internal System.Byte Status
+            {
+                get;
             }
         }
     }

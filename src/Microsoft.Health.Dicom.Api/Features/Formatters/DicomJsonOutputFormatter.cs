@@ -14,6 +14,7 @@ using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Web;
 using Newtonsoft.Json;
@@ -44,7 +45,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
             return _jsonDicomConverter.CanConvert(type) ||
                 typeof(IEnumerable<DicomDataset>).IsAssignableFrom(type) ||
                 typeof(IEnumerable<ChangeFeedEntry>).IsAssignableFrom(type) ||
-                typeof(ChangeFeedEntry).IsAssignableFrom(type);
+                typeof(ChangeFeedEntry).IsAssignableFrom(type) ||
+                typeof(SubscriptionValidationResponse).IsAssignableFrom(type);
         }
 
         /// <summary>

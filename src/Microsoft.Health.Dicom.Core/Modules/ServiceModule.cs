@@ -5,6 +5,7 @@
 
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Dicom.Core.Features.BulkImport;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -103,6 +104,21 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.Add<DicomElementMinimumValidator>()
                 .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<BulkImportSourceService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<BulkImportService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<BulkImportBackgroundWorker>()
+                .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
         }

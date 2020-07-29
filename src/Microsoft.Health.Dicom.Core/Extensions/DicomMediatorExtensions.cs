@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Messages.BulkImport;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.Query;
@@ -121,6 +122,14 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             CancellationToken cancellationToken = default)
         {
             return mediator.Send(new ChangeFeedLatestRequest(includeMetadata), cancellationToken);
+        }
+
+        public static Task<EnableBulkImportSourceResponse> EnableBulkImportSourceAsync(
+            this IMediator mediator,
+            string accountName,
+            CancellationToken cancellationToken = default)
+        {
+            return mediator.Send(new EnableBulkImportSourceRequest(accountName), cancellationToken);
         }
     }
 }
