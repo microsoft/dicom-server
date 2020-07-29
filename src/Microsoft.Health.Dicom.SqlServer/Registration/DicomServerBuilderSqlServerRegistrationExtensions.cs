@@ -78,11 +78,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<ETagGenerator>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
             return dicomServerBuilder;
         }
     }

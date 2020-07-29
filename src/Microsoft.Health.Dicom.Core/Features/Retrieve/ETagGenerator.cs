@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 resourceType == ResourceType.Instance,
                 nameof(resourceType));
             EnsureArg.IsNotNull(retrieveInstances);
+            EnsureArg.IsTrue(retrieveInstances.Any());
 
             string eTag = string.Empty;
             long maxWatermark = retrieveInstances.Max(ri => ri.Version);

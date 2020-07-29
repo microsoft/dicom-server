@@ -13,23 +13,13 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
 {
     public class IfNoneMatchModelBinder : IModelBinder
     {
-        private readonly string ifNoneMatchHeaderPrefix;
-
-        public IfNoneMatchModelBinder()
-        {
-            ifNoneMatchHeaderPrefix = HeaderNames.IfNoneMatch;
-        }
-
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
-            bindingContext.HttpContext.Request.Headers.TryGetValue(ifNoneMatchHeaderPrefix, out StringValues ifNoneMatchValues);
-
-            string ifNoneMatch = ifNoneMatchValues.FirstOrDefault();
-
-            if (!string.IsNullOrEmpty(ifNoneMatch))
+            if (bindingContext.HttpContext.Request.Headers.TryGetValue(HeaderNames.IfNoneMatch, out StringValues ifNoneMatchValues))
             {
+                string ifNoneMatch = ifNoneMatchValues.FirstOrDefault();
                 ValueProviderResult valueProviderResult = new ValueProviderResult(ifNoneMatch);
-                bindingContext.ModelState.SetModelValue(ifNoneMatchHeaderPrefix, valueProviderResult);
+                bindingContext.ModelState.SetModelValue(HeaderNames.IfNoneMatch, valueProviderResult);
                 bindingContext.Result = ModelBindingResult.Success(ifNoneMatch);
                 return Task.CompletedTask;
             }
