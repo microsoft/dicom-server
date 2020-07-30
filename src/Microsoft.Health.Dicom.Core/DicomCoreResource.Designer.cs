@@ -88,6 +88,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; does not validate VR &apos;{2}&apos;: {3}..
+        /// </summary>
+        internal static string DicomElementValidationFailed {
+            get {
+                return ResourceManager.GetString("DicomElementValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
         /// </summary>
         internal static string DuplicatedUidsNotAllowed {
@@ -355,6 +364,60 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string UnsupportedTranscoding {
             get {
                 return ResourceManager.GetString("UnsupportedTranscoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value contains invalid character..
+        /// </summary>
+        internal static string ValueContainsInvalidCharacter {
+            get {
+                return ResourceManager.GetString("ValueContainsInvalidCharacter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value contains more than 5 components..
+        /// </summary>
+        internal static string ValueExceedsAllowedComponents {
+            get {
+                return ResourceManager.GetString("ValueExceedsAllowedComponents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value contains more than 3 groups..
+        /// </summary>
+        internal static string ValueExceedsAllowedGroups {
+            get {
+                return ResourceManager.GetString("ValueExceedsAllowedGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value cannot be parsed as a valid date..
+        /// </summary>
+        internal static string ValueIsInvalidDate {
+            get {
+                return ResourceManager.GetString("ValueIsInvalidDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value exceeds maximum length of 16 characters..
+        /// </summary>
+        internal static string ValueLengthExceeds16Characters {
+            get {
+                return ResourceManager.GetString("ValueLengthExceeds16Characters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value exceeds maximum length of 64 characters..
+        /// </summary>
+        internal static string ValueLengthExceeds64Characters {
+            get {
+                return ResourceManager.GetString("ValueLengthExceeds64Characters", resourceCulture);
             }
         }
     }

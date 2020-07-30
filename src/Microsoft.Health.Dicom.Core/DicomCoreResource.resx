@@ -127,6 +127,10 @@
   <data name="DataStoreOperationFailed" xml:space="preserve">
     <value>The data store operation failed.</value>
   </data>
+  <data name="DicomElementValidationFailed" xml:space="preserve">
+    <value>Dicom element '{0}' with value '{1}' does not validate VR '{2}': {3}.</value>
+    <comment>Dicom element {0} of value {1} of type {2}. {3} has more detailed message on why.</comment>
+  </data>
   <data name="DuplicatedUidsNotAllowed" xml:space="preserve">
     <value>The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.</value>
     <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"}</comment>
@@ -231,5 +235,23 @@ The first part date {1} should be lesser than or equal to the second part date {
   </data>
   <data name="UnsupportedTranscoding" xml:space="preserve">
     <value>The specified transcoding is not supported.</value>
+  </data>
+  <data name="ValueContainsInvalidCharacter" xml:space="preserve">
+    <value>Value contains invalid character.</value>
+  </data>
+  <data name="ValueExceedsAllowedComponents" xml:space="preserve">
+    <value>Value contains more than 5 components.</value>
+  </data>
+  <data name="ValueExceedsAllowedGroups" xml:space="preserve">
+    <value>Value contains more than 3 groups.</value>
+  </data>
+  <data name="ValueIsInvalidDate" xml:space="preserve">
+    <value>Value cannot be parsed as a valid date.</value>
+  </data>
+  <data name="ValueLengthExceeds16Characters" xml:space="preserve">
+    <value>Value exceeds maximum length of 16 characters.</value>
+  </data>
+  <data name="ValueLengthExceeds64Characters" xml:space="preserve">
+    <value>Value exceeds maximum length of 64 characters.</value>
   </data>
 </root>

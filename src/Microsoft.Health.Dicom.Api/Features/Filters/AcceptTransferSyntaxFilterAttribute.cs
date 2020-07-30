@@ -18,30 +18,35 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
     {
         private const int NotAcceptableResponseCode = (int)HttpStatusCode.NotAcceptable;
         private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
-
+        private readonly bool _allowMissing;
         private readonly HashSet<string> _transferSyntaxes;
 
-        public AcceptTransferSyntaxFilterAttribute(string[] transferSyntaxes)
+        public AcceptTransferSyntaxFilterAttribute(string[] transferSyntaxes, bool allowMissing = false)
         {
             Debug.Assert(transferSyntaxes.Length > 0, "The accept transfer syntax filter must have at least one transfer syntax specified.");
-
-            _transferSyntaxes = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-
-            foreach (string transferSyntax in transferSyntaxes)
-            {
-                _transferSyntaxes.Add(transferSyntax);
-            }
+            _transferSyntaxes = new HashSet<string>(transferSyntaxes, StringComparer.InvariantCultureIgnoreCase);
+            _allowMissing = allowMissing;
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            bool acceptable = false;
-            ModelStateEntry transferSyntaxValue;
+            bool acceptable;
 
             // As model binding happens prior to filteration, use the transfer syntax that was found in TransferSyntaxModelBinder and validate if it is acceptable.
-            if (context.ModelState.TryGetValue(TransferSyntaxHeaderPrefix, out transferSyntaxValue) && _transferSyntaxes.Contains(transferSyntaxValue.RawValue))
+            if (context.ModelState.TryGetValue(TransferSyntaxHeaderPrefix, out ModelStateEntry transferSyntaxValue))
             {
-                acceptable = true;
+                if (_transferSyntaxes.Contains(transferSyntaxValue.RawValue))
+                {
+                    acceptable = true;
+                }
+                else
+                {
+                    acceptable = _allowMissing && string.IsNullOrWhiteSpace($"{transferSyntaxValue.RawValue}");
+                }
+            }
+            else
+            {
+                acceptable = _allowMissing;
             }
 
             if (!acceptable)

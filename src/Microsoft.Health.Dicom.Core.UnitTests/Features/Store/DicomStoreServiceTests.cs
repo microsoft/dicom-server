@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             sopClassUid: "13");
 
         private readonly IStoreResponseBuilder _storeResponseBuilder = Substitute.For<IStoreResponseBuilder>();
-        private readonly IDicomDatasetMinimumRequirementValidator _dicomDatasetMinimumRequirementValidator = Substitute.For<IDicomDatasetMinimumRequirementValidator>();
+        private readonly IDicomDatasetValidator _dicomDatasetValidator = Substitute.For<IDicomDatasetValidator>();
         private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
         private readonly StoreService _storeService;
 
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _storeService = new StoreService(
                 _storeResponseBuilder,
-                _dicomDatasetMinimumRequirementValidator,
+                _dicomDatasetValidator,
                 _storeOrchestrator,
                 NullLogger<StoreService>.Instance);
         }
@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             const ushort failureCode = 500;
 
-            _dicomDatasetMinimumRequirementValidator
+            _dicomDatasetValidator
                 .When(validator => validator.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Do(_ => throw new DatasetValidationException(failureCode, "test"));
 
@@ -172,7 +172,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntryToSucceed.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset1);
             dicomInstanceEntryToFail.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
-            _dicomDatasetMinimumRequirementValidator
+            _dicomDatasetValidator
                 .When(dicomDatasetMinimumRequirementValidator => dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset2, null))
                 .Do(_ => throw new Exception());
 

@@ -13,17 +13,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     {
         Task<RetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(
            string studyInstanceUid,
+           string ifNoneMatch = null,
            CancellationToken cancellationToken = default);
 
         Task<RetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(
            string studyInstanceUid,
            string seriesInstanceUid,
+           string ifNoneMatch = null,
            CancellationToken cancellationToken = default);
 
         Task<RetrieveMetadataResponse> RetrieveSopInstanceMetadataAsync(
            string studyInstanceUid,
            string seriesInstanceUid,
            string sopInstanceUid,
+           string ifNoneMatch = null,
            CancellationToken cancellationToken = default);
     }
 }

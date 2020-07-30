@@ -30,11 +30,11 @@ namespace Microsoft.Health.Dicom.Client
 
         Task<DicomWebResponse<string>> QueryWithBadRequest(string requestUri, CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(Uri requestUri, string dicomTransferSyntax = null, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(Uri requestUri, string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax, CancellationToken cancellationToken = default);
 
         Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(Uri requestUri, string format = null, CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstancesAsync(Uri requestUri, bool singleInstance = false, string dicomTransferSyntax = null, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstancesAsync(Uri requestUri, bool singleInstance = false, string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax, CancellationToken cancellationToken = default);
 
         Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveInstancesRenderedAsync(Uri requestUri, string format = null, CancellationToken cancellationToken = default);
 

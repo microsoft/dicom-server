@@ -16,9 +16,9 @@ namespace Microsoft.Health.Dicom.Client
     public static class DicomWebClientExtensions
     {
         public static Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveStudyAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
-            string dicomTransferSyntax = null,
+            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveStudyMetadataAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             CancellationToken cancellationToken = default)
         {
@@ -43,10 +43,10 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveSeriesAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             string seriesInstanceUid,
-            string dicomTransferSyntax = null,
+            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveSeriesMetadataAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken = default)
@@ -72,11 +72,11 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstanceAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            string dicomTransferSyntax = null,
+            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveInstanceRenderedAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUId,
@@ -108,7 +108,7 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveInstanceMetadataAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
@@ -122,7 +122,7 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
@@ -141,11 +141,11 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            string dicomTransferSyntax = null,
+            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
             int[] frames = null,
             CancellationToken cancellationToken = default)
         {
@@ -155,7 +155,7 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse> DeleteStudyAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             CancellationToken cancellationToken = default)
         {
@@ -167,7 +167,7 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse> DeleteSeriesAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken = default)
@@ -180,7 +180,7 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public static Task<DicomWebResponse> DeleteInstanceAsync(
-            this DicomWebClient dicomWebClient,
+            this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,

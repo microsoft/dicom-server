@@ -11,8 +11,9 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
-using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Web;
 using Newtonsoft.Json;
@@ -46,26 +47,44 @@ namespace Microsoft.Health.Dicom.Api.Features.Formatters
                 typeof(ChangeFeedEntry).IsAssignableFrom(type);
         }
 
-        public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
+        /// <summary>
+        /// Called during serialization to create the <see cref="JsonWriter"/>.
+        /// </summary>
+        /// <param name="writer">The <see cref="TextWriter"/> used to write.</param>
+        /// <returns>The <see cref="JsonWriter"/> used during serialization.</returns>
+        protected virtual JsonWriter CreateJsonWriter(TextWriter writer)
+        {
+            EnsureArg.IsNotNull(writer, nameof(writer));
+
+            var jsonWriter = new JsonTextWriter(writer)
+            {
+                CloseOutput = false,
+                AutoCompleteOnClose = false,
+            };
+
+            return jsonWriter;
+        }
+
+        public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(selectedEncoding, nameof(selectedEncoding));
 
-            var bodyControlFeature = context.HttpContext.Features.Get<IHttpBodyControlFeature>();
-            if (bodyControlFeature != null)
-            {
-                bodyControlFeature.AllowSynchronousIO = true;
-            }
+            HttpResponse response = context.HttpContext.Response;
+            await using var fileBufferingWriteStream = new FileBufferingWriteStream();
 
-            using (TextWriter textWriter = context.WriterFactory(context.HttpContext.Response.Body, selectedEncoding))
+            await using (TextWriter textWriter = context.WriterFactory(fileBufferingWriteStream, selectedEncoding))
             {
-                using (var writer = new JsonTextWriter(textWriter))
+                using (var jsonWriter = CreateJsonWriter(textWriter))
                 {
-                    _jsonSerializer.Serialize(writer, context.Object);
+                    _jsonSerializer.Serialize(jsonWriter, context.Object);
+
+                    await jsonWriter.FlushAsync();
                 }
             }
 
-            return Task.CompletedTask;
+            response.ContentLength = fileBufferingWriteStream.Length;
+            await fileBufferingWriteStream.DrainBufferAsync(response.Body);
         }
     }
 }

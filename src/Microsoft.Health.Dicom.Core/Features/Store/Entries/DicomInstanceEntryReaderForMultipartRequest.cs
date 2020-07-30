@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
                             string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, bodyPart.ContentType));
                     }
 
-                    dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(bodyPart.Body));
+                    dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(bodyPart.SeekableStream));
                 }
             }
             catch (Exception)

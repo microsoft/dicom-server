@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
             Uri requestUri,
-            string dicomTransferSyntax = null,
+            string dicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
@@ -117,8 +117,8 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstancesAsync(
             Uri requestUri,
-            bool singleInstance = false,
-            string dicomTransferSyntax = null,
+            bool singleInstance,
+            string dicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
@@ -400,7 +400,7 @@ namespace Microsoft.Health.Dicom.Client
 
         private static string CreateAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
         {
-            string transferSyntaxHeader = dicomTransferSyntax == null ? $";{TransferSyntaxHeaderName}=\"*\"" : $";{TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
+            string transferSyntaxHeader = dicomTransferSyntax == null ? string.Empty : $";{TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
 
             return $"{mediaTypeHeader}{transferSyntaxHeader}";
         }

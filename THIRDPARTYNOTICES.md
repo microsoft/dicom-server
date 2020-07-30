@@ -4,7 +4,7 @@ Do Not Translate or Localize
 
 This file is based on or incorporates material from the projects listed below (Third Party IP). The original copyright notice and the license under which Microsoft received such Third Party IP, are set forth below. Such licenses and notices are provided for informational purposes only. Microsoft licenses the Third Party IP to you under the licensing terms for the Microsoft product. Microsoft reserves all other rights not expressly granted under this agreement, whether by implication, estoppel or otherwise.
 
-## Ensure.That 8.1.1
+## Ensure.That 9.2.0
 * Component Source:   https://github.com/danielwertheim/Ensure.That/
 * Component Copyright and License:
   > The MIT License (MIT)
@@ -705,7 +705,7 @@ This file is based on or incorporates material from the projects listed below (T
   >    See the License for the specific language governing permissions and
   >    limitations under the License.
   
-## NSubstitute 3.1.0
+## NSubstitute 4.2.2
 * Component Source:   https://github.com/nsubstitute/
 * Component Copyright and License:  
   > Copyright (c) 2009 Anthony Egerton (nsubstitute@delfish.com) and David Tchepak (dave@davesquared.net)

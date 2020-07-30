@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private readonly RetrieveMetadataService _retrieveMetadataService;
         private readonly IInstanceStore _instanceStore;
         private readonly IMetadataStore _metadataStore;
+        private readonly IETagGenerator _eTagGenerator;
 
         private readonly string _studyInstanceUid = TestUidGenerator.Generate();
         private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
@@ -40,38 +40,42 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             _instanceStore = Substitute.For<IInstanceStore>();
             _metadataStore = storagefixture.MetadataStore;
-            _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore);
+            _eTagGenerator = Substitute.For<IETagGenerator>();
+            _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore, _eTagGenerator);
         }
 
         [Fact]
         public async Task GivenRetrieveMetadataRequestForStudy_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
         {
             List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Study);
+            string ifNoneMatch = null;
 
             // Add metadata for only one instance in the given list
             await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 0);
 
-            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken));
         }
 
         [Fact]
         public async Task GivenRetrieveMetadataRequestForStudy_WhenFailsToRetrieveAny_ThenNotFoundIsThrown()
         {
             SetupDatasetList(ResourceType.Study);
+            string ifNoneMatch = null;
 
-            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken));
         }
 
         [Fact]
         public async Task GivenRetrieveMetadataRequestForStudy_WhenIsSuccessful_ThenInstanceMetadataIsRetrievedSuccessfully()
         {
             List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Study);
+            string ifNoneMatch = null;
 
             // Add metadata for all instances in the given list
             await _metadataStore.StoreInstanceMetadataAsync(datasetList.First(), version: 0);
             await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 1);
 
-            RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, DefaultCancellationToken);
+            RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken);
 
             ValidateResponseMetadataDataset(datasetList.First(), response.ResponseMetadata.First());
             ValidateResponseMetadataDataset(datasetList.Last(), response.ResponseMetadata.Last());
@@ -81,11 +85,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         public async Task GivenRetrieveMetadataRequestForSeries_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
         {
             List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Series);
+            string ifNoneMatch = null;
 
             // Add metadata for only one instance in the given list
             await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 1);
 
-            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken));
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken));
         }
 
         [Fact]
@@ -93,7 +98,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             SetupDatasetList(ResourceType.Series);
 
-            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken));
+            string ifNoneMatch = null;
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken));
         }
 
         [Fact]
@@ -105,7 +111,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             await _metadataStore.StoreInstanceMetadataAsync(datasetList.First(), version: 0);
             await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 1);
 
-            RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken);
+            string ifNoneMatch = null;
+            RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken);
 
             ValidateResponseMetadataDataset(datasetList.First(), response.ResponseMetadata.First());
             ValidateResponseMetadataDataset(datasetList.Last(), response.ResponseMetadata.Last());

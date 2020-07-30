@@ -7,9 +7,11 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Api.Web;
-using Microsoft.IO;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Web
@@ -18,20 +20,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
     {
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-
         private readonly MultipartReaderStreamToSeekableStreamConverter _seekableStreamConverter;
-
-        private int _numberOfDisposeCalled;
 
         public MultipartReaderStreamToSeekableStreamConverterTests()
         {
-            _recyclableMemoryStreamManager.StreamDisposed += () =>
-            {
-                _numberOfDisposeCalled++;
-            };
-
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(_recyclableMemoryStreamManager);
+            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
         }
 
         [Fact]
@@ -50,33 +43,29 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         [Fact]
         public async Task GivenAnIOExceptionReadingStream_WhenConverted_ThenInvalidMultipartBodyPartExceptionShouldBeThrown()
         {
-            Stream nonseekableStream = SetupNonSeeableStreamException<IOException>();
+            Stream nonseekableStream = SetupNonSeekableStreamException<IOException>();
 
             await Assert.ThrowsAsync<InvalidMultipartBodyPartException>(
                 () => _seekableStreamConverter.ConvertAsync(nonseekableStream, DefaultCancellationToken));
-
-            Assert.Equal(1, _numberOfDisposeCalled);
         }
 
         [Fact]
         public async Task GivenANoneIOExceptionReadingStream_WhenConverted_ThenExceptionShouldBeRethrown()
         {
-            Stream nonseekableStream = SetupNonSeeableStreamException<InvalidOperationException>();
+            Stream nonseekableStream = SetupNonSeekableStreamException<InvalidOperationException>();
 
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _seekableStreamConverter.ConvertAsync(nonseekableStream, DefaultCancellationToken));
-
-            Assert.Equal(1, _numberOfDisposeCalled);
         }
 
-        private Stream SetupNonSeeableStreamException<TException>()
+        private Stream SetupNonSeekableStreamException<TException>()
             where TException : Exception, new()
         {
             Stream nonseekableStream = Substitute.For<Stream>();
 
             nonseekableStream.CanSeek.Returns(false);
-            nonseekableStream.When(stream => stream.CopyToAsync(Arg.Any<Stream>(), DefaultCancellationToken))
-                .Do(_ => throw new TException());
+            nonseekableStream.DrainAsync(DefaultCancellationToken)
+                .Throws(_ => throw new TException());
 
             return nonseekableStream;
         }
