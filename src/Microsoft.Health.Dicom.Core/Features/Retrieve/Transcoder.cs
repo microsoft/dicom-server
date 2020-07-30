@@ -17,7 +17,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public class Transcoder : ITranscoder
     {
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-        private readonly TranscoderManager _transcoderManager;
         private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
 
         public Transcoder(
@@ -30,8 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
-            _transcoderManager = transcoderManager;
-            if (_transcoderManager != null)
+            if (transcoderManager != null)
             {
                 TranscoderManager.SetImplementation(transcoderManager);
             }
