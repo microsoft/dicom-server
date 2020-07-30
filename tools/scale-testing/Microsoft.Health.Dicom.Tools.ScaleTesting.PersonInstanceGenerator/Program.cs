@@ -15,6 +15,7 @@ using Azure.Security.KeyVault.Secrets;
 using Dicom;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.KeyVault;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.ServiceBus;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator
@@ -137,9 +138,9 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator
                     Mode = RetryMode.Exponential,
                 },
             };
-            var client = new SecretClient(new Uri("https://dicom-client.vault.azure.net/"), new DefaultAzureCredential(), options);
+            var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = client.GetSecret("ServiceBusConnectionString");
+            KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
 
             _serviceBusConnectionString = secret.Value;
 
@@ -149,10 +150,11 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator
             string path = args[2];
             topicClient = new TopicClient(_serviceBusConnectionString, KnownTopics.StowRs);
             int tracker = 0;
+            int totalCount = int.Parse(args[3]);
 
             using (StreamWriter sw = File.Exists(path) ? File.AppendText(path) : File.CreateText(path))
             {
-                for (int count = 0; count < 2000; count++)
+                while (tracker < totalCount)
                 {
                     var patientName = patientNames.RandomElement();
                     var patientId = PatientId();

@@ -12,6 +12,8 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.KeyVault;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.RetrieveBlobNames
 {
@@ -32,9 +34,9 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.RetrieveBlobNames
                     Mode = RetryMode.Exponential,
                 },
             };
-            var client = new SecretClient(new Uri("https://dicom-client.vault.azure.net/"), new DefaultAzureCredential(), options);
+            var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = client.GetSecret("ServiceBusConnectionString");
+            KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
 
             _containerConnectionString = secret.Value;
 

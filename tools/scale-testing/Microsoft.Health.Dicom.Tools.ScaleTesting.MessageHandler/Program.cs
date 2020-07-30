@@ -19,6 +19,8 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.AppConfiguration;
+using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.KeyVault;
 using Microsoft.Health.Dicom.Tools.ScaleTesting.Common.ServiceBus;
 
 namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
@@ -29,8 +31,6 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
         private static string _topicName;
 
         private static ISubscriptionClient subscriptionClient;
-
-        private const string WebServerUrl = "http://dicom-server-ii.azurewebsites.net";
         private static DicomWebClient client;
 
         private static string[] _separators = new string[] { "\t", "  ", " " };
@@ -47,18 +47,18 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
                     Mode = RetryMode.Exponential,
                 },
             };
-            var client = new SecretClient(new Uri("https://dicom-client.vault.azure.net/"), new DefaultAzureCredential(), options);
+            var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = client.GetSecret("ServiceBusConnectionString");
+            KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
 
             _serviceBusConnectionString = secret.Value;
 
-            secret = client.GetSecret("AppConfiguration");
+            secret = client.GetSecret(KnownSecretNames.AppConfiguration);
             var builder = new ConfigurationBuilder();
             builder.AddAzureAppConfiguration(secret.Value);
 
             var config = builder.Build();
-            var runType = config["RunType"];
+            var runType = config[KnownConfigurationNames.RunType];
             _topicName = runType;
 
             subscriptionClient = new SubscriptionClient(_serviceBusConnectionString, _topicName, KnownSubscriptions.S1, ReceiveMode.PeekLock);
@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
         {
             var httpClient = new HttpClient
             {
-                BaseAddress = new Uri(WebServerUrl),
+                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
             };
 
             client = new DicomWebClient(httpClient);

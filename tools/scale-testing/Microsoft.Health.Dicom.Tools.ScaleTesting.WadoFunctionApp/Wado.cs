@@ -18,7 +18,6 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.WadoFunctionApp
 {
     public static class Wado
     {
-        private const string WebServerUrl = "http://dicom-server-ii.azurewebsites.net";
         private static DicomWebClient client;
 
         [FunctionName("WadoInstance")]
@@ -41,7 +40,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.WadoFunctionApp
         {
             var httpClient = new HttpClient
             {
-                BaseAddress = new Uri(WebServerUrl),
+                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
             };
 
             client = new DicomWebClient(httpClient);
