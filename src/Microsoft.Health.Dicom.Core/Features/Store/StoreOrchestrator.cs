@@ -11,6 +11,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Models;
@@ -25,19 +26,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IFileStore _fileStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
+        private readonly IDeleteService _deleteService;
 
         public StoreOrchestrator(
             IFileStore fileStore,
             IMetadataStore metadataStore,
-            IIndexDataStore indexDataStore)
+            IIndexDataStore indexDataStore,
+            IDeleteService deleteService)
         {
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
+            EnsureArg.IsNotNull(deleteService, nameof(deleteService));
 
             _fileStore = fileStore;
             _metadataStore = metadataStore;
             _indexDataStore = indexDataStore;
+            _deleteService = deleteService;
         }
 
         /// <inheritdoc />
@@ -70,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             catch (Exception)
             {
                 // Exception occurred while storing the file. Try delete the index.
-                _ = Task.Run(() => TryCleanupInstanceIndexAsync(versionedInstanceIdentifier));
+                await TryCleanupInstanceIndexAsync(versionedInstanceIdentifier);
                 throw;
             }
         }
@@ -100,7 +105,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 // In case the request is canceled and one of the operation failed, we still want to cleanup.
                 // Therefore, we will not be using the same cancellation token as the request itself.
-                await _indexDataStore.DeleteInstanceIndexAsync(versionedInstanceIdentifier, CancellationToken.None);
+                await _deleteService.DeleteInstanceNowAsync(
+                    versionedInstanceIdentifier.StudyInstanceUid,
+                    versionedInstanceIdentifier.SeriesInstanceUid,
+                    versionedInstanceIdentifier.SopInstanceUid,
+                    CancellationToken.None);
             }
             catch (Exception)
             {

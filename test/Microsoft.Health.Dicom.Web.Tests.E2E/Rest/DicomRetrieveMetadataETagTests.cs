@@ -34,20 +34,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             string studyInstanceUid = TestUidGenerator.Generate();
 
-            DicomDataset firstStoredInstance = await PostDicomFileAsync(ResourceType.Study, studyInstanceUid, dataSet: GenerateNewDataSet());
-            DicomDataset secondStoredInstance = await PostDicomFileAsync(ResourceType.Study, studyInstanceUid, dataSet: GenerateNewDataSet());
+            DicomDataset storedInstance = await PostDicomFileAsync(ResourceType.Study, studyInstanceUid, dataSet: GenerateNewDataSet());
 
             DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string eTag = null;
-            if (response.Headers.TryGetValues(HeaderNames.ETag, out IEnumerable<string> eTagValues))
-            {
-                if (eTagValues.Count() > 0)
-                {
-                    eTag = eTagValues.FirstOrDefault();
-                }
-            }
+            string eTag = GetEtagFromResponse(response);
 
             response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid, eTag);
             Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
@@ -62,15 +53,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset secondStoredInstance = await PostDicomFileAsync(ResourceType.Study, studyInstanceUid, dataSet: GenerateNewDataSet());
 
             DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
+            string eTag = GetEtagFromResponse(response);
             string ifNoneMatch = null;
-            if (response.Headers.TryGetValues(HeaderNames.ETag, out IEnumerable<string> eTagValues))
+            if (!string.IsNullOrEmpty(eTag))
             {
-                if (eTagValues.Count() > 0)
-                {
-                    ifNoneMatch = string.Concat("1", eTagValues.FirstOrDefault());
-                }
+                ifNoneMatch = string.Concat("1", eTag);
             }
 
             response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid, ifNoneMatch);
@@ -90,25 +78,32 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        public async Task GivenRetrieveStudyMetadataRequest_WhenStudyIsUpdatedAndPreviousETagIsUsed_ThenResponseMetadataIsReturnedWithNewETag()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+
+            DicomDataset firstStoredInstance = await PostDicomFileAsync(ResourceType.Study, studyInstanceUid, dataSet: GenerateNewDataSet());
+            DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid);
+
+            string eTag = GetEtagFromResponse(response);
+
+            DicomDataset secondStoredInstance = await PostDicomFileAsync(ResourceType.Study, studyInstanceUid, dataSet: GenerateNewDataSet());
+
+            response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid, eTag);
+            ValidateResponseMetadataDataset(response, firstStoredInstance, secondStoredInstance);
+        }
+
+        [Fact]
         public async Task GivenRetrieveSeriesMetadataRequest_WhenIfNoneMatchMatchesETag_ThenNotModifiedResponseIsReturned()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
 
-            DicomDataset firstStoredInstance = await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, seriesInstanceUid, dataSet: GenerateNewDataSet());
-            DicomDataset secondStoredInstance = await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, seriesInstanceUid, dataSet: GenerateNewDataSet());
+            DicomDataset storedInstance = await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, seriesInstanceUid, dataSet: GenerateNewDataSet());
 
             DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string eTag = null;
-            if (response.Headers.TryGetValues(HeaderNames.ETag, out IEnumerable<string> eTagValues))
-            {
-                if (eTagValues.Count() > 0)
-                {
-                    eTag = eTagValues.FirstOrDefault();
-                }
-            }
+            string eTag = GetEtagFromResponse(response);
 
             response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid, eTag);
             Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
@@ -124,15 +119,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset secondStoredInstance = await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, seriesInstanceUid, dataSet: GenerateNewDataSet());
 
             DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string ifNoneMatch = null;
-            if (response.Headers.TryGetValues(HeaderNames.ETag, out IEnumerable<string> eTagValues))
+            string eTag = GetEtagFromResponse(response);
+            if (!string.IsNullOrEmpty(eTag))
             {
-                if (eTagValues.Count() > 0)
-                {
-                    ifNoneMatch = string.Concat("1", eTagValues.FirstOrDefault());
-                }
+                ifNoneMatch = string.Concat("1", eTag);
             }
 
             response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid, ifNoneMatch);
@@ -153,6 +145,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        public async Task GivenRetrieveSeriesMetadataRequest_WhenSeriesIsUpdatedAndPreviousETagIsUsed_ThenResponseMetadataIsReturnedWithNewETag()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+
+            DicomDataset firstStoredInstance = await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, seriesInstanceUid, dataSet: GenerateNewDataSet());
+            DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid);
+
+            string eTag = GetEtagFromResponse(response);
+
+            DicomDataset secondStoredInstance = await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, seriesInstanceUid, dataSet: GenerateNewDataSet());
+
+            response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid, eTag);
+            ValidateResponseMetadataDataset(response, firstStoredInstance, secondStoredInstance);
+        }
+
+        [Fact]
         public async Task GivenRetrieveInstanceMetadataRequest_WhenIfNoneMatchMatchesETag_ThenNotModifiedResponseIsReturned()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
@@ -162,16 +171,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset storedInstance = await PostDicomFileAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid, dataSet: GenerateNewDataSet());
 
             DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string eTag = null;
-            if (response.Headers.TryGetValues(HeaderNames.ETag, out IEnumerable<string> eTagValues))
-            {
-                if (eTagValues.Count() > 0)
-                {
-                    eTag = eTagValues.FirstOrDefault();
-                }
-            }
+            string eTag = GetEtagFromResponse(response);
 
             response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, eTag);
             Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
@@ -187,15 +188,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset storedInstance = await PostDicomFileAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid, dataSet: GenerateNewDataSet());
 
             DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string ifNoneMatch = null;
-            if (response.Headers.TryGetValues(HeaderNames.ETag, out IEnumerable<string> eTagValues))
+            string eTag = GetEtagFromResponse(response);
+
+            if (!string.IsNullOrEmpty(eTag))
             {
-                if (eTagValues.Count() > 0)
-                {
-                    ifNoneMatch = string.Concat("1", eTagValues.FirstOrDefault());
-                }
+                ifNoneMatch = string.Concat("1", eTag);
             }
 
             response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch);
@@ -221,6 +220,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal("application/dicom+json", response.Content.Headers.ContentType.MediaType);
             Assert.Single(response.Value);
             ValidateResponseMetadataDataset(storedInstance, response.Value.First());
+        }
+
+        private string GetEtagFromResponse(DicomWebResponse<IReadOnlyList<DicomDataset>> response)
+        {
+            string eTag = null;
+            if (response.Headers.TryGetValues(HeaderNames.ETag, out IEnumerable<string> eTagValues))
+            {
+                if (eTagValues.Count() > 0)
+                {
+                    eTag = eTagValues.FirstOrDefault();
+                }
+            }
+
+            return eTag;
         }
 
         private async Task<DicomDataset> PostDicomFileAsync(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, DicomDataset dataSet = null)

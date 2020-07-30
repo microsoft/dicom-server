@@ -966,8 +966,10 @@ AS
 
     -- Get the study PK
     SELECT  @studyKey = StudyKey
-    FROM    dbo.Study
-    WHERE   StudyInstanceUid = @studyInstanceUid;
+    FROM    dbo.Instance
+    WHERE   StudyInstanceUid = @studyInstanceUid
+    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+    AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
@@ -1004,7 +1006,7 @@ AS
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
                     FROM    dbo.Instance WITH(UPDLOCK)
-                    WHERE   StudyInstanceUid = @studyInstanceUid
+                    WHERE   StudyKey = @studyKey
                     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid))
     BEGIN
         DELETE
@@ -1020,7 +1022,7 @@ AS
     BEGIN
         DELETE
         FROM    dbo.Study
-        WHERE   StudyInstanceUid = @studyInstanceUid
+        WHERE   Studykey = @studyKey
     END
 
     COMMIT TRANSACTION
