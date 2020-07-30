@@ -22,17 +22,20 @@ function Enable-BulkdImport {
     $managedIdentity = Get-AzADServicePrincipal -DisplayNameBeginsWith $DicomServerName
 
     # Allow the managed identity to read the storage account.
+    Write-Host "Enabling access to storage account through Managed Identity."
     New-AzRoleAssignment -ObjectId $managedIdentity.Id -ResourceName $storageAccount.Name -ResourceType $storageAccount.Type -ResourceGroupName $storageAccount.ResourceGroupName -RoleDefinitionName "Storage Blob Data Reader"
 
     # Create event grid
-    Set-Variable -Name TopicName -Value "$DicomServerName-bi" -Option Constant
     Set-Variable -Name EventEndpoint -Value "https://$DicomServerName.azurewebsites.net/webhooks/bulkImport" -Option Constant
 
-    $eventGrid = Get-AzEventGridTopic -ResourceGroupName $dicomServer.ResourceGroupName -Name $TopicName -ErrorAction SilentlyContinue
+    Write-Host "Subscribing to storage account events."
+    
+    New-AzEventGridSubscription -Endpoint $EventEndpoint `
+        -EventSubscriptionName "$StorageAccountName-bi" `
+        -ResourceId $storageAccount.Id `
+        -IncludedEventType "Microsoft.Storage.BlobCreated"
 
-    if (!$eventGrid) {
-        $eventGrid = New-AzEventGridTopic -ResourceGroupName $dicomServer.ResourceGroupName -Name $TopicName -Location $dicomServer.Location
-    }
-
-    New-AzEventGridSubscription -Endpoint $EventEndpoint -EventSubscriptionName "$StorageAccountName-bi" -IncludedEventType "Microsoft.Storage.BlobCreated"
-}
+    # Call to enable the bulk import.
+    Write-Host "Enabling Bulk Import from storage account."
+    Invoke-WebRequest -Uri "https://$DicomServerName.azurewebsites.net/bulkImport/$StorageAccountName" -Method POST
+}   

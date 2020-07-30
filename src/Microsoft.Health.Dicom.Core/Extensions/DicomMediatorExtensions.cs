@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Features.BulkImport;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.BulkImport;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
@@ -130,6 +131,15 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             CancellationToken cancellationToken = default)
         {
             return mediator.Send(new EnableBulkImportSourceRequest(accountName), cancellationToken);
+        }
+
+        public static Task<QueueBulkImportEntriesResponse> QueueBulkImportEntriesAsync(
+            this IMediator mediator,
+            string accountName,
+            IReadOnlyList<BlobReference> blobReferences,
+            CancellationToken cancellationToken = default)
+        {
+            return mediator.Send(new QueueBulkImportEntriesRequest(accountName, blobReferences), cancellationToken);
         }
     }
 }

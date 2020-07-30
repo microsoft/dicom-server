@@ -1,0 +1,46 @@
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using System.IO;
+using System.Threading.Tasks;
+using Dicom;
+using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Clients;
+using Xunit;
+
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
+{
+    public class Class1 : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    {
+        private readonly DicomWebClient _client;
+
+        public Class1(HttpIntegrationTestFixture<Startup> fixture)
+        {
+            _client = fixture.Client;
+        }
+
+        [Fact]
+        public async Task Test()
+        {
+            string[] files = Directory.GetFiles(@"D:\HNSCC", "*.dcm", new EnumerationOptions() { RecurseSubdirectories = true });
+
+            int failure = 0;
+
+            for (int i = 2000; i < 15000; i++)
+            {
+                DicomFile dicomFile1 = await DicomFile.OpenAsync(files[i]);
+
+                try
+                {
+                    await _client.StoreAsync(new[] { dicomFile1 });
+                }
+                catch (DicomWebException)
+                {
+                    failure++;
+                }
+            }
+        }
+    }
+}

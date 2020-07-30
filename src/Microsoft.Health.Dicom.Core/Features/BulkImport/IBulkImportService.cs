@@ -13,6 +13,6 @@ namespace Microsoft.Health.Dicom.Core.Features.BulkImport
     {
         Task RetrieveInitialBlobsAsync(string accountName, CancellationToken cancellationToken = default);
 
-        Task QueueEntriesAsync(string accountName, IReadOnlyList<string> blobNames, CancellationToken cancellationToken = default);
+        Task QueueBulkImportEntriesAsync(string accountName, IReadOnlyList<BlobReference> blobReferences, CancellationToken cancellationToken = default);
     }
 }

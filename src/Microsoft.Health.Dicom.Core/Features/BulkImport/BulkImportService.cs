@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.Features.BulkImport
                     IReadOnlyList<BlobReference> references = blobResultSegment.Results.Cast<CloudBlockBlob>().Select(
                         result => new BlobReference(result.Container.Name, result.Name)).ToArray();
 
-                    await _bulkImportDataStore.QueueBulkImportEntriesAsync(accountName, references, cancellationToken);
+                    await QueueBulkImportEntriesAsync(accountName, references, cancellationToken);
 
                     continuationToken = blobResultSegment.ContinuationToken;
                 }
@@ -82,10 +82,9 @@ namespace Microsoft.Health.Dicom.Core.Features.BulkImport
             }
         }
 
-        public async Task QueueEntriesAsync(string accountName, IReadOnlyList<string> blobNames, CancellationToken cancellationToken)
+        public async Task QueueBulkImportEntriesAsync(string accountName, IReadOnlyList<BlobReference> blobReferences, CancellationToken cancellationToken)
         {
-            ////await _bulkImportDataStore.QueueEntriesAsync(accountName, blobNames, cancellationToken);
-            await Task.Delay(0);
+            await _bulkImportDataStore.QueueBulkImportEntriesAsync(accountName, blobReferences, cancellationToken);
         }
     }
 }

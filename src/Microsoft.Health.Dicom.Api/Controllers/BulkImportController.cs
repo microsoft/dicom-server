@@ -3,6 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -10,8 +13,10 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventGrid;
 using Microsoft.Azure.EventGrid.Models;
+using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.BulkImport;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
@@ -49,11 +54,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [Route("webhooks/bulkImport")]
         public async Task<IActionResult> BulkImportNotification([FromBody]object requestContent)
         {
-            _logger.LogInformation("Received bulk import event.");
+            string requestContentInString = requestContent?.ToString();
 
-            await Task.Delay(0);
+            _logger.LogInformation("Received bulk import event: {RequestContent}.", requestContentInString);
 
-            EventGridEvent[] eventGridEvents = _eventGridSubscriber.DeserializeEventGridEvents(requestContent.ToString());
+            EventGridEvent[] eventGridEvents = _eventGridSubscriber.DeserializeEventGridEvents(requestContentInString);
+
+            var blobReferences = new List<(string, BlobReference)>(eventGridEvents.Length);
 
             foreach (EventGridEvent e in eventGridEvents)
             {
@@ -68,6 +75,19 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
                     return StatusCode((int)HttpStatusCode.OK, responseData);
                 }
+                else if (e.Data is StorageBlobCreatedEventData storageBlobCreatedEventData)
+                {
+                    var uri = new Uri(storageBlobCreatedEventData.Url);
+
+                    var blob = new CloudBlob(uri);
+
+                    blobReferences.Add((uri.Host.Substring(0, uri.Host.IndexOf(".", StringComparison.InvariantCulture)), new BlobReference(blob.Container.Name, blob.Name)));
+                }
+            }
+
+            foreach (IGrouping<string, BlobReference> grouping in blobReferences.GroupBy(blobReference => blobReference.Item1, blobReference => blobReference.Item2))
+            {
+                await _mediator.QueueBulkImportEntriesAsync(grouping.Key, grouping.ToArray());
             }
 
             return StatusCode((int)HttpStatusCode.OK, string.Empty);
