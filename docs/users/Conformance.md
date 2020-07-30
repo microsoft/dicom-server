@@ -205,11 +205,40 @@ Retrieving metadata will not return attributes with the following value represen
 | OW      | Other Word             |
 | UN      | Unknown                |
 
+### Retrieve Metadata Cache Validation (for Study, Series, or Instance)
+
+When metadata is requested for a study, series, or instance, `ETag` header is also returned as part of the response headers. Once the user receives a 200 response with ETag in the header, user can cache this value on their end. Next time, when the same request is made, user can add `If-None-Match` header in the request with the ETag value that was received before. Server will calculate the current ETag and compare it with the If-None-Match value passed in the request. If these values match, response with Not Modified (304) status code will be returned. Such a response will not contain any response body, hence will be faster than usual responses. If user receives a 304 response, they can remain assured that the data underneath has not changed. However, if the data has changed, the ETag value will not match the If-None-Match value. In such cases, a response with OK (200) status code is returned. Updated ETag will also be sent as one of the headers. This response will contain the requested data as well.
+
+For Study and Series, ETag is calculated using the following formula:
+<br />`Max(Instance Watermark)-Count(Instance)`
+
+For Instance, respective `Watermark` is returned as the ETag.
+
+Example: Consider a scenario where Study `abc` contains Series `def` and `ghi`. Series `def` contains Instance `jkl` with watermark `1`, and series `ghi` contains Instances `mno` and `pqr` with watermarks `2` and `3` respectively. Hierarchy of the objects look like below:
+- Study: abc
+  - Series: def
+    - Instance: jkl (Watermark: 1)
+  - Series ghi
+    - Instance: mno (Watermark: 2)
+    - Instance: pqr (Watermark: 3)
+
+Following will be the ETags for requested objects:
+
+| Object Type | Object | ETag | Description |
+| :---------- | :----- | :--- | :---------- |
+| Study       | abc    | 3-3  | Max instance watermark in this study is 3. <br/> Count of instances in this study is 3. <br /> Hence, `3-3` is the ETag. |
+| Series      | def    | 1-1  | Max instance watermark in this series is 1. <br /> Count of instances in this study is 1. <br /> Hence, `1-1` is the ETag. |
+| Series      | ghi    | 3-2  | Max instance watermark in this series is 3. <br /> Count of instances in this series is 2. <br /> Hence, `3-2` is the ETag.
+| Instance    | jkl    | 1    | Watermark of this instance is 1 which is returned as the ETag.
+| Instance    | mno    | 2    | Watermark of this instance is 2 which is returned as the ETag.
+| Instance    | pqr    | 3    | Watermark of this instance is 3 which is returned as the ETag.
+
 ### Retrieve Response Status Codes
 
 | Code                         | Description |
 | :--------------------------- | :---------- |
 | 200 (OK)                     | All requested data has been retrieved. |
+| 304 (Not Modified)           | The requested data has not modified since the last request. Content is not added to the response body in such case. |
 | 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported. |
 | 401 (Unauthorized)           | The client is not authenticated. |
 | 404 (Not Found)              | The specified DICOM resource could not be found. |
