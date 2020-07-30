@@ -27,8 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
         }
 
-        public Transcoder(
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager, TranscoderManager transcoderManager)
+        public Transcoder(RecyclableMemoryStreamManager recyclableMemoryStreamManager, TranscoderManager transcoderManager)
         {
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;

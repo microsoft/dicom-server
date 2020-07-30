@@ -17,6 +17,9 @@ namespace Microsoft.Health.Dicom.Core.Configs
         /// </summary>
         public bool EnableFullDicomItemValidation { get; set; }
 
+        /// <summary>
+        /// The transcoder the service should use
+        /// </summary>
         public TranscoderType TranscoderType { get; set; }
     }
 }

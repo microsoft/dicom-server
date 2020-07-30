@@ -5,9 +5,19 @@
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
+    /// <summary>
+    /// The type of transcoder
+    /// </summary>
     public enum TranscoderType
     {
+        /// <summary>
+        /// The fodicom transcoder from https://github.com/fo-dicom/fo-dicom
+        /// </summary>
         FoDicom,
+
+        /// <summary>
+        /// The efferent transcoder from https://github.com/Efferent-Health/fo-dicom.Codecs
+        /// </summary>
         Efferent,
     }
 }
