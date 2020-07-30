@@ -9,4 +9,6 @@ Deploy a [Dicom server in Azure](https://github.com/microsoft/dicom-server/blob/
 
 ## Create an app registration in Azure AD
 
-## Enable Azure AD in your Dicom App Service 
+1. Sign into the Azure portal. Search for **App Services** and select your Dicom App Service.
+
+## Enable Azure AD in your Dicom App Service
