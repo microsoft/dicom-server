@@ -9,7 +9,6 @@ using Dicom;
 using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
 using EnsureThat;
-
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.IO;
 
