@@ -12,10 +12,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public interface IETagGenerator
     {
         /// <summary>
+        /// <para>
         /// Get ETag from the list of instances to retrieve.
+        /// </para>
+        /// <para>
         /// For study and series resource types, Etag is calculated using the following formula:
-        ///     $"{Max(Instance Watermark)}-{Count(Instance)}"
-        /// For instance, its watermark is returned as the ETag.
+        /// <code>$"{Max(Instance Watermark)}-{Count(Instance)}"</code>
+        /// </para>
+        /// <para>
+        /// For instance, its <c>watermark</c> is returned as the ETag.
+        /// </para>
         /// </summary>
         /// <param name="resourceType">Resource Type.</param>
         /// <param name="retrieveInstances">Retrieve Instances.</param>
