@@ -105,6 +105,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            services.Add<ETagGenerator>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
         }
     }
 }

@@ -33,7 +33,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidStudyInstanceIdentifier_WhenHandlerIsExecuted_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
         {
-            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid);
+            string ifNoneMatch = null;
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
@@ -46,7 +47,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("aaaa-bbbb", "aaaa-bbbb")]
         public async Task GivenARequestWithInvalidStudyIdentifier_WhenRetrievingSeriesMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid, string seriesInstanceUid)
         {
-            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid);
+            string ifNoneMatch = null;
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
@@ -59,7 +61,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidSeriesIdentifier_WhenRetrievingSeriesMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
         {
-            RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid);
+            string ifNoneMatch = null;
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
@@ -72,7 +75,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb1")]
         public async Task GivenARequestWithInvalidStudyAndSeriesInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            string ifNoneMatch = null;
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
@@ -85,7 +89,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("aaaa-bbbb2", " ")]
         public async Task GivenARequestWithInvalidSeriesInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string seriesInstanceUid, string sopInstanceUid)
         {
-            RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid, sopInstanceUid);
+            string ifNoneMatch = null;
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid, sopInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
@@ -98,7 +103,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidSopInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
         {
-            RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid);
+            string ifNoneMatch = null;
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
@@ -110,11 +116,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("1", "2", "2")]
         public async Task GivenRepeatedIdentifiers_WhenRetrievingInstanceMetadata_ThenDicomBadRequestExceptionIsThrownAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
+            string ifNoneMatch = null;
             const string expectedErrorMessage = "The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.";
             var request = new RetrieveMetadataRequest(
                 studyInstanceUid: studyInstanceUid,
                 seriesInstanceUid: seriesInstanceUid,
-                sopInstanceUid: sopInstanceUid);
+                sopInstanceUid: sopInstanceUid,
+                ifNoneMatch: ifNoneMatch);
 
             var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
 
@@ -125,11 +133,34 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public async Task GivenARequestWithValidInstanceIdentifier_WhenRetrievingStudyInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
+            string ifNoneMatch = null;
 
             RetrieveMetadataResponse response = SetupRetrieveMetadataResponse();
             _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid).Returns(response);
 
-            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid);
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch);
+            await ValidateRetrieveMetadataResponse(response, request);
+        }
+
+        [Theory]
+        [InlineData("2.25.282803907956301170169364749856339309473", "1-1")]
+        public async Task GivenARequestWithValidInstanceIdentifierAndIfNoneMatchHeader_WhenRetrievingStudyInstanceMetadata_ThenNotModifiedResponseIsReturned(string studyInstanceUid, string ifNoneMatch)
+        {
+            RetrieveMetadataResponse response = SetupRetrieveMetadataResponseForValidatingCache(true, ifNoneMatch);
+            _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid, ifNoneMatch).Returns(response);
+
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch);
+            await ValidateRetrieveMetadataResponse(response, request);
+        }
+
+        [Theory]
+        [InlineData("2.25.282803907956301170169364749856339309473", "1-1", "2-2")]
+        public async Task GivenARequestWithValidInstanceIdentifierAndExpiredIfNoneMatchHeader_WhenRetrievingStudyInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully(string studyInstanceUid, string ifNoneMatch, string eTag)
+        {
+            RetrieveMetadataResponse response = SetupRetrieveMetadataResponseForValidatingCache(false, eTag);
+            _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(studyInstanceUid, ifNoneMatch).Returns(response);
+
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch);
             await ValidateRetrieveMetadataResponse(response, request);
         }
 
@@ -138,11 +169,34 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
+            string ifNoneMatch = null;
 
             RetrieveMetadataResponse response = SetupRetrieveMetadataResponse();
             _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid).Returns(response);
 
-            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid);
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch);
+            await ValidateRetrieveMetadataResponse(response, request);
+        }
+
+        [Theory]
+        [InlineData("2.25.282803907956301170169364749856339309473", "2.25.73315770910160804467620423579356140698", "1-1")]
+        public async Task GivenARequestWithValidInstanceIdentifierAndIfNoneMatchHeader_WhenRetrievingSeriesInstanceMetadata_ThenNotModifiedResponseIsReturned(string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch)
+        {
+            RetrieveMetadataResponse response = SetupRetrieveMetadataResponseForValidatingCache(true, ifNoneMatch);
+            _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, ifNoneMatch).Returns(response);
+
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch);
+            await ValidateRetrieveMetadataResponse(response, request);
+        }
+
+        [Theory]
+        [InlineData("2.25.282803907956301170169364749856339309473", "2.25.73315770910160804467620423579356140698", "1-1", "2-2")]
+        public async Task GivenARequestWithValidInstanceIdentifierAndExpiredIfNoneMatchHeader_WhenRetrievingSeriesInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully(string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch, string eTag)
+        {
+            RetrieveMetadataResponse response = SetupRetrieveMetadataResponseForValidatingCache(false, eTag);
+            _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, ifNoneMatch).Returns(response);
+
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch);
             await ValidateRetrieveMetadataResponse(response, request);
         }
 
@@ -152,11 +206,34 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
+            string ifNoneMatch = null;
 
             RetrieveMetadataResponse response = SetupRetrieveMetadataResponse();
             _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Returns(response);
 
-            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch);
+            await ValidateRetrieveMetadataResponse(response, request);
+        }
+
+        [Theory]
+        [InlineData("2.25.282803907956301170169364749856339309473", "2.25.73315770910160804467620423579356140698", "2.25.224979845195287507011636517849022735847", "1-1")]
+        public async Task GivenARequestWithValidInstanceIdentifierAndIfNoneMatchHeader_WhenRetrievingSopInstanceMetadata_ThenNotModifiedResponseIsReturned(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch)
+        {
+            RetrieveMetadataResponse response = SetupRetrieveMetadataResponseForValidatingCache(true, ifNoneMatch);
+            _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch).Returns(response);
+
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch);
+            await ValidateRetrieveMetadataResponse(response, request);
+        }
+
+        [Theory]
+        [InlineData("2.25.282803907956301170169364749856339309473", "2.25.73315770910160804467620423579356140698", "2.25.224979845195287507011636517849022735847", "1-1", "2-2")]
+        public async Task GivenARequestWithValidInstanceIdentifierAndExpiredIfNoneMatchHeader_WhenRetrievingSopInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch, string eTag)
+        {
+            RetrieveMetadataResponse response = SetupRetrieveMetadataResponseForValidatingCache(false, eTag);
+            _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch).Returns(response);
+
+            RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch);
             await ValidateRetrieveMetadataResponse(response, request);
         }
 
@@ -164,6 +241,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             return new RetrieveMetadataResponse(
                 new List<DicomDataset> { new DicomDataset() });
+        }
+
+        private static RetrieveMetadataResponse SetupRetrieveMetadataResponseForValidatingCache(bool isCacheValid, string eTag)
+        {
+            List<DicomDataset> responseMetadata = new List<DicomDataset>();
+
+            if (!isCacheValid)
+            {
+                responseMetadata.Add(new DicomDataset());
+            }
+
+            return new RetrieveMetadataResponse(
+                responseMetadata,
+                isCacheValid: isCacheValid,
+                eTag: eTag);
         }
 
         private async Task ValidateRetrieveMetadataResponse(RetrieveMetadataResponse response, RetrieveMetadataRequest request)

@@ -62,13 +62,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
         [Route(KnownRoutes.StudyMetadataRoute)]
-        public async Task<IActionResult> GetStudyMetadataAsync(string studyInstanceUid)
+        public async Task<IActionResult> GetStudyMetadataAsync([ModelBinder(typeof(IfNoneMatchModelBinder))] string ifNoneMatch, string studyInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}'.");
 
-            RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, HttpContext.RequestAborted);
+            RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
 
             return CreateResult(response);
         }
@@ -99,14 +100,15 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
         [Route(KnownRoutes.SeriesMetadataRoute)]
-        public async Task<IActionResult> GetSeriesMetadataAsync(string studyInstanceUid, string seriesInstanceUid)
+        public async Task<IActionResult> GetSeriesMetadataAsync([ModelBinder(typeof(IfNoneMatchModelBinder))] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
             RetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
-                studyInstanceUid, seriesInstanceUid, HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
 
             return CreateResult(response);
         }
@@ -138,14 +140,19 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
         [Route(KnownRoutes.InstanceMetadataRoute)]
-        public async Task<IActionResult> GetInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public async Task<IActionResult> GetInstanceMetadataAsync(
+            [ModelBinder(typeof(IfNoneMatchModelBinder))] string ifNoneMatch,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
             RetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
-               studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
+               studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
 
             return CreateResult(response);
         }
@@ -173,9 +180,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response, KnownContentTypes.ApplicationOctetStream);
         }
 
-        private IActionResult CreateResult(RetrieveMetadataResponse response)
+        private static IActionResult CreateResult(RetrieveMetadataResponse response)
         {
-            return StatusCode((int)HttpStatusCode.OK, response.ResponseMetadata);
+            return new MetadataResult(response);
         }
 
         private static IActionResult CreateResult(RetrieveResourceResponse response, string contentType)
