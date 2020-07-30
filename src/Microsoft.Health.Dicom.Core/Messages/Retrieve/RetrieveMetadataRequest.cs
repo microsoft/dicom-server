@@ -9,25 +9,28 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     public class RetrieveMetadataRequest : IRequest<RetrieveMetadataResponse>
     {
-        public RetrieveMetadataRequest(string studyInstanceUid)
+        public RetrieveMetadataRequest(string studyInstanceUid, string ifNoneMatch)
         {
             StudyInstanceUid = studyInstanceUid;
             ResourceType = ResourceType.Study;
+            IfNoneMatch = ifNoneMatch;
         }
 
-        public RetrieveMetadataRequest(string studyInstanceUid, string seriesInstanceUid)
+        public RetrieveMetadataRequest(string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             ResourceType = ResourceType.Series;
+            IfNoneMatch = ifNoneMatch;
         }
 
-        public RetrieveMetadataRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public RetrieveMetadataRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
             ResourceType = ResourceType.Instance;
+            IfNoneMatch = ifNoneMatch;
         }
 
         public ResourceType ResourceType { get; }
@@ -37,5 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         public string SeriesInstanceUid { get; }
 
         public string SopInstanceUid { get; }
+
+        public string IfNoneMatch { get; }
     }
 }

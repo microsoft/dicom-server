@@ -35,9 +35,9 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<RetrieveMetadataResponse> RetrieveDicomStudyMetadataAsync(
-            this IMediator mediator, string studyInstanceUid, CancellationToken cancellationToken)
+            this IMediator mediator, string studyInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
         {
-            return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid), cancellationToken);
+            return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch), cancellationToken);
         }
 
         public static Task<RetrieveResourceResponse> RetrieveDicomSeriesAsync(
@@ -49,9 +49,9 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<RetrieveMetadataResponse> RetrieveDicomSeriesMetadataAsync(
-           this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
+           this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
         {
-            return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid), cancellationToken);
+            return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch), cancellationToken);
         }
 
         public static Task<RetrieveResourceResponse> RetrieveDicomInstanceAsync(
@@ -63,9 +63,9 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<RetrieveMetadataResponse> RetrieveDicomInstanceMetadataAsync(
-            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
         {
-            return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid), cancellationToken);
+            return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch), cancellationToken);
         }
 
         public static Task<RetrieveResourceResponse> RetrieveDicomFramesAsync(
