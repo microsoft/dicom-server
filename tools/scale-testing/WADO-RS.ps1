@@ -14,7 +14,7 @@ switch($InputRunType)
     'studies'{   $RunType = 'studies'    }
 }
 
-"Run Type is $RunType"
+Write-Host "Run Type is $RunType"
 
 $ResourceGroup = Read-Host -Prompt 'Input resource group name'
 $ConcurrentThreads = Read-Host -Prompt 'Input threads to run simultaneously for upload'

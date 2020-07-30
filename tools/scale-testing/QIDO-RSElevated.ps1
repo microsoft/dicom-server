@@ -23,7 +23,7 @@ for($i = 0; $i -lt $ConcurrentThreads; $i++)
 	Start-Process -FilePath $QueryGeneratorApp -ArgumentList "$fileName $outputFileName" -RedirectStandardError "log.txt"
 }
 
-Read-Host -Prompt 'Continue?'
+Read-Host -Prompt 'Press any key to continue once the QueryGenerator processes are completed.'
 
 $MessageUploaderProject = -join($CurrentDirectory, '\Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader')
 $MessageUploaderApp = -join ($MessageUploaderProject, '\bin\Release\netcoreapp3.1\Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader.exe')

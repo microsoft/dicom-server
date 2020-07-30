@@ -17,7 +17,8 @@ function createPackage($basePath){
 
     Add-Type -Assembly System.IO.Compression.FileSystem 
     $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-    [System.IO.Compression.ZipFile]::CreateFromDirectory($path, $zipPath,
+    [System.IO.Compression.ZipFile]::CreateFromDirectory($path,
+                                                          $zipPath,
                                                           $compressionLevel, 
                                                           $false) 
     Write-Host "$(Get-Date –f $timeStampFormat) - Zip Package Created " -foregroundcolor "green"

@@ -55,9 +55,6 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader
             // Send messages.
             await SendMessagesAsync(start, end);
 
-            // await SendMessagesAsync();
-            // await SendAllMessagesAsync();
-
             await topicClient.CloseAsync();
         }
 

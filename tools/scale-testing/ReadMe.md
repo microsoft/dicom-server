@@ -47,7 +47,7 @@ As a prerequisite, start a powershell console in the current folder and open the
 This is the same as WADO-RS except that the run-type should be set to wado-rs-metadata, WADO-RSForMetadata.psm1 should be executed and the service bus topic to monitor is 'wado-rs-metadata'.
 
 ### QIDO-RS
-This also behaves similarly to WADO-RS and WADO-RS Metadata except the following: run-type is 'qido', QIDO-RS.psm1 is executed, you will not be prompted for a run type and the service bus topic to monitor is 'qido'.
+This also behaves similarly to WADO-RS and WADO-RS Metadata except the following: run-type is 'qido', QIDO-RS.psm1 is executed, you will not be prompted for a run type and the service bus topic to monitor is 'qido'. It will, however, ask you to input any key once the processess it starts up to generate queries are completed.
 
 
 ## **Powershell Scripts with Elevated Permissions**
