@@ -30,6 +30,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     {
         private readonly IMediator _mediator;
         private readonly ILogger<RetrieveController> _logger;
+        private const string IfNoneMatch = "If-None-Match";
 
         public RetrieveController(IMediator mediator, ILogger<RetrieveController> logger)
         {
@@ -65,7 +66,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
         [Route(KnownRoutes.StudyMetadataRoute)]
-        public async Task<IActionResult> GetStudyMetadataAsync([ModelBinder(typeof(IfNoneMatchModelBinder))] string ifNoneMatch, string studyInstanceUid)
+        public async Task<IActionResult> GetStudyMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}'.");
 
@@ -103,7 +104,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
         [Route(KnownRoutes.SeriesMetadataRoute)]
-        public async Task<IActionResult> GetSeriesMetadataAsync([ModelBinder(typeof(IfNoneMatchModelBinder))] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
+        public async Task<IActionResult> GetSeriesMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Retrieve Metadata Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
@@ -144,7 +145,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpGet]
         [Route(KnownRoutes.InstanceMetadataRoute)]
         public async Task<IActionResult> GetInstanceMetadataAsync(
-            [ModelBinder(typeof(IfNoneMatchModelBinder))] string ifNoneMatch,
+            [FromHeader(Name = IfNoneMatch)] string ifNoneMatch,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid)
