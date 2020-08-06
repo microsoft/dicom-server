@@ -7,7 +7,8 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.Common.KeyVault
 {
     public static class KnownSecretNames
     {
-        public const string ServiceBusConnectionString = "ServiceBusConnectionString";
-        public const string AppConfiguration = "AppConfiguration";
+        public const string AppConfigurationConnectionString = "AppConfiguration--ConnectionString";
+        public const string BlobStoreConnectionString = "BlobStore--ConnectionString";
+        public const string ServiceBusConnectionString = "ServiceBus--ConnectionString";
     }
 }

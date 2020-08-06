@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
 
             _serviceBusConnectionString = secret.Value;
 
-            secret = client.GetSecret(KnownSecretNames.AppConfiguration);
+            secret = client.GetSecret(KnownSecretNames.AppConfigurationConnectionString);
             var builder = new ConfigurationBuilder();
             builder.AddAzureAppConfiguration(secret.Value);
 

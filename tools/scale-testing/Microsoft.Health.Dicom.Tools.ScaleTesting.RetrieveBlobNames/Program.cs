@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.RetrieveBlobNames
             };
             var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
+            KeyVaultSecret secret = client.GetSecret(KnownSecretNames.BlobStoreConnectionString);
 
             _containerConnectionString = secret.Value;
 
