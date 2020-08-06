@@ -12,7 +12,6 @@ After, you need to determine what level of permissions you have over your subscr
 
 Also, while DownloadBlobNames.psm1 can be used to download the names of successfully stored instances, series and studies, at the [end](#download-successfully-stored-instances-series-and-studies-using-ssms) of this readme, another simpler and faster (but more manual) way is laid out.
 
-s
 ## **Powershell scripts with regular permissions**
 As a prerequisite, start a powershell console in the current folder and open the visual studio solution in the current folder using visual studio.
 
