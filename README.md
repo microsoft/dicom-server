@@ -33,7 +33,6 @@ Follow the steps [here](docs/Development.md) to deploy a local copy of the Dicom
 - [Exception handling](docs/ExceptionHandling.md)
 - [Tests](docs/Tests.md])
 - [Authentication](docs/Authentication.md)
-- [Azure AD Configuration](docs/AADconfiguration.md)
 
 ## Contributing
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
