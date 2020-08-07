@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler
             // Register subscription message handler and receive messages in a loop
             RegisterOnMessageHandlerAndReceiveMessages();
 
-            Console.ReadKey();
+            Thread.Sleep(1000000);
 
             await subscriptionClient.CloseAsync();
         }

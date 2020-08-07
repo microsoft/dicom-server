@@ -1,9 +1,9 @@
 # How to Use the Scale Testing Tool
 
 ## **Initial Setup:**
-To use the scale testing tool, first use the [ARM template](templates/default-azuredeploy.json) and deploy your Azure Resource using Template Deployment. In the same resource group, deploy the Dicom Server using the [Dicom Server ARM template](../../samples/templates/default-azuredeploy.json). After that, run the following manual setup steps:
+To use the scale testing tool, first use the [ARM template](templates/default-azuredeploy.json) and deploy your Azure Resource using Template Deployment. In the same resource group, deploy the Dicom Server infrastructure using the [Dicom Server ARM template](../../samples/templates/default-azuredeploy.json) and the dicom-servre code to the AppService that the ARM template creates. After that, run the following manual setup steps:
 1. In [KnownApplicationUrls.cs](Microsoft.Health.Dicom.Tools.ScaleTesting.Common/KnownApplicationUrls.cs), update the KeyVaultUrl and DicomServerUrl with the urls of the KeyVault resource (the one deployed using the Scale Testing ARM template) and the Dicom Server App Service resource respectively.
-2. In the App Configuration resource, add a key-value in the configuration explorer named 'Run-Type'. The individual runs will tell you what the value should be (e.g. 'stow-rs' for [STOW-RS](#stow-rs)).
+2. In the App Configuration resource, add a key-value in the configuration explorer named 'RunType'. The individual runs will tell you what the value should be (e.g. 'stow-rs' for [STOW-RS](#stow-rs)).
 3. To setup monitoring correctly, ensure Application Insights is enabled in both the Scale Testing App Service and the Dicom Server App Service.
 4. Grant permissions to yourself to view the KeyVault secrets by going to the KeyVault deployed using the Scale Testing ARM template's Access Policies (under the Settings heading). In that menu, click 'Add new Access Policy'. Select the 'Key, Secret & Certificate Management' template and select 'None Selected' next to the Service Principal. Add your user name and complete the process by clicking 'Add' and then 'Save' when it returns to the Access Policies view.
 5. Go to the Secrets tab in that KeyVault and click 'Generate/Import'. For 'Name', use 'BlobStore--ConnectionString'. For the value, use the connection string for the blob store created by the DICOM server deployment. Click create to complete.
@@ -13,7 +13,11 @@ After, you need to determine what level of permissions you have over your subscr
 Also, while DownloadBlobNames.psm1 can be used to download the names of successfully stored instances, series and studies, at the [end](#download-successfully-stored-instances-series-and-studies-using-ssms) of this readme, another simpler and faster (but more manual) way is laid out.
 
 ## **Powershell scripts with regular permissions**
-As a prerequisite, start a powershell console in the current folder and open the visual studio solution in the current folder using visual studio.
+As a prerequisite, start a powershell console with administrator mode in the current folder and open the visual studio solution in the current folder using visual studio. Run the following commands in the powershell console to ensure the correct execution policy is set and the necessary modues are installed.
+```
+Set-ExecutionPolicy Unrestricted
+Install-Module -Name Az -AllowClobber -Scope CurrentUser
+```
 
 ### STOW-RS
 1. Open the app configuration resource in the resource group you created and in the configuration explorer, set Run-Type to 'stow-rs'
