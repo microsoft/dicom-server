@@ -78,10 +78,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         private IByteBuffer TranscodeFrame(DicomDataset dataset, int frameIndex, DicomTransferSyntax targetSyntax)
         {
-            DicomDataset datasetWithFrame = CreateDatasetFromFrame(dataset, frameIndex);
-            DicomTranscoder transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, targetSyntax);
-            DicomDataset result = transcoder.Transcode(datasetWithFrame);
-            return DicomPixelData.Create(result).GetFrame(0);
+            try
+            {
+                DicomDataset datasetWithFrame = CreateDatasetFromFrame(dataset, frameIndex);
+                DicomTranscoder transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, targetSyntax);
+                DicomDataset result = transcoder.Transcode(datasetWithFrame);
+                return DicomPixelData.Create(result).GetFrame(0);
+            }
+            catch
+            {
+                throw new TranscodingException();
+            }
         }
 
         private static DicomDataset CreateDatasetFromFrame(DicomDataset dataset, int frameIndex)
