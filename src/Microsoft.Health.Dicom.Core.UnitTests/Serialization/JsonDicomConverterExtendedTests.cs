@@ -120,5 +120,20 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
             ";
             Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
         }
+
+        [Fact]
+        public static void GivenDicomJsonDatasetWithFloatingVRContainsNAN_WhenDeserialized_IsSuccessful()
+        {
+            const string json = @"
+            {
+                ""00720076"": {
+                    ""vr"": ""FL"",
+                     ""Value"": [""NaN""]
+                 }
+            } ";
+
+            DicomDataset tagValue = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+            Assert.NotNull(tagValue.GetDicomItem<DicomFloatingPointSingle>(DicomTag.SelectorFLValue));
+        }
     }
 }
