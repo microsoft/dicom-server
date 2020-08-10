@@ -71,13 +71,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 if (message.ResourceType == ResourceType.Frames)
                 {
                     return new RetrieveResourceResponse(await _frameHandler.GetFramesResourceAsync(
-                        resultStreams.Single(), message.Frames, message.OriginalTransferSyntaxRequested(), message.RequestedRepresentation));
+                        resultStreams.Single(), message.Frames, message.OriginalTransferSyntaxRequested(), message.RequestedRepresentation, message.RequestedContentType));
                 }
                 else
                 {
                     if (!message.OriginalTransferSyntaxRequested())
                     {
-                        resultStreams = await Task.WhenAll(resultStreams.Select(x => _transcoder.TranscodeFileAsync(x, message.RequestedRepresentation)));
+                        resultStreams = await Task.WhenAll(resultStreams.Select(x => _transcoder.TranscodeFileAsync(x, message.RequestedRepresentation, message.RequestedContentType)));
                     }
 
                     resultStreams = resultStreams.Select(stream =>

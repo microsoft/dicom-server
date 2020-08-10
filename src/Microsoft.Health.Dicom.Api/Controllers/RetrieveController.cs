@@ -12,8 +12,10 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
@@ -158,8 +160,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { DicomTransferSyntaxUids.Original, DicomTransferSyntaxUids.ExplicitVRLittleEndian, }, allowMissing: true)]
+        [AcceptTransferSyntaxFilter(new[] { DicomTransferSyntaxUids.Original, DicomTransferSyntaxUids.ExplicitVRLittleEndian, DicomTransferSyntaxUids.JPEG2000Lossless }, allowMissing: true)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -175,10 +176,21 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             [ModelBinder(typeof(IntArrayModelBinder))] int[] frames)
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}', frames: '{string.Join(", ", frames ?? Array.Empty<int>())}'.");
-            RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, transferSyntax, HttpContext.RequestAborted);
+            string requestContentType = HttpContext.GetAcceptableContentType(new[] { KnownContentTypes.ApplicationOctetStream, KnownContentTypes.ImageJpeg2000 }, allowSingle: false, allowMultiple: true);
+            if (string.IsNullOrEmpty(requestContentType))
+            {
+                return NotAcceptable();
+            }
 
-            return CreateResult(response, KnownContentTypes.ApplicationOctetStream);
+            RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, transferSyntax, requestContentType, HttpContext.RequestAborted);
+
+            return CreateResult(response, requestContentType);
+        }
+
+        private static IActionResult NotAcceptable()
+        {
+            return new StatusCodeResult((int)HttpStatusCode.NotAcceptable);
         }
 
         private static IActionResult CreateResult(RetrieveMetadataResponse response)

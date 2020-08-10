@@ -17,22 +17,22 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         /// </summary>
         private const string OriginalTransferSyntaxRequest = "*";
 
-        public RetrieveResourceRequest(string requestedTransferSyntax, string studyInstanceUid)
-            : this(ResourceType.Study, requestedTransferSyntax)
+        public RetrieveResourceRequest(string requestedTransferSyntax, string requestedContentType, string studyInstanceUid)
+            : this(ResourceType.Study, requestedTransferSyntax, requestedContentType)
         {
             StudyInstanceUid = studyInstanceUid;
         }
 
-        public RetrieveResourceRequest(string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid)
-            : this(ResourceType.Series, requestedTransferSyntax)
+        public RetrieveResourceRequest(string requestedTransferSyntax, string requestedContentType, string studyInstanceUid, string seriesInstanceUid)
+            : this(ResourceType.Series, requestedTransferSyntax, requestedContentType)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
         }
 
         public RetrieveResourceRequest(
-            string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
-            : this(ResourceType.Instance, requestedTransferSyntax)
+            string requestedTransferSyntax, string requestedContentType, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+            : this(ResourceType.Instance, requestedTransferSyntax, requestedContentType)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
@@ -40,8 +40,8 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         }
 
         public RetrieveResourceRequest(
-            string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IEnumerable<int> frames)
-            : this(ResourceType.Frames, requestedTransferSyntax)
+            string requestedTransferSyntax, string requestedContentType, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IEnumerable<int> frames)
+            : this(ResourceType.Frames, requestedTransferSyntax, requestedContentType)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
@@ -52,15 +52,18 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             Frames = frames?.Select(x => x - 1);
         }
 
-        private RetrieveResourceRequest(ResourceType resourceType, string requestedRepresentation)
+        private RetrieveResourceRequest(ResourceType resourceType, string requestedRepresentation, string requestedContentType)
         {
             ResourceType = resourceType;
             RequestedRepresentation = string.IsNullOrWhiteSpace(requestedRepresentation) ? null : requestedRepresentation;
+            RequestedContentType = string.IsNullOrWhiteSpace(requestedContentType) ? null : requestedContentType;
         }
 
         public ResourceType ResourceType { get; }
 
         public string RequestedRepresentation { get; }
+
+        public string RequestedContentType { get; }
 
         public string StudyInstanceUid { get; }
 

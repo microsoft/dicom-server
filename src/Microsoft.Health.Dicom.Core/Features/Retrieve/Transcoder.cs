@@ -3,13 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Dicom;
+using Dicom.Imaging;
 using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
@@ -17,7 +21,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public class Transcoder : ITranscoder
     {
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-        private static readonly DicomTransferSyntax DefaultTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian;
+        private static readonly Dictionary<string, DicomTransferSyntax> DefaultTransferSyntaxes = new Dictionary<string, DicomTransferSyntax>(StringComparer.OrdinalIgnoreCase)
+        {
+            { KnownContentTypes.ApplicationOctetStream, DicomTransferSyntax.ExplicitVRLittleEndian },
+            { KnownContentTypes.ImageJpeg2000, DicomTransferSyntax.JPEG2000Lossless },
+        };
 
         public Transcoder(
             RecyclableMemoryStreamManager recyclableMemoryStreamManager)
@@ -35,20 +43,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
         }
 
-        public async Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax)
+        public async Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax, string requestedContentType)
         {
-            DicomTransferSyntax parsedDicomTransferSyntax =
-                   string.IsNullOrWhiteSpace(requestedTransferSyntax) ?
-                       DefaultTransferSyntax :
-                       DicomTransferSyntax.Parse(requestedTransferSyntax);
+            DicomTransferSyntax parsedDicomTransferSyntax;
+            parsedDicomTransferSyntax = GetParsedDicomTransferSyntax(requestedTransferSyntax, requestedContentType);
 
-            bool canTranscode = false;
             DicomFile dicomFile;
 
             try
             {
                 dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
-                canTranscode = dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax);
             }
             catch (DicomFileException)
             {
@@ -57,40 +61,57 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             stream.Seek(0, SeekOrigin.Begin);
 
-            // If the instance is not transcodeable a TranscodingException should be thrown.
-            if (!canTranscode)
-            {
-                throw new TranscodingException();
-            }
-
             return await TranscodeFileAsync(dicomFile, parsedDicomTransferSyntax);
         }
 
-        public Stream TranscodeFrame(DicomFile dicomFile, int frameIndex, string requestedTransferSyntax)
+        public Stream TranscodeFrame(DicomFile dicomFile, int frameIndex, string requestedTransferSyntax, string requestedContentType)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
             DicomDataset dataset = dicomFile.Dataset;
 
             // Validate requested frame index exists in file.
             dicomFile.GetPixelDataAndValidateFrames(new[] { frameIndex });
+            DicomTransferSyntax parsedDicomTransferSyntax = GetParsedDicomTransferSyntax(requestedTransferSyntax, requestedContentType);
+            IByteBuffer resultByteBuffer = TranscodeFrame(dataset, frameIndex, parsedDicomTransferSyntax);
+            return _recyclableMemoryStreamManager.GetStream("RetrieveDicomResourceHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
+        }
 
-            DicomTransferSyntax parsedDicomTransferSyntax =
-                   string.IsNullOrWhiteSpace(requestedTransferSyntax) ?
-                       DefaultTransferSyntax :
-                       DicomTransferSyntax.Parse(requestedTransferSyntax);
+        private IByteBuffer TranscodeFrame(DicomDataset dataset, int frameIndex, DicomTransferSyntax targetSyntax)
+        {
+            DicomDataset datasetWithFrame = CreateDatasetFromFrame(dataset, frameIndex);
+            DicomTranscoder transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, targetSyntax);
+            DicomDataset result = transcoder.Transcode(datasetWithFrame);
+            return DicomPixelData.Create(result).GetFrame(0);
+        }
 
-            IByteBuffer resultByteBuffer;
+        private static DicomDataset CreateDatasetFromFrame(DicomDataset dataset, int frameIndex)
+        {
+            IByteBuffer frameData = DicomPixelData.Create(dataset).GetFrame(frameIndex);
+            DicomDataset newDataset = dataset.Clone();
+            DicomPixelData newdata = DicomPixelData.Create(newDataset, true);
+            newdata.AddFrame(frameData);
+            return newDataset;
+        }
 
-            if (!dicomFile.Dataset.CanTranscodeDataset(parsedDicomTransferSyntax))
+        private DicomTransferSyntax GetParsedDicomTransferSyntax(string requestedTransferSyntax, string requestedContentType)
+        {
+            DicomTransferSyntax parsedDicomTransferSyntax;
+            if (string.IsNullOrWhiteSpace(requestedTransferSyntax))
             {
-                throw new TranscodingException();
+                // Fill default transfer syntax when it's missing from request
+                if (string.IsNullOrWhiteSpace(requestedContentType) || !DefaultTransferSyntaxes.ContainsKey(requestedContentType))
+                {
+                    throw new TranscodingException();
+                }
+
+                parsedDicomTransferSyntax = DefaultTransferSyntaxes[requestedContentType];
+            }
+            else
+            {
+                parsedDicomTransferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
             }
 
-            // Decompress single frame from source dataset
-            var transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, parsedDicomTransferSyntax);
-            resultByteBuffer = transcoder.DecodeFrame(dataset, frameIndex);
-
-            return _recyclableMemoryStreamManager.GetStream("RetrieveDicomResourceHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
+            return parsedDicomTransferSyntax;
         }
 
         private async Task<Stream> TranscodeFileAsync(DicomFile dicomFile, DicomTransferSyntax requestedTransferSyntax)

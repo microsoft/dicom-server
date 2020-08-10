@@ -9,5 +9,6 @@ namespace Microsoft.Health.Dicom.Core
     {
         public const string Original = "*";
         public const string ExplicitVRLittleEndian = "1.2.840.10008.1.2.1";
+        public const string JPEG2000Lossless = "1.2.840.10008.1.2.4.90";
     }
 }

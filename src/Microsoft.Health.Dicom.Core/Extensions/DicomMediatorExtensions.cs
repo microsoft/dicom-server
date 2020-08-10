@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, string studyInstanceUid, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveResourceRequest(requestedTransferSyntax, studyInstanceUid),
+                new RetrieveResourceRequest(requestedTransferSyntax, string.Empty, studyInstanceUid),
                 cancellationToken);
         }
 
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid),
+                new RetrieveResourceRequest(requestedTransferSyntax, string.Empty, studyInstanceUid, seriesInstanceUid),
                 cancellationToken);
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string requestedTransferSyntax, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid, sopInstanceUid),
+                new RetrieveResourceRequest(requestedTransferSyntax, string.Empty, studyInstanceUid, seriesInstanceUid, sopInstanceUid),
                 cancellationToken);
         }
 
@@ -69,10 +69,10 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<RetrieveResourceResponse> RetrieveDicomFramesAsync(
-            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int[] frames, string requestedTransferSyntax, CancellationToken cancellationToken)
+            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int[] frames, string requestedTransferSyntax, string requestedContentType, CancellationToken cancellationToken)
         {
             return mediator.Send(
-                new RetrieveResourceRequest(requestedTransferSyntax, studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames),
+                new RetrieveResourceRequest(requestedTransferSyntax, requestedContentType, studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames),
                 cancellationToken);
         }
 

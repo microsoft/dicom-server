@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
-        public async Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation)
+        public async Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation, string requestedContentType)
         {
             EnsureArg.IsNotNull(stream, nameof(stream));
             EnsureArg.IsNotNull(frames, nameof(frames));
@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             {
                 return frames.Select(frame => new LazyTransformReadOnlyStream<DicomFile>(
                         dicomFile,
-                        df => _transcoder.TranscodeFrame(df, frame, requestedRepresentation)))
+                        df => _transcoder.TranscodeFrame(df, frame, requestedRepresentation, requestedContentType)))
                 .ToArray();
             }
             else

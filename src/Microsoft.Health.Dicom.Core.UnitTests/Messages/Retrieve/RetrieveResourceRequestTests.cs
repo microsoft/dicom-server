@@ -5,6 +5,7 @@
 
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
@@ -15,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [Fact]
         public void GivenRetrieveResourcesRequestForStudy_WhenConstructed_ThenStudyResourceTypeIsSet()
         {
-            var request = new RetrieveResourceRequest(requestedTransferSyntax: string.Empty, TestUidGenerator.Generate());
+            var request = new RetrieveResourceRequest(requestedTransferSyntax: string.Empty, requestedContentType: KnownContentTypes.ApplicationOctetStream, TestUidGenerator.Generate());
             Assert.Equal(ResourceType.Study, request.ResourceType);
         }
 
@@ -24,6 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             var request = new RetrieveResourceRequest(
                 requestedTransferSyntax: string.Empty,
+                requestedContentType: KnownContentTypes.ApplicationOctetStream,
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
             Assert.Equal(ResourceType.Series, request.ResourceType);
@@ -34,6 +36,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             var request = new RetrieveResourceRequest(
                 requestedTransferSyntax: string.Empty,
+                requestedContentType: KnownContentTypes.ApplicationOctetStream,
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
@@ -45,6 +48,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         {
             var request = new RetrieveResourceRequest(
                 requestedTransferSyntax: string.Empty,
+                requestedContentType: KnownContentTypes.ApplicationOctetStream,
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),

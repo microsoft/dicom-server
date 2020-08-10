@@ -12,6 +12,7 @@ using Dicom.Imaging;
 using Dicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.IO;
 using NSubstitute;
@@ -37,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public async Task GivenDicomFileWithFrames_WhenRetrievingFrameWithOriginalTransferSyntax_ThenExpectedFramesAreReturned(params int[] frames)
         {
             (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
-            IReadOnlyCollection<Stream> framesStream = await _frameHandler.GetFramesResourceAsync(stream, frames, true, "*");
+            IReadOnlyCollection<Stream> framesStream = await _frameHandler.GetFramesResourceAsync(stream, frames, true, "*", KnownContentTypes.ApplicationOctetStream);
             var framesOutput = framesStream.ToArray();
 
             for (int i = 0; i < frames.Length; i++)
@@ -51,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public async Task GivenDicomFileWithoutFrames_WhenRetrievingFrameWithOriginalTransferSyntax_ThenFrameNotFoundExceptionIsThrown(params int[] frames)
         {
             (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers()).Result;
-            await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*"));
+            await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*", KnownContentTypes.ApplicationOctetStream));
         }
 
         [Theory]
@@ -61,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public async Task GivenDicomFileWithFrames_WhenRetrievingNonExistentFrameWithOriginalTransferSyntax_ThenFrameNotFoundExceptionIsThrown(params int[] frames)
         {
             (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
-            await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*"));
+            await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*", KnownContentTypes.ApplicationOctetStream));
         }
 
         private DicomDataset GenerateDatasetsFromIdentifiers()

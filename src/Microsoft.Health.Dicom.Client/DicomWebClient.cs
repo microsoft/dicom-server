@@ -27,12 +27,10 @@ namespace Microsoft.Health.Dicom.Client
     public class DicomWebClient : IDicomWebClient
     {
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue(ApplicationDicomContentType);
-        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue(ApplicationOctetStreamContentType);
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue(ApplicationDicomJsonContentType);
 
         private const string ApplicationDicomContentType = "application/dicom";
         private const string ApplicationDicomJsonContentType = "application/dicom+json";
-        private const string ApplicationOctetStreamContentType = "application/octet-stream";
         private const string MultipartRelatedContentType = "multipart/related";
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
@@ -75,6 +73,7 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
             Uri requestUri,
+            string contentType,
             string dicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
@@ -82,7 +81,7 @@ namespace Microsoft.Health.Dicom.Client
             {
                 request.Headers.TryAddWithoutValidation(
                     "Accept",
-                    CreateAcceptHeader(CreateMultipartMediaTypeHeader(ApplicationOctetStreamContentType), dicomTransferSyntax));
+                    CreateAcceptHeader(CreateMultipartMediaTypeHeader(contentType), dicomTransferSyntax));
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {

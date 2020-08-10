@@ -13,6 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Web
         public const string ApplicationJson = "application/json";
         public const string ImageJpeg = "image/jpeg";
         public const string ImagePng = "image/png";
+        public const string ImageJpeg2000 = "image/jp2";
         public const string MultipartRelated = "multipart/related";
     }
 }
