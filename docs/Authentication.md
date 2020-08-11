@@ -2,8 +2,9 @@
 
 This article shows you how to configure the authentication settings for the Dicom Server through Azure. To complete this configuration, you will:
 
-1. Create an app registration in Azure AD.
+1. Create a resource application in Azure AD.
 1. Provide app registration details to your Dicom App Service.
+1. Create a service client in application in Azure AD.
 1. Retrieve Access Token via Postman or Azure CLI.
 
 This article also explains how to manage authentication in development and test scenarios without AAD integration using an Identity Provider.
