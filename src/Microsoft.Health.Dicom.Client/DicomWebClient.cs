@@ -38,18 +38,15 @@ namespace Microsoft.Health.Dicom.Client
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         public DicomWebClient(HttpClient httpClient)
-            : this(httpClient, false)
-        {
-        }
-
-        public DicomWebClient(HttpClient httpClient, bool validateDicom)
         {
             HttpClient = httpClient;
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
             GetMemoryStream = () => new MemoryStream();
 #pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = validateDicom;
+
+            // Disable global DicomValidation to solve bug https://microsofthealth.visualstudio.com/Health/_workitems/edit/75104 until fodicom issue https://github.com/fo-dicom/fo-dicom/issues/974 is solved
+            DicomValidation.AutoValidation = false;
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
