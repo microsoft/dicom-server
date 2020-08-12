@@ -264,7 +264,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenARequestWithInvalidTransferSyntax_WhenRetrievingFrames_TheServerShouldReturnBadRequest(string transferSyntax)
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), transferSyntax, frames: new[] { 1 }));
-            Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
         [Theory]

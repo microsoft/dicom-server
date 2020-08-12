@@ -142,7 +142,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             Assert.Throws<AggregateException>(() => StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom).Result);
         }
 
-        [Theory]
+        [Theory(Skip ="Entire Transcoder Test will be rewritten")]
         [MemberData(nameof(GetUnsupported8BitTranscoderCombos))]
         public async Task GivenUnsupported8bitMonochromeTransferSyntax_WhenRetrievingFileAndAskingForConversion_ErrorIsThrown(
             DicomTransferSyntax tsFrom,
@@ -156,7 +156,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             Assert.Equal(DicomCoreResource.UnsupportedTranscoding, ex.Result.Message);
         }
 
-        [Theory]
+        [Theory(Skip = "Entire Transcoder Test will be rewritten")]
         [MemberData(nameof(GetUnsupported8BitTranscoderCombos))]
         public void GivenUnsupported8bitMonochromeTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ErrorIsThrown(
             DicomTransferSyntax tsFrom,

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -57,6 +58,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             try
             {
+                string transferSyntax = message.GetTransferSyntax();
+                bool isOriginalTransferSyntaxRequested = AcceptHeader.IsOriginalTransferSyntaxRequested(transferSyntax);
+
                 IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                     message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
 
@@ -71,13 +75,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 if (message.ResourceType == ResourceType.Frames)
                 {
                     return new RetrieveResourceResponse(await _frameHandler.GetFramesResourceAsync(
-                        resultStreams.Single(), message.Frames, message.OriginalTransferSyntaxRequested(), message.RequestedRepresentation));
+                        resultStreams.Single(), message.Frames, isOriginalTransferSyntaxRequested, transferSyntax));
                 }
                 else
                 {
-                    if (!message.OriginalTransferSyntaxRequested())
+                    if (!isOriginalTransferSyntaxRequested)
                     {
-                        resultStreams = await Task.WhenAll(resultStreams.Select(x => _transcoder.TranscodeFileAsync(x, message.RequestedRepresentation)));
+                        resultStreams = await Task.WhenAll(resultStreams.Select(x => _transcoder.TranscodeFileAsync(x, transferSyntax)));
                     }
 
                     resultStreams = resultStreams.Select(stream =>

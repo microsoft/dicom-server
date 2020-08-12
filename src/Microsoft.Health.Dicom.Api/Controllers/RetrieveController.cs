@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
@@ -49,11 +50,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
+#pragma warning disable CA1801 // Review unused parameters
         public async Task<IActionResult> GetStudyAsync([ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax, string studyInstanceUid)
+#pragma warning restore CA1801 // Review unused parameters
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}'.");
 
-            RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, transferSyntax, HttpContext.RequestAborted);
+            RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
@@ -83,15 +86,17 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route(KnownRoutes.SeriesRoute)]
+#pragma warning disable CA1801 // Remove unused parameter
         public async Task<IActionResult> GetSeriesAsync(
             [ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax,
             string studyInstanceUid,
             string seriesInstanceUid)
         {
+#pragma warning restore CA1801 // Remove unused parameter
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
-                studyInstanceUid, seriesInstanceUid, transferSyntax, HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
@@ -122,16 +127,18 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
         [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
+#pragma warning disable CA1801 // Remove unused parameter
         public async Task<IActionResult> GetInstanceAsync(
             [ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid)
         {
+#pragma warning restore CA1801 // Remove unused parameter
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, transferSyntax, HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
@@ -158,8 +165,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationOctetStream }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { DicomTransferSyntaxUids.Original, DicomTransferSyntaxUids.ExplicitVRLittleEndian, }, allowMissing: true)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -168,7 +173,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpGet]
         [Route(KnownRoutes.FrameRoute)]
         public async Task<IActionResult> GetFramesAsync(
-            [ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
@@ -176,9 +180,36 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}', frames: '{string.Join(", ", frames ?? Array.Empty<int>())}'.");
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, transferSyntax, HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationOctetStream);
+        }
+
+        private IEnumerable<AcceptHeader> GetAcceptHeaders()
+        {
+            IList<AcceptHeader> result = new List<AcceptHeader>();
+            var acceptHeaders = HttpContext.Request.GetTypedHeaders().Accept;
+
+            if (acceptHeaders != null && acceptHeaders.Count > 0)
+            {
+                foreach (var acceptHeader in acceptHeaders)
+                {
+                    AcceptHeader accept = new AcceptHeader(acceptHeader.MediaType.Value);
+                    foreach (var parameter in acceptHeader.Parameters)
+                    {
+                        string name = parameter.Name.Value;
+                        string value = parameter.Value.Value;
+                        if (!accept.Parameters.ContainsKey(name))
+                        {
+                            accept.Parameters.Add(name, value);
+                        }
+                    }
+
+                    result.Add(accept);
+                }
+            }
+
+            return result;
         }
 
         private static IActionResult CreateResult(RetrieveMetadataResponse response)
