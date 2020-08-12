@@ -5,7 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Dicom;
+using Microsoft.Health.Abstractions.Exceptions;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -18,7 +21,17 @@ namespace Microsoft.Health.Dicom.Api.Extensions
         private static readonly ISet<string> AcceptableGetStudyMediaTypes = new HashSet<string>(new[] { KnownContentTypes.ApplicationDicom }, StringComparer.InvariantCultureIgnoreCase);
         private static readonly ISet<string> AcceptableGetSeriesMediaTypes = new HashSet<string>(new[] { KnownContentTypes.ApplicationDicom }, StringComparer.InvariantCultureIgnoreCase);
         private static readonly ISet<string> AcceptableGetInstanceMediaTypes = new HashSet<string>(new[] { KnownContentTypes.ApplicationDicom }, StringComparer.InvariantCultureIgnoreCase);
-        private static readonly ISet<string> AcceptableGetFrameMediaTypes = new HashSet<string>(new[] { KnownContentTypes.ApplicationOctetStream }, StringComparer.InvariantCultureIgnoreCase);
+        private static readonly ISet<string> AcceptableGetFrameMediaTypes = new HashSet<string>(
+            new[]
+            {
+                KnownContentTypes.ApplicationOctetStream,
+                KnownContentTypes.ImageJpeg,
+                KnownContentTypes.ImageDicomRle,
+                KnownContentTypes.ImageJpegLs,
+                KnownContentTypes.ImageJpeg2000,
+                KnownContentTypes.ImageJpeg2000Part2,
+            }, StringComparer.InvariantCultureIgnoreCase);
+
         private static readonly IDictionary<ResourceType, ISet<string>> AcceptableGetResourceMediaTypes = new Dictionary<ResourceType, ISet<string>>()
         {
             { ResourceType.Study, AcceptableGetStudyMediaTypes },
@@ -27,7 +40,8 @@ namespace Microsoft.Health.Dicom.Api.Extensions
             { ResourceType.Frames, AcceptableGetFrameMediaTypes },
         };
 
-        // FromNonMultipart, FromMultipart
+        // The first parameter of value indiate whether should get media type directly -- not a part of multipart/related
+        // The second prameter of value indidate whethere should get media type from multipart/related
         private static readonly IDictionary<ResourceType, (bool, bool)> MediaTypeLocations = new Dictionary<ResourceType, (bool, bool)>()
         {
             { ResourceType.Study, (false, true) },
@@ -57,27 +71,25 @@ namespace Microsoft.Health.Dicom.Api.Extensions
             AcceptHeader acceptHeader = GetAcceptHeader(request, out mediaType);
             if (acceptHeader == null)
             {
-                throw new NotAcceptableMediaTypeException($"{mediaType} is not supported");
+                // TODO: localize
+                throw new BadRequestException("Not able to find acceptable content type");
             }
 
             string syntaxUid = acceptHeader.GetTransferSyntax();
-            if (AcceptHeader.IsOriginalTransferSyntaxRequested(syntaxUid))
-            {
-                return syntaxUid;
-            }
+            bool originalTransferSyntaxRequested = AcceptHeader.IsOriginalTransferSyntaxRequested(syntaxUid);
+            RetrieveRequestValidator.ValidateTransferSyntax(syntaxUid, originalTransferSyntaxRequested);
 
+            // If transfer syntax is missing, return default one based on media type
             if (string.IsNullOrEmpty(syntaxUid))
             {
                 if (!DefaultTransferSyntaxes.ContainsKey(mediaType))
                 {
-                    // TODO: localize
-                    throw new BadRequestException($"Media type {mediaType} is not supported");
+                    throw new UnsupportedMediaTypeException(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, mediaType));
                 }
 
                 return DefaultTransferSyntaxes[mediaType].UID.UID;
             }
 
-            RetrieveRequestValidator.ValidateTransferSyntax(syntaxUid, originalTransferSyntaxRequested: false);
             return syntaxUid;
         }
 
@@ -87,9 +99,9 @@ namespace Microsoft.Health.Dicom.Api.Extensions
             ISet<string> acceptableMediaTypes = AcceptableGetResourceMediaTypes[request.ResourceType];
             var mediaTypeLocation = MediaTypeLocations[request.ResourceType];
             bool fromNonMultipart = mediaTypeLocation.Item1, fromMultipart = mediaTypeLocation.Item2;
+
             foreach (var header in request.AcceptHeaders)
             {
-                // from multipart
                 if (header.IsMultipartRelated() && fromMultipart && acceptableMediaTypes.Contains(header.GetMediaTypeForMultipartRelated()))
                 {
                     mediaType = header.GetMediaTypeForMultipartRelated();

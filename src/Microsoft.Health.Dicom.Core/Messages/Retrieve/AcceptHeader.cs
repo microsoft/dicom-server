@@ -60,7 +60,10 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             return RequestOriginalDicomTransferSyntax.Equals(transferSyntax, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public static string RemoveQuotes(string input)
+        /// <summary>
+        /// Copy from https://github.com/dotnet/aspnetcore/blob/master/src/Http/Headers/src/HeaderUtilities.cs
+        /// </summary>
+        private static string RemoveQuotes(string input)
         {
             if (IsQuoted(input))
             {
@@ -70,6 +73,9 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             return input;
         }
 
+        /// <summary>
+        /// Copy from https://github.com/dotnet/aspnetcore/blob/master/src/Http/Headers/src/HeaderUtilities.cs
+        /// </summary>
         private static bool IsQuoted(string input)
         {
             return !string.IsNullOrEmpty(input) && input.Length >= 2 && input[0] == '"' && input[input.Length - 1] == '"';

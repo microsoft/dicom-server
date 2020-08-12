@@ -15,6 +15,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
@@ -56,7 +57,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}'.");
 
-            RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, GetAcceptHeaders(), HttpContext.RequestAborted);
+            RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, HttpContext.GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
@@ -96,7 +97,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
-                studyInstanceUid, seriesInstanceUid, GetAcceptHeaders(), HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, HttpContext.GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
@@ -138,7 +139,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, GetAcceptHeaders(), HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
@@ -180,36 +181,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}', frames: '{string.Join(", ", frames ?? Array.Empty<int>())}'.");
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, GetAcceptHeaders(), HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, HttpContext.GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationOctetStream);
-        }
-
-        private IEnumerable<AcceptHeader> GetAcceptHeaders()
-        {
-            IList<AcceptHeader> result = new List<AcceptHeader>();
-            var acceptHeaders = HttpContext.Request.GetTypedHeaders().Accept;
-
-            if (acceptHeaders != null && acceptHeaders.Count > 0)
-            {
-                foreach (var acceptHeader in acceptHeaders)
-                {
-                    AcceptHeader accept = new AcceptHeader(acceptHeader.MediaType.Value);
-                    foreach (var parameter in acceptHeader.Parameters)
-                    {
-                        string name = parameter.Name.Value;
-                        string value = parameter.Value.Value;
-                        if (!accept.Parameters.ContainsKey(name))
-                        {
-                            accept.Parameters.Add(name, value);
-                        }
-                    }
-
-                    result.Add(accept);
-                }
-            }
-
-            return result;
         }
 
         private static IActionResult CreateResult(RetrieveMetadataResponse response)

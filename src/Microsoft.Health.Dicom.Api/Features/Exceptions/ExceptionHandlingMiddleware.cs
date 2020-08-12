@@ -72,7 +72,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     statusCode = HttpStatusCode.NotFound;
                     break;
                 case TranscodingException _:
-                case NotAcceptableMediaTypeException _:
                     statusCode = HttpStatusCode.NotAcceptable;
                     break;
                 case DataStoreException _:
