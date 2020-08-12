@@ -35,7 +35,7 @@ Dicom server code follows below **patterns** to organize code in these layer.
 - Interface is defined in the core and implementation in the specific persistence layer.
 - They should not be accessed outside a service.
 - Naming Guidelines: `Resource`Store
-- Example: [SqlIndexDataStore](../src/Microsoft.Health.Dicom.SqlServer/Features/Store/SqlIndexDataStore.cs)
+- Example: [SqlIndexDataStore](../src/Microsoft.Health.Dicom.SqlServer/Features/Storage/SqlIndexDataStore.cs)
 
 ### [Middleware](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1):
  <em>Standard/Common concerns like authentication, routing, logging, exception handling that needs to be done for each request, are separated to its own component.</em>
