@@ -36,7 +36,7 @@
 ![Post A Dicom Image](images/FiddlerPost.png)
 - If post successfully, should be able to see request responsing 200
 
-![Post Succeeds](images/FiddlerSuceedPost.PNG)
+![Post Succeeds](images/FiddlerSucceedPost.png)
 - Note: you cannot upload same DCM file again unless deleting it at first
 
 ## Postman for Get
