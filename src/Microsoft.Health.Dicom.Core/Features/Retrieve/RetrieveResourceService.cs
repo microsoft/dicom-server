@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -26,6 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         private readonly IInstanceStore _instanceStore;
         private readonly ITranscoder _transcoder;
         private readonly IFrameHandler _frameHandler;
+        private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly ILogger<RetrieveResourceService> _logger;
 
@@ -34,6 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             IFileStore blobDataStore,
             ITranscoder transcoder,
             IFrameHandler frameHandler,
+            IRetrieveTransferSyntaxHandler retrieveTransferSyntaxHandler,
             RecyclableMemoryStreamManager recyclableMemoryStreamManager,
             ILogger<RetrieveResourceService> logger)
         {
@@ -41,6 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
             EnsureArg.IsNotNull(transcoder, nameof(transcoder));
             EnsureArg.IsNotNull(frameHandler, nameof(frameHandler));
+            EnsureArg.IsNotNull(retrieveTransferSyntaxHandler, nameof(retrieveTransferSyntaxHandler));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
@@ -48,6 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _blobDataStore = blobDataStore;
             _transcoder = transcoder;
             _frameHandler = frameHandler;
+            _retrieveTransferSyntaxHandler = retrieveTransferSyntaxHandler;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
             _logger = logger;
         }
@@ -58,8 +61,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             try
             {
-                string transferSyntax = message.GetTransferSyntax();
-                bool isOriginalTransferSyntaxRequested = AcceptHeader.IsOriginalTransferSyntaxRequested(transferSyntax);
+                string transferSyntax = _retrieveTransferSyntaxHandler.GetTransferSyntax(message.ResourceType, message.AcceptHeaders);
+                bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(transferSyntax);
 
                 IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                     message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);

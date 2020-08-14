@@ -43,21 +43,9 @@ namespace Microsoft.Health.Dicom.Tests.Common
               mediaType: mediaType);
         }
 
-        public static IEnumerable<AcceptHeader> CreateAcceptHeaders(string transferSyntax = "*", bool multipart = true, string mediaType = KnownContentTypes.ApplicationOctetStream)
+        public static IEnumerable<AcceptHeader> CreateAcceptHeaders(string transferSyntax = "*", bool multipart = true, string mediaType = KnownContentTypes.ApplicationOctetStream, double? quantity = null)
         {
-            if (multipart)
-            {
-                AcceptHeader acceptHeader = new AcceptHeader(KnownContentTypes.MultipartRelated);
-                acceptHeader.Parameters.Add("type", mediaType);
-                acceptHeader.Parameters.Add("transfer-syntax", transferSyntax);
-                return new AcceptHeader[] { acceptHeader };
-            }
-            else
-            {
-                AcceptHeader acceptHeader = new AcceptHeader(mediaType);
-                acceptHeader.Parameters.Add("transfer-syntax", transferSyntax);
-                return new AcceptHeader[] { acceptHeader };
-            }
+            return new AcceptHeader[] { new AcceptHeader(mediaType, multipart, transferSyntax, quantity) };
         }
     }
 }

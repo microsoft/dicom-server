@@ -36,6 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private readonly IFileStore _fileStore;
         private readonly ITranscoder _retrieveTranscoder;
         private readonly IFrameHandler _frameHandler;
+        private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
         private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
         private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -50,9 +51,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _fileStore = blobStorageFixture.FileStore;
             _retrieveTranscoder = Substitute.For<ITranscoder>();
             _frameHandler = Substitute.For<IFrameHandler>();
+            _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler();
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, blobStorageFixture.RecyclableMemoryStreamManager, NullLogger<RetrieveResourceService>.Instance);
+                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, blobStorageFixture.RecyclableMemoryStreamManager, NullLogger<RetrieveResourceService>.Instance);
         }
 
         [Fact]

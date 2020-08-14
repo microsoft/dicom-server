@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Extensions
 {
@@ -13,29 +15,15 @@ namespace Microsoft.Health.Dicom.Api.Extensions
     {
         public static IEnumerable<AcceptHeader> GetAcceptHeaders(this HttpContext httpContext)
         {
-            IList<AcceptHeader> result = new List<AcceptHeader>();
-            var acceptHeaders = httpContext.Request.GetTypedHeaders().Accept;
+            IList<MediaTypeHeaderValue> acceptHeaders = httpContext.Request.GetTypedHeaders().Accept;
 
-            if (acceptHeaders != null && acceptHeaders.Count > 0)
+            if (acceptHeaders != null)
             {
-                foreach (var acceptHeader in acceptHeaders)
-                {
-                    AcceptHeader accept = new AcceptHeader(acceptHeader.MediaType.Value);
-                    foreach (var parameter in acceptHeader.Parameters)
-                    {
-                        string name = parameter.Name.Value;
-                        string value = parameter.Value.Value;
-                        if (!accept.Parameters.ContainsKey(name))
-                        {
-                            accept.Parameters.Add(name, value);
-                        }
-                    }
-
-                    result.Add(accept);
-                }
+                return acceptHeaders.Select((item) => item.ToAcceptHeader())
+                    .ToList();
             }
 
-            return result;
+            return new List<AcceptHeader>();
         }
     }
 }

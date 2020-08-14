@@ -90,6 +90,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.Add<RetrieveTransferSyntaxHandler>()
+                .Transient()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             services.Add<Transcoder>()
                 .Transient()
                 .AsSelf()
