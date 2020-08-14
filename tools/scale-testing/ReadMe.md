@@ -23,12 +23,12 @@ Install-Module -Name Az -AllowClobber -Scope CurrentUser
 1. Open the app configuration resource in the resource group you created and in the configuration explorer, set Run-Type to 'stow-rs'
 2. Execute STOW-RS.psm1:
     a) The resource group it asks for is the one you created when deploying the ARM template.  
-    b) The instance count dictates the total number of instances that will be stored (as an approximation).  
+    b) The instance count dictates the total number of dicom instances that will be stored (as an approximation).  
     c) The number of threads to run simultaneously identifies how many instances of the generator app will run at once. 
 3. Once the generator instances complete you will have a set of numbered text files in the current folder that contain a set of person instances and the stow-rs service bus topic should have the instances you created.
 4. To publish the message handler:
     a) In Visual Studio, right click on 'Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler' and select 'Publish'.  
-    b) In the menu that pops up, under 'Azure WebJobs', select 'Select Existing'. Click 'Create Profile' to continue.   
+    b) In the menu that pops up, under the target 'Azure' and the specific target 'Azure WebJobs', select the app service associated with the scale testing ARM deployment under your resource group. Click 'Create Profile' to continue.   
     c) It should auto populate your subscriptions, select the one containing your resource group, pick your resource groups from the list below and select the available App Service.  
     d) After it creates a profile, click the edit icon next to 'WebJobType'.  
     e) In the pop-up menu, change 'WebJobType' to 'Continuous' and update the WebJob Name to 'MessageHandler' and click 'Save'.  

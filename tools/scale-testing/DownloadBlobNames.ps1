@@ -9,7 +9,7 @@ $RetrieveBlobNamesApp = -join ($RetrieveBlobNamesProject, '\bin\Release\netcorea
 
 build($RetrieveBlobNamesProject)
 
-$instancesFileName = -join($CurrentDirectory, 'instances', $txt)
-$seriesFileName = -join($CurrentDirectory, 'series', $txt)
-$studiesFileName = -join($CurrentDirectory, 'studies', $txt)
-Start-Process -FilePath $RetrieveBlobNamesApp -ArgumentList "$instancesFileName $seriesFileName $studiesFileName"
+$instancesFileName = -join($CurrentDirectory, '\instances', $txt)
+$seriesFileName = -join($CurrentDirectory, '\series', $txt)
+$studiesFileName = -join($CurrentDirectory, '\studies', $txt)
+Start-Process -FilePath $RetrieveBlobNamesApp -ArgumentList "$instancesFileName $seriesFileName $studiesFileName" -RedirectStandardError "log.txt"

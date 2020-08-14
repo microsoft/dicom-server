@@ -33,7 +33,7 @@ namespace MessageHandler
         private static ISubscriptionClient subscriptionClient;
         private static DicomWebClient client;
 
-        private static string[] _separators = new string[] { "\t", "  ", " " };
+        private static string[] _separators = new string[] { "\t", "  ", " ", "\\",  "/" };
 
         public static async Task Main()
         {

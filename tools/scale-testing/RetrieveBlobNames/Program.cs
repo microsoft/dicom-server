@@ -22,6 +22,8 @@ namespace RetrieveBlobNames
         private static string _containerConnectionString;
         private const string ContainerName = "metadatacontainer";
 
+        private static string[] _separators = new string[] { "\t", "  ", " ", "\\", "/" };
+
         public static async Task Main(string[] args)
         {
             SecretClientOptions options = new SecretClientOptions()
@@ -41,25 +43,21 @@ namespace RetrieveBlobNames
             _containerConnectionString = secret.Value;
 
             string filepath = args[0];
-            File.Create(filepath);
 
             BlobContainerClient container = new BlobContainerClient(_containerConnectionString, ContainerName);
             int i = 0;
             HashSet<string> studies = new HashSet<string>();
             HashSet<string> series = new HashSet<string>();
-            using (StreamWriter sw = File.AppendText(filepath))
+            using (StreamWriter sw = new StreamWriter(filepath))
             {
                 await foreach (BlobItem blob in container.GetBlobsAsync())
                 {
-                    if (blob.Properties.CreatedOn.Value.Day > 17)
-                    {
-                        string[] parsedInstanceName = blob.Name.Split('/');
-                        studies.Add(parsedInstanceName[0]);
-                        series.Add(parsedInstanceName[0] + " " + parsedInstanceName[1]);
-                        sw.WriteLine(blob.Name);
-                        i++;
-                        Console.WriteLine(blob.Name + " Count:" + i);
-                    }
+                    string[] parsedInstanceName = blob.Name.Split(_separators, StringSplitOptions.RemoveEmptyEntries);
+                    studies.Add(parsedInstanceName[0]);
+                    series.Add(parsedInstanceName[0] + " " + parsedInstanceName[1]);
+                    sw.WriteLine(blob.Name);
+                    i++;
+                    Console.WriteLine(blob.Name + " Count:" + i);
                 }
             }
 
