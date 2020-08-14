@@ -1,4 +1,5 @@
 ﻿ Import-Module Az.Websites -Force
+ $global:CurrentDirectory = (pwd).path
 
 # Build the console application using DotNet CLI.
 function build($basePath){
@@ -34,23 +35,27 @@ function deploy([String]$resourceGroupName, [String]$appName, [String]$basepath)
 }
 
 function generateProject([String] $ProjectName){
-    -join($CurrentDirectory, '\', $ProjectName)
+    -join($CurrentDirectory, "\", $ProjectName)
 }
 
-function generateApplicationFromProject([String] $Project){
-    -join($ProjectName, 'bin\Release\netcoreapp3.1\', $Project, ',exe')
+function generateApplicationFromProject([String]$Project, [String]$ProjectDirectory){
+    -join($ProjectDirectory, "\bin\Release\netcoreapp3.1\", $Project, ".exe")
 }
 
-$PersonGeneratorProject = generateProject('PersonInstanceGenerator')
-$PersonGeneratorApp = generateApplicationFromProject($PersonGeneratorProject)
+$global:PersonGenerator = 'PersonInstanceGenerator'
+$global:PersonGeneratorProject = generateProject $PersonGenerator
+$global:PersonGeneratorApp = generateApplicationFromProject $PersonGenerator $PersonGeneratorProject
 
-$RetrieveBlobNamesProject = generateProject('RetrieveBlobNames')
-$RetrieveBlobNamesApp = generateApplicationFromProject($RetrieveBlobNamesProject)
+$global:RetrieveBlobNames = 'RetrieveBlobNames'
+$global:RetrieveBlobNamesProject = generateProject $RetrieveBlobNames
+$global:RetrieveBlobNamesApp = generateApplicationFromProject $RetrieveBlobNames $RetrieveBlobNamesProject
 
-$MessageUploaderProject = generateProject('MessageUploader')
-$MessageUploaderApp = generateApplicationFromProject($MessageUploaderProject)
+$global:MessageUploader = 'MessageUploader'
+$global:MessageUploaderProject = generateProject $MessageUploader
+$global:MessageUploaderApp = generateApplicationFromProject $MessageUploader $MessageUploaderProject
 
-$QueryGeneratorProject = generateProject('QidoQueryGenerator')
-$QueryGeneratorApp = generateApplicationFromProject($QueryGeneratorProject)
+$global:QidoQueryGenerator = 'QidoQueryGenerator'
+$global:QueryGeneratorProject = generateProject $QidoQueryGenerator
+$global:QueryGeneratorApp = generateApplicationFromProject $QidoQueryGenerator $QueryGeneratorProject
 
-$MessageHandlerProject = generateProject('MessageHandler')
+$global:MessageHandlerProject = generateProject('MessageHandler')

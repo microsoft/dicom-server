@@ -1,4 +1,4 @@
-﻿$CurrentDirectory = ($pwd).path
+﻿$CurrentDirectory = (pwd).path
 
 $CommonModule = -join($CurrentDirectory, '\', 'Common.psm1')
 Import-Module $CommonModule -Force
