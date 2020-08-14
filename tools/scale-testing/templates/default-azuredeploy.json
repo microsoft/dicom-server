@@ -141,6 +141,17 @@
             ]
         },
         {
+            "apiVersion": "2016-08-01",
+            "type": "Microsoft.Web/sites/config",
+            "name": "[concat(variables('serviceName'), '/web')]",
+            "dependsOn": [
+                "[variables('appServiceResourceId')]"
+            ],
+            "properties": {
+                "alwaysOn": true
+            }
+        },
+        {
             "apiVersion": "2015-05-01",
             "name": "[variables('appInsightsName')]",
             "type": "Microsoft.Insights/components",

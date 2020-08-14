@@ -4,8 +4,8 @@ $CommonModule = -join($CurrentDirectory, '\', 'Common.psm1')
 Import-Module $CommonModule -Force
 
 $txt = '.txt'
-$RetrieveBlobNamesProject = -join($CurrentDirectory, '\Microsoft.Health.Dicom.Tools.ScaleTesting.RetrieveBlobNames')
-$RetrieveBlobNamesApp = -join ($RetrieveBlobNamesProject, '\bin\Release\netcoreapp3.1\Microsoft.Health.Dicom.Tools.ScaleTesting.RetrieveBlobNames.exe')
+$RetrieveBlobNamesProject = -join($CurrentDirectory, '\RetrieveBlobNames')
+$RetrieveBlobNamesApp = -join ($RetrieveBlobNamesProject, '\bin\Release\netcoreapp3.1\RetrieveBlobNames.exe')
 
 build($RetrieveBlobNamesProject)
 

@@ -27,8 +27,8 @@ $fileName = -join($CurrentDirectory, '\', $RunType, $txt)
 $TotalCount = Get-Content $fileName | Measure-Object –Line
 
 $CountPerThread = $TotalCount / $ConcurrentThreads
-$MessageUploaderProject = -join($CurrentDirectory, '\Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader')
-$MessageUploaderApp = -join ($MessageUploaderProject, '\bin\Release\netcoreapp3.1\Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader.exe')
+$MessageUploaderProject = -join($CurrentDirectory, '\MessageUploader')
+$MessageUploaderApp = -join ($MessageUploaderProject, '\bin\Release\netcoreapp3.1\MessageUploader.exe')
 
 build($MessageUploaderProject)
 for($i = 0; $i -lt $ConcurrentThreads; $i++)
@@ -47,7 +47,7 @@ while($SubscriptionState.properties.messageCount -lt $InstanceCount)
 
 Start-Sleep -s 120
 
-$MessageHandlerProject = -join($CurrentDirectory, '\Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler')
+$MessageHandlerProject = -join($CurrentDirectory, '\MessageHandler')
 
 build($MessageHandlerProject)
 createPackage($MessageHandlerProject)

@@ -10,8 +10,8 @@ $InstanceCount = Read-Host -Prompt 'Input total count of instances'
 $ConcurrentThreads = Read-Host -Prompt 'Input threads to run simultaneously for upload'
 
 $InstanceCountPerThread = $InstanceCount / $ConcurrentThreads
-$PersonGeneratorProject = -join($CurrentDirectory, '\Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator')
-$PersonGeneratorApp = -join ($PersonGeneratorProject, '\bin\Release\netcoreapp3.1\Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator.exe')
+$PersonGeneratorProject = -join($CurrentDirectory, '\PersonInstanceGenerator')
+$PersonGeneratorApp = -join ($PersonGeneratorProject, '\bin\Release\netcoreapp3.1\PersonInstanceGenerator.exe')
 $PatientNames = -join($CurrentDirectory, '\PatientNames.txt')
 $PhysicianNames = -join($CurrentDirectory, '\PhysiciansNames.txt')
 
