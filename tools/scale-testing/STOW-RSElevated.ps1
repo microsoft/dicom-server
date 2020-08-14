@@ -13,8 +13,6 @@ $Namespace = Read-Host -Prompt 'Input Service Bus Namespace name'
 $AppName = Read-Host -Prompt 'Input App Service Name'
 
 $InstanceCountPerThread = $InstanceCount / $ConcurrentThreads
-$PersonGeneratorProject = -join($CurrentDirectory, '\PersonInstanceGenerator')
-$PersonGeneratorApp = -join ($PersonGeneratorProject, '\bin\Release\netcoreapp3.1\PersonInstanceGenerator.exe')
 $PatientNames = -join($CurrentDirectory, '\PatientNames.txt')
 $PhysicianNames = -join($CurrentDirectory, '\PhysicianNames.txt')
 
@@ -33,8 +31,6 @@ while($SubscriptionState.properties.messageCount -lt $InstanceCount)
 }
 
 Start-Sleep -s 120
-
-$MessageHandlerProject = -join($CurrentDirectory, '\MessageHandler')
 
 build($MessageHandlerProject)
 createPackage($MessageHandlerProject)

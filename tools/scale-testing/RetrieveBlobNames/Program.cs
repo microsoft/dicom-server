@@ -22,8 +22,6 @@ namespace RetrieveBlobNames
         private static string _containerConnectionString;
         private const string ContainerName = "metadatacontainer";
 
-        private static string[] _separators = new string[] { "\t", "  ", " ", "\\", "/" };
-
         public static async Task Main(string[] args)
         {
             SecretClientOptions options = new SecretClientOptions()
@@ -52,7 +50,7 @@ namespace RetrieveBlobNames
             {
                 await foreach (BlobItem blob in container.GetBlobsAsync())
                 {
-                    string[] parsedInstanceName = blob.Name.Split(_separators, StringSplitOptions.RemoveEmptyEntries);
+                    string[] parsedInstanceName = blob.Name.Split(KnownSeparators.MessageSeparators, StringSplitOptions.RemoveEmptyEntries);
                     studies.Add(parsedInstanceName[0]);
                     series.Add(parsedInstanceName[0] + " " + parsedInstanceName[1]);
                     sw.WriteLine(blob.Name);

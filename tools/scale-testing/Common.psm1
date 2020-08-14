@@ -32,3 +32,21 @@ function deploy([String]$resourceGroupName, [String]$appName, [String]$basepath)
     Publish-AzWebApp -ArchivePath $zipPath -ResourceGroupName $resourceGroupName -Name $appName
     Write-Host "$(Get-Date –f $timeStampFormat) - Completed Deployment " -foregroundcolor "green"
 }
+
+function generateApplicationFromProject([String] $ProjectName){
+    -join($ProjectName, 'bin\Release\netcoreapp3.1\', $ProjectName, ',exe')
+}
+
+$PersonGeneratorProject = -join($CurrentDirectory, '\PersonInstanceGenerator')
+$PersonGeneratorApp = generateApplicationFromProject($PersonGeneratorProject)
+
+$RetrieveBlobNamesProject = -join($CurrentDirectory, '\RetrieveBlobNames')
+$RetrieveBlobNamesApp = generateApplicationFromProject($RetrieveBlobNamesProject)
+
+$MessageUploaderProject = -join($CurrentDirectory, '\MessageUploader')
+$MessageUploaderApp = generateApplicationFromProject($MessageUploaderProject)
+
+$QueryGeneratorProject = -join($CurrentDirectory, '\QidoQueryGenerator')
+$QueryGeneratorApp = generateApplicationFromProject($QueryGeneratorProject)
+
+$MessageHandlerProject = -join($CurrentDirectory, '\MessageHandler')

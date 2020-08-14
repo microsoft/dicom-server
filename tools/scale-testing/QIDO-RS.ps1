@@ -9,9 +9,6 @@ $topicName = 'qido'
 $ResourceGroup = Read-Host -Prompt 'Input resource group name'
 $ConcurrentThreads = Read-Host -Prompt 'Input threads to run simultaneously for upload'
 
-$QueryGeneratorProject = -join($CurrentDirectory, '\QidoQueryGenerator')
-$QueryGeneratorApp = -join ($QueryGeneratorProject, '\bin\Release\netcoreapp3.1\QidoQueryGenerator.exe')
-
 build($QueryGeneratorProject)
 for($i = 0; $i -lt $ConcurrentThreads; $i++)
 {
@@ -21,9 +18,6 @@ for($i = 0; $i -lt $ConcurrentThreads; $i++)
 }
 
 $null = Read-Host 'Press any key to continue once the QueryGenerator processes are completed.'
-
-$MessageUploaderProject = -join($CurrentDirectory, '\MessageUploader')
-$MessageUploaderApp = -join ($MessageUploaderProject, '\bin\Release\netcoreapp3.1\MessageUploader.exe')
 
 build($MessageUploaderProject)
 for($i = 0; $i -lt $ConcurrentThreads; $i++)

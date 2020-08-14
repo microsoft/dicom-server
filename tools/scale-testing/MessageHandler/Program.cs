@@ -33,8 +33,6 @@ namespace MessageHandler
         private static ISubscriptionClient subscriptionClient;
         private static DicomWebClient client;
 
-        private static string[] _separators = new string[] { "\t", "  ", " ", "\\",  "/" };
-
         public static async Task Main()
         {
             SecretClientOptions options = new SecretClientOptions()
@@ -68,7 +66,7 @@ namespace MessageHandler
             // Register subscription message handler and receive messages in a loop
             RegisterOnMessageHandlerAndReceiveMessages();
 
-            Thread.Sleep(1000000);
+            Thread.Sleep(TimeSpan.FromSeconds(10000));
 
             await subscriptionClient.CloseAsync();
         }
@@ -208,7 +206,7 @@ namespace MessageHandler
         private static (string, string, string) ParseMessageForUids(Message message)
         {
             string messageBody = Encoding.UTF8.GetString(message.Body);
-            string[] split = messageBody.Split(_separators, StringSplitOptions.RemoveEmptyEntries);
+            string[] split = messageBody.Split(KnownSeparators.MessageSeparators, StringSplitOptions.RemoveEmptyEntries);
 
             string studyUid = split[0];
             string seriesUid = split.Count() > 1 ? split[1] : null;
