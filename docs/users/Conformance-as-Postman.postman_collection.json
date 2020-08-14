@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "Store-instances-using-multipart/related",
+			"name": "[will not work - see description] Store-instances-using-multipart/related",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -22,10 +22,10 @@
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true,
-					"content-type": true,
-					"user-agent": true,
 					"accept-encoding": true,
-					"connection": true
+					"connection": true,
+					"content-type": true,
+					"user-agent": true
 				}
 			},
 			"request": {
@@ -33,13 +33,13 @@
 				"header": [
 					{
 						"key": "Accept",
-						"value": "application/dicom+json",
-						"type": "text"
+						"type": "text",
+						"value": "application/dicom+json"
 					},
 					{
 						"key": "Content-Type",
-						"value": "multipart/related;boundary=ABCD1234",
-						"type": "text"
+						"type": "text",
+						"value": "multipart/related;boundary=ABCD1234"
 					}
 				],
 				"body": {
@@ -67,12 +67,12 @@
 						"studies"
 					]
 				},
-				"description": "This request intends to demonstrate how to upload DICOM files using multipart/related. However, it will not work in Postman.\r\n\r\n| NOTE: Postman cannot be used to upload DICOM files in a way that complies with the DICOM standard. This is due to a Postman limitation. Instead, consider using cURL or programatically uploading the file using Python, C# or another full featured language.\r\n\r\n_Details:_\r\nPath: ../studies\r\nMethod: POST\r\nHeaders:\r\n    `Accept: application/dicom+json`\r\n    `Content-Type: multipart/related; type=\"application/dicom\"`\r\nBody:\r\n    `Content-Type: application/dicom` for each file uploaded, separated by a boundary value\r\n\r\n| Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.\r\n    `Content-Type: multipart/related; type=\"application/dicom\"; boundary=ABCD1234`\r\n    `Content-Type: multipart/related; boundary=ABCD1234`\r\n    `Content-Type: multipart/related`\r\n\r\nIf using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related."
+				"description": "This request intends to demonstrate how to upload DICOM files using multipart/related. However, it will not work in Postman.\r\n\r\n> NOTE: Postman cannot be used to upload DICOM files in a way that complies with the DICOM standard. This is due to a Postman limitation. Instead, consider using cURL or programatically uploading the file using Python, C# or another full featured language.\r\n\r\n_Details:_\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n    * `Accept: application/dicom+json`\r\n    * `Content-Type: multipart/related; type=\"application/dicom\"`\r\n* Body:\r\n    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value\r\n\r\n> Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.\r\n> * `Content-Type: multipart/related; type=\"application/dicom\"; boundary=ABCD1234`\r\n> * `Content-Type: multipart/related; boundary=ABCD1234`\r\n> * `Content-Type: multipart/related`\r\n\r\nIf using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related."
 			},
 			"response": []
 		},
 		{
-			"name": "Store-single-instance",
+			"name": "[will not work - see description] Store-single-instance",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -88,10 +88,10 @@
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true,
-					"content-type": true,
-					"user-agent": true,
 					"accept-encoding": true,
-					"connection": true
+					"connection": true,
+					"content-type": true,
+					"user-agent": true
 				}
 			},
 			"request": {
@@ -99,25 +99,20 @@
 				"header": [
 					{
 						"key": "Accept",
-						"value": "application/dicom+json",
-						"type": "text"
+						"type": "text",
+						"value": "application/dicom+json"
 					},
 					{
 						"key": "Content-Type",
-						"value": "multipart/related;boundary=ABCD1234",
-						"type": "text"
+						"type": "text",
+						"value": "application/dicom"
 					}
 				],
 				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "file",
-							"contentType": "application/dicom",
-							"type": "file",
-							"src": "/C:/githealth/dicom-samples/visus.com/case1/dicomfile"
-						}
-					],
+					"mode": "file",
+					"file": {
+						"src": "/C:/githealth/dicom-samples/visus.com/case1/case1_008.dcm"
+					},
 					"options": {
 						"raw": {
 							"language": "text"
@@ -133,12 +128,12 @@
 						"studies"
 					]
 				},
-				"description": "| NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\nPath: ../studies\r\nMethod: POST\r\nHeaders:\r\n    `Accept: application/dicom+json`\r\n    `Content-Type: application/dicom`\r\nBody:\r\n    Contains the DICOM file as a bytes.\r\n\r\n"
+				"description": "> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n"
 			},
 			"response": []
 		},
 		{
-			"name": "Store-instances-for-a-specific-study",
+			"name": "[will not work - see description] Store-instances-for-a-specific-study",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -156,7 +151,7 @@
 						"{{study1}}"
 					]
 				},
-				"description": "This request intends to demonstrate how to upload DICOM files using multipart/related to a designated study. However, it will not work in Postman.\r\n\r\n| NOTE: Postman cannot be used to upload DICOM files in a way that complies with the DICOM standard. This is due to a Postman limitation. Instead, consider using cURL or programatically uploading the file using Python, C# or another full featured language.\r\n\r\n_Details:_\r\nPath: ../studies/{study}\r\nMethod: POST\r\nHeaders:\r\n    `Accept: application/dicom+json`\r\n    `Content-Type: multipart/related; type=\"application/dicom\"`\r\nBody:\r\n    `Content-Type: application/dicom` for each file uploaded, separated by a boundary value\r\n\r\n| Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.\r\n    `Content-Type: multipart/related; type=\"application/dicom\"; boundary=ABCD1234`\r\n    `Content-Type: multipart/related; boundary=ABCD1234`\r\n    `Content-Type: multipart/related`\r\n\r\nIf using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related."
+				"description": "This request intends to demonstrate how to upload DICOM files using multipart/related to a designated study. However, it will not work in Postman.\r\n\r\n> NOTE: Postman cannot be used to upload DICOM files in a way that complies with the DICOM standard. This is due to a Postman limitation. Instead, consider using cURL or programatically uploading the file using Python, C# or another full featured language.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}\r\n* Method: POST\r\n* Headers:\r\n    * `Accept: application/dicom+json`\r\n    * `Content-Type: multipart/related; type=\"application/dicom\"`\r\n* Body:\r\n    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value\r\n\r\n> Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.\r\n > * `Content-Type: multipart/related; type=\"application/dicom\"; boundary=ABCD1234`\r\n > * `Content-Type: multipart/related; boundary=ABCD1234`\r\n > * `Content-Type: multipart/related`\r\n\r\nIf using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related."
 			},
 			"response": []
 		},
@@ -201,7 +196,7 @@
 						"{{study1}}"
 					]
 				},
-				"description": "This request retrieves all instances within a single study.\r\n\r\n_Details:_\r\nPath: ../studies/{study}\r\nMethod: GET\r\nHeaders:\r\n    `Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*`\r\n"
+				"description": "This request retrieves all instances within a single study, and returns them as a collection of multipart/related bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*`\r\n"
 			},
 			"response": []
 		},
@@ -251,7 +246,7 @@
 						"metadata"
 					]
 				},
-				"description": "This request retrieves the metadata for all instances within a single study.\r\n\r\n_Details:_\r\nPath: ../studies/{study}/metadata\r\nMethod: GET\r\nHeaders:\r\n    `Accept: application/dicom+json`\r\n"
+				"description": "This request retrieves the metadata for all instances within a single study.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/metadata\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		},
@@ -297,7 +292,7 @@
 						"{{series1}}"
 					]
 				},
-				"description": "This request retrieves all instances within a single series.\r\n\r\n_Details:_\r\nPath: ../studies/{study}/series{series}\r\nMethod: GET\r\nHeaders:\r\n    `Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*`\r\n"
+				"description": "This request retrieves all instances within a single series, and returns them as a collection of multipart/related bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series{series}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*`\r\n"
 			},
 			"response": []
 		},
@@ -330,7 +325,7 @@
 						"metadata"
 					]
 				},
-				"description": "This RESTful call will retrieve the metadata for all\r\ninstances within a series of a study.\r\n\r\nThis request retrieves the metadata for all instances within a single series.\r\n\r\n_Details:_\r\nPath: ../studies/{study}/series/{series}/metadata\r\nMethod: GET\r\nHeaders:\r\n    `Accept: application/dicom+json`\r\n"
+				"description": "This request retrieves the metadata for all instances within a single series.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series/{series}/metadata\r\n* Method: GET\r\n* Headers:\r\n  * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		},
@@ -370,7 +365,7 @@
 						"{{instance1}}"
 					]
 				},
-				"description": "This RESTful call will retrieve a single instance within a\r\nseries of a study."
+				"description": "This request retrieves a single instances, and returns it as a DICOM formatted stream of bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series{series}/instances/{instance}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom; transfer-syntax=*`\r\n"
 			},
 			"response": []
 		},
@@ -405,7 +400,7 @@
 						"metadata"
 					]
 				},
-				"description": "This RESTful call will retrieve metadat of a single instance\r\nwithin a series of a study."
+				"description": "This request retrieves the metadata for a single instances within a single study and series.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series/{series}/instances/{instance}/metadata\r\n* Method: GET\r\n* Headers:\r\n  * `Accept: application/dicom+json`"
 			},
 			"response": []
 		},
@@ -441,7 +436,7 @@
 						"1"
 					]
 				},
-				"description": "This RESTful call will one or more frames from a single\r\ninstance of a series within a study"
+				"description": "This request retrieves one or more frames from a single instance, and returns them as a collection of multipart/related bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series{series}/instances/{instance}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: multipart/related; type=\"application/octet-stream\"; transfer-syntax=1.2.840.10008.1.2.1` (Default) or\r\n   * `Accept: multipart/related; type=\"application/octet-stream\"; transfer-syntax=*` or\r\n   * `Accept: multipart/related; type=\"application/octet-stream\";`\r\n"
 			},
 			"response": []
 		},
@@ -476,7 +471,7 @@
 						}
 					]
 				},
-				"description": "This RESTful call will search studies"
+				"description": "This request enables searches for studies, series and instances by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies?StudyInstanceUID={{study1}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		},
@@ -506,7 +501,7 @@
 						}
 					]
 				},
-				"description": "This RESTful call will search studies"
+				"description": "This request enables searches for one or more series by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../series?SeriesInstanceUID={{series}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		},
@@ -538,7 +533,7 @@
 						}
 					]
 				},
-				"description": "This RESTful call will search studies"
+				"description": "This request enables searches for one or more series within a single study by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series?SeriesInstanceUID={{series}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		},
@@ -573,12 +568,12 @@
 						}
 					]
 				},
-				"description": "This RESTful call will search instances for given set of\r\nparameters."
+				"description": "This request enables searches for one or more instances by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		},
 		{
-			"name": "Search-for-instances-in-a-study",
+			"name": "Search-for-instances-within-a-study",
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true
@@ -610,12 +605,12 @@
 						}
 					]
 				},
-				"description": "This RESTful call will search instances for given set of\r\nparameters."
+				"description": "This request enables searches for one or more instances within a single study by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`"
 			},
 			"response": []
 		},
 		{
-			"name": "Search-for-instances-in-a-series",
+			"name": "Search-for-instances-within-a-study-and-series",
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true
@@ -649,12 +644,12 @@
 						}
 					]
 				},
-				"description": "This RESTful call will search instances for given set of\r\nparameters."
+				"description": "This request enables searches for one or more instances within a single study and single series by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series/{{series}}instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`"
 			},
 			"response": []
 		},
 		{
-			"name": "Delete-a-specific-instance-within-a-series",
+			"name": "Delete-a-specific-instance-within-a-study -and-series",
 			"request": {
 				"method": "DELETE",
 				"header": [],
@@ -672,17 +667,17 @@
 						"{{instance1}}"
 					]
 				},
-				"description": "This RESTful call will delete all instances for a specific\r\nstudy of a patient."
+				"description": "This request deletes a single instance within a single study and single series.\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series/{{series}}/instances/{{instance}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
 			},
 			"response": []
 		},
 		{
-			"name": "Delete-all-instances-for-a-specific-series-within-a-study",
+			"name": "Delete-a-specific-series-within-a-study",
 			"request": {
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/",
+					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -690,16 +685,15 @@
 						"studies",
 						"{{study1}}",
 						"series",
-						"{{series1}}",
-						""
+						"{{series1}}"
 					]
 				},
-				"description": "This RESTful call will delete all instances for a specific\r\nstudy of a patient."
+				"description": "This request deletes a single series (and all child instances) within a single study.\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series/{{series}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
 			},
 			"response": []
 		},
 		{
-			"name": "Delete-all-instances-for-a-specific-study",
+			"name": "Delete-a-specific-study",
 			"request": {
 				"method": "DELETE",
 				"header": [],
@@ -713,7 +707,7 @@
 						"{{study1}}"
 					]
 				},
-				"description": "This RESTful call will delete all instances for a specific\r\nstudy of a patient."
+				"description": "This request deletes a single study (and all child series and instances).\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
 			},
 			"response": []
 		}
@@ -742,37 +736,37 @@
 	],
 	"variable": [
 		{
-			"id": "56511da8-43ba-47de-9496-7b0181e65273",
+			"id": "a8654188-13e1-4a0a-aa06-de1637c5b02e",
 			"key": "baseUrl",
 			"value": "http://sjbpostman.azurewebsites.net"
 		},
 		{
-			"id": "9539f6ea-0511-4c90-a919-f50942276922",
+			"id": "613f357e-07d0-4bfd-b64c-e1f514b34426",
 			"key": "study1",
 			"value": "1.2.276.0.50.192168001099.7810872.14547392.270"
 		},
 		{
-			"id": "372cd467-5a0d-435c-8e79-d02c51c19d9d",
+			"id": "a1c5e6d3-660c-4539-9bf6-2b6d9597496a",
 			"key": "study2",
 			"value": "1.2.276.0.50.192168001099.9140875.14547392.277"
 		},
 		{
-			"id": "fbf4eac7-f22e-4daa-91b1-5ce9087af261",
+			"id": "d26ec0ce-a25d-41ac-acad-b397effb6092",
 			"key": "series1",
 			"value": "1.2.276.0.50.192168001099.7810872.14547392.458"
 		},
 		{
-			"id": "70bb6a29-386c-4a5c-bad8-2982a09f5534",
+			"id": "f5a6c33c-c31c-45b6-b9dc-b2fc0b39044e",
 			"key": "instance1",
 			"value": "1.2.276.0.50.192168001099.7810872.14547392.467"
 		},
 		{
-			"id": "88af0341-e695-49b1-b67c-67313aa2239c",
+			"id": "6b8f1b50-2307-48a7-bced-3180a806292f",
 			"key": "instance2",
 			"value": "1.2.276.0.50.192168001099.9140875.14547392.276"
 		},
 		{
-			"id": "cf33483d-0d73-4643-9840-4832d2e04692",
+			"id": "fc7a4d5d-4e9a-4561-8f14-ecb6c35d6878",
 			"key": "b64encodeddicom",
 			"value": ""
 		}
