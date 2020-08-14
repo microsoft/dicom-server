@@ -33,20 +33,24 @@ function deploy([String]$resourceGroupName, [String]$appName, [String]$basepath)
     Write-Host "$(Get-Date –f $timeStampFormat) - Completed Deployment " -foregroundcolor "green"
 }
 
-function generateApplicationFromProject([String] $ProjectName){
-    -join($ProjectName, 'bin\Release\netcoreapp3.1\', $ProjectName, ',exe')
+function generateProject([String] $ProjectName){
+    -join($CurrentDirectory, '\', $ProjectName)
 }
 
-$PersonGeneratorProject = -join($CurrentDirectory, '\PersonInstanceGenerator')
+function generateApplicationFromProject([String] $Project){
+    -join($ProjectName, 'bin\Release\netcoreapp3.1\', $Project, ',exe')
+}
+
+$PersonGeneratorProject = generateProject('PersonInstanceGenerator')
 $PersonGeneratorApp = generateApplicationFromProject($PersonGeneratorProject)
 
-$RetrieveBlobNamesProject = -join($CurrentDirectory, '\RetrieveBlobNames')
+$RetrieveBlobNamesProject = generateProject('RetrieveBlobNames')
 $RetrieveBlobNamesApp = generateApplicationFromProject($RetrieveBlobNamesProject)
 
-$MessageUploaderProject = -join($CurrentDirectory, '\MessageUploader')
+$MessageUploaderProject = generateProject('MessageUploader')
 $MessageUploaderApp = generateApplicationFromProject($MessageUploaderProject)
 
-$QueryGeneratorProject = -join($CurrentDirectory, '\QidoQueryGenerator')
+$QueryGeneratorProject = generateProject('QidoQueryGenerator')
 $QueryGeneratorApp = generateApplicationFromProject($QueryGeneratorProject)
 
-$MessageHandlerProject = -join($CurrentDirectory, '\MessageHandler')
+$MessageHandlerProject = generateProject('MessageHandler')
