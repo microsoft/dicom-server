@@ -37,6 +37,15 @@ namespace Microsoft.Health.Dicom.Client
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
+        static DicomWebClient()
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+
+            // Disable global DicomValidation to solve bug https://microsofthealth.visualstudio.com/Health/_workitems/edit/75104 until fodicom issue https://github.com/fo-dicom/fo-dicom/issues/974 is solved
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         public DicomWebClient(HttpClient httpClient)
         {
             HttpClient = httpClient;
@@ -147,15 +156,20 @@ namespace Microsoft.Health.Dicom.Client
             }
         }
 
-        public async Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveMetadataAsync(Uri requestUri, CancellationToken cancellationToken = default)
+        public async Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveMetadataAsync(Uri requestUri, string ifNoneMatch = null, CancellationToken cancellationToken = default)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
                 request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
 
+                if (!string.IsNullOrEmpty(ifNoneMatch))
+                {
+                    request.Headers.TryAddWithoutValidation(HeaderNames.IfNoneMatch, ifNoneMatch);
+                }
+
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
-                    await EnsureSuccessStatusCodeAsync(response);
+                    await EnsureSuccessOrNotModifiedStatusCodeAsync(response);
 
                     string contentText = await response.Content.ReadAsStringAsync();
 
@@ -382,6 +396,16 @@ namespace Microsoft.Health.Dicom.Client
         private static async Task EnsureSuccessStatusCodeAsync(HttpResponseMessage response)
         {
             if (!response.IsSuccessStatusCode)
+            {
+                await response.Content.LoadIntoBufferAsync();
+
+                throw new DicomWebException(new DicomWebResponse(response));
+            }
+        }
+
+        private static async Task EnsureSuccessOrNotModifiedStatusCodeAsync(HttpResponseMessage response)
+        {
+            if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotModified)
             {
                 await response.Content.LoadIntoBufferAsync();
 

@@ -37,7 +37,7 @@ The following DICOM elements are required to be present in every DICOM file atte
 
 - StudyInstanceUID
 - SeriesInstanceUID
-- SopInstanceUID
+- SOPInstanceUID
 - SOPClassUID
 - PatientID
 
@@ -174,7 +174,7 @@ The following `Accept` header(s) are supported for retrieving instances within a
 
 The following `Accept` header(s) are supported for retrieving a specific instance:
 
-- `application/dicom`
+- `application/dicom; transfer-syntax=*`
 
 ### Retrieve Frames
 
@@ -205,14 +205,22 @@ Retrieving metadata will not return attributes with the following value represen
 | OW      | Other Word             |
 | UN      | Unknown                |
 
+### Retrieve Metadata Cache Validation (for Study, Series, or Instance)
+
+Cache validation is supported using the `ETag` mechanism. In the response of a metadata reqeuest, ETag is returned as one of the headers. This ETag can be cached and added as `If-None-Match` header in the later requests for the same metadata. Two types of responses are possible if the data exists:
+- Data has not changed since the last request: HTTP 304 (Not Modified) response will be sent with no body.
+- Data has changed since the last request: HTTP 200 (OK) response will be sent with updated ETag. Required data will also be returned as part of the body.
+
 ### Retrieve Response Status Codes
 
 | Code                         | Description |
 | :--------------------------- | :---------- |
 | 200 (OK)                     | All requested data has been retrieved. |
+| 304 (Not Modified)           | The requested data has not modified since the last request. Content is not added to the response body in such case. Please see [Retrieve Metadata Cache Validation (for Study, Series, or Instance)](###Retrieve-Metadata-Cache-Validation-(for-Study,-Series,-or-Instance)) for more information. |
 | 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported. |
 | 401 (Unauthorized)           | The client is not authenticated. |
 | 404 (Not Found)              | The specified DICOM resource could not be found. |
+| 406 (Not Acceptable)         | The specified `Accept` header is not supported. |
 | 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
 ## Search (QIDO-RS)

@@ -5,21 +5,19 @@
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
-    public class FeatureConfiguration
+    /// <summary>
+    /// The type of transcoder
+    /// </summary>
+    public enum TranscoderType
     {
         /// <summary>
-        /// Gets or sets a value indicating OHIF viewer should be enabled or not.
+        /// The fodicom transcoder from https://github.com/fo-dicom/fo-dicom
         /// </summary>
-        public bool EnableOhifViewer { get; set; }
+        FoDicom,
 
         /// <summary>
-        /// Enables stricter validation of each DicomItem value based on their VR type
+        /// The efferent transcoder from https://github.com/Efferent-Health/fo-dicom.Codecs
         /// </summary>
-        public bool EnableFullDicomItemValidation { get; set; }
-
-        /// <summary>
-        /// The transcoder the service should use
-        /// </summary>
-        public TranscoderType TranscoderType { get; set; }
+        Efferent,
     }
 }
