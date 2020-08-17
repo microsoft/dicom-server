@@ -37,6 +37,15 @@ namespace Microsoft.Health.Dicom.Client
         private const string TransferSyntaxHeaderName = "transfer-syntax";
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
+        static DicomWebClient()
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+
+            // Disable global DicomValidation to solve bug https://microsofthealth.visualstudio.com/Health/_workitems/edit/75104 until fodicom issue https://github.com/fo-dicom/fo-dicom/issues/974 is solved
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         public DicomWebClient(HttpClient httpClient)
         {
             HttpClient = httpClient;
