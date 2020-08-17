@@ -3,14 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
-namespace Microsoft.Health.Dicom.Api.Modules.HealthChecks
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class HealthCheckConfiguration : Microsoft.Health.Api.Modules.HealthChecks.HealthCheckConfiguration
+    /// <summary>
+    /// The exception that is thrown when provided definition is invalid.
+    /// </summary>
+    public class InvalidDefinitionException : DicomServerException
     {
-        public HealthCheckConfiguration(IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public InvalidDefinitionException(string message)
+            : base(message)
         {
         }
     }

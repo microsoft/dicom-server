@@ -1,46 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>true</IsPackable>
     <CodeAnalysisRuleSet>..\..\CustomAnalysisRules.Test.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.5" />
-    <PackageReference Include="Microsoft.Health.Development.IdentityProvider" Version="1.0.0-master-20200716-1" />
+    <PackageReference Include="Microsoft.Health.Development.IdentityProvider" Version="1.0.0-master-20200812-1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
   </ItemGroup>
-  
   <ItemGroup>
     <None Update="xunit.runner.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <AdditionalFiles Include="..\..\stylecop.json" Link="stylecop.json" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="..\..\testauthenvironment.json" Link="testauthenvironment.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Web\Microsoft.Health.Dicom.Web.csproj" />
   </ItemGroup>
-
   <Target Name="VerifyExactSdkVersion" BeforeTargets="Build">
-
     <!--
       Verify that the we are compiling with the exact version of the SDK that is specified in the global.json file.
       If the version specified in the file is not installed on the system, dotnet uses the latest installed version instead.
@@ -48,22 +40,20 @@
       so the runtime behavior could be different depending on what SDK versions were installed on the machine that compiled
       the code.
     -->
-
     <PropertyGroup>
       <GlobalJsonPath>$([MSBuild]::GetPathOfFileAbove(global.json))</GlobalJsonPath>
       <GlobalJsonContent>$([System.IO.File]::ReadAllText($(GlobalJsonPath)))</GlobalJsonContent>
       <ParsedSdkVersion><![CDATA[$([System.Text.RegularExpressions.Regex]::Match($(GlobalJsonContent), '"version"\s*:\s*"(\d+.\d+.\d+)"').Groups[1].Value)]]></ParsedSdkVersion>
     </PropertyGroup>
-
-    
   </Target>
-
   <Target Name="AddRuntimeConfigFileToBuiltProjectOutputGroupOutput" Condition=" '$(GenerateRuntimeConfigurationFiles)' == 'true'" BeforeTargets="BuiltProjectOutputGroup">
     <ItemGroup>
       <BuiltProjectOutputGroupOutput Include="$(ProjectRuntimeConfigFilePath)" FinalOutputPath="$(ProjectRuntimeConfigFilePath)" />
     </ItemGroup>
   </Target>
-
-  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
-
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

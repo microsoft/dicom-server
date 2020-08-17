@@ -37,7 +37,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer.UnitTests", "src\Microsoft.Health.Dicom.SqlServer.UnitTests\Microsoft.Health.Dicom.SqlServer.UnitTests.csproj", "{ECC018C1-BFA8-44BE-B560-ACB05CA57251}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Client", "src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{D100EA60-8DC8-4576-A177-56BC7193BF4A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{D100EA60-8DC8-4576-A177-56BC7193BF4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.ValueSets", "Microsoft.Health.Dicom.ValueSets\Microsoft.Health.Dicom.ValueSets.csproj", "{D6D312DE-D3A8-422C-A235-AB3C0C382074}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -97,6 +99,10 @@ Global
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6D312DE-D3A8-422C-A235-AB3C0C382074}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6D312DE-D3A8-422C-A235-AB3C0C382074}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6D312DE-D3A8-422C-A235-AB3C0C382074}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6D312DE-D3A8-422C-A235-AB3C0C382074}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -115,9 +121,10 @@ Global
 		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{ECC018C1-BFA8-44BE-B560-ACB05CA57251} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{D6D312DE-D3A8-422C-A235-AB3C0C382074} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
+		RESX_SortFileContentOnSave = True
 	EndGlobalSection
 EndGlobal

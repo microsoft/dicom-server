@@ -9,10 +9,12 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
+using Microsoft.Health.Dicom.ValueSets;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
@@ -36,6 +38,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.StudyRoute)]
+        [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Delete Study request received, with study instance UID '{studyInstanceUid}'.");
@@ -51,6 +54,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.SeriesRoute)]
+        [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Delete Series request received, with study instance UID '{studyInstanceUid}' and series UID '{seriesInstanceUid}'.");
@@ -66,6 +70,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.InstanceRoute)]
+        [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Delete Instance request received, with study instance UID '{studyInstanceUid}', series UID '{seriesInstanceUid}' and instance UID '{sopInstanceUid}'.");

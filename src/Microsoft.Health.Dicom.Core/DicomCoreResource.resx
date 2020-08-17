@@ -124,6 +124,9 @@
   <data name="ChangeFeedOffsetCannotBeNegative" xml:space="preserve">
     <value>The offset cannot be a negative value.</value>
   </data>
+  <data name="CustomHeaderPrefixCannotBeEmpty" xml:space="preserve">
+    <value>The prefix used to identify custom audit headers cannot be empty.</value>
+  </data>
   <data name="DataStoreOperationFailed" xml:space="preserve">
     <value>The data store operation failed.</value>
   </data>

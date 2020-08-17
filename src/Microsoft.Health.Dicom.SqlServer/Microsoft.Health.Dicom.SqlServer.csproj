@@ -1,10 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Microsoft.Health.Dicom.SqlServer</RootNamespace>
   </PropertyGroup>
-
   <ItemGroup>
     <None Remove="Features\Schema\Migrations\1.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\1.sql" />
@@ -15,19 +13,16 @@
       <Args>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\Features\Schema\Migrations\1.sql'))</Args>
     </Generated>
   </ItemGroup>
-
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Ensure.That" Version="9.2.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="3.1.6" />
-    <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.0-master-20200716-1" />
-    <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="1.0.0-master-20200716-1" />
-    <PackageReference Include="Microsoft.Health.SqlServer" Version="1.0.0-master-20200716-1" />
-    <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="1.0.0-master-20200716-1" />
+    <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.0-master-20200812-1" />
+    <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="1.0.0-master-20200812-1" />
+    <PackageReference Include="Microsoft.Health.SqlServer" Version="1.0.0-master-20200812-1" />
+    <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="1.0.0-master-20200812-1" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
-
 </Project>

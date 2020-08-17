@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
@@ -56,6 +57,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
             services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
@@ -123,6 +125,8 @@ namespace Microsoft.AspNetCore.Builder
                     {
                         app.UseDeveloperExceptionPage();
                     }
+
+                    app.UseAudit();
 
                     app.UseExceptionHandling();
 
