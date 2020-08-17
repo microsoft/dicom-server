@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Net.Http.Headers;
@@ -15,6 +16,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
     {
         public static IEnumerable<AcceptHeader> GetAcceptHeaders(this HttpContext httpContext)
         {
+            EnsureArg.IsNotNull(httpContext, nameof(httpContext));
             IList<MediaTypeHeaderValue> acceptHeaders = httpContext.Request.GetTypedHeaders().Accept;
 
             if (acceptHeaders != null)
@@ -23,7 +25,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
                     .ToList();
             }
 
-            return new List<AcceptHeader>();
+            return Enumerable.Empty<AcceptHeader>();
         }
     }
 }

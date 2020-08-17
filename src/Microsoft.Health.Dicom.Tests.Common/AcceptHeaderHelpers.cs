@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 
@@ -15,7 +16,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
         {
             return CreateAcceptHeaders(
                 transferSyntax: transferSyntax,
-                multipart: true,
+                payloadType: PayloadTypes.MultipartRelated,
                 mediaType: mediaType);
         }
 
@@ -23,7 +24,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
         {
             return CreateAcceptHeaders(
                transferSyntax: transferSyntax,
-               multipart: true,
+               payloadType: PayloadTypes.MultipartRelated,
                mediaType: mediaType);
         }
 
@@ -31,7 +32,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
         {
             return CreateAcceptHeaders(
                transferSyntax: transferSyntax,
-               multipart: false,
+               payloadType: PayloadTypes.SinglePart,
                mediaType: mediaType);
         }
 
@@ -39,13 +40,13 @@ namespace Microsoft.Health.Dicom.Tests.Common
         {
             return CreateAcceptHeaders(
               transferSyntax: transferSyntax,
-              multipart: true,
+              payloadType: PayloadTypes.MultipartRelated,
               mediaType: mediaType);
         }
 
-        public static IEnumerable<AcceptHeader> CreateAcceptHeaders(string transferSyntax = "*", bool multipart = true, string mediaType = KnownContentTypes.ApplicationOctetStream, double? quantity = null)
+        public static IEnumerable<AcceptHeader> CreateAcceptHeaders(string transferSyntax = "*", PayloadTypes payloadType = PayloadTypes.MultipartRelated, string mediaType = KnownContentTypes.ApplicationOctetStream, double? quantity = null)
         {
-            return new AcceptHeader[] { new AcceptHeader(mediaType, multipart, transferSyntax, quantity) };
+            return new AcceptHeader[] { new AcceptHeader(mediaType, payloadType, transferSyntax, quantity) };
         }
     }
 }

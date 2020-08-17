@@ -4,22 +4,23 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     public class AcceptHeader
     {
-        public AcceptHeader(StringSegment mediaType, bool isMultipartRelated, StringSegment transferSyntax = default, double? quality = null)
+        public AcceptHeader(StringSegment mediaType, PayloadTypes payloadType, StringSegment transferSyntax = default, double? quality = null)
         {
             MediaType = mediaType;
-            IsMultipartRelated = isMultipartRelated;
+            PayloadType = payloadType;
             TransferSyntax = transferSyntax;
             Quality = quality;
         }
 
         public StringSegment MediaType { get; }
 
-        public bool IsMultipartRelated { get; }
+        public PayloadTypes PayloadType { get; }
 
         public StringSegment TransferSyntax { get; }
 

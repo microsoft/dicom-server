@@ -8,9 +8,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
-    public class AcceptHeaderQuantityComparer : IComparer<AcceptHeader>
+    public class AcceptHeaderQualityComparer : IComparer<AcceptHeader>
     {
-        private const double DefaultQuantity = 1.0;
+        private const double DefaultQuality = 1.0;
 
         public int Compare([AllowNull] AcceptHeader x, [AllowNull] AcceptHeader y)
         {
@@ -24,14 +24,14 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
                 return x != null ? 1 : -1;
             }
 
-            double xQuanity = x.Quality.GetValueOrDefault(DefaultQuantity);
-            double yQuanity = y.Quality.GetValueOrDefault(DefaultQuantity);
-            if (xQuanity == yQuanity)
+            double xQuality = x.Quality.GetValueOrDefault(DefaultQuality);
+            double yQuality = y.Quality.GetValueOrDefault(DefaultQuality);
+            if (xQuality == yQuality)
             {
                 return 0;
             }
 
-            return xQuanity > yQuanity ? 1 : -1;
+            return xQuality > yQuality ? 1 : -1;
         }
     }
 }

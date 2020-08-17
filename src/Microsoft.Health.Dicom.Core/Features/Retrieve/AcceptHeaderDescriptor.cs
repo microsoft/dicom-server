@@ -10,18 +10,18 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class AcceptableHeaderPattern
+    public class AcceptHeaderDescriptor
     {
-        public AcceptableHeaderPattern(bool isMultipartRelated, string mediaType, bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, ISet<string> acceptableTransferSyntaxes)
+        public AcceptHeaderDescriptor(PayloadTypes payloadType, string mediaType, bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, ISet<string> acceptableTransferSyntaxes)
         {
-            IsMultipartRelated = isMultipartRelated;
+            PayloadType = payloadType;
             MediaType = mediaType;
             IsTransferSyntaxMandatory = isTransferSyntaxMandatory;
             TransferSyntaxWhenMissing = transferSyntaxWhenMissing;
             AcceptableTransferSyntaxes = acceptableTransferSyntaxes;
         }
 
-        public bool IsMultipartRelated { get; }
+        public PayloadTypes PayloadType { get; }
 
         public string MediaType { get; }
 
@@ -35,7 +35,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             transferSyntax = null;
 
-            if (acceptHeader.IsMultipartRelated != IsMultipartRelated)
+            // Check if payload type match
+            if ((PayloadType & acceptHeader.PayloadType) == PayloadTypes.None)
             {
                 return false;
             }

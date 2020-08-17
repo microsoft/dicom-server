@@ -4,8 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
+using EnsureThat;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
@@ -16,7 +17,8 @@ namespace Microsoft.Health.Dicom.Api.Extensions
     {
         public static StringSegment GetParameter(this MediaTypeHeaderValue headerValue, string parameterName, bool tryRemoveQuotes = true)
         {
-            Debug.Assert(parameterName != null, $"{nameof(parameterName)} should not be null");
+            EnsureArg.IsNotNull(headerValue, nameof(headerValue));
+            EnsureArg.IsNotEmptyOrWhiteSpace(parameterName, nameof(parameterName));
             foreach (NameValueHeaderValue parameter in headerValue.Parameters)
             {
                 if (StringSegment.Equals(parameter.Name, parameterName, StringComparison.OrdinalIgnoreCase))
@@ -31,14 +33,14 @@ namespace Microsoft.Health.Dicom.Api.Extensions
         public static AcceptHeader ToAcceptHeader(this MediaTypeHeaderValue headerValue)
         {
             StringSegment mediaType = headerValue.MediaType;
-            bool isMultipart = StringSegment.Equals(KnownContentTypes.MultipartRelated, mediaType, StringComparison.OrdinalIgnoreCase);
-            if (isMultipart)
+            bool isMultipartRelated = StringSegment.Equals(KnownContentTypes.MultipartRelated, mediaType, StringComparison.OrdinalIgnoreCase);
+            if (isMultipartRelated)
             {
-                mediaType = headerValue.GetParameter(AcceptHeaderParameters.Type);
+                mediaType = headerValue.GetParameter(AcceptHeaderParameterNames.Type);
             }
 
-            StringSegment transferSytnax = headerValue.GetParameter(AcceptHeaderParameters.TransferSyntax);
-            return new AcceptHeader(mediaType, isMultipart, transferSytnax, headerValue.Quality);
+            StringSegment transferSytnax = headerValue.GetParameter(AcceptHeaderParameterNames.TransferSyntax);
+            return new AcceptHeader(mediaType, isMultipartRelated ? PayloadTypes.MultipartRelated : PayloadTypes.SinglePart, transferSytnax, headerValue.Quality);
         }
     }
 }

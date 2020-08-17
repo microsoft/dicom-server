@@ -8,23 +8,23 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class AcceptableHeaderPatterns
+    public class AcceptHeaderDescriptors
     {
-        private AcceptableHeaderPattern[] _patterns;
+        private AcceptHeaderDescriptor[] _descriptors;
 
-        public AcceptableHeaderPatterns(params AcceptableHeaderPattern[] patterns)
+        public AcceptHeaderDescriptors(params AcceptHeaderDescriptor[] descriptors)
         {
-            _patterns = patterns;
+            _descriptors = descriptors;
         }
 
-        public IEnumerable<AcceptableHeaderPattern> Patterns { get => _patterns; }
+        public IEnumerable<AcceptHeaderDescriptor> Descriptors { get => _descriptors; }
 
-        public bool TryGetMatchedPattern(AcceptHeader header, out AcceptableHeaderPattern acceptableHeaderPattern, out string transferSyntax)
+        public bool TryGetMatchedPattern(AcceptHeader header, out AcceptHeaderDescriptor acceptableHeaderPattern, out string transferSyntax)
         {
             acceptableHeaderPattern = null;
             transferSyntax = string.Empty;
 
-            foreach (AcceptableHeaderPattern pattern in _patterns)
+            foreach (AcceptHeaderDescriptor pattern in _descriptors)
             {
                 if (pattern.IsAcceptable(header, out transferSyntax))
                 {

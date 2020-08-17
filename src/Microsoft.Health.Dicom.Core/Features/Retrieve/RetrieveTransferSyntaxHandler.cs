@@ -16,96 +16,96 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
     {
-        private static readonly IReadOnlyDictionary<ResourceType, AcceptableHeaderPatterns> AcceptablePatterns =
-           new Dictionary<ResourceType, AcceptableHeaderPatterns>()
+        private static readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> AcceptablePatterns =
+           new Dictionary<ResourceType, AcceptHeaderDescriptors>()
            {
                 { ResourceType.Study, PatternsForGetStudy() },
                 { ResourceType.Series, PatternsForGetSeries() },
                 { ResourceType.Instance, PatternsForGetInstance() },
-                { ResourceType.Frames, GetFrameAcceptablePatterns() },
+                { ResourceType.Frames, PatternsForGetFrame() },
            };
 
-        private static AcceptableHeaderPatterns PatternsForGetStudy()
+        private static AcceptHeaderDescriptors PatternsForGetStudy()
         {
-            return new AcceptableHeaderPatterns(
-                        new AcceptableHeaderPattern(
-                        isMultipartRelated: true,
+            return new AcceptHeaderDescriptors(
+                        new AcceptHeaderDescriptor(
+                        payloadType: PayloadTypes.MultipartRelated,
                         mediaType: KnownContentTypes.ApplicationDicom,
-                        isTransferSyntaxMandatory: false,
+                        isTransferSyntaxMandatory: true,
                         transferSyntaxWhenMissing: string.Empty,
                         acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original)));
         }
 
-        private static AcceptableHeaderPatterns PatternsForGetSeries()
+        private static AcceptHeaderDescriptors PatternsForGetSeries()
         {
-            return new AcceptableHeaderPatterns(
-                        new AcceptableHeaderPattern(
-                        isMultipartRelated: true,
+            return new AcceptHeaderDescriptors(
+                        new AcceptHeaderDescriptor(
+                        payloadType: PayloadTypes.MultipartRelated,
                         mediaType: KnownContentTypes.ApplicationDicom,
-                        isTransferSyntaxMandatory: false,
+                        isTransferSyntaxMandatory: true,
                         transferSyntaxWhenMissing: string.Empty,
                         acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original)));
         }
 
-        private static AcceptableHeaderPatterns PatternsForGetInstance()
+        private static AcceptHeaderDescriptors PatternsForGetInstance()
         {
-            return new AcceptableHeaderPatterns(
-                        new AcceptableHeaderPattern(
-                        isMultipartRelated: false,
+            return new AcceptHeaderDescriptors(
+                        new AcceptHeaderDescriptor(
+                        payloadType: PayloadTypes.SinglePart,
                         mediaType: KnownContentTypes.ApplicationDicom,
-                        isTransferSyntaxMandatory: false,
+                        isTransferSyntaxMandatory: true,
                         transferSyntaxWhenMissing: string.Empty,
                         acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original)));
         }
 
-        private static AcceptableHeaderPatterns GetFrameAcceptablePatterns()
+        private static AcceptHeaderDescriptors PatternsForGetFrame()
         {
             // Follow http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_8.7.3
-            return new AcceptableHeaderPatterns(
-             new AcceptableHeaderPattern(
-                 isMultipartRelated: true,
+            return new AcceptHeaderDescriptors(
+             new AcceptHeaderDescriptor(
+                 payloadType: PayloadTypes.MultipartRelated,
                  mediaType: KnownContentTypes.ApplicationOctetStream,
                  isTransferSyntaxMandatory: false,
                  transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID)),
-             new AcceptableHeaderPattern(
-                 isMultipartRelated: true,
+             new AcceptHeaderDescriptor(
+                 payloadType: PayloadTypes.MultipartRelated,
                  mediaType: KnownContentTypes.ImageJpeg,
                  isTransferSyntaxMandatory: false,
                  transferSyntaxWhenMissing: DicomTransferSyntax.JPEGProcess14SV1.UID.UID,
                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntax.JPEGProcess14SV1, DicomTransferSyntax.JPEGProcess1, DicomTransferSyntax.JPEGProcess2_4, DicomTransferSyntax.JPEGProcess14)),
-             new AcceptableHeaderPattern(
-                 isMultipartRelated: true,
+             new AcceptHeaderDescriptor(
+                 payloadType: PayloadTypes.MultipartRelated,
                  mediaType: KnownContentTypes.ImageDicomRle,
                  isTransferSyntaxMandatory: false,
                  transferSyntaxWhenMissing: DicomTransferSyntax.RLELossless.UID.UID,
                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntax.RLELossless)),
-             new AcceptableHeaderPattern(
-                 isMultipartRelated: true,
+             new AcceptHeaderDescriptor(
+                 payloadType: PayloadTypes.MultipartRelated,
                  mediaType: KnownContentTypes.ImageJpegLs,
                  isTransferSyntaxMandatory: false,
                  transferSyntaxWhenMissing: DicomTransferSyntax.JPEGLSLossless.UID.UID,
                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntax.JPEGLSLossless, DicomTransferSyntax.JPEGLSNearLossless)),
-             new AcceptableHeaderPattern(
-                 isMultipartRelated: true,
+             new AcceptHeaderDescriptor(
+                 payloadType: PayloadTypes.MultipartRelated,
                  mediaType: KnownContentTypes.ImageJpeg2000,
                  isTransferSyntaxMandatory: false,
                  transferSyntaxWhenMissing: DicomTransferSyntax.JPEG2000Lossless.UID.UID,
                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntax.JPEG2000Lossless, DicomTransferSyntax.JPEG2000Lossy)),
-             new AcceptableHeaderPattern(
-                 isMultipartRelated: true,
+             new AcceptHeaderDescriptor(
+                 payloadType: PayloadTypes.MultipartRelated,
                  mediaType: KnownContentTypes.ImageJpeg2000Part2,
                  isTransferSyntaxMandatory: false,
                  transferSyntaxWhenMissing: DicomTransferSyntax.JPEG2000Part2MultiComponentLosslessOnly.UID.UID,
                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntax.JPEG2000Part2MultiComponentLosslessOnly, DicomTransferSyntax.JPEG2000Part2MultiComponent)),
-             new AcceptableHeaderPattern(
-                 isMultipartRelated: true,
+             new AcceptHeaderDescriptor(
+                 payloadType: PayloadTypes.MultipartRelated,
                  mediaType: KnownContentTypes.VideoMpeg2,
                  isTransferSyntaxMandatory: false,
                  transferSyntaxWhenMissing: DicomTransferSyntax.MPEG2.UID.UID,
                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntax.MPEG2, DicomTransferSyntax.MPEG2MainProfileHighLevel)),
-             new AcceptableHeaderPattern(
-                 isMultipartRelated: true,
+             new AcceptHeaderDescriptor(
+                 payloadType: PayloadTypes.MultipartRelated,
                  mediaType: KnownContentTypes.VideoMp4,
                  isTransferSyntaxMandatory: false,
                  transferSyntaxWhenMissing: DicomTransferSyntax.MPEG4AVCH264HighProfileLevel41.UID.UID,
@@ -129,13 +129,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
         {
-            AcceptableHeaderPatterns patterns = AcceptablePatterns[resourceType];
+            AcceptHeaderDescriptors patterns = AcceptablePatterns[resourceType];
 
-            // get all accceptable headers and sort by quality descendently
-            SortedDictionary<AcceptHeader, string> accepted = new SortedDictionary<AcceptHeader, string>(new AcceptHeaderQuantityComparer());
+            // get all accceptable headers and sort by quality (ascendently)
+            SortedDictionary<AcceptHeader, string> accepted = new SortedDictionary<AcceptHeader, string>(new AcceptHeaderQualityComparer());
             foreach (AcceptHeader header in acceptHeaders)
             {
-                AcceptableHeaderPattern acceptableHeaderPattern;
+                AcceptHeaderDescriptor acceptableHeaderPattern;
                 string transfersyntax;
                 if (patterns.TryGetMatchedPattern(header, out acceptableHeaderPattern, out transfersyntax))
                 {

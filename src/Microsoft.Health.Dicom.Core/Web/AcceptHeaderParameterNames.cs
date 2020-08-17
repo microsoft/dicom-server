@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Dicom.Core.Web
 {
-    public static class AcceptHeaderParameters
+    public static class AcceptHeaderParameterNames
     {
         public const string Type = "type";
         public const string TransferSyntax = "transfer-syntax";
