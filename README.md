@@ -25,6 +25,7 @@ Follow the steps [here](docs/Development.md) to deploy a local copy of the Dicom
 - [Conformance](docs/users/Conformance.md)
 - [ChangeFeed](docs/users/ChangeFeed.md)
 - [Health Check API](docs/users/HealthCheckAPI.md)
+- [Azure AD Authentication](docs/users/AzureADAuthentication.md)
 
 ## Development
 - [Setup](docs/Development.md)
@@ -32,7 +33,6 @@ Follow the steps [here](docs/Development.md) to deploy a local copy of the Dicom
 - [Naming Guidelines](docs/NamingGuidelines.md)
 - [Exception handling](docs/ExceptionHandling.md)
 - [Tests](docs/Tests.md])
-- [Azure AD Authentication](docs/AzureADAuthentication.md)
 - [Identity Server Authentication](docs/IdentityServerAuthentication.md)
 
 ## Contributing
