@@ -9,7 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Web;
+using Microsoft.Health.Dicom.Core.Configs;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -24,7 +26,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
         public MultipartReaderStreamToSeekableStreamConverterTests()
         {
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
+            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), Substitute.For<IOptions<StoreConfiguration>>());
         }
 
         [Fact]
