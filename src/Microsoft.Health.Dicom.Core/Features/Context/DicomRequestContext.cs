@@ -24,20 +24,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
             string method,
             string uriString,
             string baseUriString,
-            string correlationId,
             IDictionary<string, StringValues> requestHeaders,
             IDictionary<string, StringValues> responseHeaders)
         {
             EnsureArg.IsNotNullOrWhiteSpace(method, nameof(method));
             EnsureArg.IsNotNullOrWhiteSpace(uriString, nameof(uriString));
             EnsureArg.IsNotNullOrWhiteSpace(baseUriString, nameof(baseUriString));
-            EnsureArg.IsNotNullOrWhiteSpace(correlationId, nameof(correlationId));
             EnsureArg.IsNotNull(responseHeaders, nameof(responseHeaders));
 
             Method = method;
             _uriString = uriString;
             _baseUriString = baseUriString;
-            CorrelationId = correlationId;
             RequestHeaders = requestHeaders;
             ResponseHeaders = responseHeaders;
         }

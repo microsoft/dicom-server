@@ -19,6 +19,7 @@ using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
+using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -120,6 +121,8 @@ namespace Microsoft.AspNetCore.Builder
                     app.UseBaseHeaders();
 
                     app.UseCors(CorsConstants.DefaultCorsPolicy);
+
+                    app.UseDicomRequestContext();
 
                     if (env.IsDevelopment())
                     {

@@ -29,9 +29,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
         {
             EnsureArg.IsNotNull(httpContext, nameof(httpContext));
 
-            object cachedCustomHeaders;
-
-            if (httpContext.Items.TryGetValue(AuditConstants.CustomAuditHeaderKeyValue, out cachedCustomHeaders))
+            if (httpContext.Items.TryGetValue(AuditConstants.CustomAuditHeaderKeyValue, out object cachedCustomHeaders))
             {
                 return cachedCustomHeaders as IReadOnlyDictionary<string, string>;
             }
