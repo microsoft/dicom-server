@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
         public AspNetCoreMultipartReaderTests()
         {
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), Substitute.For<IOptions<StoreConfiguration>>());
+            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), CreateStoreConfiguration());
         }
 
         [Fact]
@@ -194,7 +194,17 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
                 contentType,
                 body,
                 seekableStreamConverter,
-                Substitute.For<IOptions<StoreConfiguration>>());
+                CreateStoreConfiguration());
+        }
+
+        private IOptions<StoreConfiguration> CreateStoreConfiguration()
+        {
+            var configuration = Substitute.For<IOptions<StoreConfiguration>>();
+            configuration.Value.Returns(new StoreConfiguration
+            {
+                MaxAllowedDicomFileSize = 1000000,
+            });
+            return configuration;
         }
 
         private async Task<MemoryStream> CreateMemoryStream(string content)

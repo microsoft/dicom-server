@@ -26,7 +26,12 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
         public MultipartReaderStreamToSeekableStreamConverterTests()
         {
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), Substitute.For<IOptions<StoreConfiguration>>());
+            var configuration = Substitute.For<IOptions<StoreConfiguration>>();
+            configuration.Value.Returns(new StoreConfiguration
+            {
+                MaxAllowedDicomFileSize = 1000000,
+            });
+            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), configuration);
         }
 
         [Fact]
