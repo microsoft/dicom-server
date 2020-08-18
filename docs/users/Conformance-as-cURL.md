@@ -21,7 +21,7 @@ _Details:_
 `curl --location --request POST "http://sjbpostman.azurewebsites.net/studies" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/!dicomfiles/dicom-samples/visus.com/case1/case1_008.dcm;type=application/dicom" --trace-ascii "trace2.txt"`
 
 ---
-### Store-instances-using-multipart/related
+### Store-single-instance
 
 > NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. Although cURL handles multipart/related well, this API allows tools like Postman to upload files to the DICOMweb service.
 
