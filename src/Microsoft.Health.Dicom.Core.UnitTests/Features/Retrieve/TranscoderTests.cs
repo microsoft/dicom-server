@@ -24,9 +24,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         private const string ExpectedOutputFileName = "ExpectedOutput.dcm";
         private const string MetadataFileName = "Metadata.json";
         private const string InputFileName = "Input.dcm";
-        private const string DecodeTestFolder = TestFileFolder + @"\Decode";
-        private const string EncodeTestFolder = TestFileFolder + @"\Encode";
-        private const string UncompressedTestFolder = TestFileFolder + @"\Uncompressed";
+        private const string TestFileFolderForDecode = TestFileFolder + @"\Decode";
+        private const string TestFileFolderForEncode = TestFileFolder + @"\Encode";
+        private const string TestFileFolderForUncompressed = TestFileFolder + @"\Uncompressed";
         private ITranscoder _transcoder;
         private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -37,27 +37,27 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Theory(Skip = "Skip now until https://microsofthealth.visualstudio.com/Health/_workitems/edit/75149 is resolved")]
-        [MemberData(nameof(GetTestData), EncodeTestFolder)]
-        public async void GivenUncompressedTransferSyntax_WhenRequestEncoding_ThenTranscodingShouldSucceed(TranscoderTestData testData)
+        [MemberData(nameof(GetTestDatas), TestFileFolderForEncode)]
+        public async void GivenUncompressedDicomFile_WhenRequestEncoding_ThenTranscodingShouldSucceed(TranscoderTestData testData)
         {
             await VerifyTranscoding(testData);
         }
 
         [Theory(Skip = "Skip now until https://microsofthealth.visualstudio.com/Health/_workitems/edit/75149 is resolved")]
-        [MemberData(nameof(GetTestData), DecodeTestFolder)]
-        public async void GivenCompressedTranserSyntax_WhenRequestDecoding_ThenTranscodingShouldSucceed(TranscoderTestData testData)
+        [MemberData(nameof(GetTestDatas), TestFileFolderForDecode)]
+        public async void GivenCompressedDicomFile_WhenRequestDecoding_ThenTranscodingShouldSucceed(TranscoderTestData testData)
         {
             await VerifyTranscoding(testData);
         }
 
         [Theory(Skip = "Skip now until https://microsofthealth.visualstudio.com/Health/_workitems/edit/75149 is resolved")]
-        [MemberData(nameof(GetTestData), UncompressedTestFolder)]
-        public async void GivenUncompressedTransferSytnax_WhenRequestAnotherUncompressedTransferSyntax_ThenTranscodingShouldSucceed(TranscoderTestData testData)
+        [MemberData(nameof(GetTestDatas), TestFileFolderForUncompressed)]
+        public async void GivenUncompressedDicomFile_WhenRequestAnotherUncompressedTransferSyntax_ThenTranscodingShouldSucceed(TranscoderTestData testData)
         {
             await VerifyTranscoding(testData);
         }
 
-        private static string GetExpectedFile(string inputFile)
+        private static string GetExpectedOutputFile(string inputFile)
         {
             return Path.Combine(Path.GetDirectoryName(inputFile), ExpectedOutputFileName);
         }
@@ -78,17 +78,17 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             return JsonSerializer.Deserialize<TranscoderTestMetadata>(File.ReadAllText(metadataFile));
         }
 
-        public static IEnumerable<object[]> GetTestData(string folder)
+        public static IEnumerable<object[]> GetTestDatas(string testFileFolder)
         {
             IList<object[]> result = new List<object[]>();
-            foreach (string path in Directory.EnumerateFiles(folder, AllFiles, SearchOption.AllDirectories))
+            foreach (string path in Directory.EnumerateFiles(testFileFolder, AllFiles, SearchOption.AllDirectories))
             {
                 if (IsInputFile(path))
                 {
                     TranscoderTestData testData = new TranscoderTestData()
                     {
                         InputDicomFile = path,
-                        ExpectedOutputDicomFile = GetExpectedFile(path),
+                        ExpectedOutputDicomFile = GetExpectedOutputFile(path),
                         MetaData = GetMetadata(path),
                     };
                     result.Add(new object[] { testData });
@@ -104,15 +104,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             DicomFile inputFile = DicomFile.Open(fileStream);
 
             // Verify if input file has correct input transfersyntax
-            Assert.Equal(inputFile.Dataset.InternalTransferSyntax, testData.MetaData.GetInputSyntax());
+            Assert.Equal(inputFile.Dataset.InternalTransferSyntax.UID.UID, testData.MetaData.InputSyntaxUid);
 
             // Set stream position to begin for trasncoder to consume
             fileStream.Seek(0, SeekOrigin.Begin);
 
-            Stream outputFileStream = await _transcoder.TranscodeFileAsync(fileStream, testData.MetaData.GetOutputSyntax().UID.UID);
+            Stream outputFileStream = await _transcoder.TranscodeFileAsync(fileStream, testData.MetaData.OutputSyntaxUid);
             DicomFile outputFile = await DicomFile.OpenAsync(outputFileStream);
 
-            Assert.Equal(outputFile.Dataset.InternalTransferSyntax, testData.MetaData.GetOutputSyntax());
+            Assert.Equal(outputFile.Dataset.InternalTransferSyntax.UID.UID, testData.MetaData.OutputSyntaxUid);
 
             VerifyFrames(outputFile, testData);
             return outputFile;
@@ -120,7 +120,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
         private void VerifyFrames(DicomFile actual, TranscoderTestData testData)
         {
-            Assert.Equal(actual.Dataset.InternalTransferSyntax, testData.MetaData.GetOutputSyntax());
+            Assert.Equal(actual.Dataset.InternalTransferSyntax.UID.UID, testData.MetaData.OutputSyntaxUid);
             Assert.Equal(testData.MetaData.OutputFramesHashCode, GetFramesHashCode(actual));
         }
 
