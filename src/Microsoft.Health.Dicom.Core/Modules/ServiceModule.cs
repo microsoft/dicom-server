@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Globalization;
-using System.Reflection;
 using Dicom.Imaging.Codec;
 using Dicom.Imaging.NativeCodec;
 using EnsureThat;

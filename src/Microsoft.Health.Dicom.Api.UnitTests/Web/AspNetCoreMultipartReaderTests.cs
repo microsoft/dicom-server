@@ -7,8 +7,10 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Api.Web;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Web;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -27,7 +29,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
         public AspNetCoreMultipartReaderTests()
         {
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
+            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), CreateStoreConfiguration());
         }
 
         [Fact]
@@ -191,7 +193,18 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             return new AspNetCoreMultipartReader(
                 contentType,
                 body,
-                seekableStreamConverter);
+                seekableStreamConverter,
+                CreateStoreConfiguration());
+        }
+
+        private IOptions<StoreConfiguration> CreateStoreConfiguration()
+        {
+            var configuration = Substitute.For<IOptions<StoreConfiguration>>();
+            configuration.Value.Returns(new StoreConfiguration
+            {
+                MaxAllowedDicomFileSize = 1000000,
+            });
+            return configuration;
         }
 
         private async Task<MemoryStream> CreateMemoryStream(string content)
