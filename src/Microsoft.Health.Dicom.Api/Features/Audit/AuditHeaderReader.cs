@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
                     var headerValue = header.Value.ToString();
                     if (headerValue.Length > AuditConstants.MaximumLengthOfCustomHeader)
                     {
-                        throw new AuditHeaderException(header.Key, headerValue.Length);
+                        throw new AuditHeaderTooLargeException(header.Key, headerValue.Length);
                     }
 
                     customHeaders[header.Key] = headerValue;
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
 
             if (customHeaders.Count > AuditConstants.MaximumNumberOfCustomHeaders)
             {
-                throw new AuditHeaderException(customHeaders.Count);
+                throw new AuditHeaderCountExceededException(customHeaders.Count);
             }
 
             httpContext.Items[AuditConstants.CustomAuditHeaderKeyValue] = customHeaders;

@@ -3,14 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Features.Audit
 {
-    public class AuditHeaderException : DicomServerException
+    public class AuditHeaderTooLargeException : AuditHeaderException
     {
-        public AuditHeaderException(string message)
-            : base(message)
+        public AuditHeaderTooLargeException(string headerName, int size)
+            : base(string.Format(DicomApiResource.CustomAuditHeaderTooLarge, AuditConstants.MaximumLengthOfCustomHeader, headerName, size))
         {
         }
     }
