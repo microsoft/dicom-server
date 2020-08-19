@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Api.Web
 {
@@ -20,12 +22,15 @@ namespace Microsoft.Health.Dicom.Api.Web
     {
         private const int DefaultBufferThreshold = 1024 * 30000; // 30MB
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IOptions<StoreConfiguration> _storeConfiguration;
 
-        public MultipartReaderStreamToSeekableStreamConverter(IHttpContextAccessor httpContextAccessor)
+        public MultipartReaderStreamToSeekableStreamConverter(IHttpContextAccessor httpContextAccessor, IOptions<StoreConfiguration> storeConfiguration)
         {
             EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
+            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
 
             _httpContextAccessor = httpContextAccessor;
+            _storeConfiguration = storeConfiguration;
         }
 
         /// <inheritdoc />
@@ -48,7 +53,7 @@ namespace Microsoft.Health.Dicom.Api.Web
                 catch (InvalidDataException)
                 {
                     // This will result in bad request, we need to handle this differently when we make the processing serial.
-                    throw new DicomFileLengthLimitExceededException(AspNetCoreMultipartReader.DicomFileSizeLimit);
+                    throw new DicomFileLengthLimitExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
                 }
                 catch (IOException ex)
                 {

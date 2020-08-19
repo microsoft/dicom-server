@@ -10,7 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
@@ -22,11 +24,10 @@ namespace Microsoft.Health.Dicom.Api.Web
     /// </summary>
     internal class AspNetCoreMultipartReader : IMultipartReader
     {
-        public const long DicomFileSizeLimit = 1073741824; // 1 GB
         private const string TypeParameterName = "type";
         private const string StartParameterName = "start";
         private readonly ISeekableStreamConverter _seekableStreamConverter;
-
+        private readonly IOptions<StoreConfiguration> _storeConfiguration;
         private readonly string _rootContentType;
         private readonly MultipartReader _multipartReader;
 
@@ -35,13 +36,16 @@ namespace Microsoft.Health.Dicom.Api.Web
         internal AspNetCoreMultipartReader(
             string contentType,
             Stream body,
-            ISeekableStreamConverter seekableStreamConverter)
+            ISeekableStreamConverter seekableStreamConverter,
+            IOptions<StoreConfiguration> storeConfiguration)
         {
             EnsureArg.IsNotNull(contentType, nameof(contentType));
             EnsureArg.IsNotNull(body, nameof(body));
             EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
+            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
 
             _seekableStreamConverter = seekableStreamConverter;
+            _storeConfiguration = storeConfiguration;
 
             if (!MediaTypeHeaderValue.TryParse(contentType, out MediaTypeHeaderValue media) ||
                 !media.MediaType.Equals(KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase))
@@ -80,7 +84,7 @@ namespace Microsoft.Health.Dicom.Api.Web
             _multipartReader = new MultipartReader(boundary, body);
 
             // set the max length of each section in bytes
-            _multipartReader.BodyLengthLimit = DicomFileSizeLimit;
+            _multipartReader.BodyLengthLimit = _storeConfiguration.Value.MaxAllowedDicomFileSize;
         }
 
         /// <inheritdoc />
