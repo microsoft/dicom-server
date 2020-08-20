@@ -5,10 +5,11 @@
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
-    public class ServicesConfiguration
+    public class StoreConfiguration
     {
-        public DeletedInstanceCleanupConfiguration DeletedInstanceCleanup { get; } = new DeletedInstanceCleanupConfiguration();
-
-        public StoreConfiguration StoreServiceSettings { get; } = new StoreConfiguration();
+        /// <summary>
+        /// Maximum allowed request length per dicom file
+        /// </summary>
+        public long MaxAllowedDicomFileSize { get; set; } = 2147483648;
     }
 }
