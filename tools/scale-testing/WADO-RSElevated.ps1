@@ -26,7 +26,9 @@ $fileName = -join($CurrentDirectory, '\', $RunType, $txt)
 
 $TotalCount = Get-Content $fileName | Measure-Object –Line
 
-$CountPerThread = $TotalCount / $ConcurrentThreads
+$UnroundedCountPerThread = $TotalCount.Lines / $ConcurrentThreads
+
+$CountPerThread = [Math]::Floor([decimal]($UnroundedCountPerThread))
 
 build($MessageUploaderProject)
 for($i = 0; $i -lt $ConcurrentThreads; $i++)

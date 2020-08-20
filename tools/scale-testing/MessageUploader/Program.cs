@@ -5,6 +5,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Core;
@@ -43,17 +44,18 @@ namespace MessageUploader
             _topicName = args[0];
             topicClient = new TopicClient(_serviceBusConnectionString, _topicName);
             string filePath = args[1];
-            file = File.ReadAllLines(filePath);
 
             int start = int.Parse(args[2]);
             int end = int.Parse(args[3]);
+
+            file = File.ReadLines(filePath).Skip(start).Take(end - start).ToArray();
 
             Console.WriteLine("======================================================");
             Console.WriteLine("Press ENTER key to exit after sending all the messages.");
             Console.WriteLine("======================================================");
 
             // Send messages.
-            await SendMessagesAsync(start, end);
+            await SendAllMessagesAsync();
 
             await topicClient.CloseAsync();
         }

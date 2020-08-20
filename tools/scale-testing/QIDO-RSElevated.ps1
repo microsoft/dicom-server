@@ -27,7 +27,7 @@ for($i = 0; $i -lt $ConcurrentThreads; $i++)
 {    
 	$fileName = -join($CurrentDirectory, '\', $i, $txt)
     $TotalCount = Get-Content $fileName | Measure-Object –Line
-	Start-Process -FilePath $MessageUploaderApp -ArgumentList "$topicName $fileName 0 $TotalCount" -RedirectStandardError "log.txt"
+	Start-Process -FilePath $MessageUploaderApp -ArgumentList "$topicName $fileName 0 $TotalCount.Line" -RedirectStandardError "log.txt"
 }
 
 $SubscriptionState = Get-AzServiceBusSubscription -ResourceGroup $ResourceGroup -NamespaceName $Namespace -TopicName $topicName -SubscriptionName 's1'

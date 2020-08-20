@@ -16,14 +16,15 @@ switch($InputRunType)
 
 Write-Host "Run Type is $RunType"
 
-$ResourceGroup = Read-Host -Prompt 'Input resource group name'
 $ConcurrentThreads = Read-Host -Prompt 'Input threads to run simultaneously for upload'
 
 $fileName = -join($CurrentDirectory, '\', $RunType, $txt)
 
 $TotalCount = Get-Content $fileName | Measure-Object –Line
 
-$CountPerThread = $TotalCount / $ConcurrentThreads
+$UnroundedCountPerThread = $TotalCount.Lines / $ConcurrentThreads
+
+$CountPerThread = [Math]::Floor([decimal]($UnroundedCountPerThread))
 
 build($MessageUploaderProject)
 for($i = 0; $i -lt $ConcurrentThreads; $i++)

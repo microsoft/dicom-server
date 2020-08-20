@@ -12,7 +12,8 @@ $ConcurrentThreads = Read-Host -Prompt 'Input threads to run simultaneously for 
 $Namespace = Read-Host -Prompt 'Input Service Bus Namespace name'
 $AppName = Read-Host -Prompt 'Input App Service Name'
 
-$InstanceCountPerThread = $InstanceCount / $ConcurrentThreads
+$UnroundedInstanceCountPerThread = $InstanceCount / $ConcurrentThreads
+$InstanceCountPerThread = [Math]::Floor([decimal]($UnroundedInstanceCountPerThread))
 $PatientNames = -join($CurrentDirectory, '\PatientNames.txt')
 $PhysicianNames = -join($CurrentDirectory, '\PhysicianNames.txt')
 

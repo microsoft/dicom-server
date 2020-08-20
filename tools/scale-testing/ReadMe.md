@@ -32,7 +32,8 @@ Install-Module -Name Az -AllowClobber -Scope CurrentUser
     c) It should auto populate your subscriptions, select the one containing your resource group, pick your resource groups from the list below and select the available App Service.  
     d) After it creates a profile, click the edit icon next to 'WebJobType'.  
     e) In the pop-up menu, change 'WebJobType' to 'Continuous' and update the WebJob Name to 'MessageHandler' and click 'Save'.  
-    f) Double-check the values and then click 'Publish' when you are ready.  
+    f) Double-check the values and then click 'Publish' when you are ready.
+    g) After publishing, go to the WebJobs menu in the scale testing app service and start the service.  
 6. After the service bus topic is empty and the run is completed, delete the web job by going to the app service's WebJobs menu.
 
 ### Download Blob Names
@@ -77,7 +78,7 @@ Execute QIDO-RSElevated.psm1 instead. The script will also ask for the service b
   
 ## **Download successfully stored instances, series and studies using SSMS**
 This is a faster way to download the successfully stored instances/series/studies when compared to using the powershell script DownloadBlobNames.ps1. It is, however, more manual.
-1. Open SSMS and connect to the Azure SQL instance associated with your scale testing resource group.
+1. Open SSMS and [connect](https://docs.microsoft.com/en-us/azure/azure-sql/database/connect-query-ssms) to the Azure SQL instance associated with your scale testing resource group.
 2. Expand the databases and right-click on Dicom. In the menu, select 'Tasks' and in the ensuing sub-menu, select 'Export Data'. This should result in a SQL Server Import and Export Wizard popping up.
 3.
     a) Press Next on the homepage.
