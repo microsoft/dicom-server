@@ -8,11 +8,10 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using EnsureThat;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Health.Core.Features.Context;
 
 namespace Microsoft.Health.Dicom.Core.Features.Context
 {
-    public class DicomRequestContext : IRequestContext
+    public class DicomRequestContext : IDicomRequestContext
     {
         private readonly string _uriString;
         private readonly string _baseUriString;
@@ -50,6 +49,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
         public string RouteName { get; set; }
 
         public string AuditEventType { get; set; }
+
+        public string StudyInstanceUid { get; set; }
+
+        public string SeriesInstanceUid { get; set; }
+
+        public string SopInstanceUid { get; set; }
 
         public ClaimsPrincipal Principal { get; set; }
 

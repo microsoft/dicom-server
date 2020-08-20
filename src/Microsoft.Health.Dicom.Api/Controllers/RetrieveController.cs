@@ -21,9 +21,9 @@ using Microsoft.Health.Dicom.Api.Features.Responses;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
-using Microsoft.Health.Dicom.ValueSets;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {

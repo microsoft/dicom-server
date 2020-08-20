@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Api.Features.Audit;
-using Microsoft.Health.Core.Features.Context;
 using Microsoft.Health.Core.Features.Security;
 using Microsoft.Health.Dicom.Api.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -30,7 +29,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
         private readonly IAuditLogger _auditLogger = Substitute.For<IAuditLogger>();
         private readonly IAuditHeaderReader _auditHeaderReader = Substitute.For<IAuditHeaderReader>();
 
-        private readonly IRequestContext _dicomRequestContext = Substitute.For<IRequestContext>();
+        private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
 
         private readonly IAuditHelper _auditHelper;
 
