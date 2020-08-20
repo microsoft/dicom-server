@@ -1,4 +1,4 @@
-﻿$CurrentDirectory = ($pwd).path
+﻿$CurrentDirectory = (pwd).path
 
 $CommonModule = -join($CurrentDirectory, '\', 'Common.psm1')
 Import-Module $CommonModule -Force
@@ -26,9 +26,9 @@ $fileName = -join($CurrentDirectory, '\', $RunType, $txt)
 
 $TotalCount = Get-Content $fileName | Measure-Object –Line
 
-$CountPerThread = $TotalCount / $ConcurrentThreads
-$MessageUploaderProject = -join($CurrentDirectory, '\Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader')
-$MessageUploaderApp = -join ($MessageUploaderProject, '\bin\Release\netcoreapp3.1\Microsoft.Health.Dicom.Tools.ScaleTesting.MessageUploader.exe')
+$UnroundedCountPerThread = $TotalCount.Lines / $ConcurrentThreads
+
+$CountPerThread = [Math]::Floor([decimal]($UnroundedCountPerThread))
 
 build($MessageUploaderProject)
 for($i = 0; $i -lt $ConcurrentThreads; $i++)
@@ -46,8 +46,6 @@ while($SubscriptionState.properties.messageCount -lt $InstanceCount)
 }
 
 Start-Sleep -s 120
-
-$MessageHandlerProject = -join($CurrentDirectory, '\Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler')
 
 build($MessageHandlerProject)
 createPackage($MessageHandlerProject)

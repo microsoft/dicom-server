@@ -1,4 +1,5 @@
 ﻿ Import-Module Az.Websites -Force
+ $global:CurrentDirectory = (pwd).path
 
 # Build the console application using DotNet CLI.
 function build($basePath){
@@ -32,3 +33,29 @@ function deploy([String]$resourceGroupName, [String]$appName, [String]$basepath)
     Publish-AzWebApp -ArchivePath $zipPath -ResourceGroupName $resourceGroupName -Name $appName
     Write-Host "$(Get-Date –f $timeStampFormat) - Completed Deployment " -foregroundcolor "green"
 }
+
+function generateProject([String] $ProjectName){
+    -join($CurrentDirectory, "\", $ProjectName)
+}
+
+function generateApplicationFromProject([String]$Project, [String]$ProjectDirectory){
+    -join($ProjectDirectory, "\bin\Release\netcoreapp3.1\", $Project, ".exe")
+}
+
+$global:PersonGenerator = 'PersonInstanceGenerator'
+$global:PersonGeneratorProject = generateProject $PersonGenerator
+$global:PersonGeneratorApp = generateApplicationFromProject $PersonGenerator $PersonGeneratorProject
+
+$global:RetrieveBlobNames = 'RetrieveBlobNames'
+$global:RetrieveBlobNamesProject = generateProject $RetrieveBlobNames
+$global:RetrieveBlobNamesApp = generateApplicationFromProject $RetrieveBlobNames $RetrieveBlobNamesProject
+
+$global:MessageUploader = 'MessageUploader'
+$global:MessageUploaderProject = generateProject $MessageUploader
+$global:MessageUploaderApp = generateApplicationFromProject $MessageUploader $MessageUploaderProject
+
+$global:QidoQueryGenerator = 'QidoQueryGenerator'
+$global:QueryGeneratorProject = generateProject $QidoQueryGenerator
+$global:QueryGeneratorApp = generateApplicationFromProject $QidoQueryGenerator $QueryGeneratorProject
+
+$global:MessageHandlerProject = generateProject('MessageHandler')

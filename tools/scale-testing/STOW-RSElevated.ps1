@@ -1,4 +1,4 @@
-﻿$CurrentDirectory = ($pwd).path
+﻿$CurrentDirectory = (pwd).path
 
 $CommonModule = -join($CurrentDirectory, '\', 'Common.psm1')
 Import-Module $CommonModule -Force
@@ -12,9 +12,8 @@ $ConcurrentThreads = Read-Host -Prompt 'Input threads to run simultaneously for 
 $Namespace = Read-Host -Prompt 'Input Service Bus Namespace name'
 $AppName = Read-Host -Prompt 'Input App Service Name'
 
-$InstanceCountPerThread = $InstanceCount / $ConcurrentThreads
-$PersonGeneratorProject = -join($CurrentDirectory, '\Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator')
-$PersonGeneratorApp = -join ($PersonGeneratorProject, '\bin\Release\netcoreapp3.1\Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator.exe')
+$UnroundedInstanceCountPerThread = $InstanceCount / $ConcurrentThreads
+$InstanceCountPerThread = [Math]::Floor([decimal]($UnroundedInstanceCountPerThread))
 $PatientNames = -join($CurrentDirectory, '\PatientNames.txt')
 $PhysicianNames = -join($CurrentDirectory, '\PhysicianNames.txt')
 
@@ -33,8 +32,6 @@ while($SubscriptionState.properties.messageCount -lt $InstanceCount)
 }
 
 Start-Sleep -s 120
-
-$MessageHandlerProject = -join($CurrentDirectory, '\Microsoft.Health.Dicom.Tools.ScaleTesting.MessageHandler')
 
 build($MessageHandlerProject)
 createPackage($MessageHandlerProject)

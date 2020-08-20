@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Client
 
         Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveInstancesRenderedAsync(Uri requestUri, string format = null, CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveMetadataAsync(Uri requestUri, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveMetadataAsync(Uri requestUri, string ifNoneMatch = null, CancellationToken cancellationToken = default);
 
         Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUid = null, CancellationToken cancellationToken = default);
 

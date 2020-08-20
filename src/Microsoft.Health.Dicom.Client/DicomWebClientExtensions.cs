@@ -33,12 +33,14 @@ namespace Microsoft.Health.Dicom.Client
         public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveStudyMetadataAsync(
             this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
+            string ifNoneMatch = null,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveMetadataAsync(
                 new Uri(string.Format(DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, studyInstanceUid), UriKind.Relative),
+                ifNoneMatch,
                 cancellationToken);
         }
 
@@ -62,12 +64,14 @@ namespace Microsoft.Health.Dicom.Client
             this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
             string seriesInstanceUid,
+            string ifNoneMatch = null,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveMetadataAsync(
                 new Uri(string.Format(DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative),
+                ifNoneMatch,
                 cancellationToken);
         }
 
@@ -112,12 +116,14 @@ namespace Microsoft.Health.Dicom.Client
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
+            string ifNoneMatch = null,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveMetadataAsync(
                 new Uri(string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
+                ifNoneMatch,
                 cancellationToken);
         }
 

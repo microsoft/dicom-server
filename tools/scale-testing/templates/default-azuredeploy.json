@@ -141,6 +141,17 @@
             ]
         },
         {
+            "apiVersion": "2016-08-01",
+            "type": "Microsoft.Web/sites/config",
+            "name": "[concat(variables('serviceName'), '/web')]",
+            "dependsOn": [
+                "[variables('appServiceResourceId')]"
+            ],
+            "properties": {
+                "alwaysOn": true
+            }
+        },
+        {
             "apiVersion": "2015-05-01",
             "name": "[variables('appInsightsName')]",
             "type": "Microsoft.Insights/components",
@@ -260,19 +271,6 @@
             },
             "dependsOn": [
                 "[variables('appServiceResourceId')]"
-            ]
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(variables('serviceName'), '/BlobStore--ConnectionString')]",
-            "apiVersion": "2015-06-01",
-            "properties": {
-                "contentType": "text/plain",
-                "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';')]"
-            },
-            "dependsOn": [
-                "[variables('keyVaultResourceId')]",
-                "[variables('storageResourceId')]"
             ]
         },
         {

@@ -21,9 +21,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public Transcoder(
             RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+            : this(recyclableMemoryStreamManager, null)
+        {
+        }
+
+        public Transcoder(RecyclableMemoryStreamManager recyclableMemoryStreamManager, TranscoderManager transcoderManager)
         {
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+            if (transcoderManager != null)
+            {
+                TranscoderManager.SetImplementation(transcoderManager);
+            }
         }
 
         public async Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax)

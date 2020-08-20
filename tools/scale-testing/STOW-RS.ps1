@@ -1,17 +1,14 @@
-﻿$CurrentDirectory = ($pwd).path
-
+﻿$CurrentDirectory = (pwd).path
 $CommonModule = -join($CurrentDirectory, '\', 'Common.psm1')
 Import-Module $CommonModule -Force
 
 $txt = '.txt'
 
-$ResourceGroup = Read-Host -Prompt 'Input resource group name'
 $InstanceCount = Read-Host -Prompt 'Input total count of instances'
 $ConcurrentThreads = Read-Host -Prompt 'Input threads to run simultaneously for upload'
 
-$InstanceCountPerThread = $InstanceCount / $ConcurrentThreads
-$PersonGeneratorProject = -join($CurrentDirectory, '\Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator')
-$PersonGeneratorApp = -join ($PersonGeneratorProject, '\bin\Release\netcoreapp3.1\Microsoft.Health.Dicom.Tools.ScaleTesting.PersonInstanceGenerator.exe')
+$UnroundedInstanceCountPerThread = $InstanceCount / $ConcurrentThreads
+$InstanceCountPerThread = [Math]::Floor([decimal]($UnroundedInstanceCountPerThread))
 $PatientNames = -join($CurrentDirectory, '\PatientNames.txt')
 $PhysicianNames = -join($CurrentDirectory, '\PhysiciansNames.txt')
 
