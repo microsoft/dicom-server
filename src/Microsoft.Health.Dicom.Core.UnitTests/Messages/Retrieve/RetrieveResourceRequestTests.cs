@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [Fact]
         public void GivenRetrieveResourcesRequestForStudy_WhenConstructed_ThenStudyResourceTypeIsSet()
         {
-            var request = new RetrieveResourceRequest(TestUidGenerator.Generate(), AcceptHeaderHelpers.CreateAcceptHeadersForGetInstance(transferSyntax: string.Empty));
+            var request = new RetrieveResourceRequest(TestUidGenerator.Generate(), new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance(transferSyntax: string.Empty) });
             Assert.Equal(ResourceType.Study, request.ResourceType);
         }
 
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
             var request = new RetrieveResourceRequest(
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
-                AcceptHeaderHelpers.CreateAcceptHeadersForGetSeries(transferSyntax: string.Empty));
+                new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries(transferSyntax: string.Empty) });
             Assert.Equal(ResourceType.Series, request.ResourceType);
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
-                AcceptHeaderHelpers.CreateAcceptHeadersForGetInstance(transferSyntax: string.Empty));
+                new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance(transferSyntax: string.Empty) });
             Assert.Equal(ResourceType.Instance, request.ResourceType);
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
                 new[] { 5 },
-                AcceptHeaderHelpers.CreateAcceptHeadersForGetFrame(transferSyntax: string.Empty));
+                new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(transferSyntax: string.Empty) });
             Assert.Equal(ResourceType.Frames, request.ResourceType);
         }
     }

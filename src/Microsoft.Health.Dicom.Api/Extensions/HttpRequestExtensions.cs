@@ -12,14 +12,14 @@ using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Extensions
 {
-    public static class HttpContextExtensions
+    public static class HttpRequestExtensions
     {
-        public static IEnumerable<AcceptHeader> GetAcceptHeaders(this HttpContext httpContext)
+        public static IEnumerable<AcceptHeader> GetAcceptHeaders(this HttpRequest httpRequest)
         {
-            EnsureArg.IsNotNull(httpContext, nameof(httpContext));
-            IList<MediaTypeHeaderValue> acceptHeaders = httpContext.Request.GetTypedHeaders().Accept;
+            EnsureArg.IsNotNull(httpRequest, nameof(httpRequest));
+            IList<MediaTypeHeaderValue> acceptHeaders = httpRequest.GetTypedHeaders().Accept;
 
-            if (acceptHeaders != null)
+            if (acceptHeaders != null && acceptHeaders.Count != 0)
             {
                 return acceptHeaders.Select((item) => item.ToAcceptHeader())
                     .ToList();

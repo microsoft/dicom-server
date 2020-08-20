@@ -13,5 +13,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         None = 0,
         SinglePart = 1,
         MultipartRelated = 2,
+        SinglePartOrMultipartRelated = SinglePart | MultipartRelated,
     }
 }

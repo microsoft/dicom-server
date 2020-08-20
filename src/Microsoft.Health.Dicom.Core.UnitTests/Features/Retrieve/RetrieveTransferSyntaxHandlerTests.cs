@@ -3,10 +3,49 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using Dicom;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.Health.Dicom.Tests.Common;
+using Xunit;
+
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 {
-    // TODO: add tests for RetrieveTransferSyntaxHandler
     public class RetrieveTransferSyntaxHandlerTests
     {
+        private RetrieveTransferSyntaxHandler _handler;
+
+        public RetrieveTransferSyntaxHandlerTests()
+        {
+            _handler = new RetrieveTransferSyntaxHandler();
+        }
+
+        [Fact]
+        public void GivenAcceptHeadersIsNull_WhenGetTransferSyntax_ThenThrowException()
+        {
+            Assert.Throws<ArgumentNullException>(() => _handler.GetTransferSyntax(ResourceType.Frames, acceptHeaders: null));
+        }
+
+        [Fact]
+        public void GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenGetTransferSyntax_ThenShouldReturnLargestQuality()
+        {
+            string expectedTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID;
+            AcceptHeader acceptHeader1 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.5, transferSyntax: DicomTransferSyntaxUids.Original);
+            AcceptHeader acceptHeader2 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.9, transferSyntax: expectedTransferSyntax);
+            string transferSyntax = _handler.GetTransferSyntax(ResourceType.Frames, new[] { acceptHeader1, acceptHeader2 });
+            Assert.Equal(expectedTransferSyntax, transferSyntax);
+        }
+
+        [Fact]
+        public void GivenNoMatchedAcceptHeaders_WhenGetTransferSyntax_ThenShouldThrowBadRequestException()
+        {
+            // Use content type that GetStudy doesn't support
+            AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(mediaType: KnownContentTypes.ImageJpeg);
+            Assert.ThrowsAny<BadRequestException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader }));
+        }
     }
 }

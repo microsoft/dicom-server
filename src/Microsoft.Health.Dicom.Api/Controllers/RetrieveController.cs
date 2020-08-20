@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}'.");
 
-            RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, HttpContext.GetAcceptHeaders(), HttpContext.RequestAborted);
+            RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
@@ -97,7 +97,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
-                studyInstanceUid, seriesInstanceUid, HttpContext.GetAcceptHeaders(), HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
@@ -139,7 +139,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.GetAcceptHeaders(), HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationDicom);
         }
@@ -181,7 +181,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}', frames: '{string.Join(", ", frames ?? Array.Empty<int>())}'.");
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, HttpContext.GetAcceptHeaders(), HttpContext.RequestAborted);
+                studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
             return CreateResult(response, KnownContentTypes.ApplicationOctetStream);
         }

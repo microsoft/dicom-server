@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
@@ -14,6 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public AcceptHeaderDescriptors(params AcceptHeaderDescriptor[] descriptors)
         {
+            EnsureArg.IsNotNull(descriptors, nameof(descriptors));
             _descriptors = descriptors;
         }
 

@@ -9,5 +9,6 @@ namespace Microsoft.Health.Dicom.Core.Web
     {
         public const string Type = "type";
         public const string TransferSyntax = "transfer-syntax";
+        public const string Quality = "q";
     }
 }

@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
                 }
             }
 
-            return null;
+            return StringSegment.Empty;
         }
 
         public static AcceptHeader ToAcceptHeader(this MediaTypeHeaderValue headerValue)

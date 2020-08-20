@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -129,6 +130,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
         {
+            EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
             AcceptHeaderDescriptors patterns = AcceptablePatterns[resourceType];
 
             // get all accceptable headers and sort by quality (ascendently)
@@ -149,7 +151,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 throw new BadRequestException("The requested content type and transfer syntax cannot be handled");
             }
 
-            // Last elment has largest quantity
+            // Last elment has largest quality
             return accepted.Last().Value;
         }
     }

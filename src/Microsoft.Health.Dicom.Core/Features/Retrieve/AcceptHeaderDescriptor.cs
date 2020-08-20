@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using EnsureThat;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
@@ -14,6 +15,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     {
         public AcceptHeaderDescriptor(PayloadTypes payloadType, string mediaType, bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, ISet<string> acceptableTransferSyntaxes)
         {
+            EnsureArg.IsNotEmptyOrWhiteSpace(mediaType, nameof(mediaType));
+
+            // When transfersyntax is not mandatory, transferSyntaxWhenMissing has to be presented
+            if (!isTransferSyntaxMandatory)
+            {
+                EnsureArg.IsNotEmptyOrWhiteSpace(transferSyntaxWhenMissing, nameof(transferSyntaxWhenMissing));
+            }
+
+            EnsureArg.IsNotNull(acceptableTransferSyntaxes, nameof(acceptableTransferSyntaxes));
+
             PayloadType = payloadType;
             MediaType = mediaType;
             IsTransferSyntaxMandatory = isTransferSyntaxMandatory;
