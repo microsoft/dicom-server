@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -14,12 +13,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 {
     public class AcceptHeaderDescriptorsTests
     {
-        [Fact]
-        public void GivenDescriptorsIsNull_WhenConstructAcceptHeaderDescriptors_ThenShouldThrowException()
-        {
-            Assert.Throws<ArgumentNullException>(() => new AcceptHeaderDescriptors(null));
-        }
-
         [Fact]
         public void GivenDescriptorsIsNotNull_WhenConstructAcceptHeaderDescriptors_ThenShouldSucceed()
         {
@@ -40,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             AcceptHeaderDescriptors acceptHeaderDescriptors = new AcceptHeaderDescriptors(matchDescriptor1, matchDescriptor2, notMatchDescriptor);
             AcceptHeaderDescriptor result;
             string transferSyntax;
-            Assert.True(acceptHeaderDescriptors.TryGetMatchedPattern(acceptHeader, out result, out transferSyntax));
+            Assert.True(acceptHeaderDescriptors.TryGetMatchedDescriptor(acceptHeader, out result, out transferSyntax));
             Assert.Same(result, matchDescriptor1);
 
             // Actual transferSyntax should be from matchDescriptor1
@@ -58,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             AcceptHeaderDescriptors acceptHeaderDescriptors = new AcceptHeaderDescriptors(notMatchDescriptor1, notMatchDescriptor2);
             AcceptHeaderDescriptor result;
             string transferSyntax;
-            Assert.False(acceptHeaderDescriptors.TryGetMatchedPattern(acceptHeader, out result, out transferSyntax));
+            Assert.False(acceptHeaderDescriptors.TryGetMatchedDescriptor(acceptHeader, out result, out transferSyntax));
         }
     }
 }

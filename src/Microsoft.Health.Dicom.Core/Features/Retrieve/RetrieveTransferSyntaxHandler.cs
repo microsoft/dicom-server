@@ -17,16 +17,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
     {
-        private static readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> AcceptablePatterns =
+        private static readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> AcceptableDescriptors =
            new Dictionary<ResourceType, AcceptHeaderDescriptors>()
            {
-                { ResourceType.Study, PatternsForGetStudy() },
-                { ResourceType.Series, PatternsForGetSeries() },
-                { ResourceType.Instance, PatternsForGetInstance() },
-                { ResourceType.Frames, PatternsForGetFrame() },
+                { ResourceType.Study, DescriptorsForGetStudy() },
+                { ResourceType.Series, DescriptorsForGetSeries() },
+                { ResourceType.Instance, DescriptorsForGetInstance() },
+                { ResourceType.Frames, DescriptorsForGetFrame() },
            };
 
-        private static AcceptHeaderDescriptors PatternsForGetStudy()
+        private static AcceptHeaderDescriptors DescriptorsForGetStudy()
         {
             return new AcceptHeaderDescriptors(
                         new AcceptHeaderDescriptor(
@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                         acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original)));
         }
 
-        private static AcceptHeaderDescriptors PatternsForGetSeries()
+        private static AcceptHeaderDescriptors DescriptorsForGetSeries()
         {
             return new AcceptHeaderDescriptors(
                         new AcceptHeaderDescriptor(
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                         acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original)));
         }
 
-        private static AcceptHeaderDescriptors PatternsForGetInstance()
+        private static AcceptHeaderDescriptors DescriptorsForGetInstance()
         {
             return new AcceptHeaderDescriptors(
                         new AcceptHeaderDescriptor(
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                         acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original)));
         }
 
-        private static AcceptHeaderDescriptors PatternsForGetFrame()
+        private static AcceptHeaderDescriptors DescriptorsForGetFrame()
         {
             // Follow http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_8.7.3
             return new AcceptHeaderDescriptors(
@@ -131,15 +131,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
         {
             EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
-            AcceptHeaderDescriptors patterns = AcceptablePatterns[resourceType];
+            AcceptHeaderDescriptors descriptors = AcceptableDescriptors[resourceType];
 
             // get all accceptable headers and sort by quality (ascendently)
             SortedDictionary<AcceptHeader, string> accepted = new SortedDictionary<AcceptHeader, string>(new AcceptHeaderQualityComparer());
             foreach (AcceptHeader header in acceptHeaders)
             {
-                AcceptHeaderDescriptor acceptableHeaderPattern;
+                AcceptHeaderDescriptor acceptableHeaderDescriptor;
                 string transfersyntax;
-                if (patterns.TryGetMatchedPattern(header, out acceptableHeaderPattern, out transfersyntax))
+                if (descriptors.TryGetMatchedDescriptor(header, out acceptableHeaderDescriptor, out transfersyntax))
                 {
                     accepted.Add(header, transfersyntax);
                 }
@@ -147,8 +147,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             if (accepted.Count == 0)
             {
-                // TODO: localize
-                throw new BadRequestException("The requested content type and transfer syntax cannot be handled");
+                throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
             }
 
             // Last elment has largest quality

@@ -21,16 +21,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public IEnumerable<AcceptHeaderDescriptor> Descriptors { get => _descriptors; }
 
-        public bool TryGetMatchedPattern(AcceptHeader header, out AcceptHeaderDescriptor acceptableHeaderPattern, out string transferSyntax)
+        public bool TryGetMatchedDescriptor(AcceptHeader header, out AcceptHeaderDescriptor acceptableHeaderDescriptor, out string transferSyntax)
         {
-            acceptableHeaderPattern = null;
+            acceptableHeaderDescriptor = null;
             transferSyntax = string.Empty;
 
-            foreach (AcceptHeaderDescriptor pattern in _descriptors)
+            foreach (AcceptHeaderDescriptor descriptor in _descriptors)
             {
-                if (pattern.IsAcceptable(header, out transferSyntax))
+                if (descriptor.IsAcceptable(header, out transferSyntax))
                 {
-                    acceptableHeaderPattern = pattern;
+                    acceptableHeaderDescriptor = descriptor;
                     return true;
                 }
             }

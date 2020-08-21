@@ -16,12 +16,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
     public class AcceptHeaderDescriptorTests
     {
         [Fact]
-        public void GivenEmptyMediaType_WhenConstructAcceptHeaderDescriptor_ShouldThrowException()
-        {
-            Assert.Throws<ArgumentException>(() => CreateAcceptHeaderDescriptor(mediaType: string.Empty, acceptableTransferSyntaxes: new HashSet<string>()));
-        }
-
-        [Fact]
         public void GivenTransferSyntaxIsNotMandatory_WhenConstructAcceptHeaderDescriptorWithoutTransferSyntax_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() => CreateAcceptHeaderDescriptor(isTransferSyntaxMandatory: false, transferSyntaxWhenMissing: string.Empty, acceptableTransferSyntaxes: new HashSet<string>()));
@@ -31,12 +25,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public void GivenTransferSyntaxIsMandatory_WhenConstructAcceptHeaderDescriptorWithoutTransferSyntax_ShouldSucceed()
         {
             CreateAcceptHeaderDescriptor(isTransferSyntaxMandatory: true, transferSyntaxWhenMissing: string.Empty, acceptableTransferSyntaxes: new HashSet<string>());
-        }
-
-        [Fact]
-        public void GivenNullAcceptableTranferSyntaxs_WhenContructAcceptHeaderDescriptor_ShouldThrowException()
-        {
-            Assert.Throws<ArgumentNullException>(() => CreateAcceptHeaderDescriptor(acceptableTransferSyntaxes: null));
         }
 
         [Fact]

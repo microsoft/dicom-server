@@ -8,7 +8,7 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
 {
     public class AcceptHeaderQualityComparerTests
     {

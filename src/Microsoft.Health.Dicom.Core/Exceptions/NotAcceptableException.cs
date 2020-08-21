@@ -3,10 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    // TODO: add tests for AcceptHeaderQuantityComparer
-    public class AcceptHeaderQuantityComparerTests
+    public class NotAcceptableException : DicomServerException
     {
+        public NotAcceptableException(string message)
+            : base(message)
+        {
+        }
     }
 }

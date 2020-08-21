@@ -18,18 +18,6 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
     public class MediaTypeHeaderValueExtensionsTests
     {
         [Fact]
-        public void GivenNullHeader_WhenGetParameter_ShouldThrowException()
-        {
-            Assert.Throws<ArgumentNullException>(() => MediaTypeHeaderValueExtensions.GetParameter(headerValue: null, AcceptHeaderParameterNames.Type));
-        }
-
-        [Fact]
-        public void GivenEmptyParameterName_WhenGetparameter_ShouldThrowException()
-        {
-            Assert.Throws<ArgumentException>(() => MediaTypeHeaderValueExtensions.GetParameter(new MediaTypeHeaderValue(KnownContentTypes.ApplicationDicom), parameterName: string.Empty));
-        }
-
-        [Fact]
         public void GivenValidHeader_WhenGetParameter_ShouldReturnCorrectValue()
         {
             string parameter = AcceptHeaderParameterNames.Type;
@@ -51,7 +39,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
         }
 
         [Fact]
-        public void GivenNoRequiredParameter_WhenGetParameter_ShouldReturnNull()
+        public void GivenNoRequiredParameter_WhenGetParameter_ShouldReturnEmpty()
         {
             MediaTypeHeaderValue headerValue = new MediaTypeHeaderValue(KnownContentTypes.MultipartRelated);
             Assert.Equal(StringSegment.Empty, headerValue.GetParameter(AcceptHeaderParameterNames.Type));

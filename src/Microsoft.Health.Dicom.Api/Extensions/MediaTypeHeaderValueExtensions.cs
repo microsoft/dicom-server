@@ -32,6 +32,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
 
         public static AcceptHeader ToAcceptHeader(this MediaTypeHeaderValue headerValue)
         {
+            EnsureArg.IsNotNull(headerValue, nameof(headerValue));
             StringSegment mediaType = headerValue.MediaType;
             bool isMultipartRelated = StringSegment.Equals(KnownContentTypes.MultipartRelated, mediaType, StringComparison.OrdinalIgnoreCase);
             if (isMultipartRelated)
@@ -39,8 +40,8 @@ namespace Microsoft.Health.Dicom.Api.Extensions
                 mediaType = headerValue.GetParameter(AcceptHeaderParameterNames.Type);
             }
 
-            StringSegment transferSytnax = headerValue.GetParameter(AcceptHeaderParameterNames.TransferSyntax);
-            return new AcceptHeader(mediaType, isMultipartRelated ? PayloadTypes.MultipartRelated : PayloadTypes.SinglePart, transferSytnax, headerValue.Quality);
+            StringSegment transferSyntax = headerValue.GetParameter(AcceptHeaderParameterNames.TransferSyntax);
+            return new AcceptHeader(mediaType, isMultipartRelated ? PayloadTypes.MultipartRelated : PayloadTypes.SinglePart, transferSyntax, headerValue.Quality);
         }
     }
 }

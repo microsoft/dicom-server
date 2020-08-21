@@ -37,6 +37,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public async Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax)
         {
+            EnsureArg.IsNotNull(stream, nameof(stream));
+            EnsureArg.IsNotEmptyOrWhiteSpace(requestedTransferSyntax, nameof(requestedTransferSyntax));
             DicomTransferSyntax parsedDicomTransferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
 
             DicomFile dicomFile;
@@ -58,17 +60,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         public Stream TranscodeFrame(DicomFile dicomFile, int frameIndex, string requestedTransferSyntax)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
+            EnsureArg.IsNotEmptyOrWhiteSpace(requestedTransferSyntax, nameof(requestedTransferSyntax));
             DicomDataset dataset = dicomFile.Dataset;
 
             // Validate requested frame index exists in file.
             dicomFile.GetPixelDataAndValidateFrames(new[] { frameIndex });
             DicomTransferSyntax parsedDicomTransferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
+
             IByteBuffer resultByteBuffer = TranscodeFrame(dataset, frameIndex, parsedDicomTransferSyntax);
             return _recyclableMemoryStreamManager.GetStream("RetrieveDicomResourceHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
         }
 
         private IByteBuffer TranscodeFrame(DicomDataset dataset, int frameIndex, DicomTransferSyntax targetSyntax)
         {
+            // DicomTranscoder doesn't support transcoding frame(s), one workaround is to transcode entire dicomdataset, and return required frame, which would be inefficent when there are multiple frames (imaging 100 frames in one dataset).
+            // A better workaround is to create a dataset including only the required frame, and transcode it.
             try
             {
                 DicomDataset datasetForFrame = CreateDatasetForFrame(dataset, frameIndex);

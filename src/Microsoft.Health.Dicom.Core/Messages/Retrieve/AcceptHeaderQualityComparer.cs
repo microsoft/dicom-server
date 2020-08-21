@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 
         public int Compare([AllowNull] AcceptHeader x, [AllowNull] AcceptHeader y)
         {
-            if (x == y)
+            if (object.ReferenceEquals(x, y))
             {
                 return 0;
             }

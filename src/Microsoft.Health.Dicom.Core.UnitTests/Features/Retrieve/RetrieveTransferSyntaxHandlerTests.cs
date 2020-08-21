@@ -25,12 +25,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
-        public void GivenAcceptHeadersIsNull_WhenGetTransferSyntax_ThenThrowException()
-        {
-            Assert.Throws<ArgumentNullException>(() => _handler.GetTransferSyntax(ResourceType.Frames, acceptHeaders: null));
-        }
-
-        [Fact]
         public void GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenGetTransferSyntax_ThenShouldReturnLargestQuality()
         {
             string expectedTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID;
@@ -45,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             // Use content type that GetStudy doesn't support
             AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(mediaType: KnownContentTypes.ImageJpeg);
-            Assert.ThrowsAny<BadRequestException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader }));
+            Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader }));
         }
     }
 }
