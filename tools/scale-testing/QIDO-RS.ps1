@@ -19,9 +19,10 @@ for($i = 0; $i -lt $ConcurrentThreads; $i++)
 $null = Read-Host 'Press any key to continue once the QueryGenerator processes are completed.'
 
 build($MessageUploaderProject)
+
 for($i = 0; $i -lt $ConcurrentThreads; $i++)
 {    
-	$fileName = -join($CurrentDirectory, '\', $i, $txt)
+	$fileName = -join($CurrentDirectory, '\', $i, 'queries', $txt)
     $TotalCount = Get-Content $fileName | Measure-Object –Line
-	Start-Process -FilePath $MessageUploaderApp -ArgumentList "$topicName $fileName 0 $TotalCount.Line" -RedirectStandardError "log.txt"
+	Start-Process -FilePath $MessageUploaderApp -ArgumentList "$topicName $fileName $zero $TotalCount.Line" -RedirectStandardError "log.txt"
 }
