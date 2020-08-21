@@ -12,8 +12,8 @@ steps:
     displayName: 'dotnet build $(buildConfiguration)'
     inputs:
       command: 'build'
-      projects: '**/*.csproj'
-      arguments: '--configuration $(buildConfiguration)--version-suffix $(build.buildNumber) /warnaserror'
+      projects: '**/*.sln'
+      arguments: '--configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror'
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet test UnitTests'
