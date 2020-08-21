@@ -1,20 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="fo-dicom" Version="4.0.6" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <Folder Include="ImageSamples\" />
     <Folder Include="TranscodingSamples\" />
   </ItemGroup>
+
   <ItemGroup>
     <None Update="ImageSamples\XRJPEGProcess1.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -47,4 +52,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
 </Project>
