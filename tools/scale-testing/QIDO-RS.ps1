@@ -24,5 +24,6 @@ for($i = 0; $i -lt $ConcurrentThreads; $i++)
 {    
 	$fileName = -join($CurrentDirectory, '\', $i, 'queries', $txt)
     $TotalCount = Get-Content $fileName | Measure-Object –Line
-	Start-Process -FilePath $MessageUploaderApp -ArgumentList "$topicName $fileName $zero $TotalCount.Line" -RedirectStandardError "log.txt"
+    $Lines = $TotalCount.Lines
+	Start-Process -FilePath $MessageUploaderApp -ArgumentList "$topicName $fileName $zero $Lines" -RedirectStandardError "log.txt"
 }
