@@ -25,9 +25,10 @@ Read-Host -Prompt 'Press any key to continue once the QueryGenerator processes a
 build($MessageUploaderProject)
 for($i = 0; $i -lt $ConcurrentThreads; $i++)
 {    
-	$fileName = -join($CurrentDirectory, '\', $i, $txt)
+	$fileName = -join($CurrentDirectory, '\', $i, 'queries', $txt)
     $TotalCount = Get-Content $fileName | Measure-Object –Line
-	Start-Process -FilePath $MessageUploaderApp -ArgumentList "$topicName $fileName 0 $TotalCount.Line" -RedirectStandardError "log.txt"
+    $Lines = $TotalCount.Lines
+	Start-Process -FilePath $MessageUploaderApp -ArgumentList "$topicName $fileName $zero $Lines" -RedirectStandardError "log.txt"
 }
 
 $SubscriptionState = Get-AzServiceBusSubscription -ResourceGroup $ResourceGroup -NamespaceName $Namespace -TopicName $topicName -SubscriptionName 's1'

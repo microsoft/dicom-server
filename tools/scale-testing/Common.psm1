@@ -1,5 +1,6 @@
 ﻿ Import-Module Az.Websites -Force
  $global:CurrentDirectory = (pwd).path
+ $global:zero  = '0'
 
 # Build the console application using DotNet CLI.
 function build($basePath){
