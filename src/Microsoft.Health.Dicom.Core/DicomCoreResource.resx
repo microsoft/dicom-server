@@ -201,6 +201,9 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The required tag '{0}' is missing.</value>
     <comment>{0} is the DICOM tag name. E.g., StudyInstanceUID.</comment>
   </data>
+  <data name="NotAcceptableHeaders" xml:space="preserve">
+    <value>The request headers are not acceptable</value>
+  </data>
   <data name="QueryEmptyAttributeValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. AttributeId '{0}' has empty string value that is not supported.</value>
     <comment>{0} AttributeId name</comment>

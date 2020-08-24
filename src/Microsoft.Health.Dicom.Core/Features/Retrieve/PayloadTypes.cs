@@ -5,16 +5,14 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public static class DicomTransferSyntaxUids
+    [Flags]
+    public enum PayloadTypes
     {
-        public const string Original = "*";
-        public const string ExplicitVRLittleEndian = "1.2.840.10008.1.2.1";
-
-        public static bool IsOriginalTransferSyntaxRequested(string transferSyntax)
-        {
-            return Original.Equals(transferSyntax, StringComparison.Ordinal);
-        }
+        None = 0,
+        SinglePart = 1,
+        MultipartRelated = 2,
+        SinglePartOrMultipartRelated = SinglePart | MultipartRelated,
     }
 }

@@ -3,15 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Globalization;
+using System.Collections.Generic;
+using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class InvalidQueryStringValuesException : ValidationException
+    public interface IRetrieveTransferSyntaxHandler
     {
-        public InvalidQueryStringValuesException(string firstInvalidParameter)
-            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidQueryStringValue, firstInvalidParameter))
-        {
-        }
+        string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders);
     }
 }

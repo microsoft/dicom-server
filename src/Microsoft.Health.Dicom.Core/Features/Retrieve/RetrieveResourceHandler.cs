@@ -35,8 +35,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         private void ValidateRetrieveResourceRequest(RetrieveResourceRequest request)
         {
             RetrieveRequestValidator.ValidateInstanceIdentifiers(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
-            RetrieveRequestValidator.ValidateTransferSyntax(request.RequestedRepresentation, request.OriginalTransferSyntaxRequested());
-
             if (request.ResourceType == ResourceType.Frames)
             {
                 RetrieveRequestValidator.ValidateFrames(request.Frames);

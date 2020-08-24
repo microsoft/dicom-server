@@ -3,18 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
-namespace Microsoft.Health.Dicom.Core
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public static class DicomTransferSyntaxUids
+    public class NotAcceptableException : DicomServerException
     {
-        public const string Original = "*";
-        public const string ExplicitVRLittleEndian = "1.2.840.10008.1.2.1";
-
-        public static bool IsOriginalTransferSyntaxRequested(string transferSyntax)
+        public NotAcceptableException(string message)
+            : base(message)
         {
-            return Original.Equals(transferSyntax, StringComparison.Ordinal);
         }
     }
 }
