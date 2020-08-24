@@ -74,6 +74,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                 case ResourceNotFoundException _:
                     statusCode = HttpStatusCode.NotFound;
                     break;
+                case NotAcceptableException _:
                 case TranscodingException _:
                     statusCode = HttpStatusCode.NotAcceptable;
                     break;

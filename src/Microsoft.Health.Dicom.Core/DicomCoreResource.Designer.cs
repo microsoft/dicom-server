@@ -287,6 +287,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request headers are not acceptable.
+        /// </summary>
+        internal static string NotAcceptableHeaders {
+            get {
+                return ResourceManager.GetString("NotAcceptableHeaders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId &apos;{0}&apos; has empty string value that is not supported..
         /// </summary>
         internal static string QueryEmptyAttributeValue {

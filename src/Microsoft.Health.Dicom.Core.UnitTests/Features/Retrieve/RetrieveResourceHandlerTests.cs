@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("345%^&")]
         public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingStudy_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
         {
-            RetrieveResourceRequest request = new RetrieveResourceRequest("*", studyInstanceUid);
+            RetrieveResourceRequest request = new RetrieveResourceRequest(studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() });
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("aaaa-bbbb", "aaaa-bbbb")]
         public async Task GivenARequestWithInvalidStudyAndSeriesIdentifiers_WhenRetrievingSeries_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid, string seriesInstanceUid)
         {
-            RetrieveResourceRequest request = new RetrieveResourceRequest("*", studyInstanceUid, seriesInstanceUid);
+            RetrieveResourceRequest request = new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() });
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidSeriesIdentifier_WhenRetrievingSeries_ThenDicomInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
         {
-            RetrieveResourceRequest request = new RetrieveResourceRequest("*", TestUidGenerator.Generate(), seriesInstanceUid);
+            RetrieveResourceRequest request = new RetrieveResourceRequest(TestUidGenerator.Generate(), seriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() });
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidInstanceIdentifier_WhenRetrievingInstance_ThenDicomInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
         {
-            RetrieveResourceRequest request = new RetrieveResourceRequest("*", TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid);
+            RetrieveResourceRequest request = new RetrieveResourceRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() });
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
@@ -85,19 +85,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidInstanceIdentifier_WhenRetrievingFrames_ThenDicomInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
         {
-            RetrieveResourceRequest request = new RetrieveResourceRequest("*", TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, new List<int> { 1 });
+            RetrieveResourceRequest request = new RetrieveResourceRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, new List<int> { 1 }, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
             Assert.Equal($"DICOM Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
 
-        [Theory]
+        [Theory(Skip = "Move this tests to move this tests to RetriveResourceService, since the logic to validate TransferSyntax has moved there")]
         [InlineData("*-")]
         [InlineData("invalid")]
         [InlineData("00000000000000000000000000000000000000000000000000000000000000065")]
         public async Task GivenIncorrectTransferSyntax_WhenRetrievingStudy_ThenDicomBadRequestExceptionIsThrownAsync(string transferSyntax)
         {
-            var request = new RetrieveResourceRequest(transferSyntax, TestUidGenerator.Generate());
+            var request = new RetrieveResourceRequest(TestUidGenerator.Generate(), new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance(transferSyntax: transferSyntax) });
 
             var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
@@ -116,7 +116,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                 seriesInstanceUid: TestUidGenerator.Generate(),
                 sopInstanceUid: TestUidGenerator.Generate(),
                 frames: new[] { frame },
-                requestedTransferSyntax: "*");
+                acceptHeaders: new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
 
             var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
@@ -134,7 +134,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                 seriesInstanceUid: TestUidGenerator.Generate(),
                 sopInstanceUid: TestUidGenerator.Generate(),
                 frames: frames,
-                requestedTransferSyntax: "*");
+                acceptHeaders: new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
 
             var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
@@ -154,7 +154,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                 seriesInstanceUid: seriesInstanceUid,
                 sopInstanceUid: sopInstanceUid,
                 frames: new int[] { 1 },
-                requestedTransferSyntax: "*");
+                acceptHeaders: new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
 
             var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
@@ -169,7 +169,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string sopInstanceUid = TestUidGenerator.Generate();
 
             RetrieveResourceResponse expectedResponse = new RetrieveResourceResponse(Enumerable.Empty<Stream>());
-            RetrieveResourceRequest request = new RetrieveResourceRequest("*", studyInstanceUid, seriesInstanceUid, sopInstanceUid, new List<int> { 1 });
+            RetrieveResourceRequest request = new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, new List<int> { 1 }, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
             _retrieveResourceService.GetInstanceResourceAsync(request, CancellationToken.None).Returns(expectedResponse);
 
             RetrieveResourceResponse response = await _retrieveResourceHandler.Handle(request, CancellationToken.None);

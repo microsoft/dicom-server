@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [Fact]
         public void GivenRetrieveResourcesRequestForStudy_WhenConstructed_ThenStudyResourceTypeIsSet()
         {
-            var request = new RetrieveResourceRequest(requestedTransferSyntax: string.Empty, TestUidGenerator.Generate());
+            var request = new RetrieveResourceRequest(TestUidGenerator.Generate(), new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance(transferSyntax: string.Empty) });
             Assert.Equal(ResourceType.Study, request.ResourceType);
         }
 
@@ -23,9 +23,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         public void GivenRetrieveResourcesRequestForSeries_WhenConstructed_ThenSeriesResourceTypeIsSet()
         {
             var request = new RetrieveResourceRequest(
-                requestedTransferSyntax: string.Empty,
                 TestUidGenerator.Generate(),
-                TestUidGenerator.Generate());
+                TestUidGenerator.Generate(),
+                new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries(transferSyntax: string.Empty) });
             Assert.Equal(ResourceType.Series, request.ResourceType);
         }
 
@@ -33,10 +33,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         public void GivenRetrieveResourcesRequestForInstance_WhenConstructed_ThenInstanceResourceTypeIsSet()
         {
             var request = new RetrieveResourceRequest(
-                requestedTransferSyntax: string.Empty,
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
-                TestUidGenerator.Generate());
+                TestUidGenerator.Generate(),
+                new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance(transferSyntax: string.Empty) });
             Assert.Equal(ResourceType.Instance, request.ResourceType);
         }
 
@@ -44,11 +44,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         public void GivenRetrieveResourcesRequestForFrames_WhenConstructed_ThenFramesResourceTypeIsSet()
         {
             var request = new RetrieveResourceRequest(
-                requestedTransferSyntax: string.Empty,
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
-                new[] { 5 });
+                new[] { 5 },
+                new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(transferSyntax: string.Empty) });
             Assert.Equal(ResourceType.Frames, request.ResourceType);
         }
     }
