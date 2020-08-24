@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [ModelStateValidator]
+    [ServiceFilter(typeof(AuditLoggingFilterAttribute))]
     public class ChangeFeedController : Controller
     {
         private readonly IMediator _mediator;

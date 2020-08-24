@@ -22,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Web;
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [ModelStateValidator]
+    [ServiceFilter(typeof(AuditLoggingFilterAttribute))]
     public class StoreController : Controller
     {
         private readonly IMediator _mediator;

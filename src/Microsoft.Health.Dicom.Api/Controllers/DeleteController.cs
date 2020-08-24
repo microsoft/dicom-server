@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Messages.Delete;
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [ModelStateValidator]
+    [ServiceFilter(typeof(AuditLoggingFilterAttribute))]
     public class DeleteController : Controller
     {
         private readonly IMediator _mediator;
