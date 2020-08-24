@@ -14,10 +14,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
+using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -57,6 +59,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
             services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
@@ -120,10 +123,14 @@ namespace Microsoft.AspNetCore.Builder
 
                     app.UseCors(CorsConstants.DefaultCorsPolicy);
 
+                    app.UseDicomRequestContext();
+
                     if (env.IsDevelopment())
                     {
                         app.UseDeveloperExceptionPage();
                     }
+
+                    app.UseAudit();
 
                     app.UseExceptionHandling();
 
