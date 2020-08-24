@@ -12,9 +12,11 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Web;
@@ -22,6 +24,7 @@ using Microsoft.Health.Dicom.Core.Web;
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [ModelStateValidator]
+    [ServiceFilter(typeof(AuditLoggingFilterAttribute))]
     public class QueryController : Controller
     {
         private readonly IMediator _mediator;
@@ -42,6 +45,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.QueryAllStudiesRoute)]
+        [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForStudyAsync()
         {
             _logger.LogInformation($"DICOM Web Query Study request received. QueryString '{Request.QueryString}.");
@@ -60,6 +64,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.QueryAllSeriesRoute)]
+        [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForSeriesAsync()
         {
             _logger.LogInformation($"DICOM Web Query Series request received. QueryString '{Request.QueryString}.");
@@ -78,6 +83,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.QuerySeriesInStudyRoute)]
+        [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForSeriesInStudyAsync(string studyInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Query Series request for study '{studyInstanceUid}' received. QueryString '{Request.QueryString}.");
@@ -97,6 +103,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.QueryAllInstancesRoute)]
+        [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForInstancesAsync()
         {
             _logger.LogInformation($"DICOM Web Query instances request received. QueryString '{Request.QueryString}.");
@@ -115,6 +122,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.QueryInstancesInStudyRoute)]
+        [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForInstancesInStudyAsync(string studyInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUid}' received. QueryString '{Request.QueryString}.");
@@ -134,6 +142,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.QueryInstancesInSeriesRoute)]
+        [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForInstancesInSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Query Instances for study '{studyInstanceUid}' and series '{seriesInstanceUid}' received. QueryString '{Request.QueryString}.");

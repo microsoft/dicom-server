@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Abstractions.Exceptions;
+using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Dicom.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Exceptions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using NSubstitute;
@@ -32,6 +34,8 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
         {
             yield return new object[] { new CustomValidationException(), HttpStatusCode.BadRequest };
             yield return new object[] { new NotSupportedException("Not supported."), HttpStatusCode.BadRequest };
+            yield return new object[] { new AuditHeaderCountExceededException(AuditConstants.MaximumNumberOfCustomHeaders + 1), HttpStatusCode.BadRequest };
+            yield return new object[] { new AuditHeaderTooLargeException("TestHeader", AuditConstants.MaximumLengthOfCustomHeader + 1), HttpStatusCode.BadRequest };
             yield return new object[] { new ResourceNotFoundException("Resource not found."), HttpStatusCode.NotFound };
             yield return new object[] { new TranscodingException(), HttpStatusCode.NotAcceptable };
             yield return new object[] { new DataStoreException("Something went wrong."), HttpStatusCode.ServiceUnavailable };
