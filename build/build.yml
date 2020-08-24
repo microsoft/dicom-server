@@ -8,8 +8,12 @@ steps:
     inputs:
       useGlobalJson: true
 
-  - script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror
+  - task: DotNetCoreCLI@2
     displayName: 'dotnet build $(buildConfiguration)'
+    inputs:
+      command: 'build'
+      projects: '**/*.sln'
+      arguments: '--configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror'
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet test UnitTests'
