@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.IO;
 using Xunit;
 

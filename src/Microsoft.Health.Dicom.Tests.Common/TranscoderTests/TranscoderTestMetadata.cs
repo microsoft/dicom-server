@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Features
+namespace Microsoft.Health.Dicom.Tests.Common
 {
     public class TranscoderTestMetadata
     {
