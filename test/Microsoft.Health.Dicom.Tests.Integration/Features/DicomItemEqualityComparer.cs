@@ -10,7 +10,11 @@ using Dicom.IO.Buffer;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Features
 {
-    public class DicomItemComparer : IEqualityComparer<DicomItem>
+    /// <summary>
+    /// Compare if 2 DicomItem equals or not.
+    /// Most DicomItem doesn't have method Equals implented, so has to make it ourselves.
+    /// </summary>
+    public class DicomItemEqualityComparer : IEqualityComparer<DicomItem>
     {
         public bool Equals([AllowNull] DicomItem x, [AllowNull] DicomItem y)
         {
@@ -29,6 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 return DicomElementEquals((DicomElement)x, (DicomElement)y);
             }
 
+            // It's not perfect, but enough for our test
             return x.Equals(y);
         }
 

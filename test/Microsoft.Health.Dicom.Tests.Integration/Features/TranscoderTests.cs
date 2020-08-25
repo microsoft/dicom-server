@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
         private static bool IsInputFile(string path)
         {
-            return Path.GetFileName(path).Equals(InputFileName, StringComparison.InvariantCultureIgnoreCase);
+            return Path.GetFileName(path).Equals(InputFileName, StringComparison.OrdinalIgnoreCase);
         }
 
         private static TranscoderTestMetadata GetMetadata(string inputFile)
@@ -107,9 +107,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             // Verify if input file has correct input transfersyntax
             Assert.Equal(inputFile.Dataset.InternalTransferSyntax.UID.UID, testData.MetaData.InputSyntaxUid);
 
-            // Set stream position to begin for trasncoder to consume
+            // Reset stream position for trasncoder to consume
             fileStream.Seek(0, SeekOrigin.Begin);
 
+            DicomFile outputFile = await VerifyTranscodeFileAsync(testData, fileStream, inputFile);
+            VerifyTranscodeFrame(testData, inputFile);
+            return outputFile;
+        }
+
+        private void VerifyTranscodeFrame(TranscoderTestData testData, DicomFile inputFile)
+        {
+            Stream result = _transcoder.TranscodeFrame(inputFile, 0, testData.MetaData.OutputSyntaxUid);
+            string hashcode = GetByteArrayHashCode(ToByteArray(result));
+            Assert.Equal(testData.MetaData.Frame0HashCode, hashcode);
+        }
+
+        private async Task<DicomFile> VerifyTranscodeFileAsync(TranscoderTestData testData, Stream fileStream, DicomFile inputFile)
+        {
             Stream outputFileStream = await _transcoder.TranscodeFileAsync(fileStream, testData.MetaData.OutputSyntaxUid);
             DicomFile outputFile = await DicomFile.OpenAsync(outputFileStream);
 
@@ -122,12 +136,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             VerifyDicomItems(inputFile.Dataset, outputFile.Dataset, DicomTag.PixelData, DicomTag.PhotometricInterpretation);
 
             VerifyFrames(outputFile, testData);
-
-            // Verify transcodeFrame
-            // require test data only have 1 frame
-            Stream result = _transcoder.TranscodeFrame(inputFile, 0, testData.MetaData.OutputSyntaxUid);
-            string hashcode = GetByteArrayHashCode(ToByteArray(result));
-            Assert.Equal(testData.MetaData.Frame0HashCode, hashcode);
             return outputFile;
         }
 
@@ -143,18 +151,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private void VerifyDicomItems(IEnumerable<DicomItem> expected, IEnumerable<DicomItem> actual, params DicomTag[] ignoredTags)
         {
             ISet<DicomTag> ignoredSet = new HashSet<DicomTag>(ignoredTags);
-            Dictionary<DicomTag, DicomItem> expectedDicts = expected.ToDictionary(item => item.Tag);
-            Dictionary<DicomTag, DicomItem> actualDicts = actual.ToDictionary(item => item.Tag);
-            Assert.Equal(expectedDicts.Count, actualDicts.Count);
-            foreach (DicomTag tag in expectedDicts.Keys)
+            Dictionary<DicomTag, DicomItem> expectedDict = expected.ToDictionary(item => item.Tag);
+            Dictionary<DicomTag, DicomItem> actualDict = actual.ToDictionary(item => item.Tag);
+            Assert.Equal(expectedDict.Count, actualDict.Count);
+            foreach (DicomTag tag in expectedDict.Keys)
             {
                 if (ignoredSet.Contains(tag))
                 {
                     continue;
                 }
 
-                Assert.True(actualDicts.ContainsKey(tag));
-                Assert.Equal(expectedDicts[tag], actualDicts[tag], new DicomItemComparer());
+                Assert.True(actualDict.ContainsKey(tag));
+                Assert.Equal(expectedDict[tag], actualDict[tag], new DicomItemEqualityComparer());
             }
         }
 
