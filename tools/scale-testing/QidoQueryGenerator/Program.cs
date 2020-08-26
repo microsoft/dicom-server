@@ -32,9 +32,9 @@ namespace QidoQueryGenerator
                 string startDate = DateTime.Parse(pI.PerformedProcedureStepStartDate).AddMonths(-1).ToString("yyyyMMdd");
                 string endDate = DateTime.Parse(pI.PerformedProcedureStepStartDate).AddMonths(1).ToString("yyyyMMdd");
                 string studyGenericVal = $"/Studies?PatientName={namePrefix}&StudyDate={startDate}-{endDate}&fuzzyMatching=true";
-                string studySpecificVal = $"/Studies?PatientId={pI.PatientId}";
+                string studySpecificVal = $"/Studies?PatientID={pI.PatientId}";
                 string seriesGenericVal = $"/Series?Modality={pI.Modality}";
-                string seriesSpecificVal = $"/Series?Modality={pI.Modality}&PatientId={pI.PatientId}";
+                string seriesSpecificVal = $"/Series?Modality={pI.Modality}&PatientID={pI.PatientId}";
 
                 studyGeneric.Add(studyGenericVal);
                 studySpecific.Add(studySpecificVal);
