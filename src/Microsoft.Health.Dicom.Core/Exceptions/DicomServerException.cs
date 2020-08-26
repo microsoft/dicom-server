@@ -4,14 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Health.Core.Exceptions;
+using Microsoft.Health.Abstractions.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
     /// Base class for all server exceptions
     /// </summary>
-    public abstract class DicomServerException : HealthException
+    public abstract class DicomServerException : MicrosoftHealthException
     {
         public DicomServerException(string message)
             : base(message)
