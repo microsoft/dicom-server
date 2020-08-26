@@ -26,6 +26,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
@@ -203,7 +204,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private static IActionResult CreateResult(RetrieveResourceResponse response, string contentType)
         {
-            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(contentType, x)).ToList());
+            return new FileStreamResult(response.ResponseStreams.First(), contentType);
         }
     }
 }
