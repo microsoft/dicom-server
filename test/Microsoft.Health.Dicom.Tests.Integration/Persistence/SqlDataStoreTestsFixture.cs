@@ -39,11 +39,21 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _masterConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = "master" }.ToString();
             TestConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = _databaseName }.ToString();
 
-            var config = new SqlServerDataStoreConfiguration { ConnectionString = TestConnectionString, Initialize = true };
+            var config = new SqlServerDataStoreConfiguration
+            {
+                ConnectionString = TestConnectionString,
+                Initialize = true,
+                SchemaOptions = new SqlServerSchemaOptions
+                {
+                    AutomaticUpdatesEnabled = true,
+                },
+            };
 
             var scriptProvider = new ScriptProvider<SchemaVersion>();
 
-            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, config, NullLogger<SchemaUpgradeRunner>.Instance);
+            var baseScriptProvider = new BaseScriptProvider();
+
+            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, config, NullLogger<SchemaUpgradeRunner>.Instance);
 
             var schemaInformation = new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V1);
 
