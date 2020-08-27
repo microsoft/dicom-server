@@ -16,26 +16,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
-        internal readonly static InstanceSchemaTable InstanceSchema = new InstanceSchemaTable();
-        internal readonly static SchemaVersionTable SchemaVersion = new SchemaVersionTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
-        internal readonly static DeleteInstanceSchemaProcedure DeleteInstanceSchema = new DeleteInstanceSchemaProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
-        internal readonly static GetInstanceSchemaByNameProcedure GetInstanceSchemaByName = new GetInstanceSchemaByNameProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
-        internal readonly static SelectCompatibleSchemaVersionsProcedure SelectCompatibleSchemaVersions = new SelectCompatibleSchemaVersionsProcedure();
-        internal readonly static SelectCurrentSchemaVersionProcedure SelectCurrentSchemaVersion = new SelectCurrentSchemaVersionProcedure();
-        internal readonly static SelectCurrentVersionsInformationProcedure SelectCurrentVersionsInformation = new SelectCurrentVersionsInformationProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
-        internal readonly static UpsertInstanceSchemaProcedure UpsertInstanceSchema = new UpsertInstanceSchemaProcedure();
-        internal readonly static UpsertSchemaVersionProcedure UpsertSchemaVersion = new UpsertSchemaVersionProcedure();
         internal class ChangeFeedTable : Table
         {
             internal ChangeFeedTable(): base("dbo.ChangeFeed")
@@ -83,29 +74,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
             internal readonly DateTime2Column LastStatusUpdatedDate = new DateTime2Column("LastStatusUpdatedDate", 7);
             internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
-        }
-
-        internal class InstanceSchemaTable : Table
-        {
-            internal InstanceSchemaTable(): base("dbo.InstanceSchema")
-            {
-            }
-
-            internal readonly VarCharColumn Name = new VarCharColumn("Name", 64, "Latin1_General_100_CS_AS");
-            internal readonly IntColumn CurrentVersion = new IntColumn("CurrentVersion");
-            internal readonly IntColumn MaxVersion = new IntColumn("MaxVersion");
-            internal readonly IntColumn MinVersion = new IntColumn("MinVersion");
-            internal readonly DateTime2Column Timeout = new DateTime2Column("Timeout", 0);
-        }
-
-        internal class SchemaVersionTable : Table
-        {
-            internal SchemaVersionTable(): base("dbo.SchemaVersion")
-            {
-            }
-
-            internal readonly IntColumn Version = new IntColumn("Version");
-            internal readonly VarCharColumn Status = new VarCharColumn("Status", 10);
         }
 
         internal class SeriesTable : Table
@@ -219,19 +187,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class DeleteInstanceSchemaProcedure : StoredProcedure
-        {
-            internal DeleteInstanceSchemaProcedure(): base("dbo.DeleteInstanceSchema")
-            {
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.DeleteInstanceSchema";
-            }
-        }
-
         internal class GetChangeFeedProcedure : StoredProcedure
         {
             internal GetChangeFeedProcedure(): base("dbo.GetChangeFeed")
@@ -283,21 +238,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetInstanceSchemaByNameProcedure : StoredProcedure
-        {
-            internal GetInstanceSchemaByNameProcedure(): base("dbo.GetInstanceSchemaByName")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _name = new ParameterDefinition<System.String>("@name", global::System.Data.SqlDbType.VarChar, false, 64);
-            public void PopulateCommand(SqlCommandWrapper command, System.String name)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetInstanceSchemaByName";
-                _name.AddParameter(command.Parameters, name);
-            }
-        }
-
         internal class IncrementDeletedInstanceRetryProcedure : StoredProcedure
         {
             internal IncrementDeletedInstanceRetryProcedure(): base("dbo.IncrementDeletedInstanceRetry")
@@ -338,45 +278,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class SelectCompatibleSchemaVersionsProcedure : StoredProcedure
-        {
-            internal SelectCompatibleSchemaVersionsProcedure(): base("dbo.SelectCompatibleSchemaVersions")
-            {
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.SelectCompatibleSchemaVersions";
-            }
-        }
-
-        internal class SelectCurrentSchemaVersionProcedure : StoredProcedure
-        {
-            internal SelectCurrentSchemaVersionProcedure(): base("dbo.SelectCurrentSchemaVersion")
-            {
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.SelectCurrentSchemaVersion";
-            }
-        }
-
-        internal class SelectCurrentVersionsInformationProcedure : StoredProcedure
-        {
-            internal SelectCurrentVersionsInformationProcedure(): base("dbo.SelectCurrentVersionsInformation")
-            {
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.SelectCurrentVersionsInformation";
-            }
-        }
-
         internal class UpdateInstanceStatusProcedure : StoredProcedure
         {
             internal UpdateInstanceStatusProcedure(): base("dbo.UpdateInstanceStatus")
@@ -396,44 +297,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
                 _watermark.AddParameter(command.Parameters, watermark);
-                _status.AddParameter(command.Parameters, status);
-            }
-        }
-
-        internal class UpsertInstanceSchemaProcedure : StoredProcedure
-        {
-            internal UpsertInstanceSchemaProcedure(): base("dbo.UpsertInstanceSchema")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _name = new ParameterDefinition<System.String>("@name", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Int32> _maxVersion = new ParameterDefinition<System.Int32>("@maxVersion", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int32> _minVersion = new ParameterDefinition<System.Int32>("@minVersion", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int32> _addMinutesOnTimeout = new ParameterDefinition<System.Int32>("@addMinutesOnTimeout", global::System.Data.SqlDbType.Int, false);
-            public void PopulateCommand(SqlCommandWrapper command, System.String name, System.Int32 maxVersion, System.Int32 minVersion, System.Int32 addMinutesOnTimeout)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.UpsertInstanceSchema";
-                _name.AddParameter(command.Parameters, name);
-                _maxVersion.AddParameter(command.Parameters, maxVersion);
-                _minVersion.AddParameter(command.Parameters, minVersion);
-                _addMinutesOnTimeout.AddParameter(command.Parameters, addMinutesOnTimeout);
-            }
-        }
-
-        internal class UpsertSchemaVersionProcedure : StoredProcedure
-        {
-            internal UpsertSchemaVersionProcedure(): base("dbo.UpsertSchemaVersion")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _version = new ParameterDefinition<System.Int32>("@version", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _status = new ParameterDefinition<System.String>("@status", global::System.Data.SqlDbType.VarChar, false, 10);
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 version, System.String status)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.UpsertSchemaVersion";
-                _version.AddParameter(command.Parameters, version);
                 _status.AddParameter(command.Parameters, status);
             }
         }
