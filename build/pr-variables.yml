@@ -5,7 +5,7 @@ variables:
   resourceGroupRegion: 'southcentralus'
   appServicePlanResourceGroup: 'msh-dicom-pr'
   appServicePlanName: $(appServicePlanResourceGroup)-$(resourceGroupRegion)
-  azureServiceConnectionOid: '10ae91de-9036-4280-8c86-294165015b9f'
+  azureServiceConnectionOid: '4d4d503d-9ca8-462e-9e18-b35fc8b5285b'
   azureSubscriptionName: 'Microsoft Health Open Source Subscription-DicomServer'
   windowsVmImage: 'windows-latest'
   buildConfiguration: 'Release'
