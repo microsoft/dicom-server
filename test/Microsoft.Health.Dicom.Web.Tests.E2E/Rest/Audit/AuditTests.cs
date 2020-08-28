@@ -73,6 +73,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
         }
 
         [Fact]
+        public async Task GivenRetrieveRequestForFrame_WhenResourceIsFound_ThenAuditLogEntriesShouldBeCreated()
+        {
+            DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: 1);
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
+            await _client.StoreAsync(new[] { dicomFile }, dicomInstance.StudyInstanceUid);
+
+            await ExecuteAndValidate(
+                () => _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new int[] { 1 }),
+                AuditEventSubType.Retrieve,
+                $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}/instances/{dicomInstance.SopInstanceUid}/frames/1",
+                HttpStatusCode.OK);
+        }
+
+        [Fact]
         public async Task GivenRetrieveMetadataRequestForStudy_WhenResourceIsFound_ThenAuditEntriesShouldBeCreated()
         {
             InstanceIdentifier dicomInstance = await CreateDicomFileAndGetInstanceIdentifierAsync();
