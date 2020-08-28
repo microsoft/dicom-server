@@ -122,22 +122,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             switch (queryExpression.QueryResource)
             {
                 case QueryResource.AllStudies:
-                    _tagsToReturn = queryExpression.IncludeFields.All ? AllStudyTags : DefaultStudyTags;
+                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudyTags : DefaultStudyTags);
                     break;
                 case QueryResource.AllSeries:
-                    _tagsToReturn = queryExpression.IncludeFields.All ? AllStudySeriesTags : DefaultStudySeriesTags;
+                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudySeriesTags : DefaultStudySeriesTags);
                     break;
                 case QueryResource.StudySeries:
-                    _tagsToReturn = queryExpression.IncludeFields.All ? AllSeriesTags : DefaultSeriesTags;
+                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllSeriesTags : DefaultSeriesTags);
                     break;
                 case QueryResource.AllInstances:
-                    _tagsToReturn = queryExpression.IncludeFields.All ? AllStudySeriesInstanceTags : DefaultStudySeriesInstanceTags;
+                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudySeriesInstanceTags : DefaultStudySeriesInstanceTags);
                     break;
                 case QueryResource.StudyInstances:
-                    _tagsToReturn = queryExpression.IncludeFields.All ? AllSeriesInstanceTags : DefaultSeriesInstanceTags;
+                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllSeriesInstanceTags : DefaultSeriesInstanceTags);
                     break;
                 case QueryResource.StudySeriesInstances:
-                    _tagsToReturn = queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags;
+                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags);
                     break;
                 default:
                     Debug.Fail("A newly added queryResource is not implemeted here");
