@@ -271,7 +271,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                             {
                                 throw new StudyNotFoundException();
                             }
-                            else if (string.IsNullOrEmpty(sopInstanceUid))
+
+                            if (string.IsNullOrEmpty(sopInstanceUid))
                             {
                                 throw new SeriesNotFoundException();
                             }
