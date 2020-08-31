@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
 using Dicom.IO.Buffer;
+using EnsureThat.Enforcers;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -62,6 +63,35 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
             await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*"));
+        }
+
+        [Theory]
+        [MemberData(nameof(TestDataForInvokingTranscoderTests))]
+        public async Task GivenDicomFileWithFrames_WhenRetrievingWithTransferSyntax_ThenTranscoderShouldBeInvokedAsExpected(bool originalTransferSyntaxRequested, string requestedRepresentation, bool shouldBeInvoked)
+        {
+            (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 1).Result;
+            ITranscoder transcoder = Substitute.For<ITranscoder>();
+            transcoder.TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>()).Returns(_recyclableMemoryStreamManager.GetStream());
+            FrameHandler frameHandler = new FrameHandler(transcoder, _recyclableMemoryStreamManager);
+            IReadOnlyCollection<Stream> result = await frameHandler.GetFramesResourceAsync(stream, new int[] { 0 }, originalTransferSyntaxRequested, requestedRepresentation);
+
+            // Call Position of LazyTransformReadOnlyStream so that transcoder.TranscodeFrame is invoked
+            long pos = result.First().Position;
+            if (shouldBeInvoked)
+            {
+                transcoder.Received().TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>());
+            }
+            else
+            {
+                transcoder.DidNotReceive().TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>());
+            }
+        }
+
+        public static IEnumerable<object[]> TestDataForInvokingTranscoderTests()
+        {
+            yield return new object[] { true, DicomTransferSyntaxUids.Original, false };
+            yield return new object[] { false, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, false };
+            yield return new object[] { true, DicomTransferSyntax.JPEGProcess1.UID.UID, false };
         }
 
         private DicomDataset GenerateDatasetsFromIdentifiers()
