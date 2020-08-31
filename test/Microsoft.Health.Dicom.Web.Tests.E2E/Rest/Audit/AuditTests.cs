@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
         }
 
         [Fact]
-        public async Task GivenRetrieveRequest_WhenResourceIsFound_ThenAuditLogEntriesShouldBeCreated()
+        public async Task GivenRetrieveRequestForStudy_WhenResourceIsFound_ThenAuditLogEntriesShouldBeCreated()
         {
             InstanceIdentifier dicomInstance = await CreateDicomFileAndGetInstanceIdentifierAsync();
 
@@ -49,7 +49,45 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
         }
 
         [Fact]
-        public async Task GivenRetrieveMetadataRequest_WhenResourceIsFound_ThenAuditEntriesShouldBeCreated()
+        public async Task GivenRetrieveRequestForSeries_WhenResourceIsFound_ThenAuditLogEntriesShouldBeCreated()
+        {
+            InstanceIdentifier dicomInstance = await CreateDicomFileAndGetInstanceIdentifierAsync();
+
+            await ExecuteAndValidate(
+                () => _client.RetrieveSeriesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid),
+                AuditEventSubType.Retrieve,
+                $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}",
+                HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task GivenRetrieveRequestForInstance_WhenResourceIsFound_ThenAuditLogEntriesShouldBeCreated()
+        {
+            InstanceIdentifier dicomInstance = await CreateDicomFileAndGetInstanceIdentifierAsync();
+
+            await ExecuteAndValidate(
+                () => _client.RetrieveInstanceAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid),
+                AuditEventSubType.Retrieve,
+                $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}/instances/{dicomInstance.SopInstanceUid}",
+                HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task GivenRetrieveRequestForFrame_WhenResourceIsFound_ThenAuditLogEntriesShouldBeCreated()
+        {
+            DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: 1);
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
+            await _client.StoreAsync(new[] { dicomFile }, dicomInstance.StudyInstanceUid);
+
+            await ExecuteAndValidate(
+                () => _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new int[] { 1 }),
+                AuditEventSubType.Retrieve,
+                $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}/instances/{dicomInstance.SopInstanceUid}/frames/1",
+                HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task GivenRetrieveMetadataRequestForStudy_WhenResourceIsFound_ThenAuditEntriesShouldBeCreated()
         {
             InstanceIdentifier dicomInstance = await CreateDicomFileAndGetInstanceIdentifierAsync();
 
@@ -57,6 +95,30 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
                 () => _client.RetrieveStudyMetadataAsync(dicomInstance.StudyInstanceUid),
                 AuditEventSubType.RetrieveMetadata,
                 $"studies/{dicomInstance.StudyInstanceUid}/metadata",
+                HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task GivenRetrieveMetadataRequestForSeries_WhenResourceIsFound_ThenAuditEntriesShouldBeCreated()
+        {
+            InstanceIdentifier dicomInstance = await CreateDicomFileAndGetInstanceIdentifierAsync();
+
+            await ExecuteAndValidate(
+                () => _client.RetrieveSeriesMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid),
+                AuditEventSubType.RetrieveMetadata,
+                $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}/metadata",
+                HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task GivenRetrieveMetadataRequestForInstance_WhenResourceIsFound_ThenAuditEntriesShouldBeCreated()
+        {
+            InstanceIdentifier dicomInstance = await CreateDicomFileAndGetInstanceIdentifierAsync();
+
+            await ExecuteAndValidate(
+                () => _client.RetrieveInstanceMetadataAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid),
+                AuditEventSubType.RetrieveMetadata,
+                $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}/instances/{dicomInstance.SopInstanceUid}/metadata",
                 HttpStatusCode.OK);
         }
 
@@ -83,7 +145,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
         }
 
         [Fact]
-        public async Task GivenDeleteRequest_WhenResourceExists_ThenAuditLogEntriesShouldBeCreated()
+        public async Task GivenDeleteRequestForStudy_WhenResourceExists_ThenAuditLogEntriesShouldBeCreated()
         {
             InstanceIdentifier dicomInstance = await CreateDicomFileAndGetInstanceIdentifierAsync();
 
@@ -91,6 +153,30 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
                 () => _client.DeleteStudyAsync(dicomInstance.StudyInstanceUid),
                 AuditEventSubType.Delete,
                 $"studies/{dicomInstance.StudyInstanceUid}",
+                HttpStatusCode.NoContent);
+        }
+
+        [Fact]
+        public async Task GivenDeleteRequestForSeries_WhenResourceExists_ThenAuditLogEntriesShouldBeCreated()
+        {
+            InstanceIdentifier dicomInstance = await CreateDicomFileAndGetInstanceIdentifierAsync();
+
+            await ExecuteAndValidate(
+                () => _client.DeleteSeriesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid),
+                AuditEventSubType.Delete,
+                $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}",
+                HttpStatusCode.NoContent);
+        }
+
+        [Fact]
+        public async Task GivenDeleteRequestForInstance_WhenResourceExists_ThenAuditLogEntriesShouldBeCreated()
+        {
+            InstanceIdentifier dicomInstance = await CreateDicomFileAndGetInstanceIdentifierAsync();
+
+            await ExecuteAndValidate(
+                () => _client.DeleteInstanceAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid),
+                AuditEventSubType.Delete,
+                $"studies/{dicomInstance.StudyInstanceUid}/series/{dicomInstance.SeriesInstanceUid}/instances/{dicomInstance.SopInstanceUid}",
                 HttpStatusCode.NoContent);
         }
 
