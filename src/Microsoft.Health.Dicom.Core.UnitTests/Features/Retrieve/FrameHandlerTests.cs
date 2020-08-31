@@ -90,7 +90,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             yield return new object[] { true, DicomTransferSyntaxUids.Original, false };
             yield return new object[] { false, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, false }; // Created Dataset is on transferSyntax ExplicitVRLittleEndian
-            yield return new object[] { true, DicomTransferSyntax.JPEGProcess1.UID.UID, false };
+            yield return new object[] { false, DicomTransferSyntax.JPEGProcess1.UID.UID, true };
         }
 
         private DicomDataset GenerateDatasetsFromIdentifiers()
