@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
 using Dicom.IO.Buffer;
-using EnsureThat.Enforcers;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -66,7 +65,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Theory]
-        [MemberData(nameof(TestDataForInvokingTranscoderTests))]
+        [MemberData(nameof(TestDataForInvokingTranscoderOrNotTests))]
         public async Task GivenDicomFileWithFrames_WhenRetrievingWithTransferSyntax_ThenTranscoderShouldBeInvokedAsExpected(bool originalTransferSyntaxRequested, string requestedRepresentation, bool shouldBeInvoked)
         {
             (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 1).Result;
@@ -87,10 +86,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             }
         }
 
-        public static IEnumerable<object[]> TestDataForInvokingTranscoderTests()
+        public static IEnumerable<object[]> TestDataForInvokingTranscoderOrNotTests()
         {
             yield return new object[] { true, DicomTransferSyntaxUids.Original, false };
-            yield return new object[] { false, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, false };
+            yield return new object[] { false, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, false }; // Created Dataset is on transferSyntax ExplicitVRLittleEndian
             yield return new object[] { true, DicomTransferSyntax.JPEGProcess1.UID.UID, false };
         }
 
