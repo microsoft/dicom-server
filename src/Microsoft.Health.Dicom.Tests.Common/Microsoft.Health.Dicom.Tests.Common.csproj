@@ -24,121 +24,121 @@
     <None Update="ImageSamples\XRJPEGProcess1.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEG2000Lossless\YBR_RCT_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEG2000Lossless\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEG2000Lossless\YBR_RCT_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEG2000Lossless\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEG2000Lossless\YBR_RCT_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEG2000Lossless\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEG2000Lossy\YBR_ICT_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEG2000Lossy\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEG2000Lossy\YBR_ICT_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEG2000Lossy\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEG2000Lossy\YBR_ICT_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEG2000Lossy\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEGProcess14SV1\RGB_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEGProcess14SV1\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEGProcess14SV1\RGB_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEGProcess14SV1\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEGProcess14SV1\RGB_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEGProcess14SV1\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEGProcess14\RGB_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEGProcess14\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEGProcess14\RGB_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEGProcess14\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEGProcess14\RGB_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEGProcess14\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEGProcess1\YBR_FULL_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEGProcess1\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEGProcess1\YBR_FULL_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEGProcess1\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\JPEGProcess1\YBR_FULL_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Decode\FromJPEGProcess1\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\RLELossless\RGB_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromRLELossless\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\RLELossless\RGB_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Decode\FromRLELossless\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Decode\RLELossless\RGB_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Decode\FromRLELossless\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Encode\JPEG2000Lossless\YBR_RCT_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Encode\ToJPEG2000Lossless\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Encode\JPEG2000Lossless\YBR_RCT_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Encode\ToJPEG2000Lossless\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Encode\JPEG2000Lossless\YBR_RCT_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Encode\ToJPEG2000Lossless\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRBigEndian_ExplicitVRLittleEndian\RGB_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRBigEndianToExplicitVRLittleEndian\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRBigEndian_ExplicitVRLittleEndian\RGB_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRBigEndianToExplicitVRLittleEndian\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRBigEndian_ExplicitVRLittleEndian\RGB_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRBigEndianToExplicitVRLittleEndian\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRBigEndian_ImplicitVRLittleEndian\RGB_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRBigEndianToImplicitVRLittleEndian\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRBigEndian_ImplicitVRLittleEndian\RGB_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRBigEndianToImplicitVRLittleEndian\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRBigEndian_ImplicitVRLittleEndian\RGB_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRBigEndianToImplicitVRLittleEndian\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRLittleEndian_ExplicitVRBigEndian\RGB_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRLittleEndianToExplicitVRBigEndian\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRLittleEndian_ExplicitVRBigEndian\RGB_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRLittleEndianToExplicitVRBigEndian\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRLittleEndian_ExplicitVRBigEndian\RGB_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRLittleEndianToExplicitVRBigEndian\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRLittleEndian_ImplicitVRLittleEndian\RGB_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRLittleEndianToImplicitVRLittleEndian\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRLittleEndian_ImplicitVRLittleEndian\RGB_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRLittleEndianToImplicitVRLittleEndian\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ExplicitVRLittleEndian_ImplicitVRLittleEndian\RGB_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRLittleEndianToImplicitVRLittleEndian\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ImplicitVRLittleEndian_ExplicitVRBigEndian\RGB_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromImplicitVRLittleEndianToExplicitVRBigEndian\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ImplicitVRLittleEndian_ExplicitVRBigEndian\RGB_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromImplicitVRLittleEndianToExplicitVRBigEndian\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ImplicitVRLittleEndian_ExplicitVRBigEndian\RGB_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromImplicitVRLittleEndianToExplicitVRBigEndian\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ImplicitVRLittleEndian_ExplicitVRLittleEndian\RGB_8\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromImplicitVRLittleEndianToExplicitVRLittleEndian\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ImplicitVRLittleEndian_ExplicitVRLittleEndian\RGB_8\Input.dcm">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromImplicitVRLittleEndianToExplicitVRLittleEndian\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\Uncompressed\ImplicitVRLittleEndian_ExplicitVRLittleEndian\RGB_8\Metadata.json">
+    <None Update="TranscoderTestsFiles\Uncompressed\FromImplicitVRLittleEndianToExplicitVRLittleEndian\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TranscodingSamples\DeflatedExplicitVRLittleEndian.dcm">

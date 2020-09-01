@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
@@ -22,10 +21,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
     public class TranscoderTests
     {
         private const string TestFileFolder = "TranscoderTestsFiles";
-        private const string AllFiles = "*";
-        private const string ExpectedOutputFileName = "ExpectedOutput.dcm";
-        private const string MetadataFileName = "Metadata.json";
-        private const string InputFileName = "Input.dcm";
         private const string TestFileFolderForDecode = TestFileFolder + @"\Decode";
         private const string TestFileFolderForEncode = TestFileFolder + @"\Encode";
         private const string TestFileFolderForUncompressed = TestFileFolder + @"\Uncompressed";
@@ -38,66 +33,31 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _transcoder = new Transcoder(_recyclableMemoryStreamManager);
         }
 
-        [Theory]
-        [MemberData(nameof(GetTestDatas), TestFileFolderForEncode, Skip = "fodicom bug https://github.com/fo-dicom/fo-dicom/issues/1099 ([.NetCore]Encoding to JPEG2000Lossless is not handled correctly)")]
-        public async void GivenUncompressedDicomFile_WhenRequestEncoding_ThenTranscodingShouldSucceed(TranscoderTestData testData)
+        [Theory(Skip = "fodicom bug https://github.com/fo-dicom/fo-dicom/issues/1099 ([.NetCore]Encoding to JPEG2000Lossless is not handled correctly")]
+        [MemberData(nameof(GetTestDatas), TestFileFolderForEncode)]
+        public async Task GivenUncompressedDicomFile_WhenRequestEncoding_ThenTranscodingShouldSucceed(TranscoderTestData testData)
         {
             await VerifyTranscoding(testData);
         }
 
         [Theory]
         [MemberData(nameof(GetTestDatas), TestFileFolderForDecode)]
-        public async void GivenCompressedDicomFile_WhenRequestDecoding_ThenTranscodingShouldSucceed(TranscoderTestData testData)
+        public async Task GivenCompressedDicomFile_WhenRequestDecoding_ThenTranscodingShouldSucceed(TranscoderTestData testData)
         {
             await VerifyTranscoding(testData);
         }
 
         [Theory]
         [MemberData(nameof(GetTestDatas), TestFileFolderForUncompressed)]
-        public async void GivenUncompressedDicomFile_WhenRequestAnotherUncompressedTransferSyntax_ThenTranscodingShouldSucceed(TranscoderTestData testData)
+        public async Task GivenUncompressedDicomFile_WhenRequestAnotherUncompressedTransferSyntax_ThenTranscodingShouldSucceed(TranscoderTestData testData)
         {
             await VerifyTranscoding(testData);
         }
 
-        private static string GetExpectedOutputFile(string inputFile)
+        public static IEnumerable<object[]> GetTestDatas(string testFolder)
         {
-            return Path.Combine(Path.GetDirectoryName(inputFile), ExpectedOutputFileName);
-        }
-
-        private static string GetMetadataFile(string inputFile)
-        {
-            return Path.Combine(Path.GetDirectoryName(inputFile), MetadataFileName);
-        }
-
-        private static bool IsInputFile(string path)
-        {
-            return Path.GetFileName(path).Equals(InputFileName, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static TranscoderTestMetadata GetMetadata(string inputFile)
-        {
-            string metadataFile = GetMetadataFile(inputFile);
-            return JsonSerializer.Deserialize<TranscoderTestMetadata>(File.ReadAllText(metadataFile));
-        }
-
-        public static IEnumerable<object[]> GetTestDatas(string testFileFolder)
-        {
-            IList<object[]> result = new List<object[]>();
-            foreach (string path in Directory.EnumerateFiles(testFileFolder, AllFiles, SearchOption.AllDirectories))
-            {
-                if (IsInputFile(path))
-                {
-                    TranscoderTestData testData = new TranscoderTestData()
-                    {
-                        InputDicomFile = path,
-                        ExpectedOutputDicomFile = GetExpectedOutputFile(path),
-                        MetaData = GetMetadata(path),
-                    };
-                    result.Add(new object[] { testData });
-                }
-            }
-
-            return result;
+            return TranscoderTestDataHelper.GetTestDatas(testFolder)
+                .Select(item => new object[] { item });
         }
 
         private async Task<DicomFile> VerifyTranscoding(TranscoderTestData testData)
