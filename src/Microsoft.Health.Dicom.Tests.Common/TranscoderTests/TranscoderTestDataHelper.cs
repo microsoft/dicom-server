@@ -17,14 +17,24 @@ namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
         private const string MetadataFileName = "Metadata.json";
         private const string InputFileName = "Input.dcm";
 
-        private static string GetExpectedOutputFile(string inputFile)
+        private static string GetTestDataFolder(string inputFilePath)
         {
-            return Path.Combine(Path.GetDirectoryName(inputFile), ExpectedOutputFileName);
+            return Path.GetDirectoryName(inputFilePath);
         }
 
-        private static string GetMetadataFile(string inputFile)
+        private static string GetExpectedOutputFile(string testDataFolder)
         {
-            return Path.Combine(Path.GetDirectoryName(inputFile), MetadataFileName);
+            return Path.Combine(testDataFolder, ExpectedOutputFileName);
+        }
+
+        private static string GetInputFile(string testDataFolder)
+        {
+            return Path.Combine(testDataFolder, InputFileName);
+        }
+
+        private static string GetMetadataFile(string testDataFolder)
+        {
+            return Path.Combine(testDataFolder, MetadataFileName);
         }
 
         private static bool IsInputFile(string path)
@@ -32,30 +42,39 @@ namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
             return Path.GetFileName(path).Equals(InputFileName, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static TranscoderTestMetadata GetMetadata(string inputFile)
+        private static TranscoderTestMetadata GetMetadata(string testDataFolder)
         {
-            string metadataFile = GetMetadataFile(inputFile);
+            string metadataFile = GetMetadataFile(testDataFolder);
             return JsonSerializer.Deserialize<TranscoderTestMetadata>(File.ReadAllText(metadataFile));
         }
 
-        public static IEnumerable<TranscoderTestData> GetTestDatas(string testFileFolder)
+        public static IEnumerable<string> GetTestDataFolders(string rootFolder)
         {
-            IList<TranscoderTestData> result = new List<TranscoderTestData>();
-            foreach (string path in Directory.EnumerateFiles(testFileFolder, AllFiles, SearchOption.AllDirectories))
+            foreach (string path in Directory.EnumerateFiles(rootFolder, AllFiles, SearchOption.AllDirectories))
             {
                 if (IsInputFile(path))
                 {
-                    TranscoderTestData testData = new TranscoderTestData()
-                    {
-                        InputDicomFile = path,
-                        ExpectedOutputDicomFile = GetExpectedOutputFile(path),
-                        MetaData = GetMetadata(path),
-                    };
-                    result.Add(testData);
+                    yield return GetTestDataFolder(path);
                 }
             }
+        }
 
-            return result;
+        public static TranscoderTestData GetTestData(string testDataFolder)
+        {
+            return new TranscoderTestData()
+            {
+                InputDicomFile = GetInputFile(testDataFolder),
+                ExpectedOutputDicomFile = GetExpectedOutputFile(testDataFolder),
+                MetaData = GetMetadata(testDataFolder),
+            };
+        }
+
+        public static IEnumerable<TranscoderTestData> GetTestDatas(string testDataRootFolder)
+        {
+            foreach (string folder in GetTestDataFolders(testDataRootFolder))
+            {
+                yield return GetTestData(folder);
+            }
         }
     }
 }

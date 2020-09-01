@@ -20,10 +20,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 {
     public class TranscoderTests
     {
-        private const string TestFileFolder = "TranscoderTestsFiles";
-        private const string TestFileFolderForDecode = TestFileFolder + @"\Decode";
-        private const string TestFileFolderForEncode = TestFileFolder + @"\Encode";
-        private const string TestFileFolderForUncompressed = TestFileFolder + @"\Uncompressed";
+        private const string TestDataRootFolder = "TranscoderTestsFiles";
+        private const string TestDataRootFolderForDecode = TestDataRootFolder + @"\Decode";
+        private const string TestDataRootFolderForEncode = TestDataRootFolder + @"\Encode";
+        private const string TestDataRootFolderForUncompressed = TestDataRootFolder + @"\Uncompressed";
         private ITranscoder _transcoder;
         private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -34,46 +34,49 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         }
 
         [Theory(Skip = "fodicom bug https://github.com/fo-dicom/fo-dicom/issues/1099 ([.NetCore]Encoding to JPEG2000Lossless is not handled correctly")]
-        [MemberData(nameof(GetTestDatas), TestFileFolderForEncode)]
-        public async Task GivenUncompressedDicomFile_WhenRequestEncoding_ThenTranscodingShouldSucceed(TranscoderTestData testData)
+        [MemberData(nameof(GetTestDatas), TestDataRootFolderForEncode)]
+        public async Task GivenUncompressedDicomFile_WhenRequestEncoding_ThenTranscodingShouldSucceed(string testDataFolder)
         {
-            await VerifyTranscoding(testData);
+            await VerifyTranscoding(testDataFolder);
         }
 
         [Theory]
-        [MemberData(nameof(GetTestDatas), TestFileFolderForDecode)]
-        public async Task GivenCompressedDicomFile_WhenRequestDecoding_ThenTranscodingShouldSucceed(TranscoderTestData testData)
+        [MemberData(nameof(GetTestDatas), TestDataRootFolderForDecode)]
+        public async Task GivenCompressedDicomFile_WhenRequestDecoding_ThenTranscodingShouldSucceed(string testDataFolder)
         {
-            await VerifyTranscoding(testData);
+            await VerifyTranscoding(testDataFolder);
         }
 
         [Theory]
-        [MemberData(nameof(GetTestDatas), TestFileFolderForUncompressed)]
-        public async Task GivenUncompressedDicomFile_WhenRequestAnotherUncompressedTransferSyntax_ThenTranscodingShouldSucceed(TranscoderTestData testData)
+        [MemberData(nameof(GetTestDatas), TestDataRootFolderForUncompressed)]
+        public async Task GivenUncompressedDicomFile_WhenRequestAnotherUncompressedTransferSyntax_ThenTranscodingShouldSucceed(string testDataFolder)
         {
-            await VerifyTranscoding(testData);
+            await VerifyTranscoding(testDataFolder);
         }
 
-        public static IEnumerable<object[]> GetTestDatas(string testFolder)
+        public static IEnumerable<object[]> GetTestDatas(string testDataRootFolder)
         {
-            return TranscoderTestDataHelper.GetTestDatas(testFolder)
+            return TranscoderTestDataHelper.GetTestDataFolders(testDataRootFolder)
                 .Select(item => new object[] { item });
         }
 
-        private async Task<DicomFile> VerifyTranscoding(TranscoderTestData testData)
+        private async Task<DicomFile> VerifyTranscoding(string testDataFolder)
         {
-            Stream fileStream = File.OpenRead(testData.InputDicomFile);
-            DicomFile inputFile = DicomFile.Open(fileStream);
+            TranscoderTestData testData = TranscoderTestDataHelper.GetTestData(testDataFolder);
+            using (FileStream fileStream = File.OpenRead(testData.InputDicomFile))
+            {
+                DicomFile inputFile = DicomFile.Open(fileStream);
 
-            // Verify if input file has correct input transfersyntax
-            Assert.Equal(inputFile.Dataset.InternalTransferSyntax.UID.UID, testData.MetaData.InputSyntaxUid);
+                // Verify if input file has correct input transfersyntax
+                Assert.Equal(inputFile.Dataset.InternalTransferSyntax.UID.UID, testData.MetaData.InputSyntaxUid);
 
-            // Reset stream position for trasncoder to consume
-            fileStream.Seek(0, SeekOrigin.Begin);
+                // Reset stream position for trasncoder to consume
+                fileStream.Seek(0, SeekOrigin.Begin);
 
-            DicomFile outputFile = await VerifyTranscodeFileAsync(testData, fileStream, inputFile);
-            VerifyTranscodeFrame(testData, inputFile);
-            return outputFile;
+                DicomFile outputFile = await VerifyTranscodeFileAsync(testData, fileStream, inputFile);
+                VerifyTranscodeFrame(testData, inputFile);
+                return outputFile;
+            }
         }
 
         private void VerifyTranscodeFrame(TranscoderTestData testData, DicomFile inputFile)
