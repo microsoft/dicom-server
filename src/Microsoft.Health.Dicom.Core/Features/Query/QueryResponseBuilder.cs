@@ -109,10 +109,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            dicomDataset.Remove((di) =>
-                                {
-                                    return !_tagsToReturn.Contains(di.Tag);
-                                });
+            dicomDataset.Remove(di => !_tagsToReturn.Any(
+                t => t.Group == di.Tag.Group &&
+                t.Element == di.Tag.Element));
 
             return dicomDataset;
         }
