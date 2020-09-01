@@ -128,16 +128,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             return new HashSet<string>(transferSyntaxes, StringComparer.InvariantCultureIgnoreCase);
         }
 
-        public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
+#pragma warning disable CA1822 // Mark members as static
+        public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptableHeaderDescriptor)
+#pragma warning restore CA1822 // Mark members as static
         {
             EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
             AcceptHeaderDescriptors descriptors = AcceptableDescriptors[resourceType];
+            acceptableHeaderDescriptor = null;
 
             // get all accceptable headers and sort by quality (ascendently)
             SortedDictionary<AcceptHeader, string> accepted = new SortedDictionary<AcceptHeader, string>(new AcceptHeaderQualityComparer());
             foreach (AcceptHeader header in acceptHeaders)
             {
-                AcceptHeaderDescriptor acceptableHeaderDescriptor;
                 string transfersyntax;
                 if (descriptors.TryGetMatchedDescriptor(header, out acceptableHeaderDescriptor, out transfersyntax))
                 {

@@ -193,7 +193,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            return CreateResult(response, KnownContentTypes.ApplicationOctetStream);
+            return CreateResult(response, response.ContentType);
         }
 
         private static IActionResult CreateResult(RetrieveMetadataResponse response)
