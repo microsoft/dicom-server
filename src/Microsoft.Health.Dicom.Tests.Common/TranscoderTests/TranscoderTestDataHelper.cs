@@ -48,9 +48,9 @@ namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
             return JsonSerializer.Deserialize<TranscoderTestMetadata>(File.ReadAllText(metadataFile));
         }
 
-        public static IEnumerable<string> GetTestDataFolders(string rootFolder)
+        public static IEnumerable<string> GetTestDataFolders(string testDataRootFolder)
         {
-            foreach (string path in Directory.EnumerateFiles(rootFolder, AllFiles, SearchOption.AllDirectories))
+            foreach (string path in Directory.EnumerateFiles(testDataRootFolder, AllFiles, SearchOption.AllDirectories))
             {
                 if (IsInputFile(path))
                 {
