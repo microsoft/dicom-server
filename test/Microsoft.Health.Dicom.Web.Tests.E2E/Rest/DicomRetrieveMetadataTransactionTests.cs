@@ -34,22 +34,22 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingResource_ThenNotAcceptableIsReturned(string acceptHeader)
         {
             // Study
-            await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
-                _client,
+            await _client.ValidateResponseStatusCodeAsync(
                 string.Format(DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid().ToString()),
-                acceptHeader);
+                acceptHeader,
+                HttpStatusCode.NotAcceptable);
 
             // Series
-            await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
-                _client,
+            await _client.ValidateResponseStatusCodeAsync(
                 string.Format(DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
-                acceptHeader);
+                acceptHeader,
+                HttpStatusCode.NotAcceptable);
 
             // Instance
-            await RetrieveTransactionResourceTests.ValidateNotAcceptableResponseAsync(
-                _client,
+            await _client.ValidateResponseStatusCodeAsync(
                 string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
-                acceptHeader);
+                acceptHeader,
+                HttpStatusCode.NotAcceptable);
         }
 
         [Fact]

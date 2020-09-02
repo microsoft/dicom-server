@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  
+
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>true</IsPackable>
@@ -19,5 +19,5 @@
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.SqlServer\Microsoft.Health.Dicom.SqlServer.csproj" />
   </ItemGroup>
-  
+
 </Project>

@@ -8,5 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Configs
     public class ServicesConfiguration
     {
         public DeletedInstanceCleanupConfiguration DeletedInstanceCleanup { get; } = new DeletedInstanceCleanupConfiguration();
+
+        public StoreConfiguration StoreServiceSettings { get; } = new StoreConfiguration();
     }
 }

@@ -1,17 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="fo-dicom" Version="4.0.6" />
-    <PackageReference Include="Microsoft.Health.Blob" Version="1.0.0-master-20200716-1" />
+    <PackageReference Include="Microsoft.Health.Blob" Version="1.0.0-master-20200827-1" />
     <PackageReference Include="Polly" Version="7.2.0" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
-
 </Project>

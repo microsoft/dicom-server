@@ -5,6 +5,8 @@
 
 using System.IO;
 using EnsureThat;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Web
@@ -15,13 +17,17 @@ namespace Microsoft.Health.Dicom.Api.Web
     internal class AspNetCoreMultipartReaderFactory : IMultipartReaderFactory
     {
         private readonly ISeekableStreamConverter _seekableStreamConverter;
+        private readonly IOptions<StoreConfiguration> _storeConfiguration;
 
         public AspNetCoreMultipartReaderFactory(
-            ISeekableStreamConverter seekableStreamConverter)
+            ISeekableStreamConverter seekableStreamConverter,
+            IOptions<StoreConfiguration> storeConfiguration)
         {
             EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
+            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
 
             _seekableStreamConverter = seekableStreamConverter;
+            _storeConfiguration = storeConfiguration;
         }
 
         /// <inheritdoc />
@@ -30,7 +36,8 @@ namespace Microsoft.Health.Dicom.Api.Web
             return new AspNetCoreMultipartReader(
                 contentType,
                 body,
-                _seekableStreamConverter);
+                _seekableStreamConverter,
+                _storeConfiguration);
         }
     }
 }

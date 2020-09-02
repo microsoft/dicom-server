@@ -64,6 +64,35 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*"));
         }
 
+        [Theory]
+        [MemberData(nameof(TestDataForInvokingTranscoderOrNotTests))]
+        public async Task GivenDicomFileWithFrames_WhenRetrievingWithTransferSyntax_ThenTranscoderShouldBeInvokedAsExpected(bool originalTransferSyntaxRequested, string requestedRepresentation, bool shouldBeInvoked)
+        {
+            (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 1).Result;
+            ITranscoder transcoder = Substitute.For<ITranscoder>();
+            transcoder.TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>()).Returns(_recyclableMemoryStreamManager.GetStream());
+            FrameHandler frameHandler = new FrameHandler(transcoder, _recyclableMemoryStreamManager);
+            IReadOnlyCollection<Stream> result = await frameHandler.GetFramesResourceAsync(stream, new int[] { 0 }, originalTransferSyntaxRequested, requestedRepresentation);
+
+            // Call Position of LazyTransformReadOnlyStream so that transcoder.TranscodeFrame is invoked
+            long pos = result.First().Position;
+            if (shouldBeInvoked)
+            {
+                transcoder.Received().TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>());
+            }
+            else
+            {
+                transcoder.DidNotReceive().TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>());
+            }
+        }
+
+        public static IEnumerable<object[]> TestDataForInvokingTranscoderOrNotTests()
+        {
+            yield return new object[] { true, DicomTransferSyntaxUids.Original, false };
+            yield return new object[] { false, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, false }; // Created Dataset is on transferSyntax ExplicitVRLittleEndian
+            yield return new object[] { false, DicomTransferSyntax.JPEGProcess1.UID.UID, true };
+        }
+
         private DicomDataset GenerateDatasetsFromIdentifiers()
         {
             var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)

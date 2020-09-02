@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 
         public static void ValidateTransferSyntax(string requestedTransferSyntax, bool originalTransferSyntaxRequested = false)
         {
-            if (!originalTransferSyntaxRequested && requestedTransferSyntax != null)
+            if (!originalTransferSyntaxRequested && !string.IsNullOrEmpty(requestedTransferSyntax))
             {
                 try
                 {

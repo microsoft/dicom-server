@@ -8,8 +8,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Core.Features.Security;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Api.Modules
@@ -53,6 +56,13 @@ namespace Microsoft.Health.Dicom.Api.Modules
                     mvcOptions.Filters.Add(new AuthorizeFilter(policy));
                 });
             }
+
+            services.Add<DicomRequestContextAccessor>()
+                .Singleton()
+                .AsSelf()
+                .AsService<IDicomRequestContextAccessor>();
+
+            services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();
         }
     }
 }

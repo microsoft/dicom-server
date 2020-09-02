@@ -79,6 +79,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The prefix used to identify custom audit headers cannot be empty..
+        /// </summary>
+        internal static string CustomHeaderPrefixCannotBeEmpty {
+            get {
+                return ResourceManager.GetString("CustomHeaderPrefixCannotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
         internal static string DataStoreOperationFailed {
@@ -278,6 +287,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request headers are not acceptable.
+        /// </summary>
+        internal static string NotAcceptableHeaders {
+            get {
+                return ResourceManager.GetString("NotAcceptableHeaders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId &apos;{0}&apos; has empty string value that is not supported..
         /// </summary>
         internal static string QueryEmptyAttributeValue {
@@ -314,6 +332,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified series cannot be found..
+        /// </summary>
+        internal static string SeriesNotFound {
+            get {
+                return ResourceManager.GetString("SeriesNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server is currently unable to receive requests. Please retry your request. If the issue persists, please contact support..
         /// </summary>
         internal static string ServiceUnavailable {
@@ -328,6 +355,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string StudyInstanceNotFound {
             get {
                 return ResourceManager.GetString("StudyInstanceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified study cannot be found..
+        /// </summary>
+        internal static string StudyNotFound {
+            get {
+                return ResourceManager.GetString("StudyNotFound", resourceCulture);
             }
         }
         

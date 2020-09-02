@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             // Validate requested frame index exists in file and retrieve the pixel data associated with the file.
             DicomPixelData pixelData = dicomFile.GetPixelDataAndValidateFrames(frames);
 
-            if (!originalTransferSyntaxRequested && dicomFile.Dataset.InternalTransferSyntax.IsEncapsulated)
+            if (!originalTransferSyntaxRequested && !dicomFile.Dataset.InternalTransferSyntax.Equals(DicomTransferSyntax.Parse(requestedRepresentation)))
             {
                 return frames.Select(frame => new LazyTransformReadOnlyStream<DicomFile>(
                         dicomFile,

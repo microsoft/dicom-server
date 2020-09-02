@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using MediatR;
@@ -12,36 +11,30 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     public class RetrieveResourceRequest : IRequest<RetrieveResourceResponse>
     {
-        /// <summary>
-        /// If the requested transfer syntax equals '*', the caller is requesting the original transfer syntax of the uploaded file.
-        /// </summary>
-        private const string OriginalTransferSyntaxRequest = "*";
-
-        public RetrieveResourceRequest(string requestedTransferSyntax, string studyInstanceUid)
-            : this(ResourceType.Study, requestedTransferSyntax)
+        public RetrieveResourceRequest(string studyInstanceUid, IEnumerable<AcceptHeader> acceptHeaders)
+            : this(ResourceType.Study, acceptHeaders)
         {
             StudyInstanceUid = studyInstanceUid;
         }
 
-        public RetrieveResourceRequest(string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid)
-            : this(ResourceType.Series, requestedTransferSyntax)
+        public RetrieveResourceRequest(string studyInstanceUid, string seriesInstanceUid, IEnumerable<AcceptHeader> acceptHeaders)
+            : this(ResourceType.Series, acceptHeaders)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
         }
 
         public RetrieveResourceRequest(
-            string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
-            : this(ResourceType.Instance, requestedTransferSyntax)
+             string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IEnumerable<AcceptHeader> acceptHeaders)
+            : this(ResourceType.Instance, acceptHeaders)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
         }
 
-        public RetrieveResourceRequest(
-            string requestedTransferSyntax, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IEnumerable<int> frames)
-            : this(ResourceType.Frames, requestedTransferSyntax)
+        public RetrieveResourceRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IEnumerable<int> frames, IEnumerable<AcceptHeader> acceptHeaders)
+            : this(ResourceType.Frames, acceptHeaders)
         {
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
@@ -52,15 +45,13 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
             Frames = frames?.Select(x => x - 1);
         }
 
-        private RetrieveResourceRequest(ResourceType resourceType, string requestedRepresentation)
+        private RetrieveResourceRequest(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
         {
             ResourceType = resourceType;
-            RequestedRepresentation = string.IsNullOrWhiteSpace(requestedRepresentation) ? null : requestedRepresentation;
+            AcceptHeaders = acceptHeaders;
         }
 
         public ResourceType ResourceType { get; }
-
-        public string RequestedRepresentation { get; }
 
         public string StudyInstanceUid { get; }
 
@@ -70,9 +61,6 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 
         public IEnumerable<int> Frames { get; }
 
-        public bool OriginalTransferSyntaxRequested()
-        {
-            return RequestedRepresentation != null && RequestedRepresentation.Equals(OriginalTransferSyntaxRequest, StringComparison.InvariantCultureIgnoreCase);
-        }
+        public IEnumerable<AcceptHeader> AcceptHeaders { get; }
     }
 }

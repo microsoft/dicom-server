@@ -124,6 +124,9 @@
   <data name="ChangeFeedOffsetCannotBeNegative" xml:space="preserve">
     <value>The offset cannot be a negative value.</value>
   </data>
+  <data name="CustomHeaderPrefixCannotBeEmpty" xml:space="preserve">
+    <value>The prefix used to identify custom audit headers cannot be empty.</value>
+  </data>
   <data name="DataStoreOperationFailed" xml:space="preserve">
     <value>The data store operation failed.</value>
   </data>
@@ -151,6 +154,12 @@
   </data>
   <data name="InstanceNotFound" xml:space="preserve">
     <value>The specified instance cannot be found.</value>
+  </data>
+  <data name="SeriesNotFound" xml:space="preserve">
+    <value>The specified series cannot be found.</value>
+  </data>
+  <data name="StudyNotFound" xml:space="preserve">
+    <value>The specified study cannot be found.</value>
   </data>
   <data name="InvalidDateRangeValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
@@ -200,6 +209,9 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="MissingRequiredTag" xml:space="preserve">
     <value>The required tag '{0}' is missing.</value>
     <comment>{0} is the DICOM tag name. E.g., StudyInstanceUID.</comment>
+  </data>
+  <data name="NotAcceptableHeaders" xml:space="preserve">
+    <value>The request headers are not acceptable</value>
   </data>
   <data name="QueryEmptyAttributeValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. AttributeId '{0}' has empty string value that is not supported.</value>

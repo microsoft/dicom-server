@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Abstractions.Exceptions;
+using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 
@@ -66,11 +67,14 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
             {
                 case ValidationException _:
                 case NotSupportedException _:
+                case AuditHeaderCountExceededException _:
+                case AuditHeaderTooLargeException _:
                     statusCode = HttpStatusCode.BadRequest;
                     break;
                 case ResourceNotFoundException _:
                     statusCode = HttpStatusCode.NotFound;
                     break;
+                case NotAcceptableException _:
                 case TranscodingException _:
                     statusCode = HttpStatusCode.NotAcceptable;
                     break;
