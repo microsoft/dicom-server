@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.4.3" />
-    <PackageReference Include="Ensure.That" Version="9.0.1" />
+    <PackageReference Include="Ensure.That" Version="9.2.0" />
     <PackageReference Include="Microsoft.Health.Blob" Version="1.0.0-master-20200603-1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
