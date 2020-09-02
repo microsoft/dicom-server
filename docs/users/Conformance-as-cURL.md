@@ -18,7 +18,7 @@ _Details:_
 * Body:
     * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value
 
-`curl --location --request POST "http://sjbpostman.azurewebsites.net/studies" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/!dicomfiles/dicom-samples/visus.com/case1/case1_008.dcm;type=application/dicom" --trace-ascii "trace2.txt"`
+`curl --location --request POST "http://{service-name}.azurewebsites.net/studies" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/!dicomfiles/dicom-samples/visus.com/case1/case1_008.dcm;type=application/dicom" --trace-ascii "trace2.txt"`
 
 ---
 ### Store-single-instance
@@ -59,7 +59,7 @@ _Details:_
 
 If using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related.
 
-`curl --request POST "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/!dicomfiles/dicom-samples/visus.com/case1/case1_008.dcm;type=application/dicom"`
+`curl --request POST "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/!dicomfiles/dicom-samples/visus.com/case1/case1_008.dcm;type=application/dicom"`
 
 ## Retrieving DICOM (WADO)
 ---
@@ -73,7 +73,7 @@ _Details:_
 * Headers:
    * `Accept: multipart/related; type="application/dicom"; transfer-syntax=*`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*" --output "suppressWarnings.txt"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*" --output "suppressWarnings.txt"`
 
 > This cURL command will show the downloaded bytes in the output file (suppressWarnings.txt), but these are not direct DICOM files, only a text representation of the multipart/related download.
 
@@ -90,7 +90,7 @@ _Details:_
 
 > This cURL command will show the downloaded bytes in the output file (suppressWarnings.txt), but these are not direct DICOM files, only a text representation of the multipart/related download.
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/metadata" --header "Accept: application/dicom+json"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/metadata" --header "Accept: application/dicom+json"`
 
 ---
 ### Retrieve-all-instances-within-a-series
@@ -105,7 +105,7 @@ _Details:_
 
 > This cURL command will show the downloaded bytes in the output file (suppressWarnings.txt), but it is not the DICOM file, only a text representation of the multipart/related download.
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458" --header "Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*" --output "suppressWarnings.txt"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458" --header "Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*" --output "suppressWarnings.txt"`
 
 
 ---
@@ -119,7 +119,7 @@ _Details:_
 * Headers:
    * `Accept: application/dicom+json`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/metadata" --header "Accept: application/dicom+json"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/metadata" --header "Accept: application/dicom+json"`
 
 ---
 ### Retrieve-a-single-instance-within-a-series-of-a-study
@@ -132,7 +132,7 @@ _Details:_
 * Headers:
    * `Accept: application/dicom; transfer-syntax=*`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom; transfer-syntax=*" --output "suppressWarnings.txt"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom; transfer-syntax=*" --output "suppressWarnings.txt"`
 
 ---
 ### Retrieve-metadata-of-a-single-instance-within-a-series-of-a-study
@@ -145,7 +145,7 @@ _Details:_
 * Headers:
   * `Accept: application/dicom+json`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467/metadata" --header "Accept: application/dicom+json"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467/metadata" --header "Accept: application/dicom+json"`
 
 ---
 ### Retrieve-one-or-more-frames-from-a-single-instance
@@ -160,7 +160,7 @@ _Details:_
    * `Accept: multipart/related; type="application/octet-stream"; transfer-syntax=*` or
    * `Accept: multipart/related; type="application/octet-stream";`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467/frames/1" --header "Accept: multipart/related; type=\"application/octet-stream\"; transfer-syntax=1.2.840.10008.1.2.1" --output "suppressWarnings.txt"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467/frames/1" --header "Accept: multipart/related; type=\"application/octet-stream\"; transfer-syntax=1.2.840.10008.1.2.1" --output "suppressWarnings.txt"`
 
 ## Query DICOM (QIDO)
 ---
@@ -176,7 +176,7 @@ _Details:_
 * Headers:
    * `Accept: application/dicom+json`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies?StudyInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: application/dicom+json"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies?StudyInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: application/dicom+json"`
 
 ---
 ### Search-for-series
@@ -191,7 +191,7 @@ _Details:_
 * Headers:
    * `Accept: application/dicom+json`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/series?SeriesInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.458" --header "Accept: application/dicom+json"`
+`curl --request GET "http://{service-name}.azurewebsites.net/series?SeriesInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.458" --header "Accept: application/dicom+json"`
 
 ---
 ### Search-for-series-within-a-study
@@ -206,7 +206,7 @@ _Details:_
 * Headers:
    * `Accept: application/dicom+json`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series?SeriesInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.458" --header "Accept: application/dicom+json"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series?SeriesInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.458" --header "Accept: application/dicom+json"`
 
 ---
 ### Search-for-instances
@@ -221,7 +221,7 @@ _Details:_
 * Headers:
    * `Accept: application/dicom+json`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/instances?SOPInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom+json"`
+`curl --request GET "http://{service-name}.azurewebsites.net/instances?SOPInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom+json"`
 
 ---
 ### Search-for-instances-within-a-study
@@ -236,7 +236,7 @@ _Details:_
 * Headers:
    * `Accept: application/dicom+json`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/instances?SOPInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom+json"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/instances?SOPInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom+json"`
 
 ---
 ### Search-for-instances-within-a-study-and-series
@@ -251,7 +251,7 @@ _Details:_
 * Headers:
    * `Accept: application/dicom+json`
 
-`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances?SOPInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom+json"`
+`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances?SOPInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom+json"`
 
 ## Delete DICOM 
 ---
@@ -266,7 +266,7 @@ _Details:_
 * Method: DELETE
 * Headers: No special headers needed
 
-`curl --request DELETE "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467"`
+`curl --request DELETE "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467"`
 
 ---
 ### Delete-a-specific-series-within-a-study
@@ -280,7 +280,7 @@ _Details:_
 * Method: DELETE
 * Headers: No special headers needed
 
-`curl --request DELETE "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458"`
+`curl --request DELETE "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458"`
 
 ---
 ### Delete-a-specific-study
@@ -294,7 +294,7 @@ _Details:_
 * Method: DELETE
 * Headers: No special headers needed
 
-`curl --request DELETE "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270"`
+`curl --request DELETE "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270"`
 
 
 
