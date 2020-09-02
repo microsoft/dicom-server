@@ -155,6 +155,12 @@
   <data name="InstanceNotFound" xml:space="preserve">
     <value>The specified instance cannot be found.</value>
   </data>
+  <data name="SeriesNotFound" xml:space="preserve">
+    <value>The specified series cannot be found.</value>
+  </data>
+  <data name="StudyNotFound" xml:space="preserve">
+    <value>The specified study cannot be found.</value>
+  </data>
   <data name="InvalidDateRangeValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
 The first part date {1} should be lesser than or equal to the second part date {2}.</value>
