@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.Core.UnitTests", "src\Microsoft.Health.DicomCast.Core.UnitTests\Microsoft.Health.DicomCast.Core.UnitTests.csproj", "{E60031C2-46AB-40E3-BDD9-A8F28A13CF32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.DicomCast.Blob", "src\Microsoft.Health.DicomCast.Blob\Microsoft.Health.DicomCast.Blob.csproj", "{02636774-227C-4D07-A314-0B5015328E39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.Blob", "src\Microsoft.Health.DicomCast.Blob\Microsoft.Health.DicomCast.Blob.csproj", "{02636774-227C-4D07-A314-0B5015328E39}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{2C0D7819-CE0A-4652-A2D3-4C34DF51DB1B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{02636774-227C-4D07-A314-0B5015328E39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02636774-227C-4D07-A314-0B5015328E39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02636774-227C-4D07-A314-0B5015328E39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C0D7819-CE0A-4652-A2D3-4C34DF51DB1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C0D7819-CE0A-4652-A2D3-4C34DF51DB1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C0D7819-CE0A-4652-A2D3-4C34DF51DB1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C0D7819-CE0A-4652-A2D3-4C34DF51DB1B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -42,8 +48,9 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{AAD757E8-D347-4006-BC43-11D761B04078} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 		{3D4D8CBB-B32F-4BB3-98B9-39F457C71E92} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
-		{02636774-227C-4D07-A314-0B5015328E39} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 		{E60031C2-46AB-40E3-BDD9-A8F28A13CF32} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
+		{02636774-227C-4D07-A314-0B5015328E39} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
+		{2C0D7819-CE0A-4652-A2D3-4C34DF51DB1B} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4EF00533-B2AE-4B1B-B4AF-9799AD9F69E2}
