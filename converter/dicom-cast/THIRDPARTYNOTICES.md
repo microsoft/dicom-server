@@ -1,0 +1,458 @@
+# Third party notices
+
+Do Not Translate or Localize
+
+This file is based on or incorporates material from the projects listed below (Third Party IP). The original copyright notice and the license under which Microsoft received such Third Party IP, are set forth below. Such licenses and notices are provided for informational purposes only. Microsoft licenses the Third Party IP to you under the licensing terms for the Microsoft product. Microsoft reserves all other rights not expressly granted under this agreement, whether by implication, estoppel or otherwise.
+
+## Ensure.That 9.0.1
+* Component Source:   https://github.com/danielwertheim/Ensure.That/
+* Component Copyright and License:
+  > The MIT License (MIT)
+  > 
+  > Copyright (c) 2015 Daniel Wertheim
+  > 
+  > Permission is hereby granted, free of charge, to any person obtaining a copy
+  > of this software and associated documentation files (the "Software"), to deal
+  > in the Software without restriction, including without limitation the rights
+  > to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  > copies of the Software, and to permit persons to whom the Software is
+  > furnished to do so, subject to the following conditions:
+  > 
+  > The above copyright notice and this permission notice shall be included in all
+  > copies or substantial portions of the Software.
+  > 
+  > THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  > IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  > FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  > AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  > SOFTWARE.
+
+## fo-dicom 4.0.5
+* Component Source:   https://github.com/fo-dicom/fo-dicom
+* Component Copyright and License:
+  > Fellow Oak DICOM
+  > 
+  > Copyright (c) 2012-2020 fo-dicom contributors
+  > 
+  > This software is licensed under the Microsoft Public License (MS-PL)
+  > 
+  > Microsoft Public License (MS-PL)
+  > 
+  > This license governs use of the accompanying software. If you use the software, you
+  > accept this license. If you do not accept the license, do not use the software.
+  > 
+  > 1. Definitions
+  > The terms "reproduce," "reproduction," "derivative works," and "distribution" have the
+  > same meaning here as under U.S. copyright law.
+  > A "contribution" is the original software, or any additions or changes to the software.
+  > A "contributor" is any person that distributes its contribution under this license.
+  > "Licensed patents" are a contributor's patent claims that read directly on its contribution.
+  > 
+  > 2. Grant of Rights
+  > (A) Copyright Grant- Subject to the terms of this license, including the license conditions 
+  >     and limitations in section 3, each contributor grants you a non-exclusive, worldwide, 
+  > 	royalty-free copyright license to reproduce its contribution, prepare derivative works 
+  > 	of its contribution, and distribute its contribution or any derivative works that you create.
+  > (B) Patent Grant- Subject to the terms of this license, including the license conditions and 
+  >     limitations in section 3, each contributor grants you a non-exclusive, worldwide, royalty-free 
+  > 	license under its licensed patents to make, have made, use, sell, offer for sale, import, 
+  > 	and/or otherwise dispose of its contribution in the software or derivative works of the 
+  > 	contribution in the software.
+  > 
+  > 3. Conditions and Limitations
+  > (A) No Trademark License- This license does not grant you rights to use any contributors' name, 
+  >     logo, or trademarks.
+  > (B) If you bring a patent claim against any contributor over patents that you claim are infringed 
+  >     by the software, your patent license from such contributor to the software ends automatically.
+  > (C) If you distribute any portion of the software, you must retain all copyright, patent, trademark, 
+  >     and attribution notices that are present in the software.
+  > (D) If you distribute any portion of the software in source code form, you may do so only under this 
+  >     license by including a complete copy of this license with your distribution. If you distribute 
+  > 	any portion of the software in compiled or object code form, you may only do so under a license 
+  > 	that complies with this license.
+  > (E) The software is licensed "as-is." You bear the risk of using it. The contributors give no express 
+  >     warranties, guarantees or conditions. You may have additional consumer rights under your local 
+  > 	laws which this license cannot change. To the extent permitted under your local laws, the 
+  > 	contributors exclude the implied warranties of merchantability, fitness for a particular purpose 
+  > 	and non-infringement.
+  > 
+  > 
+  > 
+  > ---- libijg (from DCMTK 3.5.4 COPYRIGHT) ----
+  > 
+  > Unless otherwise specified, the DCMTK software package has the
+  > following copyright:
+  > 
+  > /*
+  >  *  Copyright (C) 1994-2004, OFFIS
+  >  *
+  >  *  This software and supporting documentation were developed by
+  >  *
+  >  *    Kuratorium OFFIS e.V.
+  >  *    Healthcare Information and Communication Systems
+  >  *    Escherweg 2
+  >  *    D-26121 Oldenburg, Germany
+  >  *
+  >  *  THIS SOFTWARE IS MADE AVAILABLE,  AS IS,  AND OFFIS MAKES NO  WARRANTY
+  >  *  REGARDING  THE  SOFTWARE,  ITS  PERFORMANCE,  ITS  MERCHANTABILITY  OR
+  >  *  FITNESS FOR ANY PARTICULAR USE, FREEDOM FROM ANY COMPUTER DISEASES  OR
+  >  *  ITS CONFORMITY TO ANY SPECIFICATION. THE ENTIRE RISK AS TO QUALITY AND
+  >  *  PERFORMANCE OF THE SOFTWARE IS WITH THE USER.
+  >  *
+  >  *  Copyright of the software  and  supporting  documentation  is,  unless
+  >  *  otherwise stated, owned by OFFIS, and free access is hereby granted as
+  >  *  a license to  use  this  software,  copy  this  software  and  prepare
+  >  *  derivative works based upon this software.  However, any  distribution
+  >  *  of this software source code or supporting documentation or derivative
+  >  *  works  (source code and  supporting documentation)  must  include  the
+  >  *  three paragraphs of this copyright notice.
+  >  *
+  >  */
+  > 
+  > The dcmjpeg sub-package includes an adapted version of the Independent JPEG
+  > Group Toolkit Version 6b, which is contained in dcmjpeg/libijg8,
+  > dcmjpeg/libijg12 and dcmjpeg/libijg16.  This toolkit is covered by the
+  > following copyright.  The original README file for the Independent JPEG
+  > Group Toolkit is located in dcmjpeg/docs/ijg_readme.txt.
+  > 
+  > /*
+  >  *  The authors make NO WARRANTY or representation, either express or implied,
+  >  *  with respect to this software, its quality, accuracy, merchantability, or
+  >  *  fitness for a particular purpose.  This software is provided "AS IS", and you,
+  >  *  its user, assume the entire risk as to its quality and accuracy.
+  >  *
+  >  *  This software is copyright (C) 1991-1998, Thomas G. Lane.
+  >  *  All Rights Reserved except as specified below.
+  >  *
+  >  *  Permission is hereby granted to use, copy, modify, and distribute this
+  >  *  software (or portions thereof) for any purpose, without fee, subject to these
+  >  *  conditions:
+  >  *  (1) If any part of the source code for this software is distributed, then this
+  >  *  README file must be included, with this copyright and no-warranty notice
+  >  *  unaltered; and any additions, deletions, or changes to the original files
+  >  *  must be clearly indicated in accompanying documentation.
+  >  *  (2) If only executable code is distributed, then the accompanying
+  >  *  documentation must state that "this software is based in part on the work of
+  >  *  the Independent JPEG Group".
+  >  *  (3) Permission for use of this software is granted only if the user accepts
+  >  *  full responsibility for any undesirable consequences; the authors accept
+  >  *  NO LIABILITY for damages of any kind.
+  >  *
+  >  *  These conditions apply to any software derived from or based on the IJG code,
+  >  *  not just to the unmodified library.  If you use our work, you ought to
+  >  *  acknowledge us.
+  >  *
+  >  *  Permission is NOT granted for the use of any IJG author's name or company name
+  >  *  in advertising or publicity relating to this software or products derived from
+  >  *  it.  This software may be referred to only as "the Independent JPEG Group's
+  >  *  software".
+  >  *
+  >  *  We specifically permit and encourage the use of this software as the basis of
+  >  *  commercial products, provided that all warranty or liability claims are
+  >  *  assumed by the product vendor.
+  >  */
+  > 
+  > 
+  > 
+  > ---- OpenJPEG JPEG 2000 codec (from license.txt) ----
+  > 
+  > /*
+  >  * Copyright (c) 2002-2007, Communications and Remote Sensing Laboratory, Universite catholique de Louvain (UCL), Belgium
+  >  * Copyright (c) 2002-2007, Professor Benoit Macq
+  >  * Copyright (c) 2001-2003, David Janssens
+  >  * Copyright (c) 2002-2003, Yannick Verschueren
+  >  * Copyright (c) 2003-2007, Francois-Olivier Devaux and Antonin Descampe
+  >  * Copyright (c) 2005, Herve Drolon, FreeImage Team
+  >  * All rights reserved.
+  >  *
+  >  * Redistribution and use in source and binary forms, with or without
+  >  * modification, are permitted provided that the following conditions
+  >  * are met:
+  >  * 1. Redistributions of source code must retain the above copyright
+  >  *    notice, this list of conditions and the following disclaimer.
+  >  * 2. Redistributions in binary form must reproduce the above copyright
+  >  *    notice, this list of conditions and the following disclaimer in the
+  >  *    documentation and/or other materials provided with the distribution.
+  >  *
+  >  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS `AS IS'
+  >  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  >  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  >  * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  >  * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  >  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  >  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  >  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  >  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  >  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  >  * POSSIBILITY OF SUCH DAMAGE.
+  >  */
+  > 
+  > 
+  > 
+  > ---- CharLS JPEG-LS codec (from License.txt) ----
+  > 
+  > Copyright (c) 2007-2009, Jan de Vaan
+  > All rights reserved.
+  > 
+  > Redistribution and use in source and binary forms, with or without 
+  > modification, are permitted provided that the following conditions are met:
+  > 
+  > * Redistributions of source code must retain the above copyright notice, this 
+  >   list of conditions and the following disclaimer.
+  > 
+  > * Redistributions in binary form must reproduce the above copyright notice, 
+  >   this list of conditions and the following disclaimer in the documentation 
+  >   and/or other materials provided with the distribution.
+  > 
+  > * Neither the name of my employer, nor the names of its contributors may be 
+  >   used to endorse or promote products derived from this software without 
+  >   specific prior written permission.
+  > 
+  > THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+  > AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+  > IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+  > DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+  > ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+  > (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+  > LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
+  > ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+  > (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+  > SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+  > 
+  > 
+  > 
+  > ---- Unity.IO.Compression (from LICENSE.TXT and PATENTS.TXT) ----
+  > 
+  > The MIT License (MIT)
+  > 
+  > Copyright (c) Microsoft Corporation
+  > 
+  > Permission is hereby granted, free of charge, to any person obtaining a copy 
+  > of this software and associated documentation files (the "Software"), to deal 
+  > in the Software without restriction, including without limitation the rights 
+  > to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+  > copies of the Software, and to permit persons to whom the Software is 
+  > furnished to do so, subject to the following conditions: 
+  > 
+  > The above copyright notice and this permission notice shall be included in all 
+  > copies or substantial portions of the Software. 
+  > 
+  > THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+  > IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+  > FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+  > AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+  > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+  > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+  > SOFTWARE.
+  > 
+  > Microsoft Patent Promise for .NET Libraries and Runtime Components 
+  > 
+  > Microsoft Corporation and its affiliates ("Microsoft") promise not to assert 
+  > any .NET Patents against you for making, using, selling, offering for sale, 
+  > importing, or distributing Covered Code, as part of either a .NET Runtime or 
+  > as part of any application designed to run on a .NET Runtime. 
+  > 
+  > If you file, maintain, or voluntarily participate in any claim in a lawsuit 
+  > alleging direct or contributory patent infringement by any Covered Code, or 
+  > inducement of patent infringement by any Covered Code, then your rights under 
+  > this promise will automatically terminate. 
+  > 
+  > This promise is not an assurance that (i) any .NET Patents are valid or 
+  > enforceable, or (ii) Covered Code does not infringe patents or other 
+  > intellectual property rights of any third party. No rights except those 
+  > expressly stated in this promise are granted, waived, or received by 
+  > Microsoft, whether by implication, exhaustion, estoppel, or otherwise. 
+  > This is a personal promise directly from Microsoft to you, and you agree as a 
+  > condition of benefiting from it that no Microsoft rights are received from 
+  > suppliers, distributors, or otherwise from any other person in connection with 
+  > this promise. 
+  > 
+  > Definitions: 
+  > 
+  > "Covered Code" means those Microsoft .NET libraries and runtime components as 
+  > made available by Microsoft at https://github.com/Microsoft/referencesource. 
+  > 
+  > ".NET Patents" are those patent claims, both currently owned by Microsoft and 
+  > acquired in the future, that are necessarily infringed by Covered Code. .NET 
+  > Patents do not include any patent claims that are infringed by any Enabling 
+  > Technology, that are infringed only as a consequence of modification of 
+  > Covered Code, or that are infringed only by the combination of Covered Code 
+  > with third party code. 
+  > 
+  > ".NET Runtime" means any compliant implementation in software of (a) all of 
+  > the required parts of the mandatory provisions of Standard ECMA-335 – Common 
+  > Language Infrastructure (CLI); and (b) if implemented, any additional 
+  > functionality in Microsoft's .NET Framework, as described in Microsoft's API 
+  > documentation on its MSDN website. For example, .NET Runtimes include 
+  > Microsoft's .NET Framework and those portions of the Mono Project compliant 
+  > with (a) and (b). 
+  > 
+  > "Enabling Technology" means underlying or enabling technology that may be 
+  > used, combined, or distributed in connection with Microsoft's .NET Framework 
+  > or other .NET Runtimes, such as hardware, operating systems, and applications 
+  > that run on .NET Framework or other .NET Runtimes. 
+  > 
+  > 
+  > 
+  > ---- Nito.AsyncEx (from LICENSE.TXT) ----
+  > 
+  > The MIT License (MIT)
+  > 
+  > Copyright (c) 2014 StephenCleary
+  > 
+  > Permission is hereby granted, free of charge, to any person obtaining a copy
+  > of this software and associated documentation files (the "Software"), to deal
+  > in the Software without restriction, including without limitation the rights
+  > to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  > copies of the Software, and to permit persons to whom the Software is
+  > furnished to do so, subject to the following conditions:
+  > 
+  > The above copyright notice and this permission notice shall be included in all
+  > copies or substantial portions of the Software.
+  > 
+  > THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  > IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  > FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  > AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  > SOFTWARE.
+
+## Hl7.Fhir.R4 1.7.0
+* Component Source:   https://github.com/FirelyTeam/fhir-net-api
+* Component Copyright and License:  
+  > Copyright (c) 2013-2019, HL7, Firely (info@fire.ly), Microsoft Open Technologies
+  > and contributors. See the file CONTRIBUTORS for details
+  > 
+  > All rights reserved.
+  > 
+  > Redistribution and use in source and binary forms, with or without modification,
+  > are permitted provided that the following conditions are met:
+  > 
+  > * Redistributions of source code must retain the above copyright notice, this
+  >   list of conditions and the following disclaimer.
+  > 
+  > * Redistributions in binary form must reproduce the above copyright notice, this
+  >   list of conditions and the following disclaimer in the documentation and/or
+  >   other materials provided with the distribution.
+  > 
+  > * Neither the name of Furore nor the names of its
+  >   contributors may be used to endorse or promote products derived from
+  >   this software without specific prior written permission.
+  > 
+  > THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+  > ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  > WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  > DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+  > ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  > (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  > LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+  > ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  > (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  > SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+## NSubstitute 3.1.0
+* Component Source:   https://github.com/nsubstitute/
+* Component Copyright and License:  
+  > Copyright (c) 2009 Anthony Egerton (nsubstitute@delfish.com) and David Tchepak (dave@davesquared.net)
+  > All rights reserved.
+  >  
+  > Redistribution and use in source and binary forms, with or without modification,
+  > are permitted provided that the following conditions are met:
+  >  
+  >     * Redistributions of source code must retain the above copyright notice,
+  >     this list of conditions and the following disclaimer.
+  >     * Redistributions in binary form must reproduce the above copyright notice,
+  >     this list of conditions and the following disclaimer in the documentation
+  >     and/or other materials provided with the distribution.
+  >     * Neither the names of the copyright holders nor the names of 
+  >     contributors may be used to endorse or promote products derived from this
+  >     software without specific prior written permission.
+  >  
+  > THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+  > ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  > WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  > DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  > FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  > DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  > SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  > CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  > OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+  > THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  > 
+  > [ http://www.opensource.org/licenses/bsd-license.php ]> 
+
+## Polly 7.2.1
+* Component Source:   https://github.com/App-vNext/Polly
+* Component Copyright and License:
+  > New BSD License
+  > =
+  > Copyright (c) 2015-2018, App vNext
+  > All rights reserved.
+  > 
+  > Redistribution and use in source and binary forms, with or without
+  > modification, are permitted provided that the following conditions are met:
+  >     * Redistributions of source code must retain the above copyright
+  >       notice, this list of conditions and the following disclaimer.
+  >     * Redistributions in binary form must reproduce the above copyright
+  >       notice, this list of conditions and the following disclaimer in the
+  >       documentation and/or other materials provided with the distribution.
+  >     * Neither the name of App vNext nor the
+  >       names of its contributors may be used to endorse or promote products
+  >       derived from this software without specific prior written permission.
+  > 
+  > THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+  > ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  > WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  > DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+  > DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  > (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  > LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+  > ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  > (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  > SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  ## Scrutor 3.2.0
+* Component Source:   https://github.com/khellang/Scrutor
+* Component Copyright and License:
+  > The MIT License (MIT)
+  > 
+  > Copyright (c) 2015 Kristian Hellang
+  > 
+  > Permission is hereby granted, free of charge, to any person obtaining a copy
+  > of this software and associated documentation files (the "Software"), to deal
+  > in the Software without restriction, including without limitation the rights
+  > to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  > copies of the Software, and to permit persons to whom the Software is
+  > furnished to do so, subject to the following conditions:
+  > 
+  > The above copyright notice and this permission notice shall be included in all
+  > copies or substantial portions of the Software.
+  > 
+  > THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  > IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  > FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  > AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  > SOFTWARE.
+
+## XUnit 2.4.1
+* Component Source:   https://github.com/xunit/xunit
+* Component Copyright and License:  
+  > Copyright (c) .NET Foundation and Contributors
+  > All Rights Reserved
+  > 
+  > Licensed under the Apache License, Version 2.0 (the "License");
+  > you may not use this file except in compliance with the License.
+  > You may obtain a copy of the License at
+  > 
+  >     http://www.apache.org/licenses/LICENSE-2.0
+  > 
+  > Unless required by applicable law or agreed to in writing, software
+  > distributed under the License is distributed on an "AS IS" BASIS,
+  > WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  > See the License for the specific language governing permissions and
+  > limitations under the License.
