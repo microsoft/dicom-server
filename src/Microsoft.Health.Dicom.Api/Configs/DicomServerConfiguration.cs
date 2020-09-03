@@ -5,6 +5,7 @@
 
 using Microsoft.Health.Api.Configuration;
 using Microsoft.Health.Api.Features.Cors;
+using Microsoft.Health.Core.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Api.Configs
@@ -18,5 +19,7 @@ namespace Microsoft.Health.Dicom.Api.Configs
         public CorsConfiguration Cors { get; } = new CorsConfiguration();
 
         public ServicesConfiguration Services { get; } = new ServicesConfiguration();
+
+        public AuditConfiguration Audit { get; } = new AuditConfiguration("X-MS-AZUREDICOM-AUDIT-");
     }
 }

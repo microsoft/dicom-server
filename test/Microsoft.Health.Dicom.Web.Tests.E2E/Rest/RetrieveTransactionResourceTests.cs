@@ -617,22 +617,22 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingResource_NotAcceptableIsReturned(string acceptHeader)
         {
             // Study
-            await ValidateNotAcceptableResponseAsync(
-                _client,
+            await _client.ValidateResponseStatusCodeAsync(
                 string.Format(DicomWebConstants.BasStudyUriFormat, TestUidGenerator.Generate()),
-                acceptHeader);
+                acceptHeader,
+                HttpStatusCode.NotAcceptable);
 
             // Series
-            await ValidateNotAcceptableResponseAsync(
-                _client,
+            await _client.ValidateResponseStatusCodeAsync(
                 string.Format(DicomWebConstants.BaseSeriesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate()),
-                acceptHeader);
+                acceptHeader,
+                HttpStatusCode.NotAcceptable);
 
             // Instance
-            await ValidateNotAcceptableResponseAsync(
-                _client,
+            await _client.ValidateResponseStatusCodeAsync(
                 string.Format(DicomWebConstants.BaseInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
-                acceptHeader);
+                acceptHeader,
+                HttpStatusCode.NotAcceptable);
         }
 
         [Theory]
@@ -641,10 +641,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("application/json")]
         public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingFrames_NotAcceptableIsReturned(string acceptHeader)
         {
-            await ValidateNotAcceptableResponseAsync(
-                _client,
+            await _client.ValidateResponseStatusCodeAsync(
                 string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1),
-                acceptHeader);
+                acceptHeader,
+                HttpStatusCode.NotAcceptable);
         }
 
         private async Task<(InstanceIdentifier, DicomFile)> CreateAndStoreDicomFile(int numberOfFrames = 0)
@@ -654,16 +654,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await _client.StoreAsync(new[] { dicomFile }, dicomInstance.StudyInstanceUid);
 
             return (dicomInstance, dicomFile);
-        }
-
-        internal static async Task ValidateNotAcceptableResponseAsync(IDicomWebClient dicomWebClient, string requestUri, string acceptHeader)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            request.Headers.Add(HeaderNames.Accept, acceptHeader);
-            using (HttpResponseMessage response = await dicomWebClient.HttpClient.SendAsync(request))
-            {
-                Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
-            }
         }
 
         private void ValidateRetrieveTransaction(

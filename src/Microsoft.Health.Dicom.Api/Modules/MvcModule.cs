@@ -4,9 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Api.Modules
@@ -16,6 +18,12 @@ namespace Microsoft.Health.Dicom.Api.Modules
         public void Load(IServiceCollection services)
         {
             EnsureArg.IsNotNull(services, nameof(services));
+
+            services.PostConfigure<MvcOptions>(options =>
+            {
+                // This filter should run first because it populates data for DicomRequestContext.
+                options.Filters.Add(typeof(DicomRequestContextRouteDataPopulatingFilterAttribute), 0);
+            });
 
             services.AddHttpContextAccessor();
 

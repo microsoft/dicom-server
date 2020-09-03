@@ -10,16 +10,19 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [ModelStateValidator]
+    [ServiceFilter(typeof(AuditLoggingFilterAttribute))]
     public class StoreController : Controller
     {
         private readonly IMediator _mediator;
@@ -44,6 +47,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
         [Route(KnownRoutes.StoreRoute)]
+        [AuditEventType(AuditEventSubType.Store)]
         public async Task<IActionResult> PostAsync(string studyInstanceUid = null)
         {
             _logger.LogInformation($"DICOM Web Store Transaction request received, with study instance UID '{studyInstanceUid}'.");
