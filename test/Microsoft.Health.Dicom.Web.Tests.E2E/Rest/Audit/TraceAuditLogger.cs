@@ -25,7 +25,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
             string correlationId,
             string callerIpAddress,
             IReadOnlyCollection<KeyValuePair<string, string>> callerClaims,
-            IReadOnlyDictionary<string, string> customHeaders = null)
+            IReadOnlyDictionary<string, string> customHeaders = null,
+            Exception exception = null)
         {
             _auditEntries.Add(new AuditEntry(auditAction, operation, requestUri, statusCode));
         }

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Net;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
@@ -42,16 +43,15 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
             Log(AuditAction.Executing, statusCode: null, httpContext, claimsExtractor);
         }
 
-        /// <inheritdoc />
-        public void LogExecuted(HttpContext httpContext, IClaimsExtractor claimsExtractor)
+        public void LogExecuted(HttpContext httpContext, IClaimsExtractor claimsExtractor, Exception exception = null)
         {
             EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
             EnsureArg.IsNotNull(httpContext, nameof(httpContext));
 
-            Log(AuditAction.Executed, (HttpStatusCode)httpContext.Response.StatusCode, httpContext, claimsExtractor);
+            Log(AuditAction.Executed, (HttpStatusCode)httpContext.Response.StatusCode, httpContext, claimsExtractor, exception);
         }
 
-        private void Log(AuditAction auditAction, HttpStatusCode? statusCode, HttpContext httpContext, IClaimsExtractor claimsExtractor)
+        private void Log(AuditAction auditAction, HttpStatusCode? statusCode, HttpContext httpContext, IClaimsExtractor claimsExtractor, Exception exception = null)
         {
             IRequestContext dicomRequestContext = _dicomRequestContextAccessor.DicomRequestContext;
 
@@ -68,7 +68,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
                     correlationId: dicomRequestContext.CorrelationId,
                     callerIpAddress: httpContext.Connection?.RemoteIpAddress?.ToString(),
                     callerClaims: claimsExtractor.Extract(),
-                    customHeaders: _auditHeaderReader.Read(httpContext));
+                    customHeaders: _auditHeaderReader.Read(httpContext),
+                    exception);
             }
         }
     }

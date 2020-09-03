@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
     {
         private const string AuditEventType = "AuditEvent";
 
-        private static readonly string AuditMessageFormat =
+        private static string auditMessageFormat =
             "ActionType: {ActionType}" + Environment.NewLine +
             "EventType: {EventType}" + Environment.NewLine +
             "Audience: {Audience}" + Environment.NewLine +
@@ -56,10 +56,12 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
             string correlationId,
             string callerIpAddress,
             IReadOnlyCollection<KeyValuePair<string, string>> callerClaims,
-            IReadOnlyDictionary<string, string> customerHeaders = null)
+            IReadOnlyDictionary<string, string> customerHeaders = null,
+            Exception exception = null)
         {
             string claimsInString = null;
             string customerHeadersInString = null;
+            string exceptionMessage = null;
 
             if (callerClaims != null)
             {
@@ -71,8 +73,14 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
                 customerHeadersInString = string.Join(";", customerHeaders.Select(header => $"{header.Key}={header.Value}"));
             }
 
+            if (exception != null)
+            {
+                auditMessageFormat = string.Concat(auditMessageFormat, Environment.NewLine, "Exception: {Exception}");
+                exceptionMessage = string.Concat(exception.Message, Environment.NewLine, exception.StackTrace);
+            }
+
             _logger.LogInformation(
-                AuditMessageFormat,
+                auditMessageFormat,
                 auditAction,
                 AuditEventType,
                 _securityConfiguration.Authentication?.Audience,
@@ -82,7 +90,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
                 statusCode,
                 correlationId,
                 claimsInString,
-                customerHeadersInString);
+                customerHeadersInString,
+                exceptionMessage);
         }
     }
 }

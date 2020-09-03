@@ -26,6 +26,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
         /// <param name="callerIpAddress">The caller IP address.</param>
         /// <param name="callerClaims">The claims of the caller.</param>
         /// <param name="customHeaders">Headers added by the caller with data to be added to the audit logs.</param>
+        /// <param name="exception">Exception.</param>
         void LogAudit(
             AuditAction auditAction,
             string operation,
@@ -34,6 +35,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
             string correlationId,
             string callerIpAddress,
             IReadOnlyCollection<KeyValuePair<string, string>> callerClaims,
-            IReadOnlyDictionary<string, string> customHeaders = null);
+            IReadOnlyDictionary<string, string> customHeaders = null,
+            Exception exception = null);
     }
 }
