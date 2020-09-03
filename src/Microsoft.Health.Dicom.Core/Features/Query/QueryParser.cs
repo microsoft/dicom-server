@@ -207,7 +207,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             var dicomTag = new DicomTag(group, element);
             DicomDictionaryEntry knownTag = DicomDictionary.Default[dicomTag];
-            if (knownTag == null || knownTag == DicomDictionary.UnknownTag || knownTag == DicomDictionary.PrivateCreatorTag)
+
+            // Check if the tag is null or unknown.
+            // Tag with odd group is considered as private.
+            if (knownTag == null || (!dicomTag.IsPrivate && knownTag == DicomDictionary.UnknownTag))
             {
                 return null;
             }

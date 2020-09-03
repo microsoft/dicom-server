@@ -17,15 +17,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private void ParseIncludeField(KeyValuePair<string, StringValues> queryParameter)
         {
+            // Check if `all` is present as one of the values in IncludeField parameter.
+            if (queryParameter.Value.Any(val => IncludeFieldValueAll.Equals(val.Trim(), QueryParameterComparision)))
+            {
+                _parsedQuery.AllValue = true;
+                return;
+            }
+
             foreach (string value in queryParameter.Value)
             {
                 var trimmedValue = value.Trim();
-                if (IncludeFieldValueAll.Equals(trimmedValue, QueryParameterComparision))
-                {
-                    _parsedQuery.AllValue = true;
-                    return;
-                }
-
                 if (TryParseDicomAttributeId(trimmedValue, out DicomTag dicomTag))
                 {
                     _parsedQuery.IncludeFields.Add(dicomTag);
