@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E15E21A1-0707-4D98-AEDD-ACC7F59C5681}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.Core", "src\Microsoft.Health.DicomCast.Core\Microsoft.Health.DicomCast.Core.csproj", "{AAD757E8-D347-4006-BC43-11D761B04078}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.Hosting", "src\Microsoft.Health.DicomCast.Hosting\Microsoft.Health.DicomCast.Hosting.csproj", "{3D4D8CBB-B32F-4BB3-98B9-39F457C71E92}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.Core.UnitTests", "src\Microsoft.Health.DicomCast.Core.UnitTests\Microsoft.Health.DicomCast.Core.UnitTests.csproj", "{E60031C2-46AB-40E3-BDD9-A8F28A13CF32}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.Blob", "src\Microsoft.Health.DicomCast.Blob\Microsoft.Health.DicomCast.Blob.csproj", "{02636774-227C-4D07-A314-0B5015328E39}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{3CCE3438-139A-420A-8A60-1144CADA95A1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AAD757E8-D347-4006-BC43-11D761B04078}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAD757E8-D347-4006-BC43-11D761B04078}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAD757E8-D347-4006-BC43-11D761B04078}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAD757E8-D347-4006-BC43-11D761B04078}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D4D8CBB-B32F-4BB3-98B9-39F457C71E92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D4D8CBB-B32F-4BB3-98B9-39F457C71E92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D4D8CBB-B32F-4BB3-98B9-39F457C71E92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D4D8CBB-B32F-4BB3-98B9-39F457C71E92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E60031C2-46AB-40E3-BDD9-A8F28A13CF32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E60031C2-46AB-40E3-BDD9-A8F28A13CF32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E60031C2-46AB-40E3-BDD9-A8F28A13CF32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E60031C2-46AB-40E3-BDD9-A8F28A13CF32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02636774-227C-4D07-A314-0B5015328E39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02636774-227C-4D07-A314-0B5015328E39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02636774-227C-4D07-A314-0B5015328E39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02636774-227C-4D07-A314-0B5015328E39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CCE3438-139A-420A-8A60-1144CADA95A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CCE3438-139A-420A-8A60-1144CADA95A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CCE3438-139A-420A-8A60-1144CADA95A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CCE3438-139A-420A-8A60-1144CADA95A1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AAD757E8-D347-4006-BC43-11D761B04078} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
+		{3D4D8CBB-B32F-4BB3-98B9-39F457C71E92} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
+		{E60031C2-46AB-40E3-BDD9-A8F28A13CF32} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
+		{02636774-227C-4D07-A314-0B5015328E39} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
+		{3CCE3438-139A-420A-8A60-1144CADA95A1} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4EF00533-B2AE-4B1B-B4AF-9799AD9F69E2}
+	EndGlobalSection
+EndGlobal
