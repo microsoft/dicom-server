@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
+using Efferent.Native.Codec;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
 using Microsoft.IO;
@@ -30,7 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         public TranscoderTests()
         {
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-            _transcoder = new Transcoder(_recyclableMemoryStreamManager);
+            _transcoder = new Transcoder(_recyclableMemoryStreamManager, new NativeTranscoderManager());
         }
 
         [Theory]
