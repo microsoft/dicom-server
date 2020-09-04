@@ -33,11 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("includefield", "StudyDate, StudyTime")]
         public void GivenIncludeField_WithValidAttributeId_CheckIncludeFields(string key, string value)
         {
-            QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies));
-            Assert.False(queryExpression.HasFilters);
-            Assert.False(queryExpression.IncludeFields.All);
-            Assert.True(queryExpression.IncludeFields.DicomTags.Count == value.Split(',').Count());
+            VerifyIncludeFieldsForValidAttributeIds(key, value);
         }
 
         [Theory]
@@ -51,8 +47,24 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         [Theory]
         [InlineData("includefield", "something")]
-        [InlineData("includefield", "00030033")]
         public void GivenIncludeField_WithInvalidAttributeId_Throws(string key, string value)
+        {
+            Assert.Throws<QueryParseException>(() => _queryParser
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
+        }
+
+        [Theory]
+        [InlineData("includefield", "12050010")]
+        [InlineData("includefield", "12051001")]
+        private void GivenIncludeField_WithPrivateAttributeId_CheckIncludeFields(string key, string value)
+        {
+            VerifyIncludeFieldsForValidAttributeIds(key, value);
+        }
+
+        [Theory]
+        [InlineData("includefield", "12345678")]
+        [InlineData("includefield", "98765432")]
+        private void GivenIncludeField_WithUnknownAttributeId_Throws(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
                 .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies)));
@@ -264,6 +276,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var fuzzyCondition = patientNameCondition as PersonNameFuzzyMatchCondition;
             Assert.NotNull(fuzzyCondition);
             Assert.Equal("CoronaPatient", fuzzyCondition.Value);
+        }
+
+        private void VerifyIncludeFieldsForValidAttributeIds(string key, string value)
+        {
+            QueryExpression queryExpression = _queryParser
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies));
+            Assert.False(queryExpression.HasFilters);
+            Assert.False(queryExpression.IncludeFields.All);
+            Assert.True(queryExpression.IncludeFields.DicomTags.Count == value.Split(',').Count());
         }
 
         private IEnumerable<KeyValuePair<string, StringValues>> GetQueryCollection(string key, string value)
