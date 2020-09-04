@@ -1,0 +1,10 @@
+﻿{
+    "profiles": {
+        "Microsoft.Health.DicomCast.Hosting": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        }
+    }
+}

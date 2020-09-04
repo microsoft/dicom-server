@@ -1,0 +1,8 @@
+version: "3"
+services:
+    dicom-cast:
+        build:
+            context: ./../../
+            dockerfile: ./build/docker/Dockerfile
+            args:
+                nugetpat: "${nugetpat}"
