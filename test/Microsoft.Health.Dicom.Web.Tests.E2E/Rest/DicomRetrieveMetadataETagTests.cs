@@ -42,6 +42,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid, eTag);
             Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
+            Assert.Null(response.Value);    // Make sure that the body is null.
         }
 
         [Fact]
@@ -126,6 +127,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid, eTag);
             Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
+            Assert.Null(response.Value);    // Make sure that the body is null.
         }
 
         [Fact]
@@ -214,6 +216,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, eTag);
             Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
+            Assert.Null(response.Value);    // Make sure that the body is null.
         }
 
         [Fact]
