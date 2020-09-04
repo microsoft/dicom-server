@@ -18,7 +18,7 @@ _Details:_
 * Body:
     * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value
 
-`curl --location --request POST "http://{service-name}.azurewebsites.net/studies" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/!dicomfiles/dicom-samples/visus.com/case1/case1_008.dcm;type=application/dicom" --trace-ascii "trace2.txt"`
+`curl --location --request POST "http://{service-name}.azurewebsites.net/studies" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/case1_008.dcm;type=application/dicom" --trace-ascii "trace2.txt"`
 
 ---
 ### Store-single-instance
@@ -59,7 +59,7 @@ _Details:_
 
 If using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related.
 
-`curl --request POST "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/!dicomfiles/dicom-samples/visus.com/case1/case1_008.dcm;type=application/dicom"`
+`curl --request POST "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/case1_008.dcm;type=application/dicom"`
 
 ## Retrieving DICOM (WADO)
 ---
