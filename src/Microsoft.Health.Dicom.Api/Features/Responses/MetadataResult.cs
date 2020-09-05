@@ -27,11 +27,23 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
         {
             EnsureArg.IsNotNull(context, nameof(context));
 
-            var result = new ObjectResult(_response.ResponseMetadata)
+            ObjectResult result = null;
+
+            // If cache is valid, 304 (Not Modified) status should be returned with no body, else, 200 (OK) status should be returned.
+            if (_response.IsCacheValid)
             {
-                // If cache is valid, 304 (Not Modified) status should be returned, else, 200 (OK) status should be returned.
-                StatusCode = _response.IsCacheValid ? (int)HttpStatusCode.NotModified : (int)HttpStatusCode.OK,
-            };
+                result = new ObjectResult(null)
+                {
+                    StatusCode = (int)HttpStatusCode.NotModified,
+                };
+            }
+            else
+            {
+                result = new ObjectResult(_response.ResponseMetadata)
+                {
+                    StatusCode = (int)HttpStatusCode.OK,
+                };
+            }
 
             // If response contains an ETag, add it to the headers.
             if (!_response.IsCacheValid && !string.IsNullOrEmpty(_response.ETag))
