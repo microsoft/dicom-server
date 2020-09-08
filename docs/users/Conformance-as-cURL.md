@@ -18,6 +18,7 @@ _Details:_
 * Body:
     * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value
 
+
 `curl --location --request POST "http://{service-name}.azurewebsites.net/studies" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/case1_008.dcm;type=application/dicom" --trace-ascii "trace2.txt"`
 
 ---
@@ -90,7 +91,7 @@ _Details:_
 
 > This cURL command will show the downloaded bytes in the output file (suppressWarnings.txt), but these are not direct DICOM files, only a text representation of the multipart/related download.
 
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/metadata" --header "Accept: application/dicom+json"`
+`curl --request GET "http://sjbpostman.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/metadata" --header "Accept: application/dicom+json"`
 
 ---
 ### Retrieve-all-instances-within-a-series
@@ -106,7 +107,6 @@ _Details:_
 > This cURL command will show the downloaded bytes in the output file (suppressWarnings.txt), but it is not the DICOM file, only a text representation of the multipart/related download.
 
 `curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458" --header "Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*" --output "suppressWarnings.txt"`
-
 
 ---
 ### Retrieve-metadata-of-all-instances-within-a-series
@@ -295,7 +295,4 @@ _Details:_
 * Headers: No special headers needed
 
 `curl --request DELETE "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270"`
-
-
-
 
