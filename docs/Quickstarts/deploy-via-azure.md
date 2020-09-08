@@ -1,10 +1,10 @@
 # Deploy DICOM server to Azure portal
 
-In this quickstart, you'll learn how to deploy Medical Imaging Server for DICOM using the Azure portal.
+In this quickstart, you'll learn how to deploy the Medical Imaging Server for DICOM using the Azure portal.
 
 If you do not have an Azure subscription, create a [free account](https://azure.microsoft.com/free) before you begin.
 
-Once you have your subscription, click the link below:
+Once you have your subscription, click the link below to begin deployment:
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdefault-azuredeploy.json" target="_blank">
     <img src="https://azuredeploy.net/deploybutton.png"/>
