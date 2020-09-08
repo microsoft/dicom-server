@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _transcoder.TranscodeFrame(dicomFile, 1, tsTo.UID.UID);
         }
 
-        [Theory]
+        [Theory(Skip = "Covers much more than our support scope, rely on integration tests instead.")]
         [MemberData(nameof(GetSupported8BitTranscoderCombos))]
         public async Task GivenSupported8bitTransferSyntax_WhenRetrievingFileAndAskingForConversion_FileIsReturnedWhenExpected(
             DicomTransferSyntax tsFrom,
@@ -108,7 +108,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             ValidateTransferSyntax(tsTo, transcodedFile);
         }
 
-        [Theory]
+        [Theory(Skip = "Covers much more than our support scope, rely on integration tests instead.")]
         [MemberData(nameof(GetSupported8BitTranscoderCombos))]
         public void GivenSupported8bitTransferSyntax_WhenRetrievingFrameAndAskingForConversion_FileIsReturnedWhenExpected(
             DicomTransferSyntax tsFrom,
@@ -120,7 +120,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _transcoder.TranscodeFrame(dicomFile, 1, tsTo.UID.UID);
         }
 
-        [Theory]
+        [Theory(Skip = "Covers much more than our support scope, rely on integration tests instead.")]
         [MemberData(nameof(GetUnsupported8BitGeneratorCombos))]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Consistency with other tests.")]
         public void GivenUnsupported8bitGeneratorTransferSyntax_WhenRetrievingFileAndAskingForConversion_ErrorIsThrown(
@@ -131,7 +131,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             Assert.Throws<AggregateException>(() => StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom).Result);
         }
 
-        [Theory]
+        [Theory(Skip = "Covers much more than our support scope, rely on integration tests instead.")]
         [MemberData(nameof(GetUnsupported8BitGeneratorCombos))]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Consistency with other tests.")]
         public void GivenUnsupported8bitGeneratorTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ErrorIsThrown(
@@ -142,7 +142,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             Assert.Throws<AggregateException>(() => StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom).Result);
         }
 
-        [Theory(Skip = "Costy to maintaince the unsupport list, will add integration test for transcoding")]
+        [Theory(Skip = "Covers much more than our support scope, rely on integration tests instead.")]
         [MemberData(nameof(GetUnsupported8BitTranscoderCombos))]
         public async Task GivenUnsupported8bitMonochromeTransferSyntax_WhenRetrievingFileAndAskingForConversion_ErrorIsThrown(
             DicomTransferSyntax tsFrom,
@@ -156,7 +156,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             Assert.Equal(DicomCoreResource.UnsupportedTranscoding, ex.Result.Message);
         }
 
-        [Theory(Skip = "Costy to maintaince the unsupport list, will add integration test for transcoding")]
+        [Theory(Skip = "Covers much more than our support scope, rely on integration tests instead.")]
         [MemberData(nameof(GetUnsupported8BitTranscoderCombos))]
         public void GivenUnsupported8bitMonochromeTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ErrorIsThrown(
             DicomTransferSyntax tsFrom,
