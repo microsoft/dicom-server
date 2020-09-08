@@ -9,6 +9,7 @@ using Dicom;
 using Dicom.Imaging;
 using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
+using Efferent.Native.Codec;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.IO;
@@ -19,20 +20,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     {
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
-        public Transcoder(
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager)
-            : this(recyclableMemoryStreamManager, null)
-        {
-        }
-
-        public Transcoder(RecyclableMemoryStreamManager recyclableMemoryStreamManager, TranscoderManager transcoderManager)
+        public Transcoder(RecyclableMemoryStreamManager recyclableMemoryStreamManager)
         {
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
-            if (transcoderManager != null)
-            {
-                TranscoderManager.SetImplementation(transcoderManager);
-            }
+
+            // Use Efferent transcoder
+            TranscoderManager.SetImplementation(new NativeTranscoderManager());
         }
 
         public async Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax)
