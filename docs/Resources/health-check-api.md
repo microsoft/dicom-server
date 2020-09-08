@@ -1,10 +1,10 @@
 # Health Check API
 
-Health check API allows user to check the health of the DICOM-Server and all the underlying services.
+The Health Check API allows user to check the health of the Medical Imaging Server for Azure and all the underlying services.
 
 ## API Design
 
-The health check API exposes a GET endpoint and responds with JSON content.
+The Health Check API exposes a GET endpoint and responds with JSON content.
 
 Verb | Route              | Returns     
 :--- | :----------------- | :---------- 
@@ -12,7 +12,7 @@ GET  | /health/check      | Json Object
 
 ## Object Model
 
-Following is the details on the JSON object that is returned in response to the GET request:
+The GET request returns a JSON object with the following fields:
 
 Field         | Type   | Description
 :------------ | :----- | :----------
@@ -29,9 +29,9 @@ description   | string | Description of the status
 
 ## Get Health Status
 
-Internally, Microsoft.Extensions.Diagnostics.HealthChecks nuget is used for getting the health status.Its documentation can be found [here](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.diagnostics.healthchecks?view=dotnet-plat-ext-3.1).
+Internally, the Microsoft.Extensions.Diagnostics.HealthChecks NuGet package is used for getting the health status. Its documentation can be found [here](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.diagnostics.healthchecks?view=dotnet-plat-ext-3.1).
 
-To check the health status of DICOM server, user needs to issue a GET request at /health/check. Following is a sample JSON response if all the underlying services are healthy:
+To check the health status of DICOM server, the user issues a GET request to /health/check. Following is a sample JSON response if all the underlying services are healthy:
 ```
 {
 	"overallStatus":"Healthy",
@@ -56,7 +56,7 @@ To check the health status of DICOM server, user needs to issue a GET request at
 }
 ```
 
-Healthy (HTTP Status Code 200) is returned as the overall status if all the underlying services are healthy. If either of the underlying services is unhealthy, overall status of the DICOM server will be returned as unhealthy (HTTP Status Code 503).
+Healthy (HTTP Status Code 200) is returned as the overall status if all the underlying services are healthy. If any of the underlying services are unhealthy, overall status of the DICOM server will be returned as unhealthy (HTTP Status Code 503).
 
 Following is an example JSON if SQL Server service is unhealthy:
 ```
