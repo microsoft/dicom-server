@@ -30,4 +30,4 @@ Instructions for how to deploy an ARM template can be found in the following doc
 
 ## Authentication
 
-The authentication used will depend on setup of your DICOM Server and your FHIR Server. For additional information regarding setting up authentication see [this documentation](docs/authentication.md).
+The authentication used will depend on setup of your DICOM Server and your FHIR Server. For additional information regarding setting up authentication see [this documentation](/converter/dicom-cast/docs/authentication.md).

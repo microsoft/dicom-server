@@ -9,7 +9,7 @@ You can process these change events asynchronously, incrementally or in-full. An
 ## Usage
 
 ### Dicom cast usage
-[Dicom cast]((../../converter/dicom-cast)) is a statefull processor that pulls dicom changes from change feed, transforms and publishes them to a configured Fhir service as [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
+[Dicom cast](/converter/dicom-cast) is a statefull processor that pulls dicom changes from change feed, transforms and publishes them to a configured Fhir service as [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
 It is implemented to start processing the dicom change events at any point and continue to pull and process new changes incrementally.
 
 ### Other potential usage

@@ -3,7 +3,7 @@
 Dicom cast allows synchronizing the data from a Dicom server to the Fhir server. This allows healthcare organization to integrate clinical and imaging data, expanding the use cases for health data and allows both a streamlined view of longitudinal patient data, and the ability to effectively create cohorts for medical studies, analytics, and machine learning.
 
 ## Architecture
-![Architecture](../images/dicom-cast-architecture.png)
+![Architecture](/docs/images/dicom-cast-architecture.png)
 
 ## Current implementation supports
 - A single-threaded process that reads from DICOM change feed and writes to FHIR server.

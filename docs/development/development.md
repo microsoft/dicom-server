@@ -2,7 +2,7 @@
 ## Requirements
 - [Azure storage emulator](https://go.microsoft.com/fwlink/?linkid=717179)
 - Sql Server 2019 with Full text index feature
-- .Net core SDK version specified [here](../global.json)
+- .Net core SDK version specified [here](/global.json)
 
 ## Getting Started in Visual Studio
 ### To Develop
@@ -23,8 +23,8 @@
 - [Install fiddler](https://www.telerik.com/download/fiddler)
 - Go to Tools->Options->HTTPS on fiddler. Click protocols and add "tls1.2" to the list of protocols.
 
-![Fiddler Config Image](images/FiddlerConfig.png)
-- Download DCM example file from [here](dcms/Sample.dcm) 
+![Fiddler Config Image](/docs/images/FiddlerConfig.png)
+- Download DCM example file from [here](/docs/dcms/Sample.dcm) 
 - Upload DCM file (use upload file button at request body section as shown in picture below) 
 - Update request header:
    - Accept: application/dicom+json (don't change boundary part)
@@ -33,10 +33,10 @@
    - Content-Type: application/dicom
    - Post the request to https://localhost:63838/studies
 
-![Post A Dicom Image](images/FiddlerPost.png)
+![Post A Dicom Image](/docs/images/FiddlerPost.png)
 - If post successfully, should be able to see request responsing 200
 
-![Post Succeeds](images/FiddlerSucceedPost.png)
+![Post Succeeds](/docs/images/FiddlerSucceedPost.png)
 - Note: you cannot upload same DCM file again unless deleting it at first
 
 ## Postman for Get

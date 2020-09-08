@@ -2,7 +2,7 @@
 
 The change feed offers the customers the ability to go through the history of the Dicom server and act upon the creates and deletes in the service.
 
-Change feed is accessed using Rest API's documented [here](../Resources/changefeed.md), it also provides example usage of change feed.
+Change feed is accessed using Rest API's documented [here](/docs/Resources/ChangeFeed.md), it also provides example usage of change feed.
 
 ## Consume Change Feed
 
