@@ -1,12 +1,12 @@
-# Pull Dicom changes using Change Feed
+# Pull DICOM changes using the Change Feed
 
-The change feed offers the customers the ability to go through the history of the Dicom server and act upon the creates and deletes in the service.
+The change feed offers the customers the ability to go through the history of the DICOM server and act on the create and delete events in the service.
 
-Change feed is accessed using Rest API's documented [here](/docs/Resources/ChangeFeed.md), it also provides example usage of change feed.
+Change feed is accessed using REST APIs documented [here](/docs/Resources/ChangeFeed.md), it also provides example usage of change feed.
 
 ## Consume Change Feed
 
-Sample c# code inline using our dicom client package, full code is available at
+Sample C# code using the provided DICOM client package, full code is available at
 converter/dicom-cast/src/Microsoft.Health.DicomCast.Core/Features/DicomWeb/Service/ChangeFeedRetrieveService.cs
 
 ```csharp
