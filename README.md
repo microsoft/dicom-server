@@ -8,7 +8,7 @@ The source code is available to be deployed in any manner you would like. The Me
 
 ### Deploy to Azure
 
-To deploy the Medical Imaging Server for DICOM to Azure, follow the instructions [here](docs/Quickstarts/deploy-via-azure.md).
+To deploy the Medical Imaging Server for DICOM to Azure, follow the instructions [here](docs/quickstarts/deploy-via-azure.md).
 
 If you have an Azure subscription, click the link below:
 
@@ -18,7 +18,7 @@ If you have an Azure subscription, click the link below:
 
 ### Deploy locally
 
-Follow the steps [here](docs/Development.md) to deploy a local copy of the Medical Imaging Server for DICOM
+Follow the steps [here](docs/development.md) to deploy a local copy of the Medical Imaging Server for DICOM
 
 ## Development
 
@@ -31,23 +31,23 @@ Follow the steps [here](docs/Development.md) to deploy a local copy of the Medic
 
 ## Quickstarts
 
-- [Deploy Dicom via Azure](docs/Quickstarts/deploy-via-azure.md)
-- [Deploy Dicom via Docker](docs/Quickstarts/deploy-via-docker.md)
-- [Set up Dicom-cast](docs/Quickstarts/dicom-cast.md)
+- [Deploy Dicom via Azure](docs/quickstarts/deploy-via-azure.md)
+- [Deploy Dicom via Docker](docs/quickstarts/deploy-via-docker.md)
+- [Set up Dicom-cast](docs/quickstarts/dicom-cast.md)
 
 ## Tutorials
 
-- [Use Dicom web standards APIs with C#](docs/Tutorials/use-dicom-web-standard-apis-with-c#.md)
-- [Use Dicom web standards APIs with Postman](docs/Tutorials/use-dicom-web-standard-apis-with-postman.md)
-- [Use Dicom web standards APIs with Curl](docs/Tutorials/use-dicom-web-standard-apis-with-curl.md)
-- [Upload files with Dicom Web Electron](upload-files-via-electron-tool.md)
+- [Use Dicom web standards APIs with C#](docs/tutorials/use-dicom-web-standard-apis-with-c%23.md)
+- [Use Dicom web standards APIs with Postman](docs/tutorials/use-dicom-web-standard-apis-with-postman.md)
+- [Use Dicom web standards APIs with Curl](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
+- [Upload files with Dicom Web Electron](docs/tutorials/upload-files-via-electron-tool.md)
 
 ## How-to guides
 
-- [Configure Dicom server settings](docs/How-to-guides/configure-dicom-server-settings.md)
-- [Enable Authentication and retrieve an OAuth token](docs/How-to-guides/enable-authentication-with-tokens.md)
-- [Enable notifications on Dicom with Change Feed](docs/How-to-guides/enable-notifications-with-change-feed.md)
-- [Sync Dicom metadata to FHIR](docs/How-to-guides/sync-dicom-metadata-to-fhir.md)
+- [Configure Dicom server settings](docs/how-to-guides/configure-dicom-server-settings.md)
+- [Enable Authentication and retrieve an OAuth token](docs/how-to-guides/enable-authentication-with-tokens.md)
+- [Enable notifications on Dicom with Change Feed](docs/how-to-guides/enable-notifications-with-change-feed.md)
+- [Sync Dicom metadata to FHIR](docs/how-to-guides/sync-dicom-metadata-to-fhir.md)
 
 ## Concepts
 
