@@ -6,8 +6,8 @@
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Api.Features.Audit;
-using Microsoft.Health.Dicom.Api.Features.Audit;
 using Microsoft.Health.Extensions.DependencyInjection;
+using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Modules
 {
@@ -17,15 +17,15 @@ namespace Microsoft.Health.Dicom.Api.Modules
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
-            services.Add<AuditLoggingFilterAttribute>()
+            services.Add<DicomAudit.AuditLoggingFilterAttribute>()
                 .Singleton()
                 .AsSelf();
 
-            services.AddSingleton<IAuditLogger, AuditLogger>();
+            services.AddSingleton<DicomAudit.IAuditLogger, DicomAudit.AuditLogger>();
 
             services.AddSingleton<IAuditHeaderReader, AuditHeaderReader>();
 
-            services.Add<AuditHelper>()
+            services.Add<DicomAudit.AuditHelper>()
                 .Singleton()
                 .AsService<IAuditHelper>();
 
