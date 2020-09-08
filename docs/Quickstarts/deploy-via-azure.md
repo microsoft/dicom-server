@@ -47,8 +47,8 @@ Once deployment is complete you can go to the newly created App Servi
 
 The URL to access your Medical Imaging Server will be: ```https://<SERVICE NAME>.azurewebsites.net```
 
- - [Use DICOM Web Standard APIs with C#](../Tutorials/use-dicom-web-standard-apis-with-c#.md)
- - [Use DICOM Web Standard APIs with Curl](../Tutorials/use-dicom-web-standard-apis-with-curl.md)
- - [Use DICOM Web Standard APIs with Postman](../Tutorials/use-dicom-web-standard-apis-with-postman.md)
- - [Upload DICOM files via Electron Tool](../Tutorials/upload-files-via-electron-tool.md)
- - [Enable Azure AD Authentication](../How-to-guides/enable-authentication-with-tokens.md)
+ - [Use DICOM Web Standard APIs with C#](../tutorials/use-dicom-web-standard-apis-with-c#.md)
+ - [Use DICOM Web Standard APIs with Curl](../tutorials/use-dicom-web-standard-apis-with-curl.md)
+ - [Use DICOM Web Standard APIs with Postman](../tutorials/use-dicom-web-standard-apis-with-postman.md)
+ - [Upload DICOM files via Electron Tool](../tutorials/upload-files-via-electron-tool.md)
+ - [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md)
