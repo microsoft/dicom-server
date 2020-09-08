@@ -8,7 +8,7 @@ The source code is available to be deployed in any manner you would like. The Me
 
 ### Deploy to Azure
 
-To learn how to deploy the Medical Imaging Server for DICOM to Azure, follow the instructions [here](docs/Quickstarts/deploy-via-azure.md).
+To deploy the Medical Imaging Server for DICOM to Azure, follow the instructions [here](docs/Quickstarts/deploy-via-azure.md).
 
 If you have an Azure subscription, click the link below:
 
