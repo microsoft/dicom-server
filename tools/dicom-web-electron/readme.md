@@ -1,11 +1,14 @@
 # DICOM Web Electron
+
 This tool is an Electron application used to interact with your DICOM server. It currently has the ability to upload one or many `.dcm` files to a given server.
 
 ## Prerequisites
+
 To use the DICOM Electron tool, install the latest version of Node JS. The installer is available at [https://nodejs.org/en/download/](https://nodejs.org/en/download/). This is only required the first time you launch the tool.
 
 ## Getting Started
-Run the following commands in a terminal window to launch the DICOM web electron tool:
+
+Navigate to the directory with your DICOM Electron Tool in a terminal window. Run the following commands to launch the DICOM web electron tool:
 
 1. Run `npm install`
 2. Run `npm start`
