@@ -1,18 +1,18 @@
-# Deploy  Dicom-cast
+# Deploy  DICOMcast
 
-DICOMCast can be deployed as an Azure Container Instance using the provided [ARM Template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
+DICOMcast can be deployed as an Azure Container Instance using the provided [ARM Template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
 
 ## Prerequisites
 
-* A FHIR Server deployed 
-* A DICOM Server deployed
+* A deployed Azure API for FHIR endpoint or FHIR Server 
+* A deployed Medical Imaging Server for Azure
 
 ## Deployment
 
-The ARM template will deploy the following resources to the specified resource group
+The ARM template will deploy the following resources to the specified resource group:
 
 * Azure Container Instance
-    * Used to run the DICOMCast executable
+    * Used to run the DICOMcast executable
     * The image used is specified via the `image` parameter and defaults to the latest CI build
     * A managed identity is also configured
 * Application Insights
@@ -30,4 +30,4 @@ Instructions for how to deploy an ARM template can be found in the following doc
 
 ## Authentication
 
-The authentication used will depend on setup of your DICOM Server and your FHIR Server. For additional information regarding setting up authentication see [this documentation](/converter/dicom-cast/docs/authentication.md).
+The authentication used will depend on setup of your Medical Imaging Server for Azure and your FHIR Server. For additional information regarding setting up authentication see [this documentation](/converter/dicom-cast/docs/authentication.md).
