@@ -179,9 +179,22 @@ The following `Accept` header(s) are supported for retrieving a specific instanc
 ### Retrieve Frames
 
 The following `Accept` headers are supported for retrieving frames:
-- `multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1` (Default)
 - `multipart/related; type="application/octet-stream"; transfer-syntax=*`
-- `multipart/related; type="application/octet-stream";`
+- `multipart/related; type="application/octet-stream";` (transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
+- `multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1`
+- `multipart/related; type="image/jp2";` (transfer-syntax is not specified, 1.2.840.10008.1.2.4.90 is used as default)
+- `multipart/related; type="image/jp2";transfer-syntax=1.2.840.10008.1.2.4.90`
+
+When requested transfer syntax is different from original file, original file is transcoded to requested transfersyntax. The original file needs to be one of below transfersyntaxes for transcoding to succeed, otherwise transcoding may fail out:
+- 1.2.840.10008.1.2 (Little Endian Implicit)
+- 1.2.840.10008.1.2.1 (Little Endian Explicit)
+- 1.2.840.10008.1.2.2 (Explicit VR Big Endian)
+- 1.2.840.10008.1.2.4.50 (JPEG Baseline Process 1)
+- 1.2.840.10008.1.2.4.57 (JPEG Lossless)
+- 1.2.840.10008.1.2.4.70 (JPEG Lossless Selection Value 1)
+- 1.2.840.10008.1.2.4.90 (JPEG 2000 Lossless Only)
+- 1.2.840.10008.1.2.4.91 (JPEG 2000)
+- 1.2.840.10008.1.2.5 (RLE Lossless)
 
 ### Retrieve Transfer Syntax
 
