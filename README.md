@@ -3,22 +3,21 @@
 A .NET Core implementation of the DICOM Web standard. Details of the DICOM web standard implemented can be found [here](docs/resources/conformance-statement.md).
 
 ## Deploy the Medical Imaging Server for DICOM
+
 The source code is available to be deployed in any manner you would like. The Medical Imaging Server for DICOM can be run on-prem or in the cloud. To assist with easy deployment we have included two options below, one through Azure and one which will deploy locally.
 
 ### Deploy to Azure
-To deploy in Azure, you will need to have a subscription in Azure. If you do not have an Azure subscription, you can start [here](https://azure.microsoft.com/free).
 
-Once you have your subscription, click the link below:
+To learn how to deploy the Medical Imaging Server for DICOM to Azure, follow the instructiosn [here](docs/Quickstarts/deploy-via-azure.md)
+
+If you have an Azure subscription, click the link below:
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdefault-azuredeploy.json" target="_blank">
     <img src="https://azuredeploy.net/deploybutton.png"/>
 </a>
 
-Note that the Service Name will be included in the URL you will use to access the application.
-
-Once deployment is complete, you can go to the newly created App Service to see the details. Here you will get the URL to access your Medical Imaging Server (https://<SERVICE NAME>.azurewebsites.net).
-
 ### Deploy locally
+
 Follow the steps [here](docs/Development.md) to deploy a local copy of the Medical Imaging Server for DICOM
 
 ## Development
