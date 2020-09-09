@@ -15,22 +15,22 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyJPEG2000Lossless\ExpectedOutput.dcm">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestOriginalContent\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyJPEG2000Lossless\Input.dcm">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestOriginalContent\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyJPEG2000Lossless\Metadata.json">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestOriginalContent\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000\ExpectedOutput.dcm">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000\Input.dcm">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000\Metadata.json">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian\ExpectedOutput.dcm">
