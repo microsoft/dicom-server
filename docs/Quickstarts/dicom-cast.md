@@ -31,3 +31,16 @@ Instructions for how to deploy an ARM template can be found in the following doc
 ## Authentication
 
 The authentication used will depend on setup of your DICOM Server and your FHIR Server. For additional information regarding setting up authentication see [this documentation](/converter/dicom-cast/docs/authentication.md).
+
+Below is an example of the settings need to be added to the KeyValut for OAuth2ClientCredential
+
+- DicomWeb--Authentication--Enabled : true
+- DicomWeb--Authentication--AuthenticationType : OAuth2ClientCredential
+- DicomWeb--Authentication--OAuth2ClientCredential--TokenUri : ```<AAD tenant token uri>```
+- DicomWeb--Authentication--OAuth2ClientCredential--Resource : ```Application ID URI of the resource app```
+- DicomWeb--Authentication--OAuth2ClientCredential--Scope : ```Application ID URI of the resource app```
+- DicomWeb--Authentication--OAuth2ClientCredential--ClientId : ```Client Id of the client app```
+- DicomWeb--Authentication--OAuth2ClientCredential--ClientSecret : ```Client app secret```
+
+
+
