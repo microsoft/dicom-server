@@ -7,10 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
 using Microsoft.IO;
@@ -31,18 +33,26 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\ContentTypeIsApplicationOctetStream", DicomWebConstants.ApplicationOctetStreamMeidaType, null)]
-        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\ContentTypeIsApplicationOctetStream", DicomWebConstants.ApplicationOctetStreamMeidaType, "1.2.840.10008.1.2.1")]
-        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\ContentTypeIsApplicationOctetStream", DicomWebConstants.ApplicationOctetStreamMeidaType, "*")]
-        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\ContentTypeIsImageJp2", DicomWebConstants.ImageJpeg2000MeidaType, null)]
-        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\ContentTypeIsImageJp2", DicomWebConstants.ImageJpeg2000MeidaType, "1.2.840.10008.1.2.4.90")]
+        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromJPEG2ToOctet", DicomWebConstants.ApplicationOctetStreamMeidaType, null)]
+        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromJPEG2ToOctet", DicomWebConstants.ApplicationOctetStreamMeidaType, "1.2.840.10008.1.2.1")]
+        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromJPEG2ToJPEG2", DicomWebConstants.ApplicationOctetStreamMeidaType, "*")]
         public async Task GivenInputAndOutputTransferSyntax_WhenRetrieveFrame_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
         {
+            /* TODO: Add in following test cases after switchingto Efferent Transcoder, for time being will fill otherwise
+            [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromOctetToJPEG2", DicomWebConstants.ImageJpeg2000MeidaType, null)]
+            [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromOctetToJPEG2", DicomWebConstants.ImageJpeg2000MeidaType, "1.2.840.10008.1.2.4.90")]
+            */
+
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
             DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);
             int numberOfFrames = DicomPixelData.Create(inputDicomFile.Dataset).NumberOfFrames;
 
-            // upload file (TODO: check existing before upload)
+            string studyInstanceUid = inputDicomFile.Dataset.GetString(DicomTag.StudyInstanceUID);
+            string seriesInstanceUid = inputDicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID);
+            string sopInstanceUid = inputDicomFile.Dataset.GetString(DicomTag.SOPInstanceUID);
+
+            DicomWebResponse<IEnumerable<DicomDataset>> tryQuery = await _client.QueryAsync(
+                   $"/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances?SOPInstanceUID={sopInstanceUid}");
             try
             {
                 var result = await _client.StoreAsync(new[] { inputDicomFile });
@@ -51,22 +61,26 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
             }
 
-            // retrieve
             DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(
-                  studyInstanceUid: inputDicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
-                  seriesInstanceUid: inputDicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID),
-                  sopInstanceUid: inputDicomFile.Dataset.GetString(DicomTag.SOPInstanceUID),
+                  studyInstanceUid: studyInstanceUid,
+                  seriesInstanceUid: seriesInstanceUid,
+                  sopInstanceUid: sopInstanceUid,
                   mediaType: mediaType,
                   dicomTransferSyntax: transferSyntax,
                   frames: GenerateFrames(numberOfFrames),
                   cancellationToken: _defaultCancellationToken);
 
-            // Verify StatusCode
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            // TODO: Verify response content type (can we do this?)
+            string byteStreamHash = GetStreamHashCode(response.Value[0]);
+            Assert.Equal(transcoderTestData.MetaData.OutputFramesHashCode, byteStreamHash);
 
-            // TODO:  Verify response content
+            await _client.DeleteStudyAsync(inputDicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
+        }
+
+        private string GetStreamHashCode(Stream byteStream)
+        {
+            return Convert.ToBase64String(new SHA1Managed().ComputeHash(byteStream));
         }
 
         private static int[] GenerateFrames(int numberOfFrames)

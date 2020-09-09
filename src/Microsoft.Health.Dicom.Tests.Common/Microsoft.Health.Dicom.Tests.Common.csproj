@@ -87,22 +87,31 @@
     <None Update="TranscoderTestsFiles\Encode\ToJPEG2000Lossless\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\ContentTypeIsImageJp2\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\FromJPEG2toJPEG2\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\ContentTypeIsImageJp2\Input.dcm">
+    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\FromJPEG2ToOctet\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\ContentTypeIsImageJp2\Metadata.json">
+    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\FromJPEG2ToOctet\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\ContentTypeIsApplicationOctetStream\ExpectedOutput.dcm">
+    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\FromJPEG2ToOctet\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\ContentTypeIsApplicationOctetStream\Input.dcm">
+    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\FromJPEG2toJPEG2\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\ContentTypeIsApplicationOctetStream\Metadata.json">
+    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\FromJPEG2toJPEG2\Metadata.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\FromOctetToJPEG2\ExpectedOutput.dcm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\FromOctetToJPEG2\Input.dcm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TranscoderTestsFiles\EndtoEnd\GetFrame\FromOctetToJPEG2\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TranscoderTestsFiles\Uncompressed\FromExplicitVRBigEndianToExplicitVRLittleEndian\ExpectedOutput.dcm">
