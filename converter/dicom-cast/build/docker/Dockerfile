@@ -10,7 +10,7 @@ WORKDIR /src
 COPY ./ ./
 
 RUN if [ -n "$nugetpat" ] ; then\
-    dotnet nuget update source "Resolute" --username "useless" --password "$nugetpat" --store-password-in-clear-text ; \
+    dotnet nuget update source "InternalBuilds" --username "useless" --password "$nugetpat" --store-password-in-clear-text ; \
     fi
 
 # Execute a dotnet build and publish the hosting project
