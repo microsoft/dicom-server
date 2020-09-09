@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
@@ -75,6 +76,11 @@ namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
             {
                 yield return GetTestData(folder);
             }
+        }
+
+        public static string GetHashFromStream(Stream byteStream)
+        {
+            return Convert.ToBase64String(new SHA1Managed().ComputeHash(byteStream));
         }
     }
 }

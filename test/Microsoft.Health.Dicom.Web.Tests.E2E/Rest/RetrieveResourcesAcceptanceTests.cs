@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -32,14 +31,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromJPEG2ToOctet", DicomWebConstants.ApplicationOctetStreamMeidaType, null)]
-        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromJPEG2ToOctet", DicomWebConstants.ApplicationOctetStreamMeidaType, "1.2.840.10008.1.2.1")]
-        [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromJPEG2ToJPEG2", DicomWebConstants.ApplicationOctetStreamMeidaType, "*")]
+        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestOctetOriginalIsJPEG2000", DicomWebConstants.ApplicationOctetStreamMeidaType, null)]
+        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestOctetOriginalIsJPEG2000", DicomWebConstants.ApplicationOctetStreamMeidaType, "1.2.840.10008.1.2.1")]
+        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginalIsJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMeidaType, "*")]
         public async Task GivenInputAndOutputTransferSyntax_WhenRetrieveFrame_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
         {
             /* TODO: Add in following test cases after Octet ot JPEG2 transcoder working
-            [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromOctetToJPEG2", DicomWebConstants.ImageJpeg2000MeidaType, null)]
-            [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromOctetToJPEG2", DicomWebConstants.ImageJpeg2000MeidaType, "1.2.840.10008.1.2.4.90")]
+            [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginalIsOctet", DicomWebConstants.ImageJpeg2000MeidaType, null)]
+            [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginalIsOctet", DicomWebConstants.ImageJpeg2000MeidaType, "1.2.840.10008.1.2.4.90")]
             */
 
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
@@ -53,12 +52,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomWebResponse<IEnumerable<DicomDataset>> tryQuery = await _client.QueryAsync(
                    $"/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances?SOPInstanceUID={sopInstanceUid}");
 
-            if (tryQuery.StatusCode == HttpStatusCode.OK)
+            if (tryQuery.StatusCode != HttpStatusCode.OK)
             {
-                await _client.DeleteStudyAsync(studyInstanceUid);
+                await _client.StoreAsync(new[] { inputDicomFile });
             }
-
-            await _client.StoreAsync(new[] { inputDicomFile });
 
             DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(
                   studyInstanceUid: studyInstanceUid,
@@ -71,15 +68,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string byteStreamHash = GetStreamHashCode(response.Value[0]);
+            string byteStreamHash = TranscoderTestDataHelper.GetHashFromStream(response.Value[0]);
             Assert.Equal(transcoderTestData.MetaData.OutputFramesHashCode, byteStreamHash);
 
             await _client.DeleteStudyAsync(studyInstanceUid);
-        }
-
-        private string GetStreamHashCode(Stream byteStream)
-        {
-            return Convert.ToBase64String(new SHA1Managed().ComputeHash(byteStream));
         }
 
         private static int[] GenerateFrames(int numberOfFrames)
