@@ -26,7 +26,6 @@ steps:
       projectName: linux
       additionalImageTags: ${{parameters.tag}}
 
-steps:
   - task: DockerCompose@0
     displayName: 'Build Dicom cast Server Image'
     inputs:
