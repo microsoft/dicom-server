@@ -6,11 +6,11 @@ For the F5 experience and test environments, an in-process identity provider is 
 
 ## TestAuthEnvironment.json
 
-The [`testauthenvironment.json`](../testauthenvironment.json) file located in the root directory holds the configuration used for the server. **This file is meant only for local and test environments.** The items represented in this file include the roles available for the API as well as users and client applications that have access to the API. During the F5 experience and local testing, the password/secret for both users and client applications is the same as the id of the item.
+The [`testauthenvironment.json`](/testauthenvironment.json) file located in the root directory holds the configuration used for the server. **This file is meant only for local and test environments.** The items represented in this file include the roles available for the API as well as users and client applications that have access to the API. During the F5 experience and local testing, the password/secret for both users and client applications is the same as the id of the item.
 
 ## Enabling Development Identity Provider for testing
 
-[Launch settings](../src/Microsoft.Health.Dicom.Web/Properties/launchSettings.json) has `DicomWebSecurityEnabled` profile that has pre-set settings used to enable development identity provider.
+[Launch settings](/src/Microsoft.Health.Dicom.Web/Properties/launchSettings.json) has `DicomWebSecurityEnabled` profile that has pre-set settings used to enable development identity provider.
 
 ## Authenticating using built in IdentityServer
 
@@ -43,4 +43,4 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6Ijc4YWJlMDM0OGEyNDg4NzU0MmUwOG
 
 ## Resources
 
-To learn how to manage authentication through Azure AD, see [Azure AD Authentication](AzureADAuthentication.md).
+To learn how to manage authentication through Azure AD, see [Azure AD Authentication](/docs/How-to-guides/enable-authentication-with-tokens.md).
