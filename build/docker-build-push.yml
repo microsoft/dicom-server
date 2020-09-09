@@ -1,5 +1,5 @@
 # DESCRIPTION:
-# Builds and pushes a docker image for dicom-server
+# Builds and pushes a docker image for dicom-server and dicom-cast
 
 parameters:
   - name: tag
@@ -12,7 +12,7 @@ steps:
       action: Build services
       azureSubscriptionEndpoint: $(azureSubscriptionName)
       azureContainerRegistry: $(azureContainerRegistry)
-      dockerComposeFile: $(composeLocation)
+      dockerComposeFile: $(dicomServerComposeLocation)
       projectName: linux
       additionalImageTags: ${{parameters.tag}}
 
@@ -22,6 +22,28 @@ steps:
       action: Push services
       azureSubscriptionEndpoint: $(azureSubscriptionName)
       azureContainerRegistry: $(azureContainerRegistry)
-      dockerComposeFile: $(composeLocation)
+      dockerComposeFile: $(dicomServerComposeLocation)
+      projectName: linux
+      additionalImageTags: ${{parameters.tag}}
+
+steps:
+  - task: DockerCompose@0
+    displayName: 'Build Dicom cast Server Image'
+    inputs:
+      action: Build services
+      azureSubscriptionEndpoint: $(azureSubscriptionName)
+      azureContainerRegistry: $(azureContainerRegistry)
+      dockerComposeFile: $(dicomCastComposeLocation)
+      dockerComposeFileArgs: nugetpat=$(nuget_pat)
+      projectName: linux
+      additionalImageTags: ${{parameters.tag}}
+    
+  - task: DockerCompose@0
+    displayName: 'Push Dicom cast Server Image'
+    inputs:
+      action: Push services
+      azureSubscriptionEndpoint: $(azureSubscriptionName)
+      azureContainerRegistry: $(azureContainerRegistry)
+      dockerComposeFile: $(dicomCastComposeLocation)
       projectName: linux
       additionalImageTags: ${{parameters.tag}}
