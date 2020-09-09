@@ -15,31 +15,31 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginalIsJPEG2000Lossless\ExpectedOutput.dcm">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyJPEG2000Lossless\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginalIsJPEG2000Lossless\Input.dcm">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyJPEG2000Lossless\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginalIsJPEG2000Lossless\Metadata.json">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyJPEG2000Lossless\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestOctetOriginalIsJPEG2000\ExpectedOutput.dcm">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestOctetOriginalIsJPEG2000\Input.dcm">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestOctetOriginalIsJPEG2000\Metadata.json">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginalIsOctet\ExpectedOutput.dcm">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian\ExpectedOutput.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginalIsOctet\Input.dcm">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian\Input.dcm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginalIsOctet\Metadata.json">
+    <None Update="TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian\Metadata.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="xunit.runner.json">
