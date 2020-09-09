@@ -1,6 +1,6 @@
 # Tests
 
-![Testing pyramid](images/TestPyramid.png)
+![Testing pyramid](/docs/images/TestPyramid.png)
 
 - More unit tests, less integration tests, even lesser EnE tests.
 - Unit tests are used to test all combination of valid and invalid cases for a specific component.
@@ -18,4 +18,3 @@
 ## End to End (E2E) tests
 <em>End to end user scenarios are tested.</em>
 - Dicom uses E2E test methodology to test Web API endpoint behaviors.
-
