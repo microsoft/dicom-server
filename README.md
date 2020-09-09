@@ -24,7 +24,7 @@ Follow the steps [here](docs/development.md) to deploy a local copy of the Medic
 
 - [Deploy DICOM via Azure](docs/quickstarts/deploy-via-azure.md)
 - [Deploy DICOM via Docker](docs/quickstarts/deploy-via-docker.md)
-- [Set up DICOM-cast](docs/quickstarts/dicom-cast.md)
+- [Set up DICOM Cast](docs/quickstarts/dicom-cast.md)
 
 ## Tutorials
 

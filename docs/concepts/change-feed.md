@@ -1,4 +1,4 @@
-# Change feed overview
+# Change Feed overview
 
 Change feed provides logs of all the changes that occur in your DICOM server. The change feed provides ordered, guaranteed, immutable, read-only log of these changes. 
 
@@ -8,8 +8,8 @@ You can process these change events asynchronously, incrementally or in-full. An
 
 ## Usage
 
-### Dicom cast usage
-[DICOMcast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from change feed, transforms and publishes them to a configured FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
+### DICOM Cast usage
+[DICOM Cast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from change feed, transforms and publishes them to a configured FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
 It can start processing the DICOM change events at any point and continue to pull and process new changes incrementally.
 
 ### Other potential usage patterns
