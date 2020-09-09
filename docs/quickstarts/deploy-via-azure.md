@@ -50,5 +50,5 @@ The URL to access your Medical Imaging Server will be: ```https://<SERVICE NAME
  - [Use DICOM Web Standard APIs with C#](../tutorials/use-dicom-web-standard-apis-with-c#.md)
  - [Use DICOM Web Standard APIs with Curl](../tutorials/use-dicom-web-standard-apis-with-curl.md)
  - [Use DICOM Web Standard APIs with Postman](../tutorials/use-dicom-web-standard-apis-with-postman.md)
- - [Upload DICOM files via Electron Tool](../tutorials/upload-files-via-electron-tool.md)
+ - [Upload DICOM files via Electron Tool](../tools/dicom-web-electron/readme.md)
  - [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md)
