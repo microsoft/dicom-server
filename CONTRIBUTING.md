@@ -2,7 +2,7 @@
 
 This document describes guidelines for contributing to the DICOM server repo.
 
-
+sdfsf
 ## Submitting Pull Requests
 
 - **DO** submit all changes via pull requests (PRs). They will be reviewed and potentially be merged by maintainers after a peer review that includes at least one of the team members.
