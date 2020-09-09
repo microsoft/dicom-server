@@ -60,8 +60,6 @@ Follow the steps [here](docs/development.md) to deploy a local copy of the Medic
 - [Exception handling](docs/development/exception-handling.md)
 - [Tests](docs/development/tests.md])
 - [Identity Server Authentication](docs/development/identity-server-authentication.md)
-
-
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
