@@ -1,15 +1,14 @@
-# Dicom-cast overview
+# DICOMcast overview
 
-Dicom cast allows synchronizing the data from a Dicom server to the Fhir server. This allows healthcare organization to integrate clinical and imaging data, expanding the use cases for health data and allows both a streamlined view of longitudinal patient data, and the ability to effectively create cohorts for medical studies, analytics, and machine learning.
+DICOMcast allows synchronizing the data from a DICOM server to a FHIR server. This allows healthcare organization to integrate clinical and imaging data, expanding the use cases for health data by supporting both a streamlined view of longitudinal patient data, and the ability to effectively create cohorts for medical studies, analytics, and machine learning.
 
 ## Architecture
 ![Architecture](/docs/images/dicom-cast-architecture.png)
 
 ## Current implementation supports
 - A single-threaded process that reads from DICOM change feed and writes to FHIR server.
-- The process is hosted by Azure Container Instance in our sample template.
-- The mapping is of dicom tags to Fhir resource properties is specified below.
-- Syncnronizes dicom tags to below Fhir resource types
+- The process is hosted by Azure Container Instance in our sample template, but can be run elsewhere.
+- Synchronizes DICOM tags to these FHIR resource types:
     - Patient
     - ImagingStudy
 
@@ -55,4 +54,4 @@ The current implementation has below mapping.
 
 _Timestamp:_
 
-DICOM has different date time VR types. Some tags (like Study and Series) have the date, time, and UTC offset stored separately. This means that the date might be partial. We will try to translate this into partial date syntax allowed by the FHIR server.
+DICOM has different date time VR types. Some tags (like Study and Series) have the date, time, and UTC offset stored separately. This means that the date might be partial. This code attempts to translate this into a partial date syntax allowed by the FHIR server.
