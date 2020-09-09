@@ -4,6 +4,14 @@
 name: pr$(system.pullRequest.pullRequestNumber)-$(Date:yyyyMMdd)$(Rev:-r)
 trigger: none
 
+pr:
+  paths:
+    include: 
+    - "**"
+    exclude:
+    - docs/**
+    - README.md
+
 variables:
 - template: pr-variables.yml
 
