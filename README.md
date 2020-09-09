@@ -1,6 +1,8 @@
 # Medical Imaging Server for DICOM
 
-A .NET Core implementation of the DICOMweb standard. Details of the DICOMweb standard can be found [here](https://www.dicomstandard.org/dicomweb). Details of our conformance to the standard can be found in our [Conformance Statment](docs/resources/conformance-statement.md).
+The Medical Imaging Server for DICOM is an open source DICOM server that is easily deployed on Azure. It allows standards-based communication with any DICOMweb enabled systems, and injects DICOM metadata into a FHIR server to create a holistic view of patient data. The Medical Imaging Server for DICOM integrates tightly with the [Azure API for FHIR](https://docs.microsoft.com/en-us/azure/healthcare-apis/) enabling healthcare professionals, ISVs, and medical device vendors to create new and innovate solutions. FHIR is becoming an important standard for clinical data and provides extensibility to support integration of other types of data directly, or through references. By using the Medical Imaging Server for DICOM, organizations can store references to imaging data in FHIR and enable queries that cross clinical and imaging datasets. 
+
+The Medical Imaging Server for DICOM is a .NET Core implementation of the DICOMweb standard. Details of the DICOMweb standard can be found [here](https://www.dicomstandard.org/dicomweb). Details of our conformance to the standard can be found in our [Conformance Statment](docs/resources/conformance-statement.md).
 
 ## Deploy the Medical Imaging Server for DICOM
 
@@ -24,7 +26,7 @@ Follow the steps [here](docs/development.md) to deploy a local copy of the Medic
 
 - [Deploy DICOM via Azure](docs/quickstarts/deploy-via-azure.md)
 - [Deploy DICOM via Docker](docs/quickstarts/deploy-via-docker.md)
-- [Set up DICOM-cast](docs/quickstarts/dicom-cast.md)
+- [Set up DICOM Cast](docs/quickstarts/dicom-cast.md)
 
 ## Tutorials
 
