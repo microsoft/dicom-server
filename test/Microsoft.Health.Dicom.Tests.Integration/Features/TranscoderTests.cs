@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _transcoder = new Transcoder(_recyclableMemoryStreamManager);
         }
 
-        [Theory(Skip = "fodicom bug https://github.com/fo-dicom/fo-dicom/issues/1099 ([.NetCore]Encoding to JPEG2000Lossless is not handled correctly")]
+        [Theory]
         [MemberData(nameof(GetTestDatas), TestDataRootFolderForEncode)]
         public async Task GivenUncompressedDicomFile_WhenRequestEncoding_ThenTranscodingShouldSucceed(string testDataFolder)
         {

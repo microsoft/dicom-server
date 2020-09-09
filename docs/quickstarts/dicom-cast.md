@@ -1,6 +1,6 @@
-# Deploy DICOMcast
+# Deploy DICOM Cast
 
-DICOMcast can be deployed as an Azure Container Instance using the provided [ARM Template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
+DICOM Cast can be deployed as an Azure Container Instance using the provided [ARM Template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ DICOMcast can be deployed as an Azure Container Instance using the provided [ARM
 The ARM template will deploy the following resources to the specified resource group:
 
 * Azure Container Instance
-    * Used to run the DICOMcast executable
+    * Used to run the DICOM Cast executable
     * The image used is specified via the `image` parameter and defaults to the latest CI build
     * A managed identity is also configured
 * Application Insights
