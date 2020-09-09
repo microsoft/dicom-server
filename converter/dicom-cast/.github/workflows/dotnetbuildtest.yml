@@ -1,0 +1,24 @@
+name: .NET Core Build & Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: nuget/setup-nuget@v1
+    - name: Setup nuget
+      run: nuget sources update -Name "Resolute" -username "username" -password "${{secrets.MICROSOFTHEALTHPACKAGEPAT}}"
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+    - name: Run UnitTests with dotnet
+      run: dotnet test --configuration Release
