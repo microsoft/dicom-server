@@ -9,7 +9,7 @@ This option uses the identity of the deployed DICOM cast instance to communicate
 {
   "DicomWeb": {
     "Endpoint": "https://dicom-server.example.com",
-    "Authorization": {
+    "Authentication": {
       "Enabled": true,
       "AuthenticationType": "ManagedIdentity",
       "ManagedIdentityCredential": {
@@ -27,7 +27,7 @@ This option uses a `client_credentials` OAuth2 grant to obtain an identity to co
 {
   "DicomWeb": {
     "Endpoint": "https://dicom-server.example.com",
-    "Authorization": {
+    "Authentication": {
       "Enabled": true,
       "AuthenticationType": "OAuth2ClientCredential",
       "OAuth2ClientCredential": {
@@ -49,7 +49,7 @@ This option uses a `password` OAuth2 grant to obtain an identity to communicate 
 {
   "DicomWeb": {
     "Endpoint": "https://dicom-server.example.com",
-    "Authorization": {
+    "Authentication": {
       "Enabled": true,
       "AuthenticationType": "OAuth2UserPasswordCredential",
       "OAuth2ClientCredential": {
