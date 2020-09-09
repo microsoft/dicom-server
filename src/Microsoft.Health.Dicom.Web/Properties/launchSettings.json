@@ -6,8 +6,7 @@
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "DicomServer:Security:Enabled": "false"
             },
-            "applicationUrl": "https://localhost:63838/",
-            "launchBrowser": true
+            "applicationUrl": "https://localhost:63838/"
         },
         "DicomWebSecurityEnabled": {
             "commandName": "Project",

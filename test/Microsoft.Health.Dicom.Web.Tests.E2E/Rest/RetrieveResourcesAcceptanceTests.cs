@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
 using Microsoft.IO;
@@ -38,7 +37,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromJPEG2ToJPEG2", DicomWebConstants.ApplicationOctetStreamMeidaType, "*")]
         public async Task GivenInputAndOutputTransferSyntax_WhenRetrieveFrame_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
         {
-            /* TODO: Add in following test cases after switchingto Efferent Transcoder, for time being will fill otherwise
+            /* TODO: Add in following test cases after Octet ot JPEG2 transcoder working
             [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromOctetToJPEG2", DicomWebConstants.ImageJpeg2000MeidaType, null)]
             [InlineData(@"TranscoderTestsFiles\EndToEnd\GetFrame\FromOctetToJPEG2", DicomWebConstants.ImageJpeg2000MeidaType, "1.2.840.10008.1.2.4.90")]
             */
@@ -53,13 +52,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             DicomWebResponse<IEnumerable<DicomDataset>> tryQuery = await _client.QueryAsync(
                    $"/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances?SOPInstanceUID={sopInstanceUid}");
-            try
+
+            if (tryQuery.StatusCode == HttpStatusCode.OK)
             {
-                var result = await _client.StoreAsync(new[] { inputDicomFile });
+                await _client.DeleteStudyAsync(studyInstanceUid);
             }
-            catch (DicomWebException)
-            {
-            }
+
+            await _client.StoreAsync(new[] { inputDicomFile });
 
             DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(
                   studyInstanceUid: studyInstanceUid,
@@ -75,7 +74,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             string byteStreamHash = GetStreamHashCode(response.Value[0]);
             Assert.Equal(transcoderTestData.MetaData.OutputFramesHashCode, byteStreamHash);
 
-            await _client.DeleteStudyAsync(inputDicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
+            await _client.DeleteStudyAsync(studyInstanceUid);
         }
 
         private string GetStreamHashCode(Stream byteStream)
