@@ -12,5 +12,5 @@ variables:
   imageTag: '$(build.BuildNumber)'
   azureContainerRegistry: 'dicomoss.azurecr.io'
   dicomServerComposeLocation: 'build/docker/docker-compose.yaml'
-  dicomCastComposeLocation: 'converter/dicom-cast/docker/docker-compose.yaml'
+  dicomCastComposeLocation: 'converter/dicom-cast/build/docker/docker-compose.yaml'
   nuget_pat: $(nugetpat)
