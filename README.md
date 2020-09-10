@@ -35,10 +35,10 @@ Follow the steps [here](docs/development.md) to deploy a local copy of the Medic
 
 ## Tutorials
 
-- [Use DICOM web standards APIs with C#](docs/tutorials/use-dicom-web-standard-apis-with-c%23.md)
-- [Use DICOM web standards APIs with Postman](docs/tutorials/use-dicom-web-standard-apis-with-postman.md)
-- [Use DICOM web standards APIs with Curl](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
-- [Upload files with DICOM Web Electron](docs/tutorials/upload-files-via-electron-tool.md)
+- [Use the Medical Imaging Server for DICOM APIs](docs/tutorials/use-the-medical-imaging-server-apis.md)
+- [Use DICOMWeb standards APIs with C#](docs/tutorials/use-dicom-web-standard-apis-with-c%23.md)
+- [Use DICOMWeb standards APIs with Postman](docs/tutorials/use-dicom-web-standard-apis-with-postman.md)
+- [Use DICOMWeb standards APIs with Curl](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
 
 ## How-to guides
 
