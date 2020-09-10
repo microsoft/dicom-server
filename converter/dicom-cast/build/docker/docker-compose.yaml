@@ -1,6 +1,6 @@
 version: "3"
 services:
-    dicom-cast:
-        build:
-            context: ./../../../
-            dockerfile: ./converter/dicom-cast/build/docker/Dockerfile
+  dicom-cast:
+    build: 
+      context: ./../../../../
+      dockerfile: ./converter/dicom-cast/build/docker/Dockerfile
