@@ -1,6 +1,6 @@
 # Use DICOMWeb Standard APIs with cURL
 
-This document uses cURL to demonstrate working with the Medical Imaging Server for DICOM.
+This tutorial uses cURL to demonstrate working with the Medical Imaging Server for DICOM.
 
 ## Uploading DICOM (STOW)
 ---
