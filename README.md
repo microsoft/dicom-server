@@ -29,8 +29,8 @@ Follow the steps [here](docs/development/setup.md) to deploy a local copy of the
 
 ## Quickstarts
 
-- [Deploy DICOM via Azure](docs/quickstarts/deploy-via-azure.md)
-- [Deploy DICOM via Docker](docs/quickstarts/deploy-via-docker.md)
+- [Deploy Medical Imaging Server for DICOM via Azure](docs/quickstarts/deploy-via-azure.md)
+- [Deploy Medical Imaging Server for DICOM via Docker](docs/quickstarts/deploy-via-docker.md)
 - [Set up DICOM Cast](docs/quickstarts/dicom-cast.md)
 
 ## Tutorials
@@ -42,9 +42,9 @@ Follow the steps [here](docs/development/setup.md) to deploy a local copy of the
 
 ## How-to guides
 
-- [Configure DICOM server settings](docs/how-to-guides/configure-dicom-server-settings.md)
+- [Configure Medical Imaging Server for DICOM server settings](docs/how-to-guides/configure-dicom-server-settings.md)
 - [Enable Authentication and retrieve an OAuth token](docs/how-to-guides/enable-authentication-with-tokens.md)
-- [Enable notifications on DICOM with Change Feed](docs/how-to-guides/pull-changes-from-change-feed.md)
+- [Enable notifications on Medical Imaging Server for DICOM with Change Feed](docs/how-to-guides/pull-changes-from-change-feed.md)
 - [Sync DICOM metadata to FHIR](docs/how-to-guides/sync-dicom-metadata-to-fhir.md)
 
 ## Concepts
