@@ -1,5 +1,7 @@
 # Medical Imaging Server for DICOM
 
+ [![Build Status](https://microsofthealthoss.visualstudio.com/DicomServer/_apis/build/status/CI-Build-OSS?branchName=master)](https://microsofthealthoss.visualstudio.com/DicomServer/_build/latest?definitionId=34&branchName=master)
+
 A .NET Core implementation of the DICOM Web standard. Details of the DICOM web standard implemented can be found [here](docs/resources/conformance-statement.md).
 
 ## Deploy the Medical Imaging Server for DICOM
@@ -12,9 +14,12 @@ To deploy the Medical Imaging Server for DICOM to Azure, follow the instructions
 
 If you have an Azure subscription, click the link below:
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdefault-azuredeploy.json" target="_blank">
-    <img src="https://azuredeploy.net/deploybutton.png"/>
-</a>
+- Medical Imaging Server for DICOM <br/>
+    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdefault-azuredeploy.json" target="_blank"><img src="https://azuredeploy.net/deploybutton.png"/></a> 
+
+- DICOM Cast <br/>
+    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdicom-cast%2Fdefault-azuredeploy.json" target="_blank"><img src="https://azuredeploy.net/deploybutton.png"/>
+    </a> 
 
 ### Deploy locally
 

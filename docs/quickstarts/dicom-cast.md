@@ -9,13 +9,13 @@ DICOMcast can be deployed as an Azure Container Instance using the provided [ARM
 
 ## Deployment
 
-If you have an Azure subscription, click the link below:
+If you have an Azure subscription, click the link below to deploy to Azure:
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdefault-azuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdicom-cast%2Fdefault-azuredeploy.json" target="_blank">
     <img src="https://azuredeploy.net/deploybutton.png"/>
 </a>
 
-The ARM template will deploy the following resources to the specified resource group:
+This will deploy the following resources to the specified resource group:
 
 * Azure Container Instance
     * Used to run the DICOMcast executable
