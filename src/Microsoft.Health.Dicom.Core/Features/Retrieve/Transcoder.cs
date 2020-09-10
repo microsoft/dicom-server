@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Dicom;
@@ -11,6 +12,7 @@ using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
 using Efferent.Native.Codec;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.IO;
 
@@ -19,11 +21,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public class Transcoder : ITranscoder
     {
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly ILogger<Transcoder> _logger;
 
-        public Transcoder(RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+        public Transcoder(RecyclableMemoryStreamManager recyclableMemoryStreamManager, ILogger<Transcoder> logger)
         {
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+            EnsureArg.IsNotNull(logger, nameof(logger));
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+            _logger = logger;
 
             // Use Efferent transcoder
             TranscoderManager.SetImplementation(new NativeTranscoderManager());
@@ -76,8 +81,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 DicomDataset result = transcoder.Transcode(datasetForFrame);
                 return DicomPixelData.Create(result).GetFrame(0);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogCritical(ex, $"Failed to transcode frame {frameIndex} from transfer syntax {dataset.InternalTransferSyntax.UID} to {targetSyntax.UID}");
                 throw new TranscodingException();
             }
         }
@@ -100,8 +106,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     requestedTransferSyntax);
                 dicomFile = transcoder.Transcode(dicomFile);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogCritical(ex, $"Failed to transcode file from transfer syntax {dicomFile.Dataset.InternalTransferSyntax.UID} to {requestedTransferSyntax.UID}");
+
                 // TODO: Reevaluate this while fixing transcoding handling.
                 // We catch all here as Transcoder can throw a wide variety of things.
                 // Basically this means codec failure - a quite extraordinary situation, but not impossible
