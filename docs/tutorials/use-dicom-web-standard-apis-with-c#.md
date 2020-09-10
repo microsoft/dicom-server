@@ -1,7 +1,8 @@
 # Dicom  
 This document uses c# to demonstrate working with the Medical Imaging Server for DICOM.
 
-For the tutorial we will use the BlueCircle.dcm, GreenSquare.dcm, and RedTriangle.dcm found [here](docs/dcms)
+For the tutorial we will use the BlueCircle.dcm, GreenSquare.dcm, and RedTriangle.dcm found [here](../dcms)
+
 |File|StudyUID|SeriesUID|InstanceUID|
 |---|---|---|---|---|
 |GreenSquare.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652|1.2.826.0.1.3680043.8.498.12714725698140337137334606354172323212|
