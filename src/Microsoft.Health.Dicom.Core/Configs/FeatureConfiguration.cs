@@ -16,10 +16,5 @@ namespace Microsoft.Health.Dicom.Core.Configs
         /// Enables stricter validation of each DicomItem value based on their VR type
         /// </summary>
         public bool EnableFullDicomItemValidation { get; set; }
-
-        /// <summary>
-        /// The transcoder the service should use
-        /// </summary>
-        public TranscoderType TranscoderType { get; set; }
     }
 }

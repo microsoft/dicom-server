@@ -267,7 +267,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     switch (ex.Number)
                     {
                         case SqlErrorCodes.NotFound:
-                            throw new InstanceNotFoundException();
+                            if (!string.IsNullOrEmpty(sopInstanceUid))
+                            {
+                                throw new InstanceNotFoundException();
+                            }
+
+                            if (!string.IsNullOrEmpty(seriesInstanceUid))
+                            {
+                                throw new SeriesNotFoundException();
+                            }
+
+                            throw new StudyNotFoundException();
 
                         default:
                             throw new DataStoreException(ex);

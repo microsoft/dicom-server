@@ -1,0 +1,775 @@
+{
+	"info": {
+		"_postman_id": "952e62f2-7734-4041-9be3-b3018e4069f3",
+		"name": "Conformance-as-Postman",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "[will not work - see description] Store-instances-using-multipart/related",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "684d82bf-239b-4337-abb0-41062cf284d3",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true,
+					"content-type": true,
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/dicom+json"
+					},
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "multipart/related;boundary=ABCD1234"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"contentType": "application/dicom",
+							"type": "file",
+							"src": "/C:/githealth/dicom-samples/visus.com/case1/dicomfile"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/studies",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies"
+					]
+				},
+				"description": "This request intends to demonstrate how to upload DICOM files using multipart/related. However, it will not work in Postman.\r\n\r\n> NOTE: Postman cannot be used to upload DICOM files in a way that complies with the DICOM standard. This is due to a Postman limitation. Instead, consider using cURL or programatically uploading the file using Python, C# or another full featured language.\r\n\r\n_Details:_\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n    * `Accept: application/dicom+json`\r\n    * `Content-Type: multipart/related; type=\"application/dicom\"`\r\n* Body:\r\n    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value\r\n\r\n> Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.\r\n> * `Content-Type: multipart/related; type=\"application/dicom\"; boundary=ABCD1234`\r\n> * `Content-Type: multipart/related; boundary=ABCD1234`\r\n> * `Content-Type: multipart/related`\r\n\r\nIf using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related."
+			},
+			"response": []
+		},
+		{
+			"name": "[will not work - see description] Store-single-instance",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "855fa304-6be9-49e9-a2cb-4621bcedfd39",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true,
+					"content-type": true,
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/dicom+json"
+					},
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/dicom"
+					}
+				],
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": "/C:/githealth/dicom-samples/visus.com/case1/case1_008.dcm"
+					},
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/studies",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies"
+					]
+				},
+				"description": "> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "[will not work - see description] Store-instances-for-a-specific-study",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}"
+					]
+				},
+				"description": "This request intends to demonstrate how to upload DICOM files using multipart/related to a designated study. However, it will not work in Postman.\r\n\r\n> NOTE: Postman cannot be used to upload DICOM files in a way that complies with the DICOM standard. This is due to a Postman limitation. Instead, consider using cURL or programatically uploading the file using Python, C# or another full featured language.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}\r\n* Method: POST\r\n* Headers:\r\n    * `Accept: application/dicom+json`\r\n    * `Content-Type: multipart/related; type=\"application/dicom\"`\r\n* Body:\r\n    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value\r\n\r\n> Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.\r\n > * `Content-Type: multipart/related; type=\"application/dicom\"; boundary=ABCD1234`\r\n > * `Content-Type: multipart/related; boundary=ABCD1234`\r\n > * `Content-Type: multipart/related`\r\n\r\nIf using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related."
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve-all-instances-within-a-study",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "cb7ea544-e203-4315-b704-72be4d775122",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "multipart/related; type=\"application/dicom\"; transfer-syntax=*",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}"
+					]
+				},
+				"description": "This request retrieves all instances within a single study, and returns them as a collection of multipart/related bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*`\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve-metadata-of-all-instances-in-study",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c1da3890-2a5a-4f3b-98bc-e95f925ca9fa",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"let seriesid = pm.variables.get(\"series1\");\r",
+							"pm.test(\"Series in returned metadata\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(seriesid);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/metadata",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"metadata"
+					]
+				},
+				"description": "This request retrieves the metadata for all instances within a single study.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/metadata\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve-all-instances-within-a-series",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6e257662-2155-479a-be78-039264908531",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "multipart/related; type=\"application/dicom\"; transfer-syntax=*",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series",
+						"{{series1}}"
+					]
+				},
+				"description": "This request retrieves all instances within a single series, and returns them as a collection of multipart/related bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series{series}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*`\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve-metadata-of-all-instances-within-a-series",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/metadata",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series",
+						"{{series1}}",
+						"metadata"
+					]
+				},
+				"description": "This request retrieves the metadata for all instances within a single series.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series/{series}/metadata\r\n* Method: GET\r\n* Headers:\r\n  * `Accept: application/dicom+json`\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve-a-single-instance-within-a-series-of-a-study",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom; transfer-syntax=*",
+						"type": "text"
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series",
+						"{{series1}}",
+						"instances",
+						"{{instance1}}"
+					]
+				},
+				"description": "This request retrieves a single instances, and returns it as a DICOM formatted stream of bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series{series}/instances/{instance}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom; transfer-syntax=*`\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve-metadata-of-a-single-instance-within-a-series-of-a-study",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}/metadata",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series",
+						"{{series1}}",
+						"instances",
+						"{{instance1}}",
+						"metadata"
+					]
+				},
+				"description": "This request retrieves the metadata for a single instances within a single study and series.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series/{series}/instances/{instance}/metadata\r\n* Method: GET\r\n* Headers:\r\n  * `Accept: application/dicom+json`"
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve-one-or-more-frames-from-a-single-instance",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "multipart/related; type=\"application/octet-stream\"; transfer-syntax=1.2.840.10008.1.2.1",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}/frames/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series",
+						"{{series1}}",
+						"instances",
+						"{{instance1}}",
+						"frames",
+						"1"
+					]
+				},
+				"description": "This request retrieves one or more frames from a single instance, and returns them as a collection of multipart/related bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series{series}/instances/{instance}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: multipart/related; type=\"application/octet-stream\"; transfer-syntax=1.2.840.10008.1.2.1` (Default) or\r\n   * `Accept: multipart/related; type=\"application/octet-stream\"; transfer-syntax=*` or\r\n   * `Accept: multipart/related; type=\"application/octet-stream\";`\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Search-for-studies",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies?StudyInstanceUID={{study1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies"
+					],
+					"query": [
+						{
+							"key": "StudyInstanceUID",
+							"value": "{{study1}}"
+						}
+					]
+				},
+				"description": "This request enables searches for studies, series and instances by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies?StudyInstanceUID={{study1}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Search-for-series",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/series?SeriesInstanceUID={{series1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"series"
+					],
+					"query": [
+						{
+							"key": "SeriesInstanceUID",
+							"value": "{{series1}}"
+						}
+					]
+				},
+				"description": "This request enables searches for one or more series by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../series?SeriesInstanceUID={{series}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Search-for-series-within-a-study",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/series?SeriesInstanceUID={{series1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series"
+					],
+					"query": [
+						{
+							"key": "SeriesInstanceUID",
+							"value": "{{series1}}"
+						}
+					]
+				},
+				"description": "This request enables searches for one or more series within a single study by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series?SeriesInstanceUID={{series}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Search-for-instances",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/instances?SOPInstanceUID={{instance1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"instances"
+					],
+					"query": [
+						{
+							"key": "SOPInstanceUID",
+							"value": "{{instance1}}"
+						}
+					]
+				},
+				"description": "This request enables searches for one or more instances by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Search-for-instances-within-a-study",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/instances?SOPInstanceUID={{instance1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"instances"
+					],
+					"query": [
+						{
+							"key": "SOPInstanceUID",
+							"value": "{{instance1}}"
+						}
+					]
+				},
+				"description": "This request enables searches for one or more instances within a single study by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`"
+			},
+			"response": []
+		},
+		{
+			"name": "Search-for-instances-within-a-study-and-series",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/instances?SOPInstanceUID={{instance1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series",
+						"{{series1}}",
+						"instances"
+					],
+					"query": [
+						{
+							"key": "SOPInstanceUID",
+							"value": "{{instance1}}"
+						}
+					]
+				},
+				"description": "This request enables searches for one or more instances within a single study and single series by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series/{{series}}instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete-a-specific-instance-within-a-study -and-series",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series",
+						"{{series1}}",
+						"instances",
+						"{{instance1}}"
+					]
+				},
+				"description": "This request deletes a single instance within a single study and single series.\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series/{{series}}/instances/{{instance}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete-a-specific-series-within-a-study",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series",
+						"{{series1}}"
+					]
+				},
+				"description": "This request deletes a single series (and all child instances) within a single study.\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series/{{series}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete-a-specific-study",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}"
+					]
+				},
+				"description": "This request deletes a single study (and all child series and instances).\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "51a1cedd-d84d-43c6-8952-166f3a4262c1",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "2a90d325-3343-46f3-8251-85c3f20d38fc",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "a8654188-13e1-4a0a-aa06-de1637c5b02e",
+			"key": "baseUrl",
+			"value": "http://sjbpostman.azurewebsites.net"
+		},
+		{
+			"id": "613f357e-07d0-4bfd-b64c-e1f514b34426",
+			"key": "study1",
+			"value": "1.2.276.0.50.192168001099.7810872.14547392.270"
+		},
+		{
+			"id": "a1c5e6d3-660c-4539-9bf6-2b6d9597496a",
+			"key": "study2",
+			"value": "1.2.276.0.50.192168001099.9140875.14547392.277"
+		},
+		{
+			"id": "d26ec0ce-a25d-41ac-acad-b397effb6092",
+			"key": "series1",
+			"value": "1.2.276.0.50.192168001099.7810872.14547392.458"
+		},
+		{
+			"id": "f5a6c33c-c31c-45b6-b9dc-b2fc0b39044e",
+			"key": "instance1",
+			"value": "1.2.276.0.50.192168001099.7810872.14547392.467"
+		},
+		{
+			"id": "6b8f1b50-2307-48a7-bced-3180a806292f",
+			"key": "instance2",
+			"value": "1.2.276.0.50.192168001099.9140875.14547392.276"
+		},
+		{
+			"id": "fc7a4d5d-4e9a-4561-8f14-ecb6c35d6878",
+			"key": "b64encodeddicom",
+			"value": ""
+		}
+	],
+	"protocolProfileBehavior": {}
+}
