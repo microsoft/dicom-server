@@ -44,10 +44,10 @@ If you would like to update your SQL Database tier:
 
 ## Additional Configuration Settings
 
-**Application Insights**: By default, Application Insights is enabled when you deploy the Medical Imaging Server for DICOM to Azure. To update this setting, navigate to your App Service:
+**Application Insights**: By default, Application Insights is deployed, but not enabled, when you deploy the Medical Imaging Server for DICOM to Azure. To update this setting, navigate to your App Service:
 
 1. Select **Application Insights** from the menu.
-1. Select **Disable**.
+1. Select **Enable**.
 1. Select **Apply**.
 
 **OHIF Viewer**: By default, OHIF Viewer is enabled when you deploy the Medical Imaging Server for DICOM to Azure. To update this setting, navigate to your App Service:
