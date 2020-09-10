@@ -1,4 +1,4 @@
-# Dicom  
+# Using Dicom Web Standards Api with C#
 This document uses c# to demonstrate working with the Medical Imaging Server for DICOM.
 
 For the tutorial we will use the BlueCircle.dcm, GreenSquare.dcm, and RedTriangle.dcm found [here](../dcms)
