@@ -65,7 +65,7 @@ Follow the steps [here](docs/development/setup.md) to deploy a local copy of the
 - [Code Organization](docs/development/code-organization.md)
 - [Naming Guidelines](docs/development/naming-guidelines.md)
 - [Exception handling](docs/development/exception-handling.md)
-- [Tests](docs/development/tests.md])
+- [Tests](docs/development/tests.md)
 - [Identity Server Authentication](docs/development/identity-server-authentication.md)
 
 ## Contributing
