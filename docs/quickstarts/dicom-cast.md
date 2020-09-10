@@ -5,7 +5,7 @@ DICOM Cast can be deployed as an Azure Container Instance using the provided [AR
 ## Prerequisites
 
 * A deployed Azure API for FHIR endpoint or FHIR Server 
-* A deployed Medical Imaging Server for Azure
+* A deployed Medical Imaging Server for DICOM
 
 ## Deployment
 
@@ -38,8 +38,8 @@ Instructions for how to deploy an ARM template can be found in the following doc
 
 The authentication used will depend on setup of your Medical Imaging Server for Azure and your FHIR Server. For additional information regarding setting up authentication see [this documentation](/converter/dicom-cast/docs/authentication.md).
 
-Below steps needs to be taken
-- Add secrets related to Authentication in KeyValut for Medical Imaging Server for Azure.
+The steps below need to be taken to configure authentication:
+- Add secrets related to Authentication in KeyVault for Medical Imaging Server for DICOM.
 
     Example: If Medical Imaging Server for Azure was configured with `OAuth2ClientCredential`, below is the list of secrets that need to added to the KeyValut.
 
