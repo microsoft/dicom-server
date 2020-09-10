@@ -33,7 +33,6 @@ steps:
       azureSubscriptionEndpoint: $(azureSubscriptionName)
       azureContainerRegistry: $(azureContainerRegistry)
       dockerComposeFile: $(dicomCastComposeLocation)
-      dockerComposeFileArgs: nugetpat=$(nuget_pat)
       projectName: linux
       additionalImageTags: ${{parameters.tag}}
     
