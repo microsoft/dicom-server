@@ -12,7 +12,6 @@ pr:
     - docs/**
     - README.md
 
-
 variables:
 - template: pr-variables.yml
 
