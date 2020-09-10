@@ -21,3 +21,16 @@ FHIR is becoming an important standard for clinical data and provides extensibil
 - **Providing a longitudinal view of a patient during diagnosis.** Radiologists, especially teleradiologists, often do not have complete access to a patient’s medical history and related imaging studies. Through FHIR integration, this data can be easily provided, even to radiologists outside of the organization’s local network.
 - **Closing the feedback loop with teleradiologists.** Ideally a radiologist has access to a hospital’s clinical data to close the feedback loop after making a recommendation. However, for teleradiologists this is often not the case. Instead, they are often unable to close the feedback loop after performing a diagnosis, since they do not have access to patient data after the initial read. With no (or limited) access to clinical results or outcomes, they cannot get the feedback necessary to improve their skills. As on teleradiologist put it: “Take parathyroid for example. We do more than any other clinic in the country, and yet I have to beg and plead for surgeons to tell me what they actually found. Out of the more than 500 studies I do each month, I get direct feedback on only three or four.”  Through integration with FHIR, an organization can easily create a tool that will provide direct feedback to teleradiologists, helping them to hone their skills and make better recommendations in the future.
 - **Closing the feedback loop for AI/ML models.** Machine learning models do best when real-world feedback can be used to improve their models. However, 3rd party ML model providers rarely get the feedback they need to improve their models over time. For instance, one ISV put it this way: “We us a combination of machine models and human experts to recommend a treatment plan for heart surgery. However, we only rarely get feedback from physicians on how accurate our plan was. For instance, we often recommend a stent size. We’d love to get feedback on if our prediction was correct, but the only time we hear from customers is when there’s a major issue with our recommendations.” As with feedback for teleradiologists, integration with FHIR allows organizations to create a mechanism to provide feedback to the model retraining pipeline.
+
+## Deployment of Medical Imaging Server for DICOM To Azure
+
+The Medical Imaging Server for DICOM needs an Azure subscription to configure and run the required components. These components are, by default, created inside of an existing or new Azure Resource Group to simplify management. Additionally, an Azure Active Directory account is required. The diagram below depicts all of the resources created within your resource group.
+
+![resource-deployment](../images/dicom-deployment-architecture.png)
+
+- **SQL Server**: Indexes a subset of the Medical Imaging Server for DICOM metadata to support queries and to maintain a queryable log of changes.
+- **Storage (Azure)**:
+- **Storage Blob**: Persists all Medical Imaging Server for DICOM data and metadata.
+- **App Service Plan**: Hosts the Medical Imaging Service for DICOM
+- **Azure Key Vault**: Stores critical security information.
+- **Application Insights**: Monitors performance of Medical Imaging Server for DICOM.
