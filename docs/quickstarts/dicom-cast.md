@@ -1,11 +1,13 @@
 # Deploy DICOM Cast
 
-DICOM Cast can be deployed as an Azure Container Instance using the provided [ARM Template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
+DICOM Cast is a service which pushes medical imaging metadata into a FHIR server to support integrated queries across clinical and imaging data. 
+
+DICOM Cast is deployed as an Azure Container Instance using the provided [ARM template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
 
 ## Prerequisites
 
-* A deployed Azure API for FHIR endpoint or FHIR Server 
-* A deployed Medical Imaging Server for Azure
+* A deployed [Azure API for FHIR](https://azure.microsoft.com/en-us/services/azure-api-for-fhir/) endpoint or [FHIR Server](https://github.com/microsoft/fhir-server)
+* A deployed [Medical Imaging Server for DICOM](https://github.com/microsoft/dicom-server)
 
 ## Deployment
 
@@ -30,9 +32,9 @@ Instructions for how to deploy an ARM template can be found in the following doc
 
 ## Authentication
 
-The authentication used will depend on setup of your Medical Imaging Server for Azure and your FHIR Server. For additional information regarding setting up authentication see [this documentation](/converter/dicom-cast/docs/authentication.md).
+The authentication used will depend on setup of your Medical Imaging Server for DICOM and your FHIR Server. For additional information regarding setting up authentication see [this documentation](/converter/dicom-cast/docs/authentication.md).
 
-Below is an example of the settings need to be added to the KeyValut for OAuth2ClientCredential
+Below is an example of the settings need to be added to the KeyVault for OAuth2ClientCredential
 
 - DicomWeb--Authentication--Enabled : true
 - DicomWeb--Authentication--AuthenticationType : OAuth2ClientCredential

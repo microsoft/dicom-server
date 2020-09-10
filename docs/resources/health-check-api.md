@@ -1,6 +1,6 @@
 # Health Check API
 
-The Health Check API allows user to check the health of the Medical Imaging Server for Azure and all the underlying services.
+The Health Check API allows user to check the health of the Medical Imaging Server for DICOM and all the underlying services.
 
 ## API Design
 
