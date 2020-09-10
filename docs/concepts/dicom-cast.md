@@ -1,6 +1,6 @@
-# DICOMcast overview
+# DICOM Cast overview
 
-DICOMcast allows synchronizing the data from a DICOM server to a FHIR server. This allows healthcare organization to integrate clinical and imaging data, expanding the use cases for health data by supporting both a streamlined view of longitudinal patient data, and the ability to effectively create cohorts for medical studies, analytics, and machine learning.
+DICOM Cast allows synchronizing the data from a DICOM server to a FHIR server. This allows healthcare organization to integrate clinical and imaging data, expanding the use cases for health data by supporting both a streamlined view of longitudinal patient data, and the ability to effectively create cohorts for medical studies, analytics, and machine learning.
 
 ## Architecture
 ![Architecture](/docs/images/dicom-cast-architecture.png)

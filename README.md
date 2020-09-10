@@ -2,11 +2,12 @@
 
  [![Build Status](https://microsofthealthoss.visualstudio.com/DicomServer/_apis/build/status/CI-Build-OSS?branchName=master)](https://microsofthealthoss.visualstudio.com/DicomServer/_build/latest?definitionId=34&branchName=master)
 
-A .NET Core implementation of the DICOM Web standard. Details of the DICOM web standard implemented can be found [here](docs/resources/conformance-statement.md).
+
+The Medical Imaging Server for DICOM is a .NET Core implementation of the DICOMweb standard. Details of the DICOMweb standard can be found [here](https://www.dicomstandard.org/dicomweb). Details of our conformance to the standard can be found in our [Conformance Statment](docs/resources/conformance-statement.md).
 
 ## Deploy the Medical Imaging Server for DICOM
 
-The source code is available to be deployed in any manner you would like. The Medical Imaging Server for DICOM can be run on-prem or in the cloud. To assist with easy deployment we have included two options below, one through Azure and one which will deploy locally.
+The Medical Imaging Server for DICOM is designed to run on Azure for production workloads. However, for dev/test environments it can be deployed locally as a set of Docker containers to speed development. 
 
 ### Deploy to Azure
 
@@ -23,7 +24,39 @@ If you have an Azure subscription, click the link below:
 
 ### Deploy locally
 
-Follow the steps [here](docs/development.md) to deploy a local copy of the Medical Imaging Server for DICOM
+Follow the steps [here](docs/development.md) to deploy a local copy of the Medical Imaging Server for DICOM. Be aware that this deployment leverages the [Azurite container](https://github.com/Azure/Azurite) which emulates the Azure Storage API, and should not be used in production.
+
+## Quickstarts
+
+- [Deploy DICOM via Azure](docs/quickstarts/deploy-via-azure.md)
+- [Deploy DICOM via Docker](docs/quickstarts/deploy-via-docker.md)
+- [Set up DICOM Cast](docs/quickstarts/dicom-cast.md)
+
+## Tutorials
+
+- [Use DICOM web standards APIs with C#](docs/tutorials/use-dicom-web-standard-apis-with-c%23.md)
+- [Use DICOM web standards APIs with Postman](docs/tutorials/use-dicom-web-standard-apis-with-postman.md)
+- [Use DICOM web standards APIs with Curl](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
+- [Upload files with DICOM Web Electron](docs/tutorials/upload-files-via-electron-tool.md)
+
+## How-to guides
+
+- [Configure DICOM server settings](docs/how-to-guides/configure-dicom-server-settings.md)
+- [Enable Authentication and retrieve an OAuth token](docs/how-to-guides/enable-authentication-with-tokens.md)
+- [Enable notifications on DICOM with Change Feed](docs/how-to-guides/enable-notifications-with-change-feed.md)
+- [Sync DICOM metadata to FHIR](docs/how-to-guides/sync-dicom-metadata-to-fhir.md)
+
+## Concepts
+
+- [DICOM](docs/concepts/dicom.md)
+- [Change Feed](docs/concepts/change-feed.md)
+- [DICOM Cast](docs/concepts/dicom-cast.md)
+- [Health Check API](docs/resources/health-check-api.md)
+
+## Resources
+
+- [FAQ](docs/resources/faq.md)
+- [Conformance Statement](docs/resources/conformance-statement.md)
 
 ## Development
 
@@ -33,38 +66,6 @@ Follow the steps [here](docs/development.md) to deploy a local copy of the Medic
 - [Exception handling](docs/development/exception-handling.md)
 - [Tests](docs/development/tests.md])
 - [Identity Server Authentication](docs/development/identity-server-authentication.md)
-
-## Quickstarts
-
-- [Deploy Dicom via Azure](docs/quickstarts/deploy-via-azure.md)
-- [Deploy Dicom via Docker](docs/quickstarts/deploy-via-docker.md)
-- [Set up Dicom-cast](docs/quickstarts/dicom-cast.md)
-
-## Tutorials
-
-- [Use Dicom web standards APIs with C#](docs/tutorials/use-dicom-web-standard-apis-with-c%23.md)
-- [Use Dicom web standards APIs with Postman](docs/tutorials/use-dicom-web-standard-apis-with-postman.md)
-- [Use Dicom web standards APIs with Curl](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
-- [Upload files with Dicom Web Electron](docs/tutorials/upload-files-via-electron-tool.md)
-
-## How-to guides
-
-- [Configure Dicom server settings](docs/how-to-guides/configure-dicom-server-settings.md)
-- [Enable Authentication and retrieve an OAuth token](docs/how-to-guides/enable-authentication-with-tokens.md)
-- [Enable notifications on Dicom with Change Feed](docs/how-to-guides/enable-notifications-with-change-feed.md)
-- [Sync Dicom metadata to FHIR](docs/how-to-guides/sync-dicom-metadata-to-fhir.md)
-
-## Concepts
-
-- [Dicom](docs/concepts/dicom.md)
-- [Change Feed](docs/concepts/change-feed.md)
-- [Dicom-cast](docs/concepts/dicom-cast.md)
-
-## Resources
-
-- [FAQ](docs/resources/faq.md)
-- [Health Check API](docs/resources/health-check-api.md)
-- [Conformance Statement](docs/resources/conformance-statement.md)
 
 ## Contributing
 

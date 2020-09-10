@@ -50,8 +50,8 @@ The resource application you create is an Azure AD representation of your Dicom 
     3. Select **Register**.
 1. Select **Expose an API** > **Set**. You can specify a URI as the **URL** of your app service or use the generated App ID URI. Select **Save**.
 1. Select **Add a Scope**:
-    1. In **Scope name**, enter *name of scope*.
-    1. In the text boxes, add a consent scope name and description you want users to see on the consent page. For example, *access my app*.
+    1. In **Scope name**, enter *user.impersonation*.
+    1. In the text boxes, add an admin consent display name and admin consent description you want users to see on the consent page. For example, *access my app*.
 
 ### Set the Authentication of your App Service
 
