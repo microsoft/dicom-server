@@ -29,7 +29,6 @@ The Medical Imaging Server for DICOM needs an Azure subscription to configure an
 ![resource-deployment](../images/dicom-deployment-architecture.png)
 
 - **SQL Server**: Indexes a subset of the Medical Imaging Server for DICOM metadata to support queries and to maintain a queryable log of changes.
-- **Storage (Azure)**:
 - **Storage Blob**: Persists all Medical Imaging Server for DICOM data and metadata.
 - **App Service Plan**: Hosts the Medical Imaging Service for DICOM
 - **Azure Key Vault**: Stores critical security information.
