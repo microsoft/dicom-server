@@ -1,8 +1,6 @@
 version: "3"
 services:
-    dicom-cast:
-        build:
-            context: ./../../
-            dockerfile: ./build/docker/Dockerfile
-            args:
-                nugetpat: "${nugetpat}"
+  dicom-cast:
+    build: 
+      context: ./../../../../
+      dockerfile: ./converter/dicom-cast/build/docker/Dockerfile

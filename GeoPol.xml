@@ -17,5 +17,7 @@
     <ExcludeFolder>.gitignore</ExcludeFolder>
     <ExcludeFolder>GeoPol.xml</ExcludeFolder>
     <ExcludeFolder>THIRDPARTYNOTICES.md</ExcludeFolder>
+    <ExcludeFolder>tools\scale-testing\PatientNames.txt</ExcludeFolder>
+    <ExcludeFolder>tools\scale-testing\PhysicianNames.txt</ExcludeFolder>
   </Component>
 </GeoPol_Folders>
