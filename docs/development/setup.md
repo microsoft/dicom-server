@@ -7,7 +7,7 @@
 ## Getting Started in Visual Studio
 ### Developing
 - Install Visual Studio 2019
-- [Clone the Medical Imaging Server for Azure repo](https://github.com/microsoft/dicom-server.git)
+- [Clone the Medical Imaging Server for DICOM repo](https://github.com/microsoft/dicom-server.git)
 - Navigate to the cloned repository
 - Open Microsoft.Health.Dicom.sln in VS
 - Build

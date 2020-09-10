@@ -1,11 +1,13 @@
 # Deploy DICOM Cast
 
-DICOM Cast can be deployed as an Azure Container Instance using the provided [ARM Template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
+DICOM Cast is a service which pushes medical imaging metadata into a FHIR server to support integrated queries across clinical and imaging data. 
+
+DICOM Cast is deployed as an Azure Container Instance using the provided [ARM template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
 
 ## Prerequisites
 
-* A deployed Azure API for FHIR endpoint or FHIR Server 
-* A deployed Medical Imaging Server for DICOM
+* A deployed [Azure API for FHIR](https://azure.microsoft.com/en-us/services/azure-api-for-fhir/) endpoint or [FHIR Server](https://github.com/microsoft/fhir-server)
+* A deployed [Medical Imaging Server for DICOM](https://github.com/microsoft/dicom-server)
 
 ## Deployment
 
@@ -36,9 +38,11 @@ Instructions for how to deploy an ARM template can be found in the following doc
 
 ## Authentication
 
-The authentication used will depend on setup of your Medical Imaging Server for Azure and your FHIR Server. For additional information regarding setting up authentication see [this documentation](/converter/dicom-cast/docs/authentication.md).
+The authentication used will depend on setup of your Medical Imaging Server for DICOM and your FHIR Server. For additional information regarding setting up authentication see [this documentation](/converter/dicom-cast/docs/authentication.md).
 
-The steps below need to be taken to configure authentication:
+
+Below is an example of the settings need to be added to the KeyVault for OAuth2ClientCredential authentication:
+
 - Add secrets related to Authentication in KeyVault for Medical Imaging Server for DICOM.
 
     Example: If Medical Imaging Server for Azure was configured with `OAuth2ClientCredential`, below is the list of secrets that need to added to the KeyValut.
@@ -52,7 +56,6 @@ The steps below need to be taken to configure authentication:
     - DicomWeb--Authentication--OAuth2ClientCredential--ClientSecret : ```Client app secret```
 
 - Add similar secrets to KeyVault for FHIR server.
-
 - Stop and Start the Container, to pickup the new configurations.
 
 
