@@ -1,281 +1,63 @@
-# Conformance-as-cURL
-This document uses cURL to demonstrate working with the Medical Imaging Server for DICOM.
+# Dicom  
+This document uses c# to demonstrate working with the Medical Imaging Server for DICOM.
 
+For the tutorial we will use the BlueCircle.dcm, GreenSquare.dcm, and RedTriangle.dcm found in this repo.(TODO: Insert Link)
+|File|StudyUID|SeriesUID|InstanceUID|
+|---|---|---|---|---|
+|GreenSquare.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652|1.2.826.0.1.3680043.8.498.12714725698140337137334606354172323212|
+|RedTriangle.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652|1.2.826.0.1.3680043.8.498.47359123102728459884412887463296905395|
+|BlueCircle.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.77033797676425927098669402985243398207|1.2.826.0.1.3680043.8.498.13273713909719068980354078852867170114|
+
+
+## Create a DicomWeb Client
+---
+After you have started your Dicom Server, get the URL for the server and run the following code snippet to create DicomWeb Client which we will be using for the rest of the tutorial.
+
+```c#
+string webServerUrl ="{Your DicomWeb Server URL}"
+var httpClient = new HttpClient();
+httpClient.BaseAddress = new Uri(webServerUrl);
+DicomWebClient client = new DicomWebClient(httpClient);
+```
+With the Dicom Web client we can now perform Store, Retrieve, Search, and Delete operations.
 ## Uploading DICOM (STOW)
 ---
-### Store-instances-using-multipart/related
-This request intends to demonstrate how to upload DICOM files using multipart/related. However, it will not work in Postman.
+Using the DicomwebClient that we have creatd we can now Store Dicom files to your Dicom Server.
 
-> NOTE: The Medical Imaging Server for DICOM is more lenient than the DICOM standard. The example below, however, demonstrates a POST request that complies tightly to the standard.
-_Details:_
-
-* Path: ../studies
-* Method: POST
-* Headers:
-    * `Accept: application/dicom+json`
-    * `Content-Type: multipart/related; type="application/dicom"`
-* Body:
-    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value
-
-`curl --location --request POST "http://{service-name}.azurewebsites.net/studies" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/case1_008.dcm;type=application/dicom" --trace-ascii "trace2.txt"`
-
----
 ### Store-single-instance
-
-> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. Although cURL handles multipart/related well, this API allows tools like Postman to upload files to the DICOMweb service.
-The following is required to upload a single DICOM file.
-
+This demonstrates how to upload a single Dicom file to the server.
+_Details:_
 * Path: ../studies
 * Method: POST
-* Headers:
-   *  `Accept: application/dicom+json`
-   *  `Content-Type: application/dicom`
-* Body:
-    * Contains a single DICOM file as bytes.
-
-> NOTE: Not currently implemented! TODO: Implement
----
-
+```c#
+DicomFile dicomFile = DicomFile.Open(@"{Path To BlueCircle.dcm}");
+DicomWebResponse response = await client.StoreAsync(new[] { dicomFile });
+```
 ### Store-instances-for-a-specific-study
 
-This request demonstrates how to upload DICOM files using multipart/related to a designated study. 
+This  demonstrates how to upload a Dicom file into a specified study.
 
 _Details:_
 * Path: ../studies/{study}
 * Method: POST
-* Headers:
-    * `Accept: application/dicom+json`
-    * `Content-Type: multipart/related; type="application/dicom"`
-* Body:
-    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value
 
-> Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.
- > * `Content-Type: multipart/related; type="application/dicom"; boundary=ABCD1234`
- > * `Content-Type: multipart/related; boundary=ABCD1234`
- > * `Content-Type: multipart/related`
-If using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related.
-
-`curl --request POST "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@C:/githealth/case1_008.dcm;type=application/dicom"`
+```c#
+DicomFile dicomFile = DicomFile.Open(@"{Path To RedTriangle.dcm}");
+DicomWebResponse response = await client.StoreAsync(new[] { dicomFile }, "1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420");
+```
 
 ## Retrieving DICOM (WADO)
 ---
-### Retrieve-all-instances-within-a-study
+The following code snippets will demonstrate how to perform each of the retrieve queries using the DicomWeb Client we created.
 
-This request retrieves all instances within a single study, and returns them as a collection of multipart/related bytes.
+### Retrieve-all-instances-within-a-study
+This request retrieves all instances within a single study.
 
 _Details:_
 * Path: ../studies/{study}
-* Method: GET
-* Headers:
-   * `Accept: multipart/related; type="application/dicom"; transfer-syntax=*`
 
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*" --output "suppressWarnings.txt"`
+```c#
 
-> This cURL command will show the downloaded bytes in the output file (suppressWarnings.txt), but these are not direct DICOM files, only a text representation of the multipart/related download.
----
-### Retrieve-metadata-of-all-instances-in-study
-
-This request retrieves the metadata for all instances within a single study.
-
-_Details:_
-* Path: ../studies/{study}/metadata
-* Method: GET
-* Headers:
-   * `Accept: application/dicom+json`
-
-> This cURL command will show the downloaded bytes in the output file (suppressWarnings.txt), but these are not direct DICOM files, only a text representation of the multipart/related download.
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/metadata" --header "Accept: application/dicom+json"`
-
----
-### Retrieve-all-instances-within-a-series
-
-This request retrieves all instances within a single series, and returns them as a collection of multipart/related bytes.
-
-_Details:_
-* Path: ../studies/{study}/series{series}
-* Method: GET
-* Headers:
-   * `Accept: multipart/related; type="application/dicom"; transfer-syntax=*`
-
-> This cURL command will show the downloaded bytes in the output file (suppressWarnings.txt), but it is not the DICOM file, only a text representation of the multipart/related download.
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458" --header "Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*" --output "suppressWarnings.txt"`
+```
 
 
----
-### Retrieve-metadata-of-all-instances-within-a-series
-
-This request retrieves the metadata for all instances within a single study.
-
-_Details:_
-* Path: ../studies/{study}/metadata
-* Method: GET
-* Headers:
-   * `Accept: application/dicom+json`
-
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/metadata" --header "Accept: application/dicom+json"`
-
----
-### Retrieve-a-single-instance-within-a-series-of-a-study
-
-This request retrieves a single instances, and returns it as a DICOM formatted stream of bytes.
-
-_Details:_
-* Path: ../studies/{study}/series{series}/instances/{instance}
-* Method: GET
-* Headers:
-   * `Accept: application/dicom; transfer-syntax=*`
-
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom; transfer-syntax=*" --output "suppressWarnings.txt"`
-
----
-### Retrieve-metadata-of-a-single-instance-within-a-series-of-a-study
-
-This request retrieves the metadata for a single instances within a single study and series.
-
-_Details:_
-* Path: ../studies/{study}/series/{series}/instances/{instance}/metadata
-* Method: GET
-* Headers:
-  * `Accept: application/dicom+json`
-
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467/metadata" --header "Accept: application/dicom+json"`
-
----
-### Retrieve-one-or-more-frames-from-a-single-instance
-
-This request retrieves one or more frames from a single instance, and returns them as a collection of multipart/related bytes.
-
-_Details:_
-* Path: ../studies/{study}/series{series}/instances/{instance}
-* Method: GET
-* Headers:
-   * `Accept: multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1` (Default) or
-   * `Accept: multipart/related; type="application/octet-stream"; transfer-syntax=*` or
-   * `Accept: multipart/related; type="application/octet-stream";`
-
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467/frames/1" --header "Accept: multipart/related; type=\"application/octet-stream\"; transfer-syntax=1.2.840.10008.1.2.1" --output "suppressWarnings.txt"`
-
-## Query DICOM (QIDO)
----
-### Search-for-studies
-
-This request enables searches for one or more studies by DICOM attributes.
-
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
-_Details:_
-* Path: ../studies?StudyInstanceUID={{study}}
-* Method: GET
-* Headers:
-   * `Accept: application/dicom+json`
-
-`curl --request GET "http://{service-name}.azurewebsites.net/studies?StudyInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.270" --header "Accept: application/dicom+json"`
-
----
-### Search-for-series
-
-This request enables searches for one or more series by DICOM attributes.
-
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
-_Details:_
-* Path: ../series?SeriesInstanceUID={{series}}
-* Method: GET
-* Headers:
-   * `Accept: application/dicom+json`
-
-`curl --request GET "http://{service-name}.azurewebsites.net/series?SeriesInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.458" --header "Accept: application/dicom+json"`
-
----
-### Search-for-series-within-a-study
-
-This request enables searches for one or more series within a single study by DICOM attributes.
-
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
-_Details:_
-* Path: ../studies/{{study}}/series?SeriesInstanceUID={{series}}
-* Method: GET
-* Headers:
-   * `Accept: application/dicom+json`
-
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series?SeriesInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.458" --header "Accept: application/dicom+json"`
-
----
-### Search-for-instances
-
-This request enables searches for one or more instances by DICOM attributes.
-
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
-_Details:_
-* Path: ../instances?SOPInstanceUID={{instance}}
-* Method: GET
-* Headers:
-   * `Accept: application/dicom+json`
-
-`curl --request GET "http://{service-name}.azurewebsites.net/instances?SOPInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom+json"`
-
----
-### Search-for-instances-within-a-study
-
-This request enables searches for one or more instances within a single study by DICOM attributes.
-
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
-_Details:_
-* Path: ../studies/{{study}}/instances?SOPInstanceUID={{instance}}
-* Method: GET
-* Headers:
-   * `Accept: application/dicom+json`
-
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/instances?SOPInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom+json"`
-
----
-### Search-for-instances-within-a-study-and-series
-
-This request enables searches for one or more instances within a single study and single series by DICOM attributes.
-
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
-_Details:_
-* Path: ../studies/{{study}}/series/{{series}}instances?SOPInstanceUID={{instance}}
-* Method: GET
-* Headers:
-   * `Accept: application/dicom+json`
-
-`curl --request GET "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances?SOPInstanceUID=1.2.276.0.50.192168001099.7810872.14547392.467" --header "Accept: application/dicom+json"`
-
-## Delete DICOM 
----
-### Delete-a-specific-instance-within-a-study -and-series
-
-This request deletes a single instance within a single study and single series.
-
-> Delete is not part of the DICOM standard, but has been added for convenience.
-_Details:_
-* Path: ../studies/{{study}}/series/{{series}}/instances/{{instance}}
-* Method: DELETE
-* Headers: No special headers needed
-
-`curl --request DELETE "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458/instances/1.2.276.0.50.192168001099.7810872.14547392.467"`
-
----
-### Delete-a-specific-series-within-a-study
-
-This request deletes a single series (and all child instances) within a single study.
-
-> Delete is not part of the DICOM standard, but has been added for convenience.
-_Details:_
-* Path: ../studies/{{study}}/series/{{series}}
-* Method: DELETE
-* Headers: No special headers needed
-
-`curl --request DELETE "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270/series/1.2.276.0.50.192168001099.7810872.14547392.458"`
-
----
-### Delete-a-specific-study
-
-This request deletes a single study (and all child series and instances).
-
-> Delete is not part of the DICOM standard, but has been added for convenience.
-_Details:_
-* Path: ../studies/{{study}}
-* Method: DELETE
-* Headers: No special headers needed
-
-`curl --request DELETE "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270"`
