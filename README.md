@@ -52,12 +52,12 @@ Follow the steps [here](docs/development/setup.md) to deploy a local copy of the
 - [DICOM](docs/concepts/dicom.md)
 - [Change Feed](docs/concepts/change-feed.md)
 - [DICOM Cast](docs/concepts/dicom-cast.md)
-- [Health Check API](docs/resources/health-check-api.md)
 
 ## Resources
 
 - [FAQ](docs/resources/faq.md)
 - [Conformance Statement](docs/resources/conformance-statement.md)
+- [Health Check API](docs/resources/health-check-api.md)
 
 ## Development
 
