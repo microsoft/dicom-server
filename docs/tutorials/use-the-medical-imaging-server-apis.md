@@ -11,6 +11,7 @@ The **Medical Imaging Server for DICOM** supports a subset of the DICOMWeb stand
 Additionally, the following non-standard API(s) are supported:
 
 - Delete
+- Change Feed
 
 You can learn more about our support of the various DICOM Web Standard APIs in our [Conformance Statement](../resources/conformance-statement.md).
 
