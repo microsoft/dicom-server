@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,11 +34,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMeidaType, null)]
         [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMeidaType, "1.2.840.10008.1.2.1")]
         [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestOriginalContent", DicomWebConstants.ApplicationOctetStreamMeidaType, "*")]
+        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian", DicomWebConstants.ImageJpeg2000MeidaType, null)]
+        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian", DicomWebConstants.ImageJpeg2000MeidaType, "1.2.840.10008.1.2.4.90")]
         public async Task GivenInputAndOutputTransferSyntax_WhenRetrieveFrame_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
         {
             /* TODO: Add in following test cases after Octet ot JPEG2 transcoder working
-            [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian", DicomWebConstants.ImageJpeg2000MeidaType, null)]
-            [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian", DicomWebConstants.ImageJpeg2000MeidaType, "1.2.840.10008.1.2.4.90")]
             */
 
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
@@ -75,13 +76,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private static int[] GenerateFrames(int numberOfFrames)
         {
-            List<int> result = new List<int>();
-            for (int i = 1; i <= numberOfFrames; i++)
-            {
-                result.Add(i);
-            }
-
-            return result.ToArray();
+            return Enumerable.Range(1, numberOfFrames).ToArray();
         }
     }
 }
