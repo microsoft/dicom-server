@@ -1,6 +1,6 @@
-# Change Feed overview
+# Change Feed Overview
 
-Change Feed provides logs of all the changes that occur in your Medical Imaging Server for DICOM. The Change Feed provides ordered, guaranteed, immutable, read-only log of these changes. The Change Feed offers the ability to go through the history of the Medical Imaging Server for DICOM and act upon the creates and deletes in the service.
+The Change Feed provides logs of all the changes that occur in your Medical Imaging Server for DICOM. The Change Feed provides ordered, guaranteed, immutable, read-only log of these changes. The Change Feed offers the ability to go through the history of the Medical Imaging Server for DICOM and act upon the creates and deletes in the service.
 
 Client applications can read these logs at any time, either in streaming or in batch mode. The Change Feed enables you to build efficient and scalable solutions that process change events that occur in your Medical Imaging Server for DICOM.
 
@@ -135,4 +135,4 @@ Change Feed support is well-suited for scenarios that process data based on obje
 
 ## Summary
 
-In this Concept, we reviewed the REST API design of Change Feed and potential usage scenarios. For a how-to guide on Change Feed, see [Pull changes from Change Feed](../pull-changes-from-change-feed/how-to-guides.md).
+In this Concept, we reviewed the REST API design of Change Feed and potential usage scenarios. For a how-to guide on Change Feed, see [Pull changes from Change Feed](../how-to-guides/pull-changes-from-change-feed).
