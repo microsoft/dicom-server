@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _handler = new RetrieveTransferSyntaxHandler();
         }
 
-        [Fact]
+        [Fact(Skip = "Will be enabled later as https://microsofthealth.visualstudio.com/Health/_workitems/edit/75782")]
         public void GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenGetTransferSyntax_ThenShouldReturnLargestQuality()
         {
             string expectedTransferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID;
@@ -34,11 +34,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Fact]
-        public void GivenNoMatchedAcceptHeaders_WhenGetTransferSyntax_ThenShouldThrowBadRequestException()
+        public void GivenNoMatchedAcceptHeaders_WhenGetTransferSyntax_ThenShouldThrowNotAcceptableException()
         {
             // Use content type that GetStudy doesn't support
             AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(mediaType: KnownContentTypes.ImageJpeg);
             Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader }));
+        }
+
+        [Fact]
+        public void GivenMultipleAcceptHeaders_WhenGetTransferSyntax_ThenShouldThrowNotAcceptableException()
+        {
+            AcceptHeader acceptHeader1 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.5, transferSyntax: DicomTransferSyntaxUids.Original);
+            AcceptHeader acceptHeader2 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.9, transferSyntax: DicomTransferSyntaxUids.Original);
+            Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader1, acceptHeader2 }));
         }
     }
 }
