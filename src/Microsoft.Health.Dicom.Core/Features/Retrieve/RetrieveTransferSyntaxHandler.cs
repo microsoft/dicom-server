@@ -89,6 +89,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
         {
             EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
+
+            // TODO: disable multiple accept headers, will fully implement it later (https://microsofthealth.visualstudio.com/Health/_workitems/edit/75782)
+            if (acceptHeaders.Count() > 1)
+            {
+                throw new NotAcceptableException(DicomCoreResource.NotSupportMultipleAcceptHeaders);
+            }
+
             AcceptHeaderDescriptors descriptors = AcceptableDescriptors[resourceType];
 
             // get all accceptable headers and sort by quality (ascendently)
