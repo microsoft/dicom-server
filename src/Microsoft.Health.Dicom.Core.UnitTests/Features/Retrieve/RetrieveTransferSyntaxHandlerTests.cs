@@ -49,7 +49,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             AcceptHeader acceptHeader1 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.5, transferSyntax: DicomTransferSyntaxUids.Original);
             AcceptHeader acceptHeader2 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.9, transferSyntax: DicomTransferSyntaxUids.Original);
-            Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader1, acceptHeader2 }));
+            AcceptHeaderDescriptor acceptHeaderDescriptor;
+            Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader1, acceptHeader2 }, out acceptHeaderDescriptor));
         }
     }
 }
