@@ -92,25 +92,6 @@ namespace Microsoft.Health.Dicom.Client
                 cancellationToken);
         }
 
-        public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveInstanceRenderedAsync(
-            this IDicomWebClient dicomWebClient,
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            string sopInstanceUId,
-            string format = null,
-            bool thumbnail = false,
-            CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
-
-            string urlFormat = thumbnail ? DicomWebConstants.BaseRetrieveInstanceThumbnailUriFormat : DicomWebConstants.BaseRetrieveInstanceRenderedUriFormat;
-
-            return dicomWebClient.RetrieveInstancesRenderedAsync(
-                new Uri(string.Format(urlFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUId), UriKind.Relative),
-                format,
-                cancellationToken);
-        }
-
         public static Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveInstanceMetadataAsync(
             this IDicomWebClient dicomWebClient,
             string studyInstanceUid,
@@ -125,25 +106,6 @@ namespace Microsoft.Health.Dicom.Client
                 new Uri(string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
                 ifNoneMatch,
                 cancellationToken);
-        }
-
-        public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(
-            this IDicomWebClient dicomWebClient,
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            string sopInstanceUid,
-            string format = null,
-            bool thumbnail = false,
-            int[] frames = null,
-            CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
-
-            var uriString = thumbnail ? DicomWebConstants.BaseRetrieveFramesThumbnailUriFormat : DicomWebConstants.BaseRetrieveFramesRenderedUriFormat;
-
-            var requestUri = new Uri(string.Format(uriString, studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join(",", frames)), UriKind.Relative);
-
-            return dicomWebClient.RetrieveFramesRenderedAsync(requestUri, format, cancellationToken);
         }
 
         public static Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(

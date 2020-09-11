@@ -1,21 +1,15 @@
 # Start from the sdk image
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-bionic AS build
 
-ARG nugetpat=""
-
 # Set the working directory to where the source is located
-WORKDIR /src
+WORKDIR /dicom-cast/src
 
 # Copy everything
 COPY ./ ./
 
-RUN if [ -n "$nugetpat" ] ; then\
-    dotnet nuget update source "Resolute" --username "useless" --password "$nugetpat" --store-password-in-clear-text ; \
-    fi
-
 # Execute a dotnet build and publish the hosting project
-RUN dotnet build --configuration Release
-RUN dotnet publish "./src/Microsoft.Health.DicomCast.Hosting/Microsoft.Health.DicomCast.Hosting.csproj" -c Release -o "/.build" --no-build
+RUN dotnet build "./converter/dicom-cast/src/Microsoft.Health.DicomCast.Hosting/Microsoft.Health.DicomCast.Hosting.csproj" --configuration Release
+RUN dotnet publish "./converter/dicom-cast/src/Microsoft.Health.DicomCast.Hosting/Microsoft.Health.DicomCast.Hosting.csproj" -c Release -o "/.build" --no-build
 
 # Build the runtime image
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-alpine AS runtime
