@@ -266,4 +266,7 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="ValueLengthExceeds64Characters" xml:space="preserve">
     <value>Value exceeds maximum length of 64 characters.</value>
   </data>
+  <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
+    <value>The request contains multiple accept headers, which is not supported.</value>
+  </data>
 </root>
