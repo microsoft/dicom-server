@@ -113,7 +113,7 @@ namespace Microsoft.Health.Dicom.Client
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            string mediaType = DicomWebConstants.ApplicationOctetStreamMeidaType,
+            string mediaType = DicomWebConstants.ApplicationOctetStreamMediaType,
             string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
             int[] frames = null,
             CancellationToken cancellationToken = default)

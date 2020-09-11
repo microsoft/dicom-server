@@ -31,16 +31,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMeidaType, null)]
-        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMeidaType, "1.2.840.10008.1.2.1")]
-        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestOriginalContent", DicomWebConstants.ApplicationOctetStreamMeidaType, "*")]
-        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian", DicomWebConstants.ImageJpeg2000MeidaType, null)]
-        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian", DicomWebConstants.ImageJpeg2000MeidaType, "1.2.840.10008.1.2.4.90")]
+        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMediaType, null)]
+        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.1")]
+        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestOriginalContent", DicomWebConstants.ApplicationOctetStreamMediaType, "*")]
+        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian", DicomWebConstants.ImageJpeg2000MediaType, null)]
+        [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestJPEG2000LosslessOriginallyExplicitVRLittleEndian", DicomWebConstants.ImageJpeg2000MediaType, "1.2.840.10008.1.2.4.90")]
         public async Task GivenInputAndOutputTransferSyntax_WhenRetrieveFrame_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
         {
-            /* TODO: Add in following test cases after Octet ot JPEG2 transcoder working
-            */
-
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
             DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);
             int numberOfFrames = DicomPixelData.Create(inputDicomFile.Dataset).NumberOfFrames;
@@ -52,10 +49,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomWebResponse<IEnumerable<DicomDataset>> tryQuery = await _client.QueryAsync(
                    $"/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances?SOPInstanceUID={sopInstanceUid}");
 
-            if (tryQuery.StatusCode != HttpStatusCode.OK)
+            if (tryQuery.StatusCode == HttpStatusCode.OK)
             {
-                await _client.StoreAsync(new[] { inputDicomFile });
+                await _client.DeleteStudyAsync(studyInstanceUid);
             }
+
+            await _client.StoreAsync(new[] { inputDicomFile });
 
             DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(
                   studyInstanceUid: studyInstanceUid,

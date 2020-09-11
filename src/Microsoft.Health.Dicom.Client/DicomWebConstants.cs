@@ -20,18 +20,18 @@ namespace Microsoft.Health.Dicom.Client
         public const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
         public const string OriginalDicomTransferSyntax = "*";
 
-        public const string ApplicationDicomMeidaType = "application/dicom";
-        public const string ApplicationDicomJsonMeidaType = "application/dicom+json";
-        public const string ApplicationOctetStreamMeidaType = "application/octet-stream";
-        public const string ApplicationJsonMeidaType = "application/json";
-        public const string ImageJpegMeidaType = "image/jpeg";
-        public const string ImagePngMeidaType = "image/png";
-        public const string MultipartRelatedMeidaType = "multipart/related";
-        public const string ImageJpeg2000MeidaType = "image/jp2";
-        public const string ImageDicomRleMeidaType = "image/dicom-rle";
-        public const string ImageJpegLsMeidaType = "image/jls";
-        public const string ImageJpeg2000Part2MeidaType = "image/jpx";
-        public const string VideoMpeg2MeidaType = "video/mpeg2";
-        public const string VideoMp4MeidaType = "video/mp4";
+        public const string ApplicationDicomMediaType = "application/dicom";
+        public const string ApplicationDicomJsonMediaType = "application/dicom+json";
+        public const string ApplicationOctetStreamMediaType = "application/octet-stream";
+        public const string ApplicationJsonMediaType = "application/json";
+        public const string ImageJpegMediaType = "image/jpeg";
+        public const string ImagePngMediaType = "image/png";
+        public const string MultipartRelatedMediaType = "multipart/related";
+        public const string ImageJpeg2000MediaType = "image/jp2";
+        public const string ImageDicomRleMediaType = "image/dicom-rle";
+        public const string ImageJpegLsMediaType = "image/jls";
+        public const string ImageJpeg2000Part2MediaType = "image/jpx";
+        public const string VideoMpeg2MediaType = "video/mpeg2";
+        public const string VideoMp4MediaType = "video/mp4";
     }
 }
