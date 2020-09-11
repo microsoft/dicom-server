@@ -60,6 +60,7 @@ async function createWindow() {
                     'Accept': 'application/dicom+json',
                     'Authorization': authorizationHeader
                 },
+                maxContentLength: 2147483648,
                 httpsAgent: httpsAgent
             })
             .then(function(response) {
