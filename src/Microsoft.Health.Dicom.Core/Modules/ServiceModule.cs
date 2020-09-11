@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Dicom.Imaging.Codec;
-using Dicom.Imaging.NativeCodec;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -99,11 +97,6 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Transient()
                 .AsSelf()
                 .AsImplementedInterfaces();
-
-            if (_featureConfiguration.TranscoderType == TranscoderType.Efferent)
-            {
-                services.AddSingleton<TranscoderManager, NativeTranscoderManager>();
-            }
 
             services.Add<QueryService>()
                 .Scoped()

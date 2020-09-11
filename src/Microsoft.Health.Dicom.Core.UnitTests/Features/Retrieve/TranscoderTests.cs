@@ -3,14 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -92,82 +90,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             dicomFile.Dataset.ToInstanceIdentifier();
 
             _transcoder.TranscodeFrame(dicomFile, 1, tsTo.UID.UID);
-        }
-
-        [Theory]
-        [MemberData(nameof(GetSupported8BitTranscoderCombos))]
-        public async Task GivenSupported8bitTransferSyntax_WhenRetrievingFileAndAskingForConversion_FileIsReturnedWhenExpected(
-            DicomTransferSyntax tsFrom,
-            DicomTransferSyntax tsTo,
-            PhotometricInterpretation photometricInterpretation)
-        {
-            (DicomFile dicomFile, Stream stream) = await StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom);
-            dicomFile.Dataset.ToInstanceIdentifier();
-            Stream transcodedFile = await _transcoder.TranscodeFileAsync(stream, tsTo.UID.UID);
-
-            ValidateTransferSyntax(tsTo, transcodedFile);
-        }
-
-        [Theory]
-        [MemberData(nameof(GetSupported8BitTranscoderCombos))]
-        public void GivenSupported8bitTransferSyntax_WhenRetrievingFrameAndAskingForConversion_FileIsReturnedWhenExpected(
-            DicomTransferSyntax tsFrom,
-            DicomTransferSyntax tsTo,
-            PhotometricInterpretation photometricInterpretation)
-        {
-            DicomFile dicomFile = StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom).Result.dicomFile;
-            dicomFile.Dataset.ToInstanceIdentifier();
-            _transcoder.TranscodeFrame(dicomFile, 1, tsTo.UID.UID);
-        }
-
-        [Theory]
-        [MemberData(nameof(GetUnsupported8BitGeneratorCombos))]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Consistency with other tests.")]
-        public void GivenUnsupported8bitGeneratorTransferSyntax_WhenRetrievingFileAndAskingForConversion_ErrorIsThrown(
-            DicomTransferSyntax tsFrom,
-            DicomTransferSyntax tsTo,
-            PhotometricInterpretation photometricInterpretation)
-        {
-            Assert.Throws<AggregateException>(() => StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom).Result);
-        }
-
-        [Theory]
-        [MemberData(nameof(GetUnsupported8BitGeneratorCombos))]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Consistency with other tests.")]
-        public void GivenUnsupported8bitGeneratorTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ErrorIsThrown(
-            DicomTransferSyntax tsFrom,
-            DicomTransferSyntax tsTo,
-            PhotometricInterpretation photometricInterpretation)
-        {
-            Assert.Throws<AggregateException>(() => StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom).Result);
-        }
-
-        [Theory(Skip = "Costy to maintaince the unsupport list, will add integration test for transcoding")]
-        [MemberData(nameof(GetUnsupported8BitTranscoderCombos))]
-        public async Task GivenUnsupported8bitMonochromeTransferSyntax_WhenRetrievingFileAndAskingForConversion_ErrorIsThrown(
-            DicomTransferSyntax tsFrom,
-            DicomTransferSyntax tsTo,
-            PhotometricInterpretation photometricInterpretation)
-        {
-            (DicomFile dicomFile, Stream stream) = await StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom);
-            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
-            var ex = Assert.ThrowsAsync<TranscodingException>(() => _transcoder.TranscodeFileAsync(stream, tsTo.UID.UID));
-
-            Assert.Equal(DicomCoreResource.UnsupportedTranscoding, ex.Result.Message);
-        }
-
-        [Theory(Skip = "Costy to maintaince the unsupport list, will add integration test for transcoding")]
-        [MemberData(nameof(GetUnsupported8BitTranscoderCombos))]
-        public void GivenUnsupported8bitMonochromeTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ErrorIsThrown(
-            DicomTransferSyntax tsFrom,
-            DicomTransferSyntax tsTo,
-            PhotometricInterpretation photometricInterpretation)
-        {
-            DicomFile dicomFile = StreamAndStoredFileFromDataset(photometricInterpretation, true, tsFrom).Result.dicomFile;
-            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
-            var ex = Assert.Throws<TranscodingException>(() => _transcoder.TranscodeFrame(dicomFile, 1, tsTo.UID.UID));
-
-            Assert.Equal(DicomCoreResource.UnsupportedTranscoding, ex.Message);
         }
 
         public static IEnumerable<object[]> GetSupported8BitTranscoderCombos()

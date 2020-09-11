@@ -12,7 +12,7 @@ steps:
     displayName: 'dotnet build $(buildConfiguration)'
     inputs:
       command: 'build'
-      projects: '**/*.sln'
+      projects: '**/*.csproj'
       arguments: '--configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror'
 
   - task: DotNetCoreCLI@2
