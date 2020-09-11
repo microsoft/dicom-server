@@ -40,13 +40,33 @@ async function createWindow() {
     // Used to allow self signed certificates
     const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
+    // Set the maximum content length size in bytes and megabytes
+    const maxSizeMegabytes = 10;
+    const maxSizeBytes = maxSizeMegabytes * 1024 * 1024;
+
     ipcMain.on("postFile", (event, args) => {
         let form = new FormData();
 
+        let fullContentLength = 0;
         for (let file of args.files) {
+            const { size } = fs.statSync(file);
+
+            // Check to see if this particular file is too large
+            if (size > maxSizeBytes) {
+                win.webContents.send("errorEncountered", "The file '" + file + "' exceeds the maximum content size of " + maxSizeMegabytes + " MB.");
+                return;
+            }
+
+            fullContentLength += size;
             form.append('file', fs.createReadStream(file), {
                 contentType: "application/dicom"
             });
+        }
+
+        // See if the sum of all the files is too large
+        if (fullContentLength > maxSizeBytes) {
+            win.webContents.send("errorEncountered", "The total size of the request exceeds the maximum content size of " + maxSizeMegabytes + " MB.");
+            return;
         }
 
         let authorizationHeader = ''
@@ -60,7 +80,7 @@ async function createWindow() {
                     'Accept': 'application/dicom+json',
                     'Authorization': authorizationHeader
                 },
-                maxContentLength: 2147483648,
+                maxContentLength: maxSizeBytes,
                 httpsAgent: httpsAgent
             })
             .then(function(response) {
@@ -68,9 +88,9 @@ async function createWindow() {
             })
             .catch(function(error) {
                 if (error.response === undefined) {
-                    win.webContents.send("errorEncountered", error.code);
+                    win.webContents.send("httpErrorEncountered", error.code);
                 } else {
-                    win.webContents.send("errorEncountered", error.response.status);
+                    win.webContents.send("httpErrorEncountered", error.response.status);
                 }
             })
 
@@ -96,9 +116,9 @@ async function createWindow() {
             })
             .catch(function(error) {
                 if (error.response === undefined) {
-                    win.webContents.send("errorEncountered", error.code);
+                    win.webContents.send("httpErrorEncountered", error.code);
                 } else {
-                    win.webContents.send("errorEncountered", error.response.status);
+                    win.webContents.send("httpErrorEncountered", error.response.status);
                 }
             })
 
