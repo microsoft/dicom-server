@@ -296,6 +296,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request contains multiple accept headers, which is not supported..
+        /// </summary>
+        internal static string NotSupportMultipleAcceptHeaders {
+            get {
+                return ResourceManager.GetString("NotSupportMultipleAcceptHeaders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId &apos;{0}&apos; has empty string value that is not supported..
         /// </summary>
         internal static string QueryEmptyAttributeValue {

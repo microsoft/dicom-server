@@ -20,7 +20,7 @@ contextBridge.exposeInMainWorld(
             }
         },
         receive: (channel, func) => {
-            let validChannels = ["filePosted", "fileSelected", "errorEncountered", "success", "changeFeedRetrieved"];
+            let validChannels = ["filePosted", "fileSelected", "httpErrorEncountered", "errorEncountered", "success", "changeFeedRetrieved"];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 
                 ipcRenderer.on(channel, (event, ...args) => func(...args));

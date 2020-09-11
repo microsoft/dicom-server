@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -61,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public TranscoderTests()
         {
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-            _transcoder = new Transcoder(_recyclableMemoryStreamManager);
+            _transcoder = new Transcoder(_recyclableMemoryStreamManager, NullLogger<Transcoder>.Instance);
         }
 
         [Theory]
