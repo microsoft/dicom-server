@@ -46,7 +46,6 @@ DicomWebResponse response = await client.StoreAsync(new[] { dicomFile }, "1.2.82
 Before moving on to the next part also upload the green-square.dcm file using either of the methods above.
 
 ## Retrieving DICOM instance(s) (WADO)
----
 The following code snippets will demonstrate how to perform each of the retrieve queries using the `DicomWebClient` created earlier.
 
 The following variables will be used throghout the rest of the examples:
@@ -137,7 +136,7 @@ This request enables searches for one or more studies by DICOM attributes.
 _Details:_
 * GET /studies?StudyInstanceUID={study}
 ```c#
-string query = "/studies?StudyInstanceUID=" + studyInstanceUid;
+string query = $"/studies?StudyInstanceUID={studyInstanceUid}";
 DicomWebResponse response = await client.QueryAsync(query);
 ```
 Validate that response includes 1 study and that response code is OK.
@@ -149,7 +148,7 @@ This request enables searches for one or more series by DICOM attributes.
 _Details:_
 * GET /series?SeriesInstanceUID={series}
 ```c#
-string query = "/series?SeriesInstanceUID=" + seriesInstanceUid;
+string query = $"/series?SeriesInstanceUID={seriesInstanceUid}";
 DicomWebResponse response = await client.QueryAsync(query);
 ```
 Validate that response includes 1 series and that response code is OK.
@@ -161,7 +160,7 @@ This request enables searches for one or more series within a single study by DI
 _Details:_
 * GET /studies/{study}/series?SeriesInstanceUID={series}
 ```c#
-string query = "/studies/" + studyInstanceUid + "/series?SeriesInstanceUID=" + seriesInstanceUid;
+string query = $"/studies/{studyInstanceUid}/series?SeriesInstanceUID={seriesInstanceUid}";
 DicomWebResponse response = await client.QueryAsync(query);
 ```
 Validate that response includes 1 series and that response code is OK.
@@ -173,7 +172,7 @@ This request enables searches for one or more instances by DICOM attributes.
 _Details:_
 * GET /instances?SOPInstanceUID={instance}
 ```c#
-string query = "/instances?SOPInstanceUID=" + sopInstanceUid;
+string query = $"/instances?SOPInstanceUID={sopInstanceUid}";
 DicomWebResponse response = await client.QueryAsync(query);
 ```
 Validate that response includes 1 instance and that response code is OK.
@@ -185,7 +184,7 @@ This request enables searches for one or more instances within a single study by
 _Details:_
 * GET /studies/{study}/instances?SOPInstanceUID={instance}
 ```c#
-string query = "/studies/" + studyInstanceUid + "/instances?SOPInstanceUID=" + sopInstanceUid;
+string query = $"/studies/{studyInstanceUid}/instances?SOPInstanceUID={sopInstanceUid}";
 DicomWebResponse response = await client.QueryAsync(query);
 ```
 Validate that response includes 1 instance and that response code is OK.
@@ -197,7 +196,7 @@ This request enables searches for one or more instances within a single study an
 _Details:_
 * GET /studies/{study}/series/{series}instances?SOPInstanceUID={instance}
 ```c#
-string query = "/studies/" +studyInstanceUid + "/series/" + seriesInstanceUid + "/instances?SOPInstanceUID=" + sopInstanceiId;
+string query = $"/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances?SOPInstanceUID={sopInstanceUid}";
 DicomWebResponse response = await client.QueryAsync(query);
 ```
 Validate that response includes 1 instance and that response code is OK.
