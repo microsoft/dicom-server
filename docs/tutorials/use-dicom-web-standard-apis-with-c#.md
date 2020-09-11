@@ -53,7 +53,7 @@ Before moving on to the next part also upload the GreenSquare.dcm file to the se
 ---
 The following code snippets will demonstrate how to perform each of the retrieve queries using the DicomWeb Client we created.
 
-The following variable will be used throghout the rest of the examples:
+The following variables will be used throghout the rest of the examples:
 ```c#
 string studyInstanceUid = "1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420"; //StudyUID for All 3 examples
 string seriesInstanceUid = "1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652"; //SeriesUID for GreenSquare and RedTriangle
@@ -69,7 +69,7 @@ _Details:_
 ```c#
 DicomWebResponse response = await client.RetrieveStudyAsync(studyInstanceUid);
 ```
-All three of the dcm files that we uploaded previously are part of the same study so the response should have value 3 (Todo: how to validate this by user and response code). 
+All three of the dcm files that we uploaded previously are part of the same study so the response should return all 3 instances. Validate that the response has a status code of OK and that all three instances are returned.
 
 ---
 ### Retrieve-metadata-of-all-instances-in-study
@@ -81,7 +81,7 @@ _Details:_
 ```c#
 DicomWebResponse response = await client.RetrieveStudyMetadataAsync(studyInstanceUid); 
 ```
-Since all three files are part of the same study the response should contain the metadata for all three files. (Todo: how to validate this by user and response code). 
+All three of the dcm files that we uploaded previously are part of the same study so the response should return the metadata for all 3 instances. Validate that the response has a status code of OK and that all the metadata is returned.
 
 ---
 ### Retrieve-all-instances-within-a-series
@@ -93,8 +93,8 @@ _Details:_
 ```c#
 DicomWebResponse response = await client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid);
 ```
-This series has 2 instances (GreenSquare and RedTriangle), so this should return an OK status code and also both instances.
-(Todo: How to validate both)
+This series has 2 instances (GreenSquare and RedTriangle), so the response should return both instances. Validate that the response has a status code of OK and that both instances are returned.
+
 
 ### Retrieve-metadata-of-all-instances-within-a-series
 
@@ -105,8 +105,7 @@ _Details:_
 ```c#
 DicomWebResponse response = await client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid);
 ```
-This series has 2 instances (GreenSquare and RedTriangle), so this should return an OK status code and also the metatdata for both instances.
-(Todo: How to validate both)
+This series has 2 instances (GreenSquare and RedTriangle), so the response should return metatdata for both instances. Validate that the response has a status code of OK and that both instances metadata are returned.
 
 ---
 ### Retrieve-a-single-instance-within-a-series-of-a-study
@@ -118,8 +117,7 @@ _Details:_
 ```c#
 DicomWebResponse response = await client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUId);
 ```
-This should only return the instance RedTriangle, validate that only one instance is returned and status code is OK.
-(Todo: How to validate both)
+This should only return the instance RedTriangle. Validate that the response has a status code of OK and that the instance is returned.
 
 ---
 ### Retrieve-metadata-of-a-single-instance-within-a-series-of-a-study
@@ -131,8 +129,7 @@ _Details:_
 ```c#
 DicomWebResponse response = await client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUId);
 ```
-This should only return the metadata for the instance RedTriangle, validate that only the metadata for RedTriangle is returned and status code is OK.
-(Todo: How to validate both)
+This should only return the metatdata for the instance RedTriangle. Validate that the response has a status code of OK and that the metadata is returned.
 
 ---
 ### Retrieve-one-or-more-frames-from-a-single-instance
@@ -144,8 +141,7 @@ _Details:_
 ```c#
 DicomWebResponse response = await client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUId,null, new[] { 1 });
 ```
-This should return the only frame from the RedTriangle and status code should be OK.
-(Todo:How to validate both)
+This should return the only frame from the RedTriangle. Validate that the response has a status code of OK and that the frame is returned
 
 ## Query DICOM (QIDO)
 ---
