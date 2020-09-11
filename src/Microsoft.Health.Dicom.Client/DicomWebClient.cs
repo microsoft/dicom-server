@@ -62,26 +62,6 @@ namespace Microsoft.Health.Dicom.Client
         /// </summary>
         public Func<MemoryStream> GetMemoryStream { get; set; }
 
-        public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesRenderedAsync(
-            Uri requestUri,
-            string format = null,
-            CancellationToken cancellationToken = default)
-        {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
-            {
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(format));
-
-                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
-                {
-                    await EnsureSuccessStatusCodeAsync(response);
-
-                    return new DicomWebResponse<IReadOnlyList<Stream>>(
-                        response,
-                        (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken)).ToList());
-                }
-            }
-        }
-
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
             Uri requestUri,
             string dicomTransferSyntax,
@@ -92,26 +72,6 @@ namespace Microsoft.Health.Dicom.Client
                 request.Headers.TryAddWithoutValidation(
                     "Accept",
                     CreateAcceptHeader(CreateMultipartMediaTypeHeader(ApplicationOctetStreamContentType), dicomTransferSyntax));
-
-                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
-                {
-                    await EnsureSuccessStatusCodeAsync(response);
-
-                    return new DicomWebResponse<IReadOnlyList<Stream>>(
-                        response,
-                        (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken)).ToList());
-                }
-            }
-        }
-
-        public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveInstancesRenderedAsync(
-            Uri requestUri,
-            string format = null,
-            CancellationToken cancellationToken = default)
-        {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
-            {
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(format));
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
