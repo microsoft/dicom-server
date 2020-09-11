@@ -22,6 +22,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     {
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly ILogger<Transcoder> _logger;
+        private static readonly Action<ILogger, int, string, string, Exception> LogTranscodingFrameErrorDelegate = LoggerMessage.Define<int, string, string>(
+           logLevel: LogLevel.Error,
+           eventId: default,
+           formatString: "Failed to transcode frame {FrameIndex} from {InputTransferSyntax} to {OutputTransferSyntax}");
+
+        private static readonly Action<ILogger, string, string, Exception> LogTranscodingFileErrorDelegate = LoggerMessage.Define<string, string>(
+          logLevel: LogLevel.Error,
+          eventId: default,
+          formatString: "Failed to transcode dicom file from {InputTransferSyntax} to {OutputTransferSyntax}");
 
         public Transcoder(RecyclableMemoryStreamManager recyclableMemoryStreamManager, ILogger<Transcoder> logger)
         {
@@ -83,7 +92,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex, $"Failed to transcode frame {frameIndex} from transfer syntax {dataset.InternalTransferSyntax.UID} to {targetSyntax.UID}");
+                LogTranscodingFrameErrorDelegate(_logger, frameIndex, dataset?.InternalTransferSyntax?.UID?.UID, targetSyntax?.UID?.UID, ex);
                 throw new TranscodingException();
             }
         }
@@ -108,7 +117,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex, $"Failed to transcode file from transfer syntax {dicomFile.Dataset.InternalTransferSyntax.UID} to {requestedTransferSyntax.UID}");
+                LogTranscodingFileErrorDelegate(_logger, dicomFile?.Dataset?.InternalTransferSyntax?.UID?.UID, requestedTransferSyntax?.UID?.UID, ex);
 
                 // TODO: Reevaluate this while fixing transcoding handling.
                 // We catch all here as Transcoder can throw a wide variety of things.
