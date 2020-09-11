@@ -8,7 +8,7 @@ You can process these change events asynchronously, incrementally or in-full. An
 
 ## Usage
 
-### DICOM Cast usage
+### DICOM Cast
 [DICOM Cast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from change feed, transforms and publishes them to a configured FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
 It can start processing the DICOM change events at any point and continue to pull and process new changes incrementally.
 
@@ -19,3 +19,5 @@ Change feed support is well-suited for scenarios that process data based on obje
 - Build connected application pipelines like ML that react to change events or schedule executions based on created or deleted instance.
 
 - Extract business analytics insights and metrics, based on changes that occur to your objects.
+
+- Poll the change feed to create an event source for push notifications.
