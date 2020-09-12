@@ -61,7 +61,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             try
             {
-                string transferSyntax = _retrieveTransferSyntaxHandler.GetTransferSyntax(message.ResourceType, message.AcceptHeaders);
+                AcceptHeaderDescriptor acceptHeaderDescriptor;
+                string transferSyntax = _retrieveTransferSyntaxHandler.GetTransferSyntax(message.ResourceType, message.AcceptHeaders, out acceptHeaderDescriptor);
                 bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(transferSyntax);
 
                 IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
@@ -77,8 +78,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                 if (message.ResourceType == ResourceType.Frames)
                 {
-                    return new RetrieveResourceResponse(await _frameHandler.GetFramesResourceAsync(
-                        resultStreams.Single(), message.Frames, isOriginalTransferSyntaxRequested, transferSyntax));
+                    return new RetrieveResourceResponse(
+                        await _frameHandler.GetFramesResourceAsync(
+                        resultStreams.Single(), message.Frames, isOriginalTransferSyntaxRequested, transferSyntax),
+                        acceptHeaderDescriptor.MediaType);
                 }
                 else
                 {
@@ -93,7 +96,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                             s => ResetDicomFileStream(s))).ToArray();
                 }
 
-                return new RetrieveResourceResponse(resultStreams);
+                return new RetrieveResourceResponse(resultStreams, acceptHeaderDescriptor.MediaType);
             }
             catch (DataStoreException e)
             {

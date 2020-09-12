@@ -18,13 +18,55 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
     {
         private static readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> AcceptableDescriptors =
-           new Dictionary<ResourceType, AcceptHeaderDescriptors>()
-           {
+        new Dictionary<ResourceType, AcceptHeaderDescriptors>()
+        {
                 { ResourceType.Study, DescriptorsForGetStudy() },
                 { ResourceType.Series, DescriptorsForGetSeries() },
                 { ResourceType.Instance, DescriptorsForGetInstance() },
                 { ResourceType.Frames, DescriptorsForGetFrame() },
-           };
+        };
+
+        private readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> _acceptableDescriptors;
+
+        public RetrieveTransferSyntaxHandler()
+            : this(AcceptableDescriptors)
+        {
+        }
+
+        public RetrieveTransferSyntaxHandler(IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> acceptableDescriptors) => _acceptableDescriptors = acceptableDescriptors;
+
+        public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptableHeaderDescriptor)
+        {
+            EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
+
+            // TODO: disable multiple accept headers, will fully implement it later (https://microsofthealth.visualstudio.com/Health/_workitems/edit/75782)
+            if (acceptHeaders.Count() > 1)
+            {
+                throw new NotAcceptableException(DicomCoreResource.NotSupportMultipleAcceptHeaders);
+            }
+
+            AcceptHeaderDescriptors descriptors = _acceptableDescriptors[resourceType];
+            acceptableHeaderDescriptor = null;
+
+            // get all accceptable headers and sort by quality (ascendently)
+            SortedDictionary<AcceptHeader, string> accepted = new SortedDictionary<AcceptHeader, string>(new AcceptHeaderQualityComparer());
+            foreach (AcceptHeader header in acceptHeaders)
+            {
+                string transfersyntax;
+                if (descriptors.TryGetMatchedDescriptor(header, out acceptableHeaderDescriptor, out transfersyntax))
+                {
+                    accepted.Add(header, transfersyntax);
+                }
+            }
+
+            if (accepted.Count == 0)
+            {
+                throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+            }
+
+            // Last elment has largest quality
+            return accepted.Last().Value;
+        }
 
         private static AcceptHeaderDescriptors DescriptorsForGetStudy()
         {
@@ -84,39 +126,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         private static ISet<string> GetAcceptableTransferSyntaxSet(params string[] transferSyntaxes)
         {
             return new HashSet<string>(transferSyntaxes, StringComparer.InvariantCultureIgnoreCase);
-        }
-
-        public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
-        {
-            EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
-
-            // TODO: disable multiple accept headers, will fully implement it later (https://microsofthealth.visualstudio.com/Health/_workitems/edit/75782)
-            if (acceptHeaders.Count() > 1)
-            {
-                throw new NotAcceptableException(DicomCoreResource.NotSupportMultipleAcceptHeaders);
-            }
-
-            AcceptHeaderDescriptors descriptors = AcceptableDescriptors[resourceType];
-
-            // get all accceptable headers and sort by quality (ascendently)
-            SortedDictionary<AcceptHeader, string> accepted = new SortedDictionary<AcceptHeader, string>(new AcceptHeaderQualityComparer());
-            foreach (AcceptHeader header in acceptHeaders)
-            {
-                AcceptHeaderDescriptor acceptableHeaderDescriptor;
-                string transfersyntax;
-                if (descriptors.TryGetMatchedDescriptor(header, out acceptableHeaderDescriptor, out transfersyntax))
-                {
-                    accepted.Add(header, transfersyntax);
-                }
-            }
-
-            if (accepted.Count == 0)
-            {
-                throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
-            }
-
-            // Last elment has largest quality
-            return accepted.Last().Value;
         }
     }
 }
