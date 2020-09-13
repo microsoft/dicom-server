@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Api.Features.Audit;
-using Microsoft.Health.Dicom.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Exceptions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using NSubstitute;
