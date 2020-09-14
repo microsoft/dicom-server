@@ -1,6 +1,6 @@
 # DICOM Web Electron
 
-This tool is an Electron application used to interact with your DICOM server. It currently has the ability to upload one or many `.dcm` files to a given server.
+This tool is an Electron application used to interact with your Medical Imaging Server for DICOM. It currently has the ability to upload one or many `.dcm` files to a given server.
 
 ## Prerequisites
 
@@ -29,7 +29,7 @@ To upload files stored locally on your device, click 'Select File(s)'. You can u
 
 ## Change Feed
 
-The change feed offers the ability to go through the history of the DICOM server and act upon the creates and deletes in the service. Learn more about Change Feed [here](https://github.com/microsoft/dicom-server/blob/master/docs/users/ChangeFeed.md).
+The change feed offers the ability to go through the history of the Medical Imaging Server for DICOM and act upon the creates and deletes in the service. Learn more about Change Feed [here](https://github.com/microsoft/dicom-server/blob/master/docs/users/ChangeFeed.md).
 
 Navigate to Change Feed to update the Offset value, which is the number of records to skip before the values to return.
 
