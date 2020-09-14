@@ -4,13 +4,13 @@
 
 Medical imaging is the technique and process of creating visual representations of the interior of a body for clinical analysis and medical intervention, as well as visual representation of the function of some organs or tissues (physiology). Medical imaging seeks to reveal internal structures hidden by the skin and bones, as well as to diagnose and treat disease. Medical imaging also establishes a database of normal anatomy and physiology to make it possible to identify abnormalities. Although imaging of removed organs and tissues can be performed for medical reasons, such procedures are usually considered part of pathology instead of medical imaging. [Wikipedia, 2020](https://en.wikipedia.org/wiki/Medical_imaging)
 
-## DICOM 
+## DICOM
 
 DICOM (Digital Imaging and Communications in Medicine) is the international standard to transmit, store, retrieve, print, process, and display medical imaging information, and is the primary medical imaging standard accepted across healthcare. Although some exceptions exist (dentistry, veterinary), nearly all medical specialties, equipment manufacturers, software vendors and individual practitioners rely on DICOM at some stage of any medical workflow involving imaging. DICOM ensures that medical images meet quality standards, so that the accuracy of diagnosis can be preserved. Most imaging modalities, including CT, MRI and ultrasound must conform to the DICOM standards. Images that are in the DICOM format need to be accessed and used through specialized DICOM applications.
 
 ## Medical Imaging Server for DICOM
 
-The Medical Imaging Server for DICOM is an open source DICOM server that is easily deployed on Azure. The Medical Imaging Server for DICOM injects DICOM metadata into the [Azure API for FHIR service](https://docs.microsoft.com/en-us/azure/healthcare-apis/), allowing a single source of truth for both clinical data and imaging metadata. It allows standards-based communication with any DICOMweb enabled systems
+The Medical Imaging Server for DICOM is an open source DICOM server that is easily deployed on Azure. The Medical Imaging Server for DICOM injects DICOM metadata into the [Azure API for FHIR service](https://docs.microsoft.com/azure/healthcare-apis/), allowing a single source of truth for both clinical data and imaging metadata. It allows standards-based communication with any DICOMweb enabled systems.
 
 The need to effectively integrate non-clinical data has become acute. In order to effectively treat patients, research new treatments or diagnostic solutions or simply provide an effective overview of the health history of a single patient, organizations must integrate data across several sources. One of the most pressing integrations is between clinical and imaging data.
 
@@ -40,6 +40,6 @@ The Medical Imaging Server for DICOM needs an Azure subscription to configure an
 
 This Concept provided an overview of DICOM, Medical Imaging and the Medical Imaging Server for DICOM. To get started using the Medical Imaging Server:
 
-* [Deploy Medical Imaging Server to Azure](../quickstarts/deploy-via-azure.md)
-* [Deploy DICOM Cast](../quickstarts/dicom-cast.md)
-* [Use the Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md)
+- [Deploy Medical Imaging Server to Azure](../quickstarts/deploy-via-azure.md)
+- [Deploy DICOM Cast](../quickstarts/dicom-cast.md)
+- [Use the Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md)
