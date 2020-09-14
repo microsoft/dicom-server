@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using Xunit;
@@ -168,7 +169,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
 
-            RetrieveResourceResponse expectedResponse = new RetrieveResourceResponse(Enumerable.Empty<Stream>());
+            RetrieveResourceResponse expectedResponse = new RetrieveResourceResponse(Enumerable.Empty<Stream>(), KnownContentTypes.ApplicationOctetStream);
             RetrieveResourceRequest request = new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, new List<int> { 1 }, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
             _retrieveResourceService.GetInstanceResourceAsync(request, CancellationToken.None).Returns(expectedResponse);
 

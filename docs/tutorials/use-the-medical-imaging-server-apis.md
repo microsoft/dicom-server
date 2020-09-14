@@ -41,7 +41,7 @@ You can find the cURL examples [here](tutorials/use-dicom-web-standard-apis-with
 
 Postman is an excellent tool for designing, building and testing REST APIs. It is available [here](https://www.postman.com/downloads/). You can learn how to effectively use Postman at their [learning site](https://learning.postman.com/).
 
-One important caveat with Postman and the DICOMweb standard: Postman cannot support uploading DICOM files using the approach defined in the DICOM standard. This is because Postman cannot support custom separators in a multipart/related POST request. For more information, please see [https://github.com/postmanlabs/postman-app-support/issues/576](https://github.com/postmanlabs/postman-app-support/issues/576) for more information on this bug. Thus all examples in the Postman collection for uploading DICOM documents are prefixed with [will not work - see description]. However, they are included for completeness.
+One important caveat with Postman and the DICOMweb&trade; standard: Postman cannot support uploading DICOM files using the approach defined in the DICOM standard. This is because Postman cannot support custom separators in a multipart/related POST request. For more information, please see [https://github.com/postmanlabs/postman-app-support/issues/576](https://github.com/postmanlabs/postman-app-support/issues/576) for more information on this bug. Thus all examples in the Postman collection for uploading DICOM documents are prefixed with [will not work - see description]. However, they are included for completeness.
 
 To use the Postman collection, you'll need to download the collection locally and import the collection through Postman. 
 

@@ -11,6 +11,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public interface IRetrieveTransferSyntaxHandler
     {
-        string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders);
+        string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor);
     }
 }

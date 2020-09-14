@@ -25,7 +25,7 @@ _Details:_
 ---
 ### Store-single-instance
 
-> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. Although cURL handles multipart/related well, this API allows tools like Postman to upload files to the DICOMweb service.
+> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. Although cURL handles multipart/related well, this API allows tools like Postman to upload files to the Medical Imaging Server for DICOM.
 
 The following is required to upload a single DICOM file.
 
