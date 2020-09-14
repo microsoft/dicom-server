@@ -30,11 +30,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
         }
 
-        /*
-         * For the following test cases the path to folder is required containing the input DICOM file (Input.dcm) and the
-         * expected output DICOM file (ExpectedOutput.dcm). Each folder must also have a Metadata.json which has
-         * input and output syntaxUid along with the precomputed sha256 hash of the output frames.
-         */
+        /// <summary>
+        /// Test for transcoder when given input and output transfer syntax should return the content in the expected format
+        /// </summary>
+        /// <param name="testDataFolder"> Path to folder containing input DICOM file (Input.dcm), expected output DICOM file
+        /// (ExpectedOutput.dcm) and Metadata.json which has the input and output syntaxUid and the precomputed sha256 hash of the output frames.
+        /// </param>
+        /// <param name="mediaType"> Expected type of output </param>
+        /// <param name="transferSyntax"> Transfer syntax to use </param>
         [Theory]
         [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMediaType, null)]
         [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.1")]

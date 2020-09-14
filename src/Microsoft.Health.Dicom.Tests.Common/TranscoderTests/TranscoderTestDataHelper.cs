@@ -81,7 +81,8 @@ namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
         public static string GetHashFromStream(Stream byteStream)
         {
             byte[] result = ToByteArray(byteStream);
-            return Convert.ToBase64String(new SHA256Managed().ComputeHash(result));
+            using var sha256Managed = new SHA256Managed();
+            return Convert.ToBase64String(sha256Managed.ComputeHash(result));
         }
 
         private static byte[] ToByteArray(Stream stream)
