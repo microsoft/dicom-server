@@ -51,6 +51,13 @@ steps:
       artifactType: 'container'
 
   - task: PublishBuildArtifacts@1
+    displayName: 'publish dicom-cast samples'
+    inputs:
+      pathToPublish: './converter/dicom-cast/samples/'
+      artifactName: 'deploy-dicom-cast'
+      artifactType: 'container'
+
+  - task: PublishBuildArtifacts@1
     displayName: 'publish global.json'
     inputs:
       pathToPublish: './global.json'
