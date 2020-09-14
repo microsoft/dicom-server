@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
     {
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
-        private readonly MultipartReaderStreamToSeekableStreamConverter _seekableStreamConverter;
+        private readonly SeekableStreamConverter _seekableStreamConverter;
 
         public MultipartReaderStreamToSeekableStreamConverterTests()
         {
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             {
                 MaxAllowedDicomFileSize = 1000000,
             });
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), configuration);
+            _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), configuration);
         }
 
         [Fact]

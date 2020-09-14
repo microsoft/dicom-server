@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Api.Modules
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
-            services.Add<MultipartReaderStreamToSeekableStreamConverter>()
+            services.Add<SeekableStreamConverter>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
