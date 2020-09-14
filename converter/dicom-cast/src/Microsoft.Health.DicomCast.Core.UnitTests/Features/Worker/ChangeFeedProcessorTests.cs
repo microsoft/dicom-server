@@ -110,6 +110,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
 
             await ExecuteProcessAsync(pollIntervalDuringCatchup);
 
+            // Using stopwatch.Elapsed instead of stopwatch.ElapsedMilliseconds to get the totalmilliseconds in double type
+            // Comparing type long (stopwatch.ElapsedMilliseconds) with double(pollIntervalDuringCatchup.TotalMilliseconds) can lead to inconsistent results.
             TimeSpan totalTimeTakenWithPollInterval = stopwatch.Elapsed;
 
             Assert.True(totalTimeTakenWithPollInterval.TotalMilliseconds >= pollIntervalDuringCatchup.TotalMilliseconds);
