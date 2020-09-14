@@ -30,6 +30,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
         }
 
+        /*
+         * For the following test cases the path to folder is required containing the input DICOM file (Input.dcm) and the
+         * expected output DICOM file (ExpectedOutput.dcm). Each folder must also have a Metadata.json which has
+         * input and output syntaxUid along with the precomputed sha256 hash of the output frames.
+         */
         [Theory]
         [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMediaType, null)]
         [InlineData(@"TestFiles\RetrieveResourcesAcceptanceTests\RequestExplicitVRLittleEndianOriginallyJPEG2000Lossless", DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.1")]
