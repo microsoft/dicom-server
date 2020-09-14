@@ -415,7 +415,7 @@ The query API will return one of the following status codes in the response:
 
 ## Delete
 
-This transaction is not part of the official DICOMweb standard. It uses the DELETE method to remove representations of Studies, Series, and Instances from the store.
+This transaction is not part of the official DICOMweb&trade; standard. It uses the DELETE method to remove representations of Studies, Series, and Instances from the store.
 
 | Method | Path                                                    | Description |
 | :----- | :------------------------------------------------------ | :---------- |
