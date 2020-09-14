@@ -31,7 +31,7 @@ description   | string | Description of the status
 
 Internally, the Microsoft.Extensions.Diagnostics.HealthChecks NuGet package is used for getting the health status. Its documentation can be found [here](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.diagnostics.healthchecks?view=dotnet-plat-ext-3.1).
 
-To check the health status of DICOM server, the user issues a GET request to /health/check. Following is a sample JSON response if all the underlying services are healthy:
+To check the health status of Medical Imaging Server for DICOM, the user issues a GET request to /health/check. Following is a sample JSON response if all the underlying services are healthy:
 ```
 {
 	"overallStatus":"Healthy",
@@ -56,7 +56,7 @@ To check the health status of DICOM server, the user issues a GET request to /he
 }
 ```
 
-Healthy (HTTP Status Code 200) is returned as the overall status if all the underlying services are healthy. If any of the underlying services are unhealthy, overall status of the DICOM server will be returned as unhealthy (HTTP Status Code 503).
+Healthy (HTTP Status Code 200) is returned as the overall status if all the underlying services are healthy. If any of the underlying services are unhealthy, overall status of the Medical Imaging Server for DICOM will be returned as unhealthy (HTTP Status Code 503).
 
 Following is an example JSON if SQL Server service is unhealthy:
 ```
