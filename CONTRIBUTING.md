@@ -1,6 +1,6 @@
-# Contributing to DICOM server
+# Contributing to Medical Imaging Server for DICOM
 
-This document describes guidelines for contributing to the DICOM server repo.
+This document describes guidelines for contributing to the Medical Imaging Server for DICOM repo.
 
 ## Submitting Pull Requests
 
