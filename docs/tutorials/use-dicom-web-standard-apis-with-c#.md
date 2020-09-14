@@ -1,7 +1,7 @@
 # Using Medical Imaging Server for DICOM API with C#
 This document uses C# to demonstrate working with the Medical Imaging Server for DICOM.
 
-For the tutorial we will use the DICOM files found [here](../dcms)
+For the tutorial we will use the DICOM files found [here](../dcms).
 
 | File | StudyUID | SeriesUID | InstanceUID |
 | --- | --- | --- | ---|
@@ -26,6 +26,7 @@ Using the `DicomWebClient` that we have created we can now store DICOM files.
 
 ### Store single instance
 This demonstrates how to upload a single DICOM file.
+
 _Details:_
 * POST /studies
 ```c#
@@ -51,7 +52,7 @@ The following code snippets will demonstrate how to perform each of the retrieve
 The following variables will be used throghout the rest of the examples:
 ```c#
 string studyInstanceUid = "1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420"; //StudyInstanceUID for all 3 examples
-string seriesInstanceUid = "1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652"; //SeriesUID for green-square and red-triangle
+string seriesInstanceUid = "1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652"; //SeriesInstanceUID for green-square and red-triangle
 string sopInstanceUid = "1.2.826.0.1.3680043.8.498.47359123102728459884412887463296905395"; //SOPInstanceUID for red-triangle
 ```
 
@@ -132,7 +133,8 @@ This should return the only frame from the red-triangle. Validate that the respo
 ### Search for studies
 This request enables searches for one or more studies by DICOM attributes.
 
-> Please see the [Conformance.md](../resources/conformance-statement.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../resources/conformance-statement.md#supported-search-parameters) file for supported DICOM attributes.
+
 _Details:_
 * GET /studies?StudyInstanceUID={study}
 ```c#
@@ -144,7 +146,8 @@ Validate that response includes 1 study and that response code is OK.
 ### Search for series
 This request enables searches for one or more series by DICOM attributes.
 
-> Please see the [Conformance.md](../resources/conformance-statement.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../resources/conformance-statement.md#supported-search-parameters) file for supported DICOM attributes.
+
 _Details:_
 * GET /series?SeriesInstanceUID={series}
 ```c#
@@ -156,7 +159,8 @@ Validate that response includes 1 series and that response code is OK.
 ### Search for series within a study
 This request enables searches for one or more series within a single study by DICOM attributes.
 
-> Please see the [Conformance.md](../resources/conformance-statement.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../resources/conformance-statement.md#supported-search-parameters) file for supported DICOM attributes.
+
 _Details:_
 * GET /studies/{study}/series?SeriesInstanceUID={series}
 ```c#
@@ -168,7 +172,8 @@ Validate that response includes 1 series and that response code is OK.
 ### Search for instances
 This request enables searches for one or more instances by DICOM attributes.
 
-> Please see the [Conformance.md](../resources/conformance-statement.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../resources/conformance-statement.md#supported-search-parameters) file for supported DICOM attributes.
+
 _Details:_
 * GET /instances?SOPInstanceUID={instance}
 ```c#
@@ -180,7 +185,8 @@ Validate that response includes 1 instance and that response code is OK.
 ### Search for instances within a study
 This request enables searches for one or more instances within a single study by DICOM attributes.
 
-> Please see the [Conformance.md](../resources/conformance-statement.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../resources/conformance-statement.md#supported-search-parameters) file for supported DICOM attributes.
+
 _Details:_
 * GET /studies/{study}/instances?SOPInstanceUID={instance}
 ```c#
@@ -192,7 +198,8 @@ Validate that response includes 1 instance and that response code is OK.
 ### Search for instances within a study and series
 This request enables searches for one or more instances within a single study and single series by DICOM attributes.
 
-> Please see the [Conformance.md](../resources/conformance-statement.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../resources/conformance-statement.md#supported-search-parameters) file for supported DICOM attributes.
+
 _Details:_
 * GET /studies/{study}/series/{series}instances?SOPInstanceUID={instance}
 ```c#
@@ -207,6 +214,7 @@ Validate that response includes 1 instance and that response code is OK.
 This request deletes a single instance within a single study and single series.
 
 > Delete is not part of the DICOM standard, but has been added for convenience.
+
 _Details:_
 * DELETE /studies/{study}/series/{series}/instances/{instance}
 ```c#
@@ -219,6 +227,7 @@ This deletes the red-triangle instance from the server. If it is successful the 
 This request deletes a single series (and all child instances) within a single study.
 
 > Delete is not part of the DICOM standard, but has been added for convenience.
+
 _Details:_
 * DELETE /studies/{study}/series/{series}
 ```c#
@@ -230,6 +239,7 @@ This deletes the green-square instance (it is the only element left in the serie
 This request deletes a single study (and all child series and instances).
 
 > Delete is not part of the DICOM standard, but has been added for convenience.
+
 _Details:_
 * DELETE /studies/{study}
 ```c#
