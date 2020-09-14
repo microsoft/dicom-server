@@ -34,5 +34,5 @@ The Medical Imaging Server for DICOM needs an Azure subscription to configure an
 - **App Service Plan**: Hosts the Medical Imaging Service for DICOM
 - **Azure Key Vault**: Stores critical security information
 - **Application Insights** (optional): Monitors performance of Medical Imaging Server for DICOM
-- **Azure Container Instance** (optional): Hosts the DICOM Cast service for FHIR integration (optional)
+- **Azure Container Instance** (optional): Hosts the DICOM Cast service for FHIR integration
 - **Azure API for FHIR** (optional): Persists the DICOM metadata alongside other clinical data
