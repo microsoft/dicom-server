@@ -113,13 +113,14 @@ namespace Microsoft.Health.Dicom.Client
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
+            string mediaType = DicomWebConstants.ApplicationOctetStreamMediaType,
             string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
             int[] frames = null,
             CancellationToken cancellationToken = default)
         {
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join("%2C", frames)), UriKind.Relative);
 
-            return dicomWebClient.RetrieveFramesAsync(requestUri, dicomTransferSyntax, cancellationToken);
+            return dicomWebClient.RetrieveFramesAsync(requestUri, mediaType, dicomTransferSyntax, cancellationToken);
         }
 
         public static Task<DicomWebResponse> DeleteStudyAsync(
