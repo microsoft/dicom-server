@@ -3,7 +3,7 @@
 
 The Change Feed offers the customers the ability to go through the history of the Medical Imaging Server for DICOM and act on the create and delete events in the service.
 
-The Change Feed is accessed using REST APIs documented [here](/docs/concepts/change-feed.md), it also provides example usage of Change Feed.
+The Change Feed is accessed using REST APIs documented in [Change Feed Concept](/docs/concepts/change-feed.md), it also provides example usage of Change Feed.
 
 ## Consume Change Feed
 
