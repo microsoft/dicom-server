@@ -134,14 +134,9 @@ It can start processing the DICOM change events at any point and continue to pul
 Change Feed support is well-suited for scenarios that process data based on objects that have changed. For example, it can be used to:
 
 * Build connected application pipelines like ML that react to change events or schedule executions based on created or deleted instance.
-
 * Extract business analytics insights and metrics, based on changes that occur to your objects.
+* Poll the change feed to create an event source for push notifications.
 
 ## Summary
 
-- Extract business analytics insights and metrics, based on changes that occur to your objects.
-
-- Poll the change feed to create an event source for push notifications.
-
 In this Concept, we reviewed the REST API design of Change Feed and potential usage scenarios. For a how-to guide on Change Feed, see [Pull changes from Change Feed](../how-to-guides/pull-changes-from-change-feed).
-
