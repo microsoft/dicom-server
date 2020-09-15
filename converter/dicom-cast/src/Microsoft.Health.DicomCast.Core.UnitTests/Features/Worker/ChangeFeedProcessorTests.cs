@@ -111,7 +111,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             await ExecuteProcessAsync();
 
             // Using stopwatch.Elapsed instead of stopwatch.ElapsedMilliseconds to get the totalmilliseconds in double type.
-            // Comparing type long (stopwatch.ElapsedMilliseconds) with double(pollIntervalDuringCatchup.TotalMilliseconds) can lead to inconsistency.
+            // Comparing type long (stopwatch.ElapsedMilliseconds) with double(pollIntervalDuringCatchup.TotalMilliseconds) can lead to inconsistent result.
             TimeSpan totalTimeTakenWithNoPollInterval = stopwatch.Elapsed;
 
             await ExecuteProcessAsync(pollIntervalDuringCatchup);
