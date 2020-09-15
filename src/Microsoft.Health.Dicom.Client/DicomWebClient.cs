@@ -64,6 +64,7 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
             Uri requestUri,
+            string mediaType,
             string dicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
@@ -71,7 +72,7 @@ namespace Microsoft.Health.Dicom.Client
             {
                 request.Headers.TryAddWithoutValidation(
                     "Accept",
-                    CreateAcceptHeader(CreateMultipartMediaTypeHeader(ApplicationOctetStreamContentType), dicomTransferSyntax));
+                    CreateAcceptHeader(CreateMultipartMediaTypeHeader(mediaType), dicomTransferSyntax));
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
