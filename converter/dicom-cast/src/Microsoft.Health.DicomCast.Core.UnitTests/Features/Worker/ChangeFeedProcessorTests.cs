@@ -114,6 +114,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             // Comparing type long (stopwatch.ElapsedMilliseconds) with double(pollIntervalDuringCatchup.TotalMilliseconds) can lead to inconsistent results.
             TimeSpan totalTimeTakenWithPollInterval = stopwatch.Elapsed;
 
+            pollIntervalDuringCatchup = TimeSpan.FromMilliseconds(45);
+
+            Console.WriteLine("TimeTaken by Process" + totalTimeTakenWithPollInterval.TotalMilliseconds);
             Assert.True(totalTimeTakenWithPollInterval.TotalMilliseconds >= pollIntervalDuringCatchup.TotalMilliseconds);
         }
 
