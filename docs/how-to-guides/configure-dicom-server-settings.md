@@ -8,13 +8,13 @@ To configure your Medical Imaging Server for DICOM, you need to have an instance
 
 ## Manage Authentication
 
-To configure authentication for the Medical Imaging Server for DICOM using Azure AD, see [Enable Authentication with Tokens](../docs/how-to-guides/enable-authentication-with-tokens.md)
+To configure authentication for the Medical Imaging Server for DICOM using Azure AD, see [Enable Authentication with Tokens](../docs/how-to-guides/enable-authentication-with-tokens.md).
 
-To manage authentication in development and test scenarios without AAD integration using an Identity Provider, see [Identity Server Authentication](../development/identity-server-authentication.md)
+To manage authentication in development and test scenarios without AAD integration using an Identity Provider, see [Identity Server Authentication](../development/identity-server-authentication.md).
 
 ## Manage Azure App Service
 
-The S1 tier is the default App Service Plan SKU enabled upon deployment. Azure offers a variety of plans to meet your production workload requirements. To learn more about the various plans, view the [App Service pricing](https://azure.microsoft.com/en-us/pricing/details/app-service/windows/).
+The S1 tier is the default App Service Plan SKU enabled upon deployment. Azure offers a variety of plans to meet your production workload requirements. To learn more about the various plans, view the [App Service pricing](https://azure.microsoft.com/pricing/details/app-service/windows/).
 
 If you would like to Scale Up your App Service plan to a different tier:
 
@@ -33,7 +33,7 @@ In addition to Scale Up, you can also Scale Out your App Service Plan to meet th
 
 ## Manage SQL Database
 
-The Standard tier of the DTU-based SQL performance tiers is enabled by default upon deployment. In DTU-based SQL purchase models, a fixed set of resources is assigned to the database via performance tiers: Basic, Standard and Premium. To learn more about the various tiers, view the [Azure SQL Database Pricing](https://azure.microsoft.com/en-us/pricing/details/sql-database/single/).
+The Standard tier of the DTU-based SQL performance tiers is enabled by default upon deployment. In DTU-based SQL purchase models, a fixed set of resources is assigned to the database via performance tiers: Basic, Standard and Premium. To learn more about the various tiers, view the [Azure SQL Database Pricing](https://azure.microsoft.com/pricing/details/sql-database/single/).
 
 If you would like to update your SQL Database tier:
 
