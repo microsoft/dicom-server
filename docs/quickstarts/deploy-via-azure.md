@@ -49,6 +49,7 @@ Once deployment is complete you can use the Azure Portal to navigate to t
 
 To get started using your newly deployed Medical Imaging Server for DICOM, refer to the following documents:
 
+* [Configure Medical Imaging Server for DICOM](../how-to-guides/configure-dicom-server-settings.md)
 * [Use Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md)
 * [Upload DICOM files via the Electron Tool](../../tools/dicom-web-electron)
 * [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md)
