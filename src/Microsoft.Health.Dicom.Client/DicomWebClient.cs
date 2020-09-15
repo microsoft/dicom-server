@@ -109,9 +109,20 @@ namespace Microsoft.Health.Dicom.Client
                 {
                     await EnsureSuccessStatusCodeAsync(response);
 
-                    return new DicomWebResponse<IReadOnlyList<DicomFile>>(
-                        response,
-                        (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken)).Select(x => DicomFile.Open(x)).ToList());
+                    if (singleInstance)
+                    {
+                        var memoryStream = GetMemoryStream();
+                        await response.Content.CopyToAsync(memoryStream);
+                        memoryStream.Seek(0, SeekOrigin.Begin);
+                        var dicomFile = await DicomFile.OpenAsync(memoryStream);
+                        return new DicomWebResponse<IReadOnlyList<DicomFile>>(response, new DicomFile[] { dicomFile });
+                    }
+                    else
+                    {
+                        return new DicomWebResponse<IReadOnlyList<DicomFile>>(
+                            response,
+                            (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken)).Select(x => DicomFile.Open(x)).ToList());
+                    }
                 }
             }
         }
