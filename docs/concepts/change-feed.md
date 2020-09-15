@@ -30,8 +30,8 @@ Metadata            | object    | Optionally, the current DICOM metadata if the 
 
 #### States
 
-State    | Description 
-:------- | :--- 
+State    | Description
+:------- | :---
 current  | This instance is the current version.
 replaced | This instance has been replaced by a new version.
 deleted  | This instance has been deleted and is no longer available in the service.
@@ -80,6 +80,7 @@ includemetadata | bool | Whether or not to include the metadata (default: true)
 ### Get latest change feed item
 
 **Route**: /changefeed/latest?includemetadata={**true**|false}
+
 ```
 {
     "Sequence": 2,
@@ -103,8 +104,8 @@ includemetadata | bool | Whether or not to include the metadata (default: true)
 
 ## Usage
 
-
 ### DICOM Cast
+
 [DICOM Cast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from change feed, transforms and publishes them to a configured FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
 
 ### Example Usage Flow
