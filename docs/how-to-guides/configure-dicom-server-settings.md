@@ -4,7 +4,7 @@ This How-to Guide explains how to configure settings for the Medical Imaging Ser
 
 ## Prerequisites
 
-In order to use the DICOM Web Standard APIs, you must have an instance of the Medical Imaging Server for DICOM deployed. If you have not already deployed the Medical Imaging Server, follow the instructions [here](../quickstarts/deploy-via-azure.md)
+To configure your Medical Imaging Server for DICOM, you need to have an instance deployed. If you have not already deployed the Medical Imaging Server, follow the instructions [here](../quickstarts/deploy-via-azure.md)
 
 ## Manage Authentication
 
@@ -56,3 +56,7 @@ If you would like to update your SQL Database tier:
 1. Select **DicomServer:Features:EnableOhifViewer**.
 1. Update the **Value** to *False* and select **Ok**.
 1. Click **Save** to update the setting.
+
+## Summary
+
+This How-to Guide explains=ed how to configure settings for the Medical Imaging Server for DICOM after deployment. Once your Medical Imaging Server for DICOM is deployed and configured, you can [Use Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md).
