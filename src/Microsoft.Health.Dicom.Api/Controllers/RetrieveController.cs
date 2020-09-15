@@ -149,7 +149,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return new ObjectResult(response.ResponseStreams.First())
+            {
+                StatusCode = (int)HttpStatusCode.OK,
+            };
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
