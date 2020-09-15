@@ -108,16 +108,19 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             _fhirTransactionPipeline.When(processor => processor.ProcessAsync(changeFeeds1[0], DefaultCancellationToken)).Do(_ => stopwatch.Start());
             _fhirTransactionPipeline.When(processor => processor.ProcessAsync(changeFeeds2[0], DefaultCancellationToken)).Do(_ => stopwatch.Stop());
 
-            await ExecuteProcessAsync(pollIntervalDuringCatchup);
+            await ExecuteProcessAsync();
 
             // Using stopwatch.Elapsed instead of stopwatch.ElapsedMilliseconds to get the totalmilliseconds in double type.
             // Comparing type long (stopwatch.ElapsedMilliseconds) with double(pollIntervalDuringCatchup.TotalMilliseconds) can lead to inconsistent results.
+            TimeSpan totalTimeTakenWithNoPollInterval = stopwatch.Elapsed;
+
+            await ExecuteProcessAsync(pollIntervalDuringCatchup);
+
             TimeSpan totalTimeTakenWithPollInterval = stopwatch.Elapsed;
 
-            pollIntervalDuringCatchup = TimeSpan.FromMilliseconds(45);
-
+            Console.WriteLine("TimeTaken by Process No PollInterview" + totalTimeTakenWithNoPollInterval.TotalMilliseconds);
             Console.WriteLine("TimeTaken by Process" + totalTimeTakenWithPollInterval.TotalMilliseconds);
-            Assert.True(totalTimeTakenWithPollInterval.TotalMilliseconds >= pollIntervalDuringCatchup.TotalMilliseconds);
+            Assert.True(totalTimeTakenWithPollInterval.TotalMilliseconds >= totalTimeTakenWithNoPollInterval.TotalMilliseconds);
         }
 
         [Fact]
