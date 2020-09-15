@@ -59,4 +59,4 @@ If you would like to update your SQL Database tier:
 
 ## Summary
 
-This How-to Guide explains=ed how to configure settings for the Medical Imaging Server for DICOM after deployment. Once your Medical Imaging Server for DICOM is deployed and configured, you can [Use Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md).
+This How-to Guide explained how to configure settings for the Medical Imaging Server for DICOM after deployment. Once your Medical Imaging Server for DICOM is deployed and configured, you can [Use Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md).
