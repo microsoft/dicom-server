@@ -28,11 +28,11 @@ The Medical Imaging Server for DICOM needs an Azure subscription to configure an
 
 ![resource-deployment](../images/dicom-deployment-architecture.png)
 
-- **Azure SQL Server**: Indexes a subset of the Medical Imaging Server for DICOM metadata to support queries and to maintain a queryable log of changes.
-- **Azure App Service Plan**: Hosts the Medical Imaging Service for DICOM.
+- **Azure SQL**: Indexes a subset of the Medical Imaging Server for DICOM metadata to support queries and to maintain a queryable log of changes.
+- **App Service Plan**: Hosts the Medical Imaging Service for DICOM.
 - **Azure Key Vault**: Stores critical security information.
-- **Azure Blob Storage**: Persists all Medical Imaging Server for DICOM data and metadata.
-- **Azure Application Insights** (optional): Monitors performance of Medical Imaging Server for DICOM.
+- **Storage Account**: Blob Storage which persists all Medical Imaging Server for DICOM data and metadata.
+- **Application Insights** (optional): Monitors performance of Medical Imaging Server for DICOM.
 - **Azure Container Instance** (optional): Hosts the DICOM Cast service for FHIR integration.
 - **Azure API for FHIR** (optional): Persists the DICOM metadata alongside other clinical data.
 
