@@ -23,18 +23,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     /// </summary>
     public class DicomInstanceEntryReaderForIndividualRequest : IDicomInstanceEntryReader
     {
-        // private readonly IMultipartReaderFactory _multipartReaderFactory;
         private readonly ILogger _logger;
+        private readonly ISeekableStreamConverter _seekableStreamConverter;
 
         public DicomInstanceEntryReaderForIndividualRequest(
             ILogger<DicomInstanceEntryReaderForMultipartRequest> logger,
             ISeekableStreamConverter seekableStreamConverter)
         {
-            // EnsureArg.IsNotNull(multipartReaderFactory, nameof(multipartReaderFactory));
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
 
-            // _multipartReaderFactory = multipartReaderFactory;
             _logger = logger;
+            _seekableStreamConverter = seekableStreamConverter;
         }
 
         /// <inheritdoc />
@@ -50,30 +50,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
             EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
             EnsureArg.IsNotNull(body, nameof(body));
 
-            // IMultipartReader multipartReader = _multipartReaderFactory.Create(contentType, body);
-
             var dicomInstanceEntries = new List<StreamOriginatedDicomInstanceEntry>();
-
-            // dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(body));
-
-            // MultipartBodyPart bodyPart;
 
             try
             {
-                dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(body));
-
-                /*while ((bodyPart = await multipartReader.ReadNextBodyPartAsync(cancellationToken)) != null)
+                if (!KnownContentTypes.ApplicationDicom.Equals(contentType, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    // Check the content type to make sure we can process.
-                    if (!KnownContentTypes.ApplicationDicom.Equals(bodyPart.ContentType, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        // TODO: Currently, we only support application/dicom. Support for metadata + bulkdata is coming.
-                        throw new UnsupportedMediaTypeException(
-                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, bodyPart.ContentType));
-                    }
+                    // TODO: Currently, we only support application/dicom. Support for metadata + bulkdata is coming.
+                    throw new UnsupportedMediaTypeException(
+                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, contentType));
+                }
 
-                    dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(bodyPart.SeekableStream));
-                }*/
+                Stream seekableStream = await _seekableStreamConverter.ConvertAsync(body);
+                dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(seekableStream));
             }
             catch (Exception)
             {
