@@ -20,9 +20,10 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IDisposable
     {
         private readonly DicomWebClient _client;
+        private HashSet<string> _createdDicomStudies = new HashSet<string>();
 
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
@@ -246,6 +247,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             await _client.StoreAsync(new[] { dicomFile1 });
 
+            _createdDicomStudies.Add(dicomFile1.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
+
             return dicomFile1.Dataset;
         }
 
@@ -332,6 +335,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 JsonConvert.SerializeObject(expectedDataset, jsonDicomConverter),
                 JsonConvert.SerializeObject(responseInstance, jsonDicomConverter));
             Assert.Equal(expectedDataset.Count(), responseInstance.Count());
+        }
+
+        void IDisposable.Dispose()
+        {
+            // xunit does not seem to call IAsyncDispose.DisposeAsync()
+            // Also wait should be okay in a test context
+            foreach (string studyUid in _createdDicomStudies)
+            {
+                _client.DeleteStudyAsync(studyUid).Wait();
+            }
+
+            _createdDicomStudies.Clear();
         }
     }
 }
