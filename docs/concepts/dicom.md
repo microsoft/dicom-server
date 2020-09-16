@@ -27,16 +27,14 @@ FHIR is becoming an important standard for clinical data and provides extensibil
 The Medical Imaging Server for DICOM needs an Azure subscription to configure and run the required components. These components are, by default, created inside of an existing or new Azure Resource Group to simplify management. Additionally, an Azure Active Directory account is required. The diagram below depicts all of the resources created within your resource group.
 
 ![resource-deployment](../images/dicom-deployment-architecture.png)
-<TODO: Add updated image to include ACI and FHIR>
 
-
-- **SQL Server**: Indexes a subset of the Medical Imaging Server for DICOM metadata to support queries and to maintain a queryable log of changes.
-- **Storage Blob**: Persists all Medical Imaging Server for DICOM data and metadata
-- **App Service Plan**: Hosts the Medical Imaging Service for DICOM
-- **Azure Key Vault**: Stores critical security information
-- **Application Insights** (optional): Monitors performance of Medical Imaging Server for DICOM
-- **Azure Container Instance** (optional): Hosts the DICOM Cast service for FHIR integration
-- **Azure API for FHIR** (optional): Persists the DICOM metadata alongside other clinical data
+- **Azure SQL Server**: Indexes a subset of the Medical Imaging Server for DICOM metadata to support queries and to maintain a queryable log of changes.
+- **Azure App Service Plan**: Hosts the Medical Imaging Service for DICOM.
+- **Azure Key Vault**: Stores critical security information.
+- **Azure Blob Storage**: Persists all Medical Imaging Server for DICOM data and metadata.
+- **Azure Application Insights** (optional): Monitors performance of Medical Imaging Server for DICOM.
+- **Azure Container Instance** (optional): Hosts the DICOM Cast service for FHIR integration.
+- **Azure API for FHIR** (optional): Persists the DICOM metadata alongside other clinical data.
 
 ## Summary
 
