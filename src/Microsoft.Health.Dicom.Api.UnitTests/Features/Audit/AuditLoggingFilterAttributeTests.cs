@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,7 @@ using Microsoft.Health.Core.Features.Security;
 using Microsoft.Health.Dicom.Api.UnitTests.Features.Filters;
 using NSubstitute;
 using Xunit;
+using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 {
@@ -22,13 +24,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
         private readonly IClaimsExtractor _claimsExtractor = Substitute.For<IClaimsExtractor>();
         private readonly IAuditHelper _auditHelper = Substitute.For<IAuditHelper>();
 
-        private readonly AuditLoggingFilterAttribute _filter;
+        private readonly DicomAudit.AuditLoggingFilterAttribute _filter;
 
         private readonly HttpContext _httpContext = new DefaultHttpContext();
 
         public AuditLoggingFilterAttributeTests()
         {
-            _filter = new AuditLoggingFilterAttribute(_claimsExtractor, _auditHelper);
+            _filter = new DicomAudit.AuditLoggingFilterAttribute(_claimsExtractor, _auditHelper);
         }
 
         [Fact]
@@ -43,6 +45,23 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
             _filter.OnActionExecuting(actionExecutingContext);
 
             _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+        }
+
+        [Fact]
+        public void GivenChangeFeedController_WhenExecutedActionThrowsException_ThenAuditLogShouldBeLogged()
+        {
+            var result = new NoContentResult();
+
+            var actionExecutedContext = new ActionExecutedContext(
+                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed ChangeFeed." }),
+                new List<IFilterMetadata>(),
+                FilterTestsHelper.CreateMockChangeFeedController());
+
+            actionExecutedContext.Exception = new Exception("Test Exception.");
+
+            _filter.OnActionExecuted(actionExecutedContext);
+
+            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
         }
 
         [Fact]
@@ -76,6 +95,23 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
         }
 
         [Fact]
+        public void GivenDeleteController_WhenExecutedActionThrowsException_ThenAuditLogShouldBeLogged()
+        {
+            var result = new NoContentResult();
+
+            var actionExecutedContext = new ActionExecutedContext(
+                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Delete." }),
+                new List<IFilterMetadata>(),
+                FilterTestsHelper.CreateMockDeleteController());
+
+            actionExecutedContext.Exception = new Exception("Test Exception.");
+
+            _filter.OnActionExecuted(actionExecutedContext);
+
+            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+        }
+
+        [Fact]
         public void GivenDeleteController_WhenExecutedAction_ThenAuditLogShouldBeLogged()
         {
             var result = new NoContentResult();
@@ -103,6 +139,23 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
             _filter.OnActionExecuting(actionExecutingContext);
 
             _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+        }
+
+        [Fact]
+        public void GivenQueryController_WhenExecutedActionThrowsException_ThenAuditLogShouldBeLogged()
+        {
+            var result = new NoContentResult();
+
+            var actionExecutedContext = new ActionExecutedContext(
+                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Query." }),
+                new List<IFilterMetadata>(),
+                FilterTestsHelper.CreateMockQueryController());
+
+            actionExecutedContext.Exception = new Exception("Test Exception.");
+
+            _filter.OnActionExecuted(actionExecutedContext);
+
+            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
         }
 
         [Fact]
@@ -136,6 +189,23 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
         }
 
         [Fact]
+        public void GivenRetrieveController_WhenExecutedActionThrowsException_ThenAuditLogShouldBeLogged()
+        {
+            var result = new NoContentResult();
+
+            var actionExecutedContext = new ActionExecutedContext(
+                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Retrieve." }),
+                new List<IFilterMetadata>(),
+                FilterTestsHelper.CreateMockRetrieveController());
+
+            actionExecutedContext.Exception = new Exception("Test Exception.");
+
+            _filter.OnActionExecuted(actionExecutedContext);
+
+            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+        }
+
+        [Fact]
         public void GivenRetrieveController_WhenExecutedAction_ThenAuditLogShouldBeLogged()
         {
             var result = new NoContentResult();
@@ -163,6 +233,23 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
             _filter.OnActionExecuting(actionExecutingContext);
 
             _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+        }
+
+        [Fact]
+        public void GivenStoreController_WhenExecutedActionThrowsException_ThenAuditLogShouldBeLogged()
+        {
+            var result = new NoContentResult();
+
+            var actionExecutedContext = new ActionExecutedContext(
+                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Store." }),
+                new List<IFilterMetadata>(),
+                FilterTestsHelper.CreateMockStoreController());
+
+            actionExecutedContext.Exception = new Exception("Test Exception.");
+
+            _filter.OnActionExecuted(actionExecutedContext);
+
+            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
         }
 
         [Fact]

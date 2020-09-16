@@ -15,11 +15,12 @@ using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [ModelStateValidator]
-    [ServiceFilter(typeof(AuditLoggingFilterAttribute))]
+    [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class ChangeFeedController : Controller
     {
         private readonly IMediator _mediator;
