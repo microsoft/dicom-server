@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            return CreateResult(response, KnownContentTypes.ApplicationDicom);
+            return CreateResult(response);
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
                 studyInstanceUid, seriesInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            return CreateResult(response, KnownContentTypes.ApplicationDicom);
+            return CreateResult(response);
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
@@ -150,7 +150,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            return CreateResult(response, KnownContentTypes.ApplicationDicom);
+            return new ObjectResult(response.ResponseStreams.First())
+            {
+                StatusCode = (int)HttpStatusCode.OK,
+            };
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
@@ -194,7 +197,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            return CreateResult(response, KnownContentTypes.ApplicationOctetStream);
+            return CreateResult(response);
         }
 
         private static IActionResult CreateResult(RetrieveMetadataResponse response)
@@ -202,9 +205,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return new MetadataResult(response);
         }
 
-        private static IActionResult CreateResult(RetrieveResourceResponse response, string contentType)
+        private static IActionResult CreateResult(RetrieveResourceResponse response)
         {
-            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(contentType, x)).ToList());
+            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(response.ContentType, x)).ToList());
         }
     }
 }

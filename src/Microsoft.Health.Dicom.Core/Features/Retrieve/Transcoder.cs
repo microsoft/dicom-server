@@ -3,13 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
 using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;
+using Efferent.Native.Codec;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.IO;
 
@@ -18,21 +21,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public class Transcoder : ITranscoder
     {
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly ILogger<Transcoder> _logger;
+        private static readonly Action<ILogger, int, string, string, Exception> LogTranscodingFrameErrorDelegate = LoggerMessage.Define<int, string, string>(
+           logLevel: LogLevel.Error,
+           eventId: default,
+           formatString: "Failed to transcode frame {FrameIndex} from {InputTransferSyntax} to {OutputTransferSyntax}");
 
-        public Transcoder(
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager)
-            : this(recyclableMemoryStreamManager, null)
-        {
-        }
+        private static readonly Action<ILogger, string, string, Exception> LogTranscodingFileErrorDelegate = LoggerMessage.Define<string, string>(
+          logLevel: LogLevel.Error,
+          eventId: default,
+          formatString: "Failed to transcode dicom file from {InputTransferSyntax} to {OutputTransferSyntax}");
 
-        public Transcoder(RecyclableMemoryStreamManager recyclableMemoryStreamManager, TranscoderManager transcoderManager)
+        public Transcoder(RecyclableMemoryStreamManager recyclableMemoryStreamManager, ILogger<Transcoder> logger)
         {
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+            EnsureArg.IsNotNull(logger, nameof(logger));
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
-            if (transcoderManager != null)
-            {
-                TranscoderManager.SetImplementation(transcoderManager);
-            }
+            _logger = logger;
+
+            // Use Efferent transcoder
+            TranscoderManager.SetImplementation(new NativeTranscoderManager());
         }
 
         public async Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax)
@@ -82,8 +90,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 DicomDataset result = transcoder.Transcode(datasetForFrame);
                 return DicomPixelData.Create(result).GetFrame(0);
             }
-            catch
+            catch (Exception ex)
             {
+                LogTranscodingFrameErrorDelegate(_logger, frameIndex, dataset?.InternalTransferSyntax?.UID?.UID, targetSyntax?.UID?.UID, ex);
                 throw new TranscodingException();
             }
         }
@@ -106,8 +115,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     requestedTransferSyntax);
                 dicomFile = transcoder.Transcode(dicomFile);
             }
-            catch
+            catch (Exception ex)
             {
+                LogTranscodingFileErrorDelegate(_logger, dicomFile?.Dataset?.InternalTransferSyntax?.UID?.UID, requestedTransferSyntax?.UID?.UID, ex);
+
                 // TODO: Reevaluate this while fixing transcoding handling.
                 // We catch all here as Transcoder can throw a wide variety of things.
                 // Basically this means codec failure - a quite extraordinary situation, but not impossible

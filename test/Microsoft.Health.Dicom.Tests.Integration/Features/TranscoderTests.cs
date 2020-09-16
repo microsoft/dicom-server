@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
 using Microsoft.IO;
@@ -30,10 +31,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         public TranscoderTests()
         {
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-            _transcoder = new Transcoder(_recyclableMemoryStreamManager);
+            _transcoder = new Transcoder(_recyclableMemoryStreamManager, NullLogger<Transcoder>.Instance);
         }
 
-        [Theory(Skip = "fodicom bug https://github.com/fo-dicom/fo-dicom/issues/1099 ([.NetCore]Encoding to JPEG2000Lossless is not handled correctly")]
+        [Theory]
         [MemberData(nameof(GetTestDatas), TestDataRootFolderForEncode)]
         public async Task GivenUncompressedDicomFile_WhenRequestEncoding_ThenTranscodingShouldSucceed(string testDataFolder)
         {

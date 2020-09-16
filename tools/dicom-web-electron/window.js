@@ -106,9 +106,14 @@ $(() => {
         window.api.send("postFile", { url, bearerToken, files });
     })
 
-    window.api.receive("errorEncountered", (data) => {
+    window.api.receive("httpErrorEncountered", (status) => {
         errorDisplay.toggle()
-        errorMessage.html('Status code returned: ' + data)
+        errorMessage.html('Status code returned: ' + status)
+    });
+
+    window.api.receive("errorEncountered", (message) => {
+        errorDisplay.toggle()
+        errorMessage.html(message)
     });
 
     window.api.receive("success", (data) => {
