@@ -9,7 +9,7 @@ This How-to Guide shows you how to configure the authentication settings for the
 
 ## Prerequisites
 
-1. Deploy a [Medical Imaing Server for DICOM to Azure](../quickstarts/deploy-via-azure.md).
+1. Deploy a [Medical Imaging Server for DICOM to Azure](../quickstarts/deploy-via-azure.md).
 1. This tutorial requires an Azure AD tenant. If you have not created a tenant, see [Create a new tenant in Azure Active Directory](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-access-create-new-tenant).
 
 ## Authentication Settings Overview
