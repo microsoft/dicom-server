@@ -20,11 +20,12 @@ using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Web;
+using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [ModelStateValidator]
-    [ServiceFilter(typeof(AuditLoggingFilterAttribute))]
+    [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class QueryController : Controller
     {
         private readonly IMediator _mediator;
