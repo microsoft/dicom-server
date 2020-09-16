@@ -18,26 +18,26 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
 {
-    public class DicomInstanceEntryReaderForMultipartRequestTests
+    public class DicomInstanceEntryReaderForApplicactionDicomRequestTests
     {
-        private const string DefaultContentType = "multipart/related; boundary=123";
+        private const string DefaultContentType = "application/dicom";
         private const string DefaultBodyPartContentType = "application/dicom";
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
-        private readonly IMultipartReaderFactory _multipartReaderFactory = Substitute.For<IMultipartReaderFactory>();
-        private readonly DicomInstanceEntryReaderForMultipartRequest _dicomInstanceEntryReader;
+        private readonly ISeekableStreamConverter _seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
+        private readonly DicomInstanceEntryReaderForApplicationDicomRequest _dicomInstanceEntryReader;
 
         private Stream _stream = new MemoryStream();
 
-        public DicomInstanceEntryReaderForMultipartRequestTests()
+        public DicomInstanceEntryReaderForApplicactionDicomRequestTests()
         {
-            _dicomInstanceEntryReader = new DicomInstanceEntryReaderForMultipartRequest(
-                _multipartReaderFactory,
-                NullLogger<DicomInstanceEntryReaderForMultipartRequest>.Instance);
+            _dicomInstanceEntryReader = new DicomInstanceEntryReaderForApplicationDicomRequest(
+                NullLogger<DicomInstanceEntryReaderForMultipartRequest>.Instance,
+                _seekableStreamConverter);
         }
 
         [Fact]
-        public void GivenAnInvalidContentType_WhenCanReadIsCalledForMultipartRequest_ThenFalseShouldBeReturned()
+        public void GivenAnInvalidContentType_WhenCanReadIsCalledForIndividualRequest_ThenFalseShouldBeReturned()
         {
             bool result = _dicomInstanceEntryReader.CanRead("dummy");
 
@@ -45,21 +45,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
         }
 
         [Fact]
-        public void GivenAnNonMultipartRelatedContentType_WhenCanReadIsCalled_ThenFalseShouldBeReturned()
+        public void GivenAnNonApplicationDicomContentType_WhenCanReadIsCalled_ThenFalseShouldBeReturned()
         {
-            bool result = _dicomInstanceEntryReader.CanRead("multipart/data-form; boundary=123");
+            bool result = _dicomInstanceEntryReader.CanRead("multipart/related; boundary=123");
 
             Assert.False(result);
         }
 
         [Fact]
-        public void GivenAMultipartRelatedContentType_WhenCanReadIsCalled_ThenTrueShouldBeReturned()
+        public void GivenAnApplicattionDicomContentType_WhenCanReadIsCalled_ThenTrueShouldBeReturned()
         {
             bool result = _dicomInstanceEntryReader.CanRead(DefaultContentType);
 
             Assert.True(result);
         }
 
+        /*
         [Fact]
         public void GivenBodyPartWithInvalidContentType_WhenReading_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
         {
@@ -129,18 +130,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
                 DefaultCancellationToken));
 
             Assert.Throws<ObjectDisposedException>(() => _stream.ReadByte());
-        }
-
-        private IMultipartReader SetupMultipartReader(Func<CallInfo, MultipartBodyPart> returnThis, params Func<CallInfo, MultipartBodyPart>[] returnThese)
-        {
-            IMultipartReader multipartReader = Substitute.For<IMultipartReader>();
-
-            multipartReader.ReadNextBodyPartAsync(DefaultCancellationToken).Returns(returnThis, returnThese);
-
-            _multipartReaderFactory.Create(DefaultContentType, _stream)
-                .Returns(multipartReader);
-
-            return multipartReader;
-        }
+        }*/
     }
 }

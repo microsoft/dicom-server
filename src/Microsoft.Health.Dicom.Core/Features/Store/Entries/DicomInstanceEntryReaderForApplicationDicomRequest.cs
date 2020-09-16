@@ -21,12 +21,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     /// <summary>
     /// Provides functionality to read DICOM instance entries from HTTP application/dicom request.
     /// </summary>
-    public class DicomInstanceEntryReaderForIndividualRequest : IDicomInstanceEntryReader
+    public class DicomInstanceEntryReaderForApplicationDicomRequest : IDicomInstanceEntryReader
     {
         private readonly ILogger _logger;
         private readonly ISeekableStreamConverter _seekableStreamConverter;
 
-        public DicomInstanceEntryReaderForIndividualRequest(
+        public DicomInstanceEntryReaderForApplicationDicomRequest(
             ILogger<DicomInstanceEntryReaderForMultipartRequest> logger,
             ISeekableStreamConverter seekableStreamConverter)
         {

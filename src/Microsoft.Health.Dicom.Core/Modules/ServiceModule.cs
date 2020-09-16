@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomInstanceEntryReaderForIndividualRequest>()
+            services.Add<DicomInstanceEntryReaderForApplicationDicomRequest>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
