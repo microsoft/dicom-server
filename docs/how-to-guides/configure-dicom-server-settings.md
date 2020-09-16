@@ -8,7 +8,7 @@ To configure your Medical Imaging Server for DICOM, you need to have an instance
 
 ## Manage Authentication
 
-To configure authentication for the Medical Imaging Server for DICOM using Azure AD, see [Enable Authentication with Tokens](../docs/how-to-guides/enable-authentication-with-tokens.md).
+To configure authentication for the Medical Imaging Server for DICOM using Azure AD, see [Enable Authentication with Tokens](../how-to-guides/enable-authentication-with-tokens.md).
 
 To manage authentication in development and test scenarios without AAD integration using an Identity Provider, see [Identity Server Authentication](../development/identity-server-authentication.md).
 
