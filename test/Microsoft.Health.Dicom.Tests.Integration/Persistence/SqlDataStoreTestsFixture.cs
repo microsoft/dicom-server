@@ -7,6 +7,7 @@ using System;
 using System.Data.SqlClient;
 using System.Numerics;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -18,6 +19,7 @@ using Microsoft.Health.SqlServer.Configs;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Storage;
+using NSubstitute;
 using Polly;
 using Xunit;
 
@@ -53,7 +55,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var baseScriptProvider = new BaseScriptProvider();
 
-            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, config, NullLogger<SchemaUpgradeRunner>.Instance);
+            var mediator = Substitute.For<IMediator>();
+
+            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, config, mediator, NullLogger<SchemaUpgradeRunner>.Instance);
 
             var schemaInformation = new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V1);
 
