@@ -17,7 +17,7 @@ You can learn more about our support of the various DICOM Web Standard APIs in o
 
 ## Prerequisites
 
-In order to use the DICOMWeb Standard APIs, you must have an instance of the Medical Imaging Server for DICOM deployed. If you have not already deployed the Medical Imaging Server, follow the instructions [here](../quickstarts/deploy-via-azure.md).
+In order to use the DICOMWeb Standard APIs, you must have an instance of the Medical Imaging Server for DICOM deployed. If you have not already deployed the Medical Imaging Server, [Deploy the Medical Imaging Server to Azure](../quickstarts/deploy-via-azure.md).
 
 ## Overview of various methods to use with Medical Imaging Server for DICOM
 
