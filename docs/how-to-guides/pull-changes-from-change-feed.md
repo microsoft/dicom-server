@@ -6,8 +6,7 @@ The Change Feed is accessed using REST APIs documented in [Change Feed Concept](
 
 ## Consume Change Feed
 
-Sample C# code using the provided DICOM client package, full code is available at
-converter/dicom-cast/src/Microsoft.Health.DicomCast.Core/Features/DicomWeb/Service/ChangeFeedRetrieveService.cs
+Sample C# code using the provided DICOM client package:
 
 ```csharp
 public async Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long offset, CancellationToken cancellationToken)
@@ -28,6 +27,7 @@ public async Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long o
     return Array.Empty<ChangeFeedEntry>();
 }
 ```
+You can find the full code available here: [Consume Change Feed](../converter/dicom-cast/src/Microsoft.Health.DicomCast.Core/Features/DicomWeb/Service/ChangeFeedRetrieveService.cs)
 
 ## Summary
 
