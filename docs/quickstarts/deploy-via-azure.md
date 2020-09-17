@@ -37,7 +37,7 @@ Configure the remaining deployment settings for your Medical Imaging Server. The
 | Deploy OHIF Viewer | Deploy OHIF viewer that is configured for the DICOM server. (This is useful for testing, as OHIF supports viewing uploaded images.) | No |
 | Security Authentication Authority | OAuth Authority. See [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md) to update after deployment. | No |
 | Security Authentication Audience | Audience (aud) to validate in JWT. See [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md) to update after deployment. | No |
-| Solution Type | The type of the solution | No |
+| Solution Type | The type of the solution. | No |
 | Deploy Package | Webdeploy package specified by deployPackageUrl. | No |
 | Deploy Package Url | Webdeploy package to use as deployment code. If blank, the latest CI code package will be deployed. | No |
 
