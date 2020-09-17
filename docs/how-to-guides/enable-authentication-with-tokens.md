@@ -106,4 +106,4 @@ To obtain an access token using Postman:
 
 ## Summary
 
-In this How-to Guide, you learned how to configure the authentication settings for the Medical Imaging Server for DICOM through Azure. To learn how to manage authentication in development and test scenarios, see [Using Identity Server for Development](IdentityServerAuthentication.md).
+In this How-to Guide, you learned how to configure the authentication settings for the Medical Imaging Server for DICOM through Azure. To learn how to manage authentication in development and test scenarios, see [Using Identity Server for Development](../development/identity-server-authentication.md).
