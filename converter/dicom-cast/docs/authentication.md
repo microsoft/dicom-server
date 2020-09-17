@@ -72,7 +72,7 @@ There are currently two ways provided to store secrets within the application.
 
 ### User-Secrets
 
-User secrets are enabled when the `EnvironmentName` is `Development`. You can read more about the use of user secrets in [this article](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1).
+User secrets are enabled when the `EnvironmentName` is `Development`. You can read more about the use of user secrets in [Safe storage of app secrets in development in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-3.1).
 
 ### KeyVault
 
