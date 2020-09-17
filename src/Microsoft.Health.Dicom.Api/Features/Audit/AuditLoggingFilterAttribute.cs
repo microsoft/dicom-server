@@ -8,6 +8,7 @@ using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Core.Features.Security;
+using Microsoft.Health.Dicom.Api.Features.Exceptions;
 
 namespace Microsoft.Health.Dicom.Api.Features.Audit
 {
@@ -27,6 +28,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
 
             if (context.Exception != null)
             {
+                context.HttpContext.Response.StatusCode = (int)ExceptionHandlingHelper.GetStatusCode(context.Exception);
                 AuditHelper.LogExecuted(context.HttpContext, ClaimsExtractor);
             }
 

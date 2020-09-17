@@ -11,10 +11,6 @@ using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Abstractions.Exceptions;
-using Microsoft.Health.Api.Features.Audit;
-using Microsoft.Health.Dicom.Core.Exceptions;
-using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 
 namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 {
@@ -60,45 +56,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 
         private IActionResult MapExceptionToResult(Exception exception)
         {
-            HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
+            HttpStatusCode statusCode = ExceptionHandlingHelper.GetStatusCode(exception);
             string message = exception.Message;
-
-            switch (exception)
-            {
-                case ValidationException _:
-                case NotSupportedException _:
-                case AuditHeaderCountExceededException _:
-                case AuditHeaderTooLargeException _:
-                    statusCode = HttpStatusCode.BadRequest;
-                    break;
-                case ResourceNotFoundException _:
-                    statusCode = HttpStatusCode.NotFound;
-                    break;
-                case NotAcceptableException _:
-                case TranscodingException _:
-                    statusCode = HttpStatusCode.NotAcceptable;
-                    break;
-                case DataStoreException _:
-                    statusCode = HttpStatusCode.ServiceUnavailable;
-                    break;
-                case InstanceAlreadyExistsException _:
-                    statusCode = HttpStatusCode.Conflict;
-                    break;
-                case UnsupportedMediaTypeException _:
-                    statusCode = HttpStatusCode.UnsupportedMediaType;
-                    break;
-                case ServiceUnavailableException _:
-                    statusCode = HttpStatusCode.ServiceUnavailable;
-                    break;
-                case ItemNotFoundException _:
-                    // One of the required resources is missing.
-                    statusCode = HttpStatusCode.InternalServerError;
-                    break;
-                case DicomServerException _:
-                    _logger.LogWarning(exception, "Service exception.");
-                    statusCode = HttpStatusCode.ServiceUnavailable;
-                    break;
-            }
 
             if (statusCode == HttpStatusCode.InternalServerError)
             {
