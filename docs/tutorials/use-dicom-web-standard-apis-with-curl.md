@@ -257,7 +257,7 @@ _Details:_
 
 ## Delete DICOM 
 ---
-### Delete-a-specific-instance-within-a-study -and-series
+### Delete-a-specific-instance-within-a-study-and-series
 
 This request deletes a single instance within a single study and single series.
 
