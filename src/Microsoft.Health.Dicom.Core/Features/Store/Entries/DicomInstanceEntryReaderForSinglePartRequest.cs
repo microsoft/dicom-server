@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,13 +20,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     /// <summary>
     /// Provides functionality to read DICOM instance entries from HTTP application/dicom request.
     /// </summary>
-    public class DicomInstanceEntryReaderForApplicationDicomRequest : IDicomInstanceEntryReader
+    public class DicomInstanceEntryReaderForSinglePartRequest : IDicomInstanceEntryReader
     {
         private readonly ILogger _logger;
         private readonly ISeekableStreamConverter _seekableStreamConverter;
 
-        public DicomInstanceEntryReaderForApplicationDicomRequest(
-            ILogger<DicomInstanceEntryReaderForMultipartRequest> logger,
+        public DicomInstanceEntryReaderForSinglePartRequest(
+            ILogger<DicomInstanceEntryReaderForSinglePartRequest> logger,
             ISeekableStreamConverter seekableStreamConverter)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -52,41 +51,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 
             var dicomInstanceEntries = new List<StreamOriginatedDicomInstanceEntry>();
 
-            try
+            if (!KnownContentTypes.ApplicationDicom.Equals(contentType, StringComparison.InvariantCultureIgnoreCase))
             {
-                if (!KnownContentTypes.ApplicationDicom.Equals(contentType, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    // TODO: Currently, we only support application/dicom. Support for metadata + bulkdata is coming.
-                    throw new UnsupportedMediaTypeException(
-                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, contentType));
-                }
-
-                Stream seekableStream = await _seekableStreamConverter.ConvertAsync(body);
-                dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(seekableStream));
+                // TODO: Currently, we only support application/dicom. Support for metadata + bulkdata is coming.
+                throw new UnsupportedMediaTypeException(
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, contentType));
             }
-            catch (Exception)
-            {
-                // Encountered an error while processing, release all resources.
-                IEnumerable<Task> disposeTasks = dicomInstanceEntries.Select(DisposeResourceAsync);
 
-                await Task.WhenAll(disposeTasks);
-
-                throw;
-            }
+            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(body);
+            dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(seekableStream));
 
             return dicomInstanceEntries;
-        }
-
-        private async Task DisposeResourceAsync(IDicomInstanceEntry resource)
-        {
-            try
-            {
-                await resource.DisposeAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to dispose the resource.");
-            }
         }
     }
 }

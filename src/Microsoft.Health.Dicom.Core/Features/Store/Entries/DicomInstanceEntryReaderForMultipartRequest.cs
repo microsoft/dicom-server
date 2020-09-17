@@ -69,6 +69,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
                     }
 
                     dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(bodyPart.SeekableStream));
+                    await bodyPart.SeekableStream.DisposeAsync();
                 }
             }
             catch (Exception)

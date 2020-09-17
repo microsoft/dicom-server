@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -49,14 +50,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, message.RequestContentType));
             }
 
-            // Read list of entries.
-            IReadOnlyList<IDicomInstanceEntry> instanceEntries = await dicomInstanceEntryReader.ReadAsync(
-                    message.RequestContentType,
-                    message.RequestBody,
-                    cancellationToken);
+            await using (Stream stream = message.RequestBody)
+            {
+                // Read list of entries.
+                IReadOnlyList<IDicomInstanceEntry> instanceEntries = await dicomInstanceEntryReader.ReadAsync(
+                        message.RequestContentType,
+                        stream,
+                        cancellationToken);
 
-            // Process list of entries.
-            return await _storeService.ProcessAsync(instanceEntries, message.StudyInstanceUid, cancellationToken);
+                // Process list of entries.
+                return await _storeService.ProcessAsync(instanceEntries, message.StudyInstanceUid, cancellationToken);
+            }
         }
     }
 }
