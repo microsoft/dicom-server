@@ -45,6 +45,6 @@ To use the Postman collection, you'll need to download the collection locally an
 
 This tutorial provided an overview of the APIs supported by the Medical Imaging Server for DICOM. Get started using these APIs with the following tools:
 
-- [Use DICOM Web Standard APIs with C#](../tutorials/use-dicom-web-standard-apis-with-c%23.md)
-- [Use DICOM Web Standard APIs with cURL](../tutorials/use-dicom-web-standard-apis-with-curl.md)
+- [Use DICOM Web Standard APIs with C#](../use-dicom-web-standard-apis-with-c%23.md)
+- [Use DICOM Web Standard APIs with cURL](../use-dicom-web-standard-apis-with-curl.md)
 - [Use DICOM Web Standard APIs with Postman Example Collection](../resources/Conformance-as-Postman.postman_collection.json)
