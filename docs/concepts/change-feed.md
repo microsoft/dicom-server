@@ -8,12 +8,12 @@ You can process these change events asynchronously, incrementally or in-full. An
 
 ## API Design
 
-The API exposes two `GET` endpoints for interacting with the change feed. A typical flow for consuming the change feed is [provided below](#example-usage-flow).
+The API exposes two `GET` endpoints for interacting with the Change Feed. A typical flow for consuming the Change Feed is [provided below](#example-usage-flow).
 
 Verb | Route              | Returns     | Description
 :--- | :----------------- | :---------- | :---
-GET  | /changefeed        | Json Array  | [Read the change feed](#read-change-feed)
-GET  | /changefeed/latest | Json Object | [Read the latest entry in the change feed](#get-latest-change-feed-item)
+GET  | /changefeed        | Json Array  | [Read the Change Feed](#read-change-feed)
+GET  | /changefeed/latest | Json Object | [Read the latest entry in the Change Feed](#get-latest-change-feed-item)
 
 ### Object model
 
@@ -36,7 +36,7 @@ current  | This instance is the current version.
 replaced | This instance has been replaced by a new version.
 deleted  | This instance has been deleted and is no longer available in the service.
 
-### Read change feed
+### Read Change Feed
 
 **Route**: /changefeed?offset={int}&limit={int}&includemetadata={**true**|false}
 ```
@@ -77,7 +77,7 @@ offset          | int  | The number of records to skip before the values to retu
 limit           | int  | The number of records to return (default: 10, min: 1, max: 100)
 includemetadata | bool | Whether or not to include the metadata (default: true)
 
-### Get latest change feed item
+### Get latest Change Feed item
 
 **Route**: /changefeed/latest?includemetadata={**true**|false}
 
@@ -106,18 +106,18 @@ includemetadata | bool | Whether or not to include the metadata (default: true)
 
 ### DICOM Cast
 
-[DICOM Cast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from change feed, transforms and publishes them to a configured FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
+[DICOM Cast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from Change Feed, transforms and publishes them to a configured FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
 
 ### Example Usage Flow
 
 Below is the flow for an example application that wants to do additional processing on the instances within the DICOM service.
 
-1. Application that wants to monitor the change feed starts.
+1. Application that wants to monitor the Change Feed starts.
 2. It determines if there's a current state that it should start with:
    * If it has a state, it uses the offset (sequence) stored.
    * If it has never started and wants to start from beginning it uses offset=0  
    * If it only wants to process from now, it queries `/changefeed/latest` to obtain the last sequence
-3. It queries the change feed with the given offset `/changefeed?offset={offset}`
+3. It queries the Change Feed with the given offset `/changefeed?offset={offset}`
 4. If there are entries:
    * It performs additional processing  
    * It updates it's current state  
@@ -136,7 +136,7 @@ Change Feed support is well-suited for scenarios that process data based on obje
 
 * Build connected application pipelines like ML that react to change events or schedule executions based on created or deleted instance.
 * Extract business analytics insights and metrics, based on changes that occur to your objects.
-* Poll the change feed to create an event source for push notifications.
+* Poll the Change Feed to create an event source for push notifications.
 
 ## Summary
 
