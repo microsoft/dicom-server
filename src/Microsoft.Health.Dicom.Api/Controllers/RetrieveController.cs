@@ -26,11 +26,12 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
+using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
     [ModelStateValidator]
-    [ServiceFilter(typeof(AuditLoggingFilterAttribute))]
+    [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class RetrieveController : Controller
     {
         private readonly IMediator _mediator;
@@ -149,7 +150,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            return CreateResult(response);
+            return new ObjectResult(response.ResponseStreams.First())
+            {
+                StatusCode = (int)HttpStatusCode.OK,
+            };
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]

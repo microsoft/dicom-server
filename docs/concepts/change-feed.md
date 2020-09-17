@@ -30,8 +30,8 @@ Metadata            | object    | Optionally, the current DICOM metadata if the 
 
 #### States
 
-State    | Description 
-:------- | :--- 
+State    | Description
+:------- | :---
 current  | This instance is the current version.
 replaced | This instance has been replaced by a new version.
 deleted  | This instance has been deleted and is no longer available in the service.
@@ -80,6 +80,7 @@ includemetadata | bool | Whether or not to include the metadata (default: true)
 ### Get latest change feed item
 
 **Route**: /changefeed/latest?includemetadata={**true**|false}
+
 ```
 {
     "Sequence": 2,
@@ -102,6 +103,10 @@ Name            | Type | Description
 includemetadata | bool | Whether or not to include the metadata (default: true)
 
 ## Usage
+
+### DICOM Cast
+
+[DICOM Cast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from change feed, transforms and publishes them to a configured FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
 
 ### Example Usage Flow
 
@@ -130,8 +135,8 @@ It can start processing the DICOM change events at any point and continue to pul
 Change Feed support is well-suited for scenarios that process data based on objects that have changed. For example, it can be used to:
 
 * Build connected application pipelines like ML that react to change events or schedule executions based on created or deleted instance.
-
 * Extract business analytics insights and metrics, based on changes that occur to your objects.
+* Poll the change feed to create an event source for push notifications.
 
 ## Summary
 

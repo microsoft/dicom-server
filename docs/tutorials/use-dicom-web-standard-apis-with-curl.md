@@ -1,10 +1,11 @@
-# Use DICOMWeb Standard APIs with cURL
+# Use DICOMWeb&trade; Standard APIs with cURL
 
 This tutorial uses cURL to demonstrate working with the Medical Imaging Server for DICOM.
 
 ## Uploading DICOM (STOW)
 ---
 ### Store-instances-using-multipart/related
+
 This request intends to demonstrate how to upload DICOM files using multipart/related. However, it will not work in Postman.
 
 > NOTE: The Medical Imaging Server for DICOM is more lenient than the DICOM standard. The example below, however, demonstrates a POST request that complies tightly to the standard.

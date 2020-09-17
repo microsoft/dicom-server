@@ -41,14 +41,15 @@ Configure the remaining deployment settings for your Medical Imaging Server. The
 | Deploy Package | Webdeploy package specified by deployPackageUrl. | No |
 | Deploy Package Url | Webdeploy package to use as deployment code. If blank, the latest CI code package will be deployed. | No |
 
-## Next steps
+## Summary
 
-Once deployment is complete you can use the Azure Portal to navigate to the newly created App Service to see the details.
+In this quickstart, you learned how to deploy and configure the Medical Imaging Server for DICOM using the Azure portal.
 
-The default URL to access your Medical Imaging Server will be: ```https://<SERVICE NAME>.azurewebsites.net```
+Once deployment is complete you can use the Azure Portal to navigate to the newly created App Service to see the details. The default URL to access your Medical Imaging Server for DICOM  will be: ```https://<SERVICE NAME>.azurewebsites.net```
 
- - [Use DICOM Web Standard APIs with C#](../tutorials/use-dicom-web-standard-apis-with-cc%23.md)
- - [Use DICOM Web Standard APIs with Curl](../tutorials/use-dicom-web-standard-apis-with-curl.md)
- - [Use DICOM Web Standard APIs with Postman](../tutorials/use-dicom-web-standard-apis-with-postman.md)
- - [Upload DICOM files via the Electron Tool](../../tools/dicom-web-electron)
- - [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md)
+To get started using your newly deployed Medical Imaging Server for DICOM, refer to the following documents:
+
+* [Configure Medical Imaging Server for DICOM](../how-to-guides/configure-dicom-server-settings.md)
+* [Use Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md)
+* [Upload DICOM files via the Electron Tool](../../tools/dicom-web-electron)
+* [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md)
