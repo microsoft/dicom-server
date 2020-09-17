@@ -21,13 +21,13 @@ In order to use the DICOMWeb Standard APIs, you must have an instance of the Med
 
 ## Overview of various methods to use with Medical Imaging Server for DICOM
 
-Because the Medical Imaging Server for DICOM is exposed as a REST API, you can access it using any modern development language. For language-agnostic information on working with the service, please refer to our [Conformance Statement](../resources/conformance-statement.md). 
+Because the Medical Imaging Server for DICOM is exposed as a REST API, you can access it using any modern development language. For language-agnostic information on working with the service, please refer to our [Conformance Statement](../resources/conformance-statement.md).
 
 To see language-specific examples, please see the examples below. Alternatively, if you open the Postman Collection, you can see examples in several languages including Go, Java, Javascript, C#, PHP, C, NodeJS, Objective-C, OCaml, PowerShell, Python, Ruby, and Swift.
 
 ### C#
 
-The C# examples use the library included in this repo to simplify access to the API. Refer to the [C# examples](tutorials/use-dicom-web-standard-apis-with-c%23.md) to learn how to use C# with the Medical Imaging Server for DICOM.
+The C# examples use the library included in this repo to simplify access to the API. Refer to the [C# examples](../tutorials/use-dicom-web-standard-apis-with-c%23.md) to learn how to use C# with the Medical Imaging Server for DICOM.
 
 ### cURL
 
