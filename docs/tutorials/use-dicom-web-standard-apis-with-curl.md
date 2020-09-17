@@ -170,7 +170,7 @@ _Details:_
 
 This request enables searches for one or more studies by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../studies?StudyInstanceUID={{study}}
@@ -185,7 +185,7 @@ _Details:_
 
 This request enables searches for one or more series by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../series?SeriesInstanceUID={{series}}
@@ -200,7 +200,7 @@ _Details:_
 
 This request enables searches for one or more series within a single study by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../studies/{{study}}/series?SeriesInstanceUID={{series}}
@@ -215,7 +215,7 @@ _Details:_
 
 This request enables searches for one or more instances by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../instances?SOPInstanceUID={{instance}}
@@ -230,7 +230,7 @@ _Details:_
 
 This request enables searches for one or more instances within a single study by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../studies/{{study}}/instances?SOPInstanceUID={{instance}}
@@ -245,7 +245,7 @@ _Details:_
 
 This request enables searches for one or more instances within a single study and single series by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../studies/{{study}}/series/{{series}}instances?SOPInstanceUID={{instance}}
@@ -297,5 +297,3 @@ _Details:_
 * Headers: No special headers needed
 
 `curl --request DELETE "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270"`
-
-
