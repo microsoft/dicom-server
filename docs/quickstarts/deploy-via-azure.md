@@ -45,7 +45,7 @@ Configure the remaining deployment settings for your Medical Imaging Server. The
 
 In this quickstart, you learned how to deploy and configure the Medical Imaging Server for DICOM using the Azure portal.
 
-Once deployment is complete you can use the Azure Portal to navigate to the newly created App Service to see the details. The default URL to access your Medical Imaging Server for DICOM  will be: ```https://<SERVICE NAME>.azurewebsites.net```
+Once deployment is complete, you can use the Azure Portal to navigate to the newly created App Service to see the details. The default URL to access your Medical Imaging Server for DICOM  will be: ```https://<SERVICE NAME>.azurewebsites.net```
 
 To get started using your newly deployed Medical Imaging Server for DICOM, refer to the following documents:
 
