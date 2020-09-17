@@ -27,7 +27,7 @@ To see language-specific examples, please see the examples below. Alternatively,
 
 ### C#
 
-The C# examples use the library included in this repo to simplify access to the API. Refer to the [C# examples](../tutorials/use-dicom-web-standard-apis-with-c%23.md) to learn how to use C# with the Medical Imaging Server for DICOM.
+The C# examples use the library included in this repo to simplify access to the API. Refer to the [C# examples](../use-dicom-web-standard-apis-with-c%23.md) to learn how to use C# with the Medical Imaging Server for DICOM.
 
 ### cURL
 
