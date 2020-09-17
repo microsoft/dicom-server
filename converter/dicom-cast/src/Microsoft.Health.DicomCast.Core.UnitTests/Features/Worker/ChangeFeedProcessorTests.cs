@@ -111,7 +111,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             // Execute Process when no poll interval is defined.
             await ExecuteProcessAsync();
 
-            // Using stopwatch.Elapsed instead of stopwatch.ElapsedMilliseconds to get the totalmilliseconds in double type
+            // Using stopwatch.Elapsed to get total time elapsed when no poll interval is defined.
             TimeSpan totalTimeTakenWithNoPollInterval = stopwatch.Elapsed;
 
             stopwatch.Reset();
@@ -119,9 +119,10 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             // Execute process when poll interval is defined.
             await ExecuteProcessAsync(pollIntervalDuringCatchup);
 
+            // Using stopwatch.Elapsed to get total time elapsed when poll interval is defined.
             TimeSpan totalTimeTakenWithPollInterval = stopwatch.Elapsed;
 
-            Assert.True(totalTimeTakenWithPollInterval.TotalMilliseconds >= totalTimeTakenWithNoPollInterval.TotalMilliseconds);
+            Assert.True(totalTimeTakenWithPollInterval >= totalTimeTakenWithNoPollInterval);
         }
 
         [Fact]
