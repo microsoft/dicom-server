@@ -27,6 +27,7 @@ public async Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long o
     return Array.Empty<ChangeFeedEntry>();
 }
 ```
+
 You can find the full code available here: [Consume Change Feed](../converter/dicom-cast/src/Microsoft.Health.DicomCast.Core/Features/DicomWeb/Service/ChangeFeedRetrieveService.cs)
 
 ## Summary
