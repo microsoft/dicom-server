@@ -32,7 +32,7 @@ Configure the remaining deployment settings for your Medical Imaging Server. The
 | Deploy Application Insights | Deploy Application Insights for the DICOM server. Disabled for Microsoft Azure Government (MAG). | No |
 | Application Insights Location | Select a location for Application Insights. If empty, the region closest to your deployment location is used. | No |
 | Additional DICOM Server Config Properties | Additional configuration properties for the DICOM server. These properties can be modified after deployment. In the form {"path1":"value1","path2":"value2"} | No |
-| Sql Admin Password | Set a password for the SQL admistrator account. | **Yes** |
+| Sql Admin Password | Set a password for the SQL administrator account. | **Yes** |
 | Sql Location | Set an override location for the default SQL Server Database location. | No |
 | Deploy OHIF Viewer | Deploy OHIF viewer that is configured for the DICOM server. (This is useful for testing, as OHIF supports viewing uploaded images.) | No |
 | Security Authentication Authority | OAuth Authority. See [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md) to update after deployment. | No |
