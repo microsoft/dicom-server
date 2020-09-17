@@ -1,4 +1,4 @@
-# Using Medical Imaging Server for DICOM API with C#
+# Use DICOMWeb&trade; Standard APIs with C#
 
 This tutorial uses C# to demonstrate working with the Medical Imaging Server for DICOM.
 
@@ -10,15 +10,15 @@ For the tutorial we will use the DICOM files here: [Sample DICOM files](../dcms)
 |red-triangle.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652|1.2.826.0.1.3680043.8.498.47359123102728459884412887463296905395|
 |blue-circle.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.77033797676425927098669402985243398207|1.2.826.0.1.3680043.8.498.13273713909719068980354078852867170114|
 
-> [!NOTE]
-> All three of these files represent a single instance and are part of the same study. Also green-square and red-triangle are part of the same series, while blue-circle is in a separate series.
+> NOTE: All three of these files represent a single instance and are part of the same study. Also green-square and red-triangle are part of the same series, while blue-circle is in a separate series.
 
 ## Prerequisites
 
-In order to use the DICOMWeb Standard APIs, you must have an instance of the Medical Imaging Server for DICOM deployed. If you have not already deployed the Medical Imaging Server, [Deploy the Medical Imaging Server to Azure](../quickstarts/deploy-via-azure.md). 
+In order to use the DICOMWeb&trade; Standard APIs, you must have an instance of the Medical Imaging Server for DICOM deployed. If you have not already deployed the Medical Imaging Server, [Deploy the Medical Imaging Server to Azure](../quickstarts/deploy-via-azure.md).
 
 Once you have deployed an instance of the Medical Imaging Server for DICOM, retrieve the URL for your App Service:
-1. Sign into the [Azure Portal](https://ms.portal.azure.com/). 
+
+1. Sign into the [Azure Portal](https://ms.portal.azure.com/).
 1. Search for **App Services** and select your Medical Imaging Server for DICOM App Service. 
 1. Copy the **URL** of your Dicom App Service.
 
@@ -179,12 +179,11 @@ This should return the only frame from the red-triangle. Validate that the respo
 
 ## Query DICOM (QIDO)
 
-> [!NOTE]
-> Please see the [Conformance Statement](../resources/conformance-statement.md#supported-search-parameters) file for supported DICOM attributes.
+> NOTE: Please see the [Conformance Statement](../resources/conformance-statement.md#supported-search-parameters) file for supported DICOM attributes.
 
 ### Search for studies
 
-This request enables searches for one or more studies by DICOM attributes.
+This request searches for one or more studies by DICOM attributes.
 
 _Details:_
 
@@ -199,7 +198,7 @@ Validate that response includes 1 study and that response code is OK.
 
 ### Search for series
 
-This request enables searches for one or more series by DICOM attributes.
+This request searches for one or more series by DICOM attributes.
 
 _Details:_
 
@@ -214,7 +213,7 @@ Validate that response includes 1 series and that response code is OK.
 
 ### Search for series within a study
 
-This request enables searches for one or more series within a single study by DICOM attributes.
+This request searches for one or more series within a single study by DICOM attributes.
 
 _Details:_
 
@@ -229,7 +228,7 @@ Validate that response includes 1 series and that response code is OK.
 
 ### Search for instances
 
-This request enables searches for one or more instances by DICOM attributes.
+This request searches for one or more instances by DICOM attributes.
 
 _Details:_
 
@@ -244,7 +243,7 @@ Validate that response includes 1 instance and that response code is OK.
 
 ### Search for instances within a study
 
-This request enables searches for one or more instances within a single study by DICOM attributes.
+This request searches for one or more instances within a single study by DICOM attributes.
 
 _Details:_
 
@@ -259,7 +258,7 @@ Validate that response includes 1 instance and that response code is OK.
 
 ### Search for instances within a study and series
 
-This request enables searches for one or more instances within a single study and single series by DICOM attributes.
+This request searches for one or more instances within a single study and single series by DICOM attributes.
 
 _Details:_
 
@@ -274,8 +273,7 @@ Validate that response includes 1 instance and that response code is OK.
 
 ## Delete DICOM
 
->[!NOTE]
-> Delete is not part of the DICOM standard, but has been added for convenience.
+> NOTE: Delete is not part of the DICOM standard, but has been added for convenience.
 
 ### Delete a specific instance within a study and series
 
