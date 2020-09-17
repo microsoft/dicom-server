@@ -8,7 +8,7 @@ The Medical Imaging Server for DICOM is a .NET Core implementation of the DICOMw
 
 ## Deploy the Medical Imaging Server for DICOM
 
-The Medical Imaging Server for DICOM is designed to run on Azure for production workloads. However, for dev/test environments it can be deployed locally as a set of Docker containers to speed development.
+The Medical Imaging Server for DICOM is designed to run on Azure for production workloads. However, for dev/test environments it can be deployed locally as a set of Docker containers to speed up development.
 
 ### Deploy to Azure
 
