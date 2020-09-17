@@ -140,4 +140,4 @@ Change Feed support is well-suited for scenarios that process data based on obje
 
 ## Summary
 
-In this Concept, we reviewed the REST API design of Change Feed and potential usage scenarios. For a how-to guide on Change Feed, see [Pull changes from Change Feed](../how-to-guides/pull-changes-from-change-feed).
+In this Concept, we reviewed the REST API design of Change Feed and potential usage scenarios. For a how-to guide on Change Feed, see [Pull changes from Change Feed](../how-to-guides/pull-changes-from-change-feed.md).
