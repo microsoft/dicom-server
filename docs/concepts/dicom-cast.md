@@ -7,15 +7,15 @@ DICOM Cast allows synchronizing the data from a Medical Imaging Server for DICOM
 ![Architecture](/docs/images/dicom-cast-architecture.png)
 
 1. **Poll for batch of changes**: DICOM Cast polls for any changes via [Change Feed](../concepts/change-feed.md), which captures any changes that occur in your Medical Imaging Server for DICOM.
-1. **Fetch corresponding FHIR resources, if any**: If any changes correspond to FHIR resources, DICOM Cast will fetch these changes. DICOM Cast synchronizes DICOM tags to the FHIR resource types *Patient* and *ImagingStudy*.
-1. **Merge FHIR resources and PUT as a bundle in a transaction**: The FHIR resources corresponding the DICOM Cast captured changes will be merged. The FHIR resources will be PUT as a bundle in a transaction into your Azure API for FHIR server.
+1. **Fetch corresponding FHIR&trade; resources, if any**: If any changes correspond to FHIR&trade; resources, DICOM Cast will fetch these changes. DICOM Cast synchronizes DICOM tags to the FHI&trade;R resource types *Patient* and *ImagingStudy*.
+1. **Merge FHIR&trade; resources and PUT as a bundle in a transaction**: The FHIR&trade; resources corresponding the DICOM Cast captured changes will be merged. The FHIR&trade; resources will be PUT as a bundle in a transaction into your Azure API for FHIR server.
 1. **Persist state and process next batch**: DICOM Cast will then persist the current state to prepare for next batch of changes.
 
 The current implementation of DICOM Cast supports:
 
-- A single-threaded process that reads from DICOM change feed and writes to FHIR server.
+- A single-threaded process that reads from DICOM change feed and writes to an Azure API for FHIR Server.
 - The process is hosted by Azure Container Instance in our sample template, but can be run elsewhere.
-- Synchronizes DICOM tags to *Patient* and *ImagingStudy*  FHIR resource types*.
+- Synchronizes DICOM tags to *Patient* and *ImagingStudy*  FHIR&trade; resource types*.
 
 ## Mappings
 
@@ -59,11 +59,11 @@ The current implementation of DICOM Cast has the following mappings:
 
 _Timestamp:_
 
-DICOM has different date time VR types. Some tags (like Study and Series) have the date, time, and UTC offset stored separately. This means that the date might be partial. This code attempts to translate this into a partial date syntax allowed by the FHIR server.
+DICOM has different date time VR types. Some tags (like Study and Series) have the date, time, and UTC offset stored separately. This means that the date might be partial. This code attempts to translate this into a partial date syntax allowed by the Azure API for FHIR server.
 
 ## Summary
 
 In this concept, we reviewed the architecture and mappings of DICOM Cast. To implement DICOM Cast in your Medical Imaging for DICOM Server, refer to the following documents:
 
 - [Quickstart on DICOM Cast](../quickstarts/dicom-cast.md)
-- [Sync DICOM Metadata to FHIR](../how-to-guides/sync-dicom-metadata-to-fhir.md)
+- [Sync DICOM Metadata to FHIR&trade;](../how-to-guides/sync-dicom-metadata-to-fhir.md)
