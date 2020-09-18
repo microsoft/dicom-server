@@ -6,8 +6,8 @@
 | Layer              | Example                                                      | Comments                                                                              |
 | ------------------ | ------------------------------------------------------------ |---------------------------------------------------------------------------------------|
 | Hosting Layer      | `Microsoft.Health.Dicom.Web`                                 | Supports hosting in different environments with custom configuration of IoC container. For development purpose only. |
-| REST API Layer     | `Microsoft.Health.Dicom.Api`                                 | Implements the RESTful DICOMWeb |
-| Core Logic Layer   | `Microsoft.Health.Dicom.Core`                                | Implements core logic to support DICOMWeb |
+| REST API Layer     | `Microsoft.Health.Dicom.Api`                                 | Implements the RESTful DICOMweb&trade; |
+| Core Logic Layer   | `Microsoft.Health.Dicom.Core`                                | Implements core logic to support DICOMweb&trade; |
 | Persistence Layer  | `Microsoft.Health.Dicom.Sql` `Microsoft.Health.Dicom.Blob`   | Pluggable persistence provider |
 
 ## Patterns

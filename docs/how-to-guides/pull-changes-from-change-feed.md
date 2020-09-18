@@ -32,7 +32,7 @@ You can find the full code available here: [Consume Change Feed](../converter/di
 
 ## Summary
 
-This How-to Guide demonstrates how to consume Change Feed. Change Feed allows you to monitor the History of the medical Imaging Server for DICOM. To learn more about Change Feed, refer to [Change Feed Concept](../concepts/change-feed.md).
+This How-to Guide demonstrates how to consume Change Feed. Change Feed allows you to monitor the history of the Medical Imaging Server for DICOM. To learn more about Change Feed, refer to [Change Feed Concept](../concepts/change-feed.md).
 
 ### Next Steps
 

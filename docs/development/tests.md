@@ -13,8 +13,8 @@
  
 ## Integration tests
 <em>Individual units are combined and tested as a group.</em>
-- Dicom uses integration tests to test the persistence layer.
+- DICOM uses integration tests to test the persistence layer.
 
 ## End to End (E2E) tests
 <em>End to end user scenarios are tested.</em>
-- Dicom uses E2E test methodology to test Web API endpoint behaviors.
+- DICOM uses E2E test methodology to test Web API endpoint behaviors.
