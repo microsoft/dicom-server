@@ -126,7 +126,7 @@ _Details:_
 ---
 ### Retrieve-a-single-instance-within-a-series-of-a-study
 
-This request retrieves a single instances, and returns it as a DICOM formatted stream of bytes.
+This request retrieves a single instance, and returns it as a DICOM formatted stream of bytes.
 
 _Details:_
 * Path: ../studies/{study}/series{series}/instances/{instance}
@@ -257,7 +257,7 @@ _Details:_
 
 ## Delete DICOM 
 ---
-### Delete-a-specific-instance-within-a-study -and-series
+### Delete-a-specific-instance-within-a-study-and-series
 
 This request deletes a single instance within a single study and single series.
 

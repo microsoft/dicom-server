@@ -32,12 +32,12 @@ Configure the remaining deployment settings for your Medical Imaging Server. The
 | Deploy Application Insights | Deploy Application Insights for the DICOM server. Disabled for Microsoft Azure Government (MAG). | No |
 | Application Insights Location | Select a location for Application Insights. If empty, the region closest to your deployment location is used. | No |
 | Additional DICOM Server Config Properties | Additional configuration properties for the DICOM server. These properties can be modified after deployment. In the form {"path1":"value1","path2":"value2"} | No |
-| Sql Admin Password | Set a password for the SQL admistrator account. | **Yes** |
+| Sql Admin Password | Set a password for the SQL administrator account. | **Yes** |
 | Sql Location | Set an override location for the default SQL Server Database location. | No |
 | Deploy OHIF Viewer | Deploy OHIF viewer that is configured for the DICOM server. (This is useful for testing, as OHIF supports viewing uploaded images.) | No |
 | Security Authentication Authority | OAuth Authority. See [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md) to update after deployment. | No |
 | Security Authentication Audience | Audience (aud) to validate in JWT. See [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md) to update after deployment. | No |
-| Solution Type | The type of the solution | No |
+| Solution Type | The type of the solution. | No |
 | Deploy Package | Webdeploy package specified by deployPackageUrl. | No |
 | Deploy Package Url | Webdeploy package to use as deployment code. If blank, the latest CI code package will be deployed. | No |
 
@@ -45,7 +45,7 @@ Configure the remaining deployment settings for your Medical Imaging Server. The
 
 In this quickstart, you learned how to deploy and configure the Medical Imaging Server for DICOM using the Azure portal.
 
-Once deployment is complete you can use the Azure Portal to navigate to the newly created App Service to see the details. The default URL to access your Medical Imaging Server for DICOM  will be: ```https://<SERVICE NAME>.azurewebsites.net```
+Once deployment is complete, you can use the Azure Portal to navigate to the newly created App Service to see the details. The default URL to access your Medical Imaging Server for DICOM  will be: ```https://<SERVICE NAME>.azurewebsites.net```
 
 To get started using your newly deployed Medical Imaging Server for DICOM, refer to the following documents:
 

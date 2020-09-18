@@ -37,7 +37,7 @@ The Standard tier of the DTU-based SQL performance tiers is enabled by default u
 
 If you would like to update your SQL Database tier:
 
-1. Navigate to the **SQL Database** in the portal that was created when you deployed the Medical Imaging Server for DICOM.
+1. Navigate to the **SQL Database** you created when you deployed the Medical Imaging Server for DICOM.
 1. Select **Configure**.
 1. Choose the performance tier and DTU level that meets your workload requirements.
 1. Click **Apply**.

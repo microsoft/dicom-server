@@ -4,7 +4,7 @@ This How-to Guide shows you how to configure the authentication settings for the
 
 1. Create a resource application in Azure AD.
 1. Provide app registration details to your Medical Imaging Server for DICOM.
-1. Create a service client in application in Azure AD.
+1. Create a service client application in Azure AD.
 1. Retrieve Access Token via Postman or Azure CLI.
 
 ## Prerequisites
