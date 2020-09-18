@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
             yield return new object[] { new UnsupportedMediaTypeException("Media type is not supported."), HttpStatusCode.UnsupportedMediaType };
             yield return new object[] { new ServiceUnavailableException(), HttpStatusCode.ServiceUnavailable };
             yield return new object[] { new ItemNotFoundException(new Exception()), HttpStatusCode.InternalServerError };
-            yield return new object[] { new CustomServerException(), HttpStatusCode.ServiceUnavailable };
+            yield return new object[] { new CustomServerException(), HttpStatusCode.InternalServerError };
         }
 
         [Theory]
