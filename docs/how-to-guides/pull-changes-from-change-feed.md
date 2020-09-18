@@ -1,13 +1,12 @@
 # Pull DICOM changes using the Change Feed
 
-The Change Feed offers the customers the ability to go through the history of the Medical Imaging Server for DICOM and act on the create and delete events in the service. This How-to Guide shows you how to consume Change Feed.
+The Change Feed offers customers the ability to go through the history of the Medical Imaging Server for DICOM and act on the create and delete events in the service. This How-to Guide shows you how to consume Change Feed.
 
 The Change Feed is accessed using REST APIs documented in [Change Feed Concept](/docs/concepts/change-feed.md), it also provides example usage of Change Feed.
 
 ## Consume Change Feed
 
-Sample C# code using the provided DICOM client package, full code is available at
-converter/dicom-cast/src/Microsoft.Health.DicomCast.Core/Features/DicomWeb/Service/ChangeFeedRetrieveService.cs
+Sample C# code using the provided DICOM client package:
 
 ```csharp
 public async Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long offset, CancellationToken cancellationToken)
@@ -28,6 +27,8 @@ public async Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long o
     return Array.Empty<ChangeFeedEntry>();
 }
 ```
+
+You can find the full code available here: [Consume Change Feed](../converter/dicom-cast/src/Microsoft.Health.DicomCast.Core/Features/DicomWeb/Service/ChangeFeedRetrieveService.cs)
 
 ## Summary
 

@@ -1,10 +1,11 @@
-# Use DICOMWeb Standard APIs with cURL
+# Use DICOMWeb&trade; Standard APIs with cURL
 
 This tutorial uses cURL to demonstrate working with the Medical Imaging Server for DICOM.
 
 ## Uploading DICOM (STOW)
 ---
 ### Store-instances-using-multipart/related
+
 This request intends to demonstrate how to upload DICOM files using multipart/related. However, it will not work in Postman.
 
 > NOTE: The Medical Imaging Server for DICOM is more lenient than the DICOM standard. The example below, however, demonstrates a POST request that complies tightly to the standard.
@@ -125,7 +126,7 @@ _Details:_
 ---
 ### Retrieve-a-single-instance-within-a-series-of-a-study
 
-This request retrieves a single instances, and returns it as a DICOM formatted stream of bytes.
+This request retrieves a single instance, and returns it as a DICOM formatted stream of bytes.
 
 _Details:_
 * Path: ../studies/{study}/series{series}/instances/{instance}
@@ -169,7 +170,7 @@ _Details:_
 
 This request enables searches for one or more studies by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../studies?StudyInstanceUID={{study}}
@@ -184,7 +185,7 @@ _Details:_
 
 This request enables searches for one or more series by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../series?SeriesInstanceUID={{series}}
@@ -199,7 +200,7 @@ _Details:_
 
 This request enables searches for one or more series within a single study by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../studies/{{study}}/series?SeriesInstanceUID={{series}}
@@ -214,7 +215,7 @@ _Details:_
 
 This request enables searches for one or more instances by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../instances?SOPInstanceUID={{instance}}
@@ -229,7 +230,7 @@ _Details:_
 
 This request enables searches for one or more instances within a single study by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../studies/{{study}}/instances?SOPInstanceUID={{instance}}
@@ -244,7 +245,7 @@ _Details:_
 
 This request enables searches for one or more instances within a single study and single series by DICOM attributes.
 
-> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.
+> Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
 * Path: ../studies/{{study}}/series/{{series}}instances?SOPInstanceUID={{instance}}
@@ -256,7 +257,7 @@ _Details:_
 
 ## Delete DICOM 
 ---
-### Delete-a-specific-instance-within-a-study -and-series
+### Delete-a-specific-instance-within-a-study-and-series
 
 This request deletes a single instance within a single study and single series.
 
@@ -296,5 +297,3 @@ _Details:_
 * Headers: No special headers needed
 
 `curl --request DELETE "http://{service-name}.azurewebsites.net/studies/1.2.276.0.50.192168001099.7810872.14547392.270"`
-
-

@@ -4,12 +4,12 @@ This How-to Guide shows you how to configure the authentication settings for the
 
 1. Create a resource application in Azure AD.
 1. Provide app registration details to your Medical Imaging Server for DICOM.
-1. Create a service client in application in Azure AD.
+1. Create a service client application in Azure AD.
 1. Retrieve Access Token via Postman or Azure CLI.
 
 ## Prerequisites
 
-1. Deploy a [Medical Imaing Server for DICOM to Azure](../quickstarts/deploy-via-azure.md).
+1. Deploy a [Medical Imaging Server for DICOM to Azure](../quickstarts/deploy-via-azure.md).
 1. This tutorial requires an Azure AD tenant. If you have not created a tenant, see [Create a new tenant in Azure Active Directory](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-access-create-new-tenant).
 
 ## Authentication Settings Overview
@@ -106,4 +106,4 @@ To obtain an access token using Postman:
 
 ## Summary
 
-In this How-to Guide, you learned how to configure the authentication settings for the Medical Imaging Server for DICOM through Azure. To learn how to manage authentication in development and test scenarios, see [Using Identity Server for Development](IdentityServerAuthentication.md).
+In this How-to Guide, you learned how to configure the authentication settings for the Medical Imaging Server for DICOM through Azure. To learn how to manage authentication in development and test scenarios, see [Using Identity Server for Development](../development/identity-server-authentication.md).

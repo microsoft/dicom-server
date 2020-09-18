@@ -44,7 +44,7 @@ The authentication used will depend on setup of your Medical Imaging Server for 
 Below is an example of the settings need to be added to the KeyVault for OAuth2ClientCredential authentication:
 
 * Add secrets related to Authentication in KeyVault for Medical Imaging Server for DICOM.
-  + Example: If Medical Imaging Server for Azure was configured with `OAuth2ClientCredential`, below is the list of secrets that need to added to the KeyValut.
+  + Example: If Medical Imaging Server for Azure was configured with `OAuth2ClientCredential`, below is the list of secrets that need to added to the KeyVault.
     - DicomWeb--Authentication--Enabled : True
     - DicomWeb--Authentication--AuthenticationType : OAuth2ClientCredential
     - DicomWeb--Authentication--OAuth2ClientCredential--TokenUri : ```<AAD tenant token uri>```

@@ -8,7 +8,7 @@ To configure your Medical Imaging Server for DICOM, you need to have an instance
 
 ## Manage Authentication
 
-To configure authentication for the Medical Imaging Server for DICOM using Azure AD, see [Enable Authentication with Tokens](../docs/how-to-guides/enable-authentication-with-tokens.md).
+To configure authentication for the Medical Imaging Server for DICOM using Azure AD, see [Enable Authentication with Tokens](../how-to-guides/enable-authentication-with-tokens.md).
 
 To manage authentication in development and test scenarios without AAD integration using an Identity Provider, see [Identity Server Authentication](../development/identity-server-authentication.md).
 
@@ -37,7 +37,7 @@ The Standard tier of the DTU-based SQL performance tiers is enabled by default u
 
 If you would like to update your SQL Database tier:
 
-1. Navigate to the **SQL Database** in the portal that was created when you deployed the Medical Imaging Server for DICOM.
+1. Navigate to the **SQL Database** you created when you deployed the Medical Imaging Server for DICOM.
 1. Select **Configure**.
 1. Choose the performance tier and DTU level that meets your workload requirements.
 1. Click **Apply**.

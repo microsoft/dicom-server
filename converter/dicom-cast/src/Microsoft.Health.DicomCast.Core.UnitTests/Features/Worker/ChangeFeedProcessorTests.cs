@@ -84,7 +84,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds2[0], DefaultCancellationToken);
         }
 
-        [Fact(Skip = "The test fails on Linux platform.")]
+        [Fact]
         public async Task GivenMultipleChangeFeedEntries_WhenProcessing_ThenPollIntervalShouldBeHonored()
         {
             TimeSpan pollIntervalDuringCatchup = TimeSpan.FromMilliseconds(50);
@@ -108,13 +108,21 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             _fhirTransactionPipeline.When(processor => processor.ProcessAsync(changeFeeds1[0], DefaultCancellationToken)).Do(_ => stopwatch.Start());
             _fhirTransactionPipeline.When(processor => processor.ProcessAsync(changeFeeds2[0], DefaultCancellationToken)).Do(_ => stopwatch.Stop());
 
+            // Execute Process when no poll interval is defined.
+            await ExecuteProcessAsync();
+
+            // Using stopwatch.Elapsed to get total time elapsed when no poll interval is defined.
+            TimeSpan totalTimeTakenWithNoPollInterval = stopwatch.Elapsed;
+
+            stopwatch.Reset();
+
+            // Execute process when poll interval is defined.
             await ExecuteProcessAsync(pollIntervalDuringCatchup);
 
-            // Using stopwatch.Elapsed instead of stopwatch.ElapsedMilliseconds to get the totalmilliseconds in double type
-            // Comparing type long (stopwatch.ElapsedMilliseconds) with double(pollIntervalDuringCatchup.TotalMilliseconds) can lead to inconsistent results.
+            // Using stopwatch.Elapsed to get total time elapsed when poll interval is defined.
             TimeSpan totalTimeTakenWithPollInterval = stopwatch.Elapsed;
 
-            Assert.True(totalTimeTakenWithPollInterval.TotalMilliseconds >= pollIntervalDuringCatchup.TotalMilliseconds);
+            Assert.True(totalTimeTakenWithPollInterval >= totalTimeTakenWithNoPollInterval);
         }
 
         [Fact]
