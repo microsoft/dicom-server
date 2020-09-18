@@ -8,5 +8,5 @@ To learn more about DICOM Cast, see the [DICOM Cast Concept](../docs/Concepts/di
 
 You can deploy DICOM Cast to Azure via two methods:
 
-* [Quickstart on deploy DICOM Cast](../quickstarts/dicom-cast.md)
+* [Quickstart on deploy DICOM Cast](../quickstarts/deploy-dicom-cast.md)
 * [Sample DICOM Cast ARM Template](../converter/dicom-cast/samples/templates/default-azuredeploy.md)

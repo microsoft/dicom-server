@@ -41,5 +41,5 @@ The Medical Imaging Server for DICOM needs an Azure subscription to configure an
 This Concept provided an overview of DICOM, Medical Imaging and the Medical Imaging Server for DICOM. To get started using the Medical Imaging Server:
 
 - [Deploy Medical Imaging Server to Azure](../quickstarts/deploy-via-azure.md)
-- [Deploy DICOM Cast](../quickstarts/dicom-cast.md)
+- [Deploy DICOM Cast](../quickstarts/deploy-dicom-cast.md)
 - [Use the Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md)

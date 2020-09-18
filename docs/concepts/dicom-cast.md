@@ -65,5 +65,5 @@ DICOM has different date time VR types. Some tags (like Study and Series) have t
 
 In this concept, we reviewed the architecture and mappings of DICOM Cast. To implement DICOM Cast in your Medical Imaging for DICOM Server, refer to the following documents:
 
-- [Quickstart on DICOM Cast](../quickstarts/dicom-cast.md)
+- [Quickstart on DICOM Cast](../quickstarts/deploy-dicom-cast.md)
 - [Sync DICOM Metadata to FHIR&trade;](../how-to-guides/sync-dicom-metadata-to-fhir.md)

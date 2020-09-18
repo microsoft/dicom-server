@@ -31,7 +31,7 @@ Follow the steps [here](docs/development/setup.md) to deploy a local copy of the
 
 - [Deploy Medical Imaging Server for DICOM via Azure](docs/quickstarts/deploy-via-azure.md)
 - [Deploy Medical Imaging Server for DICOM via Docker](docs/quickstarts/deploy-via-docker.md)
-- [Set up DICOM Cast](docs/quickstarts/dicom-cast.md)
+- [Set up DICOM Cast](docs/quickstarts/deploy-dicom-cast.md)
 
 ## Tutorials
 
