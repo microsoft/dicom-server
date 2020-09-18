@@ -18,8 +18,8 @@ In order to use the DICOMWeb&trade; Standard APIs, you must have an instance of 
 
 Once you have deployed an instance of the Medical Imaging Server for DICOM, retrieve the URL for your App Service:
 
-1. Sign into the [Azure Portal](https://ms.portal.azure.com/).
-1. Search for **App Services** and select your Medical Imaging Server for DICOM App Service. 
+1. Sign into the [Azure Portal](https://portal.azure.com/).
+1. Search for **App Services** and select your Medical Imaging Server for DICOM App Service.
 1. Copy the **URL** of your Dicom App Service.
 
 ## Create a `DicomWebClient`

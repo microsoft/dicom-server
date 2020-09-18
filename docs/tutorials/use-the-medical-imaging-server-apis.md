@@ -21,17 +21,17 @@ In order to use the DICOMWeb Standard APIs, you must have an instance of the Med
 
 ## Overview of various methods to use with Medical Imaging Server for DICOM
 
-Because the Medical Imaging Server for DICOM is exposed as a REST API, you can access it using any modern development language. For language-agnostic information on working with the service, please refer to our [Conformance Statement](../resources/conformance-statement.md). 
+Because the Medical Imaging Server for DICOM is exposed as a REST API, you can access it using any modern development language. For language-agnostic information on working with the service, please refer to our [Conformance Statement](../resources/conformance-statement.md).
 
 To see language-specific examples, please see the examples below. Alternatively, if you open the Postman Collection, you can see examples in several languages including Go, Java, Javascript, C#, PHP, C, NodeJS, Objective-C, OCaml, PowerShell, Python, Ruby, and Swift.
 
 ### C#
 
-The C# examples use the library included in this repo to simplify access to the API. Refer to the [C# examples](tutorials/use-dicom-web-standard-apis-with-c%23.md) to learn how to use C# with the Medical Imaging Server for DICOM.
+The C# examples use the library included in this repo to simplify access to the API. Refer to the [C# examples](../use-dicom-web-standard-apis-with-c%23.md) to learn how to use C# with the Medical Imaging Server for DICOM.
 
 ### cURL
 
-cURL is a common command line tool for calling web endpoints that is available for nearly any operating system. [Download cURL](https://curl.haxx.se/download.html) to get started. To use the examples, you'll need to replace the server name with your instance name, and download the [example DICOM files](../dcms) in this repo to a known location on your local file system. Refer to the [cURL examples](tutorials/use-dicom-web-standard-apis-with-curl.md) to learn how to use cURL with the Medical Imaging Server for DICOM.
+cURL is a common command line tool for calling web endpoints that is available for nearly any operating system. [Download cURL](https://curl.haxx.se/download.html) to get started. To use the examples, you'll need to replace the server name with your instance name, and download the [example DICOM files](../dcms) in this repo to a known location on your local file system. Refer to the [cURL examples](../tutorials/use-dicom-web-standard-apis-with-curl.md) to learn how to use cURL with the Medical Imaging Server for DICOM.
 
 ### Postman
 
@@ -45,6 +45,6 @@ To use the Postman collection, you'll need to download the collection locally an
 
 This tutorial provided an overview of the APIs supported by the Medical Imaging Server for DICOM. Get started using these APIs with the following tools:
 
-- [Use DICOM Web Standard APIs with C#](tutorials/use-dicom-web-standard-apis-with-c%23.md)
-- [Use DICOM Web Standard APIs with cURL](tutorials/use-dicom-web-standard-apis-with-curl.md)
+- [Use DICOM Web Standard APIs with C#](../use-dicom-web-standard-apis-with-c%23.md)
+- [Use DICOM Web Standard APIs with cURL](../use-dicom-web-standard-apis-with-curl.md)
 - [Use DICOM Web Standard APIs with Postman Example Collection](../resources/Conformance-as-Postman.postman_collection.json)
