@@ -1,8 +1,8 @@
 # Use DICOMWeb&trade; Standard APIs with Medical Imaging Server for DICOM
 
-This tutorial gives on overview of how to use the DICOMWeb Standard APIs with the Medical Imaging Server for DICOM.
+This tutorial gives on overview of how to use the DICOMweb&trade; Standard APIs with the Medical Imaging Server for DICOM.
 
-The **Medical Imaging Server for DICOM** supports a subset of the DICOMWeb standard. Support includes:
+The **Medical Imaging Server for DICOM** supports a subset of the DICOMweb&trade; Standard. Support includes:
 
 - Store (STOW-RS)
 - Retrieve (WADO-RS)
@@ -17,7 +17,7 @@ You can learn more about our support of the various DICOM Web Standard APIs in o
 
 ## Prerequisites
 
-In order to use the DICOMWeb Standard APIs, you must have an instance of the Medical Imaging Server for DICOM deployed. If you have not already deployed the Medical Imaging Server, [Deploy the Medical Imaging Server to Azure](../quickstarts/deploy-via-azure.md).
+In order to use the DICOMweb&trade; Standard APIs, you must have an instance of the Medical Imaging Server for DICOM deployed. If you have not already deployed the Medical Imaging Server, [Deploy the Medical Imaging Server to Azure](../quickstarts/deploy-via-azure.md).
 
 ## Overview of various methods to use with Medical Imaging Server for DICOM
 
@@ -37,7 +37,7 @@ cURL is a common command line tool for calling web endpoints that is available f
 
 Postman is an excellent tool for designing, building and testing REST APIs. [Download Postman](https://www.postman.com/downloads/) to get started. You can learn how to effectively use Postman at the [Postman learning site](https://learning.postman.com/).
 
-One important caveat with Postman and the DICOMweb&trade; standard: Postman cannot support uploading DICOM files using the approach defined in the DICOM standard. This is because Postman cannot support custom separators in a multipart/related POST request. For more information, please see [https://github.com/postmanlabs/postman-app-support/issues/576](https://github.com/postmanlabs/postman-app-support/issues/576) for more information on this bug. Thus all examples in the Postman collection for uploading DICOM documents are prefixed with [will not work - see description]. However, they are included for completeness.
+One important caveat with Postman and the DICOMweb&trade; Standard: Postman cannot support uploading DICOM files using the approach defined in the DICOM standard. This is because Postman cannot support custom separators in a multipart/related POST request. For more information, please see [https://github.com/postmanlabs/postman-app-support/issues/576](https://github.com/postmanlabs/postman-app-support/issues/576) for more information on this bug. Thus all examples in the Postman collection for uploading DICOM documents are prefixed with [will not work - see description]. However, they are included for completeness.
 
 To use the Postman collection, you'll need to download the collection locally and import the collection through Postman, which are available here: [Postman Collection Examples](../resources/Conformance-as-Postman.postman_collection.json).
 

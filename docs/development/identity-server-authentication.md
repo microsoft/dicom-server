@@ -2,7 +2,7 @@
 
 This article also explains how to manage authentication in development and test scenarios without AAD integration using an Identity Provider. To learn more about the authentication settings, see [Authentication Settings Overview](../how-to-guides/enable-authentication-with-tokens.md#L15).
 
-For the F5 experience and test environments, an in-process identity provider is included that can act as the authentication provider for the DicomWeb API.
+For the F5 experience and test environments, an in-process identity provider is included that can act as the authentication provider for the DICOMweb&trade; API.
 
 ## TestAuthEnvironment.json
 
