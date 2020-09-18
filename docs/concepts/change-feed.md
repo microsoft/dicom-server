@@ -106,7 +106,7 @@ includemetadata | bool | Whether or not to include the metadata (default: true)
 
 ### DICOM Cast
 
-[DICOM Cast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from Change Feed, transforms and publishes them to a configured FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
+[DICOM Cast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from Change Feed, transforms and publishes them to a configured FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html). DICOM Cast can start processing the DICOM change events at any point and continue to pull and process new changes incrementally.
 
 ### Example Usage Flow
 
@@ -123,12 +123,6 @@ Below is the flow for an example application that wants to do additional process
    * It updates it's current state  
    * It starts again at 2 above  
 5. If there are no entries it sleeps for a configured amount of time and starts back at 2.
-
-### DICOM Cast usage
-
-[DICOM Cast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from Change Feed, transforms and publishes them to a configured FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html).
-
-It can start processing the DICOM change events at any point and continue to pull and process new changes incrementally.
 
 ### Other potential usage patterns
 
