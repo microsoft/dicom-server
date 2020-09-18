@@ -7,8 +7,8 @@
     <PackageReference Include="fo-dicom" Version="4.0.6" />
     <PackageReference Include="fo-dicom.Json" Version="4.0.6" NoWarn="NU1701" />
     <PackageReference Include="Hl7.Fhir.R4" Version="1.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.4" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.8" />
     <PackageReference Include="Microsoft.Health.Core" Version="1.0.0-master-20200604-3" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20200604-3" />
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="1.0.0-master-20200702-3" />
