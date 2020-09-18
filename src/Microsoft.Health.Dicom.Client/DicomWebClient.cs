@@ -175,6 +175,14 @@ namespace Microsoft.Health.Dicom.Client
             return await PostAsync(postContent, studyInstanceUid, cancellationToken);
         }
 
+        public async Task<DicomWebResponse<DicomDataset>> StoreSingleAsync(
+            Stream stream,
+            string studyInstanceUid = null,
+            CancellationToken cancellationToken = default)
+        {
+            return await PostSingleAsync(stream, studyInstanceUid, cancellationToken);
+        }
+
         public async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken = default)
         {
             using var request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
@@ -283,6 +291,55 @@ namespace Microsoft.Health.Dicom.Client
                 multiContent,
                 string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid),
                 cancellationToken);
+        }
+
+        private async Task<DicomWebResponse<DicomDataset>> PostSingleAsync(
+            Stream postContent,
+            string studyInstanceUid,
+            CancellationToken cancellationToken)
+        {
+            StreamContent streamContent = new StreamContent(postContent);
+            streamContent.Headers.ContentType = MediaTypeApplicationDicom;
+            return await PostSinglepartConentAsync(
+                streamContent,
+                string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid),
+                cancellationToken);
+        }
+
+        public async Task<DicomWebResponse<DicomDataset>> PostSinglepartConentAsync(
+            StreamContent streamContent,
+            string requestUri,
+            CancellationToken cancellationToken = default)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
+            request.Content = streamContent;
+
+            using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    return await CreateResponseAsync(response);
+                }
+                else if (response.StatusCode == HttpStatusCode.Conflict)
+                {
+                    // In the case of Conflict, we will still have body.
+                    throw new DicomWebException<DicomDataset>(await CreateResponseAsync(response));
+                }
+                else
+                {
+                    throw new DicomWebException(new DicomWebResponse(response));
+                }
+            }
+
+            async Task<DicomWebResponse<DicomDataset>> CreateResponseAsync(HttpResponseMessage response)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+
+                DicomDataset dataset = JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
+
+                return new DicomWebResponse<DicomDataset>(response, dataset);
+            }
         }
 
         public async Task<DicomWebResponse<DicomDataset>> PostMultipartContentAsync(

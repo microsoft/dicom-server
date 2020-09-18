@@ -271,6 +271,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        public async void StoreSingleInstance_ServerShouldReturnOK()
+        {
+            DicomFile dicomFile = Samples.CreateRandomDicomFile();
+            await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
+            {
+                await dicomFile.SaveAsync(stream);
+
+                DicomWebResponse<DicomDataset> response1 = await _client.StoreSingleAsync(stream);
+                Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+            }
+        }
+
+        [Fact]
         public async void GivenExistingDataset_WhenStoring_TheServerShouldReturnConflict()
         {
             var studyInstanceUID = TestUidGenerator.Generate();

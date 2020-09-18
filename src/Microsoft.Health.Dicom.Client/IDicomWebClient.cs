@@ -26,6 +26,8 @@ namespace Microsoft.Health.Dicom.Client
 
         Task<DicomWebResponse<DicomDataset>> PostMultipartContentAsync(MultipartContent multiContent, string requestUri, CancellationToken cancellationToken = default);
 
+        Task<DicomWebResponse<DicomDataset>> PostSinglepartConentAsync(StreamContent streamContent, string requestUri, CancellationToken cancellationToken = default);
+
         Task<DicomWebResponse<IEnumerable<DicomDataset>>> QueryAsync(string requestUri, CancellationToken cancellationToken = default);
 
         Task<DicomWebResponse<string>> QueryWithBadRequest(string requestUri, CancellationToken cancellationToken = default);
@@ -39,5 +41,7 @@ namespace Microsoft.Health.Dicom.Client
         Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUid = null, CancellationToken cancellationToken = default);
 
         Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<Stream> streams, string studyInstanceUid = null, CancellationToken cancellationToken = default);
+
+        Task<DicomWebResponse<DicomDataset>> StoreSingleAsync(Stream stream, string studyInstanceUid = null, CancellationToken cancellationToken = default);
     }
 }
