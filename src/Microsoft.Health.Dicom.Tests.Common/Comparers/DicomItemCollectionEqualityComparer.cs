@@ -7,12 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Dicom;
 
-namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
+namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
-    /// <summary>
-    /// Compare if 2 DicomItem equals or not.
-    /// Most DicomItem doesn't have method Equals implented, so has to make it ourselves.
-    /// </summary>
     public class DicomItemCollectionEqualityComparer : IEqualityComparer<IEnumerable<DicomItem>>
     {
         public DicomItemCollectionEqualityComparer()
@@ -29,11 +25,6 @@ namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
             if (x == null || y == null)
             {
                 return object.ReferenceEquals(x, y);
-            }
-
-            if (x.GetType() != y.GetType())
-            {
-                return false;
             }
 
             IEqualityComparer<DicomItem> dicomItemComparer = new DicomItemEqualityComparer();

@@ -6,12 +6,8 @@
 using System.Collections.Generic;
 using Dicom;
 
-namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
+namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
-    /// <summary>
-    /// Compare if 2 DicomItem equals or not.
-    /// Most DicomItem doesn't have method Equals implented, so has to make it ourselves.
-    /// </summary>
     public class DicomFileEqualityComparer : IEqualityComparer<DicomFile>
     {
         bool IEqualityComparer<DicomFile>.Equals(DicomFile x, DicomFile y)

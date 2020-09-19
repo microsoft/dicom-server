@@ -7,12 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Dicom.Imaging;
 
-namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
+namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
-    /// <summary>
-    /// Compare if 2 DicomItem equals or not.
-    /// Most DicomItem doesn't have method Equals implented, so has to make it ourselves.
-    /// </summary>
     public class DicomPixelDataEqualityComparer : IEqualityComparer<DicomPixelData>
     {
         bool IEqualityComparer<DicomPixelData>.Equals(DicomPixelData x, DicomPixelData y)
@@ -22,17 +18,11 @@ namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
                 return object.ReferenceEquals(x, y);
             }
 
-            if (x.GetType() != y.GetType())
-            {
-                return false;
-            }
-
             if (x.NumberOfFrames != y.NumberOfFrames)
             {
                 return false;
             }
 
-            // compare frame by frame
             if (!x.PhotometricInterpretation.Equals(y.PhotometricInterpretation))
             {
                 return false;

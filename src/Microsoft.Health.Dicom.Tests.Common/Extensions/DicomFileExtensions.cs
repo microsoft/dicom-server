@@ -6,7 +6,7 @@
 using System.IO;
 using Dicom;
 
-namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
+namespace Microsoft.Health.Dicom.Tests.Common.Extensions
 {
     public static class DicomFileExtensions
     {

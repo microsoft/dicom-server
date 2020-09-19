@@ -8,12 +8,8 @@ using System.Linq;
 using Dicom;
 using Dicom.Imaging;
 
-namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
+namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
-    /// <summary>
-    /// Compare if 2 DicomItem equals or not.
-    /// Most DicomItem doesn't have method Equals implented, so has to make it ourselves.
-    /// </summary>
     public class DicomDatasetEqualityComparer : IEqualityComparer<DicomDataset>
     {
         public DicomDatasetEqualityComparer()
@@ -32,11 +28,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
                 return object.ReferenceEquals(x, y);
             }
 
-            if (!x.InternalTransferSyntax.Equals(y.InternalTransferSyntax))
-            {
-                return false;
-            }
-
+            // Ignore PixelData here, will check later with DicomPixelDataEqualityComparer
             IEqualityComparer<IEnumerable<DicomItem>> dicomItemsComparaer = new DicomItemCollectionEqualityComparer(IgnoredTags.Concat(new[] { DicomTag.PixelData }));
 
             if (!dicomItemsComparaer.Equals(x, y))

@@ -5,7 +5,7 @@
 
 using System.IO;
 
-namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
+namespace Microsoft.Health.Dicom.Tests.Common.Extensions
 {
     public static class StreamExtensions
     {
