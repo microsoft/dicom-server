@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Client
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
             return dicomWebClient.RetrieveInstancesAsync(
-                new Uri(string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid), UriKind.Relative),
+                new Uri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), UriKind.Relative),
                 false,
                 dicomTransferSyntax,
                 cancellationToken);
@@ -130,7 +130,7 @@ namespace Microsoft.Health.Dicom.Client
         {
             EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
-            var requestUri = new Uri(string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid), UriKind.Relative);
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), UriKind.Relative);
 
             return dicomWebClient.DeleteAsync(requestUri, cancellationToken);
         }

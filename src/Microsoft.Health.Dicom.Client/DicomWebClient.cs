@@ -293,7 +293,7 @@ namespace Microsoft.Health.Dicom.Client
 
             return await PostMultipartContentAsync(
                 multiContent,
-                string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid),
+                string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid),
                 cancellationToken);
         }
 

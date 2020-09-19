@@ -21,7 +21,6 @@ using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
 using Microsoft.Health.Dicom.Api.Features.Routing;
-using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -47,8 +46,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { DicomTransferSyntaxUids.Original })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -56,9 +53,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpGet]
         [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
         [AuditEventType(AuditEventSubType.Retrieve)]
-#pragma warning disable CA1801 // Review unused parameters
-        public async Task<IActionResult> GetStudyAsync([ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax, string studyInstanceUid)
-#pragma warning restore CA1801 // Review unused parameters
+        public async Task<IActionResult> GetStudyAsync(string studyInstanceUid)
         {
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}'.");
 
@@ -85,8 +80,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: false, allowMultiple: true)]
-        [AcceptTransferSyntaxFilter(new[] { DicomTransferSyntaxUids.Original })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -94,13 +87,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpGet]
         [Route(KnownRoutes.SeriesRoute)]
         [AuditEventType(AuditEventSubType.Retrieve)]
-#pragma warning disable CA1801 // Remove unused parameter
         public async Task<IActionResult> GetSeriesAsync(
-            [ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax,
             string studyInstanceUid,
             string seriesInstanceUid)
         {
-#pragma warning restore CA1801 // Remove unused parameter
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}'.");
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
@@ -128,8 +118,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicom }, allowSingle: true, allowMultiple: false)]
-        [AcceptTransferSyntaxFilter(new[] { DicomTransferSyntaxUids.Original })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -137,14 +125,11 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpGet]
         [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
         [AuditEventType(AuditEventSubType.Retrieve)]
-#pragma warning disable CA1801 // Remove unused parameter
         public async Task<IActionResult> GetInstanceAsync(
-            [ModelBinder(typeof(TransferSyntaxModelBinder))] string transferSyntax,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid)
         {
-#pragma warning restore CA1801 // Remove unused parameter
             _logger.LogInformation($"DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.");
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
