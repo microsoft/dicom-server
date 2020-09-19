@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>true</IsPackable>
-    <CodeAnalysisRuleSet>..\..\CustomAnalysisRules.Test.ruleset</CodeAnalysisRuleSet>
+    <IncludeContentInPack>false</IncludeContentInPack>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
