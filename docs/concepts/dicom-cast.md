@@ -35,7 +35,7 @@ The current implementation of DICOM Cast has the following mappings:
 | :------- | :----- | :------- | :--- |
 | Endpoint.status ||| The value 'active' will be used when creating Endpoint. |
 | Endpoint.connectionType ||| The system 'http://terminology.hl7.org/CodeSystem/endpoint-connection-type' and value 'dicom-wado-rs' will be used when creating Endpoint. |
-| Endpoint.address ||| The root URL to the DICOMWeb service will be used when creating Endpoint. The rule is described in 'http://hl7.org/fhir/imagingstudy.html#endpoint' |
+| Endpoint.address ||| The root URL to the DICOMweb&trade; service will be used when creating Endpoint. The rule is described in 'http://hl7.org/fhir/imagingstudy.html#endpoint' |
 
 **ImagingStudy:**
 
