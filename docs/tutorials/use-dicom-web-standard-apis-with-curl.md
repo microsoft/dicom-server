@@ -2,6 +2,33 @@
 
 This tutorial uses cURL to demonstrate working with the Medical Imaging Server for DICOM.
 
+For the tutorial we will use the DICOM files here: [Sample DICOM files](../dcms). The file name, studyUID, seriesUID and instanceUID of the sample DICOM files is as follows:
+
+| File | StudyUID | SeriesUID | InstanceUID |
+| --- | --- | --- | ---|
+|green-square.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652|1.2.826.0.1.3680043.8.498.12714725698140337137334606354172323212|
+|red-triangle.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652|1.2.826.0.1.3680043.8.498.47359123102728459884412887463296905395|
+|blue-circle.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.77033797676425927098669402985243398207|1.2.826.0.1.3680043.8.498.13273713909719068980354078852867170114|
+
+> NOTE: Each of these files represent a single instance and are part of the same study. Also green-square and red-triangle are part of the same series, while blue-circle is in a separate series.
+
+## Prerequisites
+
+In order to use the DICOMWeb&trade; Standard APIs, you must have an instance of the Medical Imaging Server for DICOM deployed. If you have not already deployed the Medical Imaging Server, [Deploy the Medical Imaging Server to Azure](../quickstarts/deploy-via-azure.md).
+
+Once you have deployed an instance of the Medical Imaging Server for DICOM, retrieve the URL for your App Service:
+
+1. Sign into the [Azure Portal](https://portal.azure.com/).
+1. Search for **App Services** and select your Medical Imaging Server for DICOM App Service.
+1. Copy the **URL** of your App Service.
+
+For this code, we'll be accessing an unsecured dev/test service. Please don't upload any private health information (PHI).
+
+
+## Working with the Medical Imaging Server for DICOM 
+The DICOMweb&trade; standard makes heavy use of `multipart/related` HTTP requests combined with DICOM specific accept headers. Developers familiar with other REST-based APIs often find working with the DICOMweb&trade; standard awkward. However, once you have it up and running, it's easy to use. It just takes a little finagling to get started.
+
+
 ## Uploading DICOM (STOW)
 ---
 ### Store-instances-using-multipart/related
@@ -173,7 +200,7 @@ This request enables searches for one or more studies by DICOM attributes.
 > Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
-* Path: ../studies?StudyInstanceUID={{study}}
+* Path: ../studies?StudyInstanceUID={study}
 * Method: GET
 * Headers:
    * `Accept: application/dicom+json`
@@ -188,7 +215,7 @@ This request enables searches for one or more series by DICOM attributes.
 > Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
-* Path: ../series?SeriesInstanceUID={{series}}
+* Path: ../series?SeriesInstanceUID={series}
 * Method: GET
 * Headers:
    * `Accept: application/dicom+json`
@@ -203,7 +230,7 @@ This request enables searches for one or more series within a single study by DI
 > Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
-* Path: ../studies/{{study}}/series?SeriesInstanceUID={{series}}
+* Path: ../studies/{study}/series?SeriesInstanceUID={series}
 * Method: GET
 * Headers:
    * `Accept: application/dicom+json`
@@ -218,7 +245,7 @@ This request enables searches for one or more instances by DICOM attributes.
 > Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
-* Path: ../instances?SOPInstanceUID={{instance}}
+* Path: ../instances?SOPInstanceUID={instance}
 * Method: GET
 * Headers:
    * `Accept: application/dicom+json`
@@ -233,7 +260,7 @@ This request enables searches for one or more instances within a single study by
 > Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
-* Path: ../studies/{{study}}/instances?SOPInstanceUID={{instance}}
+* Path: ../studies/{study}/instances?SOPInstanceUID={instance}
 * Method: GET
 * Headers:
    * `Accept: application/dicom+json`
@@ -248,7 +275,7 @@ This request enables searches for one or more instances within a single study an
 > Please see the [Conformance.md](../docs/resources/conformance-statement.md) file for supported DICOM attributes.
 
 _Details:_
-* Path: ../studies/{{study}}/series/{{series}}instances?SOPInstanceUID={{instance}}
+* Path: ../studies/{study}/series/{series}instances?SOPInstanceUID={instance}
 * Method: GET
 * Headers:
    * `Accept: application/dicom+json`
@@ -264,7 +291,7 @@ This request deletes a single instance within a single study and single series.
 > Delete is not part of the DICOM standard, but has been added for convenience.
 
 _Details:_
-* Path: ../studies/{{study}}/series/{{series}}/instances/{{instance}}
+* Path: ../studies/{study}/series/{series}/instances/{instance}
 * Method: DELETE
 * Headers: No special headers needed
 
@@ -278,7 +305,7 @@ This request deletes a single series (and all child instances) within a single s
 > Delete is not part of the DICOM standard, but has been added for convenience.
 
 _Details:_
-* Path: ../studies/{{study}}/series/{{series}}
+* Path: ../studies/{study}/series/{series}
 * Method: DELETE
 * Headers: No special headers needed
 
@@ -292,7 +319,7 @@ This request deletes a single study (and all child series and instances).
 > Delete is not part of the DICOM standard, but has been added for convenience.
 
 _Details:_
-* Path: ../studies/{{study}}
+* Path: ../studies/{study}
 * Method: DELETE
 * Headers: No special headers needed
 
