@@ -10,7 +10,7 @@ For the tutorial we will use the DICOM files here: [Sample DICOM files](../dcms)
 |red-triangle.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652|1.2.826.0.1.3680043.8.498.47359123102728459884412887463296905395|
 |blue-circle.dcm|1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420|1.2.826.0.1.3680043.8.498.77033797676425927098669402985243398207|1.2.826.0.1.3680043.8.498.13273713909719068980354078852867170114|
 
-> NOTE: Ech of these files represent a single instance and are part of the same study. Also green-square and red-triangle are part of the same series, while blue-circle is in a separate series.
+> NOTE: Each of these files represent a single instance and are part of the same study. Also green-square and red-triangle are part of the same series, while blue-circle is in a separate series.
 
 ## Prerequisites
 
