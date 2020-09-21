@@ -50,17 +50,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, message.RequestContentType));
             }
 
-            await using (Stream stream = message.RequestBody)
-            {
-                // Read list of entries.
-                IReadOnlyList<IDicomInstanceEntry> instanceEntries = await dicomInstanceEntryReader.ReadAsync(
-                        message.RequestContentType,
-                        stream,
-                        cancellationToken);
+            // Read list of entries.
+            IReadOnlyList<IDicomInstanceEntry> instanceEntries = await dicomInstanceEntryReader.ReadAsync(
+                    message.RequestContentType,
+                    message.RequestBody,
+                    cancellationToken);
 
-                // Process list of entries.
-                return await _storeService.ProcessAsync(instanceEntries, message.StudyInstanceUid, cancellationToken);
-            }
+            // Process list of entries.
+            return await _storeService.ProcessAsync(instanceEntries, message.StudyInstanceUid, cancellationToken);
         }
     }
 }
