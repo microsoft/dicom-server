@@ -72,6 +72,29 @@
 			"response": []
 		},
 		{
+			"name": "[will not work - see description] Store-instances-for-a-specific-study",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "{{baseUrl}}/studies/{{study1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}"
+					]
+				},
+				"description": "This request intends to demonstrate how to upload DICOM files using multipart/related to a designated study. However, it will not work in Postman.\r\n\r\n> NOTE: Postman cannot be used to upload DICOM files in a way that complies with the DICOM standard. This is due to a Postman limitation. Instead, consider using cURL or programatically uploading the file using Python, C# or another full featured language.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}\r\n* Method: POST\r\n* Headers:\r\n    * `Accept: application/dicom+json`\r\n    * `Content-Type: multipart/related; type=\"application/dicom\"`\r\n* Body:\r\n    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value\r\n\r\n> Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.\r\n > * `Content-Type: multipart/related; type=\"application/dicom\"; boundary=ABCD1234`\r\n > * `Content-Type: multipart/related; boundary=ABCD1234`\r\n > * `Content-Type: multipart/related`\r\n\r\nIf using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related."
+			},
+			"response": []
+		},
+		{
 			"name": "[will not work - see description] Store-single-instance",
 			"event": [
 				{
@@ -128,30 +151,7 @@
 						"studies"
 					]
 				},
-				"description": "> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n"
-			},
-			"response": []
-		},
-		{
-			"name": "[will not work - see description] Store-instances-for-a-specific-study",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "formdata",
-					"formdata": []
-				},
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}"
-					]
-				},
-				"description": "This request intends to demonstrate how to upload DICOM files using multipart/related to a designated study. However, it will not work in Postman.\r\n\r\n> NOTE: Postman cannot be used to upload DICOM files in a way that complies with the DICOM standard. This is due to a Postman limitation. Instead, consider using cURL or programatically uploading the file using Python, C# or another full featured language.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}\r\n* Method: POST\r\n* Headers:\r\n    * `Accept: application/dicom+json`\r\n    * `Content-Type: multipart/related; type=\"application/dicom\"`\r\n* Body:\r\n    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value\r\n\r\n> Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.\r\n > * `Content-Type: multipart/related; type=\"application/dicom\"; boundary=ABCD1234`\r\n > * `Content-Type: multipart/related; boundary=ABCD1234`\r\n > * `Content-Type: multipart/related`\r\n\r\nIf using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related."
+				"description": "> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
 			},
 			"response": []
 		},
@@ -452,8 +452,8 @@
 				"header": [
 					{
 						"key": "Accept",
-						"value": "application/dicom+json",
-						"type": "text"
+						"type": "text",
+						"value": "application/dicom+json"
 					}
 				],
 				"url": {
@@ -621,8 +621,8 @@
 				"header": [
 					{
 						"key": "Accept",
-						"value": "application/dicom+json",
-						"type": "text"
+						"type": "text",
+						"value": "application/dicom+json"
 					}
 				],
 				"url": {
@@ -736,39 +736,29 @@
 	],
 	"variable": [
 		{
-			"id": "a8654188-13e1-4a0a-aa06-de1637c5b02e",
+			"id": "3e481f3c-c4bf-462e-8ba5-8e82e4108126",
 			"key": "baseUrl",
-			"value": "http://sjbpostman.azurewebsites.net"
+			"value": "http://{service-name}.azurewebsites.net"
 		},
 		{
-			"id": "613f357e-07d0-4bfd-b64c-e1f514b34426",
+			"id": "139741df-2175-4388-9979-c8cfc6eb96d1",
 			"key": "study1",
-			"value": "1.2.276.0.50.192168001099.7810872.14547392.270"
+			"value": "1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420"
 		},
 		{
-			"id": "a1c5e6d3-660c-4539-9bf6-2b6d9597496a",
-			"key": "study2",
-			"value": "1.2.276.0.50.192168001099.9140875.14547392.277"
-		},
-		{
-			"id": "d26ec0ce-a25d-41ac-acad-b397effb6092",
+			"id": "5312a524-65b2-404a-8a8a-df529acd09ef",
 			"key": "series1",
-			"value": "1.2.276.0.50.192168001099.7810872.14547392.458"
+			"value": "1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652"
 		},
 		{
-			"id": "f5a6c33c-c31c-45b6-b9dc-b2fc0b39044e",
+			"id": "4da3f371-f7d6-4cac-86bf-ad17c3393aa0",
 			"key": "instance1",
-			"value": "1.2.276.0.50.192168001099.7810872.14547392.467"
+			"value": "1.2.826.0.1.3680043.8.498.47359123102728459884412887463296905395"
 		},
 		{
-			"id": "6b8f1b50-2307-48a7-bced-3180a806292f",
+			"id": "7f3ddf94-7da3-4c3f-9edc-e4b05447f7c7",
 			"key": "instance2",
-			"value": "1.2.276.0.50.192168001099.9140875.14547392.276"
-		},
-		{
-			"id": "fc7a4d5d-4e9a-4561-8f14-ecb6c35d6878",
-			"key": "b64encodeddicom",
-			"value": ""
+			"value": "1.2.826.0.1.3680043.8.498.12714725698140337137334606354172323212\n"
 		}
 	],
 	"protocolProfileBehavior": {}

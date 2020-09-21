@@ -13,9 +13,9 @@ The customer controls all of the data persisted by the Medical Imaging Server fo
 
 ## What data formats are compatible with the Medical Imaging Server for DICOM?
 
-The Medical Imaging Server for DICOM exposes a REST API that is compatible with the DICOMweb&trade; standards specified by NEMA and maintained at https://www.dicomstandard.org/dicomweb/.
+The Medical Imaging Server for DICOM exposes a REST API that is compatible with the DICOMweb&trade; Standards specified by NEMA and maintained at https://www.dicomstandard.org/dicomweb/.
 
-The server does not support DICOM DIMSE, which works primarily over a local area network and is unsuited for modern internet-based APIs. DIMSE is an incredibly popular standard used by nearly all medical imaging devices to communicate with other components of a provider’s medical imaging solution, such as PACS (Picture Archiving and Communication Systems) and medical imaging viewers. However, many modern systems, especially PACS and  viewers, have begun to also support the related (and compatible) DICOMweb standard. For those systems which only speak DICOM DIMSE there are adapters available which allow for seamless communication between the local DIMSE-supporting systems and the Medical Imaging Server for DICOM.
+The server does not support DICOM DIMSE, which works primarily over a local area network and is unsuited for modern internet-based APIs. DIMSE is an incredibly popular standard used by nearly all medical imaging devices to communicate with other components of a provider’s medical imaging solution, such as PACS (Picture Archiving and Communication Systems) and medical imaging viewers. However, many modern systems, especially PACS and  viewers, have begun to also support the related (and compatible) DICOMweb&trade; Standard. For those systems which only speak DICOM DIMSE there are adapters available which allow for seamless communication between the local DIMSE-supporting systems and the Medical Imaging Server for DICOM.
 
 ## What version of DICOM does the Medical Imaging Server for DICOM support? 
 

@@ -2,7 +2,7 @@
 
 > This is currently a work-in progress document
 
-The **Azure for Health API** supports a subset of the DICOM Web standard. Support includes:
+The **Azure for Health API** supports a subset of the DICOMweb&trade; Standard. Support includes:
 
 - [Store (STOW-RS)](#store-stow-rs)
 - [Retrieve (WADO-RS)](#retrieve-wado-rs)
@@ -415,7 +415,7 @@ The query API will return one of the following status codes in the response:
 
 ## Delete
 
-This transaction is not part of the official DICOMweb&trade; standard. It uses the DELETE method to remove representations of Studies, Series, and Instances from the store.
+This transaction is not part of the official DICOMweb&trade; Standard. It uses the DELETE method to remove representations of Studies, Series, and Instances from the store.
 
 | Method | Path                                                    | Description |
 | :----- | :------------------------------------------------------ | :---------- |

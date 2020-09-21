@@ -1,8 +1,8 @@
 # Using Identity Server for Development
 
-This article also explains how to manage authentication in development and test scenarios without AAD integration using an Identity Provider. To learn more about the authentication settings, see [Authentication Settings Overview](AzureADAuthentication.md#L15).
+This article also explains how to manage authentication in development and test scenarios without AAD integration using an Identity Provider. To learn more about the authentication settings, see [Authentication Settings Overview](../how-to-guides/enable-authentication-with-tokens.md#L15).
 
-For the F5 experience and test environments, an in-process identity provider is included that can act as the authentication provider for the DicomWeb API.
+For the F5 experience and test environments, an in-process identity provider is included that can act as the authentication provider for the DICOMweb&trade; API.
 
 ## TestAuthEnvironment.json
 
@@ -43,4 +43,4 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6Ijc4YWJlMDM0OGEyNDg4NzU0MmUwOG
 
 ## Resources
 
-To learn how to manage authentication through Azure AD, see [Azure AD Authentication](/docs/How-to-guides/enable-authentication-with-tokens.md).
+To learn how to manage authentication through Azure AD, see [Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md).
