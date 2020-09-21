@@ -64,6 +64,7 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
             Uri requestUri,
+            string mediaType,
             string dicomTransferSyntax,
             CancellationToken cancellationToken = default)
         {
@@ -71,7 +72,7 @@ namespace Microsoft.Health.Dicom.Client
             {
                 request.Headers.TryAddWithoutValidation(
                     "Accept",
-                    CreateAcceptHeader(CreateMultipartMediaTypeHeader(ApplicationOctetStreamContentType), dicomTransferSyntax));
+                    CreateAcceptHeader(CreateMultipartMediaTypeHeader(mediaType), dicomTransferSyntax));
 
                 using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
@@ -109,9 +110,20 @@ namespace Microsoft.Health.Dicom.Client
                 {
                     await EnsureSuccessStatusCodeAsync(response);
 
-                    return new DicomWebResponse<IReadOnlyList<DicomFile>>(
-                        response,
-                        (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken)).Select(x => DicomFile.Open(x)).ToList());
+                    if (singleInstance)
+                    {
+                        var memoryStream = GetMemoryStream();
+                        await response.Content.CopyToAsync(memoryStream);
+                        memoryStream.Seek(0, SeekOrigin.Begin);
+                        var dicomFile = await DicomFile.OpenAsync(memoryStream);
+                        return new DicomWebResponse<IReadOnlyList<DicomFile>>(response, new DicomFile[] { dicomFile });
+                    }
+                    else
+                    {
+                        return new DicomWebResponse<IReadOnlyList<DicomFile>>(
+                            response,
+                            (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken)).Select(x => DicomFile.Open(x)).ToList());
+                    }
                 }
             }
         }

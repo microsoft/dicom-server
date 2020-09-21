@@ -1,27 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="9.2.0" />
     <PackageReference Include="fo-dicom" Version="4.0.6" />
     <PackageReference Include="fo-dicom.Json" Version="4.0.6" NoWarn="NU1701" />
     <PackageReference Include="Hl7.Fhir.R4" Version="1.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.4" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.8" />
     <PackageReference Include="Microsoft.Health.Core" Version="1.0.0-master-20200604-3" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20200604-3" />
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="1.0.0-master-20200702-3" />
     <PackageReference Include="Polly" Version="7.2.1" />
     <PackageReference Include="Scrutor" Version="3.2.0" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Update="DicomCastCoreResource.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -29,12 +25,10 @@
       <DependentUpon>DicomCastCoreResource.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Update="DicomCastCoreResource.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DicomCastCoreResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
 </Project>

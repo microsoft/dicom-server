@@ -41,7 +41,7 @@ async function createWindow() {
     const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     // Set the maximum content length size in bytes and megabytes
-    const maxSizeMegabytes = 10;
+    const maxSizeMegabytes = 2048;
     const maxSizeBytes = maxSizeMegabytes * 1024 * 1024;
 
     ipcMain.on("postFile", (event, args) => {

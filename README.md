@@ -2,13 +2,13 @@
 
  [![Build Status](https://microsofthealthoss.visualstudio.com/DicomServer/_apis/build/status/CI-Build-OSS?branchName=master)](https://microsofthealthoss.visualstudio.com/DicomServer/_build/latest?definitionId=34&branchName=master)
 
-The Medical Imaging Server for DICOM is an open source DICOM server that is easily deployed on Azure. It allows standards-based communication with any DICOMweb enabled systems, and injects DICOM metadata into a FHIR server to create a holistic view of patient data. The Medical Imaging Server for DICOM integrates tightly with the [Azure API for FHIR](https://docs.microsoft.com/en-us/azure/healthcare-apis/) enabling healthcare professionals, ISVs, and medical device vendors to create new and innovate solutions. FHIR is becoming an important standard for clinical data and provides extensibility to support integration of other types of data directly, or through references. By using the Medical Imaging Server for DICOM, organizations can store references to imaging data in FHIR and enable queries that cross clinical and imaging datasets. 
+The Medical Imaging Server for DICOM is an open source DICOM server that is easily deployed on Azure. It allows standards-based communication with any DICOMweb&trade; enabled systems, and injects DICOM metadata into a FHIR server to create a holistic view of patient data. The Medical Imaging Server for DICOM integrates tightly with the [Azure API for FHIR](https://docs.microsoft.com/azure/healthcare-apis/) enabling healthcare professionals, ISVs, and medical device vendors to create new and innovative solutions. FHIR is becoming an important standard for clinical data and provides extensibility to support integration of other types of data directly, or through references. By using the Medical Imaging Server for DICOM, organizations can store references to imaging data in FHIR and enable queries across clinical and imaging datasets.
 
-The Medical Imaging Server for DICOM is a .NET Core implementation of the DICOMweb standard. Details of the DICOMweb standard can be found [here](https://www.dicomstandard.org/dicomweb). Details of our conformance to the standard can be found in our [Conformance Statement](docs/resources/conformance-statement.md).
+The Medical Imaging Server for DICOM is a .NET Core implementation of DICOMweb&trade;. [DICOMweb&trade;](https://www.dicomstandard.org/dicomweb) is the DICOM Standard for web-based medical imaging. Details of our conformance to the standard can be found in our [Conformance Statement](docs/resources/conformance-statement.md).
 
 ## Deploy the Medical Imaging Server for DICOM
 
-The Medical Imaging Server for DICOM is designed to run on Azure for production workloads. However, for dev/test environments it can be deployed locally as a set of Docker containers to speed development. 
+The Medical Imaging Server for DICOM is designed to run on Azure. However, for dev/test environments it can be deployed locally as a set of Docker containers to speed up development.
 
 ### Deploy to Azure
 
@@ -31,20 +31,19 @@ Follow the steps [here](docs/development/setup.md) to deploy a local copy of the
 
 - [Deploy Medical Imaging Server for DICOM via Azure](docs/quickstarts/deploy-via-azure.md)
 - [Deploy Medical Imaging Server for DICOM via Docker](docs/quickstarts/deploy-via-docker.md)
-- [Set up DICOM Cast](docs/quickstarts/dicom-cast.md)
+- [Set up DICOM Cast](docs/quickstarts/deploy-dicom-cast.md)
 
 ## Tutorials
 
 - [Use the Medical Imaging Server for DICOM APIs](docs/tutorials/use-the-medical-imaging-server-apis.md)
-- [Use DICOMWeb standards APIs with C#](docs/tutorials/use-dicom-web-standard-apis-with-c%23.md)
-- [Use DICOMWeb standards APIs with Postman](docs/tutorials/use-dicom-web-standard-apis-with-postman.md)
-- [Use DICOMWeb standards APIs with Curl](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
+- [Use DICOMweb&trade; Standard APIs with C#](docs/tutorials/use-dicom-web-standard-apis-with-c%23.md)
+- [Use DICOMweb&trade; Standard APIs with Curl](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
 
 ## How-to guides
 
 - [Configure Medical Imaging Server for DICOM server settings](docs/how-to-guides/configure-dicom-server-settings.md)
 - [Enable Authentication and retrieve an OAuth token](docs/how-to-guides/enable-authentication-with-tokens.md)
-- [Enable notifications on Medical Imaging Server for DICOM with Change Feed](docs/how-to-guides/pull-changes-from-change-feed.md)
+- [Pull Changes from Medical Imaging Server for DICOM with Change Feed](docs/how-to-guides/pull-changes-from-change-feed.md)
 - [Sync DICOM metadata to FHIR](docs/how-to-guides/sync-dicom-metadata-to-fhir.md)
 
 ## Concepts

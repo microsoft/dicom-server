@@ -108,9 +108,21 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             _fhirTransactionPipeline.When(processor => processor.ProcessAsync(changeFeeds1[0], DefaultCancellationToken)).Do(_ => stopwatch.Start());
             _fhirTransactionPipeline.When(processor => processor.ProcessAsync(changeFeeds2[0], DefaultCancellationToken)).Do(_ => stopwatch.Stop());
 
+            // Execute Process when no poll interval is defined.
+            await ExecuteProcessAsync();
+
+            // Using stopwatch.Elapsed to get total time elapsed when no poll interval is defined.
+            TimeSpan totalTimeTakenWithNoPollInterval = stopwatch.Elapsed;
+
+            stopwatch.Reset();
+
+            // Execute process when poll interval is defined.
             await ExecuteProcessAsync(pollIntervalDuringCatchup);
 
-            Assert.True(stopwatch.ElapsedMilliseconds >= pollIntervalDuringCatchup.TotalMilliseconds);
+            // Using stopwatch.Elapsed to get total time elapsed when poll interval is defined.
+            TimeSpan totalTimeTakenWithPollInterval = stopwatch.Elapsed;
+
+            Assert.True(totalTimeTakenWithPollInterval >= totalTimeTakenWithNoPollInterval);
         }
 
         [Fact]

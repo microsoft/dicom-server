@@ -1,5 +1,5 @@
 # Start from the sdk image
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-bionic AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.402-bionic AS build
 
 # Set the working directory to where the source is located
 WORKDIR /dicom-cast/src

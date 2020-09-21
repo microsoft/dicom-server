@@ -76,7 +76,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
 
             DicomWebResponse<IReadOnlyList<DicomFile>> instancesInStudy = await _client.RetrieveStudyAsync(identifier.StudyInstanceUid);
-            ValidateRetrieveTransaction(instancesInStudy, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, file);
+            ValidateRetrieveTransaction(instancesInStudy, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, singleInstance: false, file);
         }
 
         [Fact]
@@ -92,7 +92,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile();
 
             DicomWebResponse<IReadOnlyList<DicomFile>> instancesInSeries = await _client.RetrieveSeriesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid);
-            ValidateRetrieveTransaction(instancesInSeries, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, file);
+            ValidateRetrieveTransaction(instancesInSeries, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, singleInstance: false, file);
         }
 
         [Fact]
@@ -112,7 +112,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             DicomWebResponse<IReadOnlyList<DicomFile>> instances = await _client.RetrieveInstanceAsync(
                 identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
-            ValidateRetrieveTransaction(instances, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, file);
+            ValidateRetrieveTransaction(instances, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, singleInstance: true, file);
         }
 
         [Fact]
@@ -327,19 +327,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             string instanceRetrieveLocation = successSequence.Items[0].GetSingleValue<string>(DicomTag.RetrieveURL);
 
             DicomWebResponse<IReadOnlyList<DicomFile>> studyByUrlRetrieve = await _client.RetrieveInstancesAsync(new Uri(studyRetrieveLocation));
-            ValidateRetrieveTransaction(studyByUrlRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, dicomFile1);
+            ValidateRetrieveTransaction(studyByUrlRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, singleInstance: false, dicomFile1);
 
             DicomWebResponse<IReadOnlyList<DicomFile>> instanceByUrlRetrieve = await _client.RetrieveInstancesAsync(new Uri(instanceRetrieveLocation), true);
-            ValidateRetrieveTransaction(instanceByUrlRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, dicomFile1);
+            ValidateRetrieveTransaction(instanceByUrlRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, singleInstance: true, dicomFile1);
 
             DicomWebResponse<IReadOnlyList<DicomFile>> studyRetrieve = await _client.RetrieveStudyAsync(dicomInstance.StudyInstanceUid);
-            ValidateRetrieveTransaction(studyRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, dicomFile1);
+            ValidateRetrieveTransaction(studyRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, singleInstance: false, dicomFile1);
 
             DicomWebResponse<IReadOnlyList<DicomFile>> seriesRetrieve = await _client.RetrieveSeriesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid);
-            ValidateRetrieveTransaction(seriesRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, dicomFile1);
+            ValidateRetrieveTransaction(seriesRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, singleInstance: false, dicomFile1);
 
             DicomWebResponse<IReadOnlyList<DicomFile>> instanceRetrieve = await _client.RetrieveInstanceAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid);
-            ValidateRetrieveTransaction(instanceRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, dicomFile1);
+            ValidateRetrieveTransaction(instanceRetrieve, HttpStatusCode.OK, DicomTransferSyntax.ExplicitVRLittleEndian, singleInstance: true, dicomFile1);
         }
 
         [Theory(Skip = "The file fails with validation.")]
@@ -660,11 +660,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomWebResponse<IReadOnlyList<DicomFile>> response,
             HttpStatusCode expectedStatusCode,
             DicomTransferSyntax expectedTransferSyntax,
+            bool singleInstance = false,
             params DicomFile[] expectedFiles)
         {
             Assert.Equal(expectedStatusCode, response.StatusCode);
             Assert.Equal(expectedFiles.Length, response.Value.Count);
-            Assert.Equal(KnownContentTypes.MultipartRelated, response.Content.Headers.ContentType.MediaType);
+
+            if (singleInstance)
+            {
+                Assert.Equal(KnownContentTypes.ApplicationDicom, response.Content.Headers.ContentType.MediaType);
+            }
+            else
+            {
+                Assert.Equal(KnownContentTypes.MultipartRelated, response.Content.Headers.ContentType.MediaType);
+            }
 
             for (var i = 0; i < expectedFiles.Length; i++)
             {
