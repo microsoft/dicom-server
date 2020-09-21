@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Web
         {
             services.Configure<IISServerOptions>(options =>
             {
-                options.MaxRequestBodySize = long.MaxValue;
+                options.MaxRequestBodySize = int.MaxValue;
             });
             services.AddDevelopmentIdentityProvider(Configuration);
 

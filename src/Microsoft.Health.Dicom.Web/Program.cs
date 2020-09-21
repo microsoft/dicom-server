@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Web
 
                     builder.AddDevelopmentAuthEnvironmentIfConfigured(builtConfig, "DicomServer");
                 })
-                .ConfigureKestrel(option => option.Limits.MaxRequestBodySize = long.MaxValue)
+                .ConfigureKestrel(option => option.Limits.MaxRequestBodySize = uint.MaxValue)
                 .UseStartup<Startup>()
                 .Build();
 
