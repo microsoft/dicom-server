@@ -18,13 +18,13 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 {
-    public class MultipartReaderStreamToSeekableStreamConverterTests
+    public class SeekableStreamConverterTests
     {
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
         private readonly SeekableStreamConverter _seekableStreamConverter;
 
-        public MultipartReaderStreamToSeekableStreamConverterTests()
+        public SeekableStreamConverterTests()
         {
             var configuration = Substitute.For<IOptions<StoreConfiguration>>();
             configuration.Value.Returns(new StoreConfiguration

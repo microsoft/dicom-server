@@ -175,12 +175,24 @@ namespace Microsoft.Health.Dicom.Client
             return await PostAsync(postContent, studyInstanceUid, cancellationToken);
         }
 
-        public async Task<DicomWebResponse<DicomDataset>> StoreSingleAsync(
+        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             Stream stream,
             string studyInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
-            return await PostSingleAsync(stream, studyInstanceUid, cancellationToken);
+            return await PostAsync(stream, studyInstanceUid, cancellationToken);
+        }
+
+        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
+            DicomFile dicomFile,
+            string studyInstanceUid = null,
+            CancellationToken cancellationToken = default)
+        {
+            await using (var stream = GetMemoryStream())
+            {
+                await dicomFile.SaveAsync(stream);
+                return await PostAsync(stream, studyInstanceUid, cancellationToken);
+            }
         }
 
         public async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken = default)
@@ -293,7 +305,7 @@ namespace Microsoft.Health.Dicom.Client
                 cancellationToken);
         }
 
-        private async Task<DicomWebResponse<DicomDataset>> PostSingleAsync(
+        private async Task<DicomWebResponse<DicomDataset>> PostAsync(
             Stream postContent,
             string studyInstanceUid,
             CancellationToken cancellationToken)

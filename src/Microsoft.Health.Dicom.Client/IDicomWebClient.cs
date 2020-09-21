@@ -42,6 +42,8 @@ namespace Microsoft.Health.Dicom.Client
 
         Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<Stream> streams, string studyInstanceUid = null, CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse<DicomDataset>> StoreSingleAsync(Stream stream, string studyInstanceUid = null, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<DicomDataset>> StoreAsync(Stream stream, string studyInstanceUid = null, CancellationToken cancellationToken = default);
+
+        Task<DicomWebResponse<DicomDataset>> StoreAsync(DicomFile dicomFile, string studyInstanceUid = null, CancellationToken cancellationToken = default);
     }
 }
