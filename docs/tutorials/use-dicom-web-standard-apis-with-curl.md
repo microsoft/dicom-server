@@ -35,7 +35,7 @@ The cURL commands each contain at least one, and sometimes two, variables that m
     * Be sure to use forward slashes as separators and end the directory _without_ a trailing forward slash.     
 
 ---
-## Uploading DICOM (STOW)
+## Uploading DICOM Instances (STOW)
 ---
 ### Store-instances-using-multipart/related
 
@@ -94,6 +94,7 @@ Adding green-square.dcm upload to support running all the cURL commands in seque
 
 The following is required to upload a single DICOM file.
 
+_Details:_
 * Path: ../studies
 * Method: POST
 * Headers:
@@ -207,6 +208,9 @@ _Details:_
 
 ---
 ## Query DICOM (QIDO)
+
+In the following examples, we search for items using their unique identifiers. You can also search for other attributes, such as PatientName.
+
 ---
 ### Search-for-studies
 
