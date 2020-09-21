@@ -24,6 +24,7 @@ namespace Microsoft.Health.Dicom.Web
         {
             services.Configure<IISServerOptions>(options =>
             {
+                // Asp.net Core has a bug https://github.com/dotnet/aspnetcore/issues/2711 which prevent from uploading greated than 2GB file
                 options.MaxRequestBodySize = int.MaxValue;
             });
             services.AddDevelopmentIdentityProvider(Configuration);
