@@ -25,6 +25,9 @@ Configure the remaining deployment settings for your Medical Imaging Server. The
 
 Refer to [Configure Medical Imaging Server for DICOM](../how-to-guides/configure-dicom-server-settings.md) for more configuration instructions.
 
+> NOTE: Refer to the [SQL Server Password Complexity Requirements](https://docs.microsoft.com/sql/relational-databases/security/password-policy?view=sql-server-ver15
+) when setting your SQL admin password.
+
 ## Summary
 
 In this quickstart, you learned how to deploy and configure the Medical Imaging Server for DICOM using the Azure portal.
