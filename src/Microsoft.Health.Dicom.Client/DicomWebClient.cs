@@ -145,14 +145,14 @@ namespace Microsoft.Health.Dicom.Client
             string studyInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
-            var postContent = new List<byte[]>();
+            var postContent = new List<Stream>();
 
             foreach (DicomFile dicomFile in dicomFiles)
             {
                 await using (var stream = GetMemoryStream())
                 {
                     await dicomFile.SaveAsync(stream);
-                    postContent.Add(stream.ToArray());
+                    postContent.Add(stream);
                 }
             }
 
@@ -164,15 +164,7 @@ namespace Microsoft.Health.Dicom.Client
             string studyInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
-            var postContent = new List<byte[]>();
-
-            foreach (Stream stream in streams)
-            {
-                byte[] content = await ConvertStreamToByteArrayAsync(stream, cancellationToken);
-                postContent.Add(content);
-            }
-
-            return await PostAsync(postContent, studyInstanceUid, cancellationToken);
+            return await PostAsync(streams, studyInstanceUid, cancellationToken);
         }
 
         public async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken = default)
@@ -266,15 +258,15 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         private async Task<DicomWebResponse<DicomDataset>> PostAsync(
-            IEnumerable<byte[]> postContent,
+            IEnumerable<Stream> postContent,
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
             MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
 
-            foreach (byte[] content in postContent)
+            foreach (Stream content in postContent)
             {
-                var byteContent = new ByteArrayContent(content);
+                var byteContent = new StreamContent(content);
                 byteContent.Headers.ContentType = MediaTypeApplicationDicom;
                 multiContent.Add(byteContent);
             }

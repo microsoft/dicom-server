@@ -22,6 +22,10 @@ namespace Microsoft.Health.Dicom.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public virtual void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<IISServerOptions>(options =>
+            {
+                options.MaxRequestBodySize = long.MaxValue;
+            });
             services.AddDevelopmentIdentityProvider(Configuration);
 
             services.AddDicomServer(Configuration)
