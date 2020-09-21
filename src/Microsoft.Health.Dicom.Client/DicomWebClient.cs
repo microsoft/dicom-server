@@ -161,14 +161,23 @@ namespace Microsoft.Health.Dicom.Client
 
             foreach (DicomFile dicomFile in dicomFiles)
             {
-                await using (var stream = GetMemoryStream())
-                {
-                    await dicomFile.SaveAsync(stream);
-                    postContent.Add(stream);
-                }
+                var stream = GetMemoryStream();
+                await dicomFile.SaveAsync(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+                postContent.Add(stream);
             }
 
-            return await PostAsync(postContent, studyInstanceUid, cancellationToken);
+            try
+            {
+                return await PostAsync(postContent, studyInstanceUid, cancellationToken);
+            }
+            finally
+            {
+                foreach (var stream in postContent)
+                {
+                    stream.Dispose();
+                }
+            }
         }
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
