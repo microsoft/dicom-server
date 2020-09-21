@@ -1,12 +1,12 @@
 # Deploy DICOM Cast
 
-In this quickstart, you will learn how to deploy DICOM Cast for your Medical Imaging Server for DICOM. DICOM Cast is a service which pushes Medical Imaging Server for DICOM metadata into a FHIR server to support integrated queries across clinical and imaging data. To learn more about the architecture of DICOM Cast, refer to the [DICOM Cast Concept](../docs/concepts/dicom-cast.md).
+In this quickstart, you will learn how to deploy DICOM Cast for your Medical Imaging Server for DICOM. DICOM Cast is a service which pushes Medical Imaging Server for DICOM metadata into a FHIR&trade; server to support integrated queries across clinical and imaging data. To learn more about the architecture of DICOM Cast, refer to the [DICOM Cast Concept](../docs/concepts/dicom-cast.md).
 
 DICOM Cast is deployed as an Azure Container Instance using the provided [ARM template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
 
 ## Prerequisites
 
-* A deployed [Azure API for FHIR](https://azure.microsoft.com/services/azure-api-for-fhir/) endpoint or [FHIR Server](https://github.com/microsoft/fhir-server)
+* A deployed [Azure API for FHIR](https://azure.microsoft.com/services/azure-api-for-fhir/) endpoint or [FHIR Server for Azure](https://github.com/microsoft/fhir-server)
 * A deployed [Medical Imaging Server for DICOM](https://github.com/microsoft/dicom-server)
 
 ## Deployment
@@ -39,7 +39,7 @@ Instructions for how to deploy an ARM template can be found in the following doc
 
 ## Authentication
 
-The authentication used will depend on setup of your Medical Imaging Server for DICOM and your FHIR Server. For additional information regarding setting up authentication see [DICOM Cast authentication](/converter/dicom-cast/docs/authentication.md).
+The authentication used will depend on setup of your Medical Imaging Server for DICOM and your FHIR&trade; Server. For additional information regarding setting up authentication see [DICOM Cast authentication](/converter/dicom-cast/docs/authentication.md).
 
 Below is an example of the settings need to be added to the KeyVault for OAuth2ClientCredential authentication:
 
@@ -52,9 +52,9 @@ Below is an example of the settings need to be added to the KeyVault for OAuth2C
     - DicomWeb--Authentication--OAuth2ClientCredential--Scope : ```Application ID URI of the resource app```
     - DicomWeb--Authentication--OAuth2ClientCredential--ClientId : ```Client Id of the client app```
     - DicomWeb--Authentication--OAuth2ClientCredential--ClientSecret : ```Client app secret```
-* Add similar secrets to KeyVault for FHIR server.
+* Add similar secrets to KeyVault for FHIR&trade; server.
 * Stop and Start the Container, to pickup the new configurations.
 
 ## Summary
 
-In this quickstart, you will learned how to deploy DICOM Cast for your Medical Imaging Server for DICOM. Reference the [DICOM Cast Concept](../docs/concepts/dicom-cast.md) to learn more. To start using DICOM Cast, see [Sync DICOM Metadata to FHIR with DICOM Cast](../how-to-guides/sync-dicom-metadata-to-fhir.md).
+In this quickstart, you will learned how to deploy DICOM Cast for your Medical Imaging Server for DICOM. Reference the [DICOM Cast Concept](../docs/concepts/dicom-cast.md) to learn more. To start using DICOM Cast, see [Sync DICOM Metadata to FHIR&trade; with DICOM Cast](../how-to-guides/sync-dicom-metadata-to-fhir.md).

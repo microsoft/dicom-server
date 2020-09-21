@@ -1,8 +1,8 @@
-# Use DICOMWeb&trade; Standard APIs with Medical Imaging Server for DICOM
+# Use DICOMweb&trade; Standard APIs with Medical Imaging Server for DICOM
 
 This tutorial gives on overview of how to use the DICOMweb&trade; Standard APIs with the Medical Imaging Server for DICOM.
 
-The **Medical Imaging Server for DICOM** supports a subset of the DICOMweb&trade; Standard. Support includes:
+The Medical Imaging Server for DICOM supports a subset of the DICOMweb&trade; Standard. Support includes:
 
 - Store (STOW-RS)
 - Retrieve (WADO-RS)

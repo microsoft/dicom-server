@@ -23,23 +23,7 @@ Once you have your subscription, click the link below to begin deployment.
 
 Configure the remaining deployment settings for your Medical Imaging Server. The default settings are appropriate for an excellent dev/test or proof-of-concept environment as they are inexpensive, yet perform well for small to medium loads. For a production environment, upgrading to regionally redundant storage, failover databases and autoscaling application servers is recommended.
 
-| Parameter | Description | Required |
-|-|-|-|
-| App Service Plan Resource Group | Name of the resource group containing App Service Plan. If empty, your deployment resource group is used. | No |
-| App Service Plan Name | Name of App Service Plan (existing or new). If empty, a name will be generated. | No |
-| App Service Plan Sku | Choose an App Service Plan SKU, or pricing tier. S1 is the default tier enabled. | No |
-| Storage Account Sku | Choose a SKU for your storage account. By default, Standard Locally Redundant Storage is selected. | No |
-| Deploy Application Insights | Deploy Application Insights for the DICOM server. Disabled for Microsoft Azure Government (MAG). | No |
-| Application Insights Location | Select a location for Application Insights. If empty, the region closest to your deployment location is used. | No |
-| Additional DICOM Server Config Properties | Additional configuration properties for the DICOM server. These properties can be modified after deployment. In the form {"path1":"value1","path2":"value2"} | No |
-| Sql Admin Password | Set a password for the SQL administrator account. | **Yes** |
-| Sql Location | Set an override location for the default SQL Server Database location. | No |
-| Deploy OHIF Viewer | Deploy OHIF viewer that is configured for the DICOM server. (This is useful for testing, as OHIF supports viewing uploaded images.) | No |
-| Security Authentication Authority | OAuth Authority. See [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md) to update after deployment. | No |
-| Security Authentication Audience | Audience (aud) to validate in JWT. See [Enable Azure AD Authentication](../how-to-guides/enable-authentication-with-tokens.md) to update after deployment. | No |
-| Solution Type | The type of the solution. | No |
-| Deploy Package | Webdeploy package specified by deployPackageUrl. | No |
-| Deploy Package Url | Webdeploy package to use as deployment code. If blank, the latest CI code package will be deployed. | No |
+Refer to [Configure Medical Imaging Server for DICOM](../how-to-guides/configure-dicom-server-settings.md) for more configuration instructions.
 
 ## Summary
 
