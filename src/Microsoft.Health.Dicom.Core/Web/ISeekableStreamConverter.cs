@@ -7,12 +7,12 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Api.Web
+namespace Microsoft.Health.Dicom.Core.Web
 {
     /// <summary>
     /// Provides functionality to convert stream into a seekable stream.
     /// </summary>
-    internal interface ISeekableStreamConverter
+    public interface ISeekableStreamConverter
     {
         /// <summary>
         /// Converts the <paramref name="stream"/> into a seekable stream.
