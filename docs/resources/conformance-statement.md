@@ -45,6 +45,8 @@ The following DICOM elements are required to be present in every DICOM file atte
 
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 
+> DICOM File Size Limit: If using IIS, there is a size limit of 2GB for a DICOM file. To upload a DICOM file up to 4GB, use Kestrel. Refer to this [Github Issue](https://github.com/dotnet/aspnetcore/issues/2711) to learn more.
+
 ### Store Response Status Codes
 
 | Code                         | Description |
