@@ -58,7 +58,6 @@ For both your FHIR and DICOM servers, you will set the Audience and Authority fo
 
 | Name | Value |
 | :------- | :----- |
-| DicomWeb--Endpoint | ```<dicom-server-url>``` |
 | DicomWeb--Authentication--Enabled | "true" |
 | DicomWeb--Authentication--AuthenticationType | "ManagedIdentity" |
 | DicomWeb--Authentication--ManagedIdentityCredential--Resource | ```<dicom-server-url>``` |
@@ -67,10 +66,9 @@ For both your FHIR and DICOM servers, you will set the Audience and Authority fo
 
 | Name | Value |
 | :------- | :----- |
-| fhir--Endpoint | ```<fhir-server-url>``` |
-| fhir--Authentication--Enabled | "true" |
-| fhir--Authentication--AuthenticationType | "ManagedIdentity" |
-| fhir--Authentication--ManagedIdentityCredential--Resource | ```<fhir-server-url>``` |
+| Fhir--Authentication--Enabled | "true" |
+| Fhir--Authentication--AuthenticationType | "ManagedIdentity" |
+| Fhir--Authentication--ManagedIdentityCredential--Resource | ```<fhir-server-url>``` |
 
 ### Restart Azure Container Instance for DICOM Cast
 
@@ -87,4 +85,4 @@ To manage authentication with OAuth2 Client Credentials or OAuth2 User Passwords
 
 For an overview of DICOM Cast, see [DICOM Cast Concept](../concepts/dicom-cast.md).
 
-To upload files to your DICOM Server, refer to [Use the Medical Imaging Server APIs](../tutorials.use-the-medical-imaging-server-apis.md).
+To upload files to your DICOM Server, refer to [Use the Medical Imaging Server APIs](../tutorials/use-the-medical-imaging-server-apis.md).
