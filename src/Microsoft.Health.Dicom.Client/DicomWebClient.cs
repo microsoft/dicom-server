@@ -157,18 +157,26 @@ namespace Microsoft.Health.Dicom.Client
             string studyInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
-            var postContent = new List<byte[]>();
-
-            foreach (DicomFile dicomFile in dicomFiles)
+            var postContent = new List<Stream>();
+            try
             {
-                await using (var stream = GetMemoryStream())
+                foreach (DicomFile dicomFile in dicomFiles)
                 {
+                    var stream = GetMemoryStream();
                     await dicomFile.SaveAsync(stream);
-                    postContent.Add(stream.ToArray());
+                    stream.Seek(0, SeekOrigin.Begin);
+                    postContent.Add(stream);
+                }
+
+                return await PostAsync(postContent, studyInstanceUid, cancellationToken);
+            }
+            finally
+            {
+                foreach (var stream in postContent)
+                {
+                    await stream.DisposeAsync();
                 }
             }
-
-            return await PostAsync(postContent, studyInstanceUid, cancellationToken);
         }
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
@@ -176,15 +184,7 @@ namespace Microsoft.Health.Dicom.Client
             string studyInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
-            var postContent = new List<byte[]>();
-
-            foreach (Stream stream in streams)
-            {
-                byte[] content = await ConvertStreamToByteArrayAsync(stream, cancellationToken);
-                postContent.Add(content);
-            }
-
-            return await PostAsync(postContent, studyInstanceUid, cancellationToken);
+            return await PostAsync(streams, studyInstanceUid, cancellationToken);
         }
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
@@ -300,17 +300,17 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         private async Task<DicomWebResponse<DicomDataset>> PostAsync(
-            IEnumerable<byte[]> postContent,
+            IEnumerable<Stream> postContent,
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
             MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
 
-            foreach (byte[] content in postContent)
+            foreach (Stream content in postContent)
             {
-                var byteContent = new ByteArrayContent(content);
-                byteContent.Headers.ContentType = MediaTypeApplicationDicom;
-                multiContent.Add(byteContent);
+                var streamContent = new StreamContent(content);
+                streamContent.Headers.ContentType = MediaTypeApplicationDicom;
+                multiContent.Add(streamContent);
             }
 
             return await PostMultipartContentAsync(
@@ -402,15 +402,6 @@ namespace Microsoft.Health.Dicom.Client
                 DicomDataset dataset = JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
 
                 return new DicomWebResponse<DicomDataset>(response, dataset);
-            }
-        }
-
-        private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream, CancellationToken cancellationToken)
-        {
-            await using (var memory = GetMemoryStream())
-            {
-                await stream.CopyToAsync(memory, cancellationToken);
-                return memory.ToArray();
             }
         }
 
