@@ -188,14 +188,6 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
-            Stream stream,
-            string studyInstanceUid = null,
-            CancellationToken cancellationToken = default)
-        {
-            return await PostAsync(stream, studyInstanceUid, cancellationToken);
-        }
-
-        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             DicomFile dicomFile,
             string studyInstanceUid = null,
             CancellationToken cancellationToken = default)
@@ -203,7 +195,8 @@ namespace Microsoft.Health.Dicom.Client
             await using (var stream = GetMemoryStream())
             {
                 await dicomFile.SaveAsync(stream);
-                return await PostAsync(stream, studyInstanceUid, cancellationToken);
+                byte[] content = stream.ToArray();
+                return await PostAsync(content, studyInstanceUid, cancellationToken);
             }
         }
 
@@ -318,26 +311,27 @@ namespace Microsoft.Health.Dicom.Client
         }
 
         private async Task<DicomWebResponse<DicomDataset>> PostAsync(
-            Stream postContent,
+            byte[] postContent,
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
-            StreamContent streamContent = new StreamContent(postContent);
-            streamContent.Headers.ContentType = MediaTypeApplicationDicom;
+            ByteArrayContent byteArrayContent = new ByteArrayContent(postContent);
+            byteArrayContent.Headers.ContentType = MediaTypeApplicationDicom;
+
             return await PostSinglepartConentAsync(
-                streamContent,
+                byteArrayContent,
                 string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid),
                 cancellationToken);
         }
 
         public async Task<DicomWebResponse<DicomDataset>> PostSinglepartConentAsync(
-            StreamContent streamContent,
+            ByteArrayContent byteArrayContent,
             string requestUri,
             CancellationToken cancellationToken = default)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
             request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
-            request.Content = streamContent;
+            request.Content = byteArrayContent;
 
             using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
             {

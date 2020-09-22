@@ -346,25 +346,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void StoreSingleInstance_ServerShouldReturnOK()
+        public async void StoreSinglepart_ServerShouldReturnOK()
         {
+            var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile = Samples.CreateRandomDicomFile();
-            await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
-            {
-                await dicomFile.SaveAsync(stream);
-
-                DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(stream);
-                Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
-            }
+            DicomWebResponse<DicomDataset> response = await _client.StoreAsync(dicomFile);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
-        public async void StoreSingleInstanceWithStudyUID_ServerShouldReturnOK()
+        public async void StoreSinglepartWithStudyUID_ServerShouldReturnOK()
         {
             var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
-            DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(dicomFile, studyInstanceUID);
-            Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+            DicomWebResponse<DicomDataset> response = await _client.StoreAsync(dicomFile, studyInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset)
