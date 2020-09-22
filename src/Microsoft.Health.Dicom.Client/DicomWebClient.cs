@@ -286,9 +286,9 @@ namespace Microsoft.Health.Dicom.Client
 
             foreach (Stream content in postContent)
             {
-                var byteContent = new StreamContent(content);
-                byteContent.Headers.ContentType = MediaTypeApplicationDicom;
-                multiContent.Add(byteContent);
+                var streamContent = new StreamContent(content);
+                streamContent.Headers.ContentType = MediaTypeApplicationDicom;
+                multiContent.Add(streamContent);
             }
 
             return await PostMultipartContentAsync(
@@ -330,15 +330,6 @@ namespace Microsoft.Health.Dicom.Client
                 DicomDataset dataset = JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
 
                 return new DicomWebResponse<DicomDataset>(response, dataset);
-            }
-        }
-
-        private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream, CancellationToken cancellationToken)
-        {
-            await using (var memory = GetMemoryStream())
-            {
-                await stream.CopyToAsync(memory, cancellationToken);
-                return memory.ToArray();
             }
         }
 
