@@ -4,7 +4,7 @@ This How-to Guide explains how to configure settings for the Medical Imaging Ser
 
 ## Prerequisites
 
-To configure your Medical Imaging Server for DICOM, you need to have an instance deployed. If you have not already deployed the Medical Imaging Server, follow the instructions [here](../quickstarts/deploy-via-azure.md)
+To configure your Medical Imaging Server for DICOM, you need to have an instance deployed. If you have not already deployed the Medical Imaging Server, [deploy an instance to Azure](../quickstarts/deploy-via-azure.md).
 
 ## Manage Authentication
 
