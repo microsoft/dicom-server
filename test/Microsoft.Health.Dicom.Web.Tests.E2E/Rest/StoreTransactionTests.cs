@@ -352,7 +352,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
             {
                 await dicomFile.SaveAsync(stream);
-
                 DicomWebResponse<DicomDataset> response = await _client.StoreAsync(stream);
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             }

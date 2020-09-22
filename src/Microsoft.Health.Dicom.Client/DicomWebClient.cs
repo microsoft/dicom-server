@@ -201,10 +201,12 @@ namespace Microsoft.Health.Dicom.Client
             string studyInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
-            var stream = GetMemoryStream();
-            await dicomFile.SaveAsync(stream);
-            stream.Seek(0, SeekOrigin.Begin);
-            return await PostAsync(stream, studyInstanceUid, cancellationToken);
+            await using (var stream = GetMemoryStream())
+            {
+                await dicomFile.SaveAsync(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+                return await PostAsync(stream, studyInstanceUid, cancellationToken);
+            }
         }
 
         public async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken = default)
