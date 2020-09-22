@@ -348,10 +348,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async void StoreSinglepart_ServerShouldReturnOK()
         {
-            var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile = Samples.CreateRandomDicomFile();
-            DicomWebResponse<DicomDataset> response = await _client.StoreAsync(dicomFile);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
+            {
+                await dicomFile.SaveAsync(stream);
+
+                DicomWebResponse<DicomDataset> response = await _client.StoreAsync(stream);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
         }
 
         [Fact]
