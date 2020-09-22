@@ -87,7 +87,7 @@ client = requests.session()
 ```
 
 --------------------
-## Store DICOM Instances (STOW)
+## Uploading DICOM Instances (STOW)
 
 The following examples highlight persisting DICOM files.
 
@@ -97,7 +97,19 @@ This demonstrates how to upload a single DICOM file. This uses a bit of a Python
 
 _Details:_
 
-* POST /studies
+* Path: ../studies
+* Method: POST
+* Headers:
+    * `Accept: application/dicom+json`
+    * `Content-Type: multipart/related; type="application/dicom"`
+* Body:
+    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value
+
+> Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.
+ > * `Content-Type: multipart/related; type="application/dicom"; boundary=ABCD1234`
+ > * `Content-Type: multipart/related; boundary=ABCD1234`
+ > * `Content-Type: multipart/related`
+
 
 ```python
 #upload blue-circle.dcm
@@ -124,8 +136,14 @@ This demonstrates how to upload a multiple DICOM files into the specified study.
 By passing an array of files to the fields parameter of `encode_multipart_related`, multiple files can be uploaded in a single POST. This is sometimes used to upload a complete Series or Study. 
 
 _Details:_
+* Path: ../studies/{study}
+* Method: POST
+* Headers:
+    * `Accept: application/dicom+json`
+    * `Content-Type: multipart/related; type="application/dicom"`
+* Body:
+    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value
 
-* POST /studies/{study}
 
 ```python
 
@@ -155,8 +173,15 @@ response = client.post(url, body, headers=headers, verify=False)
 This demonstrates how to upload a single DICOM file. This non-standard API endpoint simplifies uploading a single file as a byte array stored in the body of a reque
 
 _Details:_
+* Path: ../studies
+* Method: POST
+* Headers:
+   *  `Accept: application/dicom+json`
+   *  `Content-Type: application/dicom`
+* Body:
+    * Contains a single DICOM file as bytes.
 
-* POST /studies
+> NOTE: Not currently implemented! TODO: Implement
 
 ```python
 # This is currently not implemented
@@ -166,14 +191,17 @@ _Details:_
 ## Retrieve DICOM Instances (WADO)
 
 The following examples highlight retrieving DICOM instances.
+---
 
 ### Retrieve all instances within a study
 
 This retrieves all instances within a single study.
 
 _Details:_
-
-* GET /studies/{study}
+* Path: ../studies/{study}
+* Method: GET
+* Headers:
+   * `Accept: multipart/related; type="application/dicom"; transfer-syntax=*`
 
 All three of the dcm files that we uploaded previously are part of the same study so the response should return all 3 instances. Validate that the response has a status code of OK and that all three instances are returned.
 
@@ -189,8 +217,10 @@ response = client.get(url, headers=headers) #, verify=False)
 This request retrieves the metadata for all instances within a single study.
 
 _Details:_
-
-* GET /studies/{study}/metadata
+* Path: ../studies/{study}/metadata
+* Method: GET
+* Headers:
+   * `Accept: application/dicom+json`
 
 All three of the dcm files that we uploaded previously are part of the same study so the response should return the metadata for all 3 instances. Validate that the response has a status code of OK and that all the metadata is returned.
 
@@ -206,8 +236,10 @@ response = client.get(url, headers=headers) #, verify=False)
 This retrieves all instances within a single series.
 
 _Details:_
-
-* GET /studies/{study}/series{series}
+* Path: ../studies/{study}/series/{series}
+* Method: GET
+* Headers:
+   * `Accept: multipart/related; type="application/dicom"; transfer-syntax=*`
 
 This series has 2 instances (green-square and red-triangle), so the response should return both instances. Validate that the response has a status code of OK and that both instances are returned.
 
@@ -224,8 +256,10 @@ response = client.get(url, headers=headers) #, verify=False)
 This request retrieves the metadata for all instances within a single series.
 
 _Details:_
-
-* GET /studies/{study}/metadata
+* Path: ../studies/{study}/series/{series}/metadata
+* Method: GET
+* Headers:
+   * `Accept: application/dicom+json`
 
 This series has 2 instances (green-square and red-triangle), so the response should return metatdata for both instances. Validate that the response has a status code of OK and that both instances metadata are returned.
 
@@ -241,8 +275,10 @@ response = client.get(url, headers=headers) #, verify=False)
 This request retrieves a single instance.
 
 _Details:_
-
-* GET /studies/{study}/series{series}/instances/{instance}
+* Path: ../studies/{study}/series{series}/instances/{instance}
+* Method: GET
+* Headers:
+   * `Accept: application/dicom; transfer-syntax=*`
 
 This should only return the instance red-triangle. Validate that the response has a status code of OK and that the instance is returned.
 
@@ -252,15 +288,7 @@ url = f'{base_url}/studies/{study_uid}/series/{series_uid}/instances/{instance_u
 headers = {'Accept':'application/dicom; transfer-syntax=*'}
 
 response = client.get(url, headers=headers) #, verify=False)
-response
-
 ```
-
-
-
-
-    <Response [200]>
-
 
 
 ### Retrieve metadata of a single instance within a series of a study
@@ -268,8 +296,10 @@ response
 This request retrieves the metadata for a single instances within a single study and series.
 
 _Details:_
-
-* GET /studies/{study}/metadata
+* Path: ../studies/{study}/series/{series}/instances/{instance}/metadata
+* Method: GET
+* Headers:
+  * `Accept: application/dicom+json`
 
 This should only return the metatdata for the instance red-triangle. Validate that the response has a status code of OK and that the metadata is returned.
 
@@ -285,8 +315,12 @@ response = client.get(url, headers=headers) #, verify=False)
 This request retrieves one or more frames from a single instance.
 
 _Details:_
-
-* GET /studies/{study}/series/{series}/instances/{instance}/frames/{frames}
+* Path: ../studies/{study}/series{series}/instances/{instance}/frames/1,2,3
+* Method: GET
+* Headers:
+   * `Accept: multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1` (Default) or
+   * `Accept: multipart/related; type="application/octet-stream"; transfer-syntax=*` or
+   * `Accept: multipart/related; type="application/octet-stream";`
 
 This should return the only frame from the red-triangle. Validate that the response has a status code of OK and that the frame is returned.
 
@@ -300,17 +334,20 @@ response = client.get(url, headers=headers) #, verify=False)
 --------------------
 ## Query DICOM (QIDO)
 
-In the following examples, we search for items using their unique identifiers. You can also search for other attributes, such as PatientName and the like.
+In the following examples, we search for items using their unique identifiers. You can also search for other attributes, such as PatientName.
 
-> NOTE: Please see the [Conformance Statement](../resources/conformance-statement.md#supported-search-parameters) file for supported DICOM attributes.
+> Please see the [Conformance Statement](../resources/conformance-statement.md#supported-search-parameters) file for supported DICOM attributes.
 
+---
 ### Search for studies
 
 This request searches for one or more studies by DICOM attributes.
 
 _Details:_
-
-* GET /studies?StudyInstanceUID={study}
+* Path: ../studies?StudyInstanceUID={study}
+* Method: GET
+* Headers:
+   * `Accept: application/dicom+json`
 
 Validate that response includes 1 study and that response code is OK.
 
@@ -328,8 +365,10 @@ response = client.get(url, headers=headers, params=params) #, verify=False)
 This request searches for one or more series by DICOM attributes.
 
 _Details:_
-
-* GET /series?SeriesInstanceUID={series}
+* Path: ../series?SeriesInstanceUID={series}
+* Method: GET
+* Headers:
+   * `Accept: application/dicom+json`
 
 Validate that response includes 1 series and that response code is OK.
 
@@ -346,8 +385,10 @@ response = client.get(url, headers=headers, params=params) #, verify=False)
 This request searches for one or more series within a single study by DICOM attributes.
 
 _Details:_
-
-* GET /studies/{study}/series?SeriesInstanceUID={series}
+* Path: ../studies/{study}/series?SeriesInstanceUID={series}
+* Method: GET
+* Headers:
+   * `Accept: application/dicom+json`
 
 Validate that response includes 1 series and that response code is OK.
 
@@ -365,8 +406,10 @@ response = client.get(url, headers=headers, params=params) #, verify=False)
 This request searches for one or more instances by DICOM attributes.
 
 _Details:_
-
-* GET /instances?SOPInstanceUID={instance}
+* Path: ../instances?SOPInstanceUID={instance}
+* Method: GET
+* Headers:
+   * `Accept: application/dicom+json`
 
 Validate that response includes 1 instance and that response code is OK.
 
@@ -383,8 +426,10 @@ response = client.get(url, headers=headers, params=params) #, verify=False)
 This request searches for one or more instances within a single study by DICOM attributes.
 
 _Details:_
-
-* GET /studies/{study}/instances?SOPInstanceUID={instance}
+* Path: ../studies/{study}/instances?SOPInstanceUID={instance}
+* Method: GET
+* Headers:
+   * `Accept: application/dicom+json`
 
 Validate that response includes 1 instance and that response code is OK.
 
@@ -401,8 +446,10 @@ response = client.get(url, headers=headers, params=params) #, verify=False)
 This request searches for one or more instances within a single study and single series by DICOM attributes.
 
 _Details:_
-
-* GET /studies/{study}/series/{series}instances?SOPInstanceUID={instance}
+* Path: ../studies/{study}/series/{series}/instances?SOPInstanceUID={instance}
+* Method: GET
+* Headers:
+   * `Accept: application/dicom+json`
 
 Validate that response includes 1 instance and that response code is OK.
 
@@ -426,8 +473,9 @@ A 204 response code is returned when the deletion is successful. A 404 response 
 This request deletes a single instance within a single study and single series.
 
 _Details:_
-
-* DELETE /studies/{study}/series/{series}/instances/{instance}
+* Path: ../studies/{study}/series/{series}/instances/{instance}
+* Method: DELETE
+* Headers: No special headers needed
 
 This deletes the red-triangle instance from the server. If it is successful the response status code contains no content.
 
@@ -442,8 +490,9 @@ response = client.delete(url)
 This request deletes a single series (and all child instances) within a single study.
 
 _Details:_
-
-* DELETE /studies/{study}/series/{series}
+* Path: ../studies/{study}/series/{series}
+* Method: DELETE
+* Headers: No special headers needed
 
 This deletes the green-square instance (it is the only element left in the series) from the server. If it is successful the response status code contains no content.
 
@@ -458,8 +507,9 @@ response = client.delete(url)
 This request deletes a single study (and all child series and instances).
 
 _Details:_
-
-* DELETE /studies/{study}
+* Path: ../studies/{study}
+* Method: DELETE
+* Headers: No special headers needed
 
 ```python
 #headers = {'Accept':'anything/at+all'}
