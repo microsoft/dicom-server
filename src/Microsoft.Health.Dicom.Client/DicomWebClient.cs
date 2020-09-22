@@ -158,24 +158,23 @@ namespace Microsoft.Health.Dicom.Client
             CancellationToken cancellationToken = default)
         {
             var postContent = new List<Stream>();
-
-            foreach (DicomFile dicomFile in dicomFiles)
-            {
-                var stream = GetMemoryStream();
-                await dicomFile.SaveAsync(stream);
-                stream.Seek(0, SeekOrigin.Begin);
-                postContent.Add(stream);
-            }
-
             try
             {
+                foreach (DicomFile dicomFile in dicomFiles)
+                {
+                    var stream = GetMemoryStream();
+                    await dicomFile.SaveAsync(stream);
+                    stream.Seek(0, SeekOrigin.Begin);
+                    postContent.Add(stream);
+                }
+
                 return await PostAsync(postContent, studyInstanceUid, cancellationToken);
             }
             finally
             {
                 foreach (var stream in postContent)
                 {
-                    stream.Dispose();
+                    await stream.DisposeAsync();
                 }
             }
         }
