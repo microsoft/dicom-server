@@ -37,7 +37,8 @@ Follow the steps [here](docs/development/setup.md) to deploy a local copy of the
 
 - [Use the Medical Imaging Server for DICOM APIs](docs/tutorials/use-the-medical-imaging-server-apis.md)
 - [Use DICOMweb&trade; Standard APIs with C#](docs/tutorials/use-dicom-web-standard-apis-with-c%23.md)
-- [Use DICOMweb&trade; Standard APIs with Curl](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
+- [Use DICOMweb&trade; Standard APIs with Python](docs/tutorials/use-dicom-web-standard-apis-with-python.md)
+- [Use DICOMweb&trade; Standard APIs with cURL](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
 
 ## How-to guides
 
