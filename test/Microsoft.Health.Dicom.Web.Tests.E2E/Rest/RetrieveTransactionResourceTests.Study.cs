@@ -5,20 +5,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -29,33 +26,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public partial class RetrieveTransactionResourceTests
     {
         [Theory]
-        [InlineData(RequestOriginalContentTestFolder, DicomWebConstants.ApplicationDicomMediaType, "*")]
-        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, DicomWebConstants.ApplicationDicomMediaType, null)]
-        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.1")]
-        [InlineData(FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.90")]
-        public async Task GivenSupportedAcceptHeaders_WhenRetrieveStudy_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
+        [InlineData(RequestOriginalContentTestFolder, "*")]
+        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null)]
+        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1")]
+        [InlineData(FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder, "1.2.840.10008.1.2.4.90")]
+        public async Task GivenSupportedAcceptHeaders_WhenRetrieveStudy_ThenServerShouldReturnExpectedContent(string testDataFolder, string transferSyntax)
         {
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
             DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
             await EnsureFileIsStoredAsync(inputDicomFile);
             string studyInstanceUid = inputDicomFile.Dataset.GetString(DicomTag.StudyInstanceUID);
-            var requestUri = new Uri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), UriKind.Relative);
-
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessageBuilder().Build(requestUri, singlePart: false, mediaType, transferSyntax);
-
-            using (HttpResponseMessage response = await _client.HttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, new CancellationTokenSource().Token))
+            var response = await _client.RetrieveStudyAsync(studyInstanceUid, transferSyntax);
+            Assert.Equal(DicomWebConstants.MultipartRelatedMediaType, response.Content.Headers.ContentType.MediaType);
+            foreach (DicomFile actual in response.Value)
             {
-                Assert.True(response.IsSuccessStatusCode);
-
-                // read streams
-                Dictionary<MultipartSection, Stream> sections = await response.Content.ReadAsMultipartDictionaryAsync();
-                foreach (var item in sections.Keys)
-                {
-                    Assert.Equal(mediaType, item.ContentType);
-                    DicomFile actual = DicomFile.Open(sections[item]);
-                    DicomFile expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
-                    Assert.Equal(expected, actual, new DicomFileEqualityComparer());
-                }
+                // TODO: verify media type once https://microsofthealth.visualstudio.com/Health/_workitems/edit/75185 is done
+                DicomFile expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
+                Assert.Equal(expected, actual, new DicomFileEqualityComparer());
             }
         }
 

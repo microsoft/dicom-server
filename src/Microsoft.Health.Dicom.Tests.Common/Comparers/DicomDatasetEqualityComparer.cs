@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
                 return object.ReferenceEquals(x, y);
             }
 
-            // Ignore PixelData here, will check later with DicomPixelDataEqualityComparer
+            // Compare DicomItems except PixelData, since DicomItemCollectionEqualityComparer cannot handle it
             IEqualityComparer<IEnumerable<DicomItem>> dicomItemsComparaer = new DicomItemCollectionEqualityComparer(IgnoredTags.Concat(new[] { DicomTag.PixelData }));
 
             if (!dicomItemsComparaer.Equals(x, y))
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 
             IEqualityComparer<DicomPixelData> dicomPixelDataComparer = new DicomPixelDataEqualityComparer();
 
-            // Verify PixelData
+            // Compare PixelData
             return dicomPixelDataComparer.Equals(DicomPixelData.Create(x), DicomPixelData.Create(y));
         }
 

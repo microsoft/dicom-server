@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -17,7 +16,6 @@ using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -28,29 +26,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public partial class RetrieveTransactionResourceTests
     {
         [Theory]
-        [InlineData(RequestOriginalContentTestFolder, DicomWebConstants.ApplicationDicomMediaType, "*")]
-        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, DicomWebConstants.ApplicationDicomMediaType, null)]
-        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.1")]
-        [InlineData(FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.90")]
-        public async Task GivenSupportedAcceptHeaders_WhenRetrieveInstance_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
+        [InlineData(RequestOriginalContentTestFolder, "*")]
+        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null)]
+        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1")]
+        [InlineData(FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder, "1.2.840.10008.1.2.4.90")]
+        public async Task GivenSupportedAcceptHeaders_WhenRetrieveInstance_ThenServerShouldReturnExpectedContent(string testDataFolder, string transferSyntax)
         {
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
             DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
             await EnsureFileIsStoredAsync(inputDicomFile);
             var instanceId = inputDicomFile.Dataset.ToInstanceIdentifier();
-            var requestUri = new Uri(string.Format(DicomWebConstants.BaseInstanceUriFormat, instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid), UriKind.Relative);
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessageBuilder().Build(requestUri, singlePart: true, mediaType, transferSyntax);
-            using (HttpResponseMessage response = await _client.HttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, new CancellationTokenSource().Token))
-            {
-                Assert.True(response.IsSuccessStatusCode);
-                Assert.Equal(mediaType, response.Content.Headers.ContentType.MediaType);
-
-                var stream = await response.Content.ReadyAsSeekableStreamAsync();
-                DicomFile actual = DicomFile.Open(stream);
-                DicomFile expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
-                Assert.Equal(expected, actual, new DicomFileEqualityComparer());
-            }
+            var response = await _client.RetrieveInstanceAsync(instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid, transferSyntax);
+            Assert.Equal(DicomWebConstants.ApplicationDicomMediaType, response.Content.Headers.ContentType.MediaType);
+            Assert.Equal(1, response.Value.Count);
+            DicomFile actual = response.Value[0];
+            DicomFile expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
+            Assert.Equal(expected, actual, new DicomFileEqualityComparer());
         }
 
         [Theory]
