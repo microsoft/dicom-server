@@ -193,7 +193,7 @@ headers = {'Accept':'application/dicom+json', 'Content-Type':'application/dicom'
 
 url = f'{base_url}/studies'
 response = client.post(url, body, headers=headers, verify=False)
-response  # response should be a 409 Conflict if the file was already uploaded abovin the above request
+response  # response should be a 409 Conflict if the file was already uploaded in the above request
 ```
 
 --------------------
