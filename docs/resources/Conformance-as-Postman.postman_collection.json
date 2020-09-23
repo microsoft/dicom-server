@@ -860,7 +860,7 @@
 		{
 			"id": "195d429b-8341-43de-9694-10c686612653",
 			"key": "baseUrl",
-			"value": "http://sjbdicomtest.azurewebsites.net"
+			"value": "http://{service-name}.azurewebsites.net"
 		},
 		{
 			"id": "919e2ffd-e824-46ec-a4b9-282e7cf2c4ff",
