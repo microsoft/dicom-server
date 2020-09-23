@@ -82,10 +82,6 @@ _Details:_
 
 `curl --request POST "http://{service-name}.azurewebsites.net/studies/1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@{path-to-dicoms}/blue-circle.dcm;type=application/dicom"`
 
-Adding green-square.dcm upload to support running all the cURL commands in sequence.
-`curl --request POST "http://{service-name}.azurewebsites.net/studies/1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@{path-to-dicoms}/green-square.dcm;type=application/dicom"`
-
-
 ---
 
 ### Store-single-instance
@@ -101,9 +97,9 @@ _Details:_
    *  `Accept: application/dicom+json`
    *  `Content-Type: application/dicom`
 * Body:
-    * Contains a single DICOM file as bytes.
+    * Contains a single DICOM file as binary bytes.
 
-> NOTE: Not currently implemented! TODO: Implement
+`curl --location --request POST "http://{service-name}.azurewebsites.net/studies" --header "Accept: application/dicom+json" --header "Content-Type: application/dicom" --data-binary "@{path-to-dicoms}/green-square.dcm"`
 
 ---
 ## Retrieving DICOM (WADO)
