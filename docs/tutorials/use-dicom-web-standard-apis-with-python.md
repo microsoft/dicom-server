@@ -170,7 +170,7 @@ response = client.post(url, body, headers=headers, verify=False)
 
 ### Store single instance (non-standard)
 
-This demonstrates how to upload a single DICOM file. This non-standard API endpoint simplifies uploading a single file as a byte array stored in the body of a reque
+This demonstrates how to upload a single DICOM file. This non-standard API endpoint simplifies uploading a single file as binary bytes sent in the body of a request
 
 _Details:_
 * Path: ../studies
@@ -179,12 +179,21 @@ _Details:_
    *  `Accept: application/dicom+json`
    *  `Content-Type: application/dicom`
 * Body:
-    * Contains a single DICOM file as bytes.
-
-> NOTE: Not currently implemented! TODO: Implement
+    * Contains a single DICOM file as binary bytes.
 
 ```python
-# This is currently not implemented
+#upload blue-circle.dcm
+filepath = Path(path_to_dicoms_dir).joinpath('blue-circle.dcm')
+
+# Hack. Need to open up and read through file and load bytes into memory 
+with open(filepath,'rb') as reader:
+    body = reader.read()
+
+headers = {'Accept':'application/dicom+json', 'Content-Type':'application/dicom'}
+
+url = f'{base_url}/studies'
+response = client.post(url, body, headers=headers, verify=False)
+response  # response should be a 409 Conflict if the file was already uploaded abovin the above request
 ```
 
 --------------------
