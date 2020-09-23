@@ -6,6 +6,7 @@
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Api.Web;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Api.Modules
@@ -16,7 +17,7 @@ namespace Microsoft.Health.Dicom.Api.Modules
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
-            services.Add<MultipartReaderStreamToSeekableStreamConverter>()
+            services.Add<SeekableStreamConverter>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();

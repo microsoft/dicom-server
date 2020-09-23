@@ -345,6 +345,27 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
         }
 
+        [Fact]
+        public async void StoreSinglepart_ServerShouldReturnOK()
+        {
+            DicomFile dicomFile = Samples.CreateRandomDicomFile();
+            await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
+            {
+                await dicomFile.SaveAsync(stream);
+                DicomWebResponse<DicomDataset> response = await _client.StoreAsync(stream);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+        }
+
+        [Fact]
+        public async void StoreSinglepartWithStudyUID_ServerShouldReturnOK()
+        {
+            var studyInstanceUID = TestUidGenerator.Generate();
+            DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
+            DicomWebResponse<DicomDataset> response = await _client.StoreAsync(dicomFile, studyInstanceUID);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset)
         {
             string studyInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);

@@ -32,6 +32,7 @@ namespace Microsoft.Health.Dicom.Web
 
                     builder.AddDevelopmentAuthEnvironmentIfConfigured(builtConfig, "DicomServer");
                 })
+                .ConfigureKestrel(option => option.Limits.MaxRequestBodySize = int.MaxValue) // When hosted on Kestrel, it's allowed to upload >2GB file, set to 2GB by default
                 .UseStartup<Startup>()
                 .Build();
 

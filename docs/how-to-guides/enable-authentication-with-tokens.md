@@ -2,10 +2,10 @@
 
 This How-to Guide shows you how to configure the authentication settings for the Medical Imaging Server for DICOM through Azure. To complete this configuration, you will:
 
-1. Create a resource application in Azure AD.
-1. Provide app registration details to your Medical Imaging Server for DICOM.
-1. Create a service client application in Azure AD.
-1. Retrieve Access Token via Postman or Azure CLI.
+1. **Create a resource application in Azure AD**: This resource application will be a representation of the Medical Imaging Server for DICOM that can be used to authenticate and obtain tokens. In order for an application to interact with Azure AD, it needs to be registered.
+1. **Provide app registration details to your Medical Imaging Server for DICOM**: Once the resource application is registered, you will set the authentication of your Medical Imaging Server for DICOM App Service.
+1. **Create a service client application in Azure AD**: Client application registrations are Azure AD representations of applications that can be used to authenticate and obtain tokens. A service client is intended to be used by an application to obtain an access token without interactive authentication of a user. It will have certain application permissions and use an application secret (password) when obtaining access tokens.
+1. **Retrieve Access Token via Postman or Azure CLI**: With your service client application enabled, you can obtain an access token to authenticate your application.
 
 ## Prerequisites
 
@@ -41,8 +41,6 @@ The current authentication settings exposed in configuration are the following:
 
 ### Create a Resource Application in Azure AD for your Medical Imaging Server for DICOM
 
-The resource application you create is an Azure AD representation of your Medical Imaging Server for DICOM App Service that can be used to authenticate and obtain tokens.
-
 1. Sign into the [Azure Portal](https://ms.portal.azure.com/). Search for **App Services** and select your Medical Imaging Server for DICOM App Service. Copy the **URL** of your Dicom App Service.
 1. Select **Azure Active Directory** > **App Registrations** > **New registration**:
     1. Enter a **Name** for your app registration.
@@ -62,8 +60,6 @@ The resource application you create is an Azure AD representation of your Medica
 
 ### Create a Service Client Application
 
-A service client  is used by an application to obtain an access token without interactive authentication of a user. It will have certain application permissions and use an application secret (password) when obtaining access tokens:
-
 1. Select **Azure Active Directory** > **App Registrations** > **New registration**:
     1. Enter a **Name** for your service client. You can provide a **URI** but it typically will not be used.
     1. Select **Register**.
@@ -80,8 +76,6 @@ A service client  is used by an application to obtain an access token without in
 
 ### Get Access Token Using Azure CLI
 
-To obtain an access token using Azure CLI:
-
 1. First, update the application you create above to have access to the Azure CLI:
     1. Select **Expose an API** > **Add a Client Application**.
     1. For **Client ID**, provide the client ID of Azure CLI: **04b07795-8ddb-461a-bbee-02f9e1bf7b46**. *Note this is available at the [Azure CLI Github Repository](https://github.com/Azure/azure-cli/blob/24e0b9ef8716e16b9e38c9bb123a734a6cf550eb/src/azure-cli-core/azure/cli/core/_profile.py#L65)*.
@@ -92,8 +86,6 @@ To obtain an access token using Azure CLI:
 1. Request access token using the **Application ID URI** set above: ```az account get-access-token --resource=<APP-ID-URI>```
 
 ### Get Access Token Using Postman
-
-To obtain an access token using Postman:
 
 1. [Install Postman](https://www.postman.com/downloads/) or use the [Postman Web App](https://web.postman.co/).
 1. Create a new **Post** Request with the following form-data:

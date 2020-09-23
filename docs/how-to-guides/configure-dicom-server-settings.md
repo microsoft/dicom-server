@@ -4,7 +4,7 @@ This How-to Guide explains how to configure settings for the Medical Imaging Ser
 
 ## Prerequisites
 
-To configure your Medical Imaging Server for DICOM, you need to have an instance deployed. If you have not already deployed the Medical Imaging Server, follow the instructions [here](../quickstarts/deploy-via-azure.md)
+To configure your Medical Imaging Server for DICOM, you need to have an instance deployed. If you have not already deployed the Medical Imaging Server, [deploy an instance to Azure](../quickstarts/deploy-via-azure.md).
 
 ## Manage Authentication
 
@@ -14,7 +14,7 @@ To manage authentication in development and test scenarios without AAD integrati
 
 ## Manage Azure App Service
 
-The S1 tier is the default App Service Plan SKU enabled upon deployment. Azure offers a variety of plans to meet your production workload requirements. To learn more about the various plans, view the [App Service pricing](https://azure.microsoft.com/pricing/details/app-service/windows/).
+The S1 tier is the default App Service Plan SKU enabled upon deployment. Azure offers a variety of plans to meet your workload requirements. To learn more about the various plans, view the [App Service pricing](https://azure.microsoft.com/pricing/details/app-service/windows/).
 
 If you would like to Scale Up your App Service plan to a different tier:
 

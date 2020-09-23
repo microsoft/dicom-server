@@ -8,7 +8,7 @@ The Medical Imaging Server for DICOM is a .NET Core implementation of DICOMweb&t
 
 ## Deploy the Medical Imaging Server for DICOM
 
-The Medical Imaging Server for DICOM is designed to run on Azure for production workloads. However, for dev/test environments it can be deployed locally as a set of Docker containers to speed up development.
+The Medical Imaging Server for DICOM is designed to run on Azure. However, for dev/test environments it can be deployed locally as a set of Docker containers to speed up development.
 
 ### Deploy to Azure
 
@@ -31,19 +31,20 @@ Follow the steps [here](docs/development/setup.md) to deploy a local copy of the
 
 - [Deploy Medical Imaging Server for DICOM via Azure](docs/quickstarts/deploy-via-azure.md)
 - [Deploy Medical Imaging Server for DICOM via Docker](docs/quickstarts/deploy-via-docker.md)
-- [Set up DICOM Cast](docs/quickstarts/dicom-cast.md)
+- [Set up DICOM Cast](docs/quickstarts/deploy-dicom-cast.md)
 
 ## Tutorials
 
 - [Use the Medical Imaging Server for DICOM APIs](docs/tutorials/use-the-medical-imaging-server-apis.md)
 - [Use DICOMweb&trade; Standard APIs with C#](docs/tutorials/use-dicom-web-standard-apis-with-c%23.md)
-- [Use DICOMweb&trade; Standard APIs with Curl](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
+- [Use DICOMweb&trade; Standard APIs with Python](docs/tutorials/use-dicom-web-standard-apis-with-python.md)
+- [Use DICOMweb&trade; Standard APIs with cURL](docs/tutorials/use-dicom-web-standard-apis-with-curl.md)
 
 ## How-to guides
 
 - [Configure Medical Imaging Server for DICOM server settings](docs/how-to-guides/configure-dicom-server-settings.md)
 - [Enable Authentication and retrieve an OAuth token](docs/how-to-guides/enable-authentication-with-tokens.md)
-- [Enable notifications on Medical Imaging Server for DICOM with Change Feed](docs/how-to-guides/pull-changes-from-change-feed.md)
+- [Pull Changes from Medical Imaging Server for DICOM with Change Feed](docs/how-to-guides/pull-changes-from-change-feed.md)
 - [Sync DICOM metadata to FHIR](docs/how-to-guides/sync-dicom-metadata-to-fhir.md)
 
 ## Concepts
