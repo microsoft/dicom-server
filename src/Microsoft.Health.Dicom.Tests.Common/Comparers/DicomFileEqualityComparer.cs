@@ -17,7 +17,6 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
                 return object.ReferenceEquals(x, y);
             }
 
-            // TODO: move ignored dicomtag to parameter
             IEqualityComparer<IEnumerable<DicomItem>> metadataComparer = new DicomItemCollectionEqualityComparer();
             if (!metadataComparer.Equals(x.FileMetaInfo, y.FileMetaInfo))
             {

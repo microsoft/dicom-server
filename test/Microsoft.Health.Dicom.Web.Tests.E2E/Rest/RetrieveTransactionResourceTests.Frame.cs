@@ -12,14 +12,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -42,23 +40,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await EnsureFileIsStoredAsync(inputDicomFile);
             var instanceId = inputDicomFile.Dataset.ToInstanceIdentifier();
             _studiesToClean.Add(instanceId.StudyInstanceUid);
-            var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid, string.Join("%2C", new int[] { 1 })), UriKind.Relative);
+
             DicomFile outputDicomFile = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
             DicomPixelData pixelData = DicomPixelData.Create(outputDicomFile.Dataset);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessageBuilder().Build(requestUri, singlePart: false, mediaType, transferSyntax);
 
-            using (HttpResponseMessage response = await _client.HttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, new CancellationTokenSource().Token))
+            DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid, mediaType, transferSyntax, frames: new[] { 1 });
+
+            int frameIndex = 0;
+            foreach (Stream item in response.Value)
             {
-                Assert.True(response.IsSuccessStatusCode);
-
-                int frameIndex = 0;
-                Dictionary<MultipartSection, Stream> sections = await response.Content.ReadAsMultipartDictionaryAsync();
-                foreach (MultipartSection item in sections.Keys)
-                {
-                    Assert.Equal(mediaType, item.ContentType);
-                    Assert.Equal(sections[item].ToByteArray(), pixelData.GetFrame(frameIndex).Data);
-                    frameIndex++;
-                }
+                // TODO: verify media type once https://microsofthealth.visualstudio.com/Health/_workitems/edit/75185 is done
+                Assert.Equal(item.ToByteArray(), pixelData.GetFrame(frameIndex).Data);
+                frameIndex++;
             }
         }
 
