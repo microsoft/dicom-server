@@ -49,16 +49,42 @@ If you would like to update your SQL Database tier:
 ![Configure SQL2](../images/configure-sql-2.png)
 1. Click **Apply**.
 
-## Additional Configuration Settings
+## Azure Monitor
 
-**Application Insights**: By default, Application Insights is deployed, but not enabled, when you deploy the Medical Imaging Server for DICOM to Azure. To update this setting, navigate to your App Service:
+[Azure Monitor](https://docs.microsoft.com/azure/azure-monitor/overview) offers a variety of solutions to collect, analyze and act on telemetry, including Application Insights Log Analytics.
 
+### Application Insights
+
+By default, Application Insights is deployed, but not enabled, when you deploy the Medical Imaging Server for DICOM to Azure. To update this setting:
+
+1. Navigate to your Medical Imaging Server for DICOM **App Service**.
 1. Select **Application Insights** from the menu:
 ![App Insights 1](../images/app-insights-1.png)
 1. Select **Turn on Application Insights**:
 ![App Insights 2](../images/app-insights-2.png)
+1. Select **Availability**, **Failures** or **Performance** for insight into the performance of your App Service:
+![App Insights 3](../images/app-insights-3.png)
 
-**OHIF Viewer**: By default, OHIF Viewer is enabled when you deploy the Medical Imaging Server for DICOM to Azure. To update this setting:
+To learn how to customize Application Insights for your requirements, see [Application Insights Overview](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview).
+
+### Diagnostic Settings & Log Analytics
+
+To monitor your SQL Database, create diagnostic settings which stream to Log Analytics:
+
+1. Navigate to your **SQL Database**.
+1. Select **Diagnostic Settings**:
+![Diagnostic settings 1](../images/diagnostic-settings-1.png)
+1. Select **Add Diagnostic setting**:
+![Diagnostic settings 2](../images/diagnostic-settings-2.png)
+1. Select the log and/or metric diagnostic settings you would like to monitor, along with the destination for those logs and/or metrics:
+![Diagnostic settings 3](../images/diagnostic-settings-3.png)
+1. Select **Save**.
+
+To learn how to customize your diagnostic settings further, see [Diagnostic Settings](https://docs.microsoft.com/azure/azure-monitor/platform/diagnostic-settings?WT.mc_id=Portal-Microsoft_Azure_Monitoring). To learn how to write queries with Log Analytics, see [Log Query Overview](https://docs.microsoft.com/azure/azure-monitor/log-query/log-query-overview).
+
+## OHIF Viewer
+
+By default, OHIF Viewer is enabled when you deploy the Medical Imaging Server for DICOM to Azure. To update this setting:
 
 1. Navigate to your Medical Imaging Server for DICOM **App Service** in the Azure Portal.
 1. Select **Configuration** from the menu:
