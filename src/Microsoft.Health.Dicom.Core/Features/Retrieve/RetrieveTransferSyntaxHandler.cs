@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -28,16 +29,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         private readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> _acceptableDescriptors;
 
-        public RetrieveTransferSyntaxHandler()
-            : this(AcceptableDescriptors)
+        private readonly ILogger<RetrieveTransferSyntaxHandler> _logger;
+
+        public RetrieveTransferSyntaxHandler(ILogger<RetrieveTransferSyntaxHandler> logger)
+            : this(AcceptableDescriptors, logger)
         {
         }
 
-        public RetrieveTransferSyntaxHandler(IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> acceptableDescriptors) => _acceptableDescriptors = acceptableDescriptors;
+        public RetrieveTransferSyntaxHandler(IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> acceptableDescriptors, ILogger<RetrieveTransferSyntaxHandler> logger)
+        {
+            EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(acceptableDescriptors, nameof(acceptableDescriptors));
+
+            _acceptableDescriptors = acceptableDescriptors;
+            _logger = logger;
+        }
 
         public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptableHeaderDescriptor)
         {
             EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
+
+            _logger.LogInformation($"Getting transfer syntax for retrieving '{resourceType}' with accept headers '{string.Join(";", acceptHeaders)}'.");
 
             // TODO: disable multiple accept headers, will fully implement it later (https://microsofthealth.visualstudio.com/Health/_workitems/edit/75782)
             if (acceptHeaders.Count() > 1)
