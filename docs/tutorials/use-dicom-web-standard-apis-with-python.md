@@ -200,7 +200,8 @@ response  # response should be a 409 Conflict if the file was already uploaded i
 ## Retrieve DICOM Instances (WADO)
 
 The following examples highlight retrieving DICOM instances.
----
+
+------
 
 ### Retrieve all instances within a study
 
@@ -220,6 +221,28 @@ headers = {'Accept':'multipart/related; type="application/dicom"; transfer-synta
 
 response = client.get(url, headers=headers) #, verify=False)
 ```
+
+### Use the retrieved instances
+
+The instances are retrieved as binary bytes. You can loop through the returned items and convert the bytes into a file-like structure which can be read by `pydicom`.
+
+
+```python
+import requests_toolbelt as tb
+from io import BytesIO
+
+mpd = tb.MultipartDecoder.from_response(response)
+for part in mpd.parts:
+    # Note that the headers are returned as binary!
+    print(part.headers[b'content-type'])
+    
+    # You can convert the binary body (of each part) into a pydicom DataSet
+    #   And get direct access to the various underlying fields
+    dcm = pydicom.dcmread(BytesIO(part.content))
+    print(dcm.PatientName)
+    print(dcm.SOPInstanceUID)
+```
+
 
 ### Retrieve metadata of all instances in study
 
