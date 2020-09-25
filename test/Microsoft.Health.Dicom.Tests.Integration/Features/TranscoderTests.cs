@@ -13,6 +13,7 @@ using Dicom;
 using Dicom.Imaging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
 using Microsoft.IO;
 using Xunit;
