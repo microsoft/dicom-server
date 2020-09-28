@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _fileStore = Substitute.For<IFileStore>();
             _retrieveTranscoder = Substitute.For<ITranscoder>();
             _dicomFrameHandler = Substitute.For<IFrameHandler>();
-            _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler();
+            _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
             _logger = NullLogger<RetrieveResourceService>.Instance;
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
             _retrieveResourceService = new RetrieveResourceService(

@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _fileStore = blobStorageFixture.FileStore;
             _retrieveTranscoder = Substitute.For<ITranscoder>();
             _frameHandler = Substitute.For<IFrameHandler>();
-            _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler();
+            _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
             _retrieveResourceService = new RetrieveResourceService(
                 _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, blobStorageFixture.RecyclableMemoryStreamManager, NullLogger<RetrieveResourceService>.Instance);
