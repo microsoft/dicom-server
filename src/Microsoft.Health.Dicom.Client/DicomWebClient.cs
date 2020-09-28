@@ -315,7 +315,7 @@ namespace Microsoft.Health.Dicom.Client
 
             return await PostMultipartContentAsync(
                 multiContent,
-                string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid),
+                string.Format(DicomWebConstants.BaesStudyUriFormat, studyInstanceUid),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -329,8 +329,8 @@ namespace Microsoft.Health.Dicom.Client
 
             return await PostSinglepartConentAsync(
                 streamContent,
-                string.Format(DicomWebConstants.BasStudyUriFormat, studyInstanceUid),
-                cancellationToken).ConfigureAwait(false);
+                string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid),
+                cancellationToken);
         }
 
         public async Task<DicomWebResponse<DicomDataset>> PostSinglepartConentAsync(

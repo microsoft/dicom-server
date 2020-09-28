@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using Dicom;
 using Dicom.IO.Buffer;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Features
+namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     /// <summary>
     /// Compare if 2 DicomItem equals or not.
