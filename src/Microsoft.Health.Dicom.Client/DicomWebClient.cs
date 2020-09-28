@@ -315,7 +315,7 @@ namespace Microsoft.Health.Dicom.Client
 
             return await PostMultipartContentAsync(
                 multiContent,
-                string.Format(DicomWebConstants.BaesStudyUriFormat, studyInstanceUid),
+                string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -342,31 +342,7 @@ namespace Microsoft.Health.Dicom.Client
             request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
             request.Content = streamContent;
 
-            using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false))
-            {
-                if (response.IsSuccessStatusCode)
-                {
-                    return await CreateResponseAsync(response).ConfigureAwait(false);
-                }
-                else if (response.StatusCode == HttpStatusCode.Conflict)
-                {
-                    // In the case of Conflict, we will still have body.
-                    throw new DicomWebException<DicomDataset>(await CreateResponseAsync(response).ConfigureAwait(false));
-                }
-                else
-                {
-                    throw new DicomWebException(new DicomWebResponse(response));
-                }
-            }
-
-            async Task<DicomWebResponse<DicomDataset>> CreateResponseAsync(HttpResponseMessage response)
-            {
-                var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                DicomDataset dataset = JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
-
-                return new DicomWebResponse<DicomDataset>(response, dataset);
-            }
+            return await PostContentAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<DicomWebResponse<DicomDataset>> PostMultipartContentAsync(
@@ -378,6 +354,11 @@ namespace Microsoft.Health.Dicom.Client
             request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
             request.Content = multiContent;
 
+            return await PostContentAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<DicomWebResponse<DicomDataset>> PostContentAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+        {
             using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false))
             {
                 if (response.IsSuccessStatusCode)
