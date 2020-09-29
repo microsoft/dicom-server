@@ -42,8 +42,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
         {
-            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync("/studies?StudyDate=20200101");
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            using (DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync("/studies?StudyDate=20200101"))
+            {
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            }
         }
 
         [Fact]
@@ -59,13 +61,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
-            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
-                $"/studies?StudyDate=20190101");
-
-            Assert.NotNull(response.Value);
-            DicomDataset testDataResponse = response.Value.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
-            Assert.NotNull(testDataResponse);
-            ValidateResponseDataset(QueryResource.AllStudies, matchInstance, testDataResponse);
+            using (DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                $"/studies?StudyDate=20190101"))
+            {
+                Assert.NotNull(response.Value);
+                DicomDataset testDataResponse = response.Value.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
+                Assert.NotNull(testDataResponse);
+                ValidateResponseDataset(QueryResource.AllStudies, matchInstance, testDataResponse);
+            }
         }
 
         [Fact]
@@ -81,14 +84,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 { DicomTag.SpecificCharacterSet, "ISO_IR 192" },
             });
 
-            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
-                $"/studies?PatientName={patientNameWithNoAccent}");
-
-            Assert.NotNull(response.Value);
-            Assert.Single(response.Value);
-            DicomDataset testDataResponse = response.Value.First();
-            Assert.NotNull(testDataResponse);
-            Assert.Equal(patientName, testDataResponse.GetString(DicomTag.PatientName));
+            using (DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                $"/studies?PatientName={patientNameWithNoAccent}"))
+            {
+                Assert.NotNull(response.Value);
+                Assert.Single(response.Value);
+                DicomDataset testDataResponse = response.Value.First();
+                Assert.NotNull(testDataResponse);
+                Assert.Equal(patientName, testDataResponse.GetString(DicomTag.PatientName));
+            }
         }
 
         [Fact]
@@ -106,11 +110,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                  { DicomTag.Modality, "CT" },
             });
 
-            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
-                $"/studies/{studyId}/series?Modality=MRI");
-
-            Assert.Single(response.Value);
-            ValidateResponseDataset(QueryResource.StudySeries, matchInstance, response.Value.Single());
+            using (DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                $"/studies/{studyId}/series?Modality=MRI"))
+            {
+                Assert.Single(response.Value);
+                ValidateResponseDataset(QueryResource.StudySeries, matchInstance, response.Value.Single());
+            }
         }
 
         [Fact]
@@ -122,13 +127,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var seriesId = matchInstance.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
 
-            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
-                $"/series?Modality=MRI");
-
-            Assert.NotNull(response.Value);
-            DicomDataset testDataResponse = response.Value.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.SeriesInstanceUID) == seriesId);
-            Assert.NotNull(testDataResponse);
-            ValidateResponseDataset(QueryResource.AllSeries, matchInstance, testDataResponse);
+            using (DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                $"/series?Modality=MRI"))
+            {
+                Assert.NotNull(response.Value);
+                DicomDataset testDataResponse = response.Value.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.SeriesInstanceUID) == seriesId);
+                Assert.NotNull(testDataResponse);
+                ValidateResponseDataset(QueryResource.AllSeries, matchInstance, testDataResponse);
+            }
         }
 
         [Fact]
@@ -145,11 +151,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                  { DicomTag.Modality, "CT" },
             });
 
-            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
-                   $"/studies/{studyId}/instances?Modality=MRI");
-
-            Assert.Single(response.Value);
-            ValidateResponseDataset(QueryResource.StudyInstances, matchInstance, response.Value.Single());
+            using (DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                   $"/studies/{studyId}/instances?Modality=MRI"))
+            {
+                Assert.Single(response.Value);
+                ValidateResponseDataset(QueryResource.StudyInstances, matchInstance, response.Value.Single());
+            }
         }
 
         [Fact]
@@ -165,11 +172,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                  { DicomTag.SeriesInstanceUID, seriesId },
             });
 
-            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
-                   $"/studies/{studyId}/series/{seriesId}/instances?SOPInstanceUID={instanceId}");
-
-            Assert.Single(response.Value);
-            ValidateResponseDataset(QueryResource.StudySeriesInstances, matchInstance, response.Value.Single());
+            using (DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                   $"/studies/{studyId}/series/{seriesId}/instances?SOPInstanceUID={instanceId}"))
+            {
+                Assert.Single(response.Value);
+                ValidateResponseDataset(QueryResource.StudySeriesInstances, matchInstance, response.Value.Single());
+            }
         }
 
         [Fact]
@@ -181,13 +189,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
-            DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
-                   $"/instances?Modality=XRAY");
-
-            Assert.NotNull(response.Value);
-            DicomDataset testDataResponse = response.Value.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
-            Assert.NotNull(testDataResponse);
-            ValidateResponseDataset(QueryResource.AllInstances, matchInstance, testDataResponse);
+            using (DicomWebResponse<IEnumerable<DicomDataset>> response = await _client.QueryAsync(
+                   $"/instances?Modality=XRAY"))
+            {
+                Assert.NotNull(response.Value);
+                DicomDataset testDataResponse = response.Value.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
+                Assert.NotNull(testDataResponse);
+                ValidateResponseDataset(QueryResource.AllInstances, matchInstance, testDataResponse);
+            }
         }
 
         [Fact]
@@ -212,11 +221,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomWebResponse<IEnumerable<DicomDataset>> response = null;
             while (retryCount < 3 || testDataResponse1 == null)
             {
-                response = await _client.QueryAsync(
-                       $"/studies?PatientName={randomNamePart}&FuzzyMatching=true");
-
-                testDataResponse1 = response.Value?.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId1);
-                retryCount++;
+                using (response = await _client.QueryAsync(
+                       $"/studies?PatientName={randomNamePart}&FuzzyMatching=true"))
+                {
+                    testDataResponse1 = response.Value?.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId1);
+                    retryCount++;
+                }
             }
 
             Assert.NotNull(testDataResponse1);

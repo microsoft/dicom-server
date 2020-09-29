@@ -57,12 +57,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private async Task EnsureFileIsStoredAsync(DicomFile dicomFile)
         {
             var instanceId = dicomFile.Dataset.ToInstanceIdentifier();
-            DicomWebResponse<IEnumerable<DicomDataset>> tryQuery = await _client.QueryAsync(
-                 $"/studies/{instanceId.StudyInstanceUid}/series/{instanceId.SeriesInstanceUid}/instances?SOPInstanceUID={instanceId.SopInstanceUid}");
-
-            if (tryQuery.StatusCode == HttpStatusCode.OK)
+            using (DicomWebResponse<IEnumerable<DicomDataset>> tryQuery = await _client.QueryAsync(
+                 $"/studies/{instanceId.StudyInstanceUid}/series/{instanceId.SeriesInstanceUid}/instances?SOPInstanceUID={instanceId.SopInstanceUid}"))
             {
-                await _client.DeleteStudyAsync(instanceId.StudyInstanceUid);
+                if (tryQuery.StatusCode == HttpStatusCode.OK)
+                {
+                    await _client.DeleteStudyAsync(instanceId.StudyInstanceUid);
+                }
             }
 
             await InternalStoreAsync(new[] { dicomFile });

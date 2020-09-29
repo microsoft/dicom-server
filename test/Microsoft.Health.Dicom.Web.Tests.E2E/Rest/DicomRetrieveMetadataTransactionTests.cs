@@ -89,9 +89,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset firstStoredInstance = await PostDicomFileAsync(ResourceType.Study, studyInstanceUid, dataSet: GenerateNewDataSet());
             DicomDataset secondStoredInstance = await PostDicomFileAsync(ResourceType.Study, studyInstanceUid, dataSet: GenerateNewDataSet());
 
-            DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid);
-
-            ValidateResponseMetadataDataset(response, firstStoredInstance, secondStoredInstance);
+            using (DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveStudyMetadataAsync(studyInstanceUid))
+            {
+                ValidateResponseMetadataDataset(response, firstStoredInstance, secondStoredInstance);
+            }
         }
 
         [Fact]
@@ -103,9 +104,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset firstStoredInstance = await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, seriesInstanceUid, dataSet: GenerateNewDataSet());
             DicomDataset secondStoredInstance = await PostDicomFileAsync(ResourceType.Series, studyInstanceUid, seriesInstanceUid, dataSet: GenerateNewDataSet());
 
-            DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid);
-
-            ValidateResponseMetadataDataset(response, firstStoredInstance, secondStoredInstance);
+            using (DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid))
+            {
+                ValidateResponseMetadataDataset(response, firstStoredInstance, secondStoredInstance);
+            }
         }
 
         [Fact]
@@ -117,12 +119,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             DicomDataset storedInstance = await PostDicomFileAsync(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid, dataSet: GenerateNewDataSet());
 
-            DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("application/dicom+json", response.Content.Headers.ContentType.MediaType);
-            Assert.Single(response.Value);
-            ValidateResponseMetadataDataset(storedInstance, response.Value.First());
+            using (DicomWebResponse<IReadOnlyList<DicomDataset>> response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid))
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal("application/dicom+json", response.Content.Headers.ContentType.MediaType);
+                Assert.Single(response.Value);
+                ValidateResponseMetadataDataset(storedInstance, response.Value.First());
+            }
         }
 
         private static DicomDataset GenerateNewDataSet()
@@ -214,8 +217,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 dicomFile.Dataset.AddOrUpdate(dataSet);
             }
 
-            DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile });
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            using (DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile }))
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
 
             return dicomFile.Dataset;
         }

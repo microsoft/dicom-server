@@ -34,8 +34,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            DicomWebResponse response = await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            using (DicomWebResponse response = await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid))
+            {
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            }
 
             await VerifyAllRemoval(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
         }
@@ -49,7 +51,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            DicomWebResponse response = await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            using DicomWebResponse response = await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             await VerifyAllRemoval(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
@@ -128,9 +130,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            DicomWebResponse response = await _client.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid);
+            using (DicomWebResponse response = await _client.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid))
+            {
+                Assert.Equal(HttpStatusCode.NoContent, response?.StatusCode);
+            }
 
-            Assert.Equal(HttpStatusCode.NoContent, response?.StatusCode);
             await VerifyAllRemoval(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
         }
 
@@ -198,9 +202,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            DicomWebResponse response = await _client.DeleteStudyAsync(studyInstanceUid);
+            using (DicomWebResponse response = await _client.DeleteStudyAsync(studyInstanceUid))
+            {
+                Assert.Equal(HttpStatusCode.NoContent, response?.StatusCode);
+            }
 
-            Assert.Equal(HttpStatusCode.NoContent, response?.StatusCode);
             await VerifyAllRemoval(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
         }
 
@@ -295,16 +301,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private async Task VerifyRemainingSeries(string studyInstanceUid, string seriesInstanceUid, int expectedInstanceCount)
         {
-            DicomWebResponse<IReadOnlyList<DicomFile>> seriesResult = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid);
-
-            Assert.Equal(expectedInstanceCount, seriesResult.Value.Count);
+            using (DicomWebResponse<IReadOnlyList<DicomFile>> seriesResult = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid))
+            {
+                Assert.Equal(expectedInstanceCount, seriesResult.Value.Count);
+            }
         }
 
         private async Task VerifyRemainingStudy(string studyInstanceUid, int expectedInstanceCount)
         {
-            DicomWebResponse<IReadOnlyList<DicomFile>> studyResult = await _client.RetrieveStudyAsync(studyInstanceUid);
-
-            Assert.Equal(expectedInstanceCount, studyResult.Value.Count);
+            using (DicomWebResponse<IReadOnlyList<DicomFile>> studyResult = await _client.RetrieveStudyAsync(studyInstanceUid))
+            {
+                Assert.Equal(expectedInstanceCount, studyResult.Value.Count);
+            }
         }
 
         private async Task CreateFile(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)

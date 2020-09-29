@@ -94,9 +94,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 encode: false);
 
             await InternalStoreAsync(new[] { dicomFile });
-            DicomWebResponse<IReadOnlyList<DicomFile>> instancesInStudy = await _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: "*");
-            Assert.Equal(1, instancesInStudy.Value.Count);
-            Assert.Equal(dicomFile.ToByteArray(), instancesInStudy.Value[0].ToByteArray());
+            using (DicomWebResponse<IReadOnlyList<DicomFile>> instancesInStudy = await _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: "*"))
+            {
+                Assert.Equal(1, instancesInStudy.Value.Count);
+                Assert.Equal(dicomFile.ToByteArray(), instancesInStudy.Value[0].ToByteArray());
+            }
         }
 
         [Fact]
@@ -115,9 +117,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             await InternalStoreAsync(new[] { dicomFile1 });
 
-            DicomWebResponse<IReadOnlyList<DicomFile>> instanceRetrieve = await _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: "*");
-
-            Assert.Equal(dicomFile1.ToByteArray(), instanceRetrieve.Value[0].ToByteArray());
+            using (DicomWebResponse<IReadOnlyList<DicomFile>> instanceRetrieve = await _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: "*"))
+            {
+                Assert.Equal(dicomFile1.ToByteArray(), instanceRetrieve.Value[0].ToByteArray());
+            }
         }
     }
 }

@@ -94,8 +94,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             request.Content = multiContent;
 
-            DicomWebResponse response = await _client.PostMultipartContentAsync(multiContent, "studies");
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            using (DicomWebResponse response = await _client.PostMultipartContentAsync(multiContent, "studies"))
+            {
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            }
         }
 
         [Fact]
@@ -148,12 +150,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
                 request.Content = multiContent;
 
-                DicomWebResponse<DicomDataset> response = await _client.PostMultipartContentAsync(multiContent, "studies");
-                Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+                using (DicomWebResponse<DicomDataset> response = await _client.PostMultipartContentAsync(multiContent, "studies"))
+                {
+                    Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-                ValidationHelpers.ValidateReferencedSopSequence(
-                    response.Value,
-                    ConvertToReferencedSopSequenceEntry(validFile.Dataset));
+                    ValidationHelpers.ValidateReferencedSopSequence(
+                        response.Value,
+                        ConvertToReferencedSopSequenceEntry(validFile.Dataset));
+                }
             }
             finally
             {
@@ -186,12 +190,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
                 request.Content = multiContent;
 
-                DicomWebResponse<DicomDataset> response = await _client.PostMultipartContentAsync(multiContent, "studies");
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                using (DicomWebResponse<DicomDataset> response = await _client.PostMultipartContentAsync(multiContent, "studies"))
+                {
+                    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-                ValidationHelpers.ValidateReferencedSopSequence(
-                    response.Value,
-                    ConvertToReferencedSopSequenceEntry(dicomFile.Dataset));
+                    ValidationHelpers.ValidateReferencedSopSequence(
+                        response.Value,
+                        ConvertToReferencedSopSequenceEntry(dicomFile.Dataset));
+                }
             }
             finally
             {
@@ -231,21 +237,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID1);
                 DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID2);
 
-                DicomWebResponse<DicomDataset> response = await _client.StoreAsync(
-                    new[] { dicomFile1, dicomFile2 }, studyInstanceUID1);
-                Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-                Assert.NotNull(response.Value);
-                Assert.True(response.Value.Count() == 3);
+                using (DicomWebResponse<DicomDataset> response = await _client.StoreAsync(
+                    new[] { dicomFile1, dicomFile2 }, studyInstanceUID1))
+                {
+                    Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+                    Assert.NotNull(response.Value);
+                    Assert.True(response.Value.Count() == 3);
 
-                Assert.EndsWith($"studies/{studyInstanceUID1}", response.Value.GetSingleValue<string>(DicomTag.RetrieveURL));
+                    Assert.EndsWith($"studies/{studyInstanceUID1}", response.Value.GetSingleValue<string>(DicomTag.RetrieveURL));
 
-                ValidationHelpers.ValidateReferencedSopSequence(
-                    response.Value,
-                    ConvertToReferencedSopSequenceEntry(dicomFile1.Dataset));
+                    ValidationHelpers.ValidateReferencedSopSequence(
+                        response.Value,
+                        ConvertToReferencedSopSequenceEntry(dicomFile1.Dataset));
 
-                ValidationHelpers.ValidateFailedSopSequence(
-                    response.Value,
-                    ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, MismatchStudyInstanceUidFailureCode));
+                    ValidationHelpers.ValidateFailedSopSequence(
+                        response.Value,
+                        ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, MismatchStudyInstanceUidFailureCode));
+                }
             }
             finally
             {
@@ -277,23 +285,25 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             try
             {
                 DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);
-                DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(new[] { dicomFile1 });
-                Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+                using (DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(new[] { dicomFile1 }))
+                {
+                    Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
 
-                ValidationHelpers.ValidateReferencedSopSequence(
-                    response1.Value,
-                    ConvertToReferencedSopSequenceEntry(dicomFile1.Dataset));
+                    ValidationHelpers.ValidateReferencedSopSequence(
+                        response1.Value,
+                        ConvertToReferencedSopSequenceEntry(dicomFile1.Dataset));
 
-                Assert.False(response1.Value.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence _));
+                    Assert.False(response1.Value.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence _));
 
-                DicomWebException<DicomDataset> exception = await Assert.ThrowsAsync<DicomWebException<DicomDataset>>(
-                    () => _client.StoreAsync(new[] { dicomFile1 }));
+                    DicomWebException<DicomDataset> exception = await Assert.ThrowsAsync<DicomWebException<DicomDataset>>(
+                        () => _client.StoreAsync(new[] { dicomFile1 }));
 
-                Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
+                    Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
-                ValidationHelpers.ValidateFailedSopSequence(
-                    exception.Value,
-                    ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, SopInstanceAlreadyExistsFailureCode));
+                    ValidationHelpers.ValidateFailedSopSequence(
+                        exception.Value,
+                        ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, SopInstanceAlreadyExistsFailureCode));
+                }
             }
             finally
             {
@@ -352,8 +362,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
             {
                 await dicomFile.SaveAsync(stream);
-                DicomWebResponse<DicomDataset> response = await _client.StoreAsync(stream);
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                using (DicomWebResponse<DicomDataset> response = await _client.StoreAsync(stream))
+                {
+                    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                }
             }
         }
 
@@ -362,8 +374,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
-            DicomWebResponse<DicomDataset> response = await _client.StoreAsync(dicomFile, studyInstanceUID);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            using (DicomWebResponse<DicomDataset> response = await _client.StoreAsync(dicomFile, studyInstanceUID))
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
         }
 
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset)

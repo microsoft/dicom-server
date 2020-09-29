@@ -44,14 +44,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomFile outputDicomFile = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
             DicomPixelData pixelData = DicomPixelData.Create(outputDicomFile.Dataset);
 
-            DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid, mediaType, transferSyntax, frames: new[] { 1 });
-
-            int frameIndex = 0;
-            foreach (Stream item in response.Value)
+            using (DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid, mediaType, transferSyntax, frames: new[] { 1 }))
             {
-                // TODO: verify media type once https://microsofthealth.visualstudio.com/Health/_workitems/edit/75185 is done
-                Assert.Equal(item.ToByteArray(), pixelData.GetFrame(frameIndex).Data);
-                frameIndex++;
+                int frameIndex = 0;
+                foreach (Stream item in response.Value)
+                {
+                    // TODO: verify media type once https://microsofthealth.visualstudio.com/Health/_workitems/edit/75185 is done
+                    Assert.Equal(item.ToByteArray(), pixelData.GetFrame(frameIndex).Data);
+                    frameIndex++;
+                }
             }
         }
 
@@ -88,15 +89,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await InternalStoreAsync(new[] { dicomFile });
 
             // Check for series
-            DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(
+            using (DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid,
                 dicomTransferSyntax: "*",
-                frames: new[] { 1 });
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(response.Value[0].ToByteArray(), DicomPixelData.Create(dicomFile.Dataset).GetFrame(0).Data);
+                frames: new[] { 1 }))
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(response.Value[0].ToByteArray(), DicomPixelData.Create(dicomFile.Dataset).GetFrame(0).Data);
+            }
         }
 
         [Fact]
@@ -132,13 +134,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomPixelData pixelData = DicomPixelData.Create(dicomFile1.Dataset);
             var dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
             await InternalStoreAsync(new[] { dicomFile1 });
-            DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1, 2 }, dicomTransferSyntax: "*");
-            Assert.NotNull(frames);
-            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
-            Assert.Equal(2, frames.Value.Count);
-            Assert.Equal(KnownContentTypes.MultipartRelated, frames.Content.Headers.ContentType.MediaType);
-            Assert.Equal(pixelData.GetFrame(0).Data, frames.Value[0].ToByteArray());
-            Assert.Equal(pixelData.GetFrame(1).Data, frames.Value[1].ToByteArray());
+            using (DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1, 2 }, dicomTransferSyntax: "*"))
+            {
+                Assert.NotNull(frames);
+                Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
+                Assert.Equal(2, frames.Value.Count);
+                Assert.Equal(KnownContentTypes.MultipartRelated, frames.Content.Headers.ContentType.MediaType);
+                Assert.Equal(pixelData.GetFrame(0).Data, frames.Value[0].ToByteArray());
+                Assert.Equal(pixelData.GetFrame(1).Data, frames.Value[1].ToByteArray());
+            }
         }
 
         [Fact]
