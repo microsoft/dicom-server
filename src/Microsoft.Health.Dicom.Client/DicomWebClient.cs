@@ -74,14 +74,17 @@ namespace Microsoft.Health.Dicom.Client
                     "Accept",
                     CreateAcceptHeader(CreateMultipartMediaTypeHeader(mediaType), dicomTransferSyntax));
 
-                using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false))
-                {
-                    await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
-                    return new DicomWebResponse<IReadOnlyList<Stream>>(
-                        response,
-                        (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken).ConfigureAwait(false)).ToList());
-                }
+                MemoryStream responseContentStream = GetMemoryStream();
+                await response.Content.CopyToAsync(responseContentStream).ConfigureAwait(false);
+                IEnumerable<Stream> responseAsStreams = await ReadMultipartResponseAsStreamsAsync(responseContentStream, response.Content.Headers, cancellationToken).ConfigureAwait(false);
+                response.Content = new StreamContent(responseContentStream);
+
+                return new DicomWebResponse<IReadOnlyList<Stream>>(
+                    response,
+                    responseAsStreams.ToList());
             }
         }
 
@@ -120,9 +123,14 @@ namespace Microsoft.Health.Dicom.Client
                     }
                     else
                     {
+                        MemoryStream responseContentStream = GetMemoryStream();
+                        await response.Content.CopyToAsync(responseContentStream).ConfigureAwait(false);
+                        IEnumerable<Stream> responseAsStreams = await ReadMultipartResponseAsStreamsAsync(responseContentStream, response.Content.Headers, cancellationToken).ConfigureAwait(false);
+                        response.Content = new StreamContent(responseContentStream);
+
                         return new DicomWebResponse<IReadOnlyList<DicomFile>>(
                             response,
-                            (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken).ConfigureAwait(false)).Select(x => DicomFile.Open(x)).ToList());
+                            responseAsStreams.Select(x => DicomFile.Open(x)).ToList());
                     }
                 }
             }
@@ -386,24 +394,23 @@ namespace Microsoft.Health.Dicom.Client
             }
         }
 
-        private async Task<IEnumerable<Stream>> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, CancellationToken cancellationToken)
+        private async Task<IEnumerable<Stream>> ReadMultipartResponseAsStreamsAsync(Stream stream, HttpContentHeaders headers, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(httpContent, nameof(httpContent));
+            EnsureArg.IsNotNull(stream, nameof(stream));
 
             var result = new List<Stream>();
-            await using (Stream stream = await httpContent.ReadAsStreamAsync().ConfigureAwait(false))
-            {
-                MultipartSection part;
-                var media = MediaTypeHeaderValue.Parse(httpContent.Headers.ContentType.ToString());
-                var multipartReader = new MultipartReader(HeaderUtilities.RemoveQuotes(media.Boundary).Value, stream, 100);
+            stream.Seek(0, SeekOrigin.Begin);
 
-                while ((part = await multipartReader.ReadNextSectionAsync(cancellationToken).ConfigureAwait(false)) != null)
-                {
-                    var memoryStream = GetMemoryStream();
-                    await part.Body.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-                    result.Add(memoryStream);
-                }
+            MultipartSection part;
+            var media = MediaTypeHeaderValue.Parse(headers.ContentType.ToString());
+            var multipartReader = new MultipartReader(HeaderUtilities.RemoveQuotes(media.Boundary).Value, stream, 100);
+
+            while ((part = await multipartReader.ReadNextSectionAsync(cancellationToken).ConfigureAwait(false)) != null)
+            {
+                var memoryStream = GetMemoryStream();
+                await part.Body.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                result.Add(memoryStream);
             }
 
             return result;
