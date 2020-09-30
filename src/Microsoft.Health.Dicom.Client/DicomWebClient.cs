@@ -58,27 +58,6 @@ namespace Microsoft.Health.Dicom.Client
         /// </summary>
         public Func<MemoryStream> GetMemoryStream { get; set; }
 
-        public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
-            Uri requestUri,
-            string mediaType,
-            string dicomTransferSyntax,
-            CancellationToken cancellationToken = default)
-        {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
-            {
-                request.Headers.TryAddWithoutValidation(
-                    "Accept",
-                    CreateAcceptHeader(CreateMultipartMediaTypeHeader(mediaType), dicomTransferSyntax));
-
-                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-
-                return new DicomWebResponse<IReadOnlyList<Stream>>(
-                    response,
-                    (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken).ConfigureAwait(false)).ToList());
-            }
-        }
-
         public async Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstancesAsync(
             Uri requestUri,
             bool singleInstance,
@@ -117,6 +96,30 @@ namespace Microsoft.Health.Dicom.Client
                         response,
                         (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken).ConfigureAwait(false)).Select(x => DicomFile.Open(x)).ToList());
                 }
+            }
+        }
+
+        public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
+            Uri requestUri,
+            string mediaType,
+            string dicomTransferSyntax,
+            CancellationToken cancellationToken = default)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.Headers.TryAddWithoutValidation(
+                    "Accept",
+                    CreateAcceptHeader(CreateMultipartMediaTypeHeader(mediaType), dicomTransferSyntax));
+
+                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
+                // TODO: Get it working with func
+                // Func<HttpContent, CancellationToken, Task<IEnumerable<Stream>>> val = async (content, token) => (await ReadMultipartResponseAsStreamsAsync(content, token).ConfigureAwait(false)).ToList();
+
+                return new DicomWebResponse<IReadOnlyList<Stream>>(
+                    response,
+                    (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken).ConfigureAwait(false)).ToList());
             }
         }
 
@@ -271,11 +274,28 @@ namespace Microsoft.Health.Dicom.Client
             }
         }
 
-        private static MultipartContent GetMultipartContent(string mimeType)
+        public async Task<DicomWebResponse<DicomDataset>> PostSinglepartConentAsync(
+            StreamContent streamContent,
+            string requestUri,
+            CancellationToken cancellationToken = default)
         {
-            var multiContent = new MultipartContent("related");
-            multiContent.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("type", $"\"{mimeType}\""));
-            return multiContent;
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
+            request.Content = streamContent;
+
+            return await PostContentAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebResponse<DicomDataset>> PostMultipartContentAsync(
+            MultipartContent multiContent,
+            string requestUri,
+            CancellationToken cancellationToken = default)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
+            request.Content = multiContent;
+
+            return await PostContentAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<DicomWebResponse<DicomDataset>> PostAsync(
@@ -312,30 +332,6 @@ namespace Microsoft.Health.Dicom.Client
                 cancellationToken);
         }
 
-        public async Task<DicomWebResponse<DicomDataset>> PostSinglepartConentAsync(
-            StreamContent streamContent,
-            string requestUri,
-            CancellationToken cancellationToken = default)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
-            request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
-            request.Content = streamContent;
-
-            return await PostContentAsync(request, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<DicomWebResponse<DicomDataset>> PostMultipartContentAsync(
-            MultipartContent multiContent,
-            string requestUri,
-            CancellationToken cancellationToken = default)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
-            request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
-            request.Content = multiContent;
-
-            return await PostContentAsync(request, cancellationToken).ConfigureAwait(false);
-        }
-
         private async Task<DicomWebResponse<DicomDataset>> PostContentAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
         {
             using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false))
@@ -363,6 +359,13 @@ namespace Microsoft.Health.Dicom.Client
 
                 return new DicomWebResponse<DicomDataset>(response, dataset);
             }
+        }
+
+        private static MultipartContent GetMultipartContent(string mimeType)
+        {
+            var multiContent = new MultipartContent("related");
+            multiContent.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("type", $"\"{mimeType}\""));
+            return multiContent;
         }
 
         private async Task<IEnumerable<Stream>> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, CancellationToken cancellationToken)
@@ -408,6 +411,13 @@ namespace Microsoft.Health.Dicom.Client
             }
         }
 
+        private static string CreateAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
+        {
+            string transferSyntaxHeader = dicomTransferSyntax == null ? string.Empty : $";{TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
+
+            return $"{mediaTypeHeader}{transferSyntaxHeader}";
+        }
+
         private static MediaTypeWithQualityHeaderValue CreateMultipartMediaTypeHeader(string contentType)
         {
             var multipartHeader = new MediaTypeWithQualityHeaderValue(DicomWebConstants.MultipartRelatedMediaType);
@@ -415,13 +425,6 @@ namespace Microsoft.Health.Dicom.Client
 
             multipartHeader.Parameters.Add(contentHeader);
             return multipartHeader;
-        }
-
-        private static string CreateAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
-        {
-            string transferSyntaxHeader = dicomTransferSyntax == null ? string.Empty : $";{TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
-
-            return $"{mediaTypeHeader}{transferSyntaxHeader}";
         }
     }
 }
