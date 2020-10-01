@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Registration;
+using Microsoft.Health.Dicom.SqlServer;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
@@ -16,6 +17,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Api.Registration;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.Health.SqlServer.Features.Schema;
@@ -25,7 +27,10 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomServerBuilderSqlServerRegistrationExtensions
     {
-        public static IDicomServerBuilder AddSqlServer(this IDicomServerBuilder dicomServerBuilder, Action<SqlServerDataStoreConfiguration> configureAction = null)
+        public static IDicomServerBuilder AddSqlServer(
+            this IDicomServerBuilder dicomServerBuilder,
+            IConfiguration configurationRoot,
+            Action<SqlServerDataStoreConfiguration> configureAction = null)
         {
             EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
             IServiceCollection services = dicomServerBuilder.Services;
@@ -33,12 +38,12 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSqlServerBase<SchemaVersion>();
             services.AddSqlServerApi();
 
+            var config = new SqlServerDataStoreConfiguration();
+            configurationRoot?.GetSection("SqlServer").Bind(config);
+
             services.Add(provider =>
                 {
-                    var config = new SqlServerDataStoreConfiguration();
-                    provider.GetService<IConfiguration>().GetSection("SqlServer").Bind(config);
                     configureAction?.Invoke(config);
-
                     return config;
                 })
                 .Singleton()
@@ -76,6 +81,22 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            switch (config.ConnectionType)
+            {
+                case SqlServerConnectionType.ManagedIdentity:
+                    services.Add<ManagedIdentitySqlConnectionFactory>(provider =>
+                    {
+                        return new ManagedIdentitySqlConnectionFactory(config);
+                    })
+                    .Singleton()
+                    .ReplaceService<ISqlConnectionFactory>();
+                    break;
+                case SqlServerConnectionType.WindowsIntegratedAuth:
+                case SqlServerConnectionType.Default:
+                default:
+                    break;
+            }
 
             return dicomServerBuilder;
         }

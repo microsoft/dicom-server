@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Web
             services.AddDicomServer(Configuration)
                 .AddBlobStorageDataStore(Configuration)
                 .AddMetadataStorageDataStore(Configuration)
-                .AddSqlServer();
+                .AddSqlServer(Configuration);
 
             AddApplicationInsightsTelemetry(services);
         }
