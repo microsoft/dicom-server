@@ -5,8 +5,6 @@
   <ItemGroup>
     <PackageReference Include="Efferent.Native" Version="4.0.0" />
     <PackageReference Include="Ensure.That" Version="9.2.0" />
-    <PackageReference Include="fo-dicom" Version="4.0.6" />
-    <PackageReference Include="fo-dicom.json" Version="4.0.6" NoWarn="NU1701" />
     <PackageReference Include="MediatR" Version="7.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.8" />
@@ -20,6 +18,14 @@
     <PackageReference Include="Polly" Version="7.2.0" />
     <PackageReference Include="Scrutor" Version="3.2.1" />
     <PackageReference Include="System.Linq.Async" Version="4.1.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Dicom.Core">
+      <HintPath>..\..\..\..\..\Desktop\Temp\DicomBuildOutput\DicomCore\Dicom.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Dicom.Json">
+      <HintPath>..\..\..\..\..\Desktop\Temp\DicomBuildOutput\DicomJson\DICOM.Json\Dicom.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="DicomCoreResource.Designer.cs">

@@ -25,4 +25,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Dicom.Core">
+      <HintPath>..\..\..\..\..\Desktop\Temp\DicomBuildOutput\DicomCore\Dicom.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

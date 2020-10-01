@@ -14,6 +14,14 @@
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Dicom.Core">
+      <HintPath>..\..\..\fo-dicom\Platform\NetCore\bin\Debug\netstandard1.3\Dicom.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Dicom.Json">
+      <HintPath>..\..\..\..\..\Desktop\Temp\DicomBuildOutput\DicomJson\DICOM.Json\Dicom.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Update="DicomApiResource.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
