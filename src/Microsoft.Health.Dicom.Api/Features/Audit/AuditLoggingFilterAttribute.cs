@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Core.Features.Security;
@@ -21,16 +20,15 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
         {
         }
 
-        public override void OnActionExecuted(ActionExecutedContext context)
+        /// <summary>
+        /// Do nothing when execution finishes for a request.
+        /// LogExecuted will be called from AuditMiddleware.
+        /// AuditEgressLogger is responsible for taking care of this.
+        /// </summary>
+        /// <param name="context">On result executed context.</param>
+        public override void OnResultExecuted(ResultExecutedContext context)
         {
-            EnsureArg.IsNotNull(context, nameof(context));
-
-            if (context.Exception != null)
-            {
-                AuditHelper.LogExecuted(context.HttpContext, ClaimsExtractor);
-            }
-
-            base.OnActionExecuted(context);
+            // Do nothing.
         }
     }
 }

@@ -29,6 +29,8 @@ namespace Microsoft.Health.Dicom.Api.Modules
                 .Singleton()
                 .AsService<IAuditHelper>();
 
+            services.AddSingleton<IAuditEgressLogger, DicomAudit.AuditEgressLogger>();
+
             services.Add<AuditEventTypeMapping>()
                 .Singleton()
                 .AsService<IAuditEventTypeMapping>()
