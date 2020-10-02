@@ -114,12 +114,9 @@ namespace Microsoft.Health.Dicom.Client
                 HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
                 await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
-                // TODO: Get it working with func
-                // Func<HttpContent, CancellationToken, Task<IEnumerable<Stream>>> val = async (content, token) => (await ReadMultipartResponseAsStreamsAsync(content, token).ConfigureAwait(false)).ToList();
-
                 return new DicomWebResponse<IReadOnlyList<Stream>>(
                     response,
-                    (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken).ConfigureAwait(false)).ToList());
+                    async (content, cancellationToken) => (await ReadMultipartResponseAsStreamsAsync(content, cancellationToken)).ToList());
             }
         }
 
