@@ -116,7 +116,7 @@ namespace Microsoft.Health.Dicom.Client
 
                 return new DicomWebResponse<IReadOnlyList<Stream>>(
                     response,
-                    async (content, cancellationToken) => (await ReadMultipartResponseAsStreamsAsync(content, cancellationToken)).ToList());
+                    (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken).ConfigureAwait(false)).ToList());
             }
         }
 
