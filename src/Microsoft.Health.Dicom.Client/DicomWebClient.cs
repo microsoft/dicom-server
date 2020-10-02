@@ -79,8 +79,8 @@ namespace Microsoft.Health.Dicom.Client
 
                 request.Headers.TryAddWithoutValidation("Accept", CreateAcceptHeader(mediaTypeHeader, dicomTransferSyntax));
 
-                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-                await EnsureSuccessStatusCodeAsync(response);
+                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
                 if (singleInstance)
                 {
@@ -111,7 +111,7 @@ namespace Microsoft.Health.Dicom.Client
                     "Accept",
                     CreateAcceptHeader(CreateMultipartMediaTypeHeader(mediaType), dicomTransferSyntax));
 
-                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
                 await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
                 return new DicomWebResponse<IReadOnlyList<Stream>>(
@@ -201,10 +201,12 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken = default)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
-            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-            return new DicomWebResponse(response);
+            using (var request = new HttpRequestMessage(HttpMethod.Delete, requestUri))
+            {
+                HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+                return new DicomWebResponse(response);
+            }
         }
 
         public async Task<DicomWebResponse<IEnumerable<DicomDataset>>> QueryAsync(string requestUri, CancellationToken cancellationToken = default)
