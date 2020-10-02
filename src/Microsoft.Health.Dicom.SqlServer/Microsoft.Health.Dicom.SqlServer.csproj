@@ -17,10 +17,11 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Ensure.That" Version="9.2.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="3.1.8" />
-    <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.0-master-20200909-1" />
-    <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="1.0.0-master-20200909-1" />
-    <PackageReference Include="Microsoft.Health.SqlServer" Version="1.0.0-master-20200909-1" />
-    <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="1.0.0-master-20200909-1" />
+    <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.0-vshaaalManagedIdentity-20201002-101937-preview" />
+    <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="1.0.0-vshaaalManagedIdentity-20201002-101937-preview" />
+    <PackageReference Include="Microsoft.Health.SqlServer" Version="1.0.0-vshaaalManagedIdentity-20201002-101937-preview" />
+    <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="1.0.0-vshaaalManagedIdentity-20201002-101937-preview" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />

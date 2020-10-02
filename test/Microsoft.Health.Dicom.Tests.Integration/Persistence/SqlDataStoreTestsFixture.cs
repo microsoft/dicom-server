@@ -4,10 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Data.SqlClient;
 using System.Numerics;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var mediator = Substitute.For<IMediator>();
 
-            var sqlConnectionFactory = new DefaultSqlConnectionFactory(config);
+            var sqlConnectionFactory = new DefaultSqlConnection(config);
 
             var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, mediator, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory);
 
