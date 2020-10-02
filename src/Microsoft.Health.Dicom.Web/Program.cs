@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -32,7 +34,7 @@ namespace Microsoft.Health.Dicom.Web
 
                     builder.AddDevelopmentAuthEnvironmentIfConfigured(builtConfig, "DicomServer");
                 })
-                .ConfigureKestrel(option => option.Limits.MaxRequestBodySize = int.MaxValue) // When hosted on Kestrel, it's allowed to upload >2GB file, set to 2GB by default
+                .ConfigureKestrel(option => option.Limits.MaxRequestBodySize = uint.MaxValue) // When hosted on Kestrel, it's allowed to upload >2GB file, set to 2GB by default
                 .UseStartup<Startup>()
                 .Build();
 

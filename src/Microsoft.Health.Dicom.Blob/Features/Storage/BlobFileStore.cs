@@ -13,13 +13,14 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Core.Common;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
-using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
@@ -28,26 +29,28 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
     /// </summary>
     public class BlobFileStore : IFileStore
     {
-        private static readonly string GetFileStreamTagName = $"{nameof(BlobFileStore)}.{nameof(GetFileAsync)}";
         private readonly BlobContainerClient _container;
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly BlobDataStoreConfiguration _blobDataStoreConfiguration;
+        private readonly ILogger<BlobFileStore> _logger;
+        private readonly FileStreamManager _fileStreamManager;
 
         public BlobFileStore(
             BlobServiceClient client,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-            BlobDataStoreConfiguration blobDataStoreConfiguration)
+            FileStreamManager fileStreamManager,
+            BlobDataStoreConfiguration blobDataStoreConfiguration,
+            ILogger<BlobFileStore> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
-            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+            EnsureArg.IsNotNull(fileStreamManager, nameof(fileStreamManager));
             EnsureArg.IsNotNull(blobDataStoreConfiguration, nameof(blobDataStoreConfiguration));
+            EnsureArg.IsNotNull(logger, nameof(logger));
 
             BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
-
+            _fileStreamManager = fileStreamManager;
+            _logger = logger;
             _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
             _blobDataStoreConfiguration = blobDataStoreConfiguration;
         }
 
@@ -114,7 +117,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
             await ExecuteAsync(async () =>
             {
-                stream = _recyclableMemoryStreamManager.GetStream(GetFileStreamTagName);
+                stream = _fileStreamManager.GetStream();
                 await blob.DownloadToAsync(stream, conditions: null, storageTransferOptions, cancellationToken);
             });
             stream.Seek(0, SeekOrigin.Begin);

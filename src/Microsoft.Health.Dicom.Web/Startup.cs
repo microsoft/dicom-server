@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Web
             services.Configure<IISServerOptions>(options =>
             {
                 // When hosted on IIS, the max request body size can not over 2GB, according to Asp.net Core bug https://github.com/dotnet/aspnetcore/issues/2711
-                options.MaxRequestBodySize = int.MaxValue;
+                options.MaxRequestBodySize = uint.MaxValue;
             });
             services.AddDevelopmentIdentityProvider(Configuration);
 

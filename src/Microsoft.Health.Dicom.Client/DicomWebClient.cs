@@ -17,6 +17,7 @@ using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.Dicom.Core.Common;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
@@ -112,10 +113,10 @@ namespace Microsoft.Health.Dicom.Client
 
                     if (singleInstance)
                     {
-                        var memoryStream = GetMemoryStream();
-                        await response.Content.CopyToAsync(memoryStream);
-                        memoryStream.Seek(0, SeekOrigin.Begin);
-                        var dicomFile = await DicomFile.OpenAsync(memoryStream);
+                        var stream = new FileStreamManager().GetStream();
+                        await response.Content.CopyToAsync(stream);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        var dicomFile = await DicomFile.OpenAsync(stream);
                         return new DicomWebResponse<IReadOnlyList<DicomFile>>(response, new DicomFile[] { dicomFile });
                     }
                     else
@@ -418,7 +419,7 @@ namespace Microsoft.Health.Dicom.Client
 
                 while ((part = await multipartReader.ReadNextSectionAsync(cancellationToken)) != null)
                 {
-                    var memoryStream = GetMemoryStream();
+                    var memoryStream = new FileStreamManager().GetStream();
                     await part.Body.CopyToAsync(memoryStream, cancellationToken);
                     memoryStream.Seek(0, SeekOrigin.Begin);
                     result.Add(memoryStream);

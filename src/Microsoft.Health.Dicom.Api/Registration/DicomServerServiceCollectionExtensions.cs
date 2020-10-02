@@ -22,6 +22,7 @@ using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Core.Common;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
@@ -84,6 +85,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(jsonSerializer);
 
             services.TryAddSingleton<RecyclableMemoryStreamManager>();
+            services.TryAddSingleton<FileStreamManager>();
 
             // Disable fo-dicom data item validation. Disabling at global level
             // Opt-in validation instead of opt-out
