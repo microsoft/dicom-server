@@ -45,6 +45,8 @@ The following DICOM elements are required to be present in every DICOM file atte
 
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 
+> DICOM File Size Limit: there is a size limit of 2GB for a DICOM file by default.
+
 ### Store Response Status Codes
 
 | Code                         | Description |
@@ -168,13 +170,20 @@ This Retrieve Transaction offers support for retrieving stored studies, series, 
 
 The following `Accept` header(s) are supported for retrieving instances within a study or a series:
 
+
 - `multipart/related; type="application/dicom"; transfer-syntax=*`
+- `multipart/related; type="application/dicom";` (when transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
+- `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.1`
+- `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.4.90`
 
 ### Retrieve an Instance
 
 The following `Accept` header(s) are supported for retrieving a specific instance:
 
 - `application/dicom; transfer-syntax=*`
+- `application/dicom;` (when transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
+- `application/dicom; transfer-syntax=1.2.840.10008.1.2.1`
+- `application/dicom; transfer-syntax=1.2.840.10008.1.2.4.90`
 
 ### Retrieve Frames
 
@@ -184,6 +193,8 @@ The following `Accept` headers are supported for retrieving frames:
 - `multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1`
 - `multipart/related; type="image/jp2";` (when transfer-syntax is not specified, 1.2.840.10008.1.2.4.90 is used as default)
 - `multipart/related; type="image/jp2";transfer-syntax=1.2.840.10008.1.2.4.90`
+
+### Retrieve Transfer Syntax
 
 When the requested transfer syntax is different from original file, the original file is transcoded to requested transfer syntax. The original file needs to be one of below formats for transcoding to succeed, otherwise transcoding may fail:
 - 1.2.840.10008.1.2 (Little Endian Implicit)
@@ -196,9 +207,7 @@ When the requested transfer syntax is different from original file, the original
 - 1.2.840.10008.1.2.4.91 (JPEG 2000)
 - 1.2.840.10008.1.2.5 (RLE Lossless)
 
-### Retrieve Transfer Syntax
-
-Currently, except Frames, only `transfer-syntax=*` is supported. Specifying any other `transfer-syntax` will result in `406 Not Acceptable`.
+An unsupported `transfer-syntax` will result in `406 Not Acceptable`.
 
 ### Retrieve Metadata (for Study, Series, or Instance)
 

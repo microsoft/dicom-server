@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -18,26 +19,37 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
     {
         private static readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> AcceptableDescriptors =
-        new Dictionary<ResourceType, AcceptHeaderDescriptors>()
-        {
-                { ResourceType.Study, DescriptorsForGetStudy() },
-                { ResourceType.Series, DescriptorsForGetSeries() },
-                { ResourceType.Instance, DescriptorsForGetInstance() },
+           new Dictionary<ResourceType, AcceptHeaderDescriptors>()
+           {
+                { ResourceType.Study, DescriptorsForGetNonFrameResource(PayloadTypes.MultipartRelated) },
+                { ResourceType.Series, DescriptorsForGetNonFrameResource(PayloadTypes.MultipartRelated) },
+                { ResourceType.Instance, DescriptorsForGetNonFrameResource(PayloadTypes.SinglePart) },
                 { ResourceType.Frames, DescriptorsForGetFrame() },
-        };
+           };
 
         private readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> _acceptableDescriptors;
 
-        public RetrieveTransferSyntaxHandler()
-            : this(AcceptableDescriptors)
+        private readonly ILogger<RetrieveTransferSyntaxHandler> _logger;
+
+        public RetrieveTransferSyntaxHandler(ILogger<RetrieveTransferSyntaxHandler> logger)
+            : this(AcceptableDescriptors, logger)
         {
         }
 
-        public RetrieveTransferSyntaxHandler(IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> acceptableDescriptors) => _acceptableDescriptors = acceptableDescriptors;
+        public RetrieveTransferSyntaxHandler(IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> acceptableDescriptors, ILogger<RetrieveTransferSyntaxHandler> logger)
+        {
+            EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(acceptableDescriptors, nameof(acceptableDescriptors));
+
+            _acceptableDescriptors = acceptableDescriptors;
+            _logger = logger;
+        }
 
         public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptableHeaderDescriptor)
         {
             EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
+
+            _logger.LogInformation($"Getting transfer syntax for retrieving '{resourceType}' with accept headers '{string.Join(";", acceptHeaders)}'.");
 
             // TODO: disable multiple accept headers, will fully implement it later (https://microsofthealth.visualstudio.com/Health/_workitems/edit/75782)
             if (acceptHeaders.Count() > 1)
@@ -68,37 +80,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             return accepted.Last().Value;
         }
 
-        private static AcceptHeaderDescriptors DescriptorsForGetStudy()
+        private static AcceptHeaderDescriptors DescriptorsForGetNonFrameResource(PayloadTypes payloadTypes)
         {
             return new AcceptHeaderDescriptors(
-                        new AcceptHeaderDescriptor(
-                        payloadType: PayloadTypes.MultipartRelated,
-                        mediaType: KnownContentTypes.ApplicationDicom,
-                        isTransferSyntaxMandatory: true,
-                        transferSyntaxWhenMissing: string.Empty,
-                        acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original)));
-        }
-
-        private static AcceptHeaderDescriptors DescriptorsForGetSeries()
-        {
-            return new AcceptHeaderDescriptors(
-                        new AcceptHeaderDescriptor(
-                        payloadType: PayloadTypes.MultipartRelated,
-                        mediaType: KnownContentTypes.ApplicationDicom,
-                        isTransferSyntaxMandatory: true,
-                        transferSyntaxWhenMissing: string.Empty,
-                        acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original)));
-        }
-
-        private static AcceptHeaderDescriptors DescriptorsForGetInstance()
-        {
-            return new AcceptHeaderDescriptors(
-                        new AcceptHeaderDescriptor(
-                        payloadType: PayloadTypes.SinglePart,
-                        mediaType: KnownContentTypes.ApplicationDicom,
-                        isTransferSyntaxMandatory: true,
-                        transferSyntaxWhenMissing: string.Empty,
-                        acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original)));
+                      new AcceptHeaderDescriptor(
+                      payloadType: payloadTypes,
+                      mediaType: KnownContentTypes.ApplicationDicom,
+                      isTransferSyntaxMandatory: false,
+                      transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
+                      acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, DicomTransferSyntax.JPEG2000Lossless.UID.UID)));
         }
 
         private static AcceptHeaderDescriptors DescriptorsForGetFrame()

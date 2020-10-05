@@ -28,5 +28,17 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
             Assert.Equal(transferSytnax, header.TransferSyntax);
             Assert.Equal(quality, header.Quality);
         }
+
+        [Fact]
+        public void GivenValidInput_WhenToString_ThenShouldReturnExpectedContent()
+        {
+            StringSegment mediaType = KnownContentTypes.ApplicationDicom;
+            PayloadTypes payloadType = PayloadTypes.MultipartRelated;
+            StringSegment transferSytnax = DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID;
+            double quality = 0.5;
+            AcceptHeader header = new AcceptHeader(mediaType, payloadType, transferSytnax, quality);
+
+            Assert.Equal($"MediaType:'{mediaType}', PayloadType:'{payloadType}', TransferSyntax:'{transferSytnax}', Quality:'{quality}'", header.ToString());
+        }
     }
 }

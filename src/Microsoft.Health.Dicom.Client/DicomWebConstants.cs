@@ -7,9 +7,9 @@ namespace Microsoft.Health.Dicom.Client
 {
     public static class DicomWebConstants
     {
-        public const string BasStudyUriFormat = "/studies/{0}";
-        public const string BaseRetrieveStudyMetadataUriFormat = BasStudyUriFormat + "/metadata";
-        public const string BaseSeriesUriFormat = BasStudyUriFormat + "/series/{1}";
+        public const string BaseStudyUriFormat = "/studies/{0}";
+        public const string BaseRetrieveStudyMetadataUriFormat = BaseStudyUriFormat + "/metadata";
+        public const string BaseSeriesUriFormat = BaseStudyUriFormat + "/series/{1}";
         public const string BaseRetrieveSeriesMetadataUriFormat = BaseSeriesUriFormat + "/metadata";
         public const string BaseInstanceUriFormat = BaseSeriesUriFormat + "/instances/{2}";
         public const string BaseRetrieveInstanceRenderedUriFormat = BaseInstanceUriFormat + "/rendered";

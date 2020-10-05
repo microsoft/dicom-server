@@ -18,20 +18,20 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 {
-    public class MultipartReaderStreamToSeekableStreamConverterTests
+    public class SeekableStreamConverterTests
     {
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
-        private readonly MultipartReaderStreamToSeekableStreamConverter _seekableStreamConverter;
+        private readonly SeekableStreamConverter _seekableStreamConverter;
 
-        public MultipartReaderStreamToSeekableStreamConverterTests()
+        public SeekableStreamConverterTests()
         {
             var configuration = Substitute.For<IOptions<StoreConfiguration>>();
             configuration.Value.Returns(new StoreConfiguration
             {
                 MaxAllowedDicomFileSize = 1000000,
             });
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), configuration);
+            _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), configuration);
         }
 
         [Fact]

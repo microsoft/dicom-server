@@ -93,6 +93,23 @@ DicomWebResponse response = await client.RetrieveStudyAsync(studyInstanceUid);
 
 All three of the dcm files that we uploaded previously are part of the same study so the response should return all 3 instances. Validate that the response has a status code of OK and that all three instances are returned.
 
+### Use the retrieved instances
+
+The following code snippet shows how to access the instances that are retrieved, how to access some of the fields of the instances, and how to save it as a .dcm file.
+
+```c#
+DicomWebResponse<IReadOnlyList<DicomFile>> response = await client.RetrieveStudyAsync(studyInstanceUid);
+foreach (DicomFile file in response.Value)
+{
+    string patientName = file.Dataset.GetString(DicomTag.PatientName);
+    string studyId = file.Dataset.GetString(DicomTag.StudyID);
+    string seriesNumber = file.Dataset.GetString(DicomTag.SeriesNumber);
+    string instanceNumber = file.Dataset.GetString(DicomTag.InstanceNumber);
+
+    file.Save($"<path_to_save>\\{patientName}{studyId}{seriesNumber}{instanceNumber}.dcm");
+}
+```
+
 ### Retrieve metadata of all instances in study
 
 This request retrieves the metadata for all instances within a single study.

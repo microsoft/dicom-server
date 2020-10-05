@@ -12,19 +12,20 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Web
 {
     /// <summary>
     /// Provides functionality to convert stream into a seekable stream.
     /// </summary>
-    internal class MultipartReaderStreamToSeekableStreamConverter : ISeekableStreamConverter
+    internal class SeekableStreamConverter : ISeekableStreamConverter
     {
         private const int DefaultBufferThreshold = 1024 * 30000; // 30MB
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IOptions<StoreConfiguration> _storeConfiguration;
 
-        public MultipartReaderStreamToSeekableStreamConverter(IHttpContextAccessor httpContextAccessor, IOptions<StoreConfiguration> storeConfiguration)
+        public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor, IOptions<StoreConfiguration> storeConfiguration)
         {
             EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
             EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));

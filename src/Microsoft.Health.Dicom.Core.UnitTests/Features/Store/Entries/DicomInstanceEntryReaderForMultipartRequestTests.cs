@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
         }
 
         [Fact]
-        public void GivenAnInvalidContentType_WhenCanReadIsCalled_ThenFalseShouldBeReturned()
+        public void GivenAnInvalidContentType_WhenCanReadIsCalledForMultipartRequest_ThenFalseShouldBeReturned()
         {
             bool result = _dicomInstanceEntryReader.CanRead("dummy");
 

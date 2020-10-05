@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
         public AspNetCoreMultipartReaderTests()
         {
-            _seekableStreamConverter = new MultipartReaderStreamToSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), CreateStoreConfiguration());
+            _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), CreateStoreConfiguration());
         }
 
         [Fact]
