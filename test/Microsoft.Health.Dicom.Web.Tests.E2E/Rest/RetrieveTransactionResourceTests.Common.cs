@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     /// <summary>
     /// The tests for retrieving resources.
     /// </summary>
-    public partial class RetrieveTransactionResourceTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IDisposable
+    public partial class RetrieveTransactionResourceTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
         private const string TestFileFolder = @"TestFiles\RetrieveTransactionResourceTests\";
         private const string FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder = TestFileFolder + "FromExplicitVRLittleEndianToJPEG2000Lossless";
@@ -34,18 +33,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _client = fixture.Client;
         }
 
-        void IDisposable.Dispose()
-        {
-            // xunit does not seem to call IAsyncDispose.DisposeAsync()
-            // Also wait should be okay in a test context
-            foreach (string studyUid in _studiesToClean)
-            {
-                _client.DeleteStudyAsync(studyUid).Wait();
-            }
-
-            _studiesToClean.Clear();
-        }
-
         private async Task<(InstanceIdentifier, DicomFile)> CreateAndStoreDicomFile(int numberOfFrames = 0)
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: numberOfFrames);
@@ -57,13 +44,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private async Task EnsureFileIsStoredAsync(DicomFile dicomFile)
         {
             var instanceId = dicomFile.Dataset.ToInstanceIdentifier();
-            using (DicomWebResponse<IEnumerable<DicomDataset>> tryQuery = await _client.QueryAsync(
-                 $"/studies/{instanceId.StudyInstanceUid}/series/{instanceId.SeriesInstanceUid}/instances?SOPInstanceUID={instanceId.SopInstanceUid}"))
+
+            try
             {
-                if (tryQuery.StatusCode == HttpStatusCode.OK)
-                {
-                    await _client.DeleteStudyAsync(instanceId.StudyInstanceUid);
-                }
+                await _client.DeleteStudyAsync(instanceId.StudyInstanceUid);
+            }
+            catch (DicomWebException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                // No-op.
             }
 
             await InternalStoreAsync(new[] { dicomFile });
@@ -76,6 +64,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 _studiesToClean.Add(dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
             }
+        }
+
+        public Task InitializeAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        public async Task DisposeAsync()
+        {
+            foreach (string studyUid in _studiesToClean)
+            {
+                await _client.DeleteStudyAsync(studyUid);
+            }
+
+            _studiesToClean.Clear();
         }
     }
 }

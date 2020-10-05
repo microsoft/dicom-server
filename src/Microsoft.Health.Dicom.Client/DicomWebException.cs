@@ -5,30 +5,64 @@
 
 using System;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using EnsureThat;
+using Dicom;
 
 namespace Microsoft.Health.Dicom.Client
 {
     public class DicomWebException : Exception
     {
-        public DicomWebException(DicomWebResponse response)
+        public DicomWebException(
+            HttpStatusCode statusCode,
+            HttpResponseHeaders responseHeaders,
+            HttpContentHeaders contentHeaders,
+            string responseMessage)
+            : this(statusCode, responseHeaders, contentHeaders)
         {
-            EnsureArg.IsNotNull(response, nameof(response));
-
-            Response = response;
+            ResponseMessage = responseMessage;
         }
 
-        public HttpStatusCode StatusCode => Response.StatusCode;
+        public DicomWebException(
+            HttpStatusCode statusCode,
+            HttpResponseHeaders responseHeaders,
+            HttpContentHeaders contentHeaders,
+            DicomDataset responseDataset)
+            : this(statusCode, responseHeaders, contentHeaders)
+        {
+            ResponseDataset = responseDataset;
+        }
 
-        public HttpResponseHeaders Headers => Response.Headers;
+        private DicomWebException(
+            HttpStatusCode statusCode,
+            HttpResponseHeaders responseHeaders,
+            HttpContentHeaders contentHeaders)
+        {
+            StatusCode = statusCode;
+            ResponseHeaders = responseHeaders;
+            ContentHeaders = contentHeaders;
+        }
 
-        public HttpContent Content => Response.Content;
+        public HttpStatusCode StatusCode { get; }
 
-        protected DicomWebResponse Response { get; }
+        public HttpResponseHeaders ResponseHeaders { get; }
+
+        public HttpContentHeaders ContentHeaders { get; }
+
+        public string ResponseMessage { get; }
+
+        public DicomDataset ResponseDataset { get; }
 
         public override string Message
-            => $"{StatusCode}";
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(ResponseMessage))
+                {
+                    return $"{StatusCode}: {ResponseMessage}";
+                }
+
+                return StatusCode.ToString();
+            }
+        }
     }
 }

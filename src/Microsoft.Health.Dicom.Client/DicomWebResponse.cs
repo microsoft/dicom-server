@@ -13,8 +13,8 @@ namespace Microsoft.Health.Dicom.Client
 {
     public class DicomWebResponse : IDisposable
     {
-        private HttpResponseMessage _response;
-        private bool _disposedValue;
+        private readonly HttpResponseMessage _response;
+        private bool _disposed;
 
         public DicomWebResponse(HttpResponseMessage response)
         {
@@ -25,20 +25,22 @@ namespace Microsoft.Health.Dicom.Client
 
         public HttpStatusCode StatusCode => _response.StatusCode;
 
-        public HttpResponseHeaders Headers => _response.Headers;
+        public HttpResponseHeaders ResponseHeaders => _response.Headers;
 
-        public HttpContent Content => _response.Content;
+        public HttpContentHeaders ContentHeaders => _response.Content?.Headers;
+
+        protected HttpContent Content => _response.Content;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (!_disposed)
             {
                 if (disposing)
                 {
                     _response.Dispose();
                 }
 
-                _disposedValue = true;
+                _disposed = true;
             }
         }
 

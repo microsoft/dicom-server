@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -15,7 +14,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
 {
     public class TraceAuditLogger : IAuditLogger
     {
-        private BlockingCollection<AuditEntry> _auditEntries = new BlockingCollection<AuditEntry>();
+        private readonly List<AuditEntry> _auditEntries = new List<AuditEntry>();
+        private readonly object _syncLock = new object();
 
         public void LogAudit(
             AuditAction auditAction,
@@ -27,12 +27,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
             IReadOnlyCollection<KeyValuePair<string, string>> callerClaims,
             IReadOnlyDictionary<string, string> customHeaders = null)
         {
-            _auditEntries.Add(new AuditEntry(auditAction, operation, requestUri, statusCode));
+            lock (_syncLock)
+            {
+                _auditEntries.Add(new AuditEntry(auditAction, operation, requestUri, statusCode));
+            }
         }
 
         public IReadOnlyList<AuditEntry> GetAuditEntriesByOperationAndRequestUri(string operation, Uri uri)
         {
-            return _auditEntries.Where(ae => string.Equals(ae.Action, operation) && string.Equals(ae.RequestUri?.ToString(), uri?.ToString())).ToList();
+            lock (_syncLock)
+            {
+                return _auditEntries.Where(ae => string.Equals(ae.Action, operation) && string.Equals(ae.RequestUri?.ToString(), uri?.ToString())).ToList();
+            }
         }
     }
 }

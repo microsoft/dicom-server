@@ -18,10 +18,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
         {
             var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
-            using (HttpResponseMessage response = await dicomWebClient.HttpClient.SendAsync(request))
-            {
-                Assert.Equal(expectedStatusCode, response.StatusCode);
-            }
+
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => dicomWebClient.HttpClient.SendAsync(request));
+            Assert.Equal(expectedStatusCode, exception.StatusCode);
         }
     }
 }

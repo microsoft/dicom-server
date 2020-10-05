@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Net.Http.Headers;
+
 namespace Microsoft.Health.Dicom.Client
 {
     public static class DicomWebConstants
@@ -33,5 +35,9 @@ namespace Microsoft.Health.Dicom.Client
         public const string ImageJpeg2000Part2MediaType = "image/jpx";
         public const string VideoMpeg2MediaType = "video/mpeg2";
         public const string VideoMp4MediaType = "video/mp4";
+
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue(ApplicationDicomMediaType);
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue(ApplicationOctetStreamMediaType);
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue(ApplicationDicomJsonMediaType);
     }
 }

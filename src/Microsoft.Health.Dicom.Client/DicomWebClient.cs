@@ -6,10 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -26,12 +26,39 @@ namespace Microsoft.Health.Dicom.Client
 {
     public class DicomWebClient : IDicomWebClient
     {
-        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue(DicomWebConstants.ApplicationDicomMediaType);
-        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue(DicomWebConstants.ApplicationOctetStreamMediaType);
-        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue(DicomWebConstants.ApplicationDicomJsonMediaType);
-
         private const string TransferSyntaxHeaderName = "transfer-syntax";
-        private readonly JsonSerializerSettings _jsonSerializerSettings;
+
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings()
+        {
+            Converters = new List<JsonConverter>()
+            {
+                new JsonDicomConverter(writeTagsAsKeywords: true),
+            },
+        };
+
+        private static readonly DicomWebExceptionFactory StoreDicomWebExceptionFactory = (defaultExceptionFactory, statusCode, responseHeaders, contentHeaders, responseBody) =>
+        {
+            if (statusCode == HttpStatusCode.Conflict)
+            {
+                return new DicomWebException(
+                    statusCode,
+                    responseHeaders,
+                    contentHeaders,
+                    JsonConvert.DeserializeObject<DicomDataset>(responseBody, JsonSerializerSettings));
+            }
+
+            return defaultExceptionFactory(statusCode, responseHeaders, contentHeaders, responseBody);
+        };
+
+        private static readonly DicomWebExceptionFactory RetrieveMetadataExceptionFactory = (defaultExceptionFactory, statusCode, responseHeaders, contentHeaders, responseBody) =>
+        {
+            if (statusCode == HttpStatusCode.NotModified)
+            {
+                return null;
+            }
+
+            return defaultExceptionFactory(statusCode, responseHeaders, contentHeaders, responseBody);
+        };
 
         static DicomWebClient()
         {
@@ -42,11 +69,13 @@ namespace Microsoft.Health.Dicom.Client
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public DicomWebClient(HttpClient httpClient)
+        public DicomWebClient(Uri baseAddress, HttpMessageHandler httpMessageHandler)
         {
-            HttpClient = httpClient;
-            _jsonSerializerSettings = new JsonSerializerSettings();
-            _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
+            HttpClient = new HttpClient(new DicomWebResponseHandler(httpMessageHandler))
+            {
+                BaseAddress = baseAddress,
+            };
+
             GetMemoryStream = () => new MemoryStream();
         }
 
@@ -58,111 +87,132 @@ namespace Microsoft.Health.Dicom.Client
         /// </summary>
         public Func<MemoryStream> GetMemoryStream { get; set; }
 
-        public async Task<DicomWebResponse<IReadOnlyList<DicomFile>>> RetrieveInstancesAsync(
+        public async Task<DicomWebResponse<DicomFile>> RetrieveInstanceAsync(
             Uri requestUri,
-            bool singleInstance,
             string dicomTransferSyntax,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
-            {
-                MediaTypeWithQualityHeaderValue mediaTypeHeader;
+            EnsureArg.IsNotNull(requestUri, nameof(requestUri));
 
-                if (singleInstance)
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+            request.Headers.TryAddWithoutValidation(
+                "Accept",
+                CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationDicom, dicomTransferSyntax));
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new DicomWebResponse<DicomFile>(
+                response,
+                async content =>
                 {
-                    mediaTypeHeader = MediaTypeApplicationDicom;
-                }
-                else
-                {
-                    mediaTypeHeader = CreateMultipartMediaTypeHeader(DicomWebConstants.ApplicationDicomMediaType);
-                }
-
-                request.Headers.TryAddWithoutValidation("Accept", CreateAcceptHeader(mediaTypeHeader, dicomTransferSyntax));
-
-                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-
-                if (singleInstance)
-                {
-                    var memoryStream = GetMemoryStream();
-                    await response.Content.CopyToAsync(memoryStream).ConfigureAwait(false);
+                    MemoryStream memoryStream = GetMemoryStream();
+                    await content.CopyToAsync(memoryStream).ConfigureAwait(false);
                     memoryStream.Seek(0, SeekOrigin.Begin);
-                    var dicomFile = await DicomFile.OpenAsync(memoryStream);
-                    return new DicomWebResponse<IReadOnlyList<DicomFile>>(response, new DicomFile[] { dicomFile });
-                }
-                else
-                {
-                    return new DicomWebResponse<IReadOnlyList<DicomFile>>(
-                        response,
-                        (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken).ConfigureAwait(false)).Select(x => DicomFile.Open(x)).ToList());
-                }
-            }
+
+                    return await DicomFile.OpenAsync(memoryStream).ConfigureAwait(false);
+                });
         }
 
-        public async Task<DicomWebResponse<IReadOnlyList<Stream>>> RetrieveFramesAsync(
+        public async Task<DicomWebAsyncEnumerableResponse<DicomFile>> RetrieveInstancesAsync(
+            Uri requestUri,
+            string dicomTransferSyntax,
+            CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(requestUri, nameof(requestUri));
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+            request.Headers.TryAddWithoutValidation(
+                "Accept",
+                CreateAcceptHeader(CreateMultipartMediaTypeHeader(DicomWebConstants.ApplicationDicomMediaType), dicomTransferSyntax));
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new DicomWebAsyncEnumerableResponse<DicomFile>(
+                response,
+                ReadMultipartResponseAsDicomFileAsync(response.Content));
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<Stream>> RetrieveFramesAsync(
             Uri requestUri,
             string mediaType,
             string dicomTransferSyntax,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
-            {
-                request.Headers.TryAddWithoutValidation(
-                    "Accept",
-                    CreateAcceptHeader(CreateMultipartMediaTypeHeader(mediaType), dicomTransferSyntax));
+            EnsureArg.IsNotNull(requestUri, nameof(requestUri));
+            EnsureArg.IsNotNullOrWhiteSpace(mediaType, nameof(mediaType));
 
-                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
-                return new DicomWebResponse<IReadOnlyList<Stream>>(
-                    response,
-                    (await ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken).ConfigureAwait(false)).ToList());
-            }
+            request.Headers.TryAddWithoutValidation(
+                "Accept",
+                CreateAcceptHeader(CreateMultipartMediaTypeHeader(mediaType), dicomTransferSyntax));
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new DicomWebAsyncEnumerableResponse<Stream>(
+                response,
+                ReadMultipartResponseAsStreamsAsync(response.Content));
         }
 
-        public async Task<DicomWebResponse<IReadOnlyList<DicomDataset>>> RetrieveMetadataAsync(Uri requestUri, string ifNoneMatch = null, CancellationToken cancellationToken = default)
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> RetrieveMetadataAsync(
+            Uri requestUri,
+            string eTag,
+            CancellationToken cancellationToken)
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            EnsureArg.IsNotNull(requestUri, nameof(requestUri));
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+            request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
+
+            if (!string.IsNullOrEmpty(eTag))
             {
-                request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
+                request.Headers.TryAddWithoutValidation(HeaderNames.IfNoneMatch, eTag);
 
-                if (!string.IsNullOrEmpty(ifNoneMatch))
-                {
-                    request.Headers.TryAddWithoutValidation(HeaderNames.IfNoneMatch, ifNoneMatch);
-                }
-
-                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-                await EnsureSuccessOrNotModifiedStatusCodeAsync(response).ConfigureAwait(false);
-
-                string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                return new DicomWebResponse<IReadOnlyList<DicomDataset>>(
-                    response,
-                    JsonConvert.DeserializeObject<IReadOnlyList<DicomDataset>>(contentText, _jsonSerializerSettings));
+                // If the content has not changed, the status returned will be NotModified and so we need to treat it specially.
+                request.SetDicomWebExceptionFactory(RetrieveMetadataExceptionFactory);
             }
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new DicomWebAsyncEnumerableResponse<DicomDataset>(
+                response,
+                DeserializeAsAsyncEnumerable<DicomDataset>(response.Content));
         }
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             IEnumerable<DicomFile> dicomFiles,
-            string studyInstanceUid = null,
-            CancellationToken cancellationToken = default)
+            string studyInstanceUid,
+            CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
+
             var postContent = new List<Stream>();
+
             try
             {
                 foreach (DicomFile dicomFile in dicomFiles)
                 {
-                    var stream = GetMemoryStream();
+                    MemoryStream stream = GetMemoryStream();
                     await dicomFile.SaveAsync(stream).ConfigureAwait(false);
                     stream.Seek(0, SeekOrigin.Begin);
                     postContent.Add(stream);
                 }
 
-                return await PostAsync(postContent, studyInstanceUid, cancellationToken).ConfigureAwait(false);
+                return await StoreAsync(
+                    GenerateStoreRequestUri(studyInstanceUid),
+                    ConvertStreamsToMultipartContent(postContent),
+                    cancellationToken).ConfigureAwait(false);
             }
             finally
             {
-                foreach (var stream in postContent)
+                foreach (Stream stream in postContent)
                 {
                     await stream.DisposeAsync().ConfigureAwait(false);
                 }
@@ -171,243 +221,160 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             IEnumerable<Stream> streams,
-            string studyInstanceUid = null,
-            CancellationToken cancellationToken = default)
+            string studyInstanceUid,
+            CancellationToken cancellationToken)
         {
-            return await PostAsync(streams, studyInstanceUid, cancellationToken).ConfigureAwait(false);
+            EnsureArg.IsNotNull(streams, nameof(streams));
+
+            return await StoreAsync(
+                GenerateStoreRequestUri(studyInstanceUid),
+                ConvertStreamsToMultipartContent(streams),
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             Stream stream,
-            string studyInstanceUid = null,
-            CancellationToken cancellationToken = default)
+            string studyInstanceUid,
+            CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(stream, nameof(stream));
+
             stream.Seek(0, SeekOrigin.Begin);
-            return await PostAsync(stream, studyInstanceUid, cancellationToken).ConfigureAwait(false);
+
+            return await StoreAsync(
+                GenerateStoreRequestUri(studyInstanceUid),
+                ConvertStreamToStreamContent(stream),
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             DicomFile dicomFile,
-            string studyInstanceUid = null,
-            CancellationToken cancellationToken = default)
-        {
-            await using (var stream = GetMemoryStream())
-            {
-                await dicomFile.SaveAsync(stream).ConfigureAwait(false);
-                stream.Seek(0, SeekOrigin.Begin);
-                return await PostAsync(stream, studyInstanceUid, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        public async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken = default)
-        {
-            using (var request = new HttpRequestMessage(HttpMethod.Delete, requestUri))
-            {
-                HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-                return new DicomWebResponse(response);
-            }
-        }
-
-        public async Task<DicomWebResponse<IEnumerable<DicomDataset>>> QueryAsync(string requestUri, CancellationToken cancellationToken = default)
-        {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
-            {
-                request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
-
-                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-
-                var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var responseMetadata = JsonConvert.DeserializeObject<IReadOnlyList<DicomDataset>>(contentText, _jsonSerializerSettings);
-
-                return new DicomWebResponse<IEnumerable<DicomDataset>>(response, responseMetadata);
-            }
-        }
-
-        public async Task<DicomWebResponse<string>> QueryWithBadRequest(string requestUri, CancellationToken cancellationToken = default)
-        {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
-            {
-                request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
-
-                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-                var result = new DicomWebResponse<string>(response, await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return result;
-                }
-
-                throw new DicomWebException<string>(result);
-            }
-        }
-
-        public async Task<DicomWebResponse<IReadOnlyList<ChangeFeedEntry>>> GetChangeFeed(string queryString = "", CancellationToken cancellationToken = default)
-        {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/changefeed{queryString}"))
-            {
-                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-
-                string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                return new DicomWebResponse<IReadOnlyList<ChangeFeedEntry>>(
-                    response,
-                    JsonConvert.DeserializeObject<IReadOnlyList<ChangeFeedEntry>>(contentText, _jsonSerializerSettings));
-            }
-        }
-
-        public async Task<DicomWebResponse<ChangeFeedEntry>> GetChangeFeedLatest(string queryString = "", CancellationToken cancellationToken = default)
-        {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/changefeed/latest{queryString}"))
-            {
-                HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-                await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-
-                string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                return new DicomWebResponse<ChangeFeedEntry>(
-                    response,
-                    JsonConvert.DeserializeObject<ChangeFeedEntry>(contentText, _jsonSerializerSettings));
-            }
-        }
-
-        public async Task<DicomWebResponse<DicomDataset>> PostSinglepartConentAsync(
-            StreamContent streamContent,
-            string requestUri,
-            CancellationToken cancellationToken = default)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
-            request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
-            request.Content = streamContent;
-
-            return await PostContentAsync(request, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<DicomWebResponse<DicomDataset>> PostMultipartContentAsync(
-            MultipartContent multiContent,
-            string requestUri,
-            CancellationToken cancellationToken = default)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
-            request.Headers.Accept.Add(MediaTypeApplicationDicomJson);
-            request.Content = multiContent;
-
-            return await PostContentAsync(request, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<DicomWebResponse<DicomDataset>> PostAsync(
-            IEnumerable<Stream> postContent,
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
-            MultipartContent multiContent = GetMultipartContent(MediaTypeApplicationDicom.MediaType);
+            EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
-            foreach (Stream content in postContent)
+            await using MemoryStream stream = GetMemoryStream();
+            await dicomFile.SaveAsync(stream).ConfigureAwait(false);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            return await StoreAsync(
+                GenerateStoreRequestUri(studyInstanceUid),
+                ConvertStreamToStreamContent(stream),
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(requestUri, nameof(requestUri));
+            EnsureArg.IsNotNull(content, nameof(content));
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+
+            request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
+
+            request.Content = content;
+
+            // If store fails, we will get Conflict status code but the body will be a DicomDataset,
+            // so we need to handle this case specially.
+            request.SetDicomWebExceptionFactory(StoreDicomWebExceptionFactory);
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new DicomWebResponse<DicomDataset>(
+                response,
+                async content =>
+                {
+                    string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
+                    return JsonConvert.DeserializeObject<DicomDataset>(contentText, JsonSerializerSettings);
+                });
+        }
+
+        public async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new DicomWebResponse(response);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(string requestUri, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                new Uri(requestUri, UriKind.Relative));
+
+            request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new DicomWebAsyncEnumerableResponse<DicomDataset>(
+                response,
+                DeserializeAsAsyncEnumerable<DicomDataset>(response.Content));
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<ChangeFeedEntry>> GetChangeFeed(string queryString, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                new Uri($"/changefeed{queryString}", UriKind.Relative));
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new DicomWebAsyncEnumerableResponse<ChangeFeedEntry>(
+                response,
+                DeserializeAsAsyncEnumerable<ChangeFeedEntry>(response.Content));
+        }
+
+        public async Task<DicomWebResponse<ChangeFeedEntry>> GetChangeFeedLatest(string queryString, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                new Uri($"/changefeed/latest{queryString}", UriKind.Relative));
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new DicomWebResponse<ChangeFeedEntry>(
+                response,
+                async content =>
+                {
+                    string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    return JsonConvert.DeserializeObject<ChangeFeedEntry>(contentText, JsonSerializerSettings);
+                });
+        }
+
+        private static MultipartContent ConvertStreamsToMultipartContent(IEnumerable<Stream> streams)
+        {
+            var multiContent = new MultipartContent("related");
+
+            multiContent.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
+
+            foreach (Stream stream in streams)
             {
-                var streamContent = new StreamContent(content);
-                streamContent.Headers.ContentType = MediaTypeApplicationDicom;
+                var streamContent = new StreamContent(stream);
+                streamContent.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
                 multiContent.Add(streamContent);
             }
 
-            return await PostMultipartContentAsync(
-                multiContent,
-                string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid),
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<DicomWebResponse<DicomDataset>> PostAsync(
-            Stream postContent,
-            string studyInstanceUid,
-            CancellationToken cancellationToken)
-        {
-            StreamContent streamContent = new StreamContent(postContent);
-            streamContent.Headers.ContentType = MediaTypeApplicationDicom;
-
-            return await PostSinglepartConentAsync(
-                streamContent,
-                string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid),
-                cancellationToken);
-        }
-
-        private async Task<DicomWebResponse<DicomDataset>> PostContentAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
-        {
-            using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false))
-            {
-                if (response.IsSuccessStatusCode)
-                {
-                    return await CreateResponseAsync(response).ConfigureAwait(false);
-                }
-                else if (response.StatusCode == HttpStatusCode.Conflict)
-                {
-                    // In the case of Conflict, we will still have body.
-                    throw new DicomWebException<DicomDataset>(await CreateResponseAsync(response).ConfigureAwait(false));
-                }
-                else
-                {
-                    throw new DicomWebException(new DicomWebResponse(response));
-                }
-            }
-
-            async Task<DicomWebResponse<DicomDataset>> CreateResponseAsync(HttpResponseMessage response)
-            {
-                var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                DicomDataset dataset = JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
-
-                return new DicomWebResponse<DicomDataset>(response, dataset);
-            }
-        }
-
-        private static MultipartContent GetMultipartContent(string mimeType)
-        {
-            var multiContent = new MultipartContent("related");
-            multiContent.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("type", $"\"{mimeType}\""));
             return multiContent;
         }
 
-        private async Task<IEnumerable<Stream>> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, CancellationToken cancellationToken)
+        private static StreamContent ConvertStreamToStreamContent(Stream stream)
         {
-            EnsureArg.IsNotNull(httpContent, nameof(httpContent));
+            var streamContent = new StreamContent(stream);
 
-            var result = new List<Stream>();
-            await using (Stream stream = await httpContent.ReadAsStreamAsync().ConfigureAwait(false))
-            {
-                MultipartSection part;
-                var media = MediaTypeHeaderValue.Parse(httpContent.Headers.ContentType.ToString());
-                var multipartReader = new MultipartReader(HeaderUtilities.RemoveQuotes(media.Boundary).Value, stream, 100);
+            streamContent.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
 
-                while ((part = await multipartReader.ReadNextSectionAsync(cancellationToken).ConfigureAwait(false)) != null)
-                {
-                    var memoryStream = GetMemoryStream();
-                    await part.Body.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-                    result.Add(memoryStream);
-                }
-            }
-
-            return result;
-        }
-
-        private static async Task EnsureSuccessStatusCodeAsync(HttpResponseMessage response)
-        {
-            if (!response.IsSuccessStatusCode)
-            {
-                await response.Content.LoadIntoBufferAsync().ConfigureAwait(false);
-
-                throw new DicomWebException(new DicomWebResponse(response));
-            }
-        }
-
-        private static async Task EnsureSuccessOrNotModifiedStatusCodeAsync(HttpResponseMessage response)
-        {
-            if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotModified)
-            {
-                await response.Content.LoadIntoBufferAsync().ConfigureAwait(false);
-
-                throw new DicomWebException(new DicomWebResponse(response));
-            }
+            return streamContent;
         }
 
         private static string CreateAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
@@ -424,6 +391,54 @@ namespace Microsoft.Health.Dicom.Client
 
             multipartHeader.Parameters.Add(contentHeader);
             return multipartHeader;
+        }
+
+        private static Uri GenerateStoreRequestUri(string studyInstanceUid)
+            => new Uri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), UriKind.Relative);
+
+        private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(httpContent, nameof(httpContent));
+
+            await using Stream stream = await httpContent.ReadAsStreamAsync()
+                .ConfigureAwait(false);
+
+            MultipartSection part;
+
+            var media = MediaTypeHeaderValue.Parse(httpContent.Headers.ContentType.ToString());
+            var multipartReader = new MultipartReader(HeaderUtilities.RemoveQuotes(media.Boundary).Value, stream, 100);
+
+            while ((part = await multipartReader.ReadNextSectionAsync(cancellationToken).ConfigureAwait(false)) != null)
+            {
+                MemoryStream memoryStream = GetMemoryStream();
+                await part.Body.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                yield return memoryStream;
+            }
+        }
+
+        private async IAsyncEnumerable<DicomFile> ReadMultipartResponseAsDicomFileAsync(HttpContent content, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            await foreach (Stream stream in ReadMultipartResponseAsStreamsAsync(content, cancellationToken).ConfigureAwait(false))
+            {
+                yield return await DicomFile.OpenAsync(stream).ConfigureAwait(false);
+            }
+        }
+
+        private static async IAsyncEnumerable<T> DeserializeAsAsyncEnumerable<T>(HttpContent content)
+        {
+            string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (string.IsNullOrEmpty(contentText))
+            {
+                yield break;
+            }
+
+            foreach (T item in JsonConvert.DeserializeObject<IReadOnlyList<T>>(contentText, JsonSerializerSettings))
+            {
+                yield return item;
+            }
         }
     }
 }

@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private readonly DicomWebClient _client;
+        private readonly IDicomWebClient _client;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public DeleteTests(HttpIntegrationTestFixture<Startup> fixture)
@@ -301,18 +301,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private async Task VerifyRemainingSeries(string studyInstanceUid, string seriesInstanceUid, int expectedInstanceCount)
         {
-            using (DicomWebResponse<IReadOnlyList<DicomFile>> seriesResult = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid))
-            {
-                Assert.Equal(expectedInstanceCount, seriesResult.Value.Count);
-            }
+            using DicomWebAsyncEnumerableResponse<DicomFile> seriesResult = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid);
+            Assert.Equal(expectedInstanceCount, await seriesResult.CountAsync());
         }
 
         private async Task VerifyRemainingStudy(string studyInstanceUid, int expectedInstanceCount)
         {
-            using (DicomWebResponse<IReadOnlyList<DicomFile>> studyResult = await _client.RetrieveStudyAsync(studyInstanceUid))
-            {
-                Assert.Equal(expectedInstanceCount, studyResult.Value.Count);
-            }
+            using DicomWebAsyncEnumerableResponse<DicomFile> studyResult = await _client.RetrieveStudyAsync(studyInstanceUid);
+            Assert.Equal(expectedInstanceCount, await studyResult.CountAsync());
         }
 
         private async Task CreateFile(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
