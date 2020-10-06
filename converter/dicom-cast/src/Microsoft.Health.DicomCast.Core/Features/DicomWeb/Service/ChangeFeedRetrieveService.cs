@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -32,13 +33,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service
         /// <inheritdoc/>
         public async Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long offset, CancellationToken cancellationToken)
         {
-            DicomWebResponse<IReadOnlyList<ChangeFeedEntry>> result = await _dicomWebClient.GetChangeFeed(
+            DicomWebAsyncEnumerableResponse<ChangeFeedEntry> result = await _dicomWebClient.GetChangeFeed(
                 $"?offset={offset}&limit={DefaultLimit}&includeMetadata={true}",
                 cancellationToken);
 
-            if (result?.Value != null)
+            ChangeFeedEntry[] changeFeedEntries = await result.ToArrayAsync();
+
+            if (changeFeedEntries?.Any() != null)
             {
-                return result.Value;
+                return changeFeedEntries;
             }
 
             return Array.Empty<ChangeFeedEntry>();
