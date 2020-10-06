@@ -58,3 +58,4 @@ Below is an example of the settings need to be added to the KeyVault for OAuth2C
 ## Summary
 
 In this quickstart, you will learned how to deploy DICOM Cast for your Medical Imaging Server for DICOM. Reference the [DICOM Cast Concept](../concepts/dicom-cast.md) to learn more. To start using DICOM Cast, see [Sync DICOM Metadata to FHIR&trade; with DICOM Cast](../how-to-guides/sync-dicom-metadata-to-fhir.md).
+
