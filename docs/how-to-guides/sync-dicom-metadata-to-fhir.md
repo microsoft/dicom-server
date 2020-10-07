@@ -16,6 +16,8 @@ To enable DICOM Cast, you need to complete the following steps:
 1. [Deploy a FHIR Server](https://github.com/microsoft/fhir-server)
 1. [Deploy DICOM Cast](../quickstarts/deploy-dicom-cast.md)
 
+> NOTE: When deploying a OSS FHIR Server, set the **Sql Schema Automatic Updates Enabled** setting to be *true*. This determines whether the sql schema should be automatically initialized and upgraded on server setup.
+
 ## Configure Authentication using Managed Identity
 
 Currently there are three types of authentication supported for both Azure API for FHIR and Medical Imaging Server for DICOM: Managed Identity, OAuth2 Client Credential and OAuth2 User Password. The authentication can be configured via the application settings by the appropriate values in the `Authentication` property of the given server. For details on the three types, see [DICOM Cast authentication](/converter/dicom-cast/docs/authentication.md).
