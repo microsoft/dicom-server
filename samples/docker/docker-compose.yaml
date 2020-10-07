@@ -21,9 +21,9 @@ services:
     container_name: azurite
     image: mcr.microsoft.com/azure-storage/azurite
     restart: always
-    ports:
-      - "10001:10001"
-      - "10000:10000"
+    # ports:
+    #   - "10001:10001"
+    #   - "10000:10000"
   sql:
     build: 
       context: ./../../
@@ -31,8 +31,8 @@ services:
     environment:
       SA_PASSWORD: ${SAPASSWORD}
       ACCEPT_EULA: "Y"
-    ports:
-      - "1433:1433"
+    # ports:
+    #   - "1433:1433"
     healthcheck:
         test: ["CMD", "/opt/mssql-tools/bin/sqlcmd","-U sa -P ${SAPASSWORD} -Q 'SELECT * FROM INFORMATION_SCHEMA.TABLES'"]
         interval: 10s
