@@ -9,9 +9,9 @@
     <PackageReference Include="Hl7.Fhir.R4" Version="1.7.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.8" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.8" />
-    <PackageReference Include="Microsoft.Health.Core" Version="1.0.0-master-20200604-3" />
-    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20200604-3" />
-    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="1.0.0-master-20200702-3" />
+    <PackageReference Include="Microsoft.Health.Core" Version="1.0.0-vshaaalManagedIdentity-20201006-160939-preview" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-vshaaalManagedIdentity-20201006-160939-preview" />
+    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="1.0.0-vshaaalManagedIdentity-20201006-160939-preview" />
     <PackageReference Include="Polly" Version="7.2.1" />
     <PackageReference Include="Scrutor" Version="3.2.0" />
   </ItemGroup>
