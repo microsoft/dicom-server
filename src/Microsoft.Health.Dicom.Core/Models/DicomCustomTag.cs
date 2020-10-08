@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 
@@ -13,6 +14,30 @@ namespace Microsoft.Health.Dicom.Core.Models
     public class DicomCustomTag
     {
         private readonly DicomItem _dicomItem;
+
+        private static readonly Dictionary<string, Func<DicomItem, object>> ValueGetters = new Dictionary<string, Func<DicomItem, object>>()
+        {
+            { DicomVRCode.AE, GetString },
+            { DicomVRCode.CS, GetString },
+            { DicomVRCode.LT, GetString },
+            { DicomVRCode.PN, GetString },
+            { DicomVRCode.SH, GetString },
+            { DicomVRCode.ST, GetString },
+            { DicomVRCode.UI, GetString },
+            { DicomVRCode.AS, GetBigInt },
+            { DicomVRCode.AT, GetBigInt },
+            { DicomVRCode.IS, GetBigInt },
+            { DicomVRCode.LO, GetBigInt },
+            { DicomVRCode.SL, GetBigInt },
+            { DicomVRCode.SS, GetBigInt },
+            { DicomVRCode.UL, GetBigInt },
+            { DicomVRCode.US, GetBigInt },
+            { DicomVRCode.DS, GetDecimal },
+            { DicomVRCode.FL, GetDecimal },
+            { DicomVRCode.FD, GetDecimal },
+            { DicomVRCode.DT, GetDateTime },
+            { DicomVRCode.TM, GetDateTime },
+        };
 
         public DicomCustomTag(DicomItem dicomItem, DicomAttributeId attributeId)
         {
@@ -24,17 +49,35 @@ namespace Microsoft.Health.Dicom.Core.Models
 
         public DicomVR VR { get => _dicomItem.ValueRepresentation; }
 
-#pragma warning disable CA1822 // Mark members as static
         public object GetValue()
-#pragma warning restore CA1822 // Mark members as static
         {
-            throw new NotImplementedException();
+            return ValueGetters[_dicomItem.ValueRepresentation.Code].Invoke(_dicomItem);
         }
 
         public static List<DicomCustomTag> GetCustomTags(DicomDataset dataset)
         {
             DicomDataset trimedDataset = dataset.CopyWithoutBulkDataItems(true);
             return GetCustomTagsImp(trimedDataset);
+        }
+
+        private static object GetString(DicomItem item)
+        {
+            return ((DicomElement)item).Get<string>();
+        }
+
+        private static object GetBigInt(DicomItem item)
+        {
+            return ((DicomElement)item).Get<long>();
+        }
+
+        private static object GetDecimal(DicomItem item)
+        {
+            return ((DicomElement)item).Get<decimal>();
+        }
+
+        private static object GetDateTime(DicomItem item)
+        {
+            return ((DicomElement)item).Get<DateTime>();
         }
 
         private static List<DicomCustomTag> GetCustomTagsImp(DicomDataset dataset)
@@ -71,6 +114,5 @@ namespace Microsoft.Health.Dicom.Core.Models
 
             paths.RemoveAt(paths.Count - 1);
         }
-
     }
 }
