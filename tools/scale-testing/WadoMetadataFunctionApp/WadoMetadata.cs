@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -19,7 +18,7 @@ namespace WadoMetadataFunctionApp
 {
     public static class WadoMetadata
     {
-        private static DicomWebClient client;
+        private static IDicomWebClient client;
 
         [FunctionName("WadoMetadata")]
         public static void Run([ServiceBusTrigger(KnownTopics.WadoRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
@@ -39,31 +38,28 @@ namespace WadoMetadataFunctionApp
 
         private static void SetupDicomWebClient()
         {
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
-            };
+            Uri baseAddress = new Uri(KnownApplicationUrls.DicomServerUrl);
 
-            client = new DicomWebClient(httpClient);
+            client = new DicomWebClient(baseAddress, new HttpClientHandler());
         }
 
         private static void RetrieveInstanceMetadata(string studyUid, string seriesUid, string instanceUid)
         {
-            DicomWebResponse<IReadOnlyList<DicomDataset>> response = DicomWebClientExtensions.RetrieveInstanceMetadataAsync(client, studyUid, seriesUid, instanceUid).Result;
+            DicomWebAsyncEnumerableResponse<DicomDataset> response = DicomWebClientExtensions.RetrieveInstanceMetadataAsync(client, studyUid, seriesUid, instanceUid).Result;
 
             return;
         }
 
         private static void RetrieveSeriesMetadata(string studyUid, string seriesUid)
         {
-            DicomWebResponse<IReadOnlyList<DicomDataset>> response = DicomWebClientExtensions.RetrieveSeriesMetadataAsync(client, studyUid, seriesUid).Result;
+            DicomWebAsyncEnumerableResponse<DicomDataset> response = DicomWebClientExtensions.RetrieveSeriesMetadataAsync(client, studyUid, seriesUid).Result;
 
             return;
         }
 
         private static void RetrieveStudyMetadata(string studyUid)
         {
-            DicomWebResponse<IReadOnlyList<DicomDataset>> response = DicomWebClientExtensions.RetrieveStudyMetadataAsync(client, studyUid).Result;
+            DicomWebAsyncEnumerableResponse<DicomDataset> response = DicomWebClientExtensions.RetrieveStudyMetadataAsync(client, studyUid).Result;
 
             return;
         }

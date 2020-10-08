@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Text;
 using Common;
 using Common.ServiceBus;
+using Dicom;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client;
@@ -16,7 +17,7 @@ namespace QidoFunctionApp
 {
     public static class Qido
     {
-        private static DicomWebClient client;
+        private static IDicomWebClient client;
 
         [FunctionName("Qido")]
         public static void Run([ServiceBusTrigger(KnownTopics.Qido, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
@@ -36,17 +37,14 @@ namespace QidoFunctionApp
 
         private static void ProcessMessageWithQueryUrl(byte[] message)
         {
-            DicomWebResponse<string> response = client.QueryWithBadRequest(Encoding.UTF8.GetString(message)).Result;
+            DicomWebAsyncEnumerableResponse<DicomDataset> response = client.QueryAsync(Encoding.UTF8.GetString(message)).Result;
         }
 
         private static void SetupDicomWebClient()
         {
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
-            };
+            Uri baseAddress = new Uri(KnownApplicationUrls.DicomServerUrl);
 
-            client = new DicomWebClient(httpClient);
+            client = new DicomWebClient(baseAddress, new HttpClientHandler());
         }
     }
 }

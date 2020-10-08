@@ -31,7 +31,7 @@ namespace MessageHandler
         private static string _topicName;
 
         private static ISubscriptionClient subscriptionClient;
-        private static DicomWebClient client;
+        private static IDicomWebClient client;
 
         public static async Task Main()
         {
@@ -73,12 +73,9 @@ namespace MessageHandler
 
         private static void SetupDicomWebClient()
         {
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
-            };
+            Uri baseAddress = new Uri(KnownApplicationUrls.DicomServerUrl);
 
-            client = new DicomWebClient(httpClient);
+            client = new DicomWebClient(baseAddress, new HttpClientHandler());
         }
 
         public static void RegisterOnMessageHandlerAndReceiveMessages()
@@ -199,7 +196,7 @@ namespace MessageHandler
         private static async Task Qido(Message message, CancellationToken token)
         {
             string relativeUrl = Encoding.UTF8.GetString(message.Body);
-            await client.QueryWithBadRequest(relativeUrl, cancellationToken: token);
+            await client.QueryAsync(relativeUrl, cancellationToken: token);
             return;
         }
 

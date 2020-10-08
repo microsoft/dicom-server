@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using Common;
@@ -18,7 +17,7 @@ namespace WadoFunctionApp
 {
     public static class Wado
     {
-        private static DicomWebClient client;
+        private static IDicomWebClient client;
 
         [FunctionName("WadoInstance")]
         public static void Run([ServiceBusTrigger(KnownTopics.WadoRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
@@ -38,17 +37,14 @@ namespace WadoFunctionApp
 
         private static void SetupDicomWebClient()
         {
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
-            };
+            Uri baseAddress = new Uri(KnownApplicationUrls.DicomServerUrl);
 
-            client = new DicomWebClient(httpClient);
+            client = new DicomWebClient(baseAddress, new HttpClientHandler());
         }
 
         private static void RetrieveInstance(string studyUid, string seriesUid, string instanceUid)
         {
-            DicomWebResponse<IReadOnlyList<DicomFile>> response = client.RetrieveInstanceAsync(studyUid, seriesUid, instanceUid).Result;
+            DicomWebResponse<DicomFile> response = client.RetrieveInstanceAsync(studyUid, seriesUid, instanceUid).Result;
 
             return;
         }

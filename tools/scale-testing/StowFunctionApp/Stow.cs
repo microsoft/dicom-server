@@ -20,7 +20,7 @@ namespace StowFunctionApp
 {
     public static class Stow
     {
-        private static DicomWebClient client;
+        private static IDicomWebClient client;
 
         [FunctionName("StorePreGeneratedData")]
         public static void Run([ServiceBusTrigger(KnownTopics.StowRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
@@ -43,12 +43,9 @@ namespace StowFunctionApp
 
         private static void SetupDicomWebClient()
         {
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
-            };
+            Uri baseAddress = new Uri(KnownApplicationUrls.DicomServerUrl);
 
-            client = new DicomWebClient(httpClient);
+            client = new DicomWebClient(baseAddress, new HttpClientHandler());
         }
 
         private static void StoreRetrievedData(DicomFile dicomFile)
