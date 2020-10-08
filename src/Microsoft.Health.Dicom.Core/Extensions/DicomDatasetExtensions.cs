@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
                             return new DicomSequence(
                                 sequenceToCopy.Tag,
-                                sequenceToCopy.Select(itemToCopy => itemToCopy.CopyWithoutBulkDataItems()).ToArray());
+                                sequenceToCopy.Select(itemToCopy => itemToCopy.CopyWithoutBulkDataItems(onlyPrivateTag)).ToArray());
                         }
                         else
                         {
