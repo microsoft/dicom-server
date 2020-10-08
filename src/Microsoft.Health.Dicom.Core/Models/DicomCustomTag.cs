@@ -16,6 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Models
 
         private static readonly Dictionary<string, Func<DicomItem, object>> ValueGetters = new Dictionary<string, Func<DicomItem, object>>()
         {
+            // String
             { DicomVRCode.AE, GetString },
             { DicomVRCode.CS, GetString },
             { DicomVRCode.LT, GetString },
@@ -23,14 +24,18 @@ namespace Microsoft.Health.Dicom.Core.Models
             { DicomVRCode.SH, GetString },
             { DicomVRCode.ST, GetString },
             { DicomVRCode.UI, GetString },
+            { DicomVRCode.LO, GetString },
+
+            // Big Int
             { DicomVRCode.AS, GetBigInt },
             { DicomVRCode.AT, GetBigInt },
             { DicomVRCode.IS, GetBigInt },
-            { DicomVRCode.LO, GetBigInt },
             { DicomVRCode.SL, GetBigInt },
             { DicomVRCode.SS, GetBigInt },
             { DicomVRCode.UL, GetBigInt },
             { DicomVRCode.US, GetBigInt },
+
+            // Decimal
             { DicomVRCode.DS, GetDecimal },
             { DicomVRCode.FL, GetDecimal },
             { DicomVRCode.FD, GetDecimal },
@@ -104,12 +109,21 @@ namespace Microsoft.Health.Dicom.Core.Models
 
         private static void ProcessItem(DicomItem item, List<DicomTag> paths, List<DicomCustomTag> list)
         {
+            paths.Add(item.Tag);
+
             if (item is DicomSequence)
             {
                 ProcessSequence((DicomSequence)item, paths, list);
             }
+            else
+            {
+                if (item.ValueRepresentation.Code == DicomVRCode.FD)
+                {
+                    Console.WriteLine(((DicomElement)item).Get<decimal>());
+                }
 
-            list.Add(new DicomCustomTag(item, new DicomAttributeId(new List<DicomTag>(paths))));
+                list.Add(new DicomCustomTag(item, new DicomAttributeId(new List<DicomTag>(paths))));
+            }
 
             paths.RemoveAt(paths.Count - 1);
         }

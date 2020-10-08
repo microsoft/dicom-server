@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Models
 
         public bool IsPrivate { get; }
 
-        public override string ToString()
+        public string GetFullPath()
         {
             return string.Join(".", Path.Select(item => GetPathForTag(item)));
         }

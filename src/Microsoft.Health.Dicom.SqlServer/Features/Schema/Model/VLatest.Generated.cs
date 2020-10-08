@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NVarCharColumn TagVR = new NVarCharColumn("TagVR", 8);
             internal readonly NullableNVarCharColumn StringValue = new NullableNVarCharColumn("StringValue", 2048);
             internal readonly NullableBigIntColumn IntValue = new NullableBigIntColumn("IntValue");
-            internal readonly NullableDecimalColumn DecimalValue = new NullableDecimalColumn("DecimalValue", 18, 18);
+            internal readonly NullableDecimalColumn DecimalValue = new NullableDecimalColumn("DecimalValue", 38, 19);
             internal readonly NullableDateTime2Column DateTimeValue = new NullableDateTime2Column("DateTimeValue", 7);
         }
 
@@ -360,21 +360,61 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal readonly NVarCharColumn TagPath = new NVarCharColumn("TagPath", 2048);
-            protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[]{TagPath};
+            internal readonly NVarCharColumn TagVR = new NVarCharColumn("TagVR", 8);
+            internal readonly NVarCharColumn StringValue = new NVarCharColumn("StringValue", 2048);
+            internal readonly BigIntColumn IntValue = new BigIntColumn("IntValue");
+            internal readonly DecimalColumn DecimalValue = new DecimalColumn("DecimalValue", 38, 19);
+            internal readonly DateTime2Column DateTimeValue = new DateTime2Column("DateTimeValue", 7);
+            protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[]{TagPath, TagVR, StringValue, IntValue, DecimalValue, DateTimeValue};
             protected override void FillSqlDataRecord(global::Microsoft.SqlServer.Server.SqlDataRecord record, UDTCustomTagListRow rowData)
             {
                 TagPath.Set(record, 0, rowData.TagPath);
+                TagVR.Set(record, 1, rowData.TagVR);
+                StringValue.Set(record, 2, rowData.StringValue);
+                IntValue.Set(record, 3, rowData.IntValue);
+                DecimalValue.Set(record, 4, rowData.DecimalValue);
+                DateTimeValue.Set(record, 5, rowData.DateTimeValue);
             }
         }
 
         internal struct UDTCustomTagListRow
         {
-            internal UDTCustomTagListRow(System.String TagPath)
+            internal UDTCustomTagListRow(System.String TagPath, System.String TagVR, System.String StringValue, System.Int64 IntValue, System.Decimal DecimalValue, System.DateTime DateTimeValue)
             {
                 this.TagPath = TagPath;
+                this.TagVR = TagVR;
+                this.StringValue = StringValue;
+                this.IntValue = IntValue;
+                this.DecimalValue = DecimalValue;
+                this.DateTimeValue = DateTimeValue;
             }
 
             internal System.String TagPath
+            {
+                get;
+            }
+
+            internal System.String TagVR
+            {
+                get;
+            }
+
+            internal System.String StringValue
+            {
+                get;
+            }
+
+            internal System.Int64 IntValue
+            {
+                get;
+            }
+
+            internal System.Decimal DecimalValue
+            {
+                get;
+            }
+
+            internal System.DateTime DateTimeValue
             {
                 get;
             }

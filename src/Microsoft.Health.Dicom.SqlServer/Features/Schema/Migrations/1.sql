@@ -38,7 +38,7 @@ CREATE TABLE dbo.CustomTag(
 	[TagVR] [nvarchar](8) NOT NULL, 
 	[StringValue] [nvarchar](2048) NULL,
 	[IntValue] [bigint] NULL,
-	[DecimalValue] [decimal](18, 18) NULL,
+	[DecimalValue] [decimal](38, 19) NULL,
 	[DateTimeValue] [datetime2](7) NULL
 )
 
@@ -420,7 +420,12 @@ GO
 CREATE TYPE dbo.UDTCustomTagList
 AS TABLE
 (
-	TagPath nvarchar(2048)
+	TagPath nvarchar(2048),
+    TagVR nvarchar(8),
+    StringValue nvarchar(2048),
+	IntValue bigint,
+	DecimalValue decimal(38, 19),
+	DateTimeValue datetime2(7) 
 );
 
 GO
@@ -563,7 +568,7 @@ AS
     -- Insert custom tags
     INSERT INTO dbo.CustomTag
         (StudyKey, SeriesKey, InstanceKey, TagPath,TagVR, StringValue,IntValue, DecimalValue, DateTimeValue)
-    SELECT @studyKey, @seriesKey, @instanceKey, TagPath, 'VR','string',NULL, NULL, NULL
+    SELECT @studyKey, @seriesKey, @instanceKey, TagPath, TagVR, StringValue, IntValue, DecimalValue, DateTimeValue
     FROM @customTagList
 
     COMMIT TRANSACTION

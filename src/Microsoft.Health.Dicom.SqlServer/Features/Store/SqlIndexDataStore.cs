@@ -42,7 +42,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         private static VLatest.UDTCustomTagListRow ToCustomTagListRow(DicomCustomTag tag)
         {
-            return new VLatest.UDTCustomTagListRow(tag.ToString());
+            object val = tag.GetValue();
+            return new VLatest.UDTCustomTagListRow(
+                TagPath: tag.AttributeId.GetFullPath(),
+                TagVR: tag.VR.Code,
+                StringValue: val as string,
+                IntValue: val is long ? (long)val : 0,
+                DecimalValue: val is decimal ? (decimal)val : 0,
+                DateTimeValue: val is DateTime ? (DateTime)val : DateTime.MinValue);
         }
 
         public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, CancellationToken cancellationToken)
