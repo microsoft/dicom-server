@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using Common;
@@ -45,7 +44,7 @@ namespace StowFunctionApp
         {
             Uri baseAddress = new Uri(KnownApplicationUrls.DicomServerUrl);
 
-            client = new DicomWebClient(baseAddress, new HttpClientHandler());
+            client = new DicomWebClient(baseAddress);
         }
 
         private static void StoreRetrievedData(DicomFile dicomFile)

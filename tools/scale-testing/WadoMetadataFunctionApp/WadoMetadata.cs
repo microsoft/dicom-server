@@ -5,7 +5,6 @@
 
 using System;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using Common;
 using Common.ServiceBus;
@@ -40,7 +39,7 @@ namespace WadoMetadataFunctionApp
         {
             Uri baseAddress = new Uri(KnownApplicationUrls.DicomServerUrl);
 
-            client = new DicomWebClient(baseAddress, new HttpClientHandler());
+            client = new DicomWebClient(baseAddress);
         }
 
         private static void RetrieveInstanceMetadata(string studyUid, string seriesUid, string instanceUid)

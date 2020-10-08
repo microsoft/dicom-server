@@ -79,6 +79,18 @@ namespace Microsoft.Health.Dicom.Client
             GetMemoryStream = () => new MemoryStream();
         }
 
+        public DicomWebClient(Uri baseAddress)
+        {
+            HttpMessageHandler httpMessageHandler = new HttpClientHandler();
+
+            HttpClient = new HttpClient(new DicomWebResponseHandler(httpMessageHandler))
+            {
+                BaseAddress = baseAddress,
+            };
+
+            GetMemoryStream = () => new MemoryStream();
+        }
+
         public HttpClient HttpClient { get; }
 
         /// <summary>

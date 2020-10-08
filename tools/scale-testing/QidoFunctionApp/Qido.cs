@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net.Http;
 using System.Text;
 using Common;
 using Common.ServiceBus;
@@ -44,7 +43,7 @@ namespace QidoFunctionApp
         {
             Uri baseAddress = new Uri(KnownApplicationUrls.DicomServerUrl);
 
-            client = new DicomWebClient(baseAddress, new HttpClientHandler());
+            client = new DicomWebClient(baseAddress);
         }
     }
 }
