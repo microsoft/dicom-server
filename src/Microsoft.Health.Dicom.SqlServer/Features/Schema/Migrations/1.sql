@@ -28,6 +28,20 @@ Full text catalog creation
 CREATE FULLTEXT CATALOG Dicom_Catalog WITH ACCENT_SENSITIVITY = OFF AS DEFAULT
 GO
 
+/* Should tagVR use nchar(8) instead? would that improve perf?
+*/
+CREATE TABLE [dbo].[CustomTag](
+	[StudyKey] [bigint] NOT NULL,
+	[SeriesKey] [bigint] NOT NULL,
+	[InstanceKey] [bigint] NOT NULL,
+	[TagPath] [nvarchar](2048) NOT NULL,
+	[TagVR] [nvarchar](8) NOT NULL, 
+	[StringValue] [nvarchar](2048) NULL,
+	[IntValue] [bigint] NULL,
+	[DecimalValue] [decimal](18, 18) NULL,
+	[DateTimeValue] [datetime2](7) NULL
+)
+
 /*************************************************************
     Instance Table
     Dicom instances with unique Study, Series and Instance Uid

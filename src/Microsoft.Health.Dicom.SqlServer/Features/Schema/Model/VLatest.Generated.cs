@@ -14,6 +14,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     internal class VLatest
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
+        internal readonly static CustomTagTable CustomTag = new CustomTagTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SeriesTable Series = new SeriesTable();
@@ -41,6 +42,23 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
             internal readonly BigIntColumn OriginalWatermark = new BigIntColumn("OriginalWatermark");
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
+        }
+
+        internal class CustomTagTable : Table
+        {
+            internal CustomTagTable(): base("dbo.CustomTag")
+            {
+            }
+
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly BigIntColumn SeriesKey = new BigIntColumn("SeriesKey");
+            internal readonly BigIntColumn InstanceKey = new BigIntColumn("InstanceKey");
+            internal readonly NVarCharColumn TagPath = new NVarCharColumn("TagPath", 2048);
+            internal readonly NVarCharColumn TagVR = new NVarCharColumn("TagVR", 8);
+            internal readonly NullableNVarCharColumn StringValue = new NullableNVarCharColumn("StringValue", 2048);
+            internal readonly NullableBigIntColumn IntValue = new NullableBigIntColumn("IntValue");
+            internal readonly NullableDecimalColumn DecimalValue = new NullableDecimalColumn("DecimalValue", 18, 18);
+            internal readonly NullableDateTime2Column DateTimeValue = new NullableDateTime2Column("DateTimeValue", 7);
         }
 
         internal class DeletedInstanceTable : Table
