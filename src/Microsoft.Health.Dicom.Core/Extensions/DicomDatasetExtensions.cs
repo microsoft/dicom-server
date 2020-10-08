@@ -70,14 +70,15 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// Creates a new copy of DICOM dataset with items of VR types considered to be bulk data removed.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset.</param>
+        /// <param name="onlyPrivateTag">Only private tag.</param>
         /// <returns>A copy of the <paramref name="dicomDataset"/> with items of VR types considered  to be bulk data removed.</returns>
-        public static DicomDataset CopyWithoutBulkDataItems(this DicomDataset dicomDataset)
+        public static DicomDataset CopyWithoutBulkDataItems(this DicomDataset dicomDataset, bool onlyPrivateTag = false)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            return CopyDicomDatasetWithoutBulkDataItems(dicomDataset);
+            return CopyDicomDatasetWithoutBulkDataItems(dicomDataset, onlyPrivateTag);
 
-            DicomDataset CopyDicomDatasetWithoutBulkDataItems(DicomDataset dicomDatasetToCopy)
+            DicomDataset CopyDicomDatasetWithoutBulkDataItems(DicomDataset dicomDatasetToCopy, bool onlyPrivateTag)
             {
                 return new DicomDataset(dicomDatasetToCopy
                     .Select(dicomItem =>
@@ -98,6 +99,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                         }
                         else
                         {
+                            if (onlyPrivateTag && !dicomItem.Tag.IsPrivate)
+                            {
+                                return null;
+                            }
+
                             // The VR is not bulk data, return it.
                             return dicomItem;
                         }
