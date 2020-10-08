@@ -25,5 +25,10 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
         public StringSegment TransferSyntax { get; }
 
         public double? Quality { get; }
+
+        public override string ToString()
+        {
+            return $"MediaType:'{MediaType}', PayloadType:'{PayloadType}', TransferSyntax:'{TransferSyntax}', Quality:'{Quality}'";
+        }
     }
 }

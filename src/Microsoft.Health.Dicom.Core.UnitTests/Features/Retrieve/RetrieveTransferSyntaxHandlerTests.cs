@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Dicom;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -20,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
         public RetrieveTransferSyntaxHandlerTests()
         {
-            _handler = new RetrieveTransferSyntaxHandler();
+            _handler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
         }
 
         [Fact(Skip = "Will be enabled later as https://microsofthealth.visualstudio.com/Health/_workitems/edit/75782")]
