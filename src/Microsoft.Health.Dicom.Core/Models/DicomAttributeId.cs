@@ -20,5 +20,20 @@ namespace Microsoft.Health.Dicom.Core.Models
         public IReadOnlyList<DicomTag> Path { get; }
 
         public bool IsPrivate { get; }
+
+        public override string ToString()
+        {
+            return string.Join(".", Path.Select(item => GetPathForTag(item)));
+        }
+
+        private static string GetPathForTag(DicomTag tag)
+        {
+            return To4Hex(tag.Group) + To4Hex(tag.Element);
+        }
+
+        private static string To4Hex(int num)
+        {
+            return string.Format("{0:X4}", num);
+        }
     }
 }

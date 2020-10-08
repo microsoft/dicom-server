@@ -142,7 +142,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
             private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
             private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus)
+            private readonly UDTCustomTagListTableValuedParameterDefinition _customTagList = new UDTCustomTagListTableValuedParameterDefinition("@customTagList");
+            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus, global::System.Collections.Generic.IEnumerable<UDTCustomTagListRow> customTagList)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddInstance";
@@ -158,6 +159,39 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _modality.AddParameter(command.Parameters, modality);
                 _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
                 _initialStatus.AddParameter(command.Parameters, initialStatus);
+                _customTagList.AddParameter(command.Parameters, customTagList);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus, AddInstanceTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid, sopInstanceUid: sopInstanceUid, patientId: patientId, patientName: patientName, referringPhysicianName: referringPhysicianName, studyDate: studyDate, studyDescription: studyDescription, accessionNumber: accessionNumber, modality: modality, performedProcedureStepStartDate: performedProcedureStepStartDate, initialStatus: initialStatus, customTagList: tableValuedParameters.CustomTagList);
+            }
+        }
+
+        internal class AddInstanceTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddInstanceTableValuedParameters>
+        {
+            public AddInstanceTvpGenerator(ITableValuedParameterRowGenerator<TInput, UDTCustomTagListRow> UDTCustomTagListRowGenerator)
+            {
+                this.UDTCustomTagListRowGenerator = UDTCustomTagListRowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, UDTCustomTagListRow> UDTCustomTagListRowGenerator;
+            public AddInstanceTableValuedParameters Generate(TInput input)
+            {
+                return new AddInstanceTableValuedParameters(UDTCustomTagListRowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct AddInstanceTableValuedParameters
+        {
+            internal AddInstanceTableValuedParameters(global::System.Collections.Generic.IEnumerable<UDTCustomTagListRow> CustomTagList)
+            {
+                this.CustomTagList = CustomTagList;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<UDTCustomTagListRow> CustomTagList
+            {
+                get;
             }
         }
 
@@ -316,6 +350,33 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
                 _watermark.AddParameter(command.Parameters, watermark);
                 _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        private class UDTCustomTagListTableValuedParameterDefinition : TableValuedParameterDefinition<UDTCustomTagListRow>
+        {
+            internal UDTCustomTagListTableValuedParameterDefinition(System.String parameterName): base(parameterName, "dbo.UDTCustomTagList")
+            {
+            }
+
+            internal readonly NVarCharColumn TagPath = new NVarCharColumn("TagPath", 2048);
+            protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[]{TagPath};
+            protected override void FillSqlDataRecord(global::Microsoft.SqlServer.Server.SqlDataRecord record, UDTCustomTagListRow rowData)
+            {
+                TagPath.Set(record, 0, rowData.TagPath);
+            }
+        }
+
+        internal struct UDTCustomTagListRow
+        {
+            internal UDTCustomTagListRow(System.String TagPath)
+            {
+                this.TagPath = TagPath;
+            }
+
+            internal System.String TagPath
+            {
+                get;
             }
         }
     }

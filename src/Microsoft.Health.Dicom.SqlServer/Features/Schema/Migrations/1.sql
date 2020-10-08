@@ -30,7 +30,7 @@ GO
 
 /* Should tagVR use nchar(8) instead? would that improve perf?
 */
-CREATE TABLE [dbo].[CustomTag](
+CREATE TABLE dbo.CustomTag(
 	[StudyKey] [bigint] NOT NULL,
 	[SeriesKey] [bigint] NOT NULL,
 	[InstanceKey] [bigint] NOT NULL,
@@ -416,6 +416,15 @@ CREATE SEQUENCE dbo.InstanceKeySequence
 
 
 GO
+
+CREATE TYPE dbo.UDTCustomTagList
+AS TABLE
+(
+	TagPath nvarchar(2048)
+);
+
+GO
+
 /*************************************************************
     Stored procedures for adding an instance.
 **************************************************************/
@@ -466,7 +475,8 @@ CREATE PROCEDURE dbo.AddInstance
     @accessionNumber                    NVARCHAR(64) = NULL,
     @modality                           NVARCHAR(16) = NULL,
     @performedProcedureStepStartDate    DATE = NULL,
-    @initialStatus                      TINYINT
+    @initialStatus                      TINYINT,
+    @customTagList AS dbo.UDTCustomTagList READONLY
 AS
     SET NOCOUNT ON
 
@@ -549,6 +559,12 @@ AS
         (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
     SELECT @newWatermark
+
+    -- Insert custom tags
+    INSERT INTO dbo.CustomTag
+        (StudyKey, SeriesKey, InstanceKey, TagPath,TagVR, StringValue,IntValue, DecimalValue, DateTimeValue)
+    SELECT @studyKey, @seriesKey, @instanceKey, TagPath, 'VR','string',NULL, NULL, NULL
+    FROM @customTagList
 
     COMMIT TRANSACTION
 GO

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -39,11 +40,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
         }
 
+        private static VLatest.UDTCustomTagListRow ToCustomTagListRow(DicomCustomTag tag)
+        {
+            return new VLatest.UDTCustomTagListRow(tag.ToString());
+        }
+
         public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
 
             await _sqlServerIndexSchema.EnsureInitialized();
+            List<DicomCustomTag> tags = DicomCustomTag.GetCustomTags(instance);
 
             using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -61,7 +68,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
                     instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
                     instance.GetStringDateAsDateTime(DicomTag.PerformedProcedureStepStartDate),
-                    (byte)IndexStatus.Creating);
+                    (byte)IndexStatus.Creating,
+                    tags.Select(item => ToCustomTagListRow(item)));
 
                 try
                 {
