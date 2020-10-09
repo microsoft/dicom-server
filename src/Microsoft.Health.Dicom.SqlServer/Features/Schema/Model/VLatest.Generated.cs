@@ -24,6 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
+        internal readonly static GetCustomTagVRCodeProcedure GetCustomTagVRCode = new GetCustomTagVRCodeProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
@@ -266,6 +267,21 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetChangeFeedLatest";
+            }
+        }
+
+        internal class GetCustomTagVRCodeProcedure : StoredProcedure
+        {
+            internal GetCustomTagVRCodeProcedure(): base("dbo.GetCustomTagVRCode")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _TagPath = new ParameterDefinition<System.String>("@TagPath", global::System.Data.SqlDbType.NVarChar, false, 2048);
+            public void PopulateCommand(SqlCommandWrapper command, System.String TagPath)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetCustomTagVRCode";
+                _TagPath.AddParameter(command.Parameters, TagPath);
             }
         }
 

@@ -430,6 +430,14 @@ AS TABLE
 
 GO
 
+CREATE PROCEDURE dbo.GetCustomTagVRCode
+    @TagPath nvarchar(2048)
+AS
+    SET NOCOUNT ON
+    SET XACT_ABORT ON    
+    SELECT TOP (1) TagPath, TagVR FROM dbo.CustomTag where TagPath=@TagPath    
+GO
+
 /*************************************************************
     Stored procedures for adding an instance.
 **************************************************************/
