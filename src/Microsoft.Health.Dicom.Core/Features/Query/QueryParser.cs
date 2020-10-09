@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
@@ -23,21 +22,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     public partial class QueryParser : IQueryParser
     {
         private readonly ILogger<QueryParser> _logger;
+        private readonly ICustomTagVRCodeRetriever _customTagVRCodeRetriever;
         private const string IncludeFieldValueAll = "all";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
         private QueryExpressionImp _parsedQuery = null;
         private readonly Dictionary<string, Action<KeyValuePair<string, StringValues>>> _paramParsers =
             new Dictionary<string, Action<KeyValuePair<string, StringValues>>>(StringComparer.OrdinalIgnoreCase);
 
-        private readonly Dictionary<string, Func<DicomTag, string, QueryFilterCondition>> _valueParsers =
-            new Dictionary<string, Func<DicomTag, string, QueryFilterCondition>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Func<DicomAttributeId, string, QueryFilterCondition>> _valueParsers =
+            new Dictionary<string, Func<DicomAttributeId, string, QueryFilterCondition>>(StringComparer.OrdinalIgnoreCase);
 
         public const string DateTagValueFormat = "yyyyMMdd";
 
-        public QueryParser(ILogger<QueryParser> logger)
+        public QueryParser(ICustomTagVRCodeRetriever customTagVRCodeRetriever, ILogger<QueryParser> logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(customTagVRCodeRetriever, nameof(customTagVRCodeRetriever));
             _logger = logger;
+            _customTagVRCodeRetriever = customTagVRCodeRetriever;
 
             // register parameter parsers
             _paramParsers.Add("offset", ParseOffset);
@@ -46,12 +48,35 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _paramParsers.Add("includefield", ParseIncludeField);
 
             // register value parsers
-            _valueParsers.Add(DicomVRCode.DA, ParseDateTagValue);
+            // String
+            _valueParsers.Add(DicomVRCode.AE, ParseStringTagValue);
+            _valueParsers.Add(DicomVRCode.CS, ParseStringTagValue);
+            _valueParsers.Add(DicomVRCode.LT, ParseStringTagValue);
+            _valueParsers.Add(DicomVRCode.PN, ParseStringTagValue);
+            _valueParsers.Add(DicomVRCode.SH, ParseStringTagValue);
+            _valueParsers.Add(DicomVRCode.ST, ParseStringTagValue);
             _valueParsers.Add(DicomVRCode.UI, ParseStringTagValue);
             _valueParsers.Add(DicomVRCode.LO, ParseStringTagValue);
-            _valueParsers.Add(DicomVRCode.SH, ParseStringTagValue);
-            _valueParsers.Add(DicomVRCode.PN, ParseStringTagValue);
-            _valueParsers.Add(DicomVRCode.CS, ParseStringTagValue);
+
+            // Integer
+            // TODO: should care about range?
+            _valueParsers.Add(DicomVRCode.AS, ParseIntTagValue);
+            _valueParsers.Add(DicomVRCode.AT, ParseIntTagValue);
+            _valueParsers.Add(DicomVRCode.IS, ParseIntTagValue);
+            _valueParsers.Add(DicomVRCode.SL, ParseIntTagValue);
+            _valueParsers.Add(DicomVRCode.SS, ParseIntTagValue);
+            _valueParsers.Add(DicomVRCode.UL, ParseIntTagValue);
+            _valueParsers.Add(DicomVRCode.US, ParseIntTagValue);
+
+            // Decimal
+            _valueParsers.Add(DicomVRCode.DS, ParseDecimalTagValue);
+            _valueParsers.Add(DicomVRCode.FL, ParseDecimalTagValue);
+            _valueParsers.Add(DicomVRCode.FD, ParseDecimalTagValue);
+
+            // Date time
+            // TODO: fully support date and time as per standard
+            _valueParsers.Add(DicomVRCode.DT, ParseDateTagValue);
+            _valueParsers.Add(DicomVRCode.TM, ParseDateTagValue);
         }
 
         public QueryExpression Parse(QueryResourceRequest request)
@@ -155,19 +180,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 throw new QueryParseException(string.Format(DicomCoreResource.QueryEmptyAttributeValue, attributeIdText));
             }
 
-            var tagTypeCode = attributeId.Tag.DictionaryEntry.ValueRepresentations.FirstOrDefault()?.Code;
-
-            // ? can get tagTypeCode?  for private one?
-            if (!attributeId.IsPrivate)
+            DicomVR tagTypeCode;
+            if (attributeId.IsPrivate)
             {
-                if (_valueParsers.TryGetValue(tagTypeCode, out Func<DicomTag, string, QueryFilterCondition> valueParser))
-                {
-                    condition = valueParser(attributeId.Tag, trimmedValue);
-                }
+                // TODO: make whole method async
+                tagTypeCode = _customTagVRCodeRetriever.RetrieveAsync(attributeId, cancellationToken: default(System.Threading.CancellationToken)).Result;
             }
             else
             {
-                throw new NotImplementedException();
+                tagTypeCode = attributeId.Tag.DictionaryEntry.ValueRepresentations.FirstOrDefault();
+            }
+
+            if (_valueParsers.TryGetValue(tagTypeCode?.Code, out Func<DicomAttributeId, string, QueryFilterCondition> valueParser))
+            {
+                condition = valueParser(attributeId, trimmedValue);
             }
 
             return condition != null;
@@ -184,36 +210,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeIdText));
                 }
             }
-        }
-
-        private static DicomTag ParseDicomTagNumber(string s)
-        {
-            if (s.Length < 8)
-            {
-                return null;
-            }
-
-            if (!ushort.TryParse(s.Substring(0, 4), NumberStyles.HexNumber, null, out ushort group))
-            {
-                return null;
-            }
-
-            if (!ushort.TryParse(s.Substring(4, 4), NumberStyles.HexNumber, null, out ushort element))
-            {
-                return null;
-            }
-
-            var dicomTag = new DicomTag(group, element);
-            DicomDictionaryEntry knownTag = DicomDictionary.Default[dicomTag];
-
-            // Check if the tag is null or unknown.
-            // Tag with odd group is considered as private.
-            if (knownTag == null || (!dicomTag.IsPrivate && knownTag == DicomDictionary.UnknownTag))
-            {
-                return null;
-            }
-
-            return dicomTag;
         }
 
         private class QueryExpressionImp

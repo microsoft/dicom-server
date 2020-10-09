@@ -14,7 +14,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 {
-    public class CustomTagVRCodeRetriever : IVRCodeRetriever
+    public class CustomTagVRCodeRetriever : ICustomTagVRCodeRetriever
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
 

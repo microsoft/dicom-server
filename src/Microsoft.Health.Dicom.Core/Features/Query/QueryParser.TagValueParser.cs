@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Dicom;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -14,17 +13,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public partial class QueryParser
     {
-        private static QueryFilterCondition ParseDateTagValue(DicomTag dicomTag, string value)
+        private static QueryFilterCondition ParseDateTagValue(DicomAttributeId attributeId, string value)
         {
-            if (QueryLimit.IsValidRangeQueryTag(dicomTag))
+            if (QueryLimit.IsValidRangeQueryTag(attributeId.Tag))
             {
                 var splitString = value.Split('-');
                 if (splitString.Length == 2)
                 {
                     string minDate = splitString[0].Trim();
                     string maxDate = splitString[1].Trim();
-                    DateTime parsedMinDate = ParseDate(minDate, dicomTag.DictionaryEntry.Keyword);
-                    DateTime parsedMaxDate = ParseDate(maxDate, dicomTag.DictionaryEntry.Keyword);
+                    DateTime parsedMinDate = ParseDate(minDate, attributeId.Tag.DictionaryEntry.Keyword);
+                    DateTime parsedMaxDate = ParseDate(maxDate, attributeId.Tag.DictionaryEntry.Keyword);
 
                     if (parsedMinDate > parsedMaxDate)
                     {
@@ -35,17 +34,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                             maxDate));
                     }
 
-                    return new DateRangeValueMatchCondition(new DicomAttributeId(dicomTag), parsedMinDate, parsedMaxDate);
+                    return new DateRangeValueMatchCondition(attributeId, parsedMinDate, parsedMaxDate);
                 }
             }
 
-            DateTime parsedDate = ParseDate(value, dicomTag.DictionaryEntry.Keyword);
-            return new DateSingleValueMatchCondition(new DicomAttributeId(dicomTag), parsedDate);
+            DateTime parsedDate = ParseDate(value, attributeId.Tag.DictionaryEntry.Keyword);
+            return new DateSingleValueMatchCondition(attributeId, parsedDate);
         }
 
-        private static QueryFilterCondition ParseStringTagValue(DicomTag dicomTag, string value)
+        private static QueryFilterCondition ParseStringTagValue(DicomAttributeId attributeId, string value)
         {
-            return new StringSingleValueMatchCondition(new DicomAttributeId(dicomTag), value);
+            return new StringSingleValueMatchCondition(attributeId, value);
+        }
+
+        private static QueryFilterCondition ParseIntTagValue(DicomAttributeId attributeId, string value)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static QueryFilterCondition ParseDecimalTagValue(DicomAttributeId attributeId, string value)
+        {
+            throw new NotImplementedException();
         }
 
         private static DateTime ParseDate(string date, string tagKeyword)

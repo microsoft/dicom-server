@@ -39,6 +39,8 @@ namespace Microsoft.Health.Dicom.Core.Models
             { DicomVRCode.DS, GetDecimal },
             { DicomVRCode.FL, GetDecimal },
             { DicomVRCode.FD, GetDecimal },
+
+            // Date Time
             { DicomVRCode.DT, GetDateTime },
             { DicomVRCode.TM, GetDateTime },
         };

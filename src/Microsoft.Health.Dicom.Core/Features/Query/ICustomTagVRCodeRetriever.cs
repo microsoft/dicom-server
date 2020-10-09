@@ -4,12 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading;
+using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public interface IVRCodeRetriever
+    public interface ICustomTagVRCodeRetriever
     {
        Task<DicomVR> RetrieveAsync(DicomAttributeId attributeId, CancellationToken cancellationToken);
     }
