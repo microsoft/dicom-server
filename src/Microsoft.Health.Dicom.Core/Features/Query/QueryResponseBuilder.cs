@@ -96,7 +96,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private static readonly HashSet<DicomTag> AllSeriesInstanceTags = new HashSet<DicomTag>(AllSeriesTags.Union(AllInstancesTags));
 
-        private HashSet<DicomTag> _tagsToReturn = null;
+        private HashSet<DicomAttributeId> _attributeIdsToReturn = null;
 
         public QueryResponseBuilder(QueryExpression queryExpression)
         {
@@ -110,34 +110,31 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            dicomDataset.Remove(di => !_tagsToReturn.Any(
-                t => t.Group == di.Tag.Group &&
-                t.Element == di.Tag.Element));
-
-            return dicomDataset;
+            return new DicomDataSetCopy(dicomDataset, (item, attribute) => _attributeIdsToReturn.Contains(attribute)).Copy();
         }
 
         private void Initialize(QueryExpression queryExpression)
         {
+            // TODO: should have more efficent way to convert
             switch (queryExpression.QueryResource)
             {
                 case QueryResource.AllStudies:
-                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudyTags : DefaultStudyTags);
+                    _attributeIdsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudyTags : DefaultStudyTags).Select(x => new DicomAttributeId(x)).ToHashSet();
                     break;
                 case QueryResource.AllSeries:
-                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudySeriesTags : DefaultStudySeriesTags);
+                    _attributeIdsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudySeriesTags : DefaultStudySeriesTags).Select(x => new DicomAttributeId(x)).ToHashSet();
                     break;
                 case QueryResource.StudySeries:
-                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllSeriesTags : DefaultSeriesTags);
+                    _attributeIdsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllSeriesTags : DefaultSeriesTags).Select(x => new DicomAttributeId(x)).ToHashSet();
                     break;
                 case QueryResource.AllInstances:
-                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudySeriesInstanceTags : DefaultStudySeriesInstanceTags);
+                    _attributeIdsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudySeriesInstanceTags : DefaultStudySeriesInstanceTags).Select(x => new DicomAttributeId(x)).ToHashSet();
                     break;
                 case QueryResource.StudyInstances:
-                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllSeriesInstanceTags : DefaultSeriesInstanceTags);
+                    _attributeIdsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllSeriesInstanceTags : DefaultSeriesInstanceTags).Select(x => new DicomAttributeId(x)).ToHashSet();
                     break;
                 case QueryResource.StudySeriesInstances:
-                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags);
+                    _attributeIdsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags).Select(x => new DicomAttributeId(x)).ToHashSet();
                     break;
                 default:
                     Debug.Fail("A newly added queryResource is not implemeted here");
@@ -147,12 +144,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             foreach (DicomAttributeId tag in queryExpression.IncludeFields.AttributeIds)
             {
                 // we will allow any valid include tag. This will allow customers to get any custom tags in resposne.
-                _tagsToReturn.Add(tag.Tag);
+                _attributeIdsToReturn.Add(tag);
             }
 
             foreach (var cond in queryExpression.FilterConditions)
             {
-                _tagsToReturn.Add(cond.AttributeId.Tag);
+                _attributeIdsToReturn.Add(cond.AttributeId);
             }
         }
     }

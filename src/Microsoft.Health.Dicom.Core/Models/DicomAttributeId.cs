@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -31,6 +32,13 @@ namespace Microsoft.Health.Dicom.Core.Models
         public IReadOnlyList<DicomTag> Path { get; }
 
         public DicomTag Tag { get => Path[Path.Count - 1]; }
+
+        public DicomAttributeId Append(DicomTag newTag)
+        {
+            var newPath = new List<DicomTag>(Path);
+            newPath.Add(newTag);
+            return new DicomAttributeId(newPath);
+        }
 
         public static bool TryParse(string text, out DicomAttributeId attributeId)
         {
@@ -134,30 +142,12 @@ namespace Microsoft.Health.Dicom.Core.Models
                 return false;
             }
 
-            return Enumerable.SequenceEqual(Path, objId.Path);
+            return objId.GetFullPath().Equals(GetFullPath(), System.StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()
         {
-            return GetHashCodeOfArray(Path);
-        }
-
-        private static int GetHashCodeOfArray<T>(IEnumerable<T> ary)
-        {
-            // refer to http://hg.openjdk.java.net/jdk8u/jdk8u/jdk/file/be44bff34df4/src/share/classes/java/util/Arrays.java
-            if (ary == null)
-            {
-                return 0;
-            }
-
-            int result = 1;
-
-            foreach (T element in ary)
-            {
-                result = unchecked((31 * result) + element.GetHashCode());
-            }
-
-            return result;
+            return GetFullPath().GetHashCode(StringComparison.OrdinalIgnoreCase);
         }
     }
 }

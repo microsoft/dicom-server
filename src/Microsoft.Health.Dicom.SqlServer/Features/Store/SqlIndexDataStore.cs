@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
         }
 
-        private static VLatest.UDTCustomTagListRow ToCustomTagListRow(DicomCustomTag tag)
+        private static VLatest.UDTCustomTagListRow ToCustomTagListRow(DicomItemWrapper tag)
         {
             object val = tag.GetValue();
             return new VLatest.UDTCustomTagListRow(
@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNull(instance, nameof(instance));
 
             await _sqlServerIndexSchema.EnsureInitialized();
-            List<DicomCustomTag> tags = DicomCustomTag.GetCustomTags(instance);
+            IEnumerable<DicomItemWrapper> tags = DicomItemWrapper.GetDicomItemWrappers(instance.CopyWithoutBulkDataItems(true));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())

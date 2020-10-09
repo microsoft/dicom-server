@@ -6,14 +6,11 @@
 using System;
 using System.Collections.Generic;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Models
 {
-    public class DicomCustomTag
+    public class DicomItemWrapper
     {
-        private readonly DicomItem _dicomItem;
-
         private static readonly Dictionary<string, Func<DicomItem, object>> ValueGetters = new Dictionary<string, Func<DicomItem, object>>()
         {
             // String
@@ -45,25 +42,26 @@ namespace Microsoft.Health.Dicom.Core.Models
             { DicomVRCode.TM, GetDateTime },
         };
 
-        public DicomCustomTag(DicomItem dicomItem, DicomAttributeId attributeId)
+        public DicomItemWrapper(DicomItem dicomItem, DicomAttributeId attributeId)
         {
-            _dicomItem = dicomItem;
+            DicomItem = dicomItem;
             AttributeId = attributeId;
         }
 
+        public DicomItem DicomItem { get; }
+
         public DicomAttributeId AttributeId { get; }
 
-        public DicomVR VR { get => _dicomItem.ValueRepresentation; }
+        public DicomVR VR { get => DicomItem.ValueRepresentation; }
 
         public object GetValue()
         {
-            return ValueGetters[_dicomItem.ValueRepresentation.Code].Invoke(_dicomItem);
+            return ValueGetters[DicomItem.ValueRepresentation.Code].Invoke(DicomItem);
         }
 
-        public static List<DicomCustomTag> GetCustomTags(DicomDataset dataset)
+        public static IEnumerable<DicomItemWrapper> GetDicomItemWrappers(DicomDataset dicomDataset)
         {
-            DicomDataset trimedDataset = dataset.CopyWithoutBulkDataItems(true);
-            return GetCustomTagsImp(trimedDataset);
+            return GetCustomTagsImp(dicomDataset);
         }
 
         private static object GetString(DicomItem item)
@@ -86,14 +84,14 @@ namespace Microsoft.Health.Dicom.Core.Models
             return ((DicomElement)item).Get<DateTime>();
         }
 
-        private static List<DicomCustomTag> GetCustomTagsImp(DicomDataset dataset)
+        private static List<DicomItemWrapper> GetCustomTagsImp(DicomDataset dataset)
         {
-            List<DicomCustomTag> result = new List<DicomCustomTag>();
+            List<DicomItemWrapper> result = new List<DicomItemWrapper>();
             ProcessDataset(dataset, new List<DicomTag>(), result);
             return result;
         }
 
-        private static void ProcessDataset(DicomDataset dataset, List<DicomTag> paths, List<DicomCustomTag> list)
+        private static void ProcessDataset(DicomDataset dataset, List<DicomTag> paths, List<DicomItemWrapper> list)
         {
             foreach (var item in dataset)
             {
@@ -101,7 +99,7 @@ namespace Microsoft.Health.Dicom.Core.Models
             }
         }
 
-        private static void ProcessSequence(DicomSequence sequence, List<DicomTag> paths, List<DicomCustomTag> list)
+        private static void ProcessSequence(DicomSequence sequence, List<DicomTag> paths, List<DicomItemWrapper> list)
         {
             foreach (var item in sequence)
             {
@@ -109,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.Models
             }
         }
 
-        private static void ProcessItem(DicomItem item, List<DicomTag> paths, List<DicomCustomTag> list)
+        private static void ProcessItem(DicomItem item, List<DicomTag> paths, List<DicomItemWrapper> list)
         {
             paths.Add(item.Tag);
 
@@ -119,7 +117,7 @@ namespace Microsoft.Health.Dicom.Core.Models
             }
             else
             {
-                list.Add(new DicomCustomTag(item, new DicomAttributeId(new List<DicomTag>(paths))));
+                list.Add(new DicomItemWrapper(item, new DicomAttributeId(new List<DicomTag>(paths))));
             }
 
             paths.RemoveAt(paths.Count - 1);
