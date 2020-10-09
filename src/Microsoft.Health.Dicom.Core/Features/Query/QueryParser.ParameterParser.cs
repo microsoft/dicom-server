@@ -5,8 +5,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Dicom;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -27,9 +27,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             foreach (string value in queryParameter.Value)
             {
                 var trimmedValue = value.Trim();
-                if (TryParseDicomAttributeId(trimmedValue, out DicomTag dicomTag))
+                if (DicomAttributeId.TryParse(trimmedValue, out DicomAttributeId attributeId))
                 {
-                    _parsedQuery.IncludeFields.Add(dicomTag);
+                    _parsedQuery.IncludeFields.Add(attributeId);
                     continue;
                 }
 

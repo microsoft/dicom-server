@@ -224,7 +224,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public override void Visit(StringSingleValueMatchCondition stringSingleValueMatchCondition)
         {
-            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(stringSingleValueMatchCondition.DicomTag);
+            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(stringSingleValueMatchCondition.AttributeId.Tag);
             var tableAlias = GetTableAlias(dicomTagSqlEntry);
             _stringBuilder
                 .Append("AND ")
@@ -236,7 +236,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public override void Visit(DateRangeValueMatchCondition rangeValueMatchCondition)
         {
-            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(rangeValueMatchCondition.DicomTag);
+            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(rangeValueMatchCondition.AttributeId.Tag);
             var tableAlias = GetTableAlias(dicomTagSqlEntry);
             _stringBuilder
                 .Append("AND ")
@@ -249,7 +249,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public override void Visit(DateSingleValueMatchCondition dateSingleValueMatchCondition)
         {
-            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(dateSingleValueMatchCondition.DicomTag);
+            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(dateSingleValueMatchCondition.AttributeId.Tag);
             var tableAlias = GetTableAlias(dicomTagSqlEntry);
             _stringBuilder
                 .Append("AND ")
@@ -261,7 +261,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public override void Visit(PersonNameFuzzyMatchCondition fuzzyMatchCondition)
         {
-            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(fuzzyMatchCondition.DicomTag);
+            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(fuzzyMatchCondition.AttributeId.Tag);
             char[] delimiterChars = { ' ' };
             string[] words = fuzzyMatchCondition.Value.Split(delimiterChars, System.StringSplitOptions.RemoveEmptyEntries);
 

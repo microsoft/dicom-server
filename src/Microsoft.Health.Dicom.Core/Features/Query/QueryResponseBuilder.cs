@@ -10,6 +10,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -143,15 +144,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     break;
             }
 
-            foreach (DicomTag tag in queryExpression.IncludeFields.DicomTags)
+            foreach (DicomAttributeId tag in queryExpression.IncludeFields.AttributeIds)
             {
                 // we will allow any valid include tag. This will allow customers to get any custom tags in resposne.
-                _tagsToReturn.Add(tag);
+                _tagsToReturn.Add(tag.Tag);
             }
 
             foreach (var cond in queryExpression.FilterConditions)
             {
-                _tagsToReturn.Add(cond.DicomTag);
+                _tagsToReturn.Add(cond.AttributeId.Tag);
             }
         }
     }

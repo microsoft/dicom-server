@@ -3,16 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
-using Dicom;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public class QueryIncludeField
     {
-        public QueryIncludeField(bool all, IReadOnlyCollection<DicomTag> dicomTags)
+        public QueryIncludeField(bool all, IReadOnlyCollection<DicomAttributeId> attributeIds)
         {
             All = all;
-            DicomTags = dicomTags;
+            AttributeIds = attributeIds;
         }
 
         /// <summary>
@@ -24,6 +24,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         /// <summary>
         /// List of additional DicomTags to return with defaults. Used only if "all=false"
         /// </summary>
-        public IReadOnlyCollection<DicomTag> DicomTags { get; }
+        public IReadOnlyCollection<DicomAttributeId> AttributeIds { get; }
     }
 }

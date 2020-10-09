@@ -5,6 +5,7 @@
 
 using System;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -34,17 +35,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                             maxDate));
                     }
 
-                    return new DateRangeValueMatchCondition(dicomTag, parsedMinDate, parsedMaxDate);
+                    return new DateRangeValueMatchCondition(new DicomAttributeId(dicomTag), parsedMinDate, parsedMaxDate);
                 }
             }
 
             DateTime parsedDate = ParseDate(value, dicomTag.DictionaryEntry.Keyword);
-            return new DateSingleValueMatchCondition(dicomTag, parsedDate);
+            return new DateSingleValueMatchCondition(new DicomAttributeId(dicomTag), parsedDate);
         }
 
         private static QueryFilterCondition ParseStringTagValue(DicomTag dicomTag, string value)
         {
-            return new StringSingleValueMatchCondition(dicomTag, value);
+            return new StringSingleValueMatchCondition(new DicomAttributeId(dicomTag), value);
         }
 
         private static DateTime ParseDate(string date, string tagKeyword)

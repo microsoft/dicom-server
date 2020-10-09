@@ -3,14 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using System;
-using Dicom;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public class DateRangeValueMatchCondition : RangeValueMatchCondition<DateTime>
     {
-        internal DateRangeValueMatchCondition(DicomTag tag, DateTime minimum, DateTime maximum)
-            : base(tag, minimum, maximum)
+        internal DateRangeValueMatchCondition(DicomAttributeId attributeId, DateTime minimum, DateTime maximum)
+            : base(attributeId, minimum, maximum)
         {
         }
 

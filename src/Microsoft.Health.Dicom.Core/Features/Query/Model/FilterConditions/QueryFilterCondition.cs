@@ -2,18 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-using Dicom;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public abstract class QueryFilterCondition
     {
-        public QueryFilterCondition(DicomTag tag)
+        public QueryFilterCondition(DicomAttributeId attributeId)
         {
-            DicomTag = tag;
+            AttributeId = attributeId;
         }
 
-        public DicomTag DicomTag { get; }
+        public DicomAttributeId AttributeId { get; }
 
         public abstract void Accept(QueryFilterConditionVisitor visitor);
     }
