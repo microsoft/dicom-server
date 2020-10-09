@@ -53,9 +53,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly BigIntColumn SeriesKey = new BigIntColumn("SeriesKey");
             internal readonly BigIntColumn InstanceKey = new BigIntColumn("InstanceKey");
-            internal readonly NVarCharColumn TagPath = new NVarCharColumn("TagPath", 2048);
+            internal readonly NVarCharColumn TagPath = new NVarCharColumn("TagPath", 4000);
             internal readonly NVarCharColumn TagVR = new NVarCharColumn("TagVR", 8);
-            internal readonly NullableNVarCharColumn StringValue = new NullableNVarCharColumn("StringValue", 2048);
+            internal readonly NullableNVarCharColumn StringValue = new NullableNVarCharColumn("StringValue", 4000);
             internal readonly NullableBigIntColumn IntValue = new NullableBigIntColumn("IntValue");
             internal readonly NullableDecimalColumn DecimalValue = new NullableDecimalColumn("DecimalValue", 38, 19);
             internal readonly NullableDateTime2Column DateTimeValue = new NullableDateTime2Column("DateTimeValue", 7);
@@ -359,12 +359,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly NVarCharColumn TagPath = new NVarCharColumn("TagPath", 2048);
+            internal readonly NVarCharColumn TagPath = new NVarCharColumn("TagPath", 4000);
             internal readonly NVarCharColumn TagVR = new NVarCharColumn("TagVR", 8);
-            internal readonly NVarCharColumn StringValue = new NVarCharColumn("StringValue", 2048);
-            internal readonly BigIntColumn IntValue = new BigIntColumn("IntValue");
-            internal readonly DecimalColumn DecimalValue = new DecimalColumn("DecimalValue", 38, 19);
-            internal readonly DateTime2Column DateTimeValue = new DateTime2Column("DateTimeValue", 7);
+            internal readonly NullableNVarCharColumn StringValue = new NullableNVarCharColumn("StringValue", 4000);
+            internal readonly NullableBigIntColumn IntValue = new NullableBigIntColumn("IntValue");
+            internal readonly NullableDecimalColumn DecimalValue = new NullableDecimalColumn("DecimalValue", 32, 16);
+            internal readonly NullableDateTime2Column DateTimeValue = new NullableDateTime2Column("DateTimeValue", 7);
             protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[]{TagPath, TagVR, StringValue, IntValue, DecimalValue, DateTimeValue};
             protected override void FillSqlDataRecord(global::Microsoft.SqlServer.Server.SqlDataRecord record, UDTCustomTagListRow rowData)
             {
@@ -379,7 +379,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal struct UDTCustomTagListRow
         {
-            internal UDTCustomTagListRow(System.String TagPath, System.String TagVR, System.String StringValue, System.Int64 IntValue, System.Decimal DecimalValue, System.DateTime DateTimeValue)
+            internal UDTCustomTagListRow(System.String TagPath, System.String TagVR, System.String StringValue, System.Nullable<System.Int64> IntValue, System.Nullable<System.Decimal> DecimalValue, System.Nullable<System.DateTime> DateTimeValue)
             {
                 this.TagPath = TagPath;
                 this.TagVR = TagVR;
@@ -404,17 +404,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 get;
             }
 
-            internal System.Int64 IntValue
+            internal System.Nullable<System.Int64> IntValue
             {
                 get;
             }
 
-            internal System.Decimal DecimalValue
+            internal System.Nullable<System.Decimal> DecimalValue
             {
                 get;
             }
 
-            internal System.DateTime DateTimeValue
+            internal System.Nullable<System.DateTime> DateTimeValue
             {
                 get;
             }

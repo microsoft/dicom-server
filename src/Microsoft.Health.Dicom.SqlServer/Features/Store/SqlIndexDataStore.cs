@@ -47,9 +47,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 TagPath: tag.AttributeId.GetFullPath(),
                 TagVR: tag.VR.Code,
                 StringValue: val as string,
-                IntValue: val is long ? (long)val : 0,
-                DecimalValue: val is decimal ? (decimal)val : 0,
-                DateTimeValue: val is DateTime ? (DateTime)val : DateTime.MinValue);
+                IntValue: val as long?,
+                DecimalValue: val as decimal?,
+                DateTimeValue: val as DateTime?);
         }
 
         public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, CancellationToken cancellationToken)

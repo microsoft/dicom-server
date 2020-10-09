@@ -34,9 +34,9 @@ CREATE TABLE dbo.CustomTag(
 	[StudyKey] [bigint] NOT NULL,
 	[SeriesKey] [bigint] NOT NULL,
 	[InstanceKey] [bigint] NOT NULL,
-	[TagPath] [nvarchar](2048) NOT NULL,
+	[TagPath] [nvarchar](4000) NOT NULL,
 	[TagVR] [nvarchar](8) NOT NULL, 
-	[StringValue] [nvarchar](2048) NULL,
+	[StringValue] [nvarchar](4000) NULL,
 	[IntValue] [bigint] NULL,
 	[DecimalValue] [decimal](38, 19) NULL,
 	[DateTimeValue] [datetime2](7) NULL
@@ -420,12 +420,12 @@ GO
 CREATE TYPE dbo.UDTCustomTagList
 AS TABLE
 (
-	TagPath nvarchar(2048),
-    TagVR nvarchar(8),
-    StringValue nvarchar(2048),
-	IntValue bigint,
-	DecimalValue decimal(38, 19),
-	DateTimeValue datetime2(7) 
+	TagPath nvarchar(4000) NOT NULL,
+    TagVR nvarchar(8) NOT NULL,
+    StringValue nvarchar(4000) NULL,
+	IntValue bigint NULL,
+	DecimalValue decimal(32, 16) NULL,
+	DateTimeValue datetime2(7) NULL
 );
 
 GO

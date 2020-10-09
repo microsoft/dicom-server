@@ -117,11 +117,6 @@ namespace Microsoft.Health.Dicom.Core.Models
             }
             else
             {
-                if (item.ValueRepresentation.Code == DicomVRCode.FD)
-                {
-                    Console.WriteLine(((DicomElement)item).Get<decimal>());
-                }
-
                 list.Add(new DicomCustomTag(item, new DicomAttributeId(new List<DicomTag>(paths))));
             }
 
