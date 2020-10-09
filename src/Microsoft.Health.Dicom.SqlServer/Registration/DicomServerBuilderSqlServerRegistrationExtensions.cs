@@ -77,6 +77,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.AddSingleton<CustomTagVRCodeRetriever>();
+
             return dicomServerBuilder;
         }
     }
