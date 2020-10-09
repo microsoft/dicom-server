@@ -69,7 +69,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                 // Process each change feed as a FHIR transaction.
                 foreach (ChangeFeedEntry changeFeedEntry in changeFeedEntries)
                 {
-                    await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
+                    if (!(changeFeedEntry.Action == ChangeFeedAction.Create && changeFeedEntry.State == ChangeFeedState.Deleted))
+                    {
+                        await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
+                    }
                 }
 
                 var newSyncState = new SyncState(maxSequence, Clock.UtcNow);
