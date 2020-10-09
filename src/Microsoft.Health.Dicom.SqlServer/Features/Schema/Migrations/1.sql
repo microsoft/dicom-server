@@ -38,7 +38,7 @@ CREATE TABLE dbo.CustomTag(
 	[TagVR] [nvarchar](8) NOT NULL, 
 	[StringValue] [nvarchar](4000) NULL,
 	[IntValue] [bigint] NULL,
-	[DecimalValue] [decimal](38, 19) NULL,
+	[DecimalValue] [decimal](32, 16) NULL,
 	[DateTimeValue] [datetime2](7) NULL
 )
 
@@ -726,12 +726,16 @@ AS
 
     BEGIN TRANSACTION
 
-    DECLARE @deletedInstances AS TABLE
-        (StudyInstanceUid VARCHAR(64),
-         SeriesInstanceUid VARCHAR(64),
-         SopInstanceUid VARCHAR(64),
-         Status TINYINT,
-         Watermark BIGINT)
+    DECLARE @deletedInstances AS TABLE (
+        StudyKey BIGINT,
+        SeriesKey BIGINT,
+        InstanceKey BIGINT,
+        StudyInstanceUid VARCHAR(64),
+        SeriesInstanceUid VARCHAR(64),
+        SopInstanceUid VARCHAR(64),
+        Status TINYINT,
+        Watermark BIGINT
+    )
 
     DECLARE @studyKey BIGINT
     DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
@@ -745,7 +749,7 @@ AS
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
+        OUTPUT deleted.StudyKey, deleted.SeriesKey, deleted.InstanceKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
         INTO @deletedInstances
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
@@ -755,6 +759,15 @@ AS
     BEGIN
         THROW 50404, 'Instance not found', 1;
     END
+
+    -- Remove all items from custom tag table
+    DELETE cs
+    FROM dbo.CustomTag cs
+    INNER JOIN @deletedInstances dels on (
+        dels.StudyKey = cs.StudyKey
+        AND dels.SeriesKey = cs.SeriesKey
+        AND dels.InstanceKey = cs.InstanceKey        
+    )
 
     INSERT INTO dbo.DeletedInstance
     (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
