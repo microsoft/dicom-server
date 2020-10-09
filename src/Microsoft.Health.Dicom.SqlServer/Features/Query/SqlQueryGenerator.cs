@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private readonly QueryExpression _queryExpression;
         private readonly SqlQueryParameterManager _parameters;
         private const string SqlDateFormat = "yyyy-MM-dd";
+        private const string CustomTagTableAlias = "cs";
         private const string InstanceTableAlias = "i";
         private const string StudyTableAlias = "st";
         private const string SeriesTableAlias = "se";
@@ -107,6 +108,25 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     .Append(VLatest.Instance.SeriesKey, InstanceTableAlias)
                     .Append(" = ")
                     .AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
+
+                if (_queryExpression.HasPrivateFilter)
+                {
+                    _stringBuilder.AppendLine($"INNER JOIN {VLatest.CustomTag.TableName} {CustomTagTableAlias}");
+                    _stringBuilder
+                    .Append("ON ")
+                    .Append(VLatest.CustomTag.InstanceKey, CustomTagTableAlias)
+                    .Append(" = ")
+                    .Append(VLatest.Instance.InstanceKey, InstanceTableAlias)
+                    .Append(" AND ")
+                    .Append(VLatest.CustomTag.SeriesKey, CustomTagTableAlias)
+                    .Append(" = ")
+                    .Append(VLatest.Instance.SeriesKey, InstanceTableAlias)
+                    .Append(" AND ")
+                    .Append(VLatest.CustomTag.StudyKey, CustomTagTableAlias)
+                    .Append(" = ")
+                    .AppendLine(VLatest.Instance.StudyKey, InstanceTableAlias);
+                }
+
                 AppendStatusClause(InstanceTableAlias);
             }
 
@@ -224,14 +244,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public override void Visit(StringSingleValueMatchCondition stringSingleValueMatchCondition)
         {
-            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(stringSingleValueMatchCondition.AttributeId.Tag);
-            var tableAlias = GetTableAlias(dicomTagSqlEntry);
-            _stringBuilder
-                .Append("AND ")
-                .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
-                .Append("=")
-                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value))
-                .AppendLine();
+            if (!stringSingleValueMatchCondition.AttributeId.IsPrivate)
+            {
+                var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(stringSingleValueMatchCondition.AttributeId.Tag);
+                var tableAlias = GetTableAlias(dicomTagSqlEntry);
+                _stringBuilder
+                    .Append("AND ")
+                    .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
+                    .Append("=")
+                    .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value))
+                    .AppendLine();
+            }
+            else
+            {
+                _stringBuilder
+                    .Append("AND ")
+                    .Append(VLatest.CustomTag.TagPath, CustomTagTableAlias)
+                    .Append("=")
+                    .Append(_parameters.AddParameter(VLatest.CustomTag.TagPath, stringSingleValueMatchCondition.AttributeId.GetFullPath()))
+                    .Append(" AND ")
+                    .Append(VLatest.CustomTag.StringValue, CustomTagTableAlias)
+                    .Append("=")
+                    .Append(_parameters.AddParameter(VLatest.CustomTag.StringValue, stringSingleValueMatchCondition.Value))
+                    .AppendLine();
+            }
         }
 
         public override void Visit(DateRangeValueMatchCondition rangeValueMatchCondition)
@@ -280,9 +316,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         {
             switch (sqlEntry.SqlTableType)
             {
-                case SqlTableType.InstanceTable: return InstanceTableAlias;
-                case SqlTableType.StudyTable: return StudyTableAlias;
-                case SqlTableType.SeriesTable: return SeriesTableAlias;
+                case SqlTableType.InstanceTable:
+                    return InstanceTableAlias;
+                case SqlTableType.StudyTable:
+                    return StudyTableAlias;
+                case SqlTableType.SeriesTable:
+                    return SeriesTableAlias;
             }
 
             Debug.Fail("Invalid table type");

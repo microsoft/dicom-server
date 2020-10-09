@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             FilterConditions = filterConditions;
 
             SetIELevel();
-         }
+        }
 
         /// <summary>
         /// Query Resource type level
@@ -66,6 +66,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
         /// List of filter conditions to find the DICOM objects
         /// </summary>
         public IReadOnlyCollection<QueryFilterCondition> FilterConditions { get; }
+
+        public bool HasPrivateFilter
+        {
+            get
+            {
+                return FilterConditions.Any(x => x.AttributeId.IsPrivate);
+            }
+        }
 
         /// <summary>
         /// Request query was empty
