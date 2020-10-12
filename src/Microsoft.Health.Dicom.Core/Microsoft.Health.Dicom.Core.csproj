@@ -8,7 +8,7 @@
     <PackageReference Include="fo-dicom" Version="4.0.6" />
     <PackageReference Include="fo-dicom.json" Version="4.0.6" NoWarn="NU1701" />
     <PackageReference Include="MediatR" Version="8.1.0" />
-    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="8.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.8" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.8" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="3.1.8" />
@@ -35,4 +35,3 @@
     </EmbeddedResource>
   </ItemGroup>
 </Project>
-
