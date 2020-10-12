@@ -93,7 +93,6 @@ async function createWindow() {
                     win.webContents.send("httpErrorEncountered", error.response.status);
                 }
             })
-
     });
 
     ipcMain.on("getChangeFeed", (event, args) => {
