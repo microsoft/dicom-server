@@ -73,6 +73,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                     {
                         await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
                     }
+                    else
+                    {
+                        _logger.LogInformation($"Skip change feed entry due to deletion before processing creation.");
+                    }
                 }
 
                 var newSyncState = new SyncState(maxSequence, Clock.UtcNow);
