@@ -58,8 +58,7 @@ If you would like to update your SQL Database tier:
 If you deploy the Medical Imaging Server for DICOM with our [Quickstart Deploy to Azure](../quickstarts/deploy-via-azure.md), Application Insights is deployed and enabled by default. To view and customize Application Insights:
 
 1. Navigate to your Medical Imaging Server for DICOM **Application Insights** resource.
-1. Select **Availability**, **Failures** or **Performance** for insight into the performance of your App Service:
-![App Insights 3](../images/app-insights-3.png). 
+1. Select **Availability**, **Failures** or **Performance** for insight into the performance of your App Service.
 1. To link your Application Insights resource to your Medical Imaging Server for DICOM Web App:
     1. Navigate to your Medical Imaging Server for DICOM **App Service**.
     1. Select **Application Insights** under **Settings**. Select *Enable* Application Insights. Select the existing Application Insights resource which was deployed.
