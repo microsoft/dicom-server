@@ -10,7 +10,7 @@
     <PackageReference Include="fo-dicom" Version="4.0.6" NoWarn="NU1701" />
     <PackageReference Include="fo-dicom.json" Version="4.0.6" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
-    <PackageReference Include="Microsoft.Health.Client" Version="1.0.0-master-20201008-2" />
+    <PackageReference Include="Microsoft.Health.Client" Version="1.0.0-microsoft-data-sqlclient-20200929-1" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.7.1" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.7.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
