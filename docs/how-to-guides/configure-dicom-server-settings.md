@@ -60,6 +60,11 @@ If you deploy the Medical Imaging Server for DICOM with our [Quickstart Deploy t
 1. Navigate to your Medical Imaging Server for DICOM **Application Insights** resource.
 1. Select **Availability**, **Failures** or **Performance** for insight into the performance of your App Service:
 ![App Insights 3](../images/app-insights-3.png). 
+1. To link your Application Insights resource to your Medical Imaging Server for DICOM Web App:
+    1. Navigate to your Medical Imaging Server for DICOM **App Service**.
+    1. Select **Application Insights** under **Settings**. Select *Enable* Application Insights. Select the existing Application Insights resource which was deployed.
+    1. Optionally, you can enable Application Insights features like *Profiler*, *Snapshot Debugger* and *SQL Commands*. (Note, these can be turned on later).
+    1. Click *Apply*. 
 1. To learn how to customize Application Insights for your requirements, see [Application Insights Overview](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview). 
 
 If you did not enable Application Insights during deployment, you can via the Azure Portal:
