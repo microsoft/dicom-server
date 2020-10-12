@@ -55,19 +55,21 @@ If you would like to update your SQL Database tier:
 
 ### Application Insights
 
-Application Insights is deployed when you deploy an instance of the Medical Imaging Server for DIOCM to Azure. To enable and customize Application Insights:
+If you deploy the Medical Imaging Server for DICOM with our [Quickstart Deploy to Azure](../quickstarts/deploy-via-azure.md), Application Insights is deployed and enabled by default. To view and customize Application Insights:
+
+1. Navigate to your Medical Imaging Server for DICOM **Application Insights** resource.
+1. Select **Availability**, **Failures** or **Performance** for insight into the performance of your App Service:
+![App Insights 3](../images/app-insights-3.png). 
+1. To learn how to customize Application Insights for your requirements, see [Application Insights Overview](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview). 
+
+If you did not enable Application Insights during deployment, you can via the Azure Portal:
 
 1. Navigate to your Medical Imaging Server for DICOM **App Service**.
 1. Select **Application Insights** from the menu:
 ![App Insights 1](../images/app-insights-1.png)
 1. Select **Turn on Application Insights**:
 ![App Insights 2](../images/app-insights-2.png)
-1. Select **Availability**, **Failures** or **Performance** for insight into the performance of your App Service:
-![App Insights 3](../images/app-insights-3.png)
-
-To learn how to customize Application Insights for your requirements, see [Application Insights Overview](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview). 
-
-Note that upon deployment, the Medical Imaging Server for DICOM uses Application Insights for server side telemetry and logging.
+1. View and customize **Application Insights** by navigating to the created **Application Insights** resource.
 
 ### Diagnostic Settings & Log Analytics
 
