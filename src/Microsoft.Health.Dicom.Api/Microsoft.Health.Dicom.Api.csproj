@@ -6,9 +6,9 @@
     <PackageReference Include="Ensure.That" Version="9.2.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.8" />
-    <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.0-master-20200909-1" />
-    <PackageReference Include="Microsoft.Health.Api" Version="1.0.0-master-20200909-1" />
-    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20200909-1" />
+    <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.0-master-20201008-2" />
+    <PackageReference Include="Microsoft.Health.Api" Version="1.0.0-master-20201008-2" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="1.0.0-master-20201008-2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
