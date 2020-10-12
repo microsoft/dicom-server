@@ -25,13 +25,16 @@
 
 ![Fiddler Config Image](/docs/images/FiddlerConfig.png)
 - Download DCM example file from [here](/docs/dcms/RedTriangle.dcm) 
-- Upload DCM file (use upload file button at request body section as shown in picture below) 
+- Upload DCM file 
+   - Use `Upload file...` link at request body section as shown in picture below
+      - Located in `Parsed` tab inside the `Composer` tab
 - Update request header:
-   - Accept: application/dicom+json (don't change boundary part)
-   - Content-Type: multipart/related
+   - `Accept: application/dicom+json`
+   - `Content-Type: multipart/related` **(don't change boundary part)**
 - Update request body:
-   - Content-Type: application/dicom
-   - Post the request to https://localhost:63838/studies
+   - `Content-Type: application/dicom`
+- Post the request to https://localhost:63838/studies
+   - Hit Execute button
 
 ![Post A Dicom Image](/docs/images/FiddlerPost.png)
 - If the POST is successful, you should be see an HTTP 200 response.

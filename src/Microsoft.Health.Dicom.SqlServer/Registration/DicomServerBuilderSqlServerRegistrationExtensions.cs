@@ -25,20 +25,23 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomServerBuilderSqlServerRegistrationExtensions
     {
-        public static IDicomServerBuilder AddSqlServer(this IDicomServerBuilder dicomServerBuilder, Action<SqlServerDataStoreConfiguration> configureAction = null)
+        public static IDicomServerBuilder AddSqlServer(
+            this IDicomServerBuilder dicomServerBuilder,
+            IConfiguration configurationRoot,
+            Action<SqlServerDataStoreConfiguration> configureAction = null)
         {
             EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
             IServiceCollection services = dicomServerBuilder.Services;
 
-            services.AddSqlServerBase<SchemaVersion>();
+            services.AddSqlServerBase<SchemaVersion>(configurationRoot);
             services.AddSqlServerApi();
+
+            var config = new SqlServerDataStoreConfiguration();
+            configurationRoot?.GetSection("SqlServer").Bind(config);
 
             services.Add(provider =>
                 {
-                    var config = new SqlServerDataStoreConfiguration();
-                    provider.GetService<IConfiguration>().GetSection("SqlServer").Bind(config);
                     configureAction?.Invoke(config);
-
                     return config;
                 })
                 .Singleton()

@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         {
             var results = new List<VersionedInstanceIdentifier>();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper())
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.GetInstance.PopulateCommand(
