@@ -75,7 +75,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                     }
                     else
                     {
-                        _logger.LogInformation($"Skip change feed entry due to deletion before processing creation.");
+                        _logger.LogInformation($"Skip DICOM event with SequenceId {state.SyncedSequence + 1} due to deletion before processing creation.");
                     }
                 }
 
