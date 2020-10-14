@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Core.Features.Security;
-using Microsoft.Health.Dicom.Api.Features.Audit;
 using NSubstitute;
 using Xunit;
 
@@ -18,7 +17,6 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
     {
         private readonly IClaimsExtractor _claimsExtractor = Substitute.For<IClaimsExtractor>();
         private readonly IAuditHelper _auditHelper = Substitute.For<IAuditHelper>();
-        private readonly IAuditEgressLogger _auditEgressLogger;
 
         private readonly AuditMiddleware _auditMiddleware;
 
@@ -26,34 +24,38 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
         public AuditMiddlewareTests()
         {
-            _auditEgressLogger = new AuditEgressLogger();
-
             _auditMiddleware = new AuditMiddleware(
                 httpContext => Task.CompletedTask,
                 _claimsExtractor,
-                _auditHelper,
-                _auditEgressLogger);
+                _auditHelper);
         }
 
         [Fact]
-        public async Task GivenNotAuthXFailure_WhenInvoked_ThenAuditLogShouldBeLogged()
+        public async Task GivenSuccess_WhenInvoked_ThenAuditLogShouldBeLogged()
         {
             _httpContext.Response.StatusCode = (int)HttpStatusCode.OK;
 
             await _auditMiddleware.Invoke(_httpContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor, shouldCheckForAuthXFailure: true);
         }
 
         [Theory]
+        [InlineData(HttpStatusCode.NotAcceptable)]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [InlineData(HttpStatusCode.NotFound)]
+        [InlineData(HttpStatusCode.ServiceUnavailable)]
         [InlineData(HttpStatusCode.Unauthorized)]
-        public async Task GivenAuthXFailure_WhenInvoked_ThenAuditLogShouldBeLogged(HttpStatusCode statusCode)
+        [InlineData(HttpStatusCode.UnsupportedMediaType)]
+        public async Task GivenFailure_WhenInvoked_ThenAuditLogShouldBeLogged(HttpStatusCode statusCode)
         {
             _httpContext.Response.StatusCode = (int)statusCode;
 
             await _auditMiddleware.Invoke(_httpContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor, shouldCheckForAuthXFailure: true);
         }
     }
 }

@@ -42,8 +42,17 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
             Log(AuditAction.Executing, statusCode: null, httpContext, claimsExtractor);
         }
 
-        /// <inheritdoc />
-        public void LogExecuted(HttpContext httpContext, IClaimsExtractor claimsExtractor)
+        /// <summary>
+        /// Logs an executed audit entry for the current operation.
+        /// </summary>
+        /// <param name="httpContext">The HTTP context.</param>
+        /// <param name="claimsExtractor">The extractor used to extract claims.</param>
+        /// <param name="shouldCheckForAuthXFailure">
+        /// Should check for AuthX failure and print LogExecuted messages only if it is AuthX failure.
+        /// This is no-op in DICOM as all the log executed messages are written at one place.
+        /// </param>
+        /// </summary>
+        public void LogExecuted(HttpContext httpContext, IClaimsExtractor claimsExtractor, bool shouldCheckForAuthXFailure)
         {
             EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
             EnsureArg.IsNotNull(httpContext, nameof(httpContext));
