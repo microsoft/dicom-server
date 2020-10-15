@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
 
         public async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper())
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.GetChangeFeedLatest.PopulateCommand(sqlCommandWrapper);
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
         {
             var results = new List<ChangeFeedEntry>();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapper())
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.GetChangeFeed.PopulateCommand(sqlCommandWrapper, limit, offset);

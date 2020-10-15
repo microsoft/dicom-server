@@ -6,11 +6,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
-using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
             await _sqlServerIndexSchema.EnsureInitialized();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.AddInstance.PopulateCommand(
@@ -122,7 +122,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
             await _sqlServerIndexSchema.EnsureInitialized();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.UpdateInstanceStatus.PopulateCommand(
@@ -155,7 +155,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         {
             var results = new List<VersionedInstanceIdentifier>();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper(true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.RetrieveDeletedInstance.PopulateCommand(
@@ -196,7 +196,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         {
             await _sqlServerIndexSchema.EnsureInitialized();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper(true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.DeleteDeletedInstance.PopulateCommand(
@@ -221,7 +221,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         {
             await _sqlServerIndexSchema.EnsureInitialized();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper(true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.IncrementDeletedInstanceRetry.PopulateCommand(
@@ -247,7 +247,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         {
             await _sqlServerIndexSchema.EnsureInitialized();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapper())
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.DeleteInstance.PopulateCommand(
