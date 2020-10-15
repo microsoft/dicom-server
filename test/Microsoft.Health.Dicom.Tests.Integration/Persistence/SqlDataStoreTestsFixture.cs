@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -112,13 +111,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 // Create the database
                 using (var sqlConnection = new SqlConnection(_masterConnectionString))
                 {
-                    sqlConnection.OpenAsync().Wait();
+                    sqlConnection.Open();
 
                     using (SqlCommand command = sqlConnection.CreateCommand())
                     {
                         command.CommandTimeout = 600;
                         command.CommandText = $"CREATE DATABASE {_databaseName}";
-                        command.ExecuteNonQueryAsync().Wait();
+                        command.ExecuteNonQuery();
                     }
                 }
 
@@ -129,21 +128,21 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 // verify that we can connect to the new database. This sometimes does not work right away with Azure SQL.
                 Policy
                     .Handle<SqlException>()
-                    .WaitAndRetryAsync(
+                    .WaitAndRetry(
                         retryCount: 7,
                         sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-                    .ExecuteAsync(async () =>
+                    .Execute(() =>
                     {
                         using (var sqlConnection = new SqlConnection(TestConnectionString))
                         {
-                            await sqlConnection.OpenAsync();
+                            sqlConnection.Open();
                             using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                             {
                                 sqlCommand.CommandText = "SELECT 1";
-                                await sqlCommand.ExecuteScalarAsync();
+                                sqlCommand.ExecuteNonQuery();
                             }
                         }
-                    }).Wait();
+                    });
                 LogInfo($"Complete Verify able to connect to database");
                 LogInfo($"Start Schema init");
                 _schemaInitializer.Start();
