@@ -23,6 +23,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 using NSubstitute;
 using Polly;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
@@ -93,8 +94,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
 
+        public ITestOutputHelper OutputHelper { get; set; }
+
+        private void LogInfo(string message)
+        {
+            if (OutputHelper != null)
+            {
+                OutputHelper.WriteLine("[penche-OutputHelper]" + message);
+            }
+
+            Console.WriteLine("[penche-Console]" + message);
+        }
+
         public async Task InitializeAsync()
         {
+            LogInfo($"Start Create Database: {_masterConnectionString}");
+
             // Create the database
             using (var sqlConnection = new SqlConnection(_masterConnectionString))
             {
@@ -107,6 +122,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     await command.ExecuteNonQueryAsync();
                 }
             }
+
+            LogInfo($"Complete Create Database: {_databaseName}");
+
+            LogInfo($"Start Verify able to connect to database");
 
             // verify that we can connect to the new database. This sometimes does not work right away with Azure SQL.
             await Policy
@@ -126,12 +145,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         }
                     }
                 });
-
+            LogInfo($"Complete Verify able to connect to database");
+            LogInfo($"Start Schema init");
             _schemaInitializer.Start();
+            LogInfo($"Complete Schema init");
         }
 
         public async Task DisposeAsync()
         {
+            LogInfo($"Start delete database {_databaseName}");
             using (var sqlConnection = new SqlConnection(_masterConnectionString))
             {
                 await sqlConnection.OpenAsync();
@@ -144,6 +166,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     await sqlCommand.ExecuteNonQueryAsync();
                 }
             }
+
+            LogInfo($"Complete delete database {_databaseName}");
         }
     }
 }
