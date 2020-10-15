@@ -6,7 +6,6 @@
 using System;
 using System.Numerics;
 using System.Threading;
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -23,11 +22,10 @@ using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Storage;
 using NSubstitute;
 using Polly;
-using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class SqlDataStoreTestsFixture : IAsyncLifetime
+    public class SqlDataStoreTestsFixture : IDisposable
     {
         private const string LocalConnectionString = "server=(local);Integrated Security=true";
 
@@ -101,9 +99,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Console.WriteLine(finalMsg);
         }
 
-        public async Task InitializeAsync()
+        public void Initialize()
         {
-            await Task.Run(() => { });
             lock (_locker)
             {
                 LogInfo($"Start Create Database: {_masterConnectionString}");
@@ -150,19 +147,19 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        public async Task DisposeAsync()
+        public void Dispose()
         {
             LogInfo($"Start delete database {_databaseName}");
             using (var sqlConnection = new SqlConnection(_masterConnectionString))
             {
-                await sqlConnection.OpenAsync();
+                sqlConnection.Open();
                 SqlConnection.ClearAllPools();
 
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandTimeout = 600;
                     sqlCommand.CommandText = $"DROP DATABASE IF EXISTS {_databaseName}";
-                    await sqlCommand.ExecuteNonQueryAsync();
+                    sqlCommand.ExecuteNonQuery();
                 }
             }
 

@@ -3,13 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading.Tasks;
+using System;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class ChangeFeedTestsFixture : IAsyncLifetime
+    public class ChangeFeedTestsFixture : IDisposable
     {
         private readonly SqlDataStoreTestsFixture _sqlDataStoreTestsFixture;
 
@@ -22,14 +21,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _sqlDataStoreTestsFixture.TestHelper;
 
-        public async Task InitializeAsync()
+        public void Initialize()
         {
-            await _sqlDataStoreTestsFixture.InitializeAsync();
+            _sqlDataStoreTestsFixture.Initialize();
         }
 
-        public async Task DisposeAsync()
+        public void Dispose()
         {
-            await _sqlDataStoreTestsFixture.DisposeAsync();
+            _sqlDataStoreTestsFixture.Dispose();
         }
     }
 }

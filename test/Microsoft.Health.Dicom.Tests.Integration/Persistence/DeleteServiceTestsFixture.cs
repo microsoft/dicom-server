@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public async Task InitializeAsync()
         {
-            await _sqlDataStoreTestsFixture.InitializeAsync();
+            _sqlDataStoreTestsFixture.Initialize();
             await _blobStorageTestsFixture.InitializeAsync();
 
             var cleanupConfiguration = new DeletedInstanceCleanupConfiguration
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public async Task DisposeAsync()
         {
-            await _sqlDataStoreTestsFixture.DisposeAsync();
+            _sqlDataStoreTestsFixture.Dispose();
             await _blobStorageTestsFixture.DisposeAsync();
         }
     }
