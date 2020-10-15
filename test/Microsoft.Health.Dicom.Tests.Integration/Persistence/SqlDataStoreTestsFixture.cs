@@ -5,6 +5,7 @@
 
 using System;
 using System.Numerics;
+using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Data.SqlClient;
@@ -93,57 +94,82 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
 
+        private static void Log(string msg)
+        {
+            Console.WriteLine($"[penche][{DateTime.Now}] [Tid: {Thread.CurrentThread.ManagedThreadId}] {msg}");
+        }
+
         public async Task InitializeAsync()
         {
-            // Create the database
-            using (var sqlConnection = new SqlConnection(_masterConnectionString))
+            await Task.Run(() =>
             {
-                await sqlConnection.OpenAsync();
+                Log($"Start Create Database {_databaseName}");
+                Log($"ConnStr: {_masterConnectionString}");
 
-                using (SqlCommand command = sqlConnection.CreateCommand())
+                // Create the database
+                using (var sqlConnection = new SqlConnection(_masterConnectionString))
                 {
-                    command.CommandTimeout = 600;
-                    command.CommandText = $"CREATE DATABASE {_databaseName}";
-                    await command.ExecuteNonQueryAsync();
-                }
-            }
+                    sqlConnection.Open();
 
-            // verify that we can connect to the new database. This sometimes does not work right away with Azure SQL.
-            await Policy
-                .Handle<SqlException>()
-                .WaitAndRetryAsync(
-                    retryCount: 7,
-                    sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-                .ExecuteAsync(async () =>
-                {
-                    using (var sqlConnection = new SqlConnection(TestConnectionString))
+                    using (SqlCommand command = sqlConnection.CreateCommand())
                     {
-                        await sqlConnection.OpenAsync();
-                        using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
-                        {
-                            sqlCommand.CommandText = "SELECT 1";
-                            await sqlCommand.ExecuteScalarAsync();
-                        }
+                        command.CommandTimeout = 600;
+                        command.CommandText = $"CREATE DATABASE {_databaseName}";
+                        command.ExecuteNonQuery();
                     }
-                });
+                }
 
-            _schemaInitializer.Start();
+                Log($"Complete Create Database: {_databaseName}");
+
+                Log($"Start Verify Connecting Database {_databaseName}");
+
+                // verify that we can connect to the new database. This sometimes does not work right away with Azure SQL.
+                Policy
+                    .Handle<SqlException>()
+                    .WaitAndRetry(
+                        retryCount: 7,
+                        sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+                    .Execute(() =>
+                    {
+                        using (var sqlConnection = new SqlConnection(TestConnectionString))
+                        {
+                            sqlConnection.Open();
+                            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                            {
+                                sqlCommand.CommandText = "SELECT 1";
+                                sqlCommand.ExecuteScalar();
+                            }
+                        }
+                    });
+
+                Log($"Complete Verify Connecting Database {_databaseName}");
+
+                Log($"Start Schema initailizer {_databaseName}");
+                _schemaInitializer.Start();
+                Log($"Complete Schema initailizer {_databaseName}");
+            });
         }
 
         public async Task DisposeAsync()
         {
-            using (var sqlConnection = new SqlConnection(_masterConnectionString))
+            await Task.Run(() =>
             {
-                await sqlConnection.OpenAsync();
-                SqlConnection.ClearAllPools();
-
-                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                Log($"Start Deleting database {_databaseName}");
+                using (var sqlConnection = new SqlConnection(_masterConnectionString))
                 {
-                    sqlCommand.CommandTimeout = 600;
-                    sqlCommand.CommandText = $"DROP DATABASE IF EXISTS {_databaseName}";
-                    await sqlCommand.ExecuteNonQueryAsync();
+                    sqlConnection.Open();
+                    SqlConnection.ClearAllPools();
+
+                    using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                    {
+                        sqlCommand.CommandTimeout = 600;
+                        sqlCommand.CommandText = $"DROP DATABASE IF EXISTS {_databaseName}";
+                        sqlCommand.ExecuteNonQuery();
+                    }
                 }
-            }
+
+                Log($"Complete Deleting database {_databaseName}");
+            });
         }
     }
 }
