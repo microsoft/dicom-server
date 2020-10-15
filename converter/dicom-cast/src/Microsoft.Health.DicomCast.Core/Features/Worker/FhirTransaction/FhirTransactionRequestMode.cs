@@ -24,5 +24,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// The resource needs to be updated.
         /// </summary>
         Update,
+
+        /// <summary>
+        /// The resource needs to be deleted.
+        /// </summary>
+        Delete,
     }
 }

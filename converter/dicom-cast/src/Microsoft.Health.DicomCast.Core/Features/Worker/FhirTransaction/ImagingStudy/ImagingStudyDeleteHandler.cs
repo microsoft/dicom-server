@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
@@ -19,12 +21,17 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     public class ImagingStudyDeleteHandler : IImagingStudyDeleteHandler
     {
         private readonly IFhirService _fhirService;
+        private readonly string _dicomWebEndpoint;
 
         public ImagingStudyDeleteHandler(
-           IFhirService fhirService)
+           IFhirService fhirService,
+           IOptions<DicomWebConfiguration> dicomWebConfiguration)
         {
             EnsureArg.IsNotNull(fhirService, nameof(fhirService));
+            EnsureArg.IsNotNull(dicomWebConfiguration?.Value, nameof(dicomWebConfiguration));
+
             _fhirService = fhirService;
+            _dicomWebEndpoint = dicomWebConfiguration.Value.Endpoint.ToString();
         }
 
         /// <inheritdoc/>
@@ -37,6 +44,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             Identifier imagingStudyIdentifier = ImagingStudyIdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
             ImagingStudy imagingStudy = await _fhirService.RetrieveImagingStudyAsync(imagingStudyIdentifier, cancellationToken);
+            string imagingStudySource = imagingStudy.Meta.Source;
 
             // Returns null if imagingStudy does not exists for given studyInstanceUid
             if (imagingStudy == null)
@@ -60,6 +68,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             if (series.Instance.Count == 0)
             {
                 imagingStudy.Series.Remove(series);
+            }
+
+            if (imagingStudy.Series.Count == 0 && imagingStudy.Meta.Source.Equals(_dicomWebEndpoint, System.StringComparison.Ordinal))
+            {
+                return new FhirTransactionRequestEntry(
+                    FhirTransactionRequestMode.Delete,
+                    ImagingStudyPipelineHelper.GenerateDeleteRequest(imagingStudy),
+                    imagingStudy.ToServerResourceId(),
+                    imagingStudy);
             }
 
             return new FhirTransactionRequestEntry(
