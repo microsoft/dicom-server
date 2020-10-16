@@ -36,6 +36,8 @@ In addition to Scale Up, you can also Scale Out your App Service Plan to meet th
 ![Scale Out 2](../images/scale-out-2.png)
 1. Select **Save**.
 
+For suggested guidance on Azure App Service tiers, see [Medical Imaging Server for DICOM Performance Guidance](../resources/performance-guidance.md).
+
 ## Manage SQL Database
 
 The Standard tier of the DTU-based SQL performance tiers is enabled by default upon deployment. In DTU-based SQL purchase models, a fixed set of resources is assigned to the database via performance tiers: Basic, Standard and Premium. To learn more about the various tiers, view the [Azure SQL Database Pricing](https://azure.microsoft.com/pricing/details/sql-database/single/).
@@ -48,6 +50,8 @@ If you would like to update your SQL Database tier:
 1. Choose the performance tier and DTU level that meets your workload requirements:
 ![Configure SQL2](../images/configure-sql-2.png)
 1. Click **Apply**.
+
+For suggested guidance on SQL Database Tiers, see [Medical Imaging Server for DICOM Performance Guidance](../resources/performance-guidance.md).
 
 ## Additional Configuration Settings
 
