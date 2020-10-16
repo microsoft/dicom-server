@@ -50,6 +50,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     AutomaticUpdatesEnabled = true,
                 },
+                AllowDatabaseCreation = true,
             };
 
             var scriptProvider = new ScriptProvider<SchemaVersion>();
