@@ -5,7 +5,6 @@
 
 using System;
 using System.Numerics;
-using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Data.SqlClient;
@@ -94,18 +93,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
 
-        private static void Log(string msg)
-        {
-            Console.WriteLine($"[penche][{DateTime.Now}] [Tid: {Thread.CurrentThread.ManagedThreadId}] {msg}");
-        }
-
         public async Task InitializeAsync()
         {
             await Task.Run(() =>
             {
-                Log($"Start Create Database {_databaseName}");
-                Log($"ConnStr: {_masterConnectionString}");
-
                 // Create the database
                 using (var sqlConnection = new SqlConnection(_masterConnectionString))
                 {
@@ -118,10 +109,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         command.ExecuteNonQuery();
                     }
                 }
-
-                Log($"Complete Create Database: {_databaseName}");
-
-                Log($"Start Verify Connecting Database {_databaseName}");
 
                 // verify that we can connect to the new database. This sometimes does not work right away with Azure SQL.
                 Policy
@@ -142,11 +129,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         }
                     });
 
-                Log($"Complete Verify Connecting Database {_databaseName}");
-
-                Log($"Start Schema initailizer {_databaseName}");
                 _schemaInitializer.Start();
-                Log($"Complete Schema initailizer {_databaseName}");
             });
         }
 
@@ -154,7 +137,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             await Task.Run(() =>
             {
-                Log($"Start Deleting database {_databaseName}");
                 using (var sqlConnection = new SqlConnection(_masterConnectionString))
                 {
                     sqlConnection.Open();
@@ -167,8 +149,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         sqlCommand.ExecuteNonQuery();
                     }
                 }
-
-                Log($"Complete Deleting database {_databaseName}");
             });
         }
     }
