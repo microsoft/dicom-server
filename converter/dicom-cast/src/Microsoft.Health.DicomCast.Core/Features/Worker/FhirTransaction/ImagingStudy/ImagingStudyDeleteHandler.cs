@@ -44,13 +44,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             Identifier imagingStudyIdentifier = ImagingStudyIdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
             ImagingStudy imagingStudy = await _fhirService.RetrieveImagingStudyAsync(imagingStudyIdentifier, cancellationToken);
-            string imagingStudySource = imagingStudy.Meta.Source;
 
             // Returns null if imagingStudy does not exists for given studyInstanceUid
             if (imagingStudy == null)
             {
                 return null;
             }
+
+            string imagingStudySource = imagingStudy.Meta.Source;
 
             ImagingStudy.SeriesComponent series = ImagingStudyPipelineHelper.GetSeriesWithinAStudy(changeFeedEntry.SeriesInstanceUid, imagingStudy.Series);
             ImagingStudy.InstanceComponent instance = ImagingStudyPipelineHelper.GetInstanceWithinASeries(changeFeedEntry.SopInstanceUid, series);
@@ -70,7 +71,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 imagingStudy.Series.Remove(series);
             }
 
-            if (imagingStudy.Series.Count == 0 && imagingStudy.Meta.Source.Equals(_dicomWebEndpoint, System.StringComparison.Ordinal))
+            if (imagingStudy.Series.Count == 0 && _dicomWebEndpoint.Equals(imagingStudySource, System.StringComparison.Ordinal))
             {
                 return new FhirTransactionRequestEntry(
                     FhirTransactionRequestMode.Delete,
