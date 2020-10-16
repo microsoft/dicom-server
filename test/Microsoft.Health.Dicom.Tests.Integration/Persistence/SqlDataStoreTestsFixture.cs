@@ -97,6 +97,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             await Task.Run(() =>
             {
+                // Change all asyn calls to sync to mitigate issue https://microsofthealth.visualstudio.com/Health/_workitems/edit/76630
                 // Create the database
                 using (var sqlConnection = new SqlConnection(_masterConnectionString))
                 {
@@ -137,6 +138,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             await Task.Run(() =>
             {
+                // Change all asyn calls to sync to mitigate issue https://microsofthealth.visualstudio.com/Health/_workitems/edit/76630
                 using (var sqlConnection = new SqlConnection(_masterConnectionString))
                 {
                     sqlConnection.Open();
