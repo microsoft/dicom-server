@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     }
                 });
 
-            _schemaInitializer.Start();
+            await _schemaInitializer.InitializeAsync();
         }
 
         public async Task DisposeAsync()
