@@ -40,19 +40,27 @@ In addition to configuring geo-redudunant Azure Storage, we recommend configurin
 
 If you are testing out the Medical Imaging Server for DICOM and not running production workloads, we recommend using the S1 Azure App Service Tier alongside a Standard Azure SQL Database (S1, S2, S3). For a small system that does not require redundancy, with these tiers, you can spend as little as ~$70/month on Azure App Service & Azure SQL Database.
 
-If you had ~100,000 DICOM instances, you should expect a range of 2000-9000 requests/minute and a response time under 1 second for STOW, WADO & QIDO.
+At these tiers with an appropriate mix of STOW, WADO and QIDO requests, you can expect to handle between 2,000 and 20,000 requests/minute and a response time under 1 second. Larger files, usage patterns that lean heavily to STOW, and poor bandwidth will reduce the number of requests per minute. 
 
-### Scenario 2: Production workload for a small ecosystem
+### Scenario 2: Production workload for a hospital system
 
-For a smaller production workload, we recommend scaling up your Azure SQL Database to S12. For your Azure App Service, any Standard tier should be sufficient. If you are going into production, you also need to ensure your Medical Imaging Server for DICOM supports geo-redundancy. Refer to our [geo-redundancy guidelines](##Geo-Redundancy).
+For a production workload, we recommend scaling up your Azure SQL Database to S12. For your Azure App Service, any Standard tier should be sufficient. If you are going into production, you also need to ensure your Medical Imaging Server for DICOM supports geo-redundancy. Refer to our [geo-redundancy guidelines](##Geo-Redundancy).
 
-We recommend the S1 Standard Azure App Service Tier along side an Azure SQL Tier of S12. At these tiers, you can expect up a range of 1000-20,000 requests/minute with a response time under 400 ms for WADO, QIDO & STOW.
+We recommend the S1 Standard Azure App Service Tier along side an Azure SQL Tier of S12. At these tiers with an appropriate mix of STOW, WADO and QIDO requests, you can expect to handle between 1,000 and 20,000 requests/minutes with response times under 400 ms. Larger files, usage patterns that lean heavily to STOW, and poor bandwidth will reduce the number of requests per minute. We recommend testing performance with your data and indented use.
 
-### Scenario 3: Large Hospital System with high numbers of DICOM requests per day in a production workload
+### Scenario 3: Bulk ingest of DICOM files
 
-If you need to upload a large number of DICOM instances a day (800,000+), we recommend scaling up your Azure App Service Plan and your Azure SQL Database to Premium Tiers. If you are going into production, you also need to ensure your Medical Imaging Server for DICOM supports geo-redundancy. Refer to our [geo-redundancy guidelines](##Geo-Redundancy).
+If you workload requires bulk ingest of DICOM files or automated tooling to process DICOM files, we recommend scaling up your Azure App Service & Azure SQL Database to Premium tiers. If you are going into production, you also need to ensure your Medical Imaging Server for DICOM supports geo-redundancy. Refer to our [geo-redundancy guidelines](##Geo-Redundancy).
 
-To support a large number of DICOM transactions per day, we recommend a P1v2 tier for Azure App Service alongside a P11 tier for Azure SQL Database. For STOW, WADO and QIDO, you should expect a range of 40,000 - 100,000 requests/minute with response times under 200 ms.
+To support a large number of DICOM transactions per day, we recommend a P1v2 tier for Azure App Service alongside a P11 tier for Azure SQL Database. With excellent bandwidth, relatively small images and and appropriate mix of STOW, WADO and QIDO requests, you can expect to handle between 40,000 and 100,000 requests/minutes with response times under 200 ms. Larger files, usage patterns that lean heavily to STOW, and poor bandwidth will reduce the number of requests per minute. We recommend testing performance with your data and indented use.
+
+### Comments about Performance Results
+
+In order to estimate workloads, automated scale tests were performed to simulate a production environment. The guidance in this document is a suggestion and may need to be modified to meet your environment. A few important notes to consider while configuring your service:
+
+- Once you cross ~60% usage of your database, you will start to see a decline in performance.
+- The scale tests done for the guidance in this document were performed using 500 KB DICOM files.
+- Additionally, the scale tests were running with multiple concurrent callers. At fewer concurrent callers, you may have a higher request/minute and response time.
 
 ## Summary
 
