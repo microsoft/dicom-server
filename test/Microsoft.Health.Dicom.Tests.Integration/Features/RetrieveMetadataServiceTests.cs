@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -79,6 +80,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
             ValidateResponseMetadataDataset(datasetList.First(), response.ResponseMetadata.First());
             ValidateResponseMetadataDataset(datasetList.Last(), response.ResponseMetadata.Last());
+            throw new NotImplementedException();
         }
 
         [Fact]
