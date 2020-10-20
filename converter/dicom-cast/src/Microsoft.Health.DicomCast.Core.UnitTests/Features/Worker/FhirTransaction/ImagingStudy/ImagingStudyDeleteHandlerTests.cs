@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using NSubstitute;
@@ -18,15 +20,21 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 {
     public class ImagingStudyDeleteHandlerTests
     {
+        private const string DefaultDicomWebEndpoint = "https://dicom/";
+
         private readonly IFhirService _fhirService;
         private readonly ImagingStudyDeleteHandler _imagingStudyDeleteHandler;
+        private readonly DicomWebConfiguration _configuration;
 
         private FhirTransactionContext _fhirTransactionContext;
 
         public ImagingStudyDeleteHandlerTests()
         {
+            _configuration = new DicomWebConfiguration() { Endpoint = new System.Uri(DefaultDicomWebEndpoint), };
+            IOptions<DicomWebConfiguration> optionsConfiguration = Options.Create(_configuration);
+
             _fhirService = Substitute.For<IFhirService>();
-            _imagingStudyDeleteHandler = new ImagingStudyDeleteHandler(_fhirService);
+            _imagingStudyDeleteHandler = new ImagingStudyDeleteHandler(_fhirService, optionsConfiguration);
         }
 
         [Fact]
@@ -59,6 +67,42 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                         series.Instance,
                         instance => Assert.Equal(sopInstanceUid1, instance.Uid));
                 });
+        }
+
+        [Fact]
+        public async Task GivenAChangeFeedEntryToDeleteAnInstanceWithinASeriesContainingOneInstanceDifferentSouce_WhenBuilt_ShouldUpdateNotDelete()
+        {
+            const string studyInstanceUid = "1";
+            const string seriesInstanceUid = "2";
+            const string sopInstanceUid = "3";
+            const string patientResourceId = "p1";
+
+            // create a new ImagingStudy
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
+            _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
+
+            // delete an existing instance within a study
+            FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, seriesInstanceUid, sopInstanceUid, patientResourceId);
+
+            Assert.Equal(FhirTransactionRequestMode.Update, entry.RequestMode);
+        }
+
+        [Fact]
+        public async Task GivenAChangeFeedEntryToDeleteAnInstanceWithinASeriesContainingOneInstanceSameSouce_WhenBuilt_ShouldDelete()
+        {
+            const string studyInstanceUid = "1";
+            const string seriesInstanceUid = "2";
+            const string sopInstanceUid = "3";
+            const string patientResourceId = "p1";
+
+            // create a new ImagingStudy
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId, DefaultDicomWebEndpoint);
+            _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
+
+            // delete an existing instance within a study
+            FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, seriesInstanceUid, sopInstanceUid, patientResourceId);
+
+            Assert.Equal(FhirTransactionRequestMode.Delete, entry.RequestMode);
         }
 
         [Fact]

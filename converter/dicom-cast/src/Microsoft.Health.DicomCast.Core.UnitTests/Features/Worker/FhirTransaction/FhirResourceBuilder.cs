@@ -12,7 +12,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 {
     public class FhirResourceBuilder
     {
-        public static ImagingStudy CreateNewImagingStudy(string studyInstanceUid, List<string> seriesInstanceUidList, List<string> sopInstanceUidList, string patientResourceId)
+        public static ImagingStudy CreateNewImagingStudy(string studyInstanceUid, List<string> seriesInstanceUidList, List<string> sopInstanceUidList, string patientResourceId, string source = "defaultSouce")
         {
             // Create a new ImagingStudy
             ImagingStudy study = new ImagingStudy
@@ -20,7 +20,11 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 Id = "123",
                 Status = ImagingStudy.ImagingStudyStatus.Available,
                 Subject = new ResourceReference(patientResourceId),
-                Meta = new Meta() { VersionId = "1" },
+                Meta = new Meta()
+                {
+                    VersionId = "1",
+                    Source = source,
+                },
             };
 
             foreach (string seriesInstanceUid in seriesInstanceUidList)

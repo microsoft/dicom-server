@@ -65,6 +65,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             };
         }
 
+        public static Bundle.RequestComponent GenerateDeleteRequest(ImagingStudy imagingStudy)
+        {
+            return new Bundle.RequestComponent()
+            {
+                Method = Bundle.HTTPVerb.DELETE,
+                Url = $"{ResourceType.ImagingStudy.GetLiteral()}/{imagingStudy.Id}",
+            };
+        }
+
         public static string GetModalityInString(DicomDataset dataset)
         {
             return dataset.GetSingleValueOrDefault<string>(DicomTag.Modality, default);

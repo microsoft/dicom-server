@@ -8,8 +8,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.Fhir.Client;
