@@ -73,6 +73,7 @@ If you did not enable Application Insights during deployment, you can via the Az
 ![App Insights 1](../images/app-insights-1.png)
 1. Select **Turn on Application Insights**:
 ![App Insights 2](../images/app-insights-2.png)
+1. Link your App Service to an Application Insights Resource. You can create a new name for your **Application Insights** resource or use the default name. Select **Apply**.
 1. View and customize **Application Insights** by navigating to the created **Application Insights** resource.
 
 ### Diagnostic Settings & Log Analytics
