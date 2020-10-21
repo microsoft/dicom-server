@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Core.Features.Security;
@@ -11,24 +12,30 @@ using Microsoft.Health.Core.Features.Security;
 namespace Microsoft.Health.Dicom.Api.Features.Audit
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class AuditLoggingFilterAttribute : Microsoft.Health.Api.Features.Audit.AuditLoggingFilterAttribute
+    public class AuditLoggingFilterAttribute : ActionFilterAttribute
     {
         public AuditLoggingFilterAttribute(
             IClaimsExtractor claimsExtractor,
             IAuditHelper auditHelper)
-            : base(claimsExtractor, auditHelper)
         {
+            EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
+            EnsureArg.IsNotNull(auditHelper, nameof(auditHelper));
+
+            ClaimsExtractor = claimsExtractor;
+            AuditHelper = auditHelper;
         }
 
-        /// <summary>
-        /// Do nothing when execution finishes for a request.
-        /// LogExecuted will be called from AuditMiddleware.
-        /// AuditEgressLogger is responsible for taking care of this.
-        /// </summary>
-        /// <param name="context">On result executed context.</param>
-        public override void OnResultExecuted(ResultExecutedContext context)
+        protected IClaimsExtractor ClaimsExtractor { get; }
+
+        protected IAuditHelper AuditHelper { get; }
+
+        public override void OnActionExecuting(ActionExecutingContext context)
         {
-            // Do nothing.
+            EnsureArg.IsNotNull(context, nameof(context));
+
+            AuditHelper.LogExecuting(context.HttpContext, ClaimsExtractor);
+
+            base.OnActionExecuting(context);
         }
     }
 }
