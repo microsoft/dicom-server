@@ -80,7 +80,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
             ValidateResponseMetadataDataset(datasetList.First(), response.ResponseMetadata.First());
             ValidateResponseMetadataDataset(datasetList.Last(), response.ResponseMetadata.Last());
-            throw new NotImplementedException();
         }
 
         [Fact]
