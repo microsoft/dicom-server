@@ -32,7 +32,7 @@ You can customize your Azure Storage Account SKU during deployment via the Medic
 
 ### Geo-replication for SQL Database
 
-In addition to configuring geo-redudunant Azure Storage, we recommend configuring active geo-replication for your Azure SQL Database. This allows you to create readable secondary databases of individual databases on a server in the same or different data center region. For a tutorial on how to configure this, see [Creating and using active geo-replication - Azure SQL Database](https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview).
+In addition to configuring geo-redundant Azure Storage, we recommend configuring active geo-replication for your Azure SQL Database. This allows you to create readable secondary databases of individual databases on a server in the same or different data center region. For a tutorial on how to configure this, see [Creating and using active geo-replication - Azure SQL Database](https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview).
 
 ## Workload Scenarios for Azure SQL Database & Azure App Service
 
