@@ -96,7 +96,7 @@ namespace Microsoft.Health.Dicom.Api.Web
             {
                 section = await _multipartReader.ReadNextSectionAsync(cancellationToken);
             }
-            catch (Exception ex)
+            catch (InvalidDataException ex)
             {
                 throw new InvalidMultipartRequestException(ex.Message);
             }
