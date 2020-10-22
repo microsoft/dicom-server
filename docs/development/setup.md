@@ -3,6 +3,7 @@
 - [Azure storage emulator](https://go.microsoft.com/fwlink/?linkid=717179)
 - SQL Server 2019 with Full text index feature
 - .NET core SDK version specified [here](/global.json)
+   - https://dotnet.microsoft.com/download/dotnet-core/3.1 
 
 ## Getting Started in Visual Studio
 ### Developing
