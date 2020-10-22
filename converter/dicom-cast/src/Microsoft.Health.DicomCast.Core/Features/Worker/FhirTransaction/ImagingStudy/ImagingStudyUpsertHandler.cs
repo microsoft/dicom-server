@@ -8,7 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
@@ -21,16 +23,20 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         private readonly IFhirService _fhirService;
         private readonly IImagingStudySynchronizer _imagingStudySynchronizer;
+        private readonly string _dicomWebEndpoint;
 
         public ImagingStudyUpsertHandler(
            IFhirService fhirService,
-           IImagingStudySynchronizer imagingStudySynchronizer)
+           IImagingStudySynchronizer imagingStudySynchronizer,
+           IOptions<DicomWebConfiguration> dicomWebConfiguration)
         {
             EnsureArg.IsNotNull(fhirService, nameof(fhirService));
             EnsureArg.IsNotNull(imagingStudySynchronizer, nameof(_imagingStudySynchronizer));
+            EnsureArg.IsNotNull(dicomWebConfiguration?.Value, nameof(dicomWebConfiguration));
 
             _fhirService = fhirService;
             _imagingStudySynchronizer = imagingStudySynchronizer;
+            _dicomWebEndpoint = dicomWebConfiguration.Value.Endpoint.ToString();
         }
 
         /// <inheritdoc/>
@@ -60,6 +66,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 };
 
                 imagingStudy.Identifier.Add(imagingStudyIdentifier);
+                imagingStudy.Meta = new Meta()
+                {
+                    Source = _dicomWebEndpoint,
+                };
                 requestMode = FhirTransactionRequestMode.Create;
             }
 
