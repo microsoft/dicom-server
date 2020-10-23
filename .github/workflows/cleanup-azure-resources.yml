@@ -20,7 +20,7 @@ jobs:
           azPSVersion: '3.1.0'
           inlineScript: | 
             [string]$PRNumber = "${{github.event.pull_request.number}}"
-            $groups = Get-AzResourceGroup -Name "dcm-pr$PR-*-*"  
+            $groups = Get-AzResourceGroup -Name "dcm-pr$PRNumber-*-*"  
             if ($groups -eq $null -or $groups.Count -eq 0)
             {
               Write-Host "No Resource groups related to PR $PRNumber are found."
@@ -31,7 +31,7 @@ jobs:
               foreach($group in $groups)
               {
                 [string]$name = $group.ResourceGroupName
-                Write-Host -Message "Deleting Resource Group $name"
+                Write-Host "Deleting Resource Group $name"
                 Remove-AzResourceGroup -Name $name -Force
               }  
             }
