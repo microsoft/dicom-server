@@ -58,6 +58,7 @@ Follow the steps [here](docs/development/setup.md) to deploy a local copy of the
 - [FAQ](docs/resources/faq.md)
 - [Conformance Statement](docs/resources/conformance-statement.md)
 - [Health Check API](docs/resources/health-check-api.md)
+- [Performance Guidance](docs/resources/performance-guidance.md)
 
 ## Development
 
