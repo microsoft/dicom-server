@@ -27,6 +27,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
         private readonly ISyncStateService _syncStateService;
         private readonly ILogger<ChangeFeedProcessor> _logger;
+        private static readonly Action<ILogger, Exception> LogFailtoRetrieveChangeFeedDelegate =
+           LoggerMessage.Define(
+               LogLevel.Warning,
+               default,
+               "Fail to retrieve change feed.");
 
         public ChangeFeedProcessor(
             IChangeFeedRetrieveService changeFeedRetrieveService,
@@ -53,9 +58,18 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
             while (true)
             {
                 // Retrieve the change feed for any changes.
-                IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedRetrieveService.RetrieveChangeFeedAsync(
-                    state.SyncedSequence,
-                    cancellationToken);
+                IReadOnlyList<ChangeFeedEntry> changeFeedEntries;
+                try
+                {
+                    changeFeedEntries = await _changeFeedRetrieveService.RetrieveChangeFeedAsync(
+                        state.SyncedSequence,
+                        cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    LogFailtoRetrieveChangeFeedDelegate(_logger, ex);
+                    return;
+                }
 
                 if (!changeFeedEntries.Any())
                 {
