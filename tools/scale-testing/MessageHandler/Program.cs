@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -72,9 +73,12 @@ namespace MessageHandler
 
         private static void SetupDicomWebClient()
         {
-            Uri baseAddress = new Uri(KnownApplicationUrls.DicomServerUrl);
+            var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
+            };
 
-            client = new DicomWebClient(baseAddress);
+            client = new DicomWebClient(httpClient);
         }
 
         public static void RegisterOnMessageHandlerAndReceiveMessages()
