@@ -58,18 +58,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Theory]
         [InlineData("application/data")]
         [InlineData("application/dicom")]
-        public async void GivenAnIncorrectAcceptHeader_WhenStoring_TheServerShouldReturnNotAcceptable(string acceptHeader)
+        public async Task GivenAnIncorrectAcceptHeader_WhenStoring_TheServerShouldReturnNotAcceptable(string acceptHeader)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, StudiesUri);
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.HttpClient.SendAsync(request));
+            using HttpResponseMessage response = await _client.HttpClient.SendAsync(request);
 
-            Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
+            Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
         }
 
         [Fact]
-        public async void GivenAnNonMultipartRequest_WhenStoring_TheServerShouldReturnUnsupportedMediaType()
+        public async Task GivenAnNonMultipartRequest_WhenStoring_TheServerShouldReturnUnsupportedMediaType()
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, StudiesUri);
             request.Headers.Add(HeaderNames.Accept, DicomWebConstants.MediaTypeApplicationDicomJson.MediaType);
@@ -78,13 +78,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
             request.Content = multiContent;
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.HttpClient.SendAsync(request));
+            using HttpResponseMessage response = await _client.HttpClient.SendAsync(request);
 
-            Assert.Equal(HttpStatusCode.UnsupportedMediaType, exception.StatusCode);
+            Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
         }
 
         [Fact]
-        public async void GivenAMultipartRequestWithNoContent_WhenStoring_TheServerShouldReturnNoContent()
+        public async Task GivenAMultipartRequestWithNoContent_WhenStoring_TheServerShouldReturnNoContent()
         {
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void GivenAMultipartRequestWithEmptyContent_WhenStoring_TheServerShouldReturnConflict()
+        public async Task GivenAMultipartRequestWithEmptyContent_WhenStoring_TheServerShouldReturnConflict()
         {
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
@@ -111,7 +111,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void GivenAMultipartRequestWithAnInvalidMultipartSection_WhenStoring_TheServerShouldReturnAccepted()
+        public async Task GivenAMultipartRequestWithAnInvalidMultipartSection_WhenStoring_TheServerShouldReturnAccepted()
         {
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
@@ -150,7 +150,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void GivenAMultipartRequestWithTypeParameterAndFirstSectionWithoutContentType_WhenStoring_TheServerShouldReturnOK()
+        public async Task GivenAMultipartRequestWithTypeParameterAndFirstSectionWithoutContentType_WhenStoring_TheServerShouldReturnOK()
         {
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
@@ -184,7 +184,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void GivenAllDifferentStudyInstanceUIDs_WhenStoringWithProvidedStudyInstanceUID_TheServerShouldReturnConflict()
+        public async Task GivenAllDifferentStudyInstanceUIDs_WhenStoringWithProvidedStudyInstanceUID_TheServerShouldReturnConflict()
         {
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile();
             DicomFile dicomFile2 = Samples.CreateRandomDicomFile();
@@ -208,7 +208,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void GivenOneDifferentStudyInstanceUID_WhenStoringWithProvidedStudyInstanceUID_TheServerShouldReturnAccepted()
+        public async Task GivenOneDifferentStudyInstanceUID_WhenStoringWithProvidedStudyInstanceUID_TheServerShouldReturnAccepted()
         {
             var studyInstanceUID1 = TestUidGenerator.Generate();
             var studyInstanceUID2 = TestUidGenerator.Generate();
@@ -244,7 +244,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void GivenDatasetWithDuplicateIdentifiers_WhenStoring_TheServerShouldReturnConflict()
+        public async Task GivenDatasetWithDuplicateIdentifiers_WhenStoring_TheServerShouldReturnConflict()
         {
             var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID, studyInstanceUID);
@@ -263,7 +263,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void GivenExistingDataset_WhenStoring_TheServerShouldReturnConflict()
+        public async Task GivenExistingDataset_WhenStoring_TheServerShouldReturnConflict()
         {
             var studyInstanceUID = TestUidGenerator.Generate();
 
@@ -299,7 +299,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void GivenDatasetWithInvalidVrValue_WhenStoring_TheServerShouldReturnConflict()
+        public async Task GivenDatasetWithInvalidVrValue_WhenStoring_TheServerShouldReturnConflict()
         {
             var studyInstanceUID = TestUidGenerator.Generate();
 
@@ -318,7 +318,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Theory]
         [InlineData("abc.123")]
         [InlineData("11|")]
-        public async void GivenDatasetWithInvalidUid_WhenStoring_TheServerShouldReturnConflict(string studyInstanceUID)
+        public async Task GivenDatasetWithInvalidUid_WhenStoring_TheServerShouldReturnConflict(string studyInstanceUID)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = false;
@@ -342,7 +342,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void StoreSinglepart_ServerShouldReturnOK()
+        public async Task StoreSinglepart_ServerShouldReturnOK()
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFile();
 
@@ -354,7 +354,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        public async void StoreSinglepartWithStudyUID_ServerShouldReturnOK()
+        public async Task StoreSinglepartWithStudyUID_ServerShouldReturnOK()
         {
             var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);

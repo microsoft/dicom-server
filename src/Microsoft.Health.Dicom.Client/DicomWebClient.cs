@@ -28,37 +28,7 @@ namespace Microsoft.Health.Dicom.Client
     {
         private const string TransferSyntaxHeaderName = "transfer-syntax";
 
-        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings()
-        {
-            Converters = new List<JsonConverter>()
-            {
-                new JsonDicomConverter(writeTagsAsKeywords: true),
-            },
-        };
-
-        private static readonly DicomWebExceptionFactory StoreDicomWebExceptionFactory = (defaultExceptionFactory, statusCode, responseHeaders, contentHeaders, responseBody) =>
-        {
-            if (statusCode == HttpStatusCode.Conflict)
-            {
-                return new DicomWebException(
-                    statusCode,
-                    responseHeaders,
-                    contentHeaders,
-                    JsonConvert.DeserializeObject<DicomDataset>(responseBody, JsonSerializerSettings));
-            }
-
-            return defaultExceptionFactory(statusCode, responseHeaders, contentHeaders, responseBody);
-        };
-
-        private static readonly DicomWebExceptionFactory RetrieveMetadataExceptionFactory = (defaultExceptionFactory, statusCode, responseHeaders, contentHeaders, responseBody) =>
-        {
-            if (statusCode == HttpStatusCode.NotModified)
-            {
-                return null;
-            }
-
-            return defaultExceptionFactory(statusCode, responseHeaders, contentHeaders, responseBody);
-        };
+        private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         static DicomWebClient()
         {
@@ -69,24 +39,14 @@ namespace Microsoft.Health.Dicom.Client
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public DicomWebClient(Uri baseAddress, HttpMessageHandler httpMessageHandler)
+        public DicomWebClient(HttpClient httpClient)
         {
-            HttpClient = new HttpClient(new DicomWebResponseHandler(httpMessageHandler))
-            {
-                BaseAddress = baseAddress,
-            };
+            EnsureArg.IsNotNull(httpClient, nameof(httpClient));
 
-            GetMemoryStream = () => new MemoryStream();
-        }
+            HttpClient = httpClient;
 
-        public DicomWebClient(Uri baseAddress)
-        {
-            HttpMessageHandler httpMessageHandler = new HttpClientHandler();
-
-            HttpClient = new HttpClient(new DicomWebResponseHandler(httpMessageHandler))
-            {
-                BaseAddress = baseAddress,
-            };
+            _jsonSerializerSettings = new JsonSerializerSettings();
+            _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true));
 
             GetMemoryStream = () => new MemoryStream();
         }
@@ -114,6 +74,8 @@ namespace Microsoft.Health.Dicom.Client
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
+
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
             return new DicomWebResponse<DicomFile>(
                 response,
@@ -143,6 +105,8 @@ namespace Microsoft.Health.Dicom.Client
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
 
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
             return new DicomWebAsyncEnumerableResponse<DicomFile>(
                 response,
                 ReadMultipartResponseAsDicomFileAsync(response.Content));
@@ -166,6 +130,8 @@ namespace Microsoft.Health.Dicom.Client
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
 
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
             return new DicomWebAsyncEnumerableResponse<Stream>(
                 response,
                 ReadMultipartResponseAsStreamsAsync(response.Content));
@@ -185,12 +151,18 @@ namespace Microsoft.Health.Dicom.Client
             if (!string.IsNullOrEmpty(eTag))
             {
                 request.Headers.TryAddWithoutValidation(HeaderNames.IfNoneMatch, eTag);
-
-                // If the content has not changed, the status returned will be NotModified and so we need to treat it specially.
-                request.SetDicomWebExceptionFactory(RetrieveMetadataExceptionFactory);
             }
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            await EnsureSuccessStatusCodeAsync(
+                response,
+                additionalFailureInspector: (statusCode, responseHeaders, contentHeaders, responseBody) =>
+                {
+                    // If the content has not changed, the status returned will be NotModified and so we need to treat it specially.
+                    return statusCode == HttpStatusCode.NotModified;
+                })
                 .ConfigureAwait(false);
 
             return new DicomWebAsyncEnumerableResponse<DicomDataset>(
@@ -290,11 +262,26 @@ namespace Microsoft.Health.Dicom.Client
 
             request.Content = content;
 
-            // If store fails, we will get Conflict status code but the body will be a DicomDataset,
-            // so we need to handle this case specially.
-            request.SetDicomWebExceptionFactory(StoreDicomWebExceptionFactory);
-
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            await EnsureSuccessStatusCodeAsync(
+                response,
+                additionalFailureInspector: (statusCode, responseHeaders, contentHeaders, responseBody) =>
+                {
+                    // If store fails, we will get Conflict status code but the body will be a DicomDataset,
+                    // so we need to handle this case specially.
+                    if (statusCode == HttpStatusCode.Conflict)
+                    {
+                        throw new DicomWebException(
+                            statusCode,
+                            responseHeaders,
+                            contentHeaders,
+                            JsonConvert.DeserializeObject<DicomDataset>(responseBody, _jsonSerializerSettings));
+                    }
+
+                    return false;
+                })
                 .ConfigureAwait(false);
 
             return new DicomWebResponse<DicomDataset>(
@@ -302,7 +289,7 @@ namespace Microsoft.Health.Dicom.Client
                 async content =>
                 {
                     string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
-                    return JsonConvert.DeserializeObject<DicomDataset>(contentText, JsonSerializerSettings);
+                    return JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
                 });
         }
 
@@ -312,6 +299,8 @@ namespace Microsoft.Health.Dicom.Client
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
+
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
             return new DicomWebResponse(response);
         }
@@ -327,6 +316,8 @@ namespace Microsoft.Health.Dicom.Client
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
 
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
             return new DicomWebAsyncEnumerableResponse<DicomDataset>(
                 response,
                 DeserializeAsAsyncEnumerable<DicomDataset>(response.Content));
@@ -340,6 +331,8 @@ namespace Microsoft.Health.Dicom.Client
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
+
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
             return new DicomWebAsyncEnumerableResponse<ChangeFeedEntry>(
                 response,
@@ -355,12 +348,14 @@ namespace Microsoft.Health.Dicom.Client
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
 
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
             return new DicomWebResponse<ChangeFeedEntry>(
                 response,
                 async content =>
                 {
                     string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    return JsonConvert.DeserializeObject<ChangeFeedEntry>(contentText, JsonSerializerSettings);
+                    return JsonConvert.DeserializeObject<ChangeFeedEntry>(contentText, _jsonSerializerSettings);
                 });
         }
 
@@ -430,6 +425,48 @@ namespace Microsoft.Health.Dicom.Client
             }
         }
 
+        private static async Task EnsureSuccessStatusCodeAsync(
+            HttpResponseMessage response,
+            Func<HttpStatusCode, HttpResponseHeaders, HttpContentHeaders, string, bool> additionalFailureInspector = null)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                HttpStatusCode statusCode = response.StatusCode;
+                HttpResponseHeaders responseHeaders = response.Headers;
+                HttpContentHeaders contentHeaders = response.Content?.Headers;
+                string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                Exception exception = null;
+
+                try
+                {
+                    bool handled = additionalFailureInspector?.Invoke(statusCode, responseHeaders, contentHeaders, responseBody) ?? false;
+
+                    if (!handled)
+                    {
+                        throw new DicomWebException(statusCode, responseHeaders, contentHeaders, responseBody);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                }
+                finally
+                {
+                    // If we are throwing exception, then we can close the response because we have already read the body.
+                    if (exception != null)
+                    {
+                        response.Dispose();
+                    }
+                }
+
+                if (exception != null)
+                {
+                    throw exception;
+                }
+            }
+        }
+
         private async IAsyncEnumerable<DicomFile> ReadMultipartResponseAsDicomFileAsync(HttpContent content, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             await foreach (Stream stream in ReadMultipartResponseAsStreamsAsync(content, cancellationToken).ConfigureAwait(false))
@@ -438,7 +475,7 @@ namespace Microsoft.Health.Dicom.Client
             }
         }
 
-        private static async IAsyncEnumerable<T> DeserializeAsAsyncEnumerable<T>(HttpContent content)
+        private async IAsyncEnumerable<T> DeserializeAsAsyncEnumerable<T>(HttpContent content)
         {
             string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -447,7 +484,7 @@ namespace Microsoft.Health.Dicom.Client
                 yield break;
             }
 
-            foreach (T item in JsonConvert.DeserializeObject<IReadOnlyList<T>>(contentText, JsonSerializerSettings))
+            foreach (T item in JsonConvert.DeserializeObject<IReadOnlyList<T>>(contentText, _jsonSerializerSettings))
             {
                 yield return item;
             }

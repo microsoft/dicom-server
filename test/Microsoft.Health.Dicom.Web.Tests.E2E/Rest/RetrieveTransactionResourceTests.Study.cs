@@ -7,7 +7,6 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Client;
@@ -56,12 +55,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseStudyUriFormat, TestUidGenerator.Generate()), UriKind.Relative);
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
+            using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
+            using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() =>
-                _client.HttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, new CancellationTokenSource().Token));
-
-            Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
+            Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
         }
 
         [Fact]

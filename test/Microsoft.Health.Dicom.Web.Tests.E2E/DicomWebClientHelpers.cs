@@ -16,11 +16,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
     {
         public static async Task ValidateResponseStatusCodeAsync(this IDicomWebClient dicomWebClient, string requestUri, string acceptHeader, HttpStatusCode expectedStatusCode)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => dicomWebClient.HttpClient.SendAsync(request));
-            Assert.Equal(expectedStatusCode, exception.StatusCode);
+            using HttpResponseMessage response = await dicomWebClient.HttpClient.SendAsync(request);
+
+            Assert.Equal(expectedStatusCode, response.StatusCode);
         }
     }
 }
