@@ -27,7 +27,7 @@ To see language-specific examples, please see the examples below. Alternatively,
 
 ### C#
 
-The C# examples use the library included in this repo to simplify access to the API. Refer to the [C# examples](../use-dicom-web-standard-apis-with-c%23.md) to learn how to use C# with the Medical Imaging Server for DICOM.
+The C# examples use the library included in this repo to simplify access to the API. Refer to the [C# examples](../tutorials/use-dicom-web-standard-apis-with-c%23.md) to learn how to use C# with the Medical Imaging Server for DICOM.
 
 ### cURL
 
@@ -45,6 +45,6 @@ To use the Postman collection, you'll need to download the collection locally an
 
 This tutorial provided an overview of the APIs supported by the Medical Imaging Server for DICOM. Get started using these APIs with the following tools:
 
-- [Use DICOM Web Standard APIs with C#](../use-dicom-web-standard-apis-with-c%23.md)
-- [Use DICOM Web Standard APIs with cURL](../use-dicom-web-standard-apis-with-curl.md)
+- [Use DICOM Web Standard APIs with C#](../tutorials/use-dicom-web-standard-apis-with-c%23.md)
+- [Use DICOM Web Standard APIs with cURL](../tutorials/use-dicom-web-standard-apis-with-curl.md)
 - [Use DICOM Web Standard APIs with Postman Example Collection](../resources/Conformance-as-Postman.postman_collection.json)

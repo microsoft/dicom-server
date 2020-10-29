@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
@@ -90,7 +91,15 @@ namespace Microsoft.Health.Dicom.Api.Web
         /// <inheritdoc />
         public async Task<MultipartBodyPart> ReadNextBodyPartAsync(CancellationToken cancellationToken)
         {
-            MultipartSection section = await _multipartReader.ReadNextSectionAsync(cancellationToken);
+            MultipartSection section;
+            try
+            {
+                section = await _multipartReader.ReadNextSectionAsync(cancellationToken);
+            }
+            catch (InvalidDataException ex)
+            {
+                throw new InvalidMultipartRequestException(ex.Message);
+            }
 
             if (section == null)
             {

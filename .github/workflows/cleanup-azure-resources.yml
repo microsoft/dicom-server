@@ -1,0 +1,37 @@
+on:
+  pull_request:
+    types: [closed]
+
+name: CleanupAzureResources
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login via Az module
+        uses: azure/login@v1.1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+      
+      - name: Clean Up Azure Resources
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: '3.1.0'
+          inlineScript: | 
+            [string]$PRNumber = "${{github.event.pull_request.number}}"
+            $groups = Get-AzResourceGroup -Name "dcm-pr$PRNumber-*-*"  
+            if ($groups -eq $null -or $groups.Count -eq 0)
+            {
+              Write-Host "No Resource groups related to PR $PRNumber are found."
+            }
+            else
+            {
+              Write-Host "$($groups.Count) Resource groups related to PR $PRNumber are found."
+              foreach($group in $groups)
+              {
+                [string]$name = $group.ResourceGroupName
+                Write-Host "Deleting Resource Group $name"
+                Remove-AzResourceGroup -Name $name -Force
+              }  
+            }

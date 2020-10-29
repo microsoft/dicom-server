@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
         }
 
         [Fact]
-        public void GivenChangeFeedController_WhenExecutedActionThrowsException_ThenAuditLogShouldBeLogged()
+        public void GivenChangeFeedController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
         {
             var result = new NoContentResult();
 
@@ -61,11 +61,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
             _filter.OnActionExecuted(actionExecutedContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+                httpContext: default,
+                claimsExtractor: default);
         }
 
         [Fact]
-        public void GivenChangeFeedController_WhenExecutedAction_ThenAuditLogShouldBeLogged()
+        public void GivenChangeFeedController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
         {
             var result = new NoContentResult();
 
@@ -77,7 +79,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
             _filter.OnResultExecuted(resultExecutedContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+                httpContext: default,
+                claimsExtractor: default);
         }
 
         [Fact]
@@ -95,7 +99,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
         }
 
         [Fact]
-        public void GivenDeleteController_WhenExecutedActionThrowsException_ThenAuditLogShouldBeLogged()
+        public void GivenDeleteController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
         {
             var result = new NoContentResult();
 
@@ -108,11 +112,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
             _filter.OnActionExecuted(actionExecutedContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+                httpContext: default,
+                claimsExtractor: default);
         }
 
         [Fact]
-        public void GivenDeleteController_WhenExecutedAction_ThenAuditLogShouldBeLogged()
+        public void GivenDeleteController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
         {
             var result = new NoContentResult();
 
@@ -124,7 +130,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
             _filter.OnResultExecuted(resultExecutedContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+                httpContext: default,
+                claimsExtractor: default);
         }
 
         [Fact]
@@ -142,7 +150,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
         }
 
         [Fact]
-        public void GivenQueryController_WhenExecutedActionThrowsException_ThenAuditLogShouldBeLogged()
+        public void GivenQueryController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
         {
             var result = new NoContentResult();
 
@@ -155,11 +163,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
             _filter.OnActionExecuted(actionExecutedContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+                httpContext: default,
+                claimsExtractor: default);
         }
 
         [Fact]
-        public void GivenQueryController_WhenExecutedAction_ThenAuditLogShouldBeLogged()
+        public void GivenQueryController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
         {
             var result = new NoContentResult();
 
@@ -171,7 +181,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
             _filter.OnResultExecuted(resultExecutedContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+                httpContext: default,
+                claimsExtractor: default);
         }
 
         [Fact]
@@ -189,7 +201,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
         }
 
         [Fact]
-        public void GivenRetrieveController_WhenExecutedActionThrowsException_ThenAuditLogShouldBeLogged()
+        public void GivenRetrieveController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
         {
             var result = new NoContentResult();
 
@@ -202,11 +214,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
             _filter.OnActionExecuted(actionExecutedContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+                httpContext: default,
+                claimsExtractor: default);
         }
 
         [Fact]
-        public void GivenRetrieveController_WhenExecutedAction_ThenAuditLogShouldBeLogged()
+        public void GivenRetrieveController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
         {
             var result = new NoContentResult();
 
@@ -218,7 +232,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
             _filter.OnResultExecuted(resultExecutedContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+                httpContext: default,
+                claimsExtractor: default);
         }
 
         [Fact]
@@ -236,7 +252,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
         }
 
         [Fact]
-        public void GivenStoreController_WhenExecutedActionThrowsException_ThenAuditLogShouldBeLogged()
+        public void GivenStoreController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
         {
             var result = new NoContentResult();
 
@@ -249,11 +265,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
             _filter.OnActionExecuted(actionExecutedContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+                httpContext: default,
+                claimsExtractor: default);
         }
 
         [Fact]
-        public void GivenStoreController_WhenExecutedAction_ThenAuditLogShouldBeLogged()
+        public void GivenStoreController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
         {
             var result = new NoContentResult();
 
@@ -265,7 +283,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
 
             _filter.OnResultExecuted(resultExecutedContext);
 
-            _auditHelper.Received(1).LogExecuted(_httpContext, _claimsExtractor);
+            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+                httpContext: default,
+                claimsExtractor: default);
         }
     }
 }

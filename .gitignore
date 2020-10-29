@@ -287,3 +287,6 @@ __pycache__/
 
 # IdentityServer workspace
 tempkey.rsa
+
+# docker .env file
+**/.env

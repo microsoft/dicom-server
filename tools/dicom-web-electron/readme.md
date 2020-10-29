@@ -25,6 +25,8 @@ Once the Electron Tool launches, navigate to Server Settings. Select 'Change' to
 
 To upload files stored locally on your device, click 'Select File(s)'. You can upload multiple DICOM files at once to your server.
 
+You can get sample DICOM files at [../../docs/dcms](../../docs/dcms)
+
 ![Electron tool upload](images/electron-tool-upload.png)
 
 ## Change Feed

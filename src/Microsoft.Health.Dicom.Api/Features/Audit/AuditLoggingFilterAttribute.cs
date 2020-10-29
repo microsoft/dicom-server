@@ -12,25 +12,30 @@ using Microsoft.Health.Core.Features.Security;
 namespace Microsoft.Health.Dicom.Api.Features.Audit
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class AuditLoggingFilterAttribute : Microsoft.Health.Api.Features.Audit.AuditLoggingFilterAttribute
+    public class AuditLoggingFilterAttribute : ActionFilterAttribute
     {
         public AuditLoggingFilterAttribute(
             IClaimsExtractor claimsExtractor,
             IAuditHelper auditHelper)
-            : base(claimsExtractor, auditHelper)
         {
+            EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
+            EnsureArg.IsNotNull(auditHelper, nameof(auditHelper));
+
+            ClaimsExtractor = claimsExtractor;
+            AuditHelper = auditHelper;
         }
 
-        public override void OnActionExecuted(ActionExecutedContext context)
+        protected IClaimsExtractor ClaimsExtractor { get; }
+
+        protected IAuditHelper AuditHelper { get; }
+
+        public override void OnActionExecuting(ActionExecutingContext context)
         {
             EnsureArg.IsNotNull(context, nameof(context));
 
-            if (context.Exception != null)
-            {
-                AuditHelper.LogExecuted(context.HttpContext, ClaimsExtractor);
-            }
+            AuditHelper.LogExecuting(context.HttpContext, ClaimsExtractor);
 
-            base.OnActionExecuted(context);
+            base.OnActionExecuting(context);
         }
     }
 }

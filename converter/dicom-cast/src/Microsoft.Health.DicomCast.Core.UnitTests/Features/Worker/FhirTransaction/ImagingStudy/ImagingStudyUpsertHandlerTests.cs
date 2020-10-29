@@ -10,7 +10,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using NSubstitute;
@@ -21,17 +23,23 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 {
     public class ImagingStudyUpsertHandlerTests
     {
+        private const string DefaultDicomWebEndpoint = "https://dicom/";
+
         private readonly IFhirService _fhirService;
         private readonly IImagingStudySynchronizer _imagingStudySynchronizer;
         private readonly ImagingStudyUpsertHandler _imagingStudyUpsertHandler;
+        private readonly DicomWebConfiguration _configuration;
 
         private FhirTransactionContext _fhirTransactionContext;
 
         public ImagingStudyUpsertHandlerTests()
         {
+            _configuration = new DicomWebConfiguration() { Endpoint = new System.Uri(DefaultDicomWebEndpoint), };
+            IOptions<DicomWebConfiguration> optionsConfiguration = Options.Create(_configuration);
+
             _fhirService = Substitute.For<IFhirService>();
             _imagingStudySynchronizer = new ImagingStudySynchronizer(new ImagingStudyPropertySynchronizer(), new ImagingStudySeriesPropertySynchronizer(), new ImagingStudyInstancePropertySynchronizer());
-            _imagingStudyUpsertHandler = new ImagingStudyUpsertHandler(_fhirService, _imagingStudySynchronizer);
+            _imagingStudyUpsertHandler = new ImagingStudyUpsertHandler(_fhirService, _imagingStudySynchronizer, optionsConfiguration);
         }
 
         [Fact]

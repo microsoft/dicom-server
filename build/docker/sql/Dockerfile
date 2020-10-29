@@ -21,5 +21,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists
 
+EXPOSE 1433
+
 # Run SQL Server process
 CMD /opt/mssql/bin/sqlservr
