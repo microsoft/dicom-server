@@ -36,6 +36,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             AddImagingStudyEndpoint(imagingStudy, context);
             AddModality(imagingStudy, dataset);
             AddNote(imagingStudy, dataset);
+            AddAccessionNumber(imagingStudy, dataset);
         }
 
         private static void AddNote(ImagingStudy imagingStudy, DicomDataset dataset)
@@ -83,6 +84,19 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                     !existingModalities.Any(existingModality => string.Equals(existingModality.Code, modalityInString, StringComparison.OrdinalIgnoreCase)))
                 {
                     imagingStudy.Modality.Add(modality);
+                }
+            }
+        }
+
+        private void AddAccessionNumber(ImagingStudy imagingStudy, DicomDataset dataset)
+        {
+            string accessionNumber = ImagingStudyPipelineHelper.GetAccessionNumberInString(dataset);
+            if (accessionNumber != null)
+            {
+                Identifier accessionNumberId = ImagingStudyPipelineHelper.GetAccessionNumber(accessionNumber);
+                if (!imagingStudy.Identifier.Any(item => accessionNumberId.IsExactly(item)))
+                {
+                    imagingStudy.Identifier.Add(accessionNumberId);
                 }
             }
         }
