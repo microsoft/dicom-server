@@ -79,6 +79,21 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             return dataset.GetSingleValueOrDefault<string>(DicomTag.Modality, default);
         }
 
+        public static string GetAccessionNumberInString(DicomDataset dataset)
+        {
+            return dataset.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber, default);
+        }
+
+        public static Identifier GetAccessionNumber(string accessionNumber)
+        {
+            Coding coding = new Coding(system: FhirTransactionConstants.AccessionNumberTypeSystem, code: FhirTransactionConstants.AccessionNumberTypeCode);
+            CodeableConcept codeableConcept = new CodeableConcept();
+            codeableConcept.Coding.Add(coding);
+            Identifier identifier = new Identifier(system: null, value: accessionNumber);
+            identifier.Type = codeableConcept;
+            return identifier;
+        }
+
         public static Coding GetModality(string modalityInString)
         {
             if (modalityInString != null)
