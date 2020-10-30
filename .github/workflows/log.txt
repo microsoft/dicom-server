@@ -1,3 +1,0 @@
-Fetching approvals
-Approval found for Release-18
-Rejecting Release-18 as it is not the latest.
