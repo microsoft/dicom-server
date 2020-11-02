@@ -15,6 +15,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public const string ModalityInSystem = "DCM";
 
+        public const string AccessionNumberTypeSystem = "http://terminology.hl7.org/CodeSystem/v2-0203";
+        public const string AccessionNumberTypeCode = "ACSN";
+
         // Refer http://dicom.nema.org/medical/dicom/current/output/html/part05.html#PS3.5 for format
         public const string UtcTimezoneOffsetFormat = "&zzxx";
     }
