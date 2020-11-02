@@ -35,5 +35,13 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             Assert.Equal(utcTimeZoneOffset.Offset, fhirTransactionContext.UtcDateTimeOffset);
         }
+
+        [Fact]
+        public void GivenAccessionNumber_WhenGetAccessionNumber_ThenReturnsCorrectIdentifier()
+        {
+            string accessionNumber = "01234";
+            var result = ImagingStudyPipelineHelper.GetAccessionNumber(accessionNumber);
+            ValidationUtility.ValidateAccessionNumber(null, accessionNumber, result);
+        }
     }
 }

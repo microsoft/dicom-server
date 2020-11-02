@@ -73,7 +73,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             Assert.Collection(
                 imagingStudy.Identifier,
-                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{studyInstanceUid}", identifier));
+                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{studyInstanceUid}", identifier),
+                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
 
             Assert.Collection(
                 imagingStudy.Series,
