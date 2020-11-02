@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
@@ -68,6 +69,16 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             Assert.Equal(expectedValue, actualIdentifier.Value);
         }
 
+        public static void ValidateAccessionNumber(string expectedSystem, string expectedValue, Identifier actualIdentifier)
+        {
+            Assert.NotNull(actualIdentifier);
+            Assert.Equal(actualIdentifier.Value, expectedValue);
+            Assert.Equal(actualIdentifier.System, expectedSystem);
+            Assert.Single(actualIdentifier.Type.Coding);
+            Assert.Equal("http://terminology.hl7.org/CodeSystem/v2-0203", actualIdentifier.Type.Coding[0].System);
+            Assert.Equal("ACSN", actualIdentifier.Type.Coding[0].Code);
+        }
+
         public static void ValidateResourceReference(string expectedReference, ResourceReference actualResourceReference)
         {
             Assert.NotNull(actualResourceReference);
@@ -84,7 +95,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             }
         }
 
-        public static ImagingStudy ValidateImagingStudyUpdate(string studyInstanceUid, string patientResourceId, FhirTransactionRequestEntry entry)
+        public static ImagingStudy ValidateImagingStudyUpdate(string studyInstanceUid, string patientResourceId, FhirTransactionRequestEntry entry, bool hasAccessionNumber = true)
         {
             Identifier expectedIdentifier = ImagingStudyIdentifierUtility.CreateIdentifier(studyInstanceUid);
             string expectedRequestUrl = $"ImagingStudy/{entry.Resource.Id}";
@@ -97,9 +108,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             ValidateResourceReference(patientResourceId, updatedImagingStudy.Subject);
 
+            Action<Identifier> studyIdValidaion = identifier => ValidateIdentifier("urn:dicom:uid", $"urn:oid:{studyInstanceUid}", identifier);
+            Action<Identifier> accessionNumberValidation = identifier => ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier);
             Assert.Collection(
                 updatedImagingStudy.Identifier,
-                identifier => ValidateIdentifier("urn:dicom:uid", $"urn:oid:{studyInstanceUid}", identifier));
+                hasAccessionNumber ? new[] { studyIdValidaion, accessionNumberValidation } : new[] { studyIdValidaion });
+
             return updatedImagingStudy;
         }
     }

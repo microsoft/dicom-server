@@ -17,7 +17,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private const string DefaultSeriesInstanceUid = "222";
         private const string DefaultSopInstanceUid = "333";
         private const string DefaultPatientResourceId = "555";
-
+        private const string NewAccessionNumber = "2";
         private readonly IImagingStudyPropertySynchronizer _imagingStudyPropertySynchronizer;
 
         public ImagingStudyPropertySynchronizerTests()
@@ -44,6 +44,11 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             Assert.Collection(
                imagingStudy.Note,
                note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal));
+
+            Assert.Collection(
+               imagingStudy.Identifier,
+               identifier => string.Equals(identifier.Value, $"urn:oid:{DefaultStudyInstanceUid}", StringComparison.Ordinal), // studyinstanceUid
+               identifier => string.Equals(identifier.Value, "1", StringComparison.Ordinal)); // accession number
 
             Assert.Equal(new FhirDateTime(1974, 7, 10, 7, 10, 24, TimeSpan.Zero), imagingStudy.StartedElement);
         }
@@ -87,6 +92,51 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             Assert.Collection(
                imagingStudy.Modality,
                modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void GivenATransactionContexAndImagingStudyWithNewAccessionNumber_WhenProcessedForStudy_ThenNewAccessionNumberIsAdded()
+        {
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+
+            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+
+            Assert.Collection(
+                imagingStudy.Identifier,
+                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier), // studyinstanceUid
+                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier)); // accession number
+
+            FhirTransactionContext newConText = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(accessionNumber: NewAccessionNumber));
+
+            _imagingStudyPropertySynchronizer.Synchronize(newConText, imagingStudy);
+
+            Assert.Collection(
+                imagingStudy.Identifier,
+                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier), // studyinstanceUid
+                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier), // accession number
+                identifier => ValidationUtility.ValidateAccessionNumber(null, NewAccessionNumber, identifier)); // new accession number
+        }
+
+        [Fact]
+        public void GivenATransactionContextAndImagingStudyWithExitsingAccessionNumber_WhenProcessedForStudy_ThenAccessionNumberIsNotAdded()
+        {
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+
+            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+
+            Assert.Collection(
+                imagingStudy.Identifier,
+                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier),
+                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
+
+            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+
+            Assert.Collection(
+                imagingStudy.Identifier,
+                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier),
+                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
         }
 
         [Fact]

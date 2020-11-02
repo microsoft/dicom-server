@@ -53,7 +53,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             // delete an existing instance within a study
             FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, seriesInstanceUid, sopInstanceUid, patientResourceId);
 
-            ImagingStudy updatedImagingStudy = ValidationUtility.ValidateImagingStudyUpdate(studyInstanceUid, patientResourceId, entry);
+            ImagingStudy updatedImagingStudy = ValidationUtility.ValidateImagingStudyUpdate(studyInstanceUid, patientResourceId, entry, hasAccessionNumber: false);
 
             Assert.Equal(ImagingStudy.ImagingStudyStatus.Available, updatedImagingStudy.Status);
 
@@ -121,7 +121,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             // delete an existing instance within a study
             FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, seriesInstanceUid, sopInstanceUid, patientResourceId);
 
-            ImagingStudy updatedImagingStudy = ValidationUtility.ValidateImagingStudyUpdate(studyInstanceUid, patientResourceId, entry);
+            ImagingStudy updatedImagingStudy = ValidationUtility.ValidateImagingStudyUpdate(studyInstanceUid, patientResourceId, entry, hasAccessionNumber: false);
 
             Assert.Equal(ImagingStudy.ImagingStudyStatus.Available, updatedImagingStudy.Status);
 

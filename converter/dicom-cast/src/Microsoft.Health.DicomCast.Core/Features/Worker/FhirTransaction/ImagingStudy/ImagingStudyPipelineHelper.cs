@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http.Headers;
 using Dicom;
+using EnsureThat;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
 using Microsoft.Health.DicomCast.Core.Extensions;
@@ -81,11 +82,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public static string GetAccessionNumberInString(DicomDataset dataset)
         {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
             return dataset.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber, default);
         }
 
         public static Identifier GetAccessionNumber(string accessionNumber)
         {
+            EnsureArg.IsNotNull(accessionNumber, nameof(accessionNumber));
             Coding coding = new Coding(system: FhirTransactionConstants.AccessionNumberTypeSystem, code: FhirTransactionConstants.AccessionNumberTypeCode);
             CodeableConcept codeableConcept = new CodeableConcept();
             codeableConcept.Coding.Add(coding);
