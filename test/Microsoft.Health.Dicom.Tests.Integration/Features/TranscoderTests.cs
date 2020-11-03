@@ -96,10 +96,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             Assert.Equal(outputFile.Dataset.InternalTransferSyntax.UID.UID, testData.MetaData.OutputSyntaxUid);
 
             // Verify file metainfo
-            VerifyDicomItems(inputFile.FileMetaInfo, outputFile.FileMetaInfo, DicomTag.FileMetaInformationGroupLength, DicomTag.TransferSyntaxUID);
+            VerifyDicomItems(inputFile.FileMetaInfo, outputFile.FileMetaInfo, DicomTag.FileMetaInformationGroupLength, DicomTag.TransferSyntaxUID, DicomTag.ImplementationVersionName);
 
             // Verify dataset
-            VerifyDicomItems(inputFile.Dataset, outputFile.Dataset, DicomTag.PixelData, DicomTag.PhotometricInterpretation);
+            VerifyDicomItems(inputFile.Dataset, outputFile.Dataset, DicomTag.PixelData, DicomTag.PhotometricInterpretation, DicomTag.ImplementationVersionName);
 
             VerifyFrames(outputFile, testData);
             return outputFile;
