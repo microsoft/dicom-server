@@ -4,7 +4,7 @@ Do Not Translate or Localize
 
 This file is based on or incorporates material from the projects listed below (Third Party IP). The original copyright notice and the license under which Microsoft received such Third Party IP, are set forth below. Such licenses and notices are provided for informational purposes only. Microsoft licenses the Third Party IP to you under the licensing terms for the Microsoft product. Microsoft reserves all other rights not expressly granted under this agreement, whether by implication, estoppel or otherwise.
 
-## Electron 9.05
+## Electron 9.3.3
 * Component Source:   https://github.com/electron/electron
 * Component Copyright and License:
   > Copyright (c) 2013-2020 GitHub Inc.
@@ -28,7 +28,7 @@ This file is based on or incorporates material from the projects listed below (T
   > OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
   > WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-## Electron Builder 22.7.0
+## Electron Builder 22.9.1
 * Component Source:   https://github.com/electron-userland/electron-builder
 * Component Copyright and License:
   > The MIT License (MIT)
