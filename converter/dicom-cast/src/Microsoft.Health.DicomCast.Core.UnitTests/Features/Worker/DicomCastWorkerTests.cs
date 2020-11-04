@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
@@ -22,6 +23,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
 
         private readonly DicomCastWorkerConfiguration _dicomCastWorkerConfiguration = new DicomCastWorkerConfiguration();
         private readonly IChangeFeedProcessor _changeFeedProcessor = Substitute.For<IChangeFeedProcessor>();
+        private readonly IHostApplicationLifetime _hostApplication = Substitute.For<IHostApplicationLifetime>();
         private readonly DicomCastWorker _dicomCastWorker;
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
@@ -36,7 +38,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             _dicomCastWorker = new DicomCastWorker(
                 Options.Create(_dicomCastWorkerConfiguration),
                 _changeFeedProcessor,
-                NullLogger<DicomCastWorker>.Instance);
+                NullLogger<DicomCastWorker>.Instance,
+                _hostApplication);
         }
 
         [Fact]
