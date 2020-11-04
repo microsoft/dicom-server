@@ -55,14 +55,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         }
 
         [Fact]
-        public void GivenAnInvalidDicomDateValue_WhenGetStringDateAsDateTimeIsCalled_ThenNullShouldBeReturned()
-        {
-            _dicomDataset.Add(DicomTag.StudyDate, "2010");
-
-            Assert.Null(_dicomDataset.GetStringDateAsDateTime(DicomTag.StudyDate));
-        }
-
-        [Fact]
         public void GivenANullValue_WhenAddValueIfNotNullIsCalled_ThenValueShouldNotBeAdded()
         {
             DicomTag dicomTag = DicomTag.StudyInstanceUID;
