@@ -4,16 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -44,10 +44,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomFile outputDicomFile = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
             DicomPixelData pixelData = DicomPixelData.Create(outputDicomFile.Dataset);
 
-            DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid, mediaType, transferSyntax, frames: new[] { 1 });
+            using DicomWebAsyncEnumerableResponse<Stream> response = await _client.RetrieveFramesAsync(
+                instanceId.StudyInstanceUid,
+                instanceId.SeriesInstanceUid,
+                instanceId.SopInstanceUid,
+                mediaType,
+                transferSyntax,
+                frames: new[] { 1 });
 
             int frameIndex = 0;
-            foreach (Stream item in response.Value)
+
+            await foreach (Stream item in response)
             {
                 // TODO: verify media type once https://microsofthealth.visualstudio.com/Health/_workitems/edit/75185 is done
                 Assert.Equal(item.ToByteArray(), pixelData.GetFrame(frameIndex).Data);
@@ -63,12 +70,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
+            using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
+            using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
-            using (HttpResponseMessage response = await _client.HttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, new CancellationTokenSource().Token))
-            {
-                Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
-            }
+            Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
         }
 
         [Fact]
@@ -88,23 +93,26 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await InternalStoreAsync(new[] { dicomFile });
 
             // Check for series
-            DicomWebResponse<IReadOnlyList<Stream>> response = await _client.RetrieveFramesAsync(
+            using DicomWebAsyncEnumerableResponse<Stream> response = await _client.RetrieveFramesAsync(
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid,
                 dicomTransferSyntax: "*",
                 frames: new[] { 1 });
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(response.Value[0].ToByteArray(), DicomPixelData.Create(dicomFile.Dataset).GetFrame(0).Data);
+            Stream[] results = await response.ToArrayAsync();
+
+            Assert.Collection(
+                results,
+                item => Assert.Equal(item.ToByteArray(), DicomPixelData.Create(dicomFile.Dataset).GetFrame(0).Data));
         }
 
         [Fact]
         public async Task GivenUnsupportedTransferSyntax_WhenRetrieveFrame_ThenServerShouldReturnNotAcceptable()
         {
-            var studyInstanceUid = TestUidGenerator.Generate();
-            var seriesInstanceUid = TestUidGenerator.Generate();
-            var sopInstanceUid = TestUidGenerator.Generate();
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
 
             DicomFile dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
                 studyInstanceUid,
@@ -114,6 +122,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 encode: false);
 
             await InternalStoreAsync(new[] { dicomFile });
+
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(
                 studyInstanceUid,
                 seriesInstanceUid,
@@ -127,24 +136,35 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenMultipleFrames_WhenRetrieveFrame_ThenServerShouldReturnExpectedContent()
         {
-            var studyInstanceUid = TestUidGenerator.Generate();
+            string studyInstanceUid = TestUidGenerator.Generate();
+
             DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 3);
             DicomPixelData pixelData = DicomPixelData.Create(dicomFile1.Dataset);
-            var dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
+            InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
+
             await InternalStoreAsync(new[] { dicomFile1 });
-            DicomWebResponse<IReadOnlyList<Stream>> frames = await _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new[] { 1, 2 }, dicomTransferSyntax: "*");
+
+            using DicomWebAsyncEnumerableResponse<Stream> response = await _client.RetrieveFramesAsync(
+                dicomInstance.StudyInstanceUid,
+                dicomInstance.SeriesInstanceUid,
+                dicomInstance.SopInstanceUid,
+                frames: new[] { 1, 2 },
+                dicomTransferSyntax: "*");
+
+            Stream[] frames = await response.ToArrayAsync();
+
             Assert.NotNull(frames);
-            Assert.Equal(HttpStatusCode.OK, frames.StatusCode);
-            Assert.Equal(2, frames.Value.Count);
-            Assert.Equal(KnownContentTypes.MultipartRelated, frames.Content.Headers.ContentType.MediaType);
-            Assert.Equal(pixelData.GetFrame(0).Data, frames.Value[0].ToByteArray());
-            Assert.Equal(pixelData.GetFrame(1).Data, frames.Value[1].ToByteArray());
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(2, frames.Length);
+            Assert.Equal(KnownContentTypes.MultipartRelated, response.ContentHeaders.ContentType.MediaType);
+            Assert.Equal(pixelData.GetFrame(0).Data, frames[0].ToByteArray());
+            Assert.Equal(pixelData.GetFrame(1).Data, frames[1].ToByteArray());
         }
 
         [Fact]
         public async Task GivenNonExistingFrames_WhenRetrieveFrame_ThenServerShouldReturnNotFound()
         {
-            (var identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
+            (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
                 () => _client.RetrieveFramesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, dicomTransferSyntax: "*", frames: new[] { 4 }));

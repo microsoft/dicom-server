@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 using ChangeFeedAction = Microsoft.Health.Dicom.Client.Models.ChangeFeedAction;
@@ -17,7 +18,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
-        private readonly DicomWebClient _client;
+        private readonly IDicomWebClient _client;
 
         public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
         {
@@ -35,29 +36,40 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             for (int i = 0; i < 10; i++)
             {
                 await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUids[i]);
+
                 if (initialSequence == -1)
                 {
-                    var result = await _client.GetChangeFeedLatest();
-                    initialSequence = result.Value.Sequence;
-                    Assert.Equal(studyInstanceUid, result.Value.StudyInstanceUid);
-                    Assert.Equal(seriesInstanceUid, result.Value.SeriesInstanceUid);
-                    Assert.Equal(sopInstanceUids[i], result.Value.SopInstanceUid);
-                    Assert.Equal(ChangeFeedAction.Create, result.Value.Action);
-                    Assert.Equal(ChangeFeedState.Current, result.Value.State);
+                    using DicomWebResponse<ChangeFeedEntry> latestResponse = await _client.GetChangeFeedLatest();
+
+                    ChangeFeedEntry result = await latestResponse.GetValueAsync();
+
+                    initialSequence = result.Sequence;
+                    Assert.Equal(studyInstanceUid, result.StudyInstanceUid);
+                    Assert.Equal(seriesInstanceUid, result.SeriesInstanceUid);
+                    Assert.Equal(sopInstanceUids[i], result.SopInstanceUid);
+                    Assert.Equal(ChangeFeedAction.Create, result.Action);
+                    Assert.Equal(ChangeFeedState.Current, result.State);
                 }
             }
 
-            var changeFeedResults = await _client.GetChangeFeed();
-            Assert.Equal(10, changeFeedResults.Value.Count);
-
-            changeFeedResults = await _client.GetChangeFeed($"?offset={initialSequence - 1}");
-            Assert.Equal(10, changeFeedResults.Value.Count);
-            for (int i = 0; i < 10; i++)
+            using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed())
             {
-                Assert.Equal(studyInstanceUid, changeFeedResults.Value[i].StudyInstanceUid);
-                Assert.Equal(seriesInstanceUid, changeFeedResults.Value[i].SeriesInstanceUid);
-                Assert.Equal(sopInstanceUids[i], changeFeedResults.Value[i].SopInstanceUid);
-                Assert.NotNull(changeFeedResults.Value[i].Metadata);
+                Assert.Equal(10, await response.CountAsync());
+            }
+
+            using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed($"?offset={initialSequence - 1}"))
+            {
+                ChangeFeedEntry[] changeFeedResults = await response.ToArrayAsync();
+
+                Assert.Equal(10, changeFeedResults.Length);
+
+                for (int i = 0; i < 10; i++)
+                {
+                    Assert.Equal(studyInstanceUid, changeFeedResults[i].StudyInstanceUid);
+                    Assert.Equal(seriesInstanceUid, changeFeedResults[i].SeriesInstanceUid);
+                    Assert.Equal(sopInstanceUids[i], changeFeedResults[i].SopInstanceUid);
+                    Assert.NotNull(changeFeedResults[i].Metadata);
+                }
             }
         }
 
@@ -70,41 +82,58 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            var latestResult = await _client.GetChangeFeedLatest();
-            long initialSequence = latestResult.Value.Sequence;
-            ValidateFeed(ChangeFeedAction.Create, ChangeFeedState.Current);
+            long initialSequence;
+
+            using (DicomWebResponse<ChangeFeedEntry> response = await _client.GetChangeFeedLatest())
+            {
+                initialSequence = (await ValidateFeedAsync(response, ChangeFeedAction.Create, ChangeFeedState.Current)).Sequence;
+            }
 
             await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            latestResult = await _client.GetChangeFeedLatest();
-            ValidateFeed(ChangeFeedAction.Delete, ChangeFeedState.Deleted);
+
+            using (DicomWebResponse<ChangeFeedEntry> response = await _client.GetChangeFeedLatest())
+            {
+                await ValidateFeedAsync(response, ChangeFeedAction.Delete, ChangeFeedState.Deleted);
+            }
 
             await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            latestResult = await _client.GetChangeFeedLatest();
-            ValidateFeed(ChangeFeedAction.Create, ChangeFeedState.Current);
 
-            var changeFeedResults = await _client.GetChangeFeed($"?offset={initialSequence - 1}");
-            Assert.Equal(3, changeFeedResults.Value.Count);
-
-            Assert.Equal(ChangeFeedState.Replaced, changeFeedResults.Value[0].State);
-            Assert.Equal(ChangeFeedState.Replaced, changeFeedResults.Value[1].State);
-            Assert.Equal(ChangeFeedState.Current, changeFeedResults.Value[2].State);
-
-            void ValidateFeed(ChangeFeedAction action, ChangeFeedState state)
+            using (DicomWebResponse<ChangeFeedEntry> response = await _client.GetChangeFeedLatest())
             {
-                Assert.Equal(studyInstanceUid, latestResult.Value.StudyInstanceUid);
-                Assert.Equal(seriesInstanceUid, latestResult.Value.SeriesInstanceUid);
-                Assert.Equal(sopInstanceUid, latestResult.Value.SopInstanceUid);
-                Assert.Equal(action, latestResult.Value.Action);
-                Assert.Equal(state, latestResult.Value.State);
+                await ValidateFeedAsync(response, ChangeFeedAction.Create, ChangeFeedState.Current);
+            }
+
+            using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed($"?offset={initialSequence - 1}"))
+            {
+                ChangeFeedEntry[] changeFeedResults = await response.ToArrayAsync();
+
+                Assert.Equal(3, changeFeedResults.Length);
+
+                Assert.Equal(ChangeFeedState.Replaced, changeFeedResults[0].State);
+                Assert.Equal(ChangeFeedState.Replaced, changeFeedResults[1].State);
+                Assert.Equal(ChangeFeedState.Current, changeFeedResults[2].State);
+            }
+
+            async Task<ChangeFeedEntry> ValidateFeedAsync(DicomWebResponse<ChangeFeedEntry> response, ChangeFeedAction action, ChangeFeedState state)
+            {
+                ChangeFeedEntry changeFeedEntry = await response.GetValueAsync();
+
+                Assert.Equal(studyInstanceUid, changeFeedEntry.StudyInstanceUid);
+                Assert.Equal(seriesInstanceUid, changeFeedEntry.SeriesInstanceUid);
+                Assert.Equal(sopInstanceUid, changeFeedEntry.SopInstanceUid);
+                Assert.Equal(action, changeFeedEntry.Action);
+                Assert.Equal(state, changeFeedEntry.State);
 
                 if (state == ChangeFeedState.Deleted)
                 {
-                    Assert.Null(latestResult.Value.Metadata);
+                    Assert.Null(changeFeedEntry.Metadata);
                 }
                 else
                 {
-                    Assert.NotNull(latestResult.Value.Metadata);
+                    Assert.NotNull(changeFeedEntry.Metadata);
                 }
+
+                return changeFeedEntry;
             }
         }
 
@@ -117,17 +146,28 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            var latestResult = await _client.GetChangeFeedLatest("?includemetadata=false");
-            long initialSequence = latestResult.Value.Sequence;
-            Assert.Equal(studyInstanceUid, latestResult.Value.StudyInstanceUid);
-            Assert.Equal(seriesInstanceUid, latestResult.Value.SeriesInstanceUid);
-            Assert.Equal(sopInstanceUid, latestResult.Value.SopInstanceUid);
-            Assert.Null(latestResult.Value.Metadata);
+            long initialSequence;
 
-            var changeFeedResults = await _client.GetChangeFeed($"?offset={initialSequence - 1}&includemetadata=false");
-            Assert.Equal(1, changeFeedResults.Value.Count);
-            Assert.Null(changeFeedResults.Value[0].Metadata);
-            Assert.Equal(ChangeFeedState.Current, changeFeedResults.Value[0].State);
+            using (DicomWebResponse<ChangeFeedEntry> response = await _client.GetChangeFeedLatest("?includemetadata=false"))
+            {
+                ChangeFeedEntry changeFeedEntry = await response.GetValueAsync();
+
+                initialSequence = changeFeedEntry.Sequence;
+
+                Assert.Equal(studyInstanceUid, changeFeedEntry.StudyInstanceUid);
+                Assert.Equal(seriesInstanceUid, changeFeedEntry.SeriesInstanceUid);
+                Assert.Equal(sopInstanceUid, changeFeedEntry.SopInstanceUid);
+                Assert.Null(changeFeedEntry.Metadata);
+            }
+
+            using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed($"?offset={initialSequence - 1}&includemetadata=false"))
+            {
+                ChangeFeedEntry[] changeFeedResults = await response.ToArrayAsync();
+
+                Assert.Single(changeFeedResults);
+                Assert.Null(changeFeedResults[0].Metadata);
+                Assert.Equal(ChangeFeedState.Current, changeFeedResults[0].State);
+            }
         }
 
         [Theory]

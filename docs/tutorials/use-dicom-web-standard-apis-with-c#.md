@@ -27,10 +27,9 @@ Once you have deployed an instance of the Medical Imaging Server for DICOM, retr
 After you have deployed your Medical Imaging Server for DICOM, you will create a 'DicomWebClient'. Run the following code snippet to create `DicomWebClient` which we will be using for the rest of the tutorial. You will also need to install the fo-dicom nuget package into your console application.
 
 ```c#
-string webServerUrl ="{Your DicomWeb Server URL}"
-var httpClient = new HttpClient();
-httpClient.BaseAddress = new Uri(webServerUrl);
-DicomWebClient client = new DicomWebClient(httpClient);
+string webServerUrl = "{Your DicomWeb Server URL}";
+Uri baseAddress = new Uri(webServerUrl);
+IDicomWebClient client = new DicomWebClient(baseAddress);
 ```
 
 With the `DicomWebClient` we can now perform Store, Retrieve, Search, and Delete operations.
@@ -48,7 +47,7 @@ _Details:_
 * POST /studies
 
 ```c#
-DicomFile dicomFile = DicomFile.Open(@"{Path To blue-circle.dcm}");
+DicomFile dicomFile = await DicomFile.OpenAsync(@"{Path To blue-circle.dcm}");
 DicomWebResponse response = await client.StoreAsync(new[] { dicomFile });
 ```
 
@@ -61,7 +60,7 @@ _Details:_
 * POST /studies/{study}
 
 ```c#
-DicomFile dicomFile = DicomFile.Open(@"{Path To red-triangle.dcm}");
+DicomFile dicomFile = await DicomFile.OpenAsync(@"{Path To red-triangle.dcm}");
 DicomWebResponse response = await client.StoreAsync(new[] { dicomFile }, "1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420");
 ```
 
@@ -98,8 +97,8 @@ All three of the dcm files that we uploaded previously are part of the same stud
 The following code snippet shows how to access the instances that are retrieved, how to access some of the fields of the instances, and how to save it as a .dcm file.
 
 ```c#
-DicomWebResponse<IReadOnlyList<DicomFile>> response = await client.RetrieveStudyAsync(studyInstanceUid);
-foreach (DicomFile file in response.Value)
+DicomWebAsyncEnumerableResponse<DicomFile> response = await client.RetrieveStudyAsync(studyInstanceUid);
+await foreach (DicomFile file in response)
 {
     string patientName = file.Dataset.GetString(DicomTag.PatientName);
     string studyId = file.Dataset.GetString(DicomTag.StudyID);
@@ -189,7 +188,8 @@ _Details:_
 * GET /studies/{study}/series/{series}/instances/{instance}/frames/{frames}
 
 ```c#
-DicomWebResponse response = await client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid,null, new[] { 1 });
+DicomWebResponse response = await client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames: new[] { 1 });
+
 ```
 
 This should return the only frame from the red-triangle. Validate that the response has a status code of OK and that the frame is returned.

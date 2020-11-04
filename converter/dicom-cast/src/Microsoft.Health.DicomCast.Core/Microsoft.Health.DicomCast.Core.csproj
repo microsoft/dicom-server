@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="1.0.0-master-20201014-1" />
     <PackageReference Include="Polly" Version="7.2.1" />
     <PackageReference Include="Scrutor" Version="3.2.0" />
+    <PackageReference Include="System.Linq.Async" Version="4.1.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj" />

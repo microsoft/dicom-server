@@ -31,7 +31,7 @@ namespace MessageHandler
         private static string _topicName;
 
         private static ISubscriptionClient subscriptionClient;
-        private static DicomWebClient client;
+        private static IDicomWebClient client;
 
         public static async Task Main()
         {
@@ -199,7 +199,7 @@ namespace MessageHandler
         private static async Task Qido(Message message, CancellationToken token)
         {
             string relativeUrl = Encoding.UTF8.GetString(message.Body);
-            await client.QueryWithBadRequest(relativeUrl, cancellationToken: token);
+            await client.QueryAsync(relativeUrl, cancellationToken: token);
             return;
         }
 

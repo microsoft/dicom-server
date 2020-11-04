@@ -3,31 +3,26 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Client
 {
     public class DicomWebResponse<T> : DicomWebResponse
     {
-        public DicomWebResponse(HttpResponseMessage response, T value)
+        private readonly Func<HttpContent, Task<T>> _valueFactory;
+
+        public DicomWebResponse(HttpResponseMessage response, Func<HttpContent, Task<T>> valueFactory)
             : base(response)
         {
-            Value = value;
+            EnsureArg.IsNotNull(valueFactory, nameof(valueFactory));
+
+            _valueFactory = valueFactory;
         }
 
-        public T Value { get; }
-
-        public static implicit operator T(DicomWebResponse<T> response)
-        {
-            EnsureArg.IsNotNull(response, nameof(response));
-
-            return response.Value;
-        }
-
-        public T ToT()
-        {
-            return Value;
-        }
+        public Task<T> GetValueAsync()
+            => _valueFactory(Content);
     }
 }

@@ -20,7 +20,7 @@ namespace StowFunctionApp
 {
     public static class Stow
     {
-        private static DicomWebClient client;
+        private static IDicomWebClient client;
 
         [FunctionName("StorePreGeneratedData")]
         public static void Run([ServiceBusTrigger(KnownTopics.StowRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)

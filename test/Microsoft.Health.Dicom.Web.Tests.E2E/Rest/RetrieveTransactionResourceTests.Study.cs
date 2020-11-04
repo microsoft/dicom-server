@@ -4,11 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Client;
@@ -36,9 +34,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
             await EnsureFileIsStoredAsync(inputDicomFile);
             string studyInstanceUid = inputDicomFile.Dataset.GetString(DicomTag.StudyInstanceUID);
-            var response = await _client.RetrieveStudyAsync(studyInstanceUid, transferSyntax);
-            Assert.Equal(DicomWebConstants.MultipartRelatedMediaType, response.Content.Headers.ContentType.MediaType);
-            foreach (DicomFile actual in response.Value)
+
+            using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(studyInstanceUid, transferSyntax);
+
+            Assert.Equal(DicomWebConstants.MultipartRelatedMediaType, response.ContentHeaders.ContentType.MediaType);
+
+            await foreach (DicomFile actual in response)
             {
                 // TODO: verify media type once https://microsofthealth.visualstudio.com/Health/_workitems/edit/75185 is done
                 DicomFile expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
@@ -54,12 +55,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseStudyUriFormat, TestUidGenerator.Generate()), UriKind.Relative);
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
+            using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
+            using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
-            using (HttpResponseMessage response = await _client.HttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, new CancellationTokenSource().Token))
-            {
-                Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
-            }
+            Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
         }
 
         [Fact]
@@ -85,9 +84,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             await InternalStoreAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
 
-            DicomWebResponse<IReadOnlyList<DicomFile>> instancesInStudy = await _client.RetrieveStudyAsync(studyInstanceUid);
-            Assert.Equal(2, instancesInStudy.Value.Count);
-            var actual = instancesInStudy.Value.Select(item => item.ToByteArray());
+            using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(studyInstanceUid);
+
+            DicomFile[] instancesInStudy = await response.ToArrayAsync();
+
+            Assert.Equal(2, instancesInStudy.Length);
+
+            byte[][] actual = instancesInStudy.Select(item => item.ToByteArray()).ToArray();
+
             Assert.Contains(dicomFile1.ToByteArray(), actual);
             Assert.Contains(dicomFile2.ToByteArray(), actual);
         }
@@ -130,9 +134,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 encode: false);
 
             await InternalStoreAsync(new[] { dicomFile1, dicomFile2 });
-            DicomWebResponse<IReadOnlyList<DicomFile>> instancesInStudy = await _client.RetrieveStudyAsync(studyInstanceUid, dicomTransferSyntax: "*");
-            Assert.Equal(2, instancesInStudy.Value.Count);
-            var actual = instancesInStudy.Value.Select(item => item.ToByteArray());
+
+            using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(studyInstanceUid, dicomTransferSyntax: "*");
+
+            DicomFile[] instancesInStudy = await response.ToArrayAsync();
+
+            Assert.Equal(2, instancesInStudy.Length);
+
+            var actual = instancesInStudy.Select(item => item.ToByteArray()).ToArray();
+
             Assert.Contains(dicomFile1.ToByteArray(), actual);
             Assert.Contains(dicomFile2.ToByteArray(), actual);
         }
@@ -151,9 +161,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid);
             await InternalStoreAsync(new[] { dicomFile1 });
 
-            DicomWebResponse<IReadOnlyList<DicomFile>> studyRetrieve = await _client.RetrieveStudyAsync(studyInstanceUid, dicomTransferSyntax: "*");
+            using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(studyInstanceUid, dicomTransferSyntax: "*");
 
-            Assert.Equal(dicomFile1.ToByteArray(), studyRetrieve.Value[0].ToByteArray());
+            DicomFile[] studyRetrieve = await response.ToArrayAsync();
+
+            Assert.Equal(
+                new[] { dicomFile1.ToByteArray() },
+                studyRetrieve.Select(item => item.ToByteArray()));
         }
     }
 }
