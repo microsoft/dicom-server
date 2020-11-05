@@ -156,11 +156,11 @@
         "properties": {
           "mode": "Incremental",
           "templateLink": {
-            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/samples/templates/default-azuredeploy.json",
+            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/users/modillon/dicomcast/samples/templates/azuredeploy-child.json",
             "contentVersion":"1.0.0.0"
             },
             "parameters":{
-                "dicomServiceName":{"value": "[parameters('dicomServiceName')]"},
+                "dicomServiceName":{"value": "[parameters('serviceName')]"},
                 "dicomAppServicePlanResourceGroup":{"value": "[parameters('dicomAppServicePlanResourceGroup')]"},
                 "dicomAppServicePlanName":{"value": "[parameters('dicomAppServicePlanName')]"},
                 "dicomAppServicePlanSku":{"value": "[parameters('dicomAppServicePlanSku')]"},
@@ -178,37 +178,7 @@
                 "dicomDeployPackageUrl":{"value": "[parameters('dicomDeployPackageUrl')]"}
         }
       }
-    },
-      {
-        "type": "Microsoft.Resources/deployments",
-        "apiVersion": "2015-01-01",
-        "name": "linkedTemplate",
-        "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/master/samples/templates/default-azuredeploy.json",
-            "contentVersion":"1.0.0.0"
-            },
-            "parameters":{
-                "serviceName":{"value": "[parameters('serviceName')]"},
-                "appServicePlanResourceGroup":{"value": "[parameters('appServicePlanResourceGroup')]"},
-                "appServicePlanName":{"value": "[parameters('appServicePlanName')]"},
-                "appServicePlanSku":{"value": "[parameters('appServicePlanSku')]"},
-                "storageAccountSku":{"value": "[parameters('storageAccountSku')]"},
-                "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
-                "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
-                "additionalDicomServerConfigProperties":{"value": "[parameters('additionalDicomServerConfigProperties')]"},
-                "sqlAdminPassword":{"value": "[parameters('sqlAdminPassword')]"},
-                "sqlLocation":{"value": "[parameters('sqlLocation')]"},
-                "deployOhifViewer":{"value": "[parameters('deployOhifViewer')]"},
-                "securityAuthenticationAuthority":{"value": "[parameters('securityAuthenticationAuthority')]"},
-                "securityAuthenticationAudience":{"value": "[parameters('securityAuthenticationAudience')]"},
-                "solutionType":{"value": "[parameters('solutionType')]"},
-                "deployPackage":{"value": "[parameters('deployPackage')]"},
-                "deployPackageUrl":{"value": "[parameters('deployPackageUrl')]"}
-            }
-        }
-      } 
+    }
     ],
     "outputs": {
     }

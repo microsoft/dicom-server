@@ -2,7 +2,7 @@
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "dicomServiceName": {
+        "serviceName": {
             "type": "string",
             "minLength": 3,
             "maxLength": 24,
@@ -149,7 +149,7 @@
     },
     "variables": {
         "isMAG": "[or(contains(resourceGroup().location,'usgov'),contains(resourceGroup().location,'usdod'))]",
-        "serviceName": "[toLower(parameters('dicomServiceName'))]",
+        "serviceName": "[toLower(parameters('serviceName'))]",
         "appServicePlanResourceGroup": "[if(empty(parameters('dicomAppServicePlanResourceGroup')), resourceGroup().name, parameters('dicomAppServicePlanResourceGroup'))]",
         "appServicePlanName": "[if(empty(parameters('dicomAppServicePlanName')), concat(variables('serviceName'),'-asp'), parameters('dicomAppServicePlanName'))]",
         "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
