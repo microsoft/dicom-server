@@ -57,7 +57,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         [Fact]
         public void GivenAnInvalidDicomDateValue_WhenGetStringDateAsDateTimeIsCalled_ThenNullShouldBeReturned()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
             _dicomDataset.Add(DicomTag.StudyDate, "2010");
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             Assert.Null(_dicomDataset.GetStringDateAsDateTime(DicomTag.StudyDate));
         }

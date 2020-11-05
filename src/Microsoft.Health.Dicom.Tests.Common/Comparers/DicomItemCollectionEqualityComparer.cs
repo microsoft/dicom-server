@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
     public class DicomItemCollectionEqualityComparer : IEqualityComparer<IEnumerable<DicomItem>>
     {
         public DicomItemCollectionEqualityComparer()
-            : this(new DicomTag[0])
+            : this(new DicomTag[] { DicomTag.ImplementationVersionName })
         {
         }
 
