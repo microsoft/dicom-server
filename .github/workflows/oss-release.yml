@@ -13,4 +13,4 @@ steps:
     env: # Use secret in repo to make necessary AzureDevOps calls.
       AZUREDEVOPS_PAT: ${{ secrets.AZUREDEVOPS_PAT }}
     run: | # Run powershell script to manage API calls to generate Release.
-      CreateRelease.ps1 -acessToken "$env.AZUREDEVOPS_PAT"
+      CreateRelease.ps1

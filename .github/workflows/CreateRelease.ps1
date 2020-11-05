@@ -1,17 +1,15 @@
-# Required parameter specifying the secret access token to view releases and manage approvals.
-param([Parameter(Mandatory=$true)][string]$accessToken)
-
 # Function to help log out useful information.
 function log ([parameter(mandatory)][String]$msg) { Add-Content log.txt $msg }
 
 # Generate a log file.
 New-Item ./log.txt -ItemType File -Force
 
+$apiVersion = "api-version=6.0"
+
 # Releases are only created every other week even though the action occurs every week.
 # Identify if this is the second week of a sprint.
-$currentDate = Get-Date
-$currentDate = $currentDate.ToUniversalTime().Date
-$firstRun = ([datetime]::ParseExact('10-23-2020', 'MM-dd-yyyy', $null)).Date
+$currentDate = (get-date).ToUniversalTime().Date
+$firstRun = (get-date -Date "10/23/2020 00:00:00Z").ToUniversalTime().date
 $weeksSince = [math]::floor(($currentDate - $firstRun).TotalDays / 7)
 $shouldRelease = ($weeksSince % 2) -eq 0
 
@@ -22,7 +20,7 @@ if($shouldRelease) {
 
 # Set basis to call AzureDevOps' Rest API as necessary.
 [Net.ServicePointManager]::SecurityProtocol =  [Net.SecurityProtocolType]::Tls12
-$azureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($accessToken)")) }
+$azureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($env:AZUREDEVOPS_PAT)")) }
 $apiBase = "https://vsrm.dev.azure.com/microsofthealthoss"
 
 # Hardcoded to point to Release Defenition 23 (DICOM Server Nuget and Tag Release) under the FhirServer Project
@@ -36,7 +34,7 @@ $currentRelease = $null
 while(-Not($lastRelease -eq $currentRelease)) {
     # Fetch releases currently pending for approval
     log "Fetching approvals"
-    $approvalsUri = $apiBase + "/fhirserver/_apis/release/approvals?api-version=6.0"
+    $approvalsUri = $apiBase + "/fhirserver/_apis/release/approvals?statusFilter=pending&" + $apiVersion
     $approvals = Invoke-RestMethod -Uri $approvalsUri -Method get -Headers $azureDevOpsAuthenicationHeader
     $approval = @()
     foreach($instance in $approvals.value) {
@@ -48,7 +46,14 @@ while(-Not($lastRelease -eq $currentRelease)) {
 
     # Validate that only one release is pending approval - any others should be approved, rejected or queued.
     if($approval.Count -gt 1) {
-        throw "Error: More than 1 approval at a time was unexpected"
+        $pendingApprovals = "Pending approval releases: "
+        foreach ($pendingApproval in $approval) {
+            $pendingApprovals += $pendingApproval.release.name
+        }
+
+        $multipleApprovalsError = "Error: More than 1 approval at a time was unexpected $pendingApprovals"
+        log $multipleApprovalsError
+        throw $multipleApprovalsError
     }
     elseif($approval.Count -eq 0) {
         # If there are no pending approvals, exit as there are no new changes to release.
@@ -58,7 +63,7 @@ while(-Not($lastRelease -eq $currentRelease)) {
 
     # If there is exactly one release, identify relevant properties to base further queries on.
     $currentRelease = $approval[0].release.id
-    $currentReleaseUrl = $approval[0].release.url + "?api-version=6.0"
+    $currentReleaseUrl = $approval[0].release.url + "?" + $apiVersion
 
     log "Approval found for $($($($approval[0]).release).name)"
 
@@ -90,6 +95,8 @@ while(-Not($lastRelease -eq $currentRelease)) {
     }
     catch {
         # Any errors are thrown and will be handled by the github action.
-        throw "Error: Patch request to update $($($($approval[0]).release).name) as $($updateStatusObj.Status) failed with: $_.Exception.patch.StatusCode.value_"
+        $patchError = "Error: Patch request to update $($($($approval[0]).release).name) as $($updateStatusObj.Status) failed with: $_"
+        log $patchError
+        throw $patchError
     }
 }
