@@ -10,21 +10,21 @@
                 "description": "Name of the DICOM service Web App."
             }
         },
-        "appServicePlanResourceGroup": {
+        "dicomAppServicePlanResourceGroup": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
                 "description": "Name of the resource group containing App Service Plan. If empty, your deployment resource group is used."
             }
         },
-        "appServicePlanName": {
+        "dicomAppServicePlanName": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
                 "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
             }
         },
-        "appServicePlanSku": {
+        "dicomAppServicePlanSku": {
             "type": "string",
             "allowedValues": [
                 "F1",
@@ -45,7 +45,7 @@
                 "description": "Choose an App Service Plan SKU, or pricing tier. S1 is the default tier enabled."
             }
         },
-        "storageAccountSku": {
+        "dicomStorageAccountSku": {
             "type": "string",
             "allowedValues": [
                 "Standard_LRS",
@@ -111,35 +111,35 @@
                 "description": "Deploy OHIF viewer that is configured for the DICOM server."
             }
         },
-        "securityAuthenticationAuthority": {
+        "dicomSecurityAuthenticationAuthority": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
                 "description": "OAuth Authority. This can be modified after deployment."
             }
         },
-        "securityAuthenticationAudience": {
+        "dicomSecurityAuthenticationAudience": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
                 "description": "Audience (aud) to validate in JWT. This can be modified after deployment."
             }
         },
-        "solutionType": {
+        "dicomSolutionType": {
             "type": "string",
             "defaultValue": "DicomServerSqlServer",
             "metadata": {
                 "description": "The type of the solution"
             }
         },
-        "deployPackage": {
+        "dicomDeployPackage": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
                 "description": "Webdeploy package specified by deployPackageUrl."
             }
         },
-        "deployPackageUrl": {
+        "dicomDeployPackageUrl": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
