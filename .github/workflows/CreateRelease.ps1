@@ -48,7 +48,7 @@ while(-Not($lastRelease -eq $currentRelease)) {
     if($approval.Count -gt 1) {
         $pendingApprovals = "Pending releases for approval: "
         foreach ($pendingApproval in $approval) {
-            $pendingApprovals += $pendingApproval.release.name
+            $pendingApprovals += $pendingApproval.release.name + " "
         }
 
         $multipleApprovalsError = "Error: More than 1 approval at a time was unexpected $pendingApprovals"
