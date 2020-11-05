@@ -37,7 +37,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                 default,
                 $"{typeof(DicomCastWorker)} is exiting.");
 
-        private static readonly Action<ILogger, Exception> LogUnexpectedExceptionDelegate =
+        private static readonly Action<ILogger, Exception> LogUnhandledExceptionDelegate =
            LoggerMessage.Define(
                LogLevel.Critical,
                default,
@@ -86,7 +86,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                 }
                 catch (Exception ex)
                 {
-                    LogUnexpectedExceptionDelegate(_logger, ex);
+                    LogUnhandledExceptionDelegate(_logger, ex);
 
                     // Any exception in ExecuteAsync will not shutdown application, call hostApplicationLifetime.StopApplication() to force shutdown.
                     // Please refer to .net core issue on github for more details: "Exceptions in BackgroundService ExecuteAsync are (sometimes) hidden" https://github.com/dotnet/extensions/issues/2363
