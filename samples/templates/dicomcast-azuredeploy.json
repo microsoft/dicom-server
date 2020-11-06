@@ -288,6 +288,99 @@
             "metadata": {
                 "description": "Determine whether the sql schema should be automatically upgraded on server startup. If false, sql schema will not be initialized or upgraded on the server startup. The schema migration tool will be required to perform initialize or upgrade. If true, sql schema will be upgraded to the maximum supported version."
             }
+        },
+        "dicomCastServiceName": {
+            "minLength": 3,
+            "maxLength": 24,
+            "type": "String",
+            "metadata": {
+                "description": "Name of the DICOM Cast service container group."
+            }
+        },
+        "image": {
+            "defaultValue": "dicomoss.azurecr.io/linux_dicom-cast",
+            "type": "String",
+            "metadata": {
+                "description": "Container image to deploy. Should be of the form repoName/imagename:tag for images stored in public Docker Hub, or a fully qualified URI for other registries. Images from private registries require additional registry credentials."
+            }
+        },
+        "dicomCastStorageAccountSku": {
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS",
+                "Premium_LRS",
+                "Premium_ZRS",
+                "Standard_GZRS",
+                "Standard_RAGZRS"
+            ],
+            "type": "String"
+        },
+        "dicomCastDeployApplicationInsights": {
+            "defaultValue": true,
+            "type": "Bool",
+            "metadata": {
+                "description": "Deploy Application Insights for the DICOM server. Disabled for Microsoft Azure Government (MAG)"
+            }
+        },
+        "dicomCastApplicationInsightsLocation": {
+            "defaultValue": "[resourceGroup().location]",
+            "allowedValues": [
+                "southeastasia",
+                "northeurope",
+                "westeurope",
+                "eastus",
+                "southcentralus",
+                "westus2"
+            ],
+            "type": "String"
+        },
+        "dicomCastCpuCores": {
+            "defaultValue": "1.0",
+            "type": "String",
+            "metadata": {
+                "description": "The number of CPU cores to allocate to the container."
+            }
+        },
+        "dicomCastMemoryInGb": {
+            "defaultValue": "1.5",
+            "type": "String",
+            "metadata": {
+                "description": "The amount of memory to allocate to the container in gigabytes."
+            }
+        },
+        "dicomCastLocation": {
+            "defaultValue": "[resourceGroup().location]",
+            "type": "String",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "dicomCastRestartPolicy": {
+            "defaultValue": "always",
+            "allowedValues": [
+                "never",
+                "always",
+                "onfailure"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "The behavior of Azure runtime if container has stopped."
+            }
+        },
+        "dicomWebEndpoint": {
+            "type": "string",
+            "metadata": {
+                "description": "The endpoint of the DICOM Web server."
+            }
+        },
+        "fhirEndpoint": {
+            "type": "string",
+            "metadata": {
+                "description": "The endpoint of the FHIR server."
+            }
         }
     },
     "variables": {},
@@ -319,9 +412,9 @@
                 "solutionType":{"value": "[parameters('dicomSolutionType')]"},
                 "deployPackage":{"value": "[parameters('dicomDeployPackage')]"},
                 "deployPackageUrl":{"value": "[parameters('dicomDeployPackageUrl')]"}
-        }
-      }
-    },
+                }
+            }
+        },
     {
         "type": "Microsoft.Resources/deployments",
         "apiVersion": "2015-01-01",
@@ -350,6 +443,31 @@
                 "fhirVersion":{"value": "[parameters('fhirVersion')]"},
                 "enableExport":{"value": "[parameters('enableExport')]"},    
                 "sqlSchemaAutomaticUpdatesEnabled":{"value": "[parameters('fhirSqlSchemaAutomaticUpdatesEnabled')]"}    
+                }
+            }
+        },
+    {
+       "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2015-01-01",
+        "name": "dicomCastLinkedTemplate",
+        "properties": {
+          "mode": "Incremental",
+            "templateLink": {
+            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/converter/dicom-cast/samples/templates/default-azuredeploy.json",
+            "contentVersion":"1.0.0.0"
+            },
+            "parameters":{
+                "serviceName":{"value": "[parameters('dicomCastServiceName')]"},
+                "image":{"value": "[parameters('image')]"},
+                "storageAccountSku":{"value": "[parameters('dicomCastStorageAccountSku')]"},
+                "deployApplicationInsights":{"value": "[parameters('dicomCastDeployApplicationInsights')]"},
+                "applicationInsightsLocation":{"value": "[parameters('dicomCastApplicationInsightsLocation')]"},
+                "cpuCores":{"value": "[parameters('dicomCastCpuCores')]"},
+                "memoryInGb":{"value": "[parameters('dicomCastMemoryInGb')]"},
+                "location":{"value": "[parameters('dicomCastLocation')]"},
+                "restartPolicy":{"value": "[parameters('dicomCastRestartPolicy')]"},
+                "dicomWebEndpoint":{"value": "[parameters('dicomWebEndpoint')]"},
+                "fhirEndpoint":{"value": "[parameters('fhirEndpoint')]"},    
                 }
             }
         }
