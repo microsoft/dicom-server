@@ -12,7 +12,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.8" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.8" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.15.0" />
-    <PackageReference Include="Microsoft.Health.Development.IdentityProvider" Version="1.0.0-master-20201016-1" />
+    <PackageReference Include="Microsoft.Health.Development.IdentityProvider" Version="1.0.0-master-20201102-1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Api\Microsoft.Health.Dicom.Api.csproj" />

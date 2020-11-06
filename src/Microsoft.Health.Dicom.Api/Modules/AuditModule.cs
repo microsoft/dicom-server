@@ -5,6 +5,7 @@
 
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Extensions.DependencyInjection;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
@@ -32,7 +33,7 @@ namespace Microsoft.Health.Dicom.Api.Modules
             services.Add<AuditEventTypeMapping>()
                 .Singleton()
                 .AsService<IAuditEventTypeMapping>()
-                .AsService<IStartable>();
+                .AsService<IHostedService>();
         }
     }
 }
