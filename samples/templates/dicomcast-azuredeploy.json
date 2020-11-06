@@ -1,0 +1,359 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "dicomServiceName": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 24,
+            "metadata": {
+                "description": "Name of the DICOM service Web App."
+            }
+        },
+        "dicomAppServicePlanResourceGroup": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the resource group containing App Service Plan. If empty, your deployment resource group is used."
+            }
+        },
+        "dicomAppServicePlanName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
+            }
+        },
+        "dicomAppServicePlanSku": {
+            "type": "string",
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+            ],
+            "defaultValue": "S1",
+            "metadata": {
+                "description": "Choose an App Service Plan SKU, or pricing tier. S1 is the default tier enabled."
+            }
+        },
+        "dicomStorageAccountSku": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS",
+                "Premium_LRS",
+                "Premium_ZRS",
+                "Standard_GZRS",
+                "Standard_RAGZRS"
+            ],
+            "defaultValue": "Standard_LRS",
+            "metadata": {
+                "description": "Choose a SKU for your storage account. By default, Standard Locally Redundant Storage is selected."
+            }
+        },
+        "dicomDeployApplicationInsights": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Deploy Application Insights for the DICOM server. Disabled for Microsoft Azure Government (MAG)"
+            }
+        },
+        "dicomApplicationInsightsLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "allowedValues": [
+                "southeastasia",
+                "northeurope",
+                "westeurope",
+                "eastus",
+                "southcentralus",
+                "westus2"
+            ],
+            "metadata": {
+                "description": "Select a location for Application Insights. If empty, the region closet to your deployment location is used."
+            }
+        },
+        "additionalDicomServerConfigProperties": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Additional configuration properties for the DICOM server. These properties can be modified after deployment. In the form {\"path1\":\"value1\",\"path2\":\"value2\"}"
+            }
+        },
+        "dicomSqlAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Set a password for the sql admin."
+            }
+        },
+        "dicomSqlLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Set an override location for the default sql server database location."
+            }
+        },
+        "deployOhifViewer": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Deploy OHIF viewer that is configured for the DICOM server."
+            }
+        },
+        "dicomSecurityAuthenticationAuthority": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "OAuth Authority. This can be modified after deployment."
+            }
+        },
+        "dicomSecurityAuthenticationAudience": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Audience (aud) to validate in JWT. This can be modified after deployment."
+            }
+        },
+        "dicomSolutionType": {
+            "type": "string",
+            "defaultValue": "DicomServerSqlServer",
+            "metadata": {
+                "description": "The type of the solution"
+            }
+        },
+        "dicomDeployPackage": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Webdeploy package specified by deployPackageUrl."
+            }
+        },
+        "dicomDeployPackageUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Webdeploy package to use as deployment code. If blank, the latest CI code package will be deployed."
+            }
+        },
+
+        "fhirServiceName": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 24,
+            "metadata": {
+                "description": "Name of the FHIR service Web App."
+            }
+        },
+        "fhirAppServicePlanResourceGroup": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Resource group containing App Service Plan. If empty, deployment resource group is used."
+            }
+        },
+        "fhirAppServicePlanName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
+            }
+        },
+        "fhirAppServicePlanSku": {
+            "type": "string",
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+            ],
+            "defaultValue": "S1"
+        },
+        "fhirSecurityAuthenticationAuthority": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "OAuth Authority"
+            }
+        },
+        "fhirSecurityAuthenticationAudience": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Audience (aud) to validate in JWT"
+            }
+        },
+        "enableAadSmartOnFhirProxy": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable Azure AAD SMART on FHIR Proxy"
+            }
+        },
+        "msdeployPackageUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Webdeploy package to use as depoyment code. If blank, the latest code package will be deployed."
+            }
+        },
+        "fhirDeployApplicationInsights": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Deploy Application Insights for the FHIR server."
+            }
+        },
+        "fhirApplicationInsightsLocation": {
+            "type": "string",
+            "defaultValue": "eastus",
+            "allowedValues": [
+                "southeastasia",
+                "northeurope",
+                "westeurope",
+                "eastus",
+                "southcentralus",
+                "westus2",
+                "usgovvirginia",
+                "usgovarizona"
+            ]
+        },
+        "additionalFhirServerConfigProperties": {
+            "type": "object",
+            "defaultValue": {
+            },
+            "metadata": {
+                "description": "Additional configuration properties for the FHIR server. In the form {\"path1\":\"value1\",\"path2\":\"value2\"}"
+            }
+        },
+        "fhirSolutionType": {
+            "type": "string",
+            "defaultValue": "FhirServerCosmosDB",
+            "metadata": {
+                "description": "The type of the solution"
+            }
+        },
+        "fhirSqlAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password for the sql admin user if using SQL server."
+            }
+        },
+        "fhirSqlLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "An override location for the sql server database."
+            }
+        },
+        "fhirVersion": {
+            "type": "string",
+            "defaultValue": "R4",
+            "allowedValues": [
+                "Stu3",
+                "R4",
+                "R5"
+            ],
+            "metadata": {
+                "description": "Only applies when MsdeployPackageUrl is not specified."
+            }
+        },
+        "enableExport": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Determines whether export will be enabled for this fhir instance. If true, a storage account will be created as part of the deployment. You will need owner or user-administrator permissions for this."
+            }
+        },
+        "fhirSqlSchemaAutomaticUpdatesEnabled": {
+            "type": "bool",
+            "metadata": {
+                "description": "Determine whether the sql schema should be automatically upgraded on server startup. If false, sql schema will not be initialized or upgraded on the server startup. The schema migration tool will be required to perform initialize or upgrade. If true, sql schema will be upgraded to the maximum supported version."
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2015-01-01",
+        "name": "dicomLinkedTemplate",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/samples/templates/default-azuredeploy.json",
+            "contentVersion":"1.0.0.0"
+            },
+            "parameters":{
+                "serviceName":{"value": "[parameters('dicomServiceName')]"},
+                "appServicePlanResourceGroup":{"value": "[parameters('dicomAppServicePlanResourceGroup')]"},
+                "appServicePlanName":{"value": "[parameters('dicomAppServicePlanName')]"},
+                "appServicePlanSku":{"value": "[parameters('dicomAppServicePlanSku')]"},
+                "storageAccountSku":{"value": "[parameters('dicomStorageAccountSku')]"},
+                "deployApplicationInsights":{"value": "[parameters('dicomDeployApplicationInsights')]"},
+                "applicationInsightsLocation":{"value": "[parameters('dicomApplicationInsightsLocation')]"},
+                "additionalDicomServerConfigProperties":{"value": "[parameters('additionalDicomServerConfigProperties')]"},
+                "sqlAdminPassword":{"value": "[parameters('dicomSqlAdminPassword')]"},
+                "sqlLocation":{"value": "[parameters('dicomSqlLocation')]"},
+                "deployOhifViewer":{"value": "[parameters('deployOhifViewer')]"},
+                "securityAuthenticationAuthority":{"value": "[parameters('dicomSecurityAuthenticationAuthority')]"},
+                "securityAuthenticationAudience":{"value": "[parameters('dicomSecurityAuthenticationAudience')]"},
+                "solutionType":{"value": "[parameters('dicomSolutionType')]"},
+                "deployPackage":{"value": "[parameters('dicomDeployPackage')]"},
+                "deployPackageUrl":{"value": "[parameters('dicomDeployPackageUrl')]"}
+        }
+      }
+    },
+    {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2015-01-01",
+        "name": "fhirLinkedTemplate",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/master/samples/templates/default-azuredeploy-sql.json",
+            "contentVersion":"1.0.0.0"
+            },
+            "parameters":{
+                "serviceName":{"value": "[parameters('fhirServiceName')]"},
+                "appServicePlanResourceGroup":{"value": "[parameters('fhirAppServicePlanResourceGroup')]"},
+                "appServicePlanName":{"value": "[parameters('fhirAppServicePlanName')]"},
+                "appServicePlanSku":{"value": "[parameters('fhirAppServicePlanSku')]"},
+                "securityAuthenticationAuthority":{"value": "[parameters('fhirSecurityAuthenticationAuthority')]"},
+                "securityAuthenticationAudience":{"value": "[parameters('fhirSecurityAuthenticationAudience')]"},
+                "enableAadSmartOnFhirProxy":{"value": "[parameters('enableAadSmartOnFhirProxy')]"},
+                "msdeployPackageUrl":{"value": "[parameters('msdeployPackageUrl')]"},
+                "deployApplicationInsights":{"value": "[parameters('fhirDeployApplicationInsights')]"},
+                "applicationInsightsLocation":{"value": "[parameters('fhirApplicationInsightsLocation')]"},
+                "additionalFhirServerConfigProperties":{"value": "[parameters('additionalFhirServerConfigProperties')]"},
+                "solutionType":{"value": "[parameters('fhirSolutionType')]"},
+                "sqlAdminPassword":{"value": "[parameters('fhirSqlAdminPassword')]"},
+                "sqlLocation":{"value": "[parameters('fhirSqlLocation')]"},
+                "fhirVersion":{"value": "[parameters('fhirVersion')]"},
+                "enableExport":{"value": "[parameters('enableExport')]"},    
+                "sqlSchemaAutomaticUpdatesEnabled":{"value": "[parameters('fhirSqlSchemaAutomaticUpdatesEnabled')]"}    
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+  }
