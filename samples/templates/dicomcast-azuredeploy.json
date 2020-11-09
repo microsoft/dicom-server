@@ -10,21 +10,7 @@
                 "description": "Name of the DICOM service Web App."
             }
         },
-        "dicomAppServicePlanResourceGroup": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of the resource group containing App Service Plan. If empty, your deployment resource group is used."
-            }
-        },
-        "dicomAppServicePlanName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
-            }
-        },
-        "dicomAppServicePlanSku": {
+        "appServicePlanSku": {
             "type": "string",
             "allowedValues": [
                 "F1",
@@ -62,14 +48,14 @@
                 "description": "Choose a SKU for your storage account. By default, Standard Locally Redundant Storage is selected."
             }
         },
-        "dicomDeployApplicationInsights": {
+        "deployApplicationInsights": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
                 "description": "Deploy Application Insights for the DICOM server. Disabled for Microsoft Azure Government (MAG)"
             }
         },
-        "dicomApplicationInsightsLocation": {
+        "applicationInsightsLocation": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]",
             "allowedValues": [
@@ -155,38 +141,6 @@
                 "description": "Name of the FHIR service Web App."
             }
         },
-        "fhirAppServicePlanResourceGroup": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Resource group containing App Service Plan. If empty, deployment resource group is used."
-            }
-        },
-        "fhirAppServicePlanName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
-            }
-        },
-        "fhirAppServicePlanSku": {
-            "type": "string",
-            "allowedValues": [
-                "F1",
-                "D1",
-                "B1",
-                "B2",
-                "B3",
-                "S1",
-                "S2",
-                "S3",
-                "P1",
-                "P2",
-                "P3",
-                "P4"
-            ],
-            "defaultValue": "S1"
-        },
         "fhirSecurityAuthenticationAuthority": {
             "type": "string",
             "defaultValue": "",
@@ -214,27 +168,6 @@
             "metadata": {
                 "description": "Webdeploy package to use as depoyment code. If blank, the latest code package will be deployed."
             }
-        },
-        "fhirDeployApplicationInsights": {
-            "type": "bool",
-            "defaultValue": true,
-            "metadata": {
-                "description": "Deploy Application Insights for the FHIR server."
-            }
-        },
-        "fhirApplicationInsightsLocation": {
-            "type": "string",
-            "defaultValue": "eastus",
-            "allowedValues": [
-                "southeastasia",
-                "northeurope",
-                "westeurope",
-                "eastus",
-                "southcentralus",
-                "westus2",
-                "usgovvirginia",
-                "usgovarizona"
-            ]
         },
         "additionalFhirServerConfigProperties": {
             "type": "object",
@@ -318,25 +251,6 @@
             ],
             "type": "String"
         },
-        "dicomCastDeployApplicationInsights": {
-            "defaultValue": true,
-            "type": "Bool",
-            "metadata": {
-                "description": "Deploy Application Insights for the DICOM server. Disabled for Microsoft Azure Government (MAG)"
-            }
-        },
-        "dicomCastApplicationInsightsLocation": {
-            "defaultValue": "[resourceGroup().location]",
-            "allowedValues": [
-                "southeastasia",
-                "northeurope",
-                "westeurope",
-                "eastus",
-                "southcentralus",
-                "westus2"
-            ],
-            "type": "String"
-        },
         "dicomCastCpuCores": {
             "defaultValue": "1.0",
             "type": "String",
@@ -351,13 +265,6 @@
                 "description": "The amount of memory to allocate to the container in gigabytes."
             }
         },
-        "dicomCastLocation": {
-            "defaultValue": "[resourceGroup().location]",
-            "type": "String",
-            "metadata": {
-                "description": "Location for all resources."
-            }
-        },
         "dicomCastRestartPolicy": {
             "defaultValue": "always",
             "allowedValues": [
@@ -368,18 +275,6 @@
             "type": "String",
             "metadata": {
                 "description": "The behavior of Azure runtime if container has stopped."
-            }
-        },
-        "dicomWebEndpoint": {
-            "type": "string",
-            "metadata": {
-                "description": "The endpoint of the DICOM Web server."
-            }
-        },
-        "fhirEndpoint": {
-            "type": "string",
-            "metadata": {
-                "description": "The endpoint of the FHIR server."
             }
         }
     },
@@ -397,12 +292,12 @@
             },
             "parameters":{
                 "serviceName":{"value": "[parameters('dicomServiceName')]"},
-                "appServicePlanResourceGroup":{"value": "[parameters('dicomAppServicePlanResourceGroup')]"},
-                "appServicePlanName":{"value": "[parameters('dicomAppServicePlanName')]"},
-                "appServicePlanSku":{"value": "[parameters('dicomAppServicePlanSku')]"},
+                "appServicePlanResourceGroup":{"value": "[resourceGroup().name]"},
+                "appServicePlanName":{"value": "[concat(variables('serviceName'),'-asp')]"},
+                "appServicePlanSku":{"value": "[parameters('appServicePlanSku')]"},
                 "storageAccountSku":{"value": "[parameters('dicomStorageAccountSku')]"},
-                "deployApplicationInsights":{"value": "[parameters('dicomDeployApplicationInsights')]"},
-                "applicationInsightsLocation":{"value": "[parameters('dicomApplicationInsightsLocation')]"},
+                "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
+                "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
                 "additionalDicomServerConfigProperties":{"value": "[parameters('additionalDicomServerConfigProperties')]"},
                 "sqlAdminPassword":{"value": "[parameters('dicomSqlAdminPassword')]"},
                 "sqlLocation":{"value": "[parameters('dicomSqlLocation')]"},
@@ -427,15 +322,15 @@
             },
             "parameters":{
                 "serviceName":{"value": "[parameters('fhirServiceName')]"},
-                "appServicePlanResourceGroup":{"value": "[parameters('fhirAppServicePlanResourceGroup')]"},
-                "appServicePlanName":{"value": "[parameters('fhirAppServicePlanName')]"},
-                "appServicePlanSku":{"value": "[parameters('fhirAppServicePlanSku')]"},
+                "appServicePlanResourceGroup":{"value": "[resourceGroup().name]"},
+                "appServicePlanName":{"value": "[concat(variables('serviceName'),'-asp')]"},
+                "appServicePlanSku":{"value": "[parameters('appServicePlanSku')]"},
                 "securityAuthenticationAuthority":{"value": "[parameters('fhirSecurityAuthenticationAuthority')]"},
                 "securityAuthenticationAudience":{"value": "[parameters('fhirSecurityAuthenticationAudience')]"},
                 "enableAadSmartOnFhirProxy":{"value": "[parameters('enableAadSmartOnFhirProxy')]"},
                 "msdeployPackageUrl":{"value": "[parameters('msdeployPackageUrl')]"},
-                "deployApplicationInsights":{"value": "[parameters('fhirDeployApplicationInsights')]"},
-                "applicationInsightsLocation":{"value": "[parameters('fhirApplicationInsightsLocation')]"},
+                "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
+                "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
                 "additionalFhirServerConfigProperties":{"value": "[parameters('additionalFhirServerConfigProperties')]"},
                 "solutionType":{"value": "[parameters('fhirSolutionType')]"},
                 "sqlAdminPassword":{"value": "[parameters('fhirSqlAdminPassword')]"},
@@ -460,14 +355,14 @@
                 "serviceName":{"value": "[parameters('dicomCastServiceName')]"},
                 "image":{"value": "[parameters('image')]"},
                 "storageAccountSku":{"value": "[parameters('dicomCastStorageAccountSku')]"},
-                "deployApplicationInsights":{"value": "[parameters('dicomCastDeployApplicationInsights')]"},
-                "applicationInsightsLocation":{"value": "[parameters('dicomCastApplicationInsightsLocation')]"},
+                "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
+                "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
                 "cpuCores":{"value": "[parameters('dicomCastCpuCores')]"},
                 "memoryInGb":{"value": "[parameters('dicomCastMemoryInGb')]"},
-                "location":{"value": "[parameters('dicomCastLocation')]"},
+                "location":{"value": "[resourceGroup().location]"},
                 "restartPolicy":{"value": "[parameters('dicomCastRestartPolicy')]"},
-                "dicomWebEndpoint":{"value": "[parameters('dicomWebEndpoint')]"},
-                "fhirEndpoint":{"value": "[parameters('fhirEndpoint')]"},    
+                "dicomWebEndpoint":{"value": "[concat('https://',parameters('dicomServiceName'),'.azurewebsites.net')]"},
+                "fhirEndpoint":{"value": "[concat('https://',parameters('fhirServiceName'),'.azurewebsites.net')]"}
                 }
             }
         }
