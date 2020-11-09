@@ -9,7 +9,7 @@ $apiVersion = "api-version=6.0"
 # Releases are only created every other week even though the action occurs every week.
 # Identify if this is the second week of a sprint.
 $currentDate = (get-date).ToUniversalTime().Date
-$firstRun = (get-date -Date "10/23/2020 00:00:00Z").ToUniversalTime().date
+$firstRun = (get-date -Date "11/04/2020 00:00:00Z").ToUniversalTime().date
 $weeksSince = [math]::floor(($currentDate - $firstRun).TotalDays / 7)
 $shouldRelease = ($weeksSince % 2) -eq 0
 
@@ -31,7 +31,7 @@ $definition = Invoke-RestMethod -Uri $definitionUri -Method get -Headers $azureD
 $lastRelease = $definition.lastRelease.Id
 $currentRelease = $null
 
-while(-Not($lastRelease -eq $currentRelease)) {
+#while(-Not($lastRelease -eq $currentRelease)) {
     # Fetch releases currently pending for approval
     log "Fetching approvals"
     $approvalsUri = $apiBase + "/fhirserver/_apis/release/approvals?statusFilter=pending&" + $apiVersion
@@ -90,7 +90,7 @@ while(-Not($lastRelease -eq $currentRelease)) {
     
     try {
         # Make a patch request to the AzureDevOps' API to approve the release.
-        $patch = Invoke-WebRequest -Uri $currentReleaseUrl -Method patch -Headers $azureDevOpsAuthenicationHeader -ContentType "application/json" -Body $updateStatusObj -ErrorAction Stop
+        $patch = Invoke-WebRequest -Uri $currentReleaseUrl -Method patch -Headers $azureDevOpsAuthenicationHeader -Body $updateStatusObj -ErrorAction Stop
         Start-Sleep -Milliseconds 10000
     }
     catch {
@@ -99,4 +99,4 @@ while(-Not($lastRelease -eq $currentRelease)) {
         log $patchError
         throw $patchError
     }
-}
+#}
