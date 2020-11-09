@@ -1,0 +1,16 @@
+# Action is schedued to run at 2AM UTC every Wednesday. Executed script ensures release is only generated every other week.
+on:
+  schedule:
+    - cron: '0 2 * * WED'
+
+steps:
+  - name: Script to Create OSS Release
+    uses: actions/upload-artifact@v2
+    with: # Upload generated log file
+      name: log
+      path: log.txt
+  - shell: pwsh
+    env: # Use secret in repo to make necessary AzureDevOps calls.
+      AZUREDEVOPS_PAT: ${{ secrets.AZUREDEVOPS_PAT }}
+    run: | # Run powershell script to manage API calls to generate Release.
+      CreateRelease.ps1
