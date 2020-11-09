@@ -28,7 +28,7 @@ namespace Microsoft.Health.DicomCast.Core.Extensions
         /// </summary>
         /// <param name="patient">This patient.</param>
         /// <param name="other">Patient to use as baseline for 'static' properties.</param>
-        public static void CleanPropertiesToNotUpdate(this Patient patient, Patient other)
+        public static void CleanPropertiesBeforeUpdating(this Patient patient, Patient other)
         {
             patient.BirthDate = other.BirthDate;
         }
