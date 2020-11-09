@@ -71,9 +71,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             _patientSynchronizer.Synchronize(dataset, patient);
 
             if (requestMode == FhirTransactionRequestMode.None &&
-                !existingPatient.IsExactly(patient))
+                !existingPatient.IsEquivalent(patient))
             {
                 requestMode = FhirTransactionRequestMode.Update;
+                patient.CleanPropertiesBeforeUpdating(existingPatient);
             }
 
             Bundle.RequestComponent request = requestMode switch
