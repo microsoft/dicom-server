@@ -27,9 +27,10 @@ Once you have deployed an instance of the Medical Imaging Server for DICOM, retr
 After you have deployed your Medical Imaging Server for DICOM, you will create a 'DicomWebClient'. Run the following code snippet to create `DicomWebClient` which we will be using for the rest of the tutorial. You will also need to install the fo-dicom nuget package into your console application.
 
 ```c#
-string webServerUrl = "{Your DicomWeb Server URL}";
-Uri baseAddress = new Uri(webServerUrl);
-IDicomWebClient client = new DicomWebClient(baseAddress);
+string webServerUrl ="{Your DicomWeb Server URL}"
+var httpClient = new HttpClient();
+httpClient.BaseAddress = new Uri(webServerUrl);
+IDicomWebClient client = new DicomWebClient(httpClient);
 ```
 
 With the `DicomWebClient` we can now perform Store, Retrieve, Search, and Delete operations.
