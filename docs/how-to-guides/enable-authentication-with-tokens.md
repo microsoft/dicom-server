@@ -57,8 +57,8 @@ The current authentication settings exposed in configuration are the following:
 1. Select **Configuration** to update the **Audience**, **Authority**, and **Security:Enabled**:
     1. Set the **Application ID URI** enabled above as the **Audience**.
     1. **Authority** is whichever tenant your application exists in, for example: ```https://login.microsoftonline.com/<tenant-name>.onmicrosoft.com```.
-    1.  Set **Security:Enabled** to be ```True```
-    1.  Save your changes to the configuration
+    1.  Set **Security:Enabled** to be ```True```.
+    1.  Save your changes to the configuration.
 
 ### Create a Service Client Application
 
@@ -92,7 +92,7 @@ The current authentication settings exposed in configuration are the following:
 1. [Install Postman](https://www.postman.com/downloads/) or use the [Postman Web App](https://web.postman.co/).
 1. Create a new **Post** Request with the following form-data:
     1. URL: ```<Authority>/<tenant-ID>/oauth2/token``` where **Authority** is the tenant your application exists in, configured above, and **Tenant ID** is from your Azure App Registration.
-        1. If using Azure Active Directory V2 then instead use URL: ```<Authority>/<tenant-ID>/oauth2/v2.0/token```
+        1. If using Azure Active Directory V2 then instead use URL: ```<Authority>/<tenant-ID>/oauth2/v2.0/token```.
     1. *client_id*: the **Client ID** for your Service Client.
     1. *grant_type*: "client_credentials"
     1. *client_secret*: the **Client secret** for your Service Client.
