@@ -47,7 +47,7 @@ For both your FHIR and DICOM servers, you will set the Audience and Authority fo
     1. Set the **Application ID URI** from the App Service as the **Audience**.
     1. **Authority** is whichever tenant your application exists in, for example: ```https://login.microsoftonline.com/<tenant-name>.onmicrosoft.com```.
     1.  Set **Security:Enabled** to be ```True```.
-    1.  Save your changes to the configuration
+    1.  Save your changes to the configuration.
 
 ### Update Key Vault for DICOM Cast
 
