@@ -90,10 +90,12 @@ The current authentication settings exposed in configuration are the following:
 1. [Install Postman](https://www.postman.com/downloads/) or use the [Postman Web App](https://web.postman.co/).
 1. Create a new **Post** Request with the following form-data:
     1. URL: ```<Authority>/<tenant-ID>/oauth2/token``` where **Authority** is the tenant your application exists in, configured above, and **Tenant ID** is from your Azure App Registration.
+        1. If using AAD v2 then instead use URL: ```<Authority>/<tenant-ID>/oauth2/v2.0/token```
     1. *client_id*: the **Client ID** for your Service Client.
     1. *grant_type*: "client_credentials"
     1. *client_secret*: the **Client secret** for your Service Client.
     1. *resource*: the **Application ID URI** for your Resource Application.
+        1. If using AAD v2 then instead of setting *resource*, set *scope*: ```<Application ID URI>/.default``` where Application ID URI is for your Resource Application.
 1. Select **Send** to retrieve the access token.
 
 ## Summary
