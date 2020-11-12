@@ -80,3 +80,17 @@ User secrets are enabled when the `EnvironmentName` is `Development`. You can re
 ### KeyVault
 
 Using KeyVault to store secrets can be enabled by entering a value into the `KeyVault:Endpoint` configuration. On application start this will use the [current identity of the application](https://docs.microsoft.com/en-us/aspnet/core/security/key-vault-configuration?view=aspnetcore-3.1#use-managed-identities-for-azure-resources) to read the key vault and add a configuration provider.
+
+Below is an example of the settings need to be added to the KeyVault for OAuth2ClientCredential authentication:
+
+* Add secrets related to Authentication in KeyVault for Medical Imaging Server for DICOM.
+  + Example: If Medical Imaging Server for Azure was configured with `OAuth2ClientCredential`, below is the list of secrets that need to added to the KeyVault.
+    - DicomWeb--Authentication--Enabled : True
+    - DicomWeb--Authentication--AuthenticationType : OAuth2ClientCredential
+    - DicomWeb--Authentication--OAuth2ClientCredential--TokenUri : ```<AAD tenant token uri>```
+    - DicomWeb--Authentication--OAuth2ClientCredential--Resource : ```Application ID URI of the resource app```
+    - DicomWeb--Authentication--OAuth2ClientCredential--Scope : ```Application ID URI of the resource app```
+    - DicomWeb--Authentication--OAuth2ClientCredential--ClientId : ```Client Id of the client app```
+    - DicomWeb--Authentication--OAuth2ClientCredential--ClientSecret : ```Client app secret```
+* Add similar secrets to KeyVault for FHIR&trade; server.
+* Stop and Start the Container, to pickup the new configurations.
