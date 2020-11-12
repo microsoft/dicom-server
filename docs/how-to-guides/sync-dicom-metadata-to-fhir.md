@@ -85,8 +85,10 @@ Now that you have enabled Authentication for DICOM Cast, you have to Stop and St
 
 In this How-to Guide, you learned how to enable DICOM Cast by authentication with Managed Identity. Now you can upload DICOM files to your Medical Imaging Server for DICOM, and the corresponding FHIR resources will be populated in your FHIR server.
 
-To manage authentication with OAuth2 Client Credentials or OAuth2 User Passwords, see [DICOM Cast authentication](/converter/dicom-cast/docs/authentication.md). 
+To manage authentication with OAuth2 Client Credentials or OAuth2 User Passwords, see [DICOM Cast authentication](/converter/dicom-cast/docs/authentication.md).
 
 For an overview of DICOM Cast, see [DICOM Cast Concept](../concepts/dicom-cast.md).
 
 To upload files to your DICOM Server, refer to [Use the Medical Imaging Server APIs](../tutorials/use-the-medical-imaging-server-apis.md).
+
+You can [Access FHIR Server with Postman](https://docs.microsoft.com/azure/healthcare-apis/access-fhir-postman-tutorial) to see the FHIR resources populated via DICOM Cast.
