@@ -4,9 +4,9 @@ In this How-to Guide, you will learn how to sync Medical Imaging Server for DICO
 
 For healthcare organizations seeking to integrate clinical and imaging data through the FHIR® standard, DICOM Cast enables synchronizing of DICOM image changes to FHIR&trade; ImagingStudy resource. This allows you to sync DICOM studies, series and instances into the FHIR&trade; ImagingStudy resource.
 
-Once you have competed the [prerequisites](##Prerequisites) and [enabled authentication](##Configure-Authentication-using-Managed-Identity) between your Medical Imaging Server for DICOM, your FHIR Server and your DICOM Cast deployment, you have enabled DICOM Cast. When you upload files to your Medical Imaging Server for DICOM, the corresponding FHIR resources will be persisted in your FHIR server.
+Once you have competed the [prerequisites](#Prerequisites) and [enabled authentication](#Configure-Authentication-using-Managed-Identity) between your Medical Imaging Server for DICOM, your FHIR Server and your DICOM Cast deployment, you have enabled DICOM Cast. When you upload files to your Medical Imaging Server for DICOM, the corresponding FHIR resources will be persisted in your FHIR server.
 
-To learn more about DICOM Cast, see the [DICOM Cast Concept](../docs/Concepts/dicom-cast.md).
+To learn more about DICOM Cast, see the [DICOM Cast Concept](../concepts/dicom-cast.md).
 
 ## Prerequisites
 
@@ -35,7 +35,7 @@ For both your FHIR and DICOM servers, you will create a resource application in 
     3. Select **Register**.
 1. Select **Expose an API** > **Set**. You can specify a URI as the **URL** of your app service or use the generated App ID URI. Select **Save**.
 1. Select **Add a Scope**:
-    1. In **Scope name**, enter *user.impersonation*.
+    1. In **Scope name**, enter *user_impersonation*.
     1. In the text boxes, add an admin consent display name and admin consent description you want users to see on the consent page. For example, *access my app*.
 
 ### Set the Authentication for your FHIR & DICOM App Services
@@ -43,9 +43,11 @@ For both your FHIR and DICOM servers, you will create a resource application in 
 For both your FHIR and DICOM servers, you will set the Audience and Authority for Authentication. Follow the instructions below for each server, once for your Medical Imaging Server for DICOM and once for your FHIR Server.
 
 1. Navigate to the App Service that you deployed to Azure.
-1. Select **Configuration** to update the **Audience** and **Authority**:
+1. Select **Configuration** to update the **Audience**, **Authority**, and **Security:Enabled**:
     1. Set the **Application ID URI** from the App Service as the **Audience**.
     1. **Authority** is whichever tenant your application exists in, for example: ```https://login.microsoftonline.com/<tenant-name>.onmicrosoft.com```.
+    1.  Set **Security:Enabled** to be ```True```.
+    1.  Save your changes to the configuration.
 
 ### Update Key Vault for DICOM Cast
 
