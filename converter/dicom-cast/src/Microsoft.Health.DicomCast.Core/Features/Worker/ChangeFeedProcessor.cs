@@ -59,7 +59,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
 
                 if (!changeFeedEntries.Any())
                 {
-                    _logger.LogInformation($"No new DICOM events to process.");
+                    _logger.LogInformation("No new DICOM events to process.");
 
                     return;
                 }
@@ -75,7 +75,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                     }
                     else
                     {
-                        _logger.LogInformation($"Skip DICOM event with SequenceId {state.SyncedSequence + 1} due to deletion before processing creation.");
+                        _logger.LogInformation("Skip DICOM event with SequenceId {sequenceId} due to deletion before processing creation.", state.SyncedSequence + 1);
                     }
                 }
 
@@ -83,7 +83,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
 
                 await _syncStateService.UpdateSyncStateAsync(newSyncState, cancellationToken);
 
-                _logger.LogInformation($"Successfully processed DICOM events sequenced {state.SyncedSequence + 1}-{maxSequence}.");
+                _logger.LogInformation("Successfully processed DICOM events sequenced {sequenceId}-{maxSequence}.", state.SyncedSequence + 1, maxSequence);
 
                 state = newSyncState;
 

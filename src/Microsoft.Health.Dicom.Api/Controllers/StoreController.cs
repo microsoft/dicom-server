@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Store)]
         public async Task<IActionResult> PostAsync(string studyInstanceUid = null)
         {
-            _logger.LogInformation($"DICOM Web Store Transaction request received, with study instance UID '{studyInstanceUid}'.");
+            _logger.LogInformation("DICOM Web Store Transaction request received, with study instance UID {studyInstanceUid}.", studyInstanceUid);
 
             StoreResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
                 Request.Body,
