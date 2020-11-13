@@ -163,7 +163,7 @@
         },
         "fhirSolutionType": {
             "type": "string",
-            "defaultValue": "FhirServerCosmosDB",
+            "defaultValue": "FhirServerSqlServer",
             "metadata": {
                 "description": "The type of the solution for FHIR"
             }
