@@ -1,0 +1,137 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serviceName": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 18,
+            "metadata": {
+                "description": "Base name of service for DICOM, FHIR and DICOM Cast."
+            }
+        },
+        "sqlAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Set a password for the sql admin for DICOM and FHIR."
+            }
+        },
+        "applicationInsightsLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "allowedValues": [
+                "southeastasia",
+                "northeurope",
+                "westeurope",
+                "eastus",
+                "southcentralus",
+                "westus2"
+            ],
+            "metadata": {
+                "description": "Select a location for Application Insights. If empty, the region closet to your deployment location is used."
+            }
+        }
+    },
+    "variables": {
+        "appServicePlanResourceGroup": "[resourceGroup().name]",
+        "appServicePlanName": "[concat(parameters('serviceName'),'-asp')]",
+        "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2015-08-01",
+            "name": "[variables('appServicePlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "tags": {
+                "DicomServerSolution": "DicomServerSqlServer"
+            },
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "S1"
+            },
+            "properties": {
+                "name": "[variables('appServicePlanName')]"
+            }
+        },
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2015-01-01",
+        "name": "dicomLinkedTemplate",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/samples/templates/default-azuredeploy.json",
+            "contentVersion":"1.0.0.0"
+            },
+            "parameters":{
+                "serviceName":{"value": "[concat(parameters('serviceName'),'-dicom')]"},
+                "appServicePlanResourceGroup":{"value": "[variables('appServicePlanResourceGroup')]"},
+                "appServicePlanName":{"value": "[variables('appServicePlanName')]"},
+                "appServicePlanSku":{"value": "S1"},                
+                "storageAccountSku":{"value": "Standard_LRS"},
+                "deployApplicationInsights":{"value": true},
+                "applicationInsightsLocation":{"value": "[resourceGroup().location]"},
+                "sqlAdminPassword":{"value": "[parameters('sqlAdminPassword')]"},
+                "sqlLocation":{"value": "[resourceGroup().location]"},
+                "deployOhifViewer":{"value": true},
+                "solutionType":{"value": "DicomServerSqlServer"},
+                "deployPackage":{"value": true}
+                }
+            }
+        },
+    {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2015-01-01",
+        "name": "fhirLinkedTemplate",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/master/samples/templates/default-azuredeploy-sql.json",
+            "contentVersion":"1.0.0.0"
+            },
+            "parameters":{
+                "serviceName":{"value": "[concat(parameters('serviceName'),'-fhir')]"},
+                "appServicePlanResourceGroup":{"value": "[variables('appServicePlanResourceGroup')]"},
+                "appServicePlanName":{"value": "[variables('appServicePlanName')]"},
+                "appServicePlanSku":{"value": "S1"},
+                "enableAadSmartOnFhirProxy":{"value": false},
+                "deployApplicationInsights":{"value": true},
+                "applicationInsightsLocation":{"value": "[resourceGroup().location]"},
+                "solutionType":{"value": "FhirServerSqlServer"},
+                "sqlAdminPassword":{"value": "[parameters('sqlAdminPassword')]"},
+                "sqlLocation":{"value": "[resourceGroup().location]"},
+                "fhirVersion":{"value": "R4"},
+                "enableExport":{"value": false},    
+                "sqlSchemaAutomaticUpdatesEnabled":{"value": true}    
+                }
+            }
+        },
+        {
+           "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2015-01-01",
+            "name": "dicomCastLinkedTemplate",
+            "properties": {
+              "mode": "Incremental",
+                "templateLink": {
+                "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/converter/dicom-cast/samples/templates/default-azuredeploy.json",
+                "contentVersion":"1.0.0.0"
+                },
+                "parameters":{
+                    "serviceName":{"value": "[concat(parameters('serviceName'),'-dcast')]"},
+                    "image":{"value": "dicomoss.azurecr.io/linux_dicom-cast"},
+                    "storageAccountSku":{"value": "Standard_LRS"},
+                    "deployApplicationInsights":{"value": true},
+                    "applicationInsightsLocation":{"value": "[resourceGroup().location]"},
+                    "cpuCores":{"value": "1.0"},
+                    "memoryInGb":{"value": "1.5"},
+                    "location":{"value": "[resourceGroup().location]"},
+                    "restartPolicy":{"value": "always"},
+                    "dicomWebEndpoint":{"value": "[concat('https://',parameters('serviceName'), 'dicom','.azurewebsites.net')]"},
+                    "fhirEndpoint":{"value": "[concat('https://',parameters('fhirServiceName'),'fhir','.azurewebsites.net')]"}
+                    }
+                }
+            }
+    ],
+    "outputs": {
+    }
+  }
