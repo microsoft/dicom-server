@@ -1,0 +1,385 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appServicePlanResourceGroup": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the resource group containing App Service Plan. If empty, your deployment resource group is used."
+            }
+        },
+        "appServicePlanName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
+            }
+        },
+        "appServicePlanSku": {
+            "type": "string",
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+            ],
+            "defaultValue": "S1",
+            "metadata": {
+                "description": "Choose an App Service Plan SKU, or pricing tier. S1 is the default tier enabled."
+            }
+        },
+        "dicomServiceName": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 24,
+            "metadata": {
+                "description": "Name of the DICOM service Web App."
+            }
+        },
+        "dicomStorageAccountSku": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS",
+                "Premium_LRS",
+                "Premium_ZRS",
+                "Standard_GZRS",
+                "Standard_RAGZRS"
+            ],
+            "defaultValue": "Standard_LRS",
+            "metadata": {
+                "description": "Choose a SKU for your storage account. By default, Standard Locally Redundant Storage is selected."
+            }
+        },
+        "additionalDicomServerConfigProperties": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Additional configuration properties for the DICOM server. These properties can be modified after deployment. In the form {\"path1\":\"value1\",\"path2\":\"value2\"}"
+            }
+        },
+        "dicomSqlAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Set a password for the sql admin for DICOM."
+            }
+        },
+        "deployOhifViewer": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Deploy OHIF viewer that is configured for the DICOM server."
+            }
+        },
+        "dicomSecurityAuthenticationAuthority": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "OAuth Authority. This can be modified after deployment."
+            }
+        },
+        "dicomSecurityAuthenticationAudience": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Audience (aud) to validate in JWT. This can be modified after deployment."
+            }
+        },
+        "dicomSolutionType": {
+            "type": "string",
+            "defaultValue": "DicomServerSqlServer",
+            "metadata": {
+                "description": "The type of the solution"
+            }
+        },
+        "dicomDeployPackage": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Webdeploy package specified by deployPackageUrl."
+            }
+        },
+        "dicomDeployPackageUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Webdeploy package to use as deployment code. If blank, the latest CI code package will be deployed."
+            }
+        },
+        "fhirServiceName": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 24,
+            "metadata": {
+                "description": "Name of the FHIR service Web App."
+            }
+        },
+        "fhirSecurityAuthenticationAuthority": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "OAuth Authority"
+            }
+        },
+        "fhirSecurityAuthenticationAudience": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Audience (aud) to validate in JWT"
+            }
+        },
+        "enableAadSmartOnFhirProxy": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable Azure AAD SMART on FHIR Proxy"
+            }
+        },
+        "msdeployPackageUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Webdeploy package to use as depoyment code. If blank, the latest code package will be deployed."
+            }
+        },
+        "additionalFhirServerConfigProperties": {
+            "type": "object",
+            "defaultValue": {
+            },
+            "metadata": {
+                "description": "Additional configuration properties for the FHIR server. In the form {\"path1\":\"value1\",\"path2\":\"value2\"}"
+            }
+        },
+        "fhirSolutionType": {
+            "type": "string",
+            "defaultValue": "FhirServerSqlServer",
+            "metadata": {
+                "description": "The type of the solution for FHIR"
+            }
+        },
+        "fhirSqlAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password for the sql admin user if using SQL server."
+            }
+        },
+        "fhirVersion": {
+            "type": "string",
+            "defaultValue": "R4",
+            "allowedValues": [
+                "Stu3",
+                "R4",
+                "R5"
+            ],
+            "metadata": {
+                "description": "Only applies when MsdeployPackageUrl is not specified."
+            }
+        },
+        "enableExport": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Determines whether export will be enabled for this fhir instance. If true, a storage account will be created as part of the deployment. You will need owner or user-administrator permissions for this."
+            }
+        },
+        "dicomCastServiceName": {
+            "minLength": 3,
+            "maxLength": 24,
+            "type": "String",
+            "metadata": {
+                "description": "Name of the DICOM Cast service container group."
+            }
+        },
+        "image": {
+            "defaultValue": "dicomoss.azurecr.io/linux_dicom-cast",
+            "type": "String",
+            "metadata": {
+                "description": "Container image to deploy. Should be of the form repoName/imagename:tag for images stored in public Docker Hub, or a fully qualified URI for other registries. Images from private registries require additional registry credentials."
+            }
+        },
+        "dicomCastStorageAccountSku": {
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS",
+                "Premium_LRS",
+                "Premium_ZRS",
+                "Standard_GZRS",
+                "Standard_RAGZRS"
+            ],
+            "type": "String"
+        },
+        "dicomCastCpuCores": {
+            "defaultValue": "1.0",
+            "type": "String",
+            "metadata": {
+                "description": "The number of CPU cores to allocate to the container."
+            }
+        },
+        "dicomCastMemoryInGb": {
+            "defaultValue": "1.5",
+            "type": "String",
+            "metadata": {
+                "description": "The amount of memory to allocate to the container in gigabytes."
+            }
+        },
+        "dicomCastRestartPolicy": {
+            "defaultValue": "always",
+            "allowedValues": [
+                "never",
+                "always",
+                "onfailure"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "The behavior of Azure runtime if container has stopped."
+            }
+        },
+        "deployApplicationInsights": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Deploy Application Insights for the DICOM server, FHIR Server and DICOM Cast. Disabled for Microsoft Azure Government (MAG)"
+            }
+        },
+        "applicationInsightsLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "allowedValues": [
+                "southeastasia",
+                "northeurope",
+                "westeurope",
+                "eastus",
+                "southcentralus",
+                "westus2"
+            ],
+            "metadata": {
+                "description": "Select a location for Application Insights. If empty, the region closet to your deployment location is used."
+            }
+        }
+    },
+    "variables": {
+        "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
+        "appServicePlanName": "[if(empty(parameters('appServicePlanName')), concat(parameters('dicomServiceName'),'-asp'), parameters('appServicePlanName'))]",
+        "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]"
+    },
+    "resources": [
+        {
+            "condition": "[empty(parameters('appServicePlanResourceGroup'))]",
+            "apiVersion": "2015-08-01",
+            "name": "[variables('appServicePlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "tags": {
+                "DicomServerSolution": "[parameters('dicomSolutionType')]"
+            },
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[parameters('appServicePlanSku')]"
+            },
+            "properties": {
+                "name": "[variables('appServicePlanName')]"
+            }
+        },
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2015-01-01",
+        "name": "dicomLinkedTemplate",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/samples/templates/default-azuredeploy.json",
+            "contentVersion":"1.0.0.0"
+            },
+            "parameters":{
+                "serviceName":{"value": "[parameters('dicomServiceName')]"},
+                "appServicePlanResourceGroup":{"value": "[variables('appServicePlanResourceGroup')]"},
+                "appServicePlanName":{"value": "[variables('appServicePlanName')]"},
+                "appServicePlanSku":{"value": "[parameters('appServicePlanSku')]"},                
+                "storageAccountSku":{"value": "[parameters('dicomStorageAccountSku')]"},
+                "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
+                "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
+                "additionalDicomServerConfigProperties":{"value": "[parameters('additionalDicomServerConfigProperties')]"},
+                "sqlAdminPassword":{"value": "[parameters('dicomSqlAdminPassword')]"},
+                "sqlLocation":{"value": "[resourceGroup().location]"},
+                "deployOhifViewer":{"value": "[parameters('deployOhifViewer')]"},
+                "securityAuthenticationAuthority":{"value": "[parameters('dicomSecurityAuthenticationAuthority')]"},
+                "securityAuthenticationAudience":{"value": "[parameters('dicomSecurityAuthenticationAudience')]"},
+                "solutionType":{"value": "[parameters('dicomSolutionType')]"},
+                "deployPackage":{"value": "[parameters('dicomDeployPackage')]"},
+                "deployPackageUrl":{"value": "[parameters('dicomDeployPackageUrl')]"}
+                }
+            }
+        },
+    {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2015-01-01",
+        "name": "fhirLinkedTemplate",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/master/samples/templates/default-azuredeploy-sql.json",
+            "contentVersion":"1.0.0.0"
+            },
+            "parameters":{
+                "serviceName":{"value": "[parameters('fhirServiceName')]"},
+                "appServicePlanResourceGroup":{"value": "[variables('appServicePlanResourceGroup')]"},
+                "appServicePlanName":{"value": "[variables('appServicePlanName')]"},
+                "appServicePlanSku":{"value": "[parameters('appServicePlanSku')]"},
+                "securityAuthenticationAuthority":{"value": "[parameters('fhirSecurityAuthenticationAuthority')]"},
+                "securityAuthenticationAudience":{"value": "[parameters('fhirSecurityAuthenticationAudience')]"},
+                "enableAadSmartOnFhirProxy":{"value": "[parameters('enableAadSmartOnFhirProxy')]"},
+                "msdeployPackageUrl":{"value": "[parameters('msdeployPackageUrl')]"},
+                "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
+                "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
+                "additionalFhirServerConfigProperties":{"value": "[parameters('additionalFhirServerConfigProperties')]"},
+                "solutionType":{"value": "[parameters('fhirSolutionType')]"},
+                "sqlAdminPassword":{"value": "[parameters('fhirSqlAdminPassword')]"},
+                "sqlLocation":{"value": "[resourceGroup().location]"},
+                "fhirVersion":{"value": "[parameters('fhirVersion')]"},
+                "enableExport":{"value": "[parameters('enableExport')]"},    
+                "sqlSchemaAutomaticUpdatesEnabled":{"value": true}    
+                }
+            }
+        },
+        {
+           "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2015-01-01",
+            "name": "dicomCastLinkedTemplate",
+            "properties": {
+              "mode": "Incremental",
+                "templateLink": {
+                "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/converter/dicom-cast/samples/templates/default-azuredeploy.json",
+                "contentVersion":"1.0.0.0"
+                },
+                "parameters":{
+                    "serviceName":{"value": "[parameters('dicomCastServiceName')]"},
+                    "image":{"value": "[parameters('image')]"},
+                    "storageAccountSku":{"value": "[parameters('dicomCastStorageAccountSku')]"},
+                    "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
+                    "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
+                    "cpuCores":{"value": "[parameters('dicomCastCpuCores')]"},
+                    "memoryInGb":{"value": "[parameters('dicomCastMemoryInGb')]"},
+                    "location":{"value": "[resourceGroup().location]"},
+                    "restartPolicy":{"value": "[parameters('dicomCastRestartPolicy')]"},
+                    "dicomWebEndpoint":{"value": "[concat('https://',parameters('dicomServiceName'),'.azurewebsites.net')]"},
+                    "fhirEndpoint":{"value": "[concat('https://',parameters('fhirServiceName'),'.azurewebsites.net')]"}
+                    }
+                }
+            }
+    ],
+    "outputs": {
+    }
+  }
