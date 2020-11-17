@@ -53,9 +53,11 @@ For a simplified quick deploy, click the link below to deploy to Azure:
 
 If you want to customize all DICOM, FHIR and DICOM Cast settings during deployment, click the link below to deploy to Azure:
 
-<a href="https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmaster%2Fsamples%2Ftemplates%2Fdicomcast-fhir-dicom-azuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmaster%2Fsamples%2Ftemplates%2Fdicomcast-fhir-dicom-azuredeploy.json" target="_blank">
   <img src="https://aka.ms/deploytoazurebutton"/>
 </a>
+
+
 
 Both of these ARM templates will deploy:
 
