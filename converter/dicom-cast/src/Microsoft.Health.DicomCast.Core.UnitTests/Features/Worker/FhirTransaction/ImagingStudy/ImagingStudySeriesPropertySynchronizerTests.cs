@@ -19,6 +19,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private readonly string seriesInstanceUid = "222";
         private readonly string sopInstanceUid = "333";
         private readonly string patientResourceId = "555";
+        private const int NumberOfSeriesRelatedInstances = 1;
 
         public ImagingStudySeriesPropertySynchronizerTests()
         {
@@ -106,6 +107,18 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             _imagingStudySeriesPropertySynchronizer.Synchronize(newContext, series);
             Assert.Equal(1, series.Number);
+        }
+
+        [Fact]
+        public void GivenATransactionContextWithNumberOfInstancesInSeries_WhenprocessedForSeries_ThenDicomPropertyValuesAreUpdatedAreCorrectly()
+        {
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(numberOfSeriesRelatedInstances: NumberOfSeriesRelatedInstances));
+            ImagingStudy.SeriesComponent series = imagingStudy.Series.First();
+
+            _imagingStudySeriesPropertySynchronizer.Synchronize(context, series);
+
+            Assert.Equal(NumberOfSeriesRelatedInstances, series.NumberOfInstances);
         }
     }
 }

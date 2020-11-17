@@ -38,6 +38,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             // Add startedElement to series
             AddStartedElement(series, dataset, context.UtcDateTimeOffset);
+
+            // Add numberOfInstances to series
+            AddNumberOfInstances(series, dataset);
         }
 
         private void AddSeriesNumber(ImagingStudy.SeriesComponent series, DicomDataset dataset)
@@ -70,6 +73,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             if (modalityInString != null && !string.Equals(series.Modality?.Code, modalityInString, StringComparison.Ordinal))
             {
                 series.Modality = ImagingStudyPipelineHelper.GetModality(modalityInString);
+            }
+        }
+
+        // Add numberOfInstances to series
+        private void AddNumberOfInstances(ImagingStudy.SeriesComponent series, DicomDataset dataset)
+        {
+            if (dataset.TryGetSingleValue(DicomTag.NumberOfSeriesRelatedInstances, out int numberofInstances))
+            {
+                series.NumberOfInstances = numberofInstances;
             }
         }
     }

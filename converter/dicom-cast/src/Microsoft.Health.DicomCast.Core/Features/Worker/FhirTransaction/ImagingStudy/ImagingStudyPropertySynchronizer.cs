@@ -37,6 +37,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             AddModality(imagingStudy, dataset);
             AddNote(imagingStudy, dataset);
             AddAccessionNumber(imagingStudy, dataset);
+            AddNumberOfSeries(imagingStudy, dataset);
+            AddNumberOfStudyInstances(imagingStudy, dataset);
         }
 
         private static void AddNote(ImagingStudy imagingStudy, DicomDataset dataset)
@@ -97,6 +99,28 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 if (!imagingStudy.Identifier.Any(item => accessionNumberId.IsExactly(item)))
                 {
                     imagingStudy.Identifier.Add(accessionNumberId);
+                }
+            }
+        }
+
+        private void AddNumberOfSeries(ImagingStudy imagingStudy, DicomDataset dataset)
+        {
+            if (dataset.TryGetSingleValue(DicomTag.NumberOfStudyRelatedSeries, out int numberOfSeries))
+            {
+                if (imagingStudy.NumberOfSeries == null)
+                {
+                    imagingStudy.NumberOfSeries = numberOfSeries;
+                }
+            }
+        }
+
+        private void AddNumberOfStudyInstances(ImagingStudy imagingStudy, DicomDataset dataset)
+        {
+            if (dataset.TryGetSingleValue(DicomTag.NumberOfStudyRelatedInstances, out int numberOfInstances))
+            {
+                if (imagingStudy.NumberOfInstances == null)
+                {
+                    imagingStudy.NumberOfInstances = numberOfInstances;
                 }
             }
         }

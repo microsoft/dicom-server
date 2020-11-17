@@ -18,6 +18,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private const string DefaultSopInstanceUid = "333";
         private const string DefaultPatientResourceId = "555";
         private const string NewAccessionNumber = "2";
+        private const int NumberOfStudyRelatedSeries = 3;
+        private const int NumberOfStudyRelatedInstances = 2;
         private readonly IImagingStudyPropertySynchronizer _imagingStudyPropertySynchronizer;
 
         public ImagingStudyPropertySynchronizerTests()
@@ -137,6 +139,18 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 imagingStudy.Identifier,
                 identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier),
                 identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
+        }
+
+        [Fact]
+        public void GivenATransactionContexAndImagingStudyWithNumberOfFields_WhenProcessedForStudy_ThenNumberofFieldsAdded()
+        {
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(numberOfStudyRelatedSeries: NumberOfStudyRelatedSeries, numberOfStudyRelatedInstances: NumberOfStudyRelatedInstances));
+
+            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+
+            Assert.Equal(NumberOfStudyRelatedSeries, imagingStudy.NumberOfSeries);
+            Assert.Equal(NumberOfStudyRelatedInstances, imagingStudy.NumberOfInstances);
         }
 
         [Fact]
