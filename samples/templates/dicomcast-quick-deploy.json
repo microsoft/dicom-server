@@ -15,21 +15,6 @@
             "metadata": {
                 "description": "Set a password for the sql admin for DICOM and FHIR."
             }
-        },
-        "applicationInsightsLocation": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
-            "allowedValues": [
-                "southeastasia",
-                "northeurope",
-                "westeurope",
-                "eastus",
-                "southcentralus",
-                "westus2"
-            ],
-            "metadata": {
-                "description": "Select a location for Application Insights. If empty, the region closet to your deployment location is used."
-            }
         }
     },
     "variables": {
@@ -127,7 +112,7 @@
                     "location":{"value": "[resourceGroup().location]"},
                     "restartPolicy":{"value": "always"},
                     "dicomWebEndpoint":{"value": "[concat('https://',parameters('serviceName'), 'dicom','.azurewebsites.net')]"},
-                    "fhirEndpoint":{"value": "[concat('https://',parameters('fhirServiceName'),'fhir','.azurewebsites.net')]"}
+                    "fhirEndpoint":{"value": "[concat('https://',parameters('serviceName'),'fhir','.azurewebsites.net')]"}
                     }
                 }
             }
