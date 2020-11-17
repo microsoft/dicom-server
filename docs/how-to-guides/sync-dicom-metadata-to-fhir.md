@@ -1,4 +1,4 @@
-# Sync Medical Imaging Server for DICOM metadata into Azure API for FHIR Resources
+# Sync Medical Imaging Server for DICOM metadata into FHIR Server for Azure
 
 In this How-to Guide, you will learn how to sync Medical Imaging Server for DICOM metadata with FHIR. To do this, you will learn how to enable DICOM Cast by authentication with Managed Identity.
 
