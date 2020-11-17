@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
         {
             if (!_schemaInformation.Current.HasValue)
             {
-                _logger.LogError($"The current version of the database is not available. Unable in initialize {nameof(SqlIndexDataStore)}.");
+                _logger.LogError("The current version of the database is not available. Unable in initialize {SqlIndexDataStore}.", nameof(SqlIndexDataStore));
                 throw new ServiceUnavailableException();
             }
 
