@@ -20,7 +20,7 @@ To enable DICOM Cast, you need to complete the following steps:
 
 ## Configure Authentication using Managed Identity
 
-Currently there are three types of authentication supported for both Azure API for FHIR and Medical Imaging Server for DICOM: Managed Identity, OAuth2 Client Credential and OAuth2 User Password. The authentication can be configured via the application settings by the appropriate values in the `Authentication` property of the given server. For details on the three types, see [DICOM Cast authentication](/converter/dicom-cast/docs/authentication.md).
+Currently there are three types of authentication supported for both the FHIR Server for Azure and the Medical Imaging Server for DICOM: Managed Identity, OAuth2 Client Credential and OAuth2 User Password. The authentication can be configured via the application settings by the appropriate values in the `Authentication` property of the given server. For details on the three types, see [DICOM Cast authentication](/converter/dicom-cast/docs/authentication.md).
 
 This section will provide an end to end guide for configuring authentication with Managed Identity.
 
