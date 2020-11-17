@@ -6,8 +6,10 @@ DICOM Cast is deployed as an Azure Container Instance using the provided [ARM te
 
 ## Prerequisites
 
-* A deployed [Azure API for FHIR](https://azure.microsoft.com/services/azure-api-for-fhir/) endpoint or [FHIR Server for Azure](https://github.com/microsoft/fhir-server)
+* A deployed [FHIR Server for Azure](https://github.com/microsoft/fhir-server)
 * A deployed [Medical Imaging Server for DICOM](https://github.com/microsoft/dicom-server)
+
+> Note: Currently DICOM Cast is only supported by the Open Source FHIR Server for Azure, not the Azure API for FHIR.
 
 ## Deployment
 
