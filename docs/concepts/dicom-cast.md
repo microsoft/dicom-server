@@ -1,6 +1,6 @@
 # DICOM Cast overview
 
-DICOM Cast allows synchronizing the data from a Medical Imaging Server for DICOM to an Azure API for FHIR server, which allows healthcare organization to integrate clinical and imaging data. DICOM Cast expands the use cases for health data by supporting both a streamlined view of longitudinal patient data and the ability to effectively create cohorts for medical studies, analytics, and machine learning.
+DICOM Cast allows synchronizing the data from a Medical Imaging Server for DICOM to a [FHIR Server for Azure](https://github.com/microsoft/fhir-server), which allows healthcare organization to integrate clinical and imaging data. DICOM Cast expands the use cases for health data by supporting both a streamlined view of longitudinal patient data and the ability to effectively create cohorts for medical studies, analytics, and machine learning.
 
 ## Architecture
 
