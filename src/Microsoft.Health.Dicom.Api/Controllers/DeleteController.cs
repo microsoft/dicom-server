@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Delete Study request received, with study instance UID '{studyInstanceUid}'.");
+            _logger.LogInformation("DICOM Web Delete Study request received, with study instance UID {studyInstanceUid}.", studyInstanceUid);
 
             DeleteResourcesResponse deleteResponse = await _mediator.DeleteDicomStudyAsync(
                 studyInstanceUid, cancellationToken: HttpContext.RequestAborted);
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Delete Series request received, with study instance UID '{studyInstanceUid}' and series UID '{seriesInstanceUid}'.");
+            _logger.LogInformation("DICOM Web Delete Series request received, with study instance UID {studyInstanceUid} and series UID {seriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
 
             DeleteResourcesResponse deleteResponse = await _mediator.DeleteDicomSeriesAsync(
                 studyInstanceUid, seriesInstanceUid, cancellationToken: HttpContext.RequestAborted);
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
-            _logger.LogInformation($"DICOM Web Delete Instance request received, with study instance UID '{studyInstanceUid}', series UID '{seriesInstanceUid}' and instance UID '{sopInstanceUid}'.");
+            _logger.LogInformation("DICOM Web Delete Instance request received, with study instance UID {studyInstanceUid}, series UID {seriesInstanceUid} and instance UID {sopInstanceUid}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             DeleteResourcesResponse deleteResponse = await _mediator.DeleteDicomInstanceAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken: HttpContext.RequestAborted);

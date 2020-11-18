@@ -101,13 +101,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             catch (DataStoreException e)
             {
                 // Log request details associated with exception. Note that the details are not for the store call that failed but for the request only.
-                _logger.LogError(
-                    e,
-                    string.Format(
-                        "Error retrieving dicom resource. StudyInstanceUid: {0} SeriesInstanceUid: {1} SopInstanceUid: {2}",
-                        message.StudyInstanceUid,
-                        message.SeriesInstanceUid,
-                        message.SopInstanceUid));
+                _logger.LogError(e, "Error retrieving dicom resource. StudyInstanceUid: {StudyInstanceUid} SeriesInstanceUid: {SeriesInstanceUid} SopInstanceUid: {SopInstanceUid}", message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid);
 
                 throw;
             }

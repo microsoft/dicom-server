@@ -113,16 +113,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                                 int newRetryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.RetryBackOff), cancellationToken);
                                 if (newRetryCount > _deletedInstanceCleanupConfiguration.MaxRetries)
                                 {
-                                    _logger.LogCritical(cleanupException, $"Failed to cleanup instance {deletedInstanceIdentifier}. Retry count is now {newRetryCount} and retry will not be re-attempted.");
+                                    _logger.LogCritical(cleanupException, "Failed to cleanup instance {deletedInstanceIdentifier}. Retry count is now {newRetryCount} and retry will not be re-attempted.", deletedInstanceIdentifier, newRetryCount);
                                 }
                                 else
                                 {
-                                    _logger.LogError(cleanupException, $"Failed to cleanup instance {deletedInstanceIdentifier}. Retry count is now {newRetryCount}.");
+                                    _logger.LogError(cleanupException, "Failed to cleanup instance {deletedInstanceIdentifier}. Retry count is now {newRetryCount}.", deletedInstanceIdentifier, newRetryCount);
                                 }
                             }
                             catch (Exception incrementException)
                             {
-                                _logger.LogCritical(incrementException, $"Failed to increment cleanup retry for instance {deletedInstanceIdentifier}.");
+                                _logger.LogCritical(incrementException, "Failed to increment cleanup retry for instance {deletedInstanceIdentifier}.", deletedInstanceIdentifier);
                                 success = false;
                             }
                         }
