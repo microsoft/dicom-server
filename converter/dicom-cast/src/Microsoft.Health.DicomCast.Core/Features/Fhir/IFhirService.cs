@@ -37,5 +37,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task representing the retrieving operation.</returns>
         Task<Endpoint> RetrieveEndpointAsync(string queryParameter, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Validates that FHIR server is right version and supports transactions.
+        /// </summary>
+        void ValidateFhirService();
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
+using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker
@@ -47,27 +48,32 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
         private readonly IChangeFeedProcessor _changeFeedProcessor;
         private readonly ILogger _logger;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
+        private readonly IFhirService _fhirService;
 
         public DicomCastWorker(
             IOptions<DicomCastWorkerConfiguration> dicomCastWorkerConfiguration,
             IChangeFeedProcessor changeFeedProcessor,
             ILogger<DicomCastWorker> logger,
-            IHostApplicationLifetime hostApplicationLifetime)
+            IHostApplicationLifetime hostApplicationLifetime,
+            IFhirService fhirService)
         {
             EnsureArg.IsNotNull(dicomCastWorkerConfiguration?.Value, nameof(dicomCastWorkerConfiguration));
             EnsureArg.IsNotNull(changeFeedProcessor, nameof(changeFeedProcessor));
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(hostApplicationLifetime, nameof(hostApplicationLifetime));
+            EnsureArg.IsNotNull(fhirService, nameof(fhirService));
 
             _dicomCastWorkerConfiguration = dicomCastWorkerConfiguration.Value;
             _changeFeedProcessor = changeFeedProcessor;
             _logger = logger;
             _hostApplicationLifetime = hostApplicationLifetime;
+            _fhirService = fhirService;
         }
 
         /// <inheritdoc/>
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            _fhirService.ValidateFhirService();
             LogWorkerStartingDelegate(_logger, null);
 
             while (!cancellationToken.IsCancellationRequested)

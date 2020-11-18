@@ -12,6 +12,7 @@ using Hl7.Fhir.Model;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
+using Microsoft.Health.Fhir.Client;
 using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Fhir
@@ -50,6 +51,30 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         /// <inheritdoc/>
         public Task<Endpoint> RetrieveEndpointAsync(string queryParameter, CancellationToken cancellationToken)
             => SearchByQueryParameterAsync<Endpoint>(queryParameter, cancellationToken);
+
+        /// <inheritdoc/>
+        public async void ValidateFhirService()
+        {
+            using FhirResponse<CapabilityStatement> response = await _fhirClient.ReadAsync<CapabilityStatement>("metadata");
+            var version = response.Resource.FhirVersion;
+            if (!(version == FHIRVersion.N4_0_0 || version == FHIRVersion.N4_0_1))
+            {
+                throw new InvalidFhirServerException("FHIR server version is invalid, should be R4");
+            }
+
+            foreach (var element in response.Resource.Rest)
+            {
+                foreach (var interaction in element.Interaction)
+                {
+                    if (interaction.Code == CapabilityStatement.SystemRestfulInteraction.Transaction)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            throw new InvalidFhirServerException("FHIR server does not support transactions");
+        }
 
         private async Task<TResource> SearchByIdentifierAsync<TResource>(Identifier identifier, CancellationToken cancellationToken)
             where TResource : Resource, new()
