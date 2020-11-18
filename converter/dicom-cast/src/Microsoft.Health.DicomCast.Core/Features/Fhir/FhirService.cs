@@ -53,9 +53,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
             => SearchByQueryParameterAsync<Endpoint>(queryParameter, cancellationToken);
 
         /// <inheritdoc/>
-        public async void ValidateFhirService()
+        public async System.Threading.Tasks.Task ValidateFhirService(CancellationToken cancellationToken)
         {
-            using FhirResponse<CapabilityStatement> response = await _fhirClient.ReadAsync<CapabilityStatement>("metadata");
+            using FhirResponse<CapabilityStatement> response = await _fhirClient.ReadAsync<CapabilityStatement>("metadata", cancellationToken);
             var version = response.Resource.FhirVersion;
             if (!(version == FHIRVersion.N4_0_0 || version == FHIRVersion.N4_0_1))
             {

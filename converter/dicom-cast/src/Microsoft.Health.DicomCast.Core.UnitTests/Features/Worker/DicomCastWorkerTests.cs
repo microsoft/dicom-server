@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
+using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker;
 using NSubstitute;
 using Xunit;
@@ -25,6 +26,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
         private readonly IChangeFeedProcessor _changeFeedProcessor = Substitute.For<IChangeFeedProcessor>();
         private readonly IHostApplicationLifetime _hostApplication = Substitute.For<IHostApplicationLifetime>();
         private readonly DicomCastWorker _dicomCastWorker;
+        private readonly IFhirService _fhirService;
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private readonly CancellationToken _cancellationToken;
@@ -35,11 +37,14 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
 
             _dicomCastWorkerConfiguration.PollInterval = TimeSpan.Zero;
 
+            _fhirService = Substitute.For<IFhirService>();
+
             _dicomCastWorker = new DicomCastWorker(
                 Options.Create(_dicomCastWorkerConfiguration),
                 _changeFeedProcessor,
                 NullLogger<DicomCastWorker>.Instance,
-                _hostApplication);
+                _hostApplication,
+                _fhirService);
         }
 
         [Fact]

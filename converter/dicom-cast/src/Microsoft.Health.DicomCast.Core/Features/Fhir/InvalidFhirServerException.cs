@@ -8,7 +8,7 @@ using System;
 namespace Microsoft.Health.DicomCast.Core.Features.Fhir
 {
     /// <summary>
-    /// Exception thrown when the FHIR response is invalid.
+    /// Exception thrown when the FHIR server configuration is invalid.
     /// </summary>
     public class InvalidFhirServerException : Exception
     {

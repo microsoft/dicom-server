@@ -73,7 +73,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
         /// <inheritdoc/>
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _fhirService.ValidateFhirService();
+            await _fhirService.ValidateFhirService(cancellationToken);
             LogWorkerStartingDelegate(_logger, null);
 
             while (!cancellationToken.IsCancellationRequested)

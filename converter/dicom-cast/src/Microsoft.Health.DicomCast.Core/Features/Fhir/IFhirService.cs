@@ -41,6 +41,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         /// <summary>
         /// Validates that FHIR server is right version and supports transactions.
         /// </summary>
-        void ValidateFhirService();
+        /// <param name="cancellationToken">The cancellation token.</param>
+        System.Threading.Tasks.Task ValidateFhirService(CancellationToken cancellationToken = default);
     }
 }
