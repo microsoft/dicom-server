@@ -1,4 +1,4 @@
-# Sync Medical Imaging Server for DICOM metadata into Azure API for FHIR Resources
+# Sync Medical Imaging Server for DICOM metadata into FHIR Server for Azure
 
 In this How-to Guide, you will learn how to sync Medical Imaging Server for DICOM metadata with FHIR. To do this, you will learn how to enable DICOM Cast by authentication with Managed Identity.
 
@@ -20,7 +20,7 @@ To enable DICOM Cast, you need to complete the following steps:
 
 ## Configure Authentication using Managed Identity
 
-Currently there are three types of authentication supported for both Azure API for FHIR and Medical Imaging Server for DICOM: Managed Identity, OAuth2 Client Credential and OAuth2 User Password. The authentication can be configured via the application settings by the appropriate values in the `Authentication` property of the given server. For details on the three types, see [DICOM Cast authentication](/converter/dicom-cast/docs/authentication.md).
+Currently there are three types of authentication supported for both the FHIR Server for Azure and the Medical Imaging Server for DICOM: Managed Identity, OAuth2 Client Credential and OAuth2 User Password. The authentication can be configured via the application settings by the appropriate values in the `Authentication` property of the given server. For details on the three types, see [DICOM Cast authentication](/converter/dicom-cast/docs/authentication.md).
 
 This section will provide an end to end guide for configuring authentication with Managed Identity.
 
