@@ -92,7 +92,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             Patient updatingPatient = null;
 
-            _patientSynchronizer.When(synchronizer => synchronizer.Synchronize(DefaultDicomDataset, Arg.Any<Patient>())).Do(callback =>
+            _patientSynchronizer.When(synchronizer => synchronizer.Synchronize(DefaultDicomDataset, Arg.Any<Patient>(), FhirTransactionRequestMode.None)).Do(callback =>
             {
                 updatingPatient = callback.ArgAt<Patient>(1);
 

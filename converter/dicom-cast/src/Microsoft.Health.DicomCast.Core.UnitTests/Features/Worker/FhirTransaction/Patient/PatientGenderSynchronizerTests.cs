@@ -15,11 +15,15 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private readonly PatientGenderSynchronizer _patientGenderSynchronizer = new PatientGenderSynchronizer();
 
         [Theory]
-        [InlineData("M", AdministrativeGender.Male)]
-        [InlineData("F", AdministrativeGender.Female)]
-        [InlineData("O", AdministrativeGender.Other)]
-        [InlineData("", null)]
-        public void GivenAValidPatientSexTag_WhenSynchronized_ThenCorrectGenderShouldBeAssigned(string inputGender, AdministrativeGender? expectedGender)
+        [InlineData("M", AdministrativeGender.Male, FhirTransactionRequestMode.Create)]
+        [InlineData("M", AdministrativeGender.Male, FhirTransactionRequestMode.None)]
+        [InlineData("F", AdministrativeGender.Female, FhirTransactionRequestMode.Create)]
+        [InlineData("F", AdministrativeGender.Female, FhirTransactionRequestMode.None)]
+        [InlineData("O", AdministrativeGender.Other, FhirTransactionRequestMode.Create)]
+        [InlineData("O", AdministrativeGender.Other, FhirTransactionRequestMode.None)]
+        [InlineData("", null, FhirTransactionRequestMode.Create)]
+        [InlineData("", null, FhirTransactionRequestMode.None)]
+        public void GivenAValidPatientSexTag_WhenSynchronized_ThenCorrectGenderShouldBeAssigned(string inputGender, AdministrativeGender? expectedGender, FhirTransactionRequestMode requestMode)
         {
             var dataset = new DicomDataset()
             {
@@ -28,7 +32,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             var patient = new Patient();
 
-            _patientGenderSynchronizer.Synchronize(dataset, patient);
+            _patientGenderSynchronizer.Synchronize(dataset, patient, requestMode);
 
             Assert.Equal(expectedGender, patient.Gender);
         }
@@ -41,7 +45,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 { DicomTag.PatientSex, "D" },
             };
 
-            Assert.Throws<InvalidDicomTagValueException>(() => _patientGenderSynchronizer.Synchronize(dataset, new Patient()));
+            Assert.Throws<InvalidDicomTagValueException>(() => _patientGenderSynchronizer.Synchronize(dataset, new Patient(), FhirTransactionRequestMode.Create));
         }
     }
 }

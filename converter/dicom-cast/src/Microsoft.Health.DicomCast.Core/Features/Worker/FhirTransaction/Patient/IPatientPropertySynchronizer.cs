@@ -18,6 +18,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// </summary>
         /// <param name="dataset">The DICOM properties.</param>
         /// <param name="patient">The <see cref="Patient"/> resource.</param>
-        void Synchronize(DicomDataset dataset, Patient patient);
+        /// <param name="requestMode">The <see cref="FhirTransactionRequestMode"/> to determine how Fhir is being called.</param>
+        void Synchronize(DicomDataset dataset, Patient patient, FhirTransactionRequestMode requestMode);
     }
 }
