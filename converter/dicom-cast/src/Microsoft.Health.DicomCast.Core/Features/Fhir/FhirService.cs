@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -13,6 +15,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.Fhir.Client;
+using static Hl7.Fhir.Model.CapabilityStatement;
 using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Fhir
@@ -25,6 +28,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         private readonly IFhirClient _fhirClient;
         private readonly IFhirResourceValidator _fhirResourceValidator;
         private readonly FhirConfiguration _fhirConfiguration;
+
+        private readonly IEnumerable<FHIRVersion> _supportedFHIRVersions = new List<FHIRVersion> { FHIRVersion.N4_0_0, FHIRVersion.N4_0_1 };
 
         public FhirService(
             IFhirClient fhirClient,
@@ -56,8 +61,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         public async System.Threading.Tasks.Task ValidateFhirService(CancellationToken cancellationToken)
         {
             using FhirResponse<CapabilityStatement> response = await _fhirClient.ReadAsync<CapabilityStatement>("metadata", cancellationToken);
-            var version = response.Resource.FhirVersion;
-            if (!(version == FHIRVersion.N4_0_0 || version == FHIRVersion.N4_0_1))
+            var version = response.Resource.FhirVersion ?? throw new InvalidFhirServerException("FHIR server version cannot be validated, should be R4");
+            if (!_supportedFHIRVersions.Contains(version))
             {
                 throw new InvalidFhirServerException("FHIR server version is invalid, should be R4");
             }
@@ -66,7 +71,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
             {
                 foreach (var interaction in element.Interaction)
                 {
-                    if (interaction.Code == CapabilityStatement.SystemRestfulInteraction.Transaction)
+                    if (interaction.Code == SystemRestfulInteraction.Transaction)
                     {
                         return;
                     }
