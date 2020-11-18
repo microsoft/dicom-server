@@ -6,8 +6,10 @@ DICOM Cast is deployed as an Azure Container Instance using the provided [ARM te
 
 ## Prerequisites
 
-* A deployed [Azure API for FHIR](https://azure.microsoft.com/services/azure-api-for-fhir/) endpoint or [FHIR Server for Azure](https://github.com/microsoft/fhir-server)
+* A deployed [FHIR Server for Azure](https://github.com/microsoft/fhir-server)
 * A deployed [Medical Imaging Server for DICOM](https://github.com/microsoft/dicom-server)
+
+> Note: Currently DICOM Cast is only supported by the Open Source FHIR Server for Azure, not the Azure API for FHIR.
 
 ## Deployment
 
@@ -16,6 +18,8 @@ If you have an Azure subscription, click the link below to deploy to Azure:
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdicom-cast%2Fdefault-azuredeploy.json" target="_blank">
     <img src="https://azuredeploy.net/deploybutton.png"/>
 </a>
+
+If you do not have an Azure subscription, create a [free account](https://azure.microsoft.com/free) before you begin.
 
 This will deploy the following resources to the specified resource group:
 
@@ -37,23 +41,33 @@ Instructions for how to deploy an ARM template can be found in the following doc
 * [Deploy via CLI](https://docs.microsoft.com/azure/azure-resource-manager/templates/deploy-cli)
 * [Deploy via PowerShell](https://docs.microsoft.com/azure/azure-resource-manager/templates/deploy-powershell)
 
-## Authentication
+### Deploy DICOM Server, FHIR Server and DICOM Cast
 
-The authentication used will depend on setup of your Medical Imaging Server for DICOM and your FHIR&trade; Server. For additional information regarding setting up authentication see [DICOM Cast authentication](/converter/dicom-cast/docs/authentication.md).
+If you have not yet deployed a DICOM or FHIR Server, you can use use a single ARM Template to deploy the Medical Imaging Server for DICOM, a FHIR OSS Server and a DICOM Cast instance at once. If you do not yet have an Azure subscription, create a [free account](https://azure.microsoft.com/free) before deploying.
 
-Below is an example of the settings need to be added to the KeyVault for OAuth2ClientCredential authentication:
+For a simplified quick deploy, click the link below to deploy to Azure:
 
-* Add secrets related to Authentication in KeyVault for Medical Imaging Server for DICOM.
-  + Example: If Medical Imaging Server for Azure was configured with `OAuth2ClientCredential`, below is the list of secrets that need to added to the KeyVault.
-    - DicomWeb--Authentication--Enabled : True
-    - DicomWeb--Authentication--AuthenticationType : OAuth2ClientCredential
-    - DicomWeb--Authentication--OAuth2ClientCredential--TokenUri : ```<AAD tenant token uri>```
-    - DicomWeb--Authentication--OAuth2ClientCredential--Resource : ```Application ID URI of the resource app```
-    - DicomWeb--Authentication--OAuth2ClientCredential--Scope : ```Application ID URI of the resource app```
-    - DicomWeb--Authentication--OAuth2ClientCredential--ClientId : ```Client Id of the client app```
-    - DicomWeb--Authentication--OAuth2ClientCredential--ClientSecret : ```Client app secret```
-* Add similar secrets to KeyVault for FHIR&trade; server.
-* Stop and Start the Container, to pickup the new configurations.
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmaster%2Fsamples%2Ftemplates%2Fdicomcast-quick-deploy.json" target="_blank">
+  <img src="https://aka.ms/deploytoazurebutton"/>
+</a>
+
+> NOTE: this option is ideal to quickly set up DICOM Cast. If you want to customize configuration, you will need to do so after deployment.
+
+If you want to customize all DICOM, FHIR and DICOM Cast settings during deployment, click the link below to deploy to Azure:
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmaster%2Fsamples%2Ftemplates%2Fdicomcast-fhir-dicom-azuredeploy.json" target="_blank">
+  <img src="https://aka.ms/deploytoazurebutton"/>
+</a>
+
+
+
+Both of these ARM templates will deploy:
+
+* Medical Imaging Server for DICOM
+* [FHIR OSS Server](https://github.com/microsoft/fhir-server)
+* DICOM Cast
+
+These three instances will be hosted within the same Resource Group and App Service Plan.
 
 ## Summary
 
