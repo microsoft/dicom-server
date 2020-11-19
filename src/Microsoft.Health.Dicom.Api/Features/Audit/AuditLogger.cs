@@ -33,17 +33,17 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
             "CorrelationId: {CorrelationId}" + Environment.NewLine +
             "Claims: {Claims}";
 
-        private readonly SecurityConfiguration _securityConfiguration;
+        private readonly IOptionsMonitor<SecurityConfiguration> _securityConfiguration;
         private readonly ILogger<IAuditLogger> _logger;
 
         public AuditLogger(
-            IOptions<SecurityConfiguration> securityConfiguration,
+            IOptionsMonitor<SecurityConfiguration> securityConfiguration,
             ILogger<IAuditLogger> logger)
         {
-            EnsureArg.IsNotNull(securityConfiguration?.Value, nameof(securityConfiguration));
+            EnsureArg.IsNotNull(securityConfiguration?.CurrentValue, nameof(securityConfiguration));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _securityConfiguration = securityConfiguration.Value;
+            _securityConfiguration = securityConfiguration;
             _logger = logger;
         }
 
@@ -75,8 +75,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
                 AuditMessageFormat,
                 auditAction,
                 AuditEventType,
-                _securityConfiguration.Authentication?.Audience,
-                _securityConfiguration.Authentication?.Authority,
+                _securityConfiguration.CurrentValue.Authentication?.Audience,
+                _securityConfiguration.CurrentValue.Authentication?.Authority,
                 requestUri,
                 action,
                 statusCode,

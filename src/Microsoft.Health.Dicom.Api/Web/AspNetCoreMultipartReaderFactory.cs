@@ -17,14 +17,14 @@ namespace Microsoft.Health.Dicom.Api.Web
     internal class AspNetCoreMultipartReaderFactory : IMultipartReaderFactory
     {
         private readonly ISeekableStreamConverter _seekableStreamConverter;
-        private readonly IOptions<StoreConfiguration> _storeConfiguration;
+        private readonly IOptionsMonitor<StoreConfiguration> _storeConfiguration;
 
         public AspNetCoreMultipartReaderFactory(
             ISeekableStreamConverter seekableStreamConverter,
-            IOptions<StoreConfiguration> storeConfiguration)
+            IOptionsMonitor<StoreConfiguration> storeConfiguration)
         {
             EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
-            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
+            EnsureArg.IsNotNull(storeConfiguration?.CurrentValue, nameof(storeConfiguration));
 
             _seekableStreamConverter = seekableStreamConverter;
             _storeConfiguration = storeConfiguration;

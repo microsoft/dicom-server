@@ -197,10 +197,10 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
                 CreateStoreConfiguration());
         }
 
-        private IOptions<StoreConfiguration> CreateStoreConfiguration()
+        private IOptionsMonitor<StoreConfiguration> CreateStoreConfiguration()
         {
-            var configuration = Substitute.For<IOptions<StoreConfiguration>>();
-            configuration.Value.Returns(new StoreConfiguration
+            var configuration = Substitute.For<IOptionsMonitor<StoreConfiguration>>();
+            configuration.CurrentValue.Returns(new StoreConfiguration
             {
                 MaxAllowedDicomFileSize = 1000000,
             });

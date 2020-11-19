@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
         private readonly IIndexDataStore _indexDataStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IFileStore _fileStore;
-        private readonly DeletedInstanceCleanupConfiguration _deletedInstanceCleanupConfiguration;
+        private readonly IOptionsMonitor<DeletedInstanceCleanupConfiguration> _deletedInstanceCleanupConfiguration;
         private readonly ITransactionHandler _transactionHandler;
         private readonly ILogger<DeleteService> _logger;
 
@@ -33,40 +33,40 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             IIndexDataStore indexDataStore,
             IMetadataStore metadataStore,
             IFileStore fileStore,
-            IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
+            IOptionsMonitor<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
             ITransactionHandler transactionHandler,
             ILogger<DeleteService> logger)
         {
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
-            EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
+            EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.CurrentValue, nameof(deletedInstanceCleanupConfiguration));
             EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _indexDataStore = indexDataStore;
             _metadataStore = metadataStore;
             _fileStore = fileStore;
-            _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
+            _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration;
             _transactionHandler = transactionHandler;
             _logger = logger;
         }
 
         public async Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
         {
-            DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
+            DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.CurrentValue.DeleteDelay);
             await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
         {
-            DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
+            DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.CurrentValue.DeleteDelay);
             await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
-            DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
+            DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.CurrentValue.DeleteDelay);
             await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
@@ -85,8 +85,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                 try
                 {
                     List<VersionedInstanceIdentifier> deletedInstanceIdentifiers = (await _indexDataStore.RetrieveDeletedInstancesAsync(
-                        _deletedInstanceCleanupConfiguration.BatchSize,
-                        _deletedInstanceCleanupConfiguration.MaxRetries,
+                        _deletedInstanceCleanupConfiguration.CurrentValue.BatchSize,
+                        _deletedInstanceCleanupConfiguration.CurrentValue.MaxRetries,
                         cancellationToken))
                         .ToList();
 
@@ -110,8 +110,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
                         {
                             try
                             {
-                                int newRetryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.RetryBackOff), cancellationToken);
-                                if (newRetryCount > _deletedInstanceCleanupConfiguration.MaxRetries)
+                                int newRetryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.CurrentValue.RetryBackOff), cancellationToken);
+                                if (newRetryCount > _deletedInstanceCleanupConfiguration.CurrentValue.MaxRetries)
                                 {
                                     _logger.LogCritical(cleanupException, "Failed to cleanup instance {deletedInstanceIdentifier}. Retry count is now {newRetryCount} and retry will not be re-attempted.", deletedInstanceIdentifier, newRetryCount);
                                 }

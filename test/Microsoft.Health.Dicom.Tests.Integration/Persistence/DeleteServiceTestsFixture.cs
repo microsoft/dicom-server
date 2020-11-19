@@ -56,8 +56,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 RetryBackOff = TimeSpan.FromSeconds(2),
             };
 
-            var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
-            optionsConfiguration.Value.Returns(cleanupConfiguration);
+            var optionsConfiguration = Substitute.For<IOptionsMonitor<DeletedInstanceCleanupConfiguration>>();
+            optionsConfiguration.CurrentValue.Returns(cleanupConfiguration);
             DeleteService = new DeleteService(
                 _sqlDataStoreTestsFixture.IndexDataStore,
                 _blobStorageTestsFixture.MetadataStore,

@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
         private readonly TimeSpan _pollingInterval;
         private readonly int _batchSize;
 
-        public DeletedInstanceCleanupWorker(IDeleteService deleteService, IOptions<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
+        public DeletedInstanceCleanupWorker(IDeleteService deleteService, IOptionsSnapshot<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
         {
             EnsureArg.IsNotNull(deleteService, nameof(deleteService));
             EnsureArg.IsNotNull(backgroundCleanupConfiguration?.Value, nameof(backgroundCleanupConfiguration));

@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.BackgroundServices
         public DeletedInstanceCleanupWorkerTests()
         {
             _deleteService = Substitute.For<IDeleteService>();
-            var configuration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
+            var configuration = Substitute.For<IOptionsSnapshot<DeletedInstanceCleanupConfiguration>>();
             configuration.Value.Returns(new DeletedInstanceCleanupConfiguration
             {
                 BatchSize = BatchSize,

@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Api.Web
         private const string TypeParameterName = "type";
         private const string StartParameterName = "start";
         private readonly ISeekableStreamConverter _seekableStreamConverter;
-        private readonly IOptions<StoreConfiguration> _storeConfiguration;
+        private readonly IOptionsMonitor<StoreConfiguration> _storeConfiguration;
         private readonly string _rootContentType;
         private readonly MultipartReader _multipartReader;
 
@@ -38,12 +38,12 @@ namespace Microsoft.Health.Dicom.Api.Web
             string contentType,
             Stream body,
             ISeekableStreamConverter seekableStreamConverter,
-            IOptions<StoreConfiguration> storeConfiguration)
+            IOptionsMonitor<StoreConfiguration> storeConfiguration)
         {
             EnsureArg.IsNotNull(contentType, nameof(contentType));
             EnsureArg.IsNotNull(body, nameof(body));
             EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
-            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
+            EnsureArg.IsNotNull(storeConfiguration?.CurrentValue, nameof(storeConfiguration));
 
             _seekableStreamConverter = seekableStreamConverter;
             _storeConfiguration = storeConfiguration;
@@ -85,7 +85,7 @@ namespace Microsoft.Health.Dicom.Api.Web
             _multipartReader = new MultipartReader(boundary, body);
 
             // set the max length of each section in bytes
-            _multipartReader.BodyLengthLimit = _storeConfiguration.Value.MaxAllowedDicomFileSize;
+            _multipartReader.BodyLengthLimit = _storeConfiguration.CurrentValue.MaxAllowedDicomFileSize;
         }
 
         /// <inheritdoc />

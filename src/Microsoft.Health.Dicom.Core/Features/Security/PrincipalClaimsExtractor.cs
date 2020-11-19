@@ -16,21 +16,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
     public class PrincipalClaimsExtractor : IClaimsExtractor
     {
         private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-        private readonly SecurityConfiguration _securityConfiguration;
+        private readonly IOptionsMonitor<SecurityConfiguration> _securityConfiguration;
 
-        public PrincipalClaimsExtractor(IDicomRequestContextAccessor dicomRequestContextAccessor, IOptions<SecurityConfiguration> securityConfiguration)
+        public PrincipalClaimsExtractor(IDicomRequestContextAccessor dicomRequestContextAccessor, IOptionsMonitor<SecurityConfiguration> securityConfiguration)
         {
             EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
-            EnsureArg.IsNotNull(securityConfiguration, nameof(securityConfiguration));
+            EnsureArg.IsNotNull(securityConfiguration?.CurrentValue, nameof(securityConfiguration));
 
             _dicomRequestContextAccessor = dicomRequestContextAccessor;
-            _securityConfiguration = securityConfiguration.Value;
+            _securityConfiguration = securityConfiguration;
         }
 
         public IReadOnlyCollection<KeyValuePair<string, string>> Extract()
         {
             return _dicomRequestContextAccessor.DicomRequestContext.Principal?.Claims?
-                .Where(c => _securityConfiguration.PrincipalClaims?.Contains(c.Type) ?? false)
+                .Where(c => _securityConfiguration.CurrentValue.PrincipalClaims?.Contains(c.Type) ?? false)
                 .Select(c => new KeyValuePair<string, string>(c.Type, c.Value))
                 .ToList();
         }

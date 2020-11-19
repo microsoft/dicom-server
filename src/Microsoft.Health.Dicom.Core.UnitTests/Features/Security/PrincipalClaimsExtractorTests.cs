@@ -19,14 +19,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Security
     public class PrincipalClaimsExtractorTests
     {
         private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        private readonly IOptions<SecurityConfiguration> _securityOptions = Substitute.For<IOptions<SecurityConfiguration>>();
+        private readonly IOptionsMonitor<SecurityConfiguration> _securityOptions = Substitute.For<IOptionsMonitor<SecurityConfiguration>>();
         private readonly SecurityConfiguration _securityConfiguration = Substitute.For<SecurityConfiguration>();
         private readonly ClaimsPrincipal _claimsPrincipal = Substitute.For<ClaimsPrincipal>();
         private readonly PrincipalClaimsExtractor _claimsIndexer;
 
         public PrincipalClaimsExtractorTests()
         {
-            _securityOptions.Value.Returns(_securityConfiguration);
+            _securityOptions.CurrentValue.Returns(_securityConfiguration);
             _dicomRequestContextAccessor.DicomRequestContext.Principal.Returns(_claimsPrincipal);
             _claimsIndexer = new PrincipalClaimsExtractor(_dicomRequestContextAccessor, _securityOptions);
         }
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Security
         {
             Assert.Throws<ArgumentNullException>(
                 "dicomRequestContextAccessor",
-                () => new PrincipalClaimsExtractor(null, Options.Create(new SecurityConfiguration())));
+                () => new PrincipalClaimsExtractor(null, _securityOptions));
         }
 
         [Fact]

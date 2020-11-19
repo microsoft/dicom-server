@@ -47,9 +47,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 RetryBackOff = TimeSpan.FromDays(4),
             };
 
-            IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfigurationOptions = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
-            deletedInstanceCleanupConfigurationOptions.Value.Returns(_deleteConfiguration);
-            ITransactionHandler transactionHandler = Substitute.For<ITransactionHandler>();
+            var deletedInstanceCleanupConfigurationOptions = Substitute.For<IOptionsMonitor<DeletedInstanceCleanupConfiguration>>();
+            deletedInstanceCleanupConfigurationOptions.CurrentValue.Returns(_deleteConfiguration);
+            var transactionHandler = Substitute.For<ITransactionHandler>();
             _transactionScope = Substitute.For<ITransactionScope>();
             transactionHandler.BeginTransaction().Returns(_transactionScope);
 

@@ -23,12 +23,12 @@ namespace Microsoft.Health.Dicom.Api.Web
     {
         private const int DefaultBufferThreshold = 1024 * 30000; // 30MB
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IOptions<StoreConfiguration> _storeConfiguration;
+        private readonly IOptionsMonitor<StoreConfiguration> _storeConfiguration;
 
-        public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor, IOptions<StoreConfiguration> storeConfiguration)
+        public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor, IOptionsMonitor<StoreConfiguration> storeConfiguration)
         {
             EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
-            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
+            EnsureArg.IsNotNull(storeConfiguration?.CurrentValue, nameof(storeConfiguration));
 
             _httpContextAccessor = httpContextAccessor;
             _storeConfiguration = storeConfiguration;
@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Api.Web
                 catch (InvalidDataException)
                 {
                     // This will result in bad request, we need to handle this differently when we make the processing serial.
-                    throw new DicomFileLengthLimitExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
+                    throw new DicomFileLengthLimitExceededException(_storeConfiguration.CurrentValue.MaxAllowedDicomFileSize);
                 }
                 catch (IOException ex)
                 {
