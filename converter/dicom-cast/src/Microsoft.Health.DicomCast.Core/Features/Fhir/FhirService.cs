@@ -17,6 +17,7 @@ using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.Fhir.Client;
 using static Hl7.Fhir.Model.CapabilityStatement;
 using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Fhir
 {
@@ -58,13 +59,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
             => SearchByQueryParameterAsync<Endpoint>(queryParameter, cancellationToken);
 
         /// <inheritdoc/>
-        public async System.Threading.Tasks.Task ValidateFhirService(CancellationToken cancellationToken)
+        public async Task CheckFhirServiceCapability(CancellationToken cancellationToken)
         {
             using FhirResponse<CapabilityStatement> response = await _fhirClient.ReadAsync<CapabilityStatement>("metadata", cancellationToken);
-            var version = response.Resource.FhirVersion ?? throw new InvalidFhirServerException("FHIR server version cannot be validated, should be R4");
+            var version = response.Resource.FhirVersion ?? throw new InvalidFhirServerException(DicomCastCoreResource.FailedToValidateFhirVersion);
             if (!_supportedFHIRVersions.Contains(version))
             {
-                throw new InvalidFhirServerException("FHIR server version is invalid, should be R4");
+                throw new InvalidFhirServerException(DicomCastCoreResource.InvalidFhirServerVersion);
             }
 
             foreach (var element in response.Resource.Rest)
@@ -78,7 +79,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
                 }
             }
 
-            throw new InvalidFhirServerException("FHIR server does not support transactions");
+            throw new InvalidFhirServerException(DicomCastCoreResource.FhirServerTransactionNotSupported);
         }
 
         private async Task<TResource> SearchByIdentifierAsync<TResource>(Identifier identifier, CancellationToken cancellationToken)

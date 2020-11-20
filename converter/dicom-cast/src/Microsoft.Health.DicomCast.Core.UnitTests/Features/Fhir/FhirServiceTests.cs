@@ -105,28 +105,28 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
         public async Task GivenInValidFhirConfigVersion_ShouldThrowError()
         {
             _fhirClient.ReadAsync<CapabilityStatement>(MetaDataEndpoint, DefaultCancellationToken).Returns(GenerateFhirCapabilityResponse(FHIRVersion.N0_01, SystemRestfulInteraction.Transaction));
-            await Assert.ThrowsAsync<InvalidFhirServerException>(() => _fhirService.ValidateFhirService(DefaultCancellationToken));
+            await Assert.ThrowsAsync<InvalidFhirServerException>(() => _fhirService.CheckFhirServiceCapability(DefaultCancellationToken));
         }
 
         [Fact]
         public async Task GivenInValidFhirConfigInteraction_ShouldThrowError()
         {
             _fhirClient.ReadAsync<CapabilityStatement>(MetaDataEndpoint, DefaultCancellationToken).Returns(GenerateFhirCapabilityResponse(FHIRVersion.N4_0_0, SystemRestfulInteraction.Batch));
-            await Assert.ThrowsAsync<InvalidFhirServerException>(() => _fhirService.ValidateFhirService(DefaultCancellationToken));
+            await Assert.ThrowsAsync<InvalidFhirServerException>(() => _fhirService.CheckFhirServiceCapability(DefaultCancellationToken));
         }
 
         [Fact]
         public async Task GivenValidFhirConfigV4_ShouldNotThrowError()
         {
             _fhirClient.ReadAsync<CapabilityStatement>(MetaDataEndpoint, DefaultCancellationToken).Returns(GenerateFhirCapabilityResponse(FHIRVersion.N4_0_0, SystemRestfulInteraction.Transaction));
-            await _fhirService.ValidateFhirService(DefaultCancellationToken);
+            await _fhirService.CheckFhirServiceCapability(DefaultCancellationToken);
         }
 
         [Fact]
         public async Task GivenValidFhirConfigV401_ShouldNotThrowError()
         {
             _fhirClient.ReadAsync<CapabilityStatement>(MetaDataEndpoint, DefaultCancellationToken).Returns(GenerateFhirCapabilityResponse(FHIRVersion.N4_0_1, SystemRestfulInteraction.Transaction));
-            await _fhirService.ValidateFhirService(DefaultCancellationToken);
+            await _fhirService.CheckFhirServiceCapability(DefaultCancellationToken);
         }
 
         private void SetupIdentifierSearchCriteria(ResourceType resourceType, Identifier identifier, Bundle bundle)

@@ -6,6 +6,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Hl7.Fhir.Model;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Fhir
 {
@@ -42,6 +43,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         /// Validates that FHIR server is right version and supports transactions.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        System.Threading.Tasks.Task ValidateFhirService(CancellationToken cancellationToken = default);
+        Task CheckFhirServiceCapability(CancellationToken cancellationToken = default);
     }
 }
