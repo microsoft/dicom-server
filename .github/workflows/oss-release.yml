@@ -4,6 +4,7 @@ name: oss-release
 on:
   schedule:
     - cron: '0 2 * * WED'
+  workflow_dispatch:
 
 jobs:
   oss-release:
@@ -18,4 +19,4 @@ jobs:
         env: # Use secret in repo to make necessary AzureDevOps calls.
           AZUREDEVOPS_PAT: ${{ secrets.AZUREDEVOPS_PAT }}
         run: | # Run powershell script to manage API calls to generate Release.
-          CreateRelease.ps1
+          .\CreateRelease.ps1
