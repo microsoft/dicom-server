@@ -23,10 +23,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 EnsureArg.IsNotNull(dataset, nameof(dataset));
                 EnsureArg.IsNotNull(patient, nameof(patient));
 
-                string dicomPatientBirthDate = dataset.GetDatePropertyIfNotDefaultValue(DicomTag.PatientBirthDate).ToString();
+                FhirDateTime dicomPatientBirthDate = dataset.GetDatePropertyIfNotDefaultValue(DicomTag.PatientBirthDate);
                 if (dicomPatientBirthDate != null)
                 {
-                    patient.BirthDate = dicomPatientBirthDate;
+                    patient.BirthDate = dicomPatientBirthDate.ToString();
                 }
             }
         }

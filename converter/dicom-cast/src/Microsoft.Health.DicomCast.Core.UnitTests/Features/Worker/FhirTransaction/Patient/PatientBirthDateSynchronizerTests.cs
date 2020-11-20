@@ -24,7 +24,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             _patientBirthDateSynchronizer.Synchronize(new DicomDataset(), _patient, requestMode);
 
-            Assert.Empty(_patient.BirthDate);
+            Assert.Null(_patient.BirthDate);
         }
 
         [Fact]
@@ -42,9 +42,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             DateTime birthDate = new DateTime(1990, 01, 01, 12, 12, 12);
 
-            _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, FhirTransactionRequestMode.Create);
+            _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, FhirTransactionRequestMode.None);
 
-            Assert.Empty(_patient.BirthDate);
+            Assert.Null(_patient.BirthDate);
         }
 
         private static DicomDataset CreateDicomDataset(DateTime patientBirthDate)
@@ -64,7 +64,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             }
 
             Assert.NotNull(actualDate.ToDateTimeOffset());
-            Assert.Equal(expectedDate.Value, actualDate.ToDateTimeOffset().Value.DateTime);
+            Assert.Equal(expectedDate.Value.Date, actualDate.ToDateTimeOffset().Value.DateTime);
         }
     }
 }
