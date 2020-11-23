@@ -70,7 +70,7 @@ namespace Microsoft.Health.DicomCast.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to FHIR server version cannot be validated, should be R4.
+        ///   Looks up a localized string similar to FHIR server version cannot be validated. Configure a FHIR service with version R4 and with transaction capabilites..
         /// </summary>
         internal static string FailedToValidateFhirVersion {
             get {
@@ -79,7 +79,7 @@ namespace Microsoft.Health.DicomCast.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to FHIR server does not support transactions.
+        ///   Looks up a localized string similar to Configured FHIR service does not support transactions needed to  publish FHIR changes. Configure a FHIR service with transaction capabilites..
         /// </summary>
         internal static string FhirServerTransactionNotSupported {
             get {
@@ -124,7 +124,7 @@ namespace Microsoft.Health.DicomCast.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to FHIR server version is invalid, should be R4.
+        ///   Looks up a localized string similar to FHIR service version is not supported. Configure a FHIR service that supports FHIR version R4..
         /// </summary>
         internal static string InvalidFhirServerVersion {
             get {

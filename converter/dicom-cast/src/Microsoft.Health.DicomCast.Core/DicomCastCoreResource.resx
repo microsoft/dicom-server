@@ -121,10 +121,10 @@
     <value>The data store operation failed.</value>
   </data>
   <data name="FailedToValidateFhirVersion" xml:space="preserve">
-    <value>FHIR server version cannot be validated, should be R4</value>
+    <value>FHIR server version cannot be validated. Configure a FHIR service with version R4 and with transaction capabilites.</value>
   </data>
   <data name="FhirServerTransactionNotSupported" xml:space="preserve">
-    <value>FHIR server does not support transactions</value>
+    <value>Configured FHIR service does not support transactions needed to  publish FHIR changes. Configure a FHIR service with transaction capabilites.</value>
   </data>
   <data name="InvalidBundleEntryResponseStatus" xml:space="preserve">
     <value>The response status value '{0}' for bundle entry at index '{1}' is invalid.</value>
@@ -141,7 +141,7 @@
     <value>The version id of the resource is missing.</value>
   </data>
   <data name="InvalidFhirServerVersion" xml:space="preserve">
-    <value>FHIR server version is invalid, should be R4</value>
+    <value>FHIR service version is not supported. Configure a FHIR service that supports FHIR version R4.</value>
   </data>
   <data name="MismatchBundleEntryCount" xml:space="preserve">
     <value>The number of bundle entry in response does not match the request.</value>
