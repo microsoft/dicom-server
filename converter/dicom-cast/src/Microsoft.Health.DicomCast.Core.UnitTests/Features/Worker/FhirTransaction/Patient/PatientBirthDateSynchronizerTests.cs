@@ -18,11 +18,11 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private readonly Patient _patient = new Patient();
 
         [Theory]
-        [InlineData(FhirTransactionRequestMode.Create)]
-        [InlineData(FhirTransactionRequestMode.None)]
-        public void GivenNoPatientBirthDate_WhenSynchronized_ThenNoBirthDateShouldBeAdded(FhirTransactionRequestMode requestMode)
+        [InlineData(true)]
+        [InlineData(false)]
+        public void GivenNoPatientBirthDate_WhenSynchronized_ThenNoBirthDateShouldBeAdded(bool newPatient)
         {
-            _patientBirthDateSynchronizer.Synchronize(new DicomDataset(), _patient, requestMode);
+            _patientBirthDateSynchronizer.Synchronize(new DicomDataset(), _patient, newPatient);
 
             Assert.Null(_patient.BirthDate);
         }
@@ -32,7 +32,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             DateTime birthDate = new DateTime(1990, 01, 01, 12, 12, 12);
 
-            _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, FhirTransactionRequestMode.Create);
+            _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, true);
 
             ValidateDate(birthDate, _patient.BirthDateElement);
         }
@@ -42,7 +42,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             DateTime birthDate = new DateTime(1990, 01, 01, 12, 12, 12);
 
-            _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, FhirTransactionRequestMode.None);
+            _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, false);
 
             Assert.Null(_patient.BirthDate);
         }

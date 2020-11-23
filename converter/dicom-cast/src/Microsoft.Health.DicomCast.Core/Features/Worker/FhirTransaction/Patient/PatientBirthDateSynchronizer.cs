@@ -16,9 +16,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     public class PatientBirthDateSynchronizer : IPatientPropertySynchronizer
     {
         /// <inheritdoc/>
-        public void Synchronize(DicomDataset dataset, Patient patient, FhirTransactionRequestMode requestMode)
+        public void Synchronize(DicomDataset dataset, Patient patient, bool newPatient)
         {
-            if (requestMode.Equals(FhirTransactionRequestMode.Create))
+            if (newPatient)
             {
                 EnsureArg.IsNotNull(dataset, nameof(dataset));
                 EnsureArg.IsNotNull(patient, nameof(patient));

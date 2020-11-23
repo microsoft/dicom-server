@@ -17,7 +17,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         private const string EmptyString = "";
 
         /// <inheritdoc/>
-        public void Synchronize(DicomDataset dataset, Patient patient, FhirTransactionRequestMode requestMode)
+        public void Synchronize(DicomDataset dataset, Patient patient, bool newPatient)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(patient, nameof(patient));
