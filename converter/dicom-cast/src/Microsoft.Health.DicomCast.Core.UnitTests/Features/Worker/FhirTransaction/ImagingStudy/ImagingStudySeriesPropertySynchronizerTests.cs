@@ -113,10 +113,14 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public void GivenATransactionContextWithNumberOfInstancesInSeries_WhenprocessedForSeries_ThenDicomPropertyValuesAreUpdatedAreCorrectly()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(numberOfSeriesRelatedInstances: NumberOfSeriesRelatedInstances));
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
             ImagingStudy.SeriesComponent series = imagingStudy.Series.First();
 
             _imagingStudySeriesPropertySynchronizer.Synchronize(context, series);
+            Assert.Equal(FhirTransactionContextBuilder.DefaultnumberOfSeriesRelatedInstances, series.NumberOfInstances);
+
+            FhirTransactionContext newContext = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(numberOfSeriesRelatedInstances: NumberOfSeriesRelatedInstances));
+            _imagingStudySeriesPropertySynchronizer.Synchronize(newContext, series);
 
             Assert.Equal(NumberOfSeriesRelatedInstances, series.NumberOfInstances);
         }

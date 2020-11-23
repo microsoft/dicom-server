@@ -145,9 +145,15 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public void GivenATransactionContexAndImagingStudyWithNumberOfFields_WhenProcessedForStudy_ThenNumberofFieldsAdded()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(numberOfStudyRelatedSeries: NumberOfStudyRelatedSeries, numberOfStudyRelatedInstances: NumberOfStudyRelatedInstances));
-
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
             _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+
+            Assert.Equal(FhirTransactionContextBuilder.DefaultNumberOfStudyRelatedSeries, imagingStudy.NumberOfSeries);
+            Assert.Equal(FhirTransactionContextBuilder.DefualtNumberOfStudyRelatedInstances, imagingStudy.NumberOfInstances);
+
+            FhirTransactionContext contextNew = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(numberOfStudyRelatedSeries: NumberOfStudyRelatedSeries, numberOfStudyRelatedInstances: NumberOfStudyRelatedInstances));
+
+            _imagingStudyPropertySynchronizer.Synchronize(contextNew, imagingStudy);
 
             Assert.Equal(NumberOfStudyRelatedSeries, imagingStudy.NumberOfSeries);
             Assert.Equal(NumberOfStudyRelatedInstances, imagingStudy.NumberOfInstances);

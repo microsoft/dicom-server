@@ -107,10 +107,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         {
             if (dataset.TryGetSingleValue(DicomTag.NumberOfStudyRelatedSeries, out int numberOfSeries))
             {
-                if (imagingStudy.NumberOfSeries == null)
-                {
-                    imagingStudy.NumberOfSeries = numberOfSeries;
-                }
+                imagingStudy.NumberOfSeries = numberOfSeries;
             }
         }
 
@@ -118,10 +115,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         {
             if (dataset.TryGetSingleValue(DicomTag.NumberOfStudyRelatedInstances, out int numberOfInstances))
             {
-                if (imagingStudy.NumberOfInstances == null)
-                {
-                    imagingStudy.NumberOfInstances = numberOfInstances;
-                }
+                imagingStudy.NumberOfInstances = numberOfInstances;
             }
         }
     }

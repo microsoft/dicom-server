@@ -22,9 +22,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public const string DefaultSeriesNumber = "1";
         public const string DefaultInstanceNumber = "1";
         public const string DefaultAccessionNumber = "1";
-        public const int DefaultNumberOfStudyRelatedSeries = 0;
-        public const int DefualtNumberOfStudyRelatedInstances = 0;
-        public const int DefaultnumberOfSeriesRelatedInstances = 0;
+        public const int DefaultNumberOfStudyRelatedSeries = 10;
+        public const int DefualtNumberOfStudyRelatedInstances = 9;
+        public const int DefaultnumberOfSeriesRelatedInstances = 8;
 
         public static DicomDataset CreateDicomDataset(string sopClassUid = null, string studyDescription = null, string seriesDescrition = null, string modalityInStudy = null, string modalityInSeries = null, string seriesNumber = null, string instanceNumber = null, string accessionNumber = null, int numberOfStudyRelatedSeries = DefaultNumberOfStudyRelatedSeries, int numberOfStudyRelatedInstances = DefualtNumberOfStudyRelatedInstances, int numberOfSeriesRelatedInstances = DefaultnumberOfSeriesRelatedInstances)
         {
