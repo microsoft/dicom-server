@@ -28,6 +28,7 @@ The current implementation of DICOM Cast has the following mappings:
 | Patient.identifier.where(system = '') | (0010,0020) | PatientID | For now, the system will be empty string. We will add support later for allowing the system to be specified. |
 | Patient.name.where(use = 'usual') | (0010,0010) | PatientName | PatientName will be split into components and added as HumanName to the Patient resource. |
 | Patient.gender | (0010,0040) | PatientSex ||
+| Patient.birthDate | (0010,0030) | PatientBirthDate | PatientBirthDate only contains the date. This implementation assumes that the FHIR and DICOM servers have data from the same time zone. |
 
 **Endpoint:**
 

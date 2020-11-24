@@ -58,6 +58,16 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             FhirTransactionContext context = CreateFhirTransactionContext();
 
+            Patient creatingPatient = null;
+
+            _patientSynchronizer.When(synchronizer => synchronizer.Synchronize(DefaultDicomDataset, Arg.Any<Patient>(), isNewPatient: true)).Do(callback =>
+            {
+                creatingPatient = callback.ArgAt<Patient>(1);
+
+                // Modify a property of patient so changes can be detected.
+                creatingPatient.BirthDateElement = new Date(1990, 01, 01);
+            });
+
             await _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
 
             FhirTransactionRequestEntry actualPatientEntry = context.Request.Patient;
@@ -71,6 +81,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             Assert.Collection(
                 actualPatient.Identifier,
                 identifier => ValidationUtility.ValidateIdentifier(string.Empty, DefaultPatientId, identifier));
+
+            Assert.Equal(creatingPatient.BirthDate, actualPatient.BirthDate);
         }
 
         [Fact]
@@ -92,7 +104,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             Patient updatingPatient = null;
 
-            _patientSynchronizer.When(synchronizer => synchronizer.Synchronize(DefaultDicomDataset, Arg.Any<Patient>())).Do(callback =>
+            _patientSynchronizer.When(synchronizer => synchronizer.Synchronize(DefaultDicomDataset, Arg.Any<Patient>(), isNewPatient: false)).Do(callback =>
             {
                 updatingPatient = callback.ArgAt<Patient>(1);
 

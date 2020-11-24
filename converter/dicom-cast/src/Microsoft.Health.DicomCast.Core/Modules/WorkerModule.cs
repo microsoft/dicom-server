@@ -90,6 +90,11 @@ namespace Microsoft.Health.DicomCast.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.Add<PatientBirthDateSynchronizer>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             services.Add<ImagingStudySynchronizer>()
                 .Singleton()
                 .AsSelf()
