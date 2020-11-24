@@ -6,6 +6,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Hl7.Fhir.Model;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Fhir
 {
@@ -37,5 +38,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task representing the retrieving operation.</returns>
         Task<Endpoint> RetrieveEndpointAsync(string queryParameter, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Validates that FHIR server is right version and supports transactions.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task CheckFhirServiceCapability(CancellationToken cancellationToken = default);
     }
 }

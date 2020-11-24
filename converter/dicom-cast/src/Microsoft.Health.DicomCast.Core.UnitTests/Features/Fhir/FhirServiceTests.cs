@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.Fhir.Client;
 using NSubstitute;
 using Xunit;
+using static Hl7.Fhir.Model.CapabilityStatement;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
@@ -24,6 +26,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
         private static readonly Identifier DefaultPatientIdentifier = new Identifier(string.Empty, "p1");
         private static readonly Identifier DefaultImagingStudyIdentifier = new Identifier(string.Empty, "123");
+        private const string MetaDataEndpoint = "metadata";
 
         private readonly IFhirClient _fhirClient = Substitute.For<IFhirClient>();
         private readonly IFhirResourceValidator _fhirResourceValidator = Substitute.For<IFhirResourceValidator>();
@@ -96,6 +99,34 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
         public async Task GivenMultipleMatchesThatSpansMultipleResultSet_WhenImagingStudyIsRetrieved_ThenMultipleMatchingResourcesExceptionShouldBeThrown()
         {
             await ExecuteAndValidateMultipleMatchesThatSpansInMultipleResultSetAsync(DefaultImagingStudyIdentifier, _fhirService.RetrieveImagingStudyAsync);
+        }
+
+        [Fact]
+        public async Task GivenInValidFhirConfigVersion_ShouldThrowError()
+        {
+            _fhirClient.ReadAsync<CapabilityStatement>(MetaDataEndpoint, DefaultCancellationToken).Returns(GenerateFhirCapabilityResponse(FHIRVersion.N0_01, SystemRestfulInteraction.Transaction));
+            await Assert.ThrowsAsync<InvalidFhirServerException>(() => _fhirService.CheckFhirServiceCapability(DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenInValidFhirConfigInteraction_ShouldThrowError()
+        {
+            _fhirClient.ReadAsync<CapabilityStatement>(MetaDataEndpoint, DefaultCancellationToken).Returns(GenerateFhirCapabilityResponse(FHIRVersion.N4_0_0, SystemRestfulInteraction.Batch));
+            await Assert.ThrowsAsync<InvalidFhirServerException>(() => _fhirService.CheckFhirServiceCapability(DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenValidFhirConfigV4_ShouldNotThrowError()
+        {
+            _fhirClient.ReadAsync<CapabilityStatement>(MetaDataEndpoint, DefaultCancellationToken).Returns(GenerateFhirCapabilityResponse(FHIRVersion.N4_0_0, SystemRestfulInteraction.Transaction));
+            await _fhirService.CheckFhirServiceCapability(DefaultCancellationToken);
+        }
+
+        [Fact]
+        public async Task GivenValidFhirConfigV401_ShouldNotThrowError()
+        {
+            _fhirClient.ReadAsync<CapabilityStatement>(MetaDataEndpoint, DefaultCancellationToken).Returns(GenerateFhirCapabilityResponse(FHIRVersion.N4_0_1, SystemRestfulInteraction.Transaction));
+            await _fhirService.CheckFhirServiceCapability(DefaultCancellationToken);
         }
 
         private void SetupIdentifierSearchCriteria(ResourceType resourceType, Identifier identifier, Bundle bundle)
@@ -227,6 +258,19 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
         private static FhirResponse<Bundle> GenerateFhirResponse(Bundle firstBundle)
         {
             return new FhirResponse<Bundle>(new HttpResponseMessage(), firstBundle);
+        }
+
+        private static FhirResponse<CapabilityStatement> GenerateFhirCapabilityResponse(FHIRVersion version, SystemRestfulInteraction interaction)
+        {
+            CapabilityStatement statement = new CapabilityStatement();
+            statement.FhirVersion = version;
+            RestComponent restComponent = new RestComponent();
+            SystemInteractionComponent interactionComponent = new SystemInteractionComponent();
+            interactionComponent.Code = interaction;
+            restComponent.Interaction = new List<SystemInteractionComponent> { interactionComponent };
+            statement.Rest.Add(restComponent);
+
+            return new FhirResponse<CapabilityStatement>(new HttpResponseMessage(), statement);
         }
     }
 }

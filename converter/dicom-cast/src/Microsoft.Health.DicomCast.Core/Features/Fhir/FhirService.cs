@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -12,7 +14,10 @@ using Hl7.Fhir.Model;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
+using Microsoft.Health.Fhir.Client;
+using static Hl7.Fhir.Model.CapabilityStatement;
 using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Fhir
 {
@@ -24,6 +29,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         private readonly IFhirClient _fhirClient;
         private readonly IFhirResourceValidator _fhirResourceValidator;
         private readonly FhirConfiguration _fhirConfiguration;
+
+        private readonly IEnumerable<FHIRVersion> _supportedFHIRVersions = new List<FHIRVersion> { FHIRVersion.N4_0_0, FHIRVersion.N4_0_1 };
 
         public FhirService(
             IFhirClient fhirClient,
@@ -50,6 +57,30 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         /// <inheritdoc/>
         public Task<Endpoint> RetrieveEndpointAsync(string queryParameter, CancellationToken cancellationToken)
             => SearchByQueryParameterAsync<Endpoint>(queryParameter, cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task CheckFhirServiceCapability(CancellationToken cancellationToken)
+        {
+            using FhirResponse<CapabilityStatement> response = await _fhirClient.ReadAsync<CapabilityStatement>("metadata", cancellationToken);
+            var version = response.Resource.FhirVersion ?? throw new InvalidFhirServerException(DicomCastCoreResource.FailedToValidateFhirVersion);
+            if (!_supportedFHIRVersions.Contains(version))
+            {
+                throw new InvalidFhirServerException(DicomCastCoreResource.InvalidFhirServerVersion);
+            }
+
+            foreach (var element in response.Resource.Rest)
+            {
+                foreach (var interaction in element.Interaction)
+                {
+                    if (interaction.Code == SystemRestfulInteraction.Transaction)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            throw new InvalidFhirServerException(DicomCastCoreResource.FhirServerTransactionNotSupported);
+        }
 
         private async Task<TResource> SearchByIdentifierAsync<TResource>(Identifier identifier, CancellationToken cancellationToken)
             where TResource : Resource, new()

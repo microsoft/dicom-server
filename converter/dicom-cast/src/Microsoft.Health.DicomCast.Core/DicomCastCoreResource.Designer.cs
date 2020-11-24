@@ -70,6 +70,24 @@ namespace Microsoft.Health.DicomCast.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to FHIR server version cannot be validated. Configure a FHIR service with version R4 and with transaction capabilites..
+        /// </summary>
+        internal static string FailedToValidateFhirVersion {
+            get {
+                return ResourceManager.GetString("FailedToValidateFhirVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configured FHIR service does not support transactions needed to  publish FHIR changes. Configure a FHIR service with transaction capabilites..
+        /// </summary>
+        internal static string FhirServerTransactionNotSupported {
+            get {
+                return ResourceManager.GetString("FhirServerTransactionNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The response status value &apos;{0}&apos; for bundle entry at index &apos;{1}&apos; is invalid..
         /// </summary>
         internal static string InvalidBundleEntryResponseStatus {
@@ -102,6 +120,15 @@ namespace Microsoft.Health.DicomCast.Core {
         internal static string InvalidFhirResourceMissingVersionId {
             get {
                 return ResourceManager.GetString("InvalidFhirResourceMissingVersionId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FHIR service version is not supported. Configure a FHIR service that supports FHIR version R4..
+        /// </summary>
+        internal static string InvalidFhirServerVersion {
+            get {
+                return ResourceManager.GetString("InvalidFhirServerVersion", resourceCulture);
             }
         }
         
