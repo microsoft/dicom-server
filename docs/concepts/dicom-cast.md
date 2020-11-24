@@ -47,11 +47,14 @@ The current implementation of DICOM Cast has the following mappings:
 | ImagingStudy.subject | | | It will be linked to the Patient [above](##Mappings). |
 | ImagingStudy.started | (0008,0020), (0008,0030), (0008,0201) | StudyDate, StudyTime, TimezoneOffsetFromUTC | More detail about how timestamp is constructed [below](###Timestamp). |
 | ImagingStudy.endpoint | | | It will be linked to the Endpoint above. |
+| ImagingStudy.numberOfSeries | (0020,1206) | NumberOfStudyRelatedSeries | Value will be used from the most recently uploaded DICOM instance with the field populated in the study. |
+| ImagingStudy.numberOfInstances | (0020,1208) | NumberOfStudyRelatedInstances | Value will be used from most recently uploaded DICOM instance with the field pouplated in the study.|
 | ImagingStudy.note | (0008,1030) | StudyDescription | |
 | ImagingStudy.series.uid | (0020,000E) | SeriesInstanceUID | |
 | ImagingStudy.series.number | (0020,0011) | SeriesNumber | |
 | ImagingStudy.series.modality | (0008,0060) | Modality | |
 | ImagingStudy.series.description | (0008,103E) | SeriesDescription | |
+| ImagingStudy.series.numberOfInstances | (0020,1209) | NumberOfSeriesRelatedInstances | Value will be used from most recently uploaded DICOM instance with the field populated in the series. |
 | ImagingStudy.series.started | (0008,0021), (0008,0031), (0008,0201) | SeriesDate, SeriesTime, TimezoneOffsetFromUTC | More detail about how timestamp is constructed [below](###Timestamp). |
 | ImagingStudy.series.instance.uid | (0008,0018) | SOPInstanceUID | |
 | ImagingStudy.series.instance.sopClass | (0008,0016) | SOPClassUID | |
