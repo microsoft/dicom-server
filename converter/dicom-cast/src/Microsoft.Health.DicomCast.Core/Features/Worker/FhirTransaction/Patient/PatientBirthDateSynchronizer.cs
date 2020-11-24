@@ -16,18 +16,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     public class PatientBirthDateSynchronizer : IPatientPropertySynchronizer
     {
         /// <inheritdoc/>
-        public void Synchronize(DicomDataset dataset, Patient patient, bool newPatient)
+        public void Synchronize(DicomDataset dataset, Patient patient, bool isNewPatient)
         {
-            if (newPatient)
+            if (isNewPatient)
             {
                 EnsureArg.IsNotNull(dataset, nameof(dataset));
                 EnsureArg.IsNotNull(patient, nameof(patient));
 
-                FhirDateTime dicomPatientBirthDate = dataset.GetDatePropertyIfNotDefaultValue(DicomTag.PatientBirthDate);
-                if (dicomPatientBirthDate != null)
-                {
-                    patient.BirthDate = dicomPatientBirthDate.ToString();
-                }
+                patient.BirthDateElement = dataset.GetDatePropertyIfNotDefaultValue(DicomTag.PatientBirthDate);
             }
         }
     }

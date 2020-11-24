@@ -25,14 +25,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         }
 
         /// <inheritdoc/>
-        public void Synchronize(DicomDataset dataset, Patient patient, bool newPatient)
+        public void Synchronize(DicomDataset dataset, Patient patient, bool isNewPatient)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(patient, nameof(patient));
 
             foreach (IPatientPropertySynchronizer patientPropertySynchronizer in _patientPropertySynchronizers)
             {
-                patientPropertySynchronizer.Synchronize(dataset, patient, newPatient);
+                patientPropertySynchronizer.Synchronize(dataset, patient, isNewPatient);
             }
         }
 

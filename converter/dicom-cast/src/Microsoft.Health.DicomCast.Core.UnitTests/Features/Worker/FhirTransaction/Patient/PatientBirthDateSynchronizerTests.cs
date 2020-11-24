@@ -20,9 +20,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void GivenNoPatientBirthDate_WhenSynchronized_ThenNoBirthDateShouldBeAdded(bool newPatient)
+        public void GivenNoPatientBirthDate_WhenSynchronized_ThenNoBirthDateShouldBeAdded(bool isNewPatient)
         {
-            _patientBirthDateSynchronizer.Synchronize(new DicomDataset(), _patient, newPatient);
+            _patientBirthDateSynchronizer.Synchronize(new DicomDataset(), _patient, isNewPatient);
 
             Assert.Null(_patient.BirthDate);
         }
@@ -31,7 +31,6 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public void GivenBirthDateWhileCreating_WhenSynchronized_ThenCorrectBirthDateShouldBeAdded()
         {
             DateTime birthDate = new DateTime(1990, 01, 01, 12, 12, 12);
-
             _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, true);
 
             ValidateDate(birthDate, _patient.BirthDateElement);

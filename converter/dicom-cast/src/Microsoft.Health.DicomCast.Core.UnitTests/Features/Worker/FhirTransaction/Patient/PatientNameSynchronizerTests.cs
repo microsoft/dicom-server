@@ -20,9 +20,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void GivenNoPatientName_WhenSynchronized_ThenNoNameShouldBeAdded(bool newPatient)
+        public void GivenNoPatientName_WhenSynchronized_ThenNoNameShouldBeAdded(bool isNewPatient)
         {
-            _patientNameSynchronizer.Synchronize(new DicomDataset(), _patient, newPatient);
+            _patientNameSynchronizer.Synchronize(new DicomDataset(), _patient, isNewPatient);
 
             Assert.Empty(_patient.Name);
         }
@@ -30,11 +30,11 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void GivenFamilyName_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool newPatient)
+        public void GivenFamilyName_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool isNewPatient)
         {
             const string familyName = "fn";
 
-            _patientNameSynchronizer.Synchronize(CreateDicomDataset(familyName), _patient, newPatient);
+            _patientNameSynchronizer.Synchronize(CreateDicomDataset(familyName), _patient, isNewPatient);
 
             Assert.Collection(
                 _patient.Name,
@@ -48,9 +48,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [InlineData(false, "^gn", "gn")]
         [InlineData(true, "^gn1 gn2", "gn1", "gn2")]
         [InlineData(false, "^gn1 gn2", "gn1", "gn2")]
-        public void GivenGivenNames_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool newPatient, string inputName, params string[] givenNames)
+        public void GivenGivenNames_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool isNewPatient, string inputName, params string[] givenNames)
         {
-            _patientNameSynchronizer.Synchronize(CreateDicomDataset(inputName), _patient, newPatient);
+            _patientNameSynchronizer.Synchronize(CreateDicomDataset(inputName), _patient, isNewPatient);
 
             Assert.Collection(
                 _patient.Name,
@@ -64,9 +64,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [InlineData(false, "^^mn", "mn")]
         [InlineData(true, "^^mn1 mn2", "mn1", "mn2")]
         [InlineData(false, "^^mn1 mn2", "mn1", "mn2")]
-        public void GivenMiddleNames_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool newPatient, string inputName, params string[] givenNames)
+        public void GivenMiddleNames_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool isNewPatient, string inputName, params string[] givenNames)
         {
-            _patientNameSynchronizer.Synchronize(CreateDicomDataset(inputName), _patient, newPatient);
+            _patientNameSynchronizer.Synchronize(CreateDicomDataset(inputName), _patient, isNewPatient);
 
             Assert.Collection(
                 _patient.Name,
@@ -80,9 +80,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [InlineData(false, "^^^p1", "p1")]
         [InlineData(true, "^^^p1 p2", "p1", "p2")]
         [InlineData(false, "^^^p1 p2", "p1", "p2")]
-        public void GivenPrefixes_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool newPatient, string inputName, params string[] prefixes)
+        public void GivenPrefixes_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool isNewPatient, string inputName, params string[] prefixes)
         {
-            _patientNameSynchronizer.Synchronize(CreateDicomDataset(inputName), _patient, newPatient);
+            _patientNameSynchronizer.Synchronize(CreateDicomDataset(inputName), _patient, isNewPatient);
 
             Assert.Collection(
                 _patient.Name,
@@ -96,9 +96,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [InlineData(false, "^^^^s1", "s1")]
         [InlineData(true, "^^^^s1 s2", "s1", "s2")]
         [InlineData(false, "^^^^s1 s2", "s1", "s2")]
-        public void GivenSuffixes_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool newPatient, string inputName, params string[] suffixes)
+        public void GivenSuffixes_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool isNewPatient, string inputName, params string[] suffixes)
         {
-            _patientNameSynchronizer.Synchronize(CreateDicomDataset(inputName), _patient, newPatient);
+            _patientNameSynchronizer.Synchronize(CreateDicomDataset(inputName), _patient, isNewPatient);
 
             Assert.Collection(
                 _patient.Name,
@@ -108,12 +108,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void GivenNameWithSpacePadding_WhenSynchronized_ThenPaddingShouldBeRemoved(bool newPatient)
+        public void GivenNameWithSpacePadding_WhenSynchronized_ThenPaddingShouldBeRemoved(bool isNewPatient)
         {
             _patientNameSynchronizer.Synchronize(
                 CreateDicomDataset(" Doe^Joe    "),
                 _patient,
-                newPatient);
+                isNewPatient);
 
             Assert.Collection(
                 _patient.Name,
@@ -126,12 +126,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void GivenName_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool newPatient)
+        public void GivenName_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool isNewPatient)
         {
             _patientNameSynchronizer.Synchronize(
                 CreateDicomDataset("Adams^John Robert^Quincy^Rev.^B.A. M.Div."),
                 _patient,
-                newPatient);
+                isNewPatient);
 
             Assert.Collection(
                 _patient.Name,
@@ -146,7 +146,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void GivenNameAlreadyExists_WhenSynchronized_ThenItWillBeOverwritten(bool newPatient)
+        public void GivenNameAlreadyExists_WhenSynchronized_ThenItWillBeOverwritten(bool isNewPatient)
         {
             _patient.Name.Add(new HumanName()
             {
@@ -158,7 +158,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             _patientNameSynchronizer.Synchronize(
                 CreateDicomDataset("Morrison-Jones^Susan^^^Ph.D., Chief Executive Officer"),
                 _patient,
-                newPatient);
+                isNewPatient);
 
             // The spec says the suffix should be two, but I am not sure how we can do that without
             // some sort of natural language interpretation. For now, because we are separating by space,
@@ -175,7 +175,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void GivenOtherName_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool newPatient)
+        public void GivenOtherName_WhenSynchronized_ThenCorrectNameShouldBeAdded(bool isNewPatient)
         {
             _patient.Name.Add(new HumanName()
             {
@@ -194,7 +194,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             _patientNameSynchronizer.Synchronize(
                 CreateDicomDataset("Schmith^Johnny"),
                 _patient,
-                newPatient);
+                isNewPatient);
 
             // The spec says the suffix should be two, but I am not sure how we can do that without
             // some sort of natural language interpretation. For now, because we are separating by space,

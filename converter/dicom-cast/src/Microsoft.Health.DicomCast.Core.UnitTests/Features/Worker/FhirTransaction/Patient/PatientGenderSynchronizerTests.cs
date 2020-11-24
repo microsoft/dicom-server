@@ -23,7 +23,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [InlineData("O", AdministrativeGender.Other, false)]
         [InlineData("", null, true)]
         [InlineData("", null, false)]
-        public void GivenAValidPatientSexTag_WhenSynchronized_ThenCorrectGenderShouldBeAssigned(string inputGender, AdministrativeGender? expectedGender, bool newPatient)
+        public void GivenAValidPatientSexTag_WhenSynchronized_ThenCorrectGenderShouldBeAssigned(string inputGender, AdministrativeGender? expectedGender, bool isNewPatient)
         {
             var dataset = new DicomDataset()
             {
@@ -32,20 +32,22 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             var patient = new Patient();
 
-            _patientGenderSynchronizer.Synchronize(dataset, patient, newPatient);
+            _patientGenderSynchronizer.Synchronize(dataset, patient, isNewPatient);
 
             Assert.Equal(expectedGender, patient.Gender);
         }
 
-        [Fact]
-        public void GivenAnInvalidPatientGender_WhenBuilt_ThenInvalidDicomTagValueExceptionShouldBeThrown()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void GivenAnInvalidPatientGender_WhenBuilt_ThenInvalidDicomTagValueExceptionShouldBeThrown(bool isNewPatient)
         {
             var dataset = new DicomDataset()
             {
                 { DicomTag.PatientSex, "D" },
             };
 
-            Assert.Throws<InvalidDicomTagValueException>(() => _patientGenderSynchronizer.Synchronize(dataset, new Patient(), true));
+            Assert.Throws<InvalidDicomTagValueException>(() => _patientGenderSynchronizer.Synchronize(dataset, new Patient(), isNewPatient));
         }
     }
 }

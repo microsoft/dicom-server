@@ -11,11 +11,15 @@ namespace Microsoft.Health.DicomCast.Core.Extensions
 {
     public static class DicomDatasetExtensions
     {
-        public static FhirDateTime GetDatePropertyIfNotDefaultValue(this DicomDataset dataset, DicomTag dateDicomTag)
+        public static Date GetDatePropertyIfNotDefaultValue(this DicomDataset dataset, DicomTag dateDicomTag)
         {
             if (dataset.TryGetSingleValue(dateDicomTag, out DateTime dateTagValue) && dateTagValue != DateTime.MinValue)
             {
-                return new FhirDateTime(dateTagValue.Year, dateTagValue.Month, dateTagValue.Day);
+                Date fhirDate = new Date(dateTagValue.Year, dateTagValue.Month, dateTagValue.Day);
+                if (Date.IsValidValue(fhirDate.Value))
+                {
+                    return fhirDate;
+                }
             }
 
             return null;
