@@ -19,6 +19,7 @@ jobs:
         run: | # Run powershell script to manage API calls to generate Release.
           Set-Location $env:GITHUB_WORKSPACE\.github\workflows
           .\CreateRelease.ps1
+      - name: Upload generated log file
         uses: actions/upload-artifact@v2
         with: # Upload generated log file
           name: log
