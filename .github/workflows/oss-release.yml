@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repo # This allows access to the repository's files via the environment variable GITHUB_WORKSPACE
         uses: actions/checkout@v2
       - name: Script to Create OSS Release
-      - shell: pwsh
+        shell: pwsh
         env: # Use secret in repo to make necessary AzureDevOps calls.
           AZUREDEVOPS_PAT: ${{ secrets.AZUREDEVOPS_PAT }}
         run: | # Run powershell script to manage API calls to generate Release.
