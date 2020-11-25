@@ -90,7 +90,7 @@ $currentRelease = $null
     
     try {
         # Make a patch request to the AzureDevOps' API to approve the release.
-        $patch = Invoke-WebRequest -Uri $currentReleaseUrl -Method patch -Headers $azureDevOpsAuthenicationHeader -Body $updateStatusObj -ErrorAction Stop
+        $patch = Invoke-WebRequest -Uri $currentReleaseUrl -Method patch -Headers $azureDevOpsAuthenicationHeader -ContentType "application/json" -Body $updateStatusObj -ErrorAction Stop
         Start-Sleep -Milliseconds 10000
     }
     catch {
