@@ -10,13 +10,16 @@ jobs:
   oss-release:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repo # This allows access to the repository's files via the environment variable GITHUB_WORKSPACE
+        uses: actions/checkout@v2
       - name: Script to Create OSS Release
-        uses: actions/upload-artifact@v2
-        with: # Upload generated log file
-          name: log
-          path: log.txt
       - shell: pwsh
         env: # Use secret in repo to make necessary AzureDevOps calls.
           AZUREDEVOPS_PAT: ${{ secrets.AZUREDEVOPS_PAT }}
         run: | # Run powershell script to manage API calls to generate Release.
+          Set-Location $env:GITHUB_WORKSPACE\.github\workflows
           .\CreateRelease.ps1
+        uses: actions/upload-artifact@v2
+        with: # Upload generated log file
+          name: log
+          path: log.txt
