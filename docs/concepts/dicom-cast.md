@@ -57,6 +57,7 @@ The current implementation of DICOM Cast has the following mappings:
 | ImagingStudy.series.instance.uid | (0008,0018) | SOPInstanceUID | |
 | ImagingStudy.series.instance.sopClass | (0008,0016) | SOPClassUID | |
 | ImagingStudy.series.instance.number | (0020,0013) | InstanceNumber | |
+| ImagingStudy.identifier.where(system = 'http://ginormoushospital.org/accession') | (0008,0050) | Accession Number | System name could change on different organization. |
 
 ### Timestamp
 
