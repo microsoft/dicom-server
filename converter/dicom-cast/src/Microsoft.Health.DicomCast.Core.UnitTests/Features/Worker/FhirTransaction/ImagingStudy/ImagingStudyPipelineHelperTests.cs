@@ -22,14 +22,20 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 () => ImagingStudyPipelineHelper.SetDateTimeOffSet(fhirTransactionContext));
         }
 
-        [Fact]
-        public void GivenAChangeFeedEntry_WhenDateTimeOffsetIsCalculated_ThenDateTimeOffsetIsSet()
+        [Theory]
+        [InlineData(14, 0, "+1400")]
+        [InlineData(-8, 0, "-0800")]
+        [InlineData(-14, 0, "-1400")]
+        [InlineData(8, 0, "+0800")]
+        [InlineData(0, 0, "+0000")]
+        [InlineData(8, 30, "+0830")]
+        public void GivenAChangeFeedEntry_WhenDateTimeOffsetIsCalculated_ThenDateTimeOffsetIsSet(int hour, int minute, string dicomValue)
         {
             FhirTransactionContext fhirTransactionContext = FhirTransactionContextBuilder.DefaultFhirTransactionContext();
 
-            DateTimeOffset utcTimeZoneOffset = DateTimeOffset.Now;
+            DateTimeOffset utcTimeZoneOffset = new DateTimeOffset(2020, 1, 1, 0, 0, 0, new TimeSpan(hour, minute, 0));
 
-            fhirTransactionContext.ChangeFeedEntry.Metadata.Add(DicomTag.TimezoneOffsetFromUTC, utcTimeZoneOffset.ToString(FhirTransactionConstants.UtcTimezoneOffsetFormat));
+            fhirTransactionContext.ChangeFeedEntry.Metadata.Add(DicomTag.TimezoneOffsetFromUTC, dicomValue);
 
             ImagingStudyPipelineHelper.SetDateTimeOffSet(fhirTransactionContext);
 
