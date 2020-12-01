@@ -20,7 +20,7 @@ if($shouldRelease) {
 
 # Set basis to call AzureDevOps' Rest API as necessary.
 [Net.ServicePointManager]::SecurityProtocol =  [Net.SecurityProtocolType]::Tls12
-$azureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($env:AZUREDEVOPS_PAT)")) }
+$azureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":${env:AZUREDEVOPS_PAT}")) }
 $apiBase = "https://vsrm.dev.azure.com/microsofthealthoss"
 
 # Hardcoded to point to Release Defenition 23 (DICOM Server Nuget and Tag Release) under the FhirServer Project
@@ -72,18 +72,18 @@ $currentRelease = $null
     # All releases that are not the latest release are rejected.
     if(-Not($currentRelease -eq $lastRelease)) {
         $updateStatusObj = @{
-            status="rejected"
-            comment="Rejected by automation (reason: not the latest)"
-        }
+            "status" = "rejected"
+            "comment" = "Rejected by automation (reason: not the latest)"
+        } | ConvertTo-Json
 
         log "Rejecting $($($($approval[0]).release).name) as it is not the latest."
     }
     else {
         # Only the latest release will be approved.
         $updateStatusObj = @{
-            status="approved"
-            comment="Approved by automation"
-        }
+            "status" = "approved"
+            "comment" = "Approved by automation"
+        } | ConvertTo-Json
 
         log "Accepting $($($($approval[0]).release).name)"
     }
