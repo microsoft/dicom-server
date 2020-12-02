@@ -57,6 +57,7 @@ The current implementation of DICOM Cast has the following mappings:
 | ImagingStudy.series.instance.uid | (0008,0018) | SOPInstanceUID | |
 | ImagingStudy.series.instance.sopClass | (0008,0016) | SOPClassUID | |
 | ImagingStudy.series.instance.number | (0020,0013) | InstanceNumber | |
+| ImagingStudy.identifier.where(type.coding.system='http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code='ACSN')) | (0008,0050) | Accession Number | Refer to http://hl7.org/fhir/imagingstudy.html#notes. |
 
 ### Timestamp
 
