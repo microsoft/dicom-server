@@ -14,6 +14,7 @@ $weeksSince = [math]::floor(($currentDate - $firstRun).TotalDays / 7)
 $shouldRelease = ($weeksSince % 2) -eq 0
 
 if($shouldRelease) {
+    "We're not releasing this week, one week left!"
     log "We're not releasing this week, one week left!"
     exit
 }
@@ -57,6 +58,7 @@ while(-Not($lastRelease -eq $currentRelease)) {
     }
     elseif($approval.Count -eq 0) {
         # If there are no pending approvals, exit as there are no new changes to release.
+        "No pending approvals, nothing to do."
         log "No pending approvals, nothing to do."
         exit
     }
@@ -65,6 +67,7 @@ while(-Not($lastRelease -eq $currentRelease)) {
     $currentRelease = $approval[0].release.id
     $currentReleaseUrl = $approval[0].release.url + "?" + $apiVersion
 
+    "Approval found for $($($($approval[0]).release).name)"
     log "Approval found for $($($($approval[0]).release).name)"
 
     $updateStatusObj = $null;
@@ -76,6 +79,7 @@ while(-Not($lastRelease -eq $currentRelease)) {
             "comment" = "Rejected by automation (reason: not the latest)"
         } | ConvertTo-Json
 
+        "Rejecting $($($($approval[0]).release).name) as it is not the latest."
         log "Rejecting $($($($approval[0]).release).name) as it is not the latest."
     }
     else {
@@ -85,6 +89,7 @@ while(-Not($lastRelease -eq $currentRelease)) {
             "comment" = "Approved by automation"
         } | ConvertTo-Json
 
+        "Accepting $($($($approval[0]).release).name)"
         log "Accepting $($($($approval[0]).release).name)"
     }
     
