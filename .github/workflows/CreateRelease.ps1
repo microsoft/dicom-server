@@ -31,7 +31,7 @@ $definition = Invoke-RestMethod -Uri $definitionUri -Method get -Headers $azureD
 $lastRelease = $definition.lastRelease.Id
 $currentRelease = $null
 
-#while(-Not($lastRelease -eq $currentRelease)) {
+while(-Not($lastRelease -eq $currentRelease)) {
     # Fetch releases currently pending for approval
     log "Fetching approvals"
     $approvalsUri = $apiBase + "/fhirserver/_apis/release/approvals?statusFilter=pending&" + $apiVersion
@@ -99,4 +99,4 @@ $currentRelease = $null
         log $patchError
         throw $patchError
     }
-#}
+}

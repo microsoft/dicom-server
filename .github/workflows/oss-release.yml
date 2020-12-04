@@ -5,6 +5,7 @@ on:
   schedule:
     - cron: '0 2 * * WED'
   workflow_dispatch:
+  push:
 
 jobs:
   oss-release:
