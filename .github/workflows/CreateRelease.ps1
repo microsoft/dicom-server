@@ -14,13 +14,14 @@ $weeksSince = [math]::floor(($currentDate - $firstRun).TotalDays / 7)
 $shouldRelease = ($weeksSince % 2) -eq 0
 
 if($shouldRelease) {
+    "We're not releasing this week, one week left!"
     log "We're not releasing this week, one week left!"
     exit
 }
 
 # Set basis to call AzureDevOps' Rest API as necessary.
 [Net.ServicePointManager]::SecurityProtocol =  [Net.SecurityProtocolType]::Tls12
-$azureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($env:AZUREDEVOPS_PAT)")) }
+$azureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":${env:AZUREDEVOPS_PAT}")) }
 $apiBase = "https://vsrm.dev.azure.com/microsofthealthoss"
 
 # Hardcoded to point to Release Defenition 23 (DICOM Server Nuget and Tag Release) under the FhirServer Project
@@ -31,7 +32,7 @@ $definition = Invoke-RestMethod -Uri $definitionUri -Method get -Headers $azureD
 $lastRelease = $definition.lastRelease.Id
 $currentRelease = $null
 
-#while(-Not($lastRelease -eq $currentRelease)) {
+while(-Not($lastRelease -eq $currentRelease)) {
     # Fetch releases currently pending for approval
     log "Fetching approvals"
     $approvalsUri = $apiBase + "/fhirserver/_apis/release/approvals?statusFilter=pending&" + $apiVersion
@@ -57,14 +58,16 @@ $currentRelease = $null
     }
     elseif($approval.Count -eq 0) {
         # If there are no pending approvals, exit as there are no new changes to release.
+        "No pending approvals, nothing to do."
         log "No pending approvals, nothing to do."
         exit
     }
 
     # If there is exactly one release, identify relevant properties to base further queries on.
     $currentRelease = $approval[0].release.id
-    $currentReleaseUrl = $approval[0].release.url + "?" + $apiVersion
+    $currentReleaseUrl = $approval[0].url + "?" + $apiVersion
 
+    "Approval found for $($($($approval[0]).release).name)"
     log "Approval found for $($($($approval[0]).release).name)"
 
     $updateStatusObj = $null;
@@ -72,19 +75,21 @@ $currentRelease = $null
     # All releases that are not the latest release are rejected.
     if(-Not($currentRelease -eq $lastRelease)) {
         $updateStatusObj = @{
-            status="rejected"
-            comment="Rejected by automation (reason: not the latest)"
-        }
+            "status" = "rejected"
+            "comment" = "Rejected by automation (reason: not the latest)"
+        } | ConvertTo-Json
 
+        "Rejecting $($($($approval[0]).release).name) as it is not the latest."
         log "Rejecting $($($($approval[0]).release).name) as it is not the latest."
     }
     else {
         # Only the latest release will be approved.
         $updateStatusObj = @{
-            status="approved"
-            comment="Approved by automation"
-        }
+            "status" = "approved"
+            "comment" = "Approved by automation"
+        } | ConvertTo-Json
 
+        "Accepting $($($($approval[0]).release).name)"
         log "Accepting $($($($approval[0]).release).name)"
     }
     
@@ -99,4 +104,4 @@ $currentRelease = $null
         log $patchError
         throw $patchError
     }
-#}
+}
