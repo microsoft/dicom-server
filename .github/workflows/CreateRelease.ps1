@@ -65,7 +65,7 @@ while(-Not($lastRelease -eq $currentRelease)) {
 
     # If there is exactly one release, identify relevant properties to base further queries on.
     $currentRelease = $approval[0].release.id
-    $currentReleaseUrl = $approval[0].release.url + "?" + $apiVersion
+    $currentReleaseUrl = $approval[0].url + "?" + $apiVersion
 
     "Approval found for $($($($approval[0]).release).name)"
     log "Approval found for $($($($approval[0]).release).name)"
