@@ -4,7 +4,7 @@
     "parameters": {
         "serviceName": {
             "type": "string",
-            "minLength": 3,
+            "minLength": 6,
             "maxLength": 18,
             "metadata": {
                 "description": "Base name of service for DICOM, FHIR and DICOM Cast."
