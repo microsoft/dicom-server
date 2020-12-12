@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.Blob.Registration;
 using Microsoft.Health.DicomCast.Core.Modules;
+using Microsoft.Health.DicomCast.TableStorage;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.DicomCast.Hosting
@@ -40,6 +41,8 @@ namespace Microsoft.Health.DicomCast.Hosting
                     services.RegisterAssemblyModules(typeof(WorkerModule).Assembly, configuration);
 
                     services.AddBlobStorageDataStore(configuration);
+
+                    services.AddTableStorageDataStore(configuration);
 
                     services.AddHostedService<DicomCastBackgroundService>();
 
