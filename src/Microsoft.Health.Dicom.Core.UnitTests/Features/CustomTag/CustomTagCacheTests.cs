@@ -88,10 +88,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             customTagStore.TryRefreshCustomTags(out Arg.Any<CustomTagList>(), default)
               .ReturnsForAnyArgs(true);
 
-            customTagStore.WhenForAnyArgs(x => x.TryRefreshCustomTags(out Arg.Any<CustomTagList>(), default))
-                .Do(Callback.First(x => x[0] = new CustomTagList(firstCallReturn))
-                .ThenKeepDoing(x => x[0] = new CustomTagList(secondCallReturn))
-                .AndAlways(x => { }));
+            customTagStore.WhenForAnyArgs(store => store.TryRefreshCustomTags(out Arg.Any<CustomTagList>(), default))
+                .Do(Callback.First(callInfo => callInfo[0] = new CustomTagList(firstCallReturn))
+                .ThenKeepDoing(callInfo => callInfo[0] = new CustomTagList(secondCallReturn))
+                .AndAlways(callInfo => { }));
             return customTagStore;
         }
     }

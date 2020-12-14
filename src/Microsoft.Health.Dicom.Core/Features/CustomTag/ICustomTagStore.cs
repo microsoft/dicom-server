@@ -11,8 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     public interface ICustomTagStore
     {
         /// <summary>
-        /// Refresh customTags based on its version.
-        /// Only refresh when given version is out of date.
+        /// Refresh given CustomTagList.
         /// </summary>
         /// <param name="customTags">The customTags.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
