@@ -4,3 +4,69 @@ services:
     build: 
       context: ./../../../../
       dockerfile: ./converter/dicom-cast/build/docker/Dockerfile
+    environment:
+      BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      Fhir__Endpoint: http://fhir:8080
+      DicomWeb__endpoint: http://dicom-api:8080
+    depends_on:
+      - dicom-api
+      - azure_storage_emulator
+      - fhir
+  dicom-api:
+    build: 
+      context: ./../../../../
+      dockerfile: ./build/docker/Dockerfile
+    restart: on-failure
+    environment:
+      DicomServer__Security__Enabled: "false"
+      SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD};MultipleActiveResultSets=False;Connection Timeout=30;"
+      SqlServer__AllowDatabaseCreation: "true"
+      SqlServer__Initialize: "true"
+      BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      DataStore: "SqlServer"
+    # uncomment if you want to azure storage explorer against localhost
+    ports:     
+      - "8081:8080"
+    depends_on:
+      - sql
+      - azure_storage_emulator
+  azure_storage_emulator:
+    container_name: azurite
+    image: mcr.microsoft.com/azure-storage/azurite
+    restart: always
+    # # uncomment if you want to azure storage explorer against localhost
+    # ports:
+    #   - "10001:10001"
+    #   - "10000:10000"
+  fhir:
+    container_name: fhir
+    image: healthplatformregistry.azurecr.io/r4_fhir-server:release
+    restart: always
+    environment:
+      FHIRServer__Security__Enabled: "false"
+      SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=FHIR;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD};MultipleActiveResultSets=False;Connection Timeout=30;"
+      SqlServer__AllowDatabaseCreation: "true"
+      SqlServer__Initialize: "true"
+      SqlServer__SchemaOptions__AutomaticUpdatesEnabled: "true"
+      DataStore: "SqlServer"
+    # uncomment if you want to azure storage explorer against localhost
+    ports:     
+      - "8080:8080"
+    depends_on:
+      - sql
+  sql:
+    build: 
+      context: ./../../../../
+      dockerfile: ./build/docker/sql/Dockerfile
+    # restart: on-failure
+    environment:
+      SA_PASSWORD: ${SAPASSWORD}
+      ACCEPT_EULA: "Y"
+    # # uncomment if you want to sql management studio against localhost
+    # ports:
+    #   - "1433:1433"
+    healthcheck:
+        test: ["CMD", "/opt/mssql-tools/bin/sqlcmd","-U sa -P ${SAPASSWORD} -Q 'SELECT * FROM INFORMATION_SCHEMA.TABLES'"]
+        interval: 10s
+        timeout: 10s
+        retries: 6
