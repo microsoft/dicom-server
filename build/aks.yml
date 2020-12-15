@@ -51,5 +51,5 @@ stages:
             export sqlConStr="Server=tcp:$(SQLServerName).database.windows.net,1433;Database=$(SQLDbName);User ID=$(SQLUsername);Password=$(SQLServerPassword);Encrypt=true;Connection Timeout=30;"
             export blobConStr="$(az storage account show-connection-string -g cd-dicom -n cddicom --query "connectionString" -o tsv)"
 
-            echo "##vso[task.setvariable variable=SqlConnectionString]$(echo $sqlConStr | base64)"
-            echo "##vso[task.setvariable variable=BlobConnectionString]$(echo $blobConStr | base64)"
+            echo "##vso[task.setvariable variable=SqlConnectionString]$(echo -n $sqlConStr | base64)"
+            echo "##vso[task.setvariable variable=BlobConnectionString]$(echo -n $blobConStr | base64)"
