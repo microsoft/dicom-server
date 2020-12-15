@@ -1,0 +1,16 @@
+variables:
+  deploymentName: 'cd-dicom'
+  azureSubscriptionName: '10M Client Demo'
+  azureContainerRegistry: 'cddicom.azurecr.io'
+  dicomServerComposeLocation: 'build/docker/docker-compose.yaml'
+
+  testEnvironmentUrl: 'https://$(deploymentName).azurewebsites.net/'
+  resourceGroupName: $(deploymentName)
+  resourceGroupRegion: 'southcentralus'
+  appServicePlanResourceGroup: 'msh-dicom-pr'
+  appServicePlanName: $(appServicePlanResourceGroup)-$(resourceGroupRegion)
+  azureServiceConnectionOid: '4d4d503d-9ca8-462e-9e18-b35fc8b5285b'
+  windowsVmImage: 'windows-latest'
+  buildConfiguration: 'Release'
+  imageTag: '$(build.BuildNumber)'
+  dicomCastComposeLocation: 'converter/dicom-cast/build/docker/docker-compose.yaml'

@@ -1,0 +1,25 @@
+# DESCRIPTION:
+# Builds, tests and packages the solution for the CI build configuration.
+name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:-r)
+
+variables:
+- template: aks-variables.yml
+
+trigger:
+  branches:
+    include:
+    - master
+
+pr: none
+
+stages:
+- stage: PublishContainer
+  displayName: 'Publish Docker CI Container'
+  jobs:
+  - job: 'Docker'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: docker-build-push.yml
+      parameters:
+        tag: $(imageTag)
