@@ -8,6 +8,7 @@ parameters:
   releaseName: ''
   overrideValues: ''
   valueFile: ''
+  helmVersion: '3.4.2'
   dependsOn: []
   preDeploySteps: []
   postDeploySteps: []
@@ -25,6 +26,10 @@ jobs:
         steps:
         - checkout: self
         - ${{ parameters.preDeploySteps }}
+        - task: HelmInstaller@0
+          inputs:
+            helmVersion: ${{ parameters.helmVersion }}
+            installKubectl: false
         - task: HelmDeploy@0
           displayName: Helm Deploy app
           inputs:
