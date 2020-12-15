@@ -8,8 +8,13 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
-    public interface ICustomTagCache
+    public interface ICustomTagListCache
     {
+        /// <summary>
+        /// Get Custom Tags.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The custom tags.</returns>
         Task<CustomTagList> GetCustomTagsAsync(CancellationToken cancellationToken = default);
     }
 }

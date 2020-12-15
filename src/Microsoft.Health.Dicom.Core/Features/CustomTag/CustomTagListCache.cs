@@ -10,14 +10,18 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
-    public class CustomTagCache : ICustomTagCache
+    /// <summary>
+    /// Cache for custom tag list.
+    /// Automatically refresh from customTagStore when it's invalid.
+    /// </summary>
+    public class CustomTagListCache : ICustomTagListCache
     {
         private CustomTagList _customtags;
         private ICustomTagStore _customTagStore;
         private TimeSpan _expirationInterval;
         private DateTimeOffset? _lastRefreshTime;
 
-        public CustomTagCache(ICustomTagStore customTagStore, TimeSpan expirationInterval)
+        public CustomTagListCache(ICustomTagStore customTagStore, TimeSpan expirationInterval)
         {
             EnsureArg.IsNotNull(customTagStore);
             _customtags = null;

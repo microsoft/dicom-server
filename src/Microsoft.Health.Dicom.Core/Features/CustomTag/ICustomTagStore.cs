@@ -12,6 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     {
         /// <summary>
         /// Refresh given CustomTagList.
+        /// If given customtags is latest, no action is taken. Otherwise, update given customTags from store.
         /// </summary>
         /// <param name="customTags">The customTags.</param>
         /// <param name="cancellationToken">The cancellation token.</param>

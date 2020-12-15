@@ -9,6 +9,9 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
+    /// <summary>
+    /// Represent a list of custom tags.
+    /// </summary>
     public class CustomTagList
     {
         private readonly long? _version;

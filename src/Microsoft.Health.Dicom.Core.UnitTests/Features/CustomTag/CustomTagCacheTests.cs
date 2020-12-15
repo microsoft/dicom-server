@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             List<CustomTagEntry> expectedResult = new List<CustomTagEntry>();
             expectedResult.Add(new CustomTagEntry() { Version = expectedVersion });
             ICustomTagStore customTagStore = CreateCustomTagStore(expectedResult, expectedResult);
-            CustomTagCache customTagCache = new CustomTagCache(customTagStore, DefaultExpirationInterval);
+            CustomTagListCache customTagCache = new CustomTagListCache(customTagStore, DefaultExpirationInterval);
             CustomTagList customTags = await customTagCache.GetCustomTagsAsync();
             Assert.Equal(expectedResult, customTags.CustomTags);
             Assert.NotNull(customTagCache.LastRefreshTime);
@@ -37,10 +37,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             List<CustomTagEntry> expectedResult2 = new List<CustomTagEntry>() { CustomTagTestHelper.CreateCustomTagEntry(version: expectedVersion2) };
             ICustomTagStore customTagStore = CreateCustomTagStore(expectedResult1, expectedResult2);
 
-            CustomTagCache customTagCache = new CustomTagCache(customTagStore, TimeSpan.FromSeconds(1));
+            CustomTagListCache customTagCache = new CustomTagListCache(customTagStore, TimeSpan.FromMilliseconds(500));
             CustomTagList customTags1 = await customTagCache.GetCustomTagsAsync();
             DateTimeOffset lastRefreshTime = customTagCache.LastRefreshTime.Value;
-            await Task.Delay(TimeSpan.FromSeconds(2));
+
+            // Wait for 1 seconds for cache become invalid
+            await Task.Delay(TimeSpan.FromSeconds(1));
 
             CustomTagList customTags2 = await customTagCache.GetCustomTagsAsync();
             Assert.Equal(expectedResult2, customTags2.CustomTags);
@@ -55,7 +57,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             List<CustomTagEntry> expectedResult2 = new List<CustomTagEntry>() { CustomTagTestHelper.CreateCustomTagEntry(expectedVersion2) };
             ICustomTagStore customTagStore = CreateCustomTagStore(expectedResult1, expectedResult2);
 
-            CustomTagCache customTagCache = new CustomTagCache(customTagStore, TimeSpan.FromSeconds(6));
+            CustomTagListCache customTagCache = new CustomTagListCache(customTagStore, DefaultExpirationInterval);
             await customTagCache.GetCustomTagsAsync();
             DateTimeOffset lastRefreshTime = customTagCache.LastRefreshTime.Value;
             await Task.Delay(TimeSpan.FromSeconds(1));
@@ -73,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             List<CustomTagEntry> expectedResult2 = new List<CustomTagEntry>() { CustomTagTestHelper.CreateCustomTagEntry(expectedVersion2) };
             ICustomTagStore customTagStore = CreateCustomTagStore(expectedResult1, expectedResult2);
 
-            CustomTagCache customTagCache = new CustomTagCache(customTagStore, DefaultExpirationInterval);
+            CustomTagListCache customTagCache = new CustomTagListCache(customTagStore, DefaultExpirationInterval);
             await customTagCache.GetCustomTagsAsync();
             DateTimeOffset lastRefreshTime = customTagCache.LastRefreshTime.Value;
             await Task.Delay(TimeSpan.FromSeconds(1));
