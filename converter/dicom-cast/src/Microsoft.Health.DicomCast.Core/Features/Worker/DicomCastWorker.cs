@@ -73,34 +73,37 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
         /// <inheritdoc/>
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            await _fhirService.CheckFhirServiceCapability(cancellationToken);
-            LogWorkerStartingDelegate(_logger, null);
-
-            while (!cancellationToken.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    await _changeFeedProcessor.ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, cancellationToken);
+                await _fhirService.CheckFhirServiceCapability(cancellationToken);
+                LogWorkerStartingDelegate(_logger, null);
 
-                    await Task.Delay(_dicomCastWorkerConfiguration.PollInterval, cancellationToken);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    // Cancel requested.
-                    LogWorkerCancelRequestedDelegate(_logger, null);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    LogUnhandledExceptionDelegate(_logger, ex);
+                    try
+                    {
+                        await _changeFeedProcessor.ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, cancellationToken);
 
-                    // Any exception in ExecuteAsync will not shutdown application, call hostApplicationLifetime.StopApplication() to force shutdown.
-                    // Please refer to .net core issue on github for more details: "Exceptions in BackgroundService ExecuteAsync are (sometimes) hidden" https://github.com/dotnet/extensions/issues/2363
-                    _hostApplicationLifetime.StopApplication();
+                        await Task.Delay(_dicomCastWorkerConfiguration.PollInterval, cancellationToken);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        // Cancel requested.
+                        LogWorkerCancelRequestedDelegate(_logger, null);
+                        break;
+                    }
                 }
+
+                LogWorkerExitingDelegate(_logger, null);
             }
+            catch (Exception ex)
+            {
+                LogUnhandledExceptionDelegate(_logger, ex);
 
-            LogWorkerExitingDelegate(_logger, null);
+                // Any exception in ExecuteAsync will not shutdown application, call hostApplicationLifetime.StopApplication() to force shutdown.
+                // Please refer to .net core issue on github for more details: "Exceptions in BackgroundService ExecuteAsync are (sometimes) hidden" https://github.com/dotnet/extensions/issues/2363
+                _hostApplicationLifetime.StopApplication();
+            }
         }
     }
 }
