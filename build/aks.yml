@@ -38,12 +38,8 @@ stages:
       chartPath: 'helm/dicom-server'
       releaseName: 'dicom-server'
       overrideValues: 'image.tag=$(imageTag),secrets.sqlserver_connectionstring="$(SqlConnectionString)",secrets.blob_connectionstring="$(BlobConnectionString)"'
-      valueFile: 'helm/dicom-server/values.yml'
+      valueFile: 'helm/dicom-server/values.yaml'
       preDeploySteps:
-      - script: |
-          pwd
-          ls -la
-        workingDirectory: $(Build.SourcesDirectory)
       - task: AzureCLI@2
         displayName: Get connection strings
         inputs:
