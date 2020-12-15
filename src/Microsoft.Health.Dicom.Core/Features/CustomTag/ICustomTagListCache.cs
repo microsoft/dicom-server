@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
+    /// <summary>
+    /// Cache for custom tag list.
+    /// </summary>
     public interface ICustomTagListCache
     {
         /// <summary>
