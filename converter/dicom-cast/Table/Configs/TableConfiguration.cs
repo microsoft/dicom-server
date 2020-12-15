@@ -5,12 +5,8 @@
 
 namespace Microsoft.Health.DicomCast.TableStorage.Configs
 {
-    public class TableDataStoreConfiguration
+    public class TableConfiguration
     {
-        public string ConnectionString { get; set; }
-
-        public bool Enabled { get; set; }
-
-        public TableDataStoreRequestOptions RequestOptions { get; } = new TableDataStoreRequestOptions();
+        public string TableName { get; set; }
     }
 }

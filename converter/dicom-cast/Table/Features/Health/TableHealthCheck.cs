@@ -3,17 +3,60 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Health.DicomCast.TableStorage.Configs;
+using Microsoft.Health.DicomCast.TableStorage.Features.Storage;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Health
 {
     public class TableHealthCheck : IHealthCheck
     {
-        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        private readonly CloudTableClient _client;
+        private readonly TableDataStoreConfiguration _configuration;
+        private readonly TableConfiguration _tableConfiguration;
+        private readonly ITableClientTestProvider _testProvider;
+        private readonly ILogger<TableHealthCheck> _logger;
+
+        public TableHealthCheck(
+            CloudTableClient client,
+            TableDataStoreConfiguration configuration,
+            TableConfiguration tableConfiguration,
+            ITableClientTestProvider testProvider,
+            ILogger<TableHealthCheck> logger)
         {
-            throw new System.NotImplementedException();
+            EnsureArg.IsNotNull(client, nameof(client));
+            EnsureArg.IsNotNull(configuration, nameof(configuration));
+            EnsureArg.IsNotNull(tableConfiguration, nameof(tableConfiguration));
+            EnsureArg.IsNotNull(testProvider, nameof(testProvider));
+            EnsureArg.IsNotNull(logger, nameof(logger));
+
+            _client = client;
+            _configuration = configuration;
+            _tableConfiguration = tableConfiguration;
+            _testProvider = testProvider;
+            _logger = logger;
+        }
+
+        public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await _testProvider.PerformTestAsync(_client, _configuration, _tableConfiguration, cancellationToken);
+
+                return HealthCheckResult.Healthy("Successfully connected to the table data store.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to connect to the table data store.");
+
+                return HealthCheckResult.Unhealthy("Failed to connect to the table data store.");
+            }
         }
     }
 }

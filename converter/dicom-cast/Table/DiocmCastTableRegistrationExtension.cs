@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
+using Microsoft.Health.DicomCast.TableStorage.Features.Health;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage;
 using Microsoft.Health.Extensions.DependencyInjection;
 
@@ -29,8 +30,11 @@ namespace Microsoft.Health.DicomCast.TableStorage
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            return serviceCollection
-                        .AddTableDataStore(configuration);
+            serviceCollection
+                        .AddTableDataStore(configuration)
+                        .AddHealthChecks().AddCheck<TableHealthCheck>(name: nameof(TableHealthCheck));
+
+            return serviceCollection;
         }
 
         public static IServiceCollection AddTableDataStore(this IServiceCollection serviceCollection, IConfiguration configuration)
