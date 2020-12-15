@@ -16,17 +16,17 @@ trigger:
 pr: none
 
 stages:
-- ${{ if eq(variables['specificTag'], '')}}:  # only build if we don't have a specific tag to deploy
-  - stage: PublishContainer
-    displayName: 'Publish Docker CI Container'
-    jobs:
-    - job: 'Docker'
-      pool:
-        vmImage: 'ubuntu-latest'
-      steps:
-      - template: docker-build-push.yml
-        parameters:
-          tag: $(imageTag)
+- stage: PublishContainer
+  displayName: 'Publish Docker CI Container'
+  condition: eq(variables['specificTag'], '')
+  jobs:
+  - job: 'Docker'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: docker-build-push.yml
+      parameters:
+        tag: $(imageTag)
 
 - stage: AKSDeploy
   displayName: Deploy to AKS
