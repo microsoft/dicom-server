@@ -2,7 +2,13 @@
 
 In this quickstart, you will learn how to deploy DICOM Cast for your Medical Imaging Server for DICOM. DICOM Cast is a service which pushes Medical Imaging Server for DICOM metadata into a FHIR&trade; server to support integrated queries across clinical and imaging data. To learn more about the architecture of DICOM Cast, refer to the [DICOM Cast Concept](../concepts/dicom-cast.md).
 
-DICOM Cast is deployed as an Azure Container Instance using the provided [ARM template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
+## Deploy via docker
+
+If you would like to deploy via docker-compose please follow the tutorial [deploy-via-docker.md](deploy-via-docker.md) this will deploy DICOM cast as well.
+
+## Deploy via Azure
+
+DICOM Cast can be deployed as an Azure Container Instance using the provided [ARM template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
 
 ## Prerequisites
 

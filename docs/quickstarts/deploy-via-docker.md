@@ -26,7 +26,18 @@ env SAPASSWORD='<SA_PASSWORD>' docker-compose -f samples/docker/docker-compose.y
 
 Given the DICOM API is likely to start before the SQL server is ready, you may need to restart the API container once the SQL server is healthy. This can be done using `docker restart <container-name>`, i.e. docker restart `docker restart docker_dicom-api_1`.
 
-Once deployed the Medical Imaging Server for DICOM should be available at `http://localhost:8080/`. Additionally the SQL Server is able to be browsed using a TCP connection to localhost:1433 and the storage containers can be examined via [Azure Storage Explorer](https://azure.microsoft.com/features/storage-explorer/).
+Once deployed the Medical Imaging Server for DICOM should be available at `http://localhost:8080/`.
+
+Additionally if uncommented in the docker-compose file the 
+* SQL Server is able to be browsed using a TCP connection to `localhost:1433` 
+* the storage containers can be examined via [Azure Storage Explorer](https://azure.microsoft.com/features/storage-explorer/) using the [default storage emulator connection string](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator#connect-to-the-emulator-account-using-the-well-known-account-name-and-key)
+* [FHIR](https://github.com/microsoft/fhir-server) can be accessible via `http://localhost:8081`
+
+You can also connect to them via their IP rather rather than expose them on localhost. The following command will help you understand the ports & ips the services are exposed on
+
+```bash
+docker inspect -f 'Name: {{.Name}} - IPs: {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} - Ports: {{.Config.ExposedPorts}}' $(docker ps -aq)
+```
 
 ## Run in Docker with a custom configuration
 
