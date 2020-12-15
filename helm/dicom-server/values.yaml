@@ -68,11 +68,11 @@ resources: {}
 
 env:
 - name: DicomServer__Security__Enabled
-  value: false
+  value: "false"
 - name: SqlServer__AllowDatabaseCreation
-  value: true
+  value: "true"
 - name: SqlServer__Initialize
-  value: true
+  value: "true"
 - name: DataStore
   value: SqlServer
 - name: SqlServer__ConnectionString
