@@ -3,6 +3,7 @@ parameters:
     vmImage: 'ubuntu-latest'
   environmentName: ''
   logicalEnvironment: ''
+  namespace: 'dicom'
   chartPath: ''
   releaseName: ''
   overrideValues: ''
@@ -28,6 +29,7 @@ jobs:
           displayName: Helm Deploy app
           inputs:
             connectionType: 'Kubernetes Service Connection'
+            namespace: ${{ parameters.namespace }}
             command: upgrade
             chartType: FilePath
             chartPath: ${{ parameters.chartPath }}
