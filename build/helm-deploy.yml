@@ -1,0 +1,39 @@
+parameters:
+  pool: 
+    vmImage: 'ubuntu-latest'
+  environmentName: ''
+  logicalEnvironment: ''
+  chartPath: ''
+  releaseName: ''
+  overrideValues: ''
+  valueFile: ''
+  dependsOn: []
+  preDeploySteps: []
+  postDeploySteps: []
+  force: false
+
+jobs:  
+- deployment: deploy_${{ parameters.logicalEnvironment }}
+  displayName: Deploy to ${{ parameters.logicalEnvironment }}
+  dependsOn: ${{ parameters.dependsOn }}
+  pool: ${{ parameters.pool }}
+  environment: ${{ parameters.environmentName }}
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+        - ${{ parameters.preDeploySteps }}
+        - task: HelmDeploy@0
+          displayName: Helm Deploy app
+          inputs:
+            connectionType: 'Kubernetes Service Connection'
+            command: upgrade
+            chartType: FilePath
+            chartPath: ${{ parameters.chartPath }}
+            releaseName: ${{ parameters.releaseName }}
+            overrideValues: ${{ parameters.overrideValues }}
+            valueFile: ${{ parameters.valueFile }}
+            install: true
+            force: ${{ parameters.force }}
+        - ${{ parameters.postDeploySteps }}

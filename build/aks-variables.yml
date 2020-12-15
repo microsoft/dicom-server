@@ -5,6 +5,9 @@ variables:
   dicomServerComposeLocation: 'build/docker/docker-compose.yaml'
   imageTag: '$(build.BuildNumber)'
   dicomCastComposeLocation: 'converter/dicom-cast/build/docker/docker-compose.yaml'
+  SQLServerName: cddicom
+  SQLDbName: dicom
+  SQLUsername: dicom
 
   # testEnvironmentUrl: 'https://$(deploymentName).azurewebsites.net/'
   # resourceGroupName: $(deploymentName)
