@@ -18,9 +18,9 @@ pr: none
 stages:
 - stage: PublishContainer
   displayName: 'Publish Docker CI Container'
-  condition: eq(variables['specificTag'], '')
   jobs:
   - job: 'Docker'
+    condition: eq(variables['specificTag'], '')
     pool:
       vmImage: 'ubuntu-latest'
     steps:
