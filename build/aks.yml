@@ -6,7 +6,7 @@ variables:
 - template: aks-variables.yml
 - group: DICOM-DEV
 - name: imageTag
-  value: "[coalesce(variables['specificTag'], variables['build.buildnumber'])]"
+  value: $[coalesce(variables['specificTag'], variables['build.buildnumber'])]
 
 trigger:
   branches:
@@ -31,21 +31,6 @@ stages:
 - stage: AKSDeploy
   displayName: Deploy to AKS
   jobs:
-  - job: GetConnectionStrings
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - task: AzureCLI@2
-      displayName: Get connection strings
-      inputs:
-        azureSubscription: $(azureSubscriptionName)
-        scriptType: bash
-        scriptLocation: inlineScript
-        failOnStandardError: true
-        inlineScript: |
-          echo "##vso[task.setvariable variable=SqlConnectionString]Server=tcp:$(SQLServerName).database.windows.net,1433;Database=$(SQLDbName);User ID=$(SQLUsername);Password=$(SQLServerPassword);Encrypt=true;Connection Timeout=30;"
-          echo "##vso[task.setvariable variable=BlobConnectionString]$(az storage account show-connection-string -g cd-dicom -n cddicom --query "connectionString" -o tsv)"
-        
   - template: helm-deploy.yml
     parameters:
       environmentName: DICOM-DEV.dicom
@@ -54,3 +39,14 @@ stages:
       releaseName: 'dicom-server'
       overrideValues: 'image.tag=$(imageTag),secrets.sqlserver_connectionstring=$(SqlConnectionString),secrets.blob_connectionstring=$(BlobConnectionString)'
       valueFile: 'helm/dicom-server/values.yml'
+      preDeploySteps:
+      - task: AzureCLI@2
+        displayName: Get connection strings
+        inputs:
+          azureSubscription: $(azureSubscriptionName)
+          scriptType: bash
+          scriptLocation: inlineScript
+          failOnStandardError: true
+          inlineScript: |
+            echo "##vso[task.setvariable variable=SqlConnectionString]Server=tcp:$(SQLServerName).database.windows.net,1433;Database=$(SQLDbName);User ID=$(SQLUsername);Password=$(SQLServerPassword);Encrypt=true;Connection Timeout=30;"
+            echo "##vso[task.setvariable variable=BlobConnectionString]$(az storage account show-connection-string -g cd-dicom -n cddicom --query "connectionString" -o tsv)"
