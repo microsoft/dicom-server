@@ -31,7 +31,7 @@
         "electron-builder": "^22.9.1"
     },
     "dependencies": {
-        "axios": "^0.19.2",
+        "axios": "^0.21.0",
         "form-data": "^3.0.0",
         "jquery": "^3.5.1"
     }
