@@ -35,11 +35,15 @@ stages:
     parameters:
       environmentName: DICOM-DEV.dicom
       logicalEnvironment: DEV
-      chartPath: 'dicom-server/helm/dicom-server'
+      chartPath: 'helm/dicom-server'
       releaseName: 'dicom-server'
       overrideValues: 'image.tag=$(imageTag),secrets.sqlserver_connectionstring="$(SqlConnectionString)",secrets.blob_connectionstring="$(BlobConnectionString)"'
-      valueFile: 'dicom-server/helm/dicom-server/values.yml'
+      valueFile: 'helm/dicom-server/values.yml'
       preDeploySteps:
+      - script: |
+          pwd
+          ls -la
+        workingDirectory: $(Build.SourcesDirectory)
       - task: AzureCLI@2
         displayName: Get connection strings
         inputs:
