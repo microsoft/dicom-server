@@ -3,7 +3,6 @@ variables:
   azureSubscriptionName: '10M Client Demo'
   azureContainerRegistry: 'cddicom.azurecr.io'
   dicomServerComposeLocation: 'build/docker/docker-compose.yaml'
-  imageTag: '$(build.BuildNumber)'
   dicomCastComposeLocation: 'converter/dicom-cast/build/docker/docker-compose.yaml'
   SQLServerName: cddicom
   SQLDbName: dicom

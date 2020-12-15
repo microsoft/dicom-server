@@ -5,6 +5,8 @@ name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:-r)
 variables:
 - template: aks-variables.yml
 - group: DICOM-DEV
+- name: imageTag
+  value: "[coalesce(variables['specificTag'], variables['build.buildnumber'])]"
 
 trigger:
   branches:
@@ -14,16 +16,17 @@ trigger:
 pr: none
 
 stages:
-- stage: PublishContainer
-  displayName: 'Publish Docker CI Container'
-  jobs:
-  - job: 'Docker'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - template: docker-build-push.yml
-      parameters:
-        tag: $(imageTag)
+- ${{ if eq(variables['specificTag'], '')}}:  # only build if we don't have a specific tag to deploy
+  - stage: PublishContainer
+    displayName: 'Publish Docker CI Container'
+    jobs:
+    - job: 'Docker'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+      - template: docker-build-push.yml
+        parameters:
+          tag: $(imageTag)
 
 - stage: AKSDeploy
   displayName: Deploy to AKS
