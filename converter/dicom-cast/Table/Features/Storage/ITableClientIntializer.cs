@@ -12,7 +12,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
     /// <summary>
     /// Provides methods for creating a TableClient instance and initializing tables.
     /// </summary>
-    public interface ITableClientIntilizer
+    public interface ITableClientIntializer
     {
         /// <summary>
         /// Creates <see cref="CloudTableClient"/> based on the given <see cref="TableDataStoreConfiguration"/>.

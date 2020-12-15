@@ -13,8 +13,4 @@
     <ProjectReference Include="..\src\Microsoft.Health.DicomCast.Core\Microsoft.Health.DicomCast.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\Health\" />
-  </ItemGroup>
-
 </Project>

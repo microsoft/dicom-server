@@ -13,11 +13,11 @@ using Microsoft.Health.DicomCast.TableStorage.Configs;
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
 #pragma warning disable CA1812
-    internal class TableClientInitilizer : ITableClientIntilizer
+    internal class TableClientInitializer : ITableClientIntializer
     {
-        private readonly ILogger<TableClientInitilizer> _logger;
+        private readonly ILogger<TableClientInitializer> _logger;
 
-        public TableClientInitilizer(ILogger<TableClientInitilizer> logger)
+        public TableClientInitializer(ILogger<TableClientInitializer> logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             _logger = logger;
