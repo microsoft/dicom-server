@@ -4,7 +4,7 @@ In this quickstart, you will learn how to deploy DICOM Cast for your Medical Ima
 
 ## Deploy via docker
 
-If you would like to deploy via docker-compose please follow the tutorial [deploy-via-docker.md](deploy-via-docker.md) this will deploy DICOM cast as well.
+If you would like to deploy via docker-compose, please follow the quickstart [Deploy Via Docker](deploy-via-docker.md). This will deploy the Medical Imaging Server for DICOM and DICOM Cast.
 
 ## Deploy via Azure
 
