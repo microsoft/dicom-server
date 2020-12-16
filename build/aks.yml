@@ -37,7 +37,7 @@ stages:
       logicalEnvironment: DEV
       chartPath: 'helm/dicom-server'
       releaseName: 'dicom-server'
-      overrideValues: 'image.tag=$(imageTag),secrets.sqlserver_connectionstring=$(SqlConnectionString),secrets.blobstore_connectionstring=$(BlobConnectionString)'
+      overrideValues: 'image.tag=$(imageTag),secrets.sqlserver_connectionstring="$(SqlConnectionString)",secrets.blobstore_connectionstring="$(BlobConnectionString)"'
       valueFile: 'helm/dicom-server/values.yaml'
       preDeploySteps:
       - task: AzureCLI@2
