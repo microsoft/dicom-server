@@ -70,7 +70,7 @@ env:
 - name: DicomServer__Security__Enabled
   value: "false"
 - name: SqlServer__AllowDatabaseCreation
-  value: "true"
+  value: "false"
 - name: SqlServer__Initialize
   value: "true"
 - name: DataStore
