@@ -1,4 +1,5 @@
 parameters:
+  displayName: 'Deploy'
   pool: 
     vmImage: 'ubuntu-latest'
   environmentName: ''
@@ -16,7 +17,7 @@ parameters:
 
 jobs:  
 - deployment: deploy_${{ parameters.logicalEnvironment }}
-  displayName: Deploy to ${{ parameters.logicalEnvironment }}
+  displayName: ${{ parameters.displayName }}
   dependsOn: ${{ parameters.dependsOn }}
   pool: ${{ parameters.pool }}
   environment: ${{ parameters.environmentName }}

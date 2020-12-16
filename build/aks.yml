@@ -33,6 +33,7 @@ stages:
   jobs:
   - template: helm-deploy.yml
     parameters:
+      displayName: Deploy DICOM Server
       environmentName: DICOM-DEV.dicom
       logicalEnvironment: DEV
       chartPath: 'helm/dicom-server'
@@ -54,3 +55,13 @@ stages:
             # replace , with \, for helm --set
             echo "##vso[task.setvariable variable=SqlConnectionString]${sqlConStr//[,]/\\,}"
             echo "##vso[task.setvariable variable=BlobConnectionString]${blobConStr//[,]/\\,}"
+  
+  - template: helm-deploy.yml
+    parameters:
+      displayName: Deploy DICOM CAST
+      environmentName: DICOM-DEV.dicom
+      logicalEnvironment: DEV
+      chartPath: 'helm/dicom-cast'
+      releaseName: 'dicom-cast'
+      overrideValues: 'image.tag=$(imageTag),settings.fhir_endpoint="$(fhirEndpoint)",settings.keyvault_endpoint="$(kvEndpoint)",settings.dicomweb_endpoint="$(dicomWebEndpoint)",settings.appInsights_key="$(appInsightsKey)"'
+      valueFile: 'helm/dicom-server/values.yaml'

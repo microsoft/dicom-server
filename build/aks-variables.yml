@@ -4,6 +4,10 @@ variables:
   azureContainerRegistry: 'cddicom.azurecr.io'
   dicomServerComposeLocation: 'build/docker/docker-compose.yaml'
   dicomCastComposeLocation: 'converter/dicom-cast/build/docker/docker-compose.yaml'
+  fhirEndpoint: 'fhir'
+  kvEndpoint: 'kv'
+  dicomWebEndpoint: 'dicomw'
+  appInsightsKey: ''
   SQLServerName: cddicom
   SQLDbName: cd-dicom
   SQLUsername: dicom
