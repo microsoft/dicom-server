@@ -1,5 +1,6 @@
 parameters:
-  displayName: 'Deploy'
+  name: helm_deploy
+  displayName: 'Helm Deploy'
   pool: 
     vmImage: 'ubuntu-latest'
   environmentName: ''
@@ -16,7 +17,7 @@ parameters:
   force: false
 
 jobs:  
-- deployment: deploy_${{ parameters.logicalEnvironment }}
+- deployment: ${{ parameters.name }}
   displayName: ${{ parameters.displayName }}
   dependsOn: ${{ parameters.dependsOn }}
   pool: ${{ parameters.pool }}
