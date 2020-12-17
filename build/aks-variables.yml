@@ -6,7 +6,7 @@ variables:
   dicomCastComposeLocation: 'converter/dicom-cast/build/docker/docker-compose.yaml'
   fhirEndpoint: 'fhir'
   kvEndpoint: 'kv'
-  dicomWebEndpoint: 'dicomw'
+  dicomWebEndpoint: 'http://cddicom.westus2.cloudapp.azure.com/server'
   appInsightsKey: ''
   SQLServerName: cddicom
   SQLDbName: cd-dicom
