@@ -64,4 +64,4 @@ stages:
       chartPath: 'helm/dicom-cast'
       releaseName: 'dicom-cast'
       overrideValues: 'image.tag=$(imageTag),settings.fhir_endpoint="$(fhirEndpoint)",settings.keyvault_endpoint="$(kvEndpoint)",settings.dicomweb_endpoint="$(dicomWebEndpoint)",settings.appInsights_key="$(appInsightsKey)"'
-      valueFile: 'helm/dicom-server/values.yaml'
+      valueFile: 'helm/dicom-cast/values.yaml'
