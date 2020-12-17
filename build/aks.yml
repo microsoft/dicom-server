@@ -31,30 +31,30 @@ stages:
 - stage: AKSDeploy
   displayName: Deploy to AKS
   jobs:
-  # - template: helm-deploy.yml
-  #   parameters:
-  #     displayName: Deploy DICOM Server
-  #     environmentName: DICOM-DEV.dicom
-  #     logicalEnvironment: DEV
-  #     chartPath: 'helm/dicom-server'
-  #     releaseName: 'dicom-server'
-  #     overrideValues: 'image.tag=$(imageTag),secrets.sqlserver_connectionstring="$(SqlConnectionString)",secrets.blobstore_connectionstring="$(BlobConnectionString)"'
-  #     valueFile: 'helm/dicom-server/values.yaml'
-  #     preDeploySteps:
-  #     - task: AzureCLI@2
-  #       displayName: Get connection strings
-  #       inputs:
-  #         azureSubscription: $(azureSubscriptionName)
-  #         scriptType: bash
-  #         scriptLocation: inlineScript
-  #         failOnStandardError: true
-  #         inlineScript: |
-  #           export sqlConStr="Server=tcp:$(SQLServerName).database.windows.net,1433;Database=$(SQLDbName);User ID=$(SQLUsername);Password=$(SQLServerPassword);Encrypt=true;Connection Timeout=30;"
-  #           export blobConStr="$(az storage account show-connection-string -g cd-dicom -n cddicom --query "connectionString" -o tsv)"
+  - template: helm-deploy.yml
+    parameters:
+      displayName: Deploy DICOM Server
+      environmentName: DICOM-DEV.dicom
+      logicalEnvironment: DEV
+      chartPath: 'helm/dicom-server'
+      releaseName: 'dicom-server'
+      overrideValues: 'image.tag=$(imageTag),secrets.sqlserver_connectionstring="$(SqlConnectionString)",secrets.blobstore_connectionstring="$(BlobConnectionString)"'
+      valueFile: 'helm/dicom-server/values.yaml'
+      preDeploySteps:
+      - task: AzureCLI@2
+        displayName: Get connection strings
+        inputs:
+          azureSubscription: $(azureSubscriptionName)
+          scriptType: bash
+          scriptLocation: inlineScript
+          failOnStandardError: true
+          inlineScript: |
+            export sqlConStr="Server=tcp:$(SQLServerName).database.windows.net,1433;Database=$(SQLDbName);User ID=$(SQLUsername);Password=$(SQLServerPassword);Encrypt=true;Connection Timeout=30;"
+            export blobConStr="$(az storage account show-connection-string -g cd-dicom -n cddicom --query "connectionString" -o tsv)"
 
-  #           # replace , with \, for helm --set
-  #           echo "##vso[task.setvariable variable=SqlConnectionString]${sqlConStr//[,]/\\,}"
-  #           echo "##vso[task.setvariable variable=BlobConnectionString]${blobConStr//[,]/\\,}"
+            # replace , with \, for helm --set
+            echo "##vso[task.setvariable variable=SqlConnectionString]${sqlConStr//[,]/\\,}"
+            echo "##vso[task.setvariable variable=BlobConnectionString]${blobConStr//[,]/\\,}"
   
   - template: helm-deploy.yml
     parameters:
