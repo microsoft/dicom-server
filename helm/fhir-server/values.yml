@@ -1,0 +1,20 @@
+service:
+  type: LoadBalancer
+  
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  hosts:
+  - host: cddicom.westus2.cloudapp.azure.com
+    paths:
+    - /fhir(/|$)(.*)
+
+database:
+  sql:
+    existing:
+      databaseName: fhir
+      serverName: "tcp:server,1433"
+      username: "fhir"
+      password: "Somelongpassword1"
