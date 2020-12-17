@@ -33,7 +33,7 @@ stages:
   jobs:
   - template: helm-deploy.yml
     parameters:
-      name: deploy_dicom
+      name: deploy_server
       displayName: Deploy DICOM Server
       environmentName: DICOM-DEV.dicom
       logicalEnvironment: DEV
@@ -60,6 +60,8 @@ stages:
   - template: helm-deploy.yml
     parameters:
       name: deploy_cast
+      dependsOn: 
+      - deploy_server
       displayName: Deploy DICOM CAST
       environmentName: DICOM-DEV.dicom
       logicalEnvironment: DEV
