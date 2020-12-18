@@ -77,6 +77,8 @@ env:
   value: "true"
 - name: DataStore
   value: SqlServer
+- name: DicomServer__Features__EnableOhifViewer
+  value: "true"
 - name: SqlServer__ConnectionString
   valueFrom:
     secretKeyRef:
