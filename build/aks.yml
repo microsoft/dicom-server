@@ -67,5 +67,5 @@ stages:
       logicalEnvironment: DEV
       chartPath: 'helm/dicom-cast'
       releaseName: 'dicom-cast'
-      overrideValues: 'image.tag=$(imageTag),settings.fhir_endpoint="$(fhirEndpoint)",settings.keyvault_endpoint="$(kvEndpoint)",settings.dicomweb_endpoint="$(dicomWebEndpoint)",settings.appInsights_key="$(appInsightsKey)"'
+      overrideValues: 'image.tag=$(imageTag),settings.fhir_endpoint="$(fhirEndpoint)",settings.dicomweb_endpoint="$(dicomWebEndpoint)",settings.appInsights_key="$(appInsightsKey)"' # settings.keyvault_endpoint="$(kvEndpoint)"
       valueFile: 'helm/dicom-cast/values.yaml'
