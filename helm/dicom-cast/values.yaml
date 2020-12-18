@@ -70,8 +70,8 @@ resources: {}
 settings:
   fhir_endpoint: "http://fhir-endpoint"
   dicomweb_endpoint: "http://dicomweb-endpoint"
-  keyvault_endpoint: "http://kv-endpoint"
-  appInsights_key: "key"
+  #keyvault_endpoint: "http://kv-endpoint"
+  #appInsights_key: "key"
 
 autoscaling:
   enabled: false

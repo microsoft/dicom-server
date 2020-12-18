@@ -52,10 +52,14 @@ spec:
             value: {{ .Values.settings.fhir_endpoint }}
           - name: DicomWeb__Endpoint
             value: {{ .Values.settings.dicomweb_endpoint }}
+          {{- if .Values.settings.keyvault_endpoint }}
           - name: KeyVault__Endpoint
             value: {{ .Values.settings.keyvault_endpoint }}
+          {{- end }}
+          {{- if .Values.settings.appInsights_key }}
           - name: ApplicationInsights__InstrumentationKey
             value: {{ .Values.settings.appInsights_key }}
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
