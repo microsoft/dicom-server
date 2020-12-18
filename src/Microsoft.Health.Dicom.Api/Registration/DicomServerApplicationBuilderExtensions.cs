@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Builder
 {
     public static class DicomServerApplicationBuilderExtensions
     {
-        private const string OhifViewerIndexPagePath = "index.html";
+        private const string OhifViewerIndexPagePath = "server/index.html";
 
         /// <summary>
         /// Adds DICOM server functionality to the pipeline.
