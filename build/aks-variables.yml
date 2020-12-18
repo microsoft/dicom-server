@@ -4,7 +4,7 @@ variables:
   azureContainerRegistry: 'cddicom.azurecr.io'
   dicomServerComposeLocation: 'build/docker/docker-compose.yaml'
   dicomCastComposeLocation: 'converter/dicom-cast/build/docker/docker-compose.yaml'
-  fhirEndpoint: 'fhir'
+  fhirEndpoint: 'http://cddicom.westus2.cloudapp.azure.com/fhir'
   kvEndpoint: 'kv'
   dicomWebEndpoint: 'http://cddicom.westus2.cloudapp.azure.com/server'
   appInsightsKey: ''
