@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{3CCE3438-139A-420A-8A60-1144CADA95A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.DicomCast.TableStorage", "Table\Microsoft.Health.DicomCast.TableStorage.csproj", "{A704C557-86FB-46A7-A1C4-10409900DD29}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.TableStorage", "Table\Microsoft.Health.DicomCast.TableStorage.csproj", "{A704C557-86FB-46A7-A1C4-10409900DD29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.DicomCast.TableStorage.UnitTests", "src\Microsoft.Health.DicomCast.TableStorage.UnitTests\Microsoft.Health.DicomCast.TableStorage.UnitTests.csproj", "{1444027E-07DA-412E-8E74-F077F5520530}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +49,10 @@ Global
 		{A704C557-86FB-46A7-A1C4-10409900DD29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A704C557-86FB-46A7-A1C4-10409900DD29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A704C557-86FB-46A7-A1C4-10409900DD29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1444027E-07DA-412E-8E74-F077F5520530}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1444027E-07DA-412E-8E74-F077F5520530}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1444027E-07DA-412E-8E74-F077F5520530}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1444027E-07DA-412E-8E74-F077F5520530}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,6 +64,7 @@ Global
 		{02636774-227C-4D07-A314-0B5015328E39} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 		{3CCE3438-139A-420A-8A60-1144CADA95A1} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 		{A704C557-86FB-46A7-A1C4-10409900DD29} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
+		{1444027E-07DA-412E-8E74-F077F5520530} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4EF00533-B2AE-4B1B-B4AF-9799AD9F69E2}

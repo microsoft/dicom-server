@@ -9,6 +9,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
 {
     /// <summary>
     /// Exception thrown when resource cannot be created or updated because the resource has been updated.
+    /// Currently do not have this extending fhir exception yet because fhir exceptions are not retryable where as this one is
     /// </summary>
     public class ResourceConflictException : Exception
     {

@@ -12,6 +12,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Task = System.Threading.Tasks.Task;
@@ -26,22 +28,26 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
         private readonly IChangeFeedRetrieveService _changeFeedRetrieveService;
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
         private readonly ISyncStateService _syncStateService;
+        private readonly ITableStoreService _tableStoreService;
         private readonly ILogger<ChangeFeedProcessor> _logger;
 
         public ChangeFeedProcessor(
             IChangeFeedRetrieveService changeFeedRetrieveService,
             IFhirTransactionPipeline fhirTransactionPipeline,
             ISyncStateService syncStateService,
+            ITableStoreService tableStoreService,
             ILogger<ChangeFeedProcessor> logger)
         {
             EnsureArg.IsNotNull(changeFeedRetrieveService, nameof(changeFeedRetrieveService));
             EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
             EnsureArg.IsNotNull(syncStateService, nameof(syncStateService));
+            EnsureArg.IsNotNull(tableStoreService, nameof(tableStoreService));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _changeFeedRetrieveService = changeFeedRetrieveService;
             _fhirTransactionPipeline = fhirTransactionPipeline;
             _syncStateService = syncStateService;
+            _tableStoreService = tableStoreService;
             _logger = logger;
         }
 
@@ -69,13 +75,26 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                 // Process each change feed as a FHIR transaction.
                 foreach (ChangeFeedEntry changeFeedEntry in changeFeedEntries)
                 {
-                    if (!(changeFeedEntry.Action == ChangeFeedAction.Create && changeFeedEntry.State == ChangeFeedState.Deleted))
+                    try
                     {
-                        await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
+                        if (!(changeFeedEntry.Action == ChangeFeedAction.Create && changeFeedEntry.State == ChangeFeedState.Deleted))
+                        {
+                            await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Skip DICOM event with SequenceId {sequenceId} due to deletion before processing creation.", state.SyncedSequence + 1);
+                        }
                     }
-                    else
+                    catch (FhirNonRetryableException ex)
                     {
-                        _logger.LogInformation("Skip DICOM event with SequenceId {sequenceId} due to deletion before processing creation.", state.SyncedSequence + 1);
+                        await _tableStoreService.StoreException(
+                            changeFeedEntry.StudyInstanceUid,
+                            changeFeedEntry.SeriesInstanceUid,
+                            changeFeedEntry.SeriesInstanceUid,
+                            ex,
+                            TableErrorType.FhirError,
+                            cancellationToken);
                     }
                 }
 

@@ -17,14 +17,16 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         private const string TestPartitionKey = "testpartition";
         private const string TestRowKey = "testrow";
         private const string TestData = "testdata";
+        private const string TestTable = "testTable";
 
-        public async Task PerformTestAsync(CloudTableClient client, TableDataStoreConfiguration configuration, TableConfiguration tableConfiguration, CancellationToken cancellationToken = default)
+        public async Task PerformTestAsync(CloudTableClient client, TableDataStoreConfiguration configuration, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
-            EnsureArg.IsNotNull(tableConfiguration, nameof(tableConfiguration));
 
-            CloudTable table = client.GetTableReference(tableConfiguration.TableName);
+            CloudTable table = client.GetTableReference(TestTable);
+            await table.CreateIfNotExistsAsync();
+
             HealthEntity entity = new HealthEntity(TestPartitionKey, TestRowKey);
             entity.Data = TestData;
 
@@ -37,6 +39,8 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             TableOperation deleteOperation = TableOperation.Delete(entity);
             result = await table.ExecuteAsync(deleteOperation);
+
+            await table.DeleteAsync();
         }
     }
 }

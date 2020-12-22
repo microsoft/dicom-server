@@ -3,13 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos.Table;
+using System.Collections.Generic;
 
-namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
+namespace Microsoft.Health.DicomCast.TableStorage
 {
-    public interface ITableInitializer
+    internal static class Constants
     {
-        Task<CloudTableClient> InitializeTableAsync(CloudTableClient client);
+        public const string FhirTableName = "FhirExceptionTable";
+
+        public static readonly IEnumerable<string> AllTables = new List<string>() { FhirTableName };
     }
 }

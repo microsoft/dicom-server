@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.State;
+using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -52,6 +53,11 @@ namespace Microsoft.Health.DicomCast.Core.Modules
             services.Decorate<IChangeFeedProcessor, LoggingChangeFeedProcessor>();
 
             services.Add<SyncStateService>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<TableStoreService>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();

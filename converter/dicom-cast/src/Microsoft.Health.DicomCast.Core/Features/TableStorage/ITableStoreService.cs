@@ -3,16 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
-    /// <summary>
-    /// Exception thrown when the FHIR response is invalid.
-    /// </summary>
-    public class InvalidFhirResponseException : FhirNonRetryableException
+    public interface ITableStoreService
     {
-        public InvalidFhirResponseException(string message)
-            : base(message)
-        {
-        }
+        Task StoreException(string studyId, string seriesId, string instanceId, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default);
     }
 }

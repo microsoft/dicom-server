@@ -12,6 +12,6 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
     public interface ITableClientTestProvider
     {
-        Task PerformTestAsync(CloudTableClient client, TableDataStoreConfiguration configuration, TableConfiguration tableConfiguration, CancellationToken cancellationToken = default);
+        Task PerformTestAsync(CloudTableClient client, TableDataStoreConfiguration configuration, CancellationToken cancellationToken = default);
     }
 }

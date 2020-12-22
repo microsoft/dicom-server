@@ -3,16 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos.Table;
 
-namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
+namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
-    public class TableInitializer : ITableInitializer
+    public interface ITableStore
     {
-        public Task<CloudTableClient> InitializeTableAsync(CloudTableClient client)
-        {
-            throw new System.NotImplementedException();
-        }
+        Task StoreExceptionToTable(string studyId, string seriesId, string instanceId, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default);
     }
 }

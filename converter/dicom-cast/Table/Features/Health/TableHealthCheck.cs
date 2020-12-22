@@ -19,26 +19,22 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Health
     {
         private readonly CloudTableClient _client;
         private readonly TableDataStoreConfiguration _configuration;
-        private readonly TableConfiguration _tableConfiguration;
         private readonly ITableClientTestProvider _testProvider;
         private readonly ILogger<TableHealthCheck> _logger;
 
         public TableHealthCheck(
             CloudTableClient client,
             TableDataStoreConfiguration configuration,
-            TableConfiguration tableConfiguration,
             ITableClientTestProvider testProvider,
             ILogger<TableHealthCheck> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
-            EnsureArg.IsNotNull(tableConfiguration, nameof(tableConfiguration));
             EnsureArg.IsNotNull(testProvider, nameof(testProvider));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _client = client;
             _configuration = configuration;
-            _tableConfiguration = tableConfiguration;
             _testProvider = testProvider;
             _logger = logger;
         }
@@ -47,7 +43,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Health
         {
             try
             {
-                await _testProvider.PerformTestAsync(_client, _configuration, _tableConfiguration, cancellationToken);
+                await _testProvider.PerformTestAsync(_client, _configuration, cancellationToken);
 
                 return HealthCheckResult.Healthy("Successfully connected to the table data store.");
             }

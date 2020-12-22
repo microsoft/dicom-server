@@ -32,7 +32,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(configuration.ConnectionString);
 
-            // TODO: Add retry policy for table storage
+            // TODO: Add retry policy for acessing the table storage
             var tableRequestOptions = new TableRequestOptions();
 
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient(new TableClientConfiguration());
@@ -47,19 +47,18 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             try
             {
-                // TODO move this to use similar pattern to how blob storage initialized, dont want to hard code which tables to create here
-                string tableName = "testtable";
-
                 _logger.LogInformation("Initializing Table Storage and tables");
-
-                CloudTable table = client.GetTableReference(tableName);
-                if (await table.CreateIfNotExistsAsync())
+                foreach (string tableName in Constants.AllTables)
                 {
-                    _logger.LogInformation("Created Table named: {0}", tableName);
-                }
-                else
-                {
-                    _logger.LogInformation("Table {0} already exists", tableName);
+                    CloudTable table = client.GetTableReference(tableName);
+                    if (await table.CreateIfNotExistsAsync())
+                    {
+                        _logger.LogInformation("Created Table named: {0}", tableName);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Table {0} already exists", tableName);
+                    }
                 }
 
                 _logger.LogInformation("Table Storage and tables successfully initialized");
