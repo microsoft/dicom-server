@@ -11,6 +11,7 @@ namespace Microsoft.Health.DicomCast.TableStorage
     {
         public const string FhirTableName = "FhirExceptionTable";
 
+        // List of all the tables that need to be initialized
         public static readonly IEnumerable<string> AllTables = new List<string>() { FhirTableName };
     }
 }

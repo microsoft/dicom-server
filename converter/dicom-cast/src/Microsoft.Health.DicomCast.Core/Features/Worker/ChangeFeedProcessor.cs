@@ -15,6 +15,7 @@ using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.State;
+using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Task = System.Threading.Tasks.Task;
 
@@ -41,7 +42,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
             EnsureArg.IsNotNull(changeFeedRetrieveService, nameof(changeFeedRetrieveService));
             EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
             EnsureArg.IsNotNull(syncStateService, nameof(syncStateService));
-            EnsureArg.IsNotNull(tableStoreService, nameof(tableStoreService));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _changeFeedRetrieveService = changeFeedRetrieveService;
@@ -88,13 +88,24 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                     }
                     catch (FhirNonRetryableException ex)
                     {
-                        await _tableStoreService.StoreException(
-                            changeFeedEntry.StudyInstanceUid,
-                            changeFeedEntry.SeriesInstanceUid,
-                            changeFeedEntry.SeriesInstanceUid,
-                            ex,
-                            TableErrorType.FhirError,
-                            cancellationToken);
+                        if (_tableStoreService is TableStoreService)
+                        {
+                            string studyUID = changeFeedEntry.StudyInstanceUid;
+                            string seriesUID = changeFeedEntry.SeriesInstanceUid;
+                            string instanceUID = changeFeedEntry.SeriesInstanceUid;
+
+                            await _tableStoreService.StoreException(
+                                studyUID,
+                                seriesUID,
+                                instanceUID,
+                                ex,
+                                TableErrorType.FhirError,
+                                cancellationToken);
+
+                            _logger.LogInformation("Error when processsing DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID} stored into table storage", studyUID, seriesUID, instanceUID);
+                        }
+
+                        throw;
                     }
                 }
 

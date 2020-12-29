@@ -37,7 +37,7 @@ namespace Microsoft.Health.DicomCast.TableStorage
             return serviceCollection;
         }
 
-        public static IServiceCollection AddTableDataStore(this IServiceCollection serviceCollection, IConfiguration configuration)
+        private static IServiceCollection AddTableDataStore(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));

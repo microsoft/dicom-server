@@ -53,6 +53,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         /// <returns>A task representing the initialization operation.</returns>
         public async Task EnsureInitialized() => await _initializationOperation.EnsureInitialized();
 
+        /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);

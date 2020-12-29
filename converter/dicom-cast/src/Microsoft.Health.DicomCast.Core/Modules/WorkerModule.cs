@@ -57,10 +57,20 @@ namespace Microsoft.Health.DicomCast.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<TableStoreService>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+            if (_configuration.GetSection("TableStore").GetSection("Enabled").Get<bool>() == true)
+            {
+                services.Add<TableStoreService>()
+                    .Singleton()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+            }
+            else
+            {
+                services.Add<TableStoreServiceUnImplementedForFeatureFlag>()
+                    .Singleton()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+            }
         }
 
         private static void RegisterPipeline(IServiceCollection services)

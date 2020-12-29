@@ -13,7 +13,7 @@ using Microsoft.Health.DicomCast.TableStorage.Configs;
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
 #pragma warning disable CA1812
-    internal class TableClientInitializer : ITableClientIntializer
+    public class TableClientInitializer : ITableClientInitializer
     {
         private readonly ILogger<TableClientInitializer> _logger;
 
@@ -40,6 +40,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             return tableClient;
         }
 
+        /// <inheritdoc />
         public async Task IntializeDataStoreAsync(CloudTableClient client, TableDataStoreConfiguration configuration)
         {
             EnsureArg.IsNotNull(client, nameof(client));

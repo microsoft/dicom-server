@@ -19,6 +19,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         private const string TestData = "testdata";
         private const string TestTable = "testTable";
 
+        /// <inheritdoc/>
         public async Task PerformTestAsync(CloudTableClient client, TableDataStoreConfiguration configuration, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(client, nameof(client));

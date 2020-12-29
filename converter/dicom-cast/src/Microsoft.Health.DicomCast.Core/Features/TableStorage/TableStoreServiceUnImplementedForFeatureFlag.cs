@@ -6,27 +6,20 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using EnsureThat;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 
 namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
 {
-    /// <inheritdoc/>
-    public class TableStoreService : ITableStoreService
+    /// <summary>
+    /// Implementation of ITableStoreService to use when the feature flag is not enabled as the regular
+    /// implementation requires a CloudTableClient which is not initialized when the feature flag is disabled
+    /// </summary>
+    public class TableStoreServiceUnImplementedForFeatureFlag : ITableStoreService
     {
-        private readonly ITableStore _store;
-
-        public TableStoreService(ITableStore store)
-        {
-            EnsureArg.IsNotNull(store);
-
-            _store = store;
-        }
-
         /// <inheritdoc/>
-        public async Task StoreException(string studyId, string seriesId, string instanceId, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default)
+        public Task StoreException(string studyId, string seriesId, string instanceId, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default)
         {
-            await _store.StoreExceptionToTable(studyId, seriesId, instanceId, exceptionToStore, errorType, cancellationToken);
+            throw new NotImplementedException();
         }
     }
 }

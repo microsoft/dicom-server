@@ -5,10 +5,24 @@
 
 namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
+    /// <summary>
+    /// Represents the type of error that is going to be stored
+    /// </summary>
     public enum TableErrorType
     {
+        /// <summary>
+        /// A transient error
+        /// </summary>
         Transient,
+
+        /// <summary>
+        /// An intransient error that occured from the fhir service
+        /// </summary>
         FhirError,
+
+        /// <summary>
+        /// An intransient error that occurered due to invlaid data in the DICOM change feed entry
+        /// </summary>
         DicomError,
     }
 }

@@ -10,25 +10,23 @@ using EnsureThat;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
-using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
+    /// <inheritdoc/>
     public class TableExceptionStore : ITableStore
     {
         private readonly CloudTableClient _client;
-        private readonly TableDataStoreConfiguration _configuration;
 
-        public TableExceptionStore(CloudTableClient client, TableDataStoreConfiguration configuration)
+        public TableExceptionStore(CloudTableClient client)
         {
             EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             _client = client;
-            _configuration = configuration;
         }
 
+        /// <inheritdoc/>
         public async Task StoreExceptionToTable(string studyId, string seriesId, string instanceId, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken)
         {
             CloudTable table;
@@ -37,7 +35,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             if (errorType == TableErrorType.FhirError)
             {
                 table = _client.GetTableReference(Constants.FhirTableName);
-                entity = new FhirTransientEntity(studyId, seriesId, instanceId, exceptionToStore);
+                entity = new FhirIntransientEntity(studyId, seriesId, instanceId, exceptionToStore);
             }
             else
             {
@@ -46,6 +44,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             await table.CreateIfNotExistsAsync(cancellationToken);
             TableOperation operation = TableOperation.InsertOrMerge(entity);
+
             try
             {
                 TableResult result = await table.ExecuteAsync(operation, cancellationToken);

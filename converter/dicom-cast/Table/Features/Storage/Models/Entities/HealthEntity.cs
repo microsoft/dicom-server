@@ -7,12 +7,11 @@ using Microsoft.Azure.Cosmos.Table;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
 {
+    /// <summary>
+    /// Entity used to check health of table storage
+    /// </summary>
     public class HealthEntity : TableEntity
     {
-        public HealthEntity()
-        {
-        }
-
         public HealthEntity(string partitionKey, string rowKey)
         {
             PartitionKey = partitionKey;
