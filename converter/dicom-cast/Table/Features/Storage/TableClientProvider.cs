@@ -23,7 +23,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
         public TableClientProvider(
             TableDataStoreConfiguration tableDataStoreConfiguration,
-            ITableClientIntializer tableClientIntilizer,
+            ITableClientInitializer tableClientIntilizer,
             ILogger<TableClientProvider> logger)
         {
             EnsureArg.IsNotNull(tableDataStoreConfiguration, nameof(tableDataStoreConfiguration));

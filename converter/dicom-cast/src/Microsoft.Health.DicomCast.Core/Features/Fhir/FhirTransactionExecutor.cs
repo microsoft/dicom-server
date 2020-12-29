@@ -56,8 +56,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
                 throw new TransactionFailedException(ex.OperationOutcome, ex);
             }
 
-            responseBundle = null;
-
             if (responseBundle == null)
             {
                 throw new InvalidFhirResponseException(DicomCastCoreResource.MissingResponseBundle);

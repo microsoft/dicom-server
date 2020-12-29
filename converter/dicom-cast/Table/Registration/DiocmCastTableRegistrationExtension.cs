@@ -69,7 +69,7 @@ namespace Microsoft.Health.DicomCast.TableStorage
 
             serviceCollection.Add<TableClientInitializer>()
                 .Singleton()
-                .AsService<ITableClientIntializer>();
+                .AsService<ITableClientInitializer>();
 
             serviceCollection.Add<TableExceptionStore>()
                 .Singleton()
