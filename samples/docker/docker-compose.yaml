@@ -16,8 +16,8 @@ services:
       - "8080:8080"
     depends_on:
       - sql
-      - azure_storage_emulator
-  azure_storage_emulator:
+      - azurite
+  azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     restart: always
     # # uncomment if you want to expose azure storage explorer against localhost
@@ -54,7 +54,7 @@ services:
       Logging__Console__IncludeScopes: "true"
     depends_on:
       - dicom-api
-      - azure_storage_emulator
+      - azurite
       - fhir
     restart: always
 
