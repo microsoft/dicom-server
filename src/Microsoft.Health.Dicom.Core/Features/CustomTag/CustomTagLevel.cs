@@ -13,16 +13,16 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <summary>
         /// The custom tag is on instance level.
         /// </summary>
-        Instance = 1,
+        Instance = 0,
 
         /// <summary>
         /// The custom tag is on series level.
         /// </summary>
-        Series = 2,
+        Series = 1,
 
         /// <summary>
         /// The custom tag is on study level.
         /// </summary>
-        Study = 3,
+        Study = 2,
     }
 }

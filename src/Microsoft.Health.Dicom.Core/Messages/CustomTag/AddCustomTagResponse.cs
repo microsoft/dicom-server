@@ -10,20 +10,17 @@ namespace Microsoft.Health.Dicom.Core.Messages.CustomTag
 {
     public class AddCustomTagResponse
     {
-        private readonly IEnumerable<CustomTagEntry> _customTags;
-        private readonly string _job;
-
         public AddCustomTagResponse(IEnumerable<CustomTagEntry> customTags, string job)
         {
-            _customTags = customTags;
-            _job = job;
+            CustomTags = customTags;
+            Job = job;
         }
 
-        public IEnumerable<CustomTagEntry> CustomTags { get => _customTags; }
+        public IEnumerable<CustomTagEntry> CustomTags { get; }
 
         /// <summary>
         /// The Url to view job details.
         /// </summary>
-        public string Job { get => _job; }
+        public string Job { get; }
     }
 }

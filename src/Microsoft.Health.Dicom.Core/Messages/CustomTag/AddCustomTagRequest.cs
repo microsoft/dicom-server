@@ -11,13 +11,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.CustomTag
 {
     public class AddCustomTagRequest : IRequest<AddCustomTagResponse>
     {
-        private readonly IEnumerable<CustomTagEntry> _customTags;
-
         public AddCustomTagRequest(IEnumerable<CustomTagEntry> customTags)
         {
-            _customTags = customTags;
+            CustomTags = customTags;
         }
 
-        public IEnumerable<CustomTagEntry> CustomTags { get => _customTags; }
+        public IEnumerable<CustomTagEntry> CustomTags { get; }
     }
 }
