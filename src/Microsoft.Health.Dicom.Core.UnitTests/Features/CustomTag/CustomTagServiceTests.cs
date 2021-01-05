@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         }
 
         [Fact]
-        public async Task GivenMultipleCustomTags_WhenOneTagExist_ThenShouldFailAndRollback()
+        public async Task GivenMultipleCustomTags_WhenFailInTheMiddle_ThenShouldFailAndRollback()
         {
             CustomTagEntry customTagEntry1 = FromDicomTag(DicomTag.ManufacturerModelName);
             CustomTagEntry customTagEntry2 = FromDicomTag(DicomTag.PatientBirthDate);
