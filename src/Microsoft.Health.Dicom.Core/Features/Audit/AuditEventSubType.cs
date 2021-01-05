@@ -23,5 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Audit
         public const string RetrieveMetadata = "retrieve-metadata";
 
         public const string Store = "store";
+
+        public const string CustomTag = "custom-tag";
     }
 }

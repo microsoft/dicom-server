@@ -11,6 +11,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         private const string SeriesRouteSegment = "series";
         private const string InstancesRouteSegment = "instances";
         private const string MetadataSegment = "metadata";
+        private const string CustomTagsRouteSegment = "tags";
 
         private const string StudiesInstanceUidRouteSegment = "{" + KnownActionParameterNames.StudyInstanceUid + "}";
         private const string SeriesInstanceUidRouteSegment = "{" + KnownActionParameterNames.SeriesInstanceUid + "}";
@@ -18,6 +19,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         private const string FrameIdsRouteSegment = "{" + KnownActionParameterNames.Frames + "}";
 
         public const string StoreRoute = StudiesRouteSegment + "/{" + KnownActionParameterNames.StudyInstanceUid + "?}";
+        public const string CustomTagRoute = CustomTagsRouteSegment;
 
         public const string StudyRoute = StudiesRouteSegment + "/" + StudiesInstanceUidRouteSegment;
         public const string SeriesRoute = StudyRoute + "/" + SeriesRouteSegment + "/" + SeriesInstanceUidRouteSegment;
