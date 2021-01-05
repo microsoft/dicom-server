@@ -12,6 +12,12 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     public interface ICustomTagService
     {
+        /// <summary>
+        /// Add Custom Tags.
+        /// </summary>
+        /// <param name="customTags">The custom tags.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The response.</returns>
         public Task<AddCustomTagResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken = default);
     }
 }

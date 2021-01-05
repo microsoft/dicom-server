@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
@@ -16,6 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// Validate if given custom tag ehtries are valid.
         /// </summary>
         /// <param name="customTagEntries">The custom tag entries</param>
-        void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries);
+        /// <param name="cancellationToken">The cancellation token</param>
+        Task ValidateCustomTagsAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken = default);
     }
 }

@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         public async Task<AddCustomTagResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken = default)
         {
             // Validate input
-            _customTagEntryValidator.ValidateCustomTags(customTags);
+            await _customTagEntryValidator.ValidateCustomTagsAsync(customTags, cancellationToken);
 
             HashSet<long> addedTags = new HashSet<long>();
             foreach (var tag in customTags)
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogCritical(ex, "Fail to add custom tag {tag}", tag);
+                    _logger.LogCritical(ex, "Failed to add custom tag {tag}.", tag);
 
                     // clean up
                     foreach (var item in addedTags)

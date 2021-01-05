@@ -11,6 +11,13 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     public interface IReindexJob
     {
+        /// <summary>
+        /// Reindex through ealiest instnace till endWatermark (include endWatermark) on given customTags.
+        /// </summary>
+        /// <param name="customTags">The custom tags.</param>
+        /// <param name="endWatermark">The end watermark.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The result.</returns>
         Task ReindexAsync(IEnumerable<CustomTagEntry> customTags, long endWatermark, CancellationToken cancellationToken = default);
     }
 }
