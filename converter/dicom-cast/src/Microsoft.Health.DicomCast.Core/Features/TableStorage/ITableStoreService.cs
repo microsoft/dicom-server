@@ -24,5 +24,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         /// <param name="errorType">The type of error thrown</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         Task StoreException(string studyUid, string seriesUid, string instanceUid, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default);
+
     }
 }

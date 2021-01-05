@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
 using Dicom;
 using Hl7.Fhir.Model;
 
@@ -19,6 +20,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <param name="dataset">The DICOM properties.</param>
         /// <param name="patient">The <see cref="Patient"/> resource.</param>
         /// <param name="isNewPatient">Flag to determine whether or not the patient being synchronized is new.</param>
-        void Synchronize(DicomDataset dataset, Patient patient, bool isNewPatient);
+        /// <param name="cancellationToken">The cancellation token.</param>
+        void SynchronizeAsync(DicomDataset dataset, Patient patient, bool isNewPatient, CancellationToken cancellationToken = default);
     }
 }

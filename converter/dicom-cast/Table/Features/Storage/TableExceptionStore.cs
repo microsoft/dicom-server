@@ -37,6 +37,11 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
                 table = _client.GetTableReference(Constants.FhirTableName);
                 entity = new FhirIntransientEntity(studyId, seriesId, instanceId, exceptionToStore);
             }
+            else if (errorType == TableErrorType.DicomError)
+            {
+                table = _client.GetTableReference(Constants.DicomValidationTableName);
+                entity = new FhirIntransientEntity(studyId, seriesId, instanceId, exceptionToStore);
+            }
             else
             {
                 return;
