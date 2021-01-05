@@ -43,14 +43,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             };
             AddCustomTagResponse response = await _customTagService.AddCustomTagAsync(entries);
 
-            // Verify  customTagEntryValidator is called
-            await _customTagEntryValidator.ReceivedWithAnyArgs().ValidateCustomTagsAsync(default, default);
+            await _customTagEntryValidator.ReceivedWithAnyArgs()
+                .ValidateCustomTagsAsync(default, default);
 
-            // Verify  customTagStore is called
-            await _customTagStore.ReceivedWithAnyArgs().GetLatestInstanceAsync(default);
+            await _customTagStore.ReceivedWithAnyArgs()
+                .GetLatestInstanceAsync(default);
 
-            // Verify  check reindex job is called
-            await _reindexJob.ReceivedWithAnyArgs().ReindexAsync(default, default, default);
+            await _reindexJob.ReceivedWithAnyArgs()
+                .ReindexAsync(default, default, default);
 
             // Verify status
             foreach (CustomTagEntry item in response.CustomTags)
@@ -70,11 +70,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
             await Assert.ThrowsAsync<Exception>(() => _customTagService.AddCustomTagAsync(entries));
 
-            // Verify  customTagStore is not called
-            await _customTagStore.DidNotReceiveWithAnyArgs().AddCustomTagAsync(default, default, default, default, default);
+            await _customTagStore.DidNotReceiveWithAnyArgs()
+                .AddCustomTagAsync(default, default, default, default, default);
 
-            // Verify  check reindex job is not called
-            await _reindexJob.DidNotReceiveWithAnyArgs().ReindexAsync(default, default, default);
+            await _reindexJob.DidNotReceiveWithAnyArgs()
+                .ReindexAsync(default, default, default);
         }
 
         [Fact]
@@ -92,20 +92,26 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                 .Throws(new Exception());
 
             await Assert.ThrowsAsync<Exception>(() => _customTagService.AddCustomTagAsync(entries));
-            await _customTagStore.ReceivedWithAnyArgs().DeleteCustomTagAsync(default, default);
+
+            await _customTagStore.ReceivedWithAnyArgs()
+                .DeleteCustomTagAsync(default, default);
         }
 
         [Fact]
         public async Task GivenValidInput_WhenThereIsNoInstance_ThenShouldNotReinde()
         {
-            _customTagStore.GetLatestInstanceAsync(default).ReturnsForAnyArgs((long?)null);
+            _customTagStore.GetLatestInstanceAsync(default)
+                .ReturnsForAnyArgs((long?)null);
+
             IEnumerable<CustomTagEntry> entries = new CustomTagEntry[]
             {
                 FromDicomTag(DicomTag.ManufacturerModelName),
             };
 
             AddCustomTagResponse response = await _customTagService.AddCustomTagAsync(entries);
-            await _reindexJob.DidNotReceiveWithAnyArgs().ReindexAsync(default, default, default);
+
+            await _reindexJob.DidNotReceiveWithAnyArgs()
+                .ReindexAsync(default, default, default);
         }
 
         private static CustomTagEntry FromDicomTag(DicomTag tag, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Reindexing)

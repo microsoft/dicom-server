@@ -38,13 +38,13 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             // Validate input
             await _customTagEntryValidator.ValidateCustomTagsAsync(customTags, cancellationToken);
 
-            HashSet<long> addedTags = new HashSet<long>();
+            HashSet<long> addedTagKeys = new HashSet<long>();
             foreach (var tag in customTags)
             {
                 try
                 {
                     long key = await _customTagStore.AddCustomTagAsync(tag.Path, tag.VR, tag.Level, CustomTagStatus.Reindexing);
-                    addedTags.Add(key);
+                    addedTagKeys.Add(key);
                     tag.Key = key;
                     tag.Status = CustomTagStatus.Reindexing;
                 }
@@ -53,9 +53,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                     _logger.LogCritical(ex, "Failed to add custom tag {tag}.", tag);
 
                     // clean up
-                    foreach (var item in addedTags)
+                    foreach (var tagkey in addedTagKeys)
                     {
-                        await _customTagStore.DeleteCustomTagAsync(item);
+                        await _customTagStore.DeleteCustomTagAsync(tagkey);
                     }
 
                     throw;
