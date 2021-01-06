@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.DicomCast.TableStorage.Features.Health;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage;
@@ -30,9 +31,24 @@ namespace Microsoft.Health.DicomCast.TableStorage
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            serviceCollection
+            if (configuration.GetSection("TableStore").GetSection("Enabled").Get<bool>() == true)
+            {
+                serviceCollection
                         .AddTableDataStore(configuration)
                         .AddHealthChecks().AddCheck<TableHealthCheck>(name: nameof(TableHealthCheck));
+
+                serviceCollection.Add<TableExceptionStore>()
+                    .Singleton()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+            }
+            else
+            {
+                serviceCollection.Add<NullExceptionStore>()
+                    .Singleton()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+            }
 
             return serviceCollection;
         }
@@ -71,7 +87,7 @@ namespace Microsoft.Health.DicomCast.TableStorage
                 .Singleton()
                 .AsService<ITableClientInitializer>();
 
-            serviceCollection.Add<TableExceptionStore>()
+            serviceCollection.Add<TableStore>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();

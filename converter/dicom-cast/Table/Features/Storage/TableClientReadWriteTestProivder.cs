@@ -33,15 +33,15 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
 
-            TableResult result = await table.ExecuteAsync(insertOrMergeOperation);
+            TableResult result = await table.ExecuteAsync(insertOrMergeOperation, cancellationToken);
 
             TableOperation retrieveOperation = TableOperation.Retrieve<HealthEntity>(TestPartitionKey, TestRowKey);
-            result = await table.ExecuteAsync(retrieveOperation);
+            result = await table.ExecuteAsync(retrieveOperation, cancellationToken);
 
             TableOperation deleteOperation = TableOperation.Delete(entity);
-            result = await table.ExecuteAsync(deleteOperation);
+            result = await table.ExecuteAsync(deleteOperation, cancellationToken);
 
-            await table.DeleteAsync();
+            await table.DeleteAsync(cancellationToken);
         }
     }
 }

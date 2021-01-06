@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 using Microsoft.Azure.Cosmos.Table;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
@@ -16,18 +17,25 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
         /// <summary>
         /// Initializes a new instance of the <see cref="FhirIntransientEntity"/> class.
         /// </summary>
-        /// <param name="studyUID">StudyUID of the changefeed entry that failed </param>
-        /// <param name="seriesUID">SeriesUID of the changefeed entry that failed</param>
-        /// <param name="instanceUID">InstanceUID of the changefeed entry that failed</param>
-        /// <param name="ex">Theexception that was thrown</param>
-        public FhirIntransientEntity(string studyUID, string seriesUID, string instanceUID, Exception ex)
+        /// <param name="studyUid">StudyUID of the changefeed entry that failed </param>
+        /// <param name="seriesUid">SeriesUID of the changefeed entry that failed</param>
+        /// <param name="instanceUid">InstanceUID of the changefeed entry that failed</param>
+        /// <param name="changeFeedSequence">Changefeed sequence number that threw exception</param>
+        /// <param name="ex">The exception that was thrown</param>
+        public FhirIntransientEntity(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception ex)
         {
+            EnsureArg.IsNotNull(studyUid, nameof(studyUid));
+            EnsureArg.IsNotNull(seriesUid, nameof(seriesUid));
+            EnsureArg.IsNotNull(instanceUid, nameof(instanceUid));
+            EnsureArg.IsNotNull(ex, nameof(ex));
+
             PartitionKey = ex.GetType().Name;
             RowKey = Guid.NewGuid().ToString();
 
-            StudyUID = studyUID;
-            SeriesUID = seriesUID;
-            InstanceUID = instanceUID;
+            StudyUID = studyUid;
+            SeriesUID = seriesUid;
+            InstanceUID = instanceUid;
+            ChangeFeedSequence = changeFeedSequence;
             Exception = ex.ToString();
         }
 
@@ -38,5 +46,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
         public string InstanceUID { get; set; }
 
         public string Exception { get; set; }
+
+        public long ChangeFeedSequence { get; set; }
     }
 }

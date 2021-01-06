@@ -5,7 +5,8 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
+using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 
 namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
@@ -14,12 +15,22 @@ namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
     /// Implementation of ITableStoreService to use when the feature flag is not enabled as the regular
     /// implementation requires a CloudTableClient which is not initialized when the feature flag is disabled
     /// </summary>
-    public class TableStoreServiceUnImplementedForFeatureFlag : ITableStoreService
+    public class NullExceptionStore : IExceptionStore
     {
-        /// <inheritdoc/>
-        public Task StoreException(string studyId, string seriesId, string instanceId, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default)
+        private readonly ILogger<NullExceptionStore> _logger;
+
+        public NullExceptionStore(
+            ILogger<NullExceptionStore> logger)
         {
-            throw new NotImplementedException();
+            EnsureArg.IsNotNull(logger);
+
+            _logger = logger;
+        }
+
+        /// <inheritdoc/>
+        public void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation(exceptionToStore, "Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}.", changeFeedSequence, studyUid, seriesUid, instanceUid);
         }
     }
 }

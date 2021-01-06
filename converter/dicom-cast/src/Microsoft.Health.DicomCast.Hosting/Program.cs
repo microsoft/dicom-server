@@ -42,10 +42,7 @@ namespace Microsoft.Health.DicomCast.Hosting
 
                     services.AddBlobStorageDataStore(configuration);
 
-                    if (configuration.GetSection("TableStore").GetSection("Enabled").Get<bool>() == true)
-                    {
-                        services.AddTableStorageDataStore(configuration);
-                    }
+                    services.AddTableStorageDataStore(configuration);
 
                     services.AddHostedService<DicomCastBackgroundService>();
 

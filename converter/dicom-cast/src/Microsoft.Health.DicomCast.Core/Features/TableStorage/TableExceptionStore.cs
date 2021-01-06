@@ -5,18 +5,17 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 
 namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
 {
     /// <inheritdoc/>
-    public class TableStoreService : ITableStoreService
+    public class TableExceptionStore : IExceptionStore
     {
         private readonly ITableStore _store;
 
-        public TableStoreService(ITableStore store)
+        public TableExceptionStore(ITableStore store)
         {
             EnsureArg.IsNotNull(store);
 
@@ -24,9 +23,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
         }
 
         /// <inheritdoc/>
-        public async Task StoreException(string studyId, string seriesId, string instanceId, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default)
+        public async void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default)
         {
-            await _store.StoreExceptionToTable(studyId, seriesId, instanceId, exceptionToStore, errorType, cancellationToken);
+            await _store.StoreExceptionToTable(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore, errorType, cancellationToken);
         }
     }
 }

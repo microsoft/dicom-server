@@ -12,25 +12,27 @@ using Microsoft.Health.DicomCast.TableStorage.Configs;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
-#pragma warning disable CA1812
     public class TableClientInitializer : ITableClientInitializer
     {
         private readonly ILogger<TableClientInitializer> _logger;
+        private readonly TableDataStoreConfiguration _configuration;
 
-        public TableClientInitializer(ILogger<TableClientInitializer> logger)
+        public TableClientInitializer(
+            ILogger<TableClientInitializer> logger,
+            TableDataStoreConfiguration configuration)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(configuration, nameof(configuration));
             _logger = logger;
+            _configuration = configuration;
         }
 
         /// <inheritdoc />
-        public CloudTableClient CreateTableClient(TableDataStoreConfiguration configuration)
+        public CloudTableClient CreateTableClient()
         {
-            EnsureArg.IsNotNull(configuration, nameof(configuration));
-
             _logger.LogInformation("Creating TableClient instance");
 
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(configuration.ConnectionString);
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_configuration.ConnectionString);
 
             // TODO: Add retry policy for acessing the table storage
             var tableRequestOptions = new TableRequestOptions();
@@ -41,10 +43,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task IntializeDataStoreAsync(CloudTableClient client, TableDataStoreConfiguration configuration)
+        public async Task IntializeDataStoreAsync(CloudTableClient client)
         {
             EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             try
             {
@@ -71,5 +72,4 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             }
         }
     }
-#pragma warning restore CA1812
 }
