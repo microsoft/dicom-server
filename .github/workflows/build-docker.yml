@@ -1,0 +1,25 @@
+name: build-docker-files
+
+on:
+  push:
+    branches: 
+    - master
+    - main
+  pull_request:
+    branches:
+    - master
+    - main
+
+jobs:
+  build_docker_files:
+    # create a quick build to get sane output and error messages
+    runs-on: ubuntu-latest
+    steps:
+    - 
+      uses: actions/checkout@v2
+    -
+      # sample contains all the docker files
+      name: Build all docker files
+      run: |
+        docker-compose build
+      working-directory: samples/docker
