@@ -27,9 +27,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
+
         internal class ChangeFeedTable : Table
         {
-            internal ChangeFeedTable(): base("dbo.ChangeFeed")
+            internal ChangeFeedTable() : base("dbo.ChangeFeed")
             {
             }
 
@@ -41,11 +42,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
             internal readonly BigIntColumn OriginalWatermark = new BigIntColumn("OriginalWatermark");
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
+            internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
+            internal readonly Index IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
         }
 
         internal class DeletedInstanceTable : Table
         {
-            internal DeletedInstanceTable(): base("dbo.DeletedInstance")
+            internal DeletedInstanceTable() : base("dbo.DeletedInstance")
             {
             }
 
@@ -56,11 +59,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly DateTimeOffsetColumn DeletedDateTime = new DateTimeOffsetColumn("DeletedDateTime", 0);
             internal readonly IntColumn RetryCount = new IntColumn("RetryCount");
             internal readonly DateTimeOffsetColumn CleanupAfter = new DateTimeOffsetColumn("CleanupAfter", 0);
+            internal readonly Index IXC_DeletedInstance = new Index("IXC_DeletedInstance");
+            internal readonly Index IX_DeletedInstance_RetryCount_CleanupAfter = new Index("IX_DeletedInstance_RetryCount_CleanupAfter");
         }
 
         internal class InstanceTable : Table
         {
-            internal InstanceTable(): base("dbo.Instance")
+            internal InstanceTable() : base("dbo.Instance")
             {
             }
 
@@ -74,11 +79,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
             internal readonly DateTime2Column LastStatusUpdatedDate = new DateTime2Column("LastStatusUpdatedDate", 7);
             internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
+            internal readonly Index IXC_Instance = new Index("IXC_Instance");
+            internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
+            internal readonly Index IX_Instance_StudyInstanceUid_Status = new Index("IX_Instance_StudyInstanceUid_Status");
+            internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status");
+            internal readonly Index IX_Instance_SopInstanceUid_Status = new Index("IX_Instance_SopInstanceUid_Status");
+            internal readonly Index IX_Instance_Watermark = new Index("IX_Instance_Watermark");
+            internal readonly Index IX_Instance_SeriesKey_Status = new Index("IX_Instance_SeriesKey_Status");
+            internal readonly Index IX_Instance_StudyKey_Status = new Index("IX_Instance_StudyKey_Status");
         }
 
         internal class SeriesTable : Table
         {
-            internal SeriesTable(): base("dbo.Series")
+            internal SeriesTable() : base("dbo.Series")
             {
             }
 
@@ -87,11 +100,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
             internal readonly NullableDateColumn PerformedProcedureStepStartDate = new NullableDateColumn("PerformedProcedureStepStartDate");
+            internal readonly Index IXC_Series = new Index("IXC_Series");
+            internal readonly Index IX_Series_SeriesKey = new Index("IX_Series_SeriesKey");
+            internal readonly Index IX_Series_SeriesInstanceUid = new Index("IX_Series_SeriesInstanceUid");
+            internal readonly Index IX_Series_Modality = new Index("IX_Series_Modality");
+            internal readonly Index IX_Series_PerformedProcedureStepStartDate = new Index("IX_Series_PerformedProcedureStepStartDate");
         }
 
         internal class StudyTable : Table
         {
-            internal StudyTable(): base("dbo.Study")
+            internal StudyTable() : base("dbo.Study")
             {
             }
 
@@ -104,11 +122,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
             internal readonly NullableNVarCharColumn AccessionNumber = new NullableNVarCharColumn("AccessionNumber", 16);
             internal const string PatientNameWords = "PatientNameWords";
+            internal readonly Index IXC_Study = new Index("IXC_Study");
+            internal readonly Index IX_Study_StudyInstanceUid = new Index("IX_Study_StudyInstanceUid");
+            internal readonly Index IX_Study_PatientId = new Index("IX_Study_PatientId");
+            internal readonly Index IX_Study_PatientName = new Index("IX_Study_PatientName");
+            internal readonly Index IX_Study_ReferringPhysicianName = new Index("IX_Study_ReferringPhysicianName");
+            internal readonly Index IX_Study_StudyDate = new Index("IX_Study_StudyDate");
+            internal readonly Index IX_Study_StudyDescription = new Index("IX_Study_StudyDescription");
+            internal readonly Index IX_Study_AccessionNumber = new Index("IX_Study_AccessionNumber");
         }
 
         internal class AddInstanceProcedure : StoredProcedure
         {
-            internal AddInstanceProcedure(): base("dbo.AddInstance")
+            internal AddInstanceProcedure() : base("dbo.AddInstance")
             {
             }
 
@@ -124,6 +150,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
             private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
             private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
+
             public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
@@ -145,7 +172,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal class DeleteDeletedInstanceProcedure : StoredProcedure
         {
-            internal DeleteDeletedInstanceProcedure(): base("dbo.DeleteDeletedInstance")
+            internal DeleteDeletedInstanceProcedure() : base("dbo.DeleteDeletedInstance")
             {
             }
 
@@ -153,6 +180,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+
             public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
@@ -166,7 +194,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal class DeleteInstanceProcedure : StoredProcedure
         {
-            internal DeleteInstanceProcedure(): base("dbo.DeleteInstance")
+            internal DeleteInstanceProcedure() : base("dbo.DeleteInstance")
             {
             }
 
@@ -175,6 +203,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+
             public void PopulateCommand(SqlCommandWrapper command, System.DateTimeOffset cleanupAfter, System.Byte createdStatus, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
@@ -189,12 +218,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal class GetChangeFeedProcedure : StoredProcedure
         {
-            internal GetChangeFeedProcedure(): base("dbo.GetChangeFeed")
+            internal GetChangeFeedProcedure() : base("dbo.GetChangeFeed")
             {
             }
 
             private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
+
             public void PopulateCommand(SqlCommandWrapper command, System.Int32 limit, System.Int64 offset)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
@@ -206,7 +236,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal class GetChangeFeedLatestProcedure : StoredProcedure
         {
-            internal GetChangeFeedLatestProcedure(): base("dbo.GetChangeFeedLatest")
+            internal GetChangeFeedLatestProcedure() : base("dbo.GetChangeFeedLatest")
             {
             }
 
@@ -219,7 +249,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal class GetInstanceProcedure : StoredProcedure
         {
-            internal GetInstanceProcedure(): base("dbo.GetInstance")
+            internal GetInstanceProcedure() : base("dbo.GetInstance")
             {
             }
 
@@ -227,6 +257,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+
             public void PopulateCommand(SqlCommandWrapper command, System.Byte validStatus, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
@@ -240,7 +271,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal class IncrementDeletedInstanceRetryProcedure : StoredProcedure
         {
-            internal IncrementDeletedInstanceRetryProcedure(): base("dbo.IncrementDeletedInstanceRetry")
+            internal IncrementDeletedInstanceRetryProcedure() : base("dbo.IncrementDeletedInstanceRetry")
             {
             }
 
@@ -249,6 +280,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.DateTimeOffset> _cleanupAfter = new ParameterDefinition<System.DateTimeOffset>("@cleanupAfter", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
+
             public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.DateTimeOffset cleanupAfter)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
@@ -263,12 +295,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal class RetrieveDeletedInstanceProcedure : StoredProcedure
         {
-            internal RetrieveDeletedInstanceProcedure(): base("dbo.RetrieveDeletedInstance")
+            internal RetrieveDeletedInstanceProcedure() : base("dbo.RetrieveDeletedInstance")
             {
             }
 
             private readonly ParameterDefinition<System.Int32> _count = new ParameterDefinition<System.Int32>("@count", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int32> _maxRetries = new ParameterDefinition<System.Int32>("@maxRetries", global::System.Data.SqlDbType.Int, false);
+
             public void PopulateCommand(SqlCommandWrapper command, System.Int32 count, System.Int32 maxRetries)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
@@ -280,7 +313,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal class UpdateInstanceStatusProcedure : StoredProcedure
         {
-            internal UpdateInstanceStatusProcedure(): base("dbo.UpdateInstanceStatus")
+            internal UpdateInstanceStatusProcedure() : base("dbo.UpdateInstanceStatus")
             {
             }
 
@@ -289,6 +322,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
+
             public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;

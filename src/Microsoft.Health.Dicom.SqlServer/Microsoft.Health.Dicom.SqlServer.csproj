@@ -4,26 +4,36 @@
     <RootNamespace>Microsoft.Health.Dicom.SqlServer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Features\Schema\Migrations\1.sql" />
-    <EmbeddedResource Include="Features\Schema\Migrations\1.sql" />
-    <GenerateFilesInputs Include="Features\Schema\Migrations\1.sql" />
-    <Generated Include="Features\Schema\Model\VLatest.Generated.cs">
-      <Generator>SqlModelGenerator</Generator>
-      <Namespace>Microsoft.Health.Dicom.SqlServer.Features.Schema.Model</Namespace>
-      <Args>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\Features\Schema\Migrations\1.sql'))</Args>
-    </Generated>
+    <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Ensure.That" Version="9.2.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="3.1.8" />
-    <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.0-master-20201102-1" />
-    <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="1.0.0-master-20201102-1" />
-    <PackageReference Include="Microsoft.Health.SqlServer" Version="1.0.0-master-20201102-1" />
-    <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="1.0.0-master-20201102-1" />
+    <PackageReference Include="Microsoft.Health.Abstractions" Version="1.0.80" />
+    <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="1.0.80" />
+    <PackageReference Include="Microsoft.Health.SqlServer" Version="1.0.80" />
+    <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="1.0.80" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
+
+  <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
+    <ItemGroup>
+      <MutableSqlGeneratorInputs Include="@(EmbeddedResource)" Condition="'%(EmbeddedResource.InputToMutableSqlGenerator)' == 'true'" />
+
+      <!--We create this item group to that MSBuild can know when the GenerateFiles can be skipped.-->
+      <GenerateFilesInputs Include="@(MutableSqlGeneratorInputs)" />
+
+      <Generated Include="Features\Schema\Model\VLatest.Generated.cs">
+        <Generator>MutableSqlModelGenerator</Generator>
+        <Namespace>Microsoft.Health.Dicom.SqlServer.Features.Schema.Model</Namespace>
+        <Args>@(MutableSqlGeneratorInputs->'&quot;%(FullPath)&quot;', ' ')</Args>
+      </Generated>
+    </ItemGroup>
+  </Target>
 </Project>
