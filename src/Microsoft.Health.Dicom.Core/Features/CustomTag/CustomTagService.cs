@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             // 4. What if fail out during update custom tag status
 
             // Validate input
-            await _customTagEntryValidator.ValidateCustomTagsAsync(customTags, cancellationToken);
+            _customTagEntryValidator.ValidateCustomTags(customTags);
 
             HashSet<long> addedTagKeys = new HashSet<long>();
             foreach (var tag in customTags)
