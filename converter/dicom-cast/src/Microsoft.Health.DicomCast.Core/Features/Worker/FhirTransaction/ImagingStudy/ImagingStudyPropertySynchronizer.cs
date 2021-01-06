@@ -6,15 +6,38 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Dicom;
 using EnsureThat;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Logging;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
     public class ImagingStudyPropertySynchronizer : IImagingStudyPropertySynchronizer
     {
+        private readonly DicomValidationConfiguration _dicomValidationConfiguration;
+        private readonly ITableStoreService _tableStoreService;
+        private readonly ILogger<ImagingStudyPropertySynchronizer> _logger;
+
+        public ImagingStudyPropertySynchronizer(
+            DicomValidationConfiguration dicomValidationConfiguration,
+            ITableStoreService tableStoreService,
+            ILogger<ImagingStudyPropertySynchronizer> logger)
+        {
+            EnsureArg.IsNotNull(dicomValidationConfiguration, nameof(dicomValidationConfiguration));
+            EnsureArg.IsNotNull(tableStoreService, nameof(tableStoreService));
+            EnsureArg.IsNotNull(logger, nameof(logger));
+
+            _dicomValidationConfiguration = dicomValidationConfiguration;
+            _tableStoreService = tableStoreService;
+            _logger = logger;
+        }
+
         /// <inheritdoc/>
         public void Synchronize(FhirTransactionContext context, ImagingStudy imagingStudy)
         {
@@ -30,17 +53,47 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 return;
             }
 
-            ImagingStudyPipelineHelper.SetDateTimeOffSet(context);
-
-            AddStartedElement(imagingStudy, dataset, context.UtcDateTimeOffset);
-            AddImagingStudyEndpoint(imagingStudy, context);
-            AddModality(imagingStudy, dataset);
-            AddNote(imagingStudy, dataset);
-            AddAccessionNumber(imagingStudy, dataset);
+            SynchronizePropertiesAsync(imagingStudy, context, false, AddStartedElement);
+            SynchronizePropertiesAsync(imagingStudy, context, false, AddImagingStudyEndpoint);
+            SynchronizePropertiesAsync(imagingStudy, context, false, AddModality);
+            SynchronizePropertiesAsync(imagingStudy, context, false, AddNote);
+            SynchronizePropertiesAsync(imagingStudy, context, false, AddAccessionNumber);
         }
 
-        private static void AddNote(ImagingStudy imagingStudy, DicomDataset dataset)
+        private async void SynchronizePropertiesAsync(ImagingStudy imagingStudy, FhirTransactionContext context, bool required, Action<ImagingStudy, FhirTransactionContext> synchronizeAction, CancellationToken cancellationToken = default)
         {
+            try
+            {
+                synchronizeAction(imagingStudy, context);
+            }
+            catch (Exception ex)
+            {
+                if (_dicomValidationConfiguration.PartialValidation && _tableStoreService is TableStoreService && !required)
+                {
+                    DicomDataset dataset = context.ChangeFeedEntry.Metadata;
+                    string studyUID = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+                    string seriesUID = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+                    string instanceUID = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+
+                    await _tableStoreService.StoreException(
+                        studyUID,
+                        seriesUID,
+                        instanceUID,
+                        ex,
+                        TableErrorType.DicomError,
+                        cancellationToken);
+                    _logger.LogInformation(ex, "Error when synchronizing imaging study data for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID} stored into table storage", studyUID, seriesUID, instanceUID);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        private static void AddNote(ImagingStudy imagingStudy, FhirTransactionContext context)
+        {
+            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
             if (dataset.TryGetSingleValue(DicomTag.StudyDescription, out string description))
             {
                 if (!imagingStudy.Note.Any(note => string.Equals(note.Text.Value, description, StringComparison.Ordinal)))
@@ -65,13 +118,18 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
         }
 
-        private void AddStartedElement(ImagingStudy imagingStudy, DicomDataset dataset, TimeSpan utcOffset)
+        private void AddStartedElement(ImagingStudy imagingStudy, FhirTransactionContext context)
         {
+            ImagingStudyPipelineHelper.SetDateTimeOffSet(context);
+            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
+            TimeSpan utcOffset = context.UtcDateTimeOffset;
+
             imagingStudy.StartedElement = dataset.GetDateTimePropertyIfNotDefaultValue(DicomTag.StudyDate, DicomTag.StudyTime, utcOffset);
         }
 
-        private void AddModality(ImagingStudy imagingStudy, DicomDataset dataset)
+        private void AddModality(ImagingStudy imagingStudy, FhirTransactionContext context)
         {
+            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
             string modalityInString = ImagingStudyPipelineHelper.GetModalityInString(dataset);
 
             if (modalityInString != null)
@@ -88,8 +146,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
         }
 
-        private void AddAccessionNumber(ImagingStudy imagingStudy, DicomDataset dataset)
+        private void AddAccessionNumber(ImagingStudy imagingStudy, FhirTransactionContext context)
         {
+            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
             string accessionNumber = ImagingStudyPipelineHelper.GetAccessionNumberInString(dataset);
             if (accessionNumber != null)
             {

@@ -3,13 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Dicom;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.TableStorage;
@@ -55,9 +55,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 {
                     patientPropertySynchronizer.Synchronize(dataset, patient, isNewPatient);
                 }
-                catch (InvalidDicomTagValueException ex)
+                catch (Exception ex)
                 {
-                    if (_dicomValidationConfiguration.PartialValidation && _tableStoreService is TableStoreService)
+                    if (_dicomValidationConfiguration.PartialValidation && _tableStoreService is TableStoreService && !patientPropertySynchronizer.IsRequired())
                     {
                         string studyUID = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
                         string seriesUID = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
@@ -70,7 +70,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                             ex,
                             TableErrorType.DicomError,
                             cancellationToken);
-                        _logger.LogInformation(ex, "Error when synchroniing patient data for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID} stored into table storage", studyUID, seriesUID, instanceUID);
+                        _logger.LogInformation(ex, "Error when synchronizing patient data for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID} stored into table storage", studyUID, seriesUID, instanceUID);
                     }
                     else
                     {

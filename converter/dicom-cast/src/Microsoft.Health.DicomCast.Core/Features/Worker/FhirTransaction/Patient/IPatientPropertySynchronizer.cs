@@ -20,5 +20,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <param name="patient">The <see cref="Patient"/> resource.</param>
         /// <param name="isNewPatient">Flag to determine whether or not the patient being synchronized is new.</param>
         void Synchronize(DicomDataset dataset, Patient patient, bool isNewPatient);
+
+        /// <summary>
+        /// Returns if the property is a required property for the <see cref="Patient"/> resource
+        /// </summary>
+        bool IsRequired();
     }
 }
