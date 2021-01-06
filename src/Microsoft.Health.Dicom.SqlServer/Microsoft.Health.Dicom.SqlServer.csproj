@@ -4,14 +4,9 @@
     <RootNamespace>Microsoft.Health.Dicom.SqlServer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Features\Schema\Migrations\1.sql" />
-    <EmbeddedResource Include="Features\Schema\Migrations\1.sql" />
-    <GenerateFilesInputs Include="Features\Schema\Migrations\1.sql" />
-    <Generated Include="Features\Schema\Model\VLatest.Generated.cs">
-      <Generator>SqlModelGenerator</Generator>
-      <Namespace>Microsoft.Health.Dicom.SqlServer.Features.Schema.Model</Namespace>
-      <Args>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\Features\Schema\Migrations\1.sql'))</Args>
-    </Generated>
+    <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -26,4 +21,19 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
+
+  <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
+    <ItemGroup>
+      <MutableSqlGeneratorInputs Include="@(EmbeddedResource)" Condition="'%(EmbeddedResource.InputToMutableSqlGenerator)' == 'true'" />
+
+      <!--We create this item group to that MSBuild can know when the GenerateFiles can be skipped.-->
+      <GenerateFilesInputs Include="@(MutableSqlGeneratorInputs)" />
+
+      <Generated Include="Features\Schema\Model\VLatest.Generated.cs">
+        <Generator>MutableSqlModelGenerator</Generator>
+        <Namespace>Microsoft.Health.Dicom.SqlServer.Features.Schema.Model</Namespace>
+        <Args>@(MutableSqlGeneratorInputs->'&quot;%(FullPath)&quot;', ' ')</Args>
+      </Generated>
+    </ItemGroup>
+  </Target>
 </Project>
