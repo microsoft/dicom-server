@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="fo-dicom" Version="4.0.7" />
-    <PackageReference Include="Microsoft.Health.Blob" Version="1.0.80" />
+    <PackageReference Include="Microsoft.Health.Blob" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Polly" Version="7.2.0" />
   </ItemGroup>
   <ItemGroup>
