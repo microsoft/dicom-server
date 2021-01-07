@@ -3,16 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
+namespace Microsoft.Health.DicomCast.TableStorage
 {
-    /// <summary>
-    /// Exception thrown when the FHIR response is invalid.
-    /// </summary>
-    public class InvalidFhirResponseException : FhirNonRetryableException
+    internal static class TableStorageLocalEmulator
     {
-        public InvalidFhirResponseException(string message)
-            : base(message)
-        {
-        }
+        public const string ConnectionString = "UseDevelopmentStorage=true";
     }
 }

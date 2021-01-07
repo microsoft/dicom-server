@@ -3,16 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
+using Microsoft.Azure.Cosmos.Table;
+
+namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
 {
     /// <summary>
-    /// Exception thrown when the FHIR response is invalid.
+    /// Entity used to check health of table storage
     /// </summary>
-    public class InvalidFhirResponseException : FhirNonRetryableException
+    public class HealthEntity : TableEntity
     {
-        public InvalidFhirResponseException(string message)
-            : base(message)
+        public HealthEntity(string partitionKey, string rowKey)
         {
+            PartitionKey = partitionKey;
+            RowKey = rowKey;
         }
+
+        public string Data { get; set; }
     }
 }

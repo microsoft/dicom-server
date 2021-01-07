@@ -12,6 +12,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Task = System.Threading.Tasks.Task;
@@ -26,12 +28,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
         private readonly IChangeFeedRetrieveService _changeFeedRetrieveService;
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
         private readonly ISyncStateService _syncStateService;
+        private readonly IExceptionStore _exceptionStore;
         private readonly ILogger<ChangeFeedProcessor> _logger;
 
         public ChangeFeedProcessor(
             IChangeFeedRetrieveService changeFeedRetrieveService,
             IFhirTransactionPipeline fhirTransactionPipeline,
             ISyncStateService syncStateService,
+            IExceptionStore exceptionStore,
             ILogger<ChangeFeedProcessor> logger)
         {
             EnsureArg.IsNotNull(changeFeedRetrieveService, nameof(changeFeedRetrieveService));
@@ -42,6 +46,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
             _changeFeedRetrieveService = changeFeedRetrieveService;
             _fhirTransactionPipeline = fhirTransactionPipeline;
             _syncStateService = syncStateService;
+            _exceptionStore = exceptionStore;
             _logger = logger;
         }
 
@@ -69,13 +74,34 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                 // Process each change feed as a FHIR transaction.
                 foreach (ChangeFeedEntry changeFeedEntry in changeFeedEntries)
                 {
-                    if (!(changeFeedEntry.Action == ChangeFeedAction.Create && changeFeedEntry.State == ChangeFeedState.Deleted))
+                    try
                     {
-                        await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
+                        if (!(changeFeedEntry.Action == ChangeFeedAction.Create && changeFeedEntry.State == ChangeFeedState.Deleted))
+                        {
+                            await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Skip DICOM event with SequenceId {sequenceId} due to deletion before processing creation.", state.SyncedSequence + 1);
+                        }
                     }
-                    else
+                    catch (FhirNonRetryableException ex)
                     {
-                        _logger.LogInformation("Skip DICOM event with SequenceId {sequenceId} due to deletion before processing creation.", state.SyncedSequence + 1);
+                        string studyUID = changeFeedEntry.StudyInstanceUid;
+                        string seriesUID = changeFeedEntry.SeriesInstanceUid;
+                        string instanceUID = changeFeedEntry.SeriesInstanceUid;
+                        long changeFeedSequence = changeFeedEntry.Sequence;
+
+                        _exceptionStore.StoreException(
+                            studyUID,
+                            seriesUID,
+                            instanceUID,
+                            changeFeedSequence,
+                            ex,
+                            ErrorType.FhirError,
+                            cancellationToken);
+
+                        throw;
                     }
                 }
 

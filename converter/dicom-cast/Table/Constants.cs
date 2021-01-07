@@ -3,16 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
+using System.Collections.Generic;
+
+namespace Microsoft.Health.DicomCast.TableStorage
 {
-    /// <summary>
-    /// Exception thrown when the FHIR response is invalid.
-    /// </summary>
-    public class InvalidFhirResponseException : FhirNonRetryableException
+    internal static class Constants
     {
-        public InvalidFhirResponseException(string message)
-            : base(message)
-        {
-        }
+        public const string FhirTableName = "FhirExceptionTable";
+
+        // List of all the tables that need to be initialized
+        public static readonly IEnumerable<string> AllTables = new List<string>() { FhirTableName };
     }
 }
