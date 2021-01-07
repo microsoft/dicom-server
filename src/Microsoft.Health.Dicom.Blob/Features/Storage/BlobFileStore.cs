@@ -128,7 +128,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             return _container.GetBlockBlobClient(blobName);
         }
 
-        private async Task ExecuteAsync(Func<Task> action)
+        private static async Task ExecuteAsync(Func<Task> action)
         {
             try
             {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -33,6 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidStudyInstanceIdentifier_WhenHandlerIsExecuted_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
         {
+            EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
@@ -47,6 +49,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("aaaa-bbbb", "aaaa-bbbb")]
         public async Task GivenARequestWithInvalidStudyIdentifier_WhenRetrievingSeriesMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid, string seriesInstanceUid)
         {
+            EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
@@ -61,6 +64,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidSeriesIdentifier_WhenRetrievingSeriesMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
         {
+            EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
@@ -75,6 +79,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("aaaa-bbbb1", "aaaa-bbbb2", "aaaa-bbbb1")]
         public async Task GivenARequestWithInvalidStudyAndSeriesInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
+            EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
@@ -89,6 +94,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("aaaa-bbbb2", " ")]
         public async Task GivenARequestWithInvalidSeriesInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string seriesInstanceUid, string sopInstanceUid)
         {
+            EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid, sopInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
@@ -103,6 +109,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidSopInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
         {
+            EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));

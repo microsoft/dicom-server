@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private readonly ILogger<QueryParser> _logger;
         private const string IncludeFieldValueAll = "all";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
-        private QueryExpressionImp _parsedQuery = null;
+        private QueryExpressionImp _parsedQuery;
         private readonly Dictionary<string, Action<KeyValuePair<string, StringValues>>> _paramParsers =
             new Dictionary<string, Action<KeyValuePair<string, StringValues>>>(StringComparer.OrdinalIgnoreCase);
 
@@ -110,7 +110,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 _parsedQuery.FilterConditions);
         }
 
-        private void PostProcessFilterConditions(QueryExpressionImp parsedQuery)
+        private static void PostProcessFilterConditions(QueryExpressionImp parsedQuery)
         {
             // fuzzy match condition modification
             if (parsedQuery.FuzzyMatch == true)
@@ -143,7 +143,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             ValidateIfTagSupported(dicomTag, attributeId, resourceType);
 
             // parse tag value
-            if (!queryParameter.Value.Any() || queryParameter.Value.Count() > 1)
+            if (!queryParameter.Value.Any() || queryParameter.Value.Count > 1)
             {
                 throw new QueryParseException(string.Format(DicomCoreResource.DuplicateQueryParam, attributeId));
             }

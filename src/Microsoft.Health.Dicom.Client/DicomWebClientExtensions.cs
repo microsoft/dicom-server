@@ -114,6 +114,7 @@ namespace Microsoft.Health.Dicom.Client
             int[] frames = null,
             CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join("%2C", frames)), UriKind.Relative);
 
             return await dicomWebClient.RetrieveFramesAsync(requestUri, mediaType, dicomTransferSyntax, cancellationToken).ConfigureAwait(false);

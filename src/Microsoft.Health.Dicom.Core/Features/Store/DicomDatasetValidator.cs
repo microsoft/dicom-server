@@ -110,7 +110,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
         }
 
-        private void ValidateAllItems(DicomDataset dicomDataset)
+        private static void ValidateAllItems(DicomDataset dicomDataset)
         {
             dicomDataset.Each(item =>
             {

@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             return metadataResponse;
         }
 
-        private void ValidateRetrieveMetadataRequest(RetrieveMetadataRequest request)
+        private static void ValidateRetrieveMetadataRequest(RetrieveMetadataRequest request)
         {
             RetrieveRequestValidator.ValidateInstanceIdentifiers(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
         }

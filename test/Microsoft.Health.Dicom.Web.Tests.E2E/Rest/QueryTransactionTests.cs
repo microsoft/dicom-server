@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
+using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -27,6 +28,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
+            EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.Client;
         }
 
