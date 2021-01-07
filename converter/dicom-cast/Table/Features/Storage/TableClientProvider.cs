@@ -30,9 +30,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             EnsureArg.IsNotNull(tableClientIntilizer, nameof(tableClientIntilizer));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _cloudTableClient = tableClientIntilizer.CreateTableClient(tableDataStoreConfiguration);
+            _cloudTableClient = tableClientIntilizer.CreateTableClient();
             _initializationOperation = new RetryableInitializationOperation(
-                () => tableClientIntilizer.IntializeDataStoreAsync(_cloudTableClient, tableDataStoreConfiguration));
+                () => tableClientIntilizer.IntializeDataStoreAsync(_cloudTableClient));
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

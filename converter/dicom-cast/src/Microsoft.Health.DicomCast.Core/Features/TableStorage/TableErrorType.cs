@@ -21,7 +21,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         FhirError,
 
         /// <summary>
-        /// An intransient error that occurered due to invlaid data in the DICOM change feed entry
+        /// An intransient error that occurered due to invalid data in the DICOM change feed entry
         /// </summary>
         DicomError,
     }

@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.State;
-using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -56,21 +55,6 @@ namespace Microsoft.Health.DicomCast.Core.Modules
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
-
-            if (_configuration.GetSection("TableStore").GetSection("Enabled").Get<bool>() == true)
-            {
-                services.Add<TableStoreService>()
-                    .Singleton()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-            }
-            else
-            {
-                services.Add<TableStoreServiceUnImplementedForFeatureFlag>()
-                    .Singleton()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-            }
         }
 
         private static void RegisterPipeline(IServiceCollection services)
