@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
     /// <summary>
-    /// Persistent data in table store
+    /// Store persistent data in table store
     /// </summary>
     public interface ITableStore
     {

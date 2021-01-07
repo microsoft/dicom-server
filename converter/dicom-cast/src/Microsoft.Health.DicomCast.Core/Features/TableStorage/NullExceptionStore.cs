@@ -12,8 +12,7 @@ using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
 {
     /// <summary>
-    /// Implementation of ITableStoreService to use when the feature flag is not enabled as the regular
-    /// implementation requires a CloudTableClient which is not initialized when the feature flag is disabled
+    /// This implementation of exception store does not store the errors due to table storage not being enabled, instead just log.
     /// </summary>
     public class NullExceptionStore : IExceptionStore
     {

@@ -9,7 +9,7 @@ using System.Threading;
 namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
     /// <summary>
-    /// Service that supports storing to azure table storage.
+    /// Service that supports storing exceptions.
     /// </summary>
     public interface IExceptionStore
     {
