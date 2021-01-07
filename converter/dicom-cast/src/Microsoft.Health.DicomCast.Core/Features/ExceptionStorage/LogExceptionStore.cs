@@ -7,19 +7,18 @@ using System;
 using System.Threading;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 
-namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
+namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
     /// <summary>
-    /// This implementation of exception store does not store the errors due to table storage not being enabled, instead just log.
+    /// Implementation of exception store that logs the errors but does not persist it in storage.
     /// </summary>
-    public class NullExceptionStore : IExceptionStore
+    public class LogExceptionStore : IExceptionStore
     {
-        private readonly ILogger<NullExceptionStore> _logger;
+        private readonly ILogger<LogExceptionStore> _logger;
 
-        public NullExceptionStore(
-            ILogger<NullExceptionStore> logger)
+        public LogExceptionStore(
+            ILogger<LogExceptionStore> logger)
         {
             EnsureArg.IsNotNull(logger);
 
@@ -27,7 +26,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
         }
 
         /// <inheritdoc/>
-        public void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default)
+        public void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation(exceptionToStore, "Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}.", changeFeedSequence, studyUid, seriesUid, instanceUid);
         }

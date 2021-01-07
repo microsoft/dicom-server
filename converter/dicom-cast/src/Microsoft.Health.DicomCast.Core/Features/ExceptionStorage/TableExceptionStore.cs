@@ -6,9 +6,9 @@
 using System;
 using System.Threading;
 using EnsureThat;
-using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 
-namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
+namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
     /// <inheritdoc/>
     public class TableExceptionStore : IExceptionStore
@@ -23,7 +23,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
         }
 
         /// <inheritdoc/>
-        public async void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default)
+        public async void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default)
         {
             await _store.StoreExceptionToTable(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore, errorType, cancellationToken);
         }

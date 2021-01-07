@@ -23,6 +23,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         /// <param name="exceptionToStore">The exception that was thrown and needs to be stored</param>
         /// <param name="errorType">The type of error thrown</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken = default);
+        void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default);
     }
 }

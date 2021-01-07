@@ -6,9 +6,9 @@
 namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
     /// <summary>
-    /// Represents the type of error that is going to be stored
+    /// Represents the type of error
     /// </summary>
-    public enum TableErrorType
+    public enum ErrorType
     {
         /// <summary>
         /// A transient error

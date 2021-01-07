@@ -11,6 +11,7 @@ using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
@@ -33,20 +34,18 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc/>
-        public async Task StoreExceptionToTable(string studyUID, string seriesUID, string instanceUID, long changeFeedSequence, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken)
+        public async Task StoreExceptionToTable(string studyUID, string seriesUID, string instanceUID, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken)
         {
             CloudTable table;
             TableEntity entity;
 
-            if (errorType == TableErrorType.FhirError)
-            {
-                table = _client.GetTableReference(Constants.FhirTableName);
-                entity = new FhirIntransientEntity(studyUID, seriesUID, instanceUID, changeFeedSequence, exceptionToStore);
-            }
-            else
+            if (errorType != ErrorType.FhirError)
             {
                 return;
             }
+
+            table = _client.GetTableReference(Constants.FhirTableName);
+            entity = new FhirIntransientEntity(studyUID, seriesUID, instanceUID, changeFeedSequence, exceptionToStore);
 
             TableOperation operation = TableOperation.InsertOrMerge(entity);
 
