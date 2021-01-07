@@ -12,7 +12,6 @@ using Hl7.Fhir.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
-using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
@@ -23,31 +22,33 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         private readonly IEnumerable<IPatientPropertySynchronizer> _patientPropertySynchronizers;
         private readonly DicomValidationConfiguration _dicomValidationConfiguration;
-        private readonly ITableStoreService _tableStoreService;
+        private readonly IExceptionStore _exceptionStore;
         private readonly ILogger<PatientSynchronizer> _logger;
 
         public PatientSynchronizer(
             IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers,
             DicomValidationConfiguration dicomValidationConfiguration,
-            ITableStoreService tableStoreService,
+            IExceptionStore exceptionStore,
             ILogger<PatientSynchronizer> logger)
         {
             EnsureArg.IsNotNull(patientPropertySynchronizers, nameof(patientPropertySynchronizers));
             EnsureArg.IsNotNull(dicomValidationConfiguration, nameof(dicomValidationConfiguration));
-            EnsureArg.IsNotNull(tableStoreService, nameof(tableStoreService));
+            EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _patientPropertySynchronizers = patientPropertySynchronizers;
             _dicomValidationConfiguration = dicomValidationConfiguration;
-            _tableStoreService = tableStoreService;
+            _exceptionStore = exceptionStore;
             _logger = logger;
         }
 
         /// <inheritdoc/>
-        public async void SynchronizeAsync(DicomDataset dataset, Patient patient, bool isNewPatient, CancellationToken cancellationToken)
+        public void SynchronizeAsync(FhirTransactionContext context, Patient patient, bool isNewPatient, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(dataset, nameof(dataset));
+            EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(patient, nameof(patient));
+
+            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
 
             foreach (IPatientPropertySynchronizer patientPropertySynchronizer in _patientPropertySynchronizers)
             {
@@ -57,20 +58,20 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 }
                 catch (Exception ex)
                 {
-                    if (_dicomValidationConfiguration.PartialValidation && _tableStoreService is TableStoreService && !patientPropertySynchronizer.IsRequired())
+                    if (_dicomValidationConfiguration.PartialValidation && !patientPropertySynchronizer.IsRequired())
                     {
                         string studyUID = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
                         string seriesUID = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
                         string instanceUID = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
 
-                        await _tableStoreService.StoreException(
+                        _exceptionStore.StoreException(
                             studyUID,
                             seriesUID,
                             instanceUID,
+                            context.ChangeFeedEntry.Sequence,
                             ex,
                             TableErrorType.DicomError,
                             cancellationToken);
-                        _logger.LogInformation(ex, "Error when synchronizing patient data for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID} stored into table storage", studyUID, seriesUID, instanceUID);
                     }
                     else
                     {

@@ -12,32 +12,31 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
-using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
     public class ImagingStudySeriesPropertySynchronizer : IImagingStudySeriesPropertySynchronizer
     {
         private readonly DicomValidationConfiguration _dicomValidationConfiguration;
-        private readonly ITableStoreService _tableStoreService;
+        private readonly IExceptionStore _exceptionStore;
         private readonly ILogger<ImagingStudySeriesPropertySynchronizer> _logger;
 
         public ImagingStudySeriesPropertySynchronizer(
             DicomValidationConfiguration dicomValidationConfiguration,
-            ITableStoreService tableStoreService,
+            IExceptionStore exceptionStore,
             ILogger<ImagingStudySeriesPropertySynchronizer> logger)
         {
             EnsureArg.IsNotNull(dicomValidationConfiguration, nameof(dicomValidationConfiguration));
-            EnsureArg.IsNotNull(tableStoreService, nameof(tableStoreService));
+            EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _dicomValidationConfiguration = dicomValidationConfiguration;
-            _tableStoreService = tableStoreService;
+            _exceptionStore = exceptionStore;
             _logger = logger;
         }
 
         /// <inheritdoc/>
-        public void Synchronize(FhirTransactionContext context, ImagingStudy.SeriesComponent series)
+        public void Synchronize(FhirTransactionContext context, ImagingStudy.SeriesComponent series, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(context.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
@@ -50,13 +49,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 return;
             }
 
-            SynchronizePropertiesAsync(series, context, false, AddSeriesNumber);
-            SynchronizePropertiesAsync(series, context, false, AddDescription);
-            SynchronizePropertiesAsync(series, context, true, AddModalityToSeries);
-            SynchronizePropertiesAsync(series, context, false, AddStartedElement);
+            SynchronizePropertiesAsync(series, context, false, AddSeriesNumber, cancellationToken);
+            SynchronizePropertiesAsync(series, context, false, AddDescription, cancellationToken);
+            SynchronizePropertiesAsync(series, context, true, AddModalityToSeries, cancellationToken);
+            SynchronizePropertiesAsync(series, context, false, AddStartedElement, cancellationToken);
         }
 
-        private async void SynchronizePropertiesAsync(ImagingStudy.SeriesComponent series, FhirTransactionContext context, bool required, Action<ImagingStudy.SeriesComponent, FhirTransactionContext> synchronizeAction, CancellationToken cancellationToken = default)
+        private void SynchronizePropertiesAsync(ImagingStudy.SeriesComponent series, FhirTransactionContext context, bool required, Action<ImagingStudy.SeriesComponent, FhirTransactionContext> synchronizeAction, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -64,21 +63,21 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
             catch (Exception ex)
             {
-                if (_dicomValidationConfiguration.PartialValidation && _tableStoreService is TableStoreService && !required)
+                if (_dicomValidationConfiguration.PartialValidation && !required)
                 {
                     DicomDataset dataset = context.ChangeFeedEntry.Metadata;
                     string studyUID = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
                     string seriesUID = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
                     string instanceUID = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
 
-                    await _tableStoreService.StoreException(
+                    _exceptionStore.StoreException(
                         studyUID,
                         seriesUID,
                         instanceUID,
+                        context.ChangeFeedEntry.Sequence,
                         ex,
                         TableErrorType.DicomError,
                         cancellationToken);
-                    _logger.LogInformation(ex, "Error when synchronizing imaging study series data for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID} stored into table storage", studyUID, seriesUID, instanceUID);
                 }
                 else
                 {

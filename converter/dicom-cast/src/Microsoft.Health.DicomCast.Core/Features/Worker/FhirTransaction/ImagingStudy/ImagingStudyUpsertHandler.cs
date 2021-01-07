@@ -73,7 +73,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 requestMode = FhirTransactionRequestMode.Create;
             }
 
-            SynchronizeImagingStudyProperties(context, imagingStudy);
+            SynchronizeImagingStudyProperties(context, imagingStudy, cancellationToken);
 
             if (requestMode != FhirTransactionRequestMode.Create &&
                 !existingImagingStudy.IsExactly(imagingStudy))
@@ -101,14 +101,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 imagingStudy);
         }
 
-        private void SynchronizeImagingStudyProperties(FhirTransactionContext context, ImagingStudy imagingStudy)
+        private void SynchronizeImagingStudyProperties(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
         {
-            _imagingStudySynchronizer.SynchronizeStudyProperties(context, imagingStudy);
+            _imagingStudySynchronizer.SynchronizeStudyProperties(context, imagingStudy, cancellationToken);
 
-            AddSeriesToImagingStudy(context, imagingStudy);
+            AddSeriesToImagingStudy(context, imagingStudy, cancellationToken);
         }
 
-        private void AddSeriesToImagingStudy(FhirTransactionContext context, ImagingStudy imagingStudy)
+        private void AddSeriesToImagingStudy(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
         {
             ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
 
@@ -146,8 +146,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 }
             }
 
-            _imagingStudySynchronizer.SynchronizeSeriesProperties(context, series);
-            _imagingStudySynchronizer.SynchronizeInstanceProperties(context, instance);
+            _imagingStudySynchronizer.SynchronizeSeriesProperties(context, series, cancellationToken);
+            _imagingStudySynchronizer.SynchronizeInstanceProperties(context, instance, cancellationToken);
         }
     }
 }
