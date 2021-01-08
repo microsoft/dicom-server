@@ -10,6 +10,15 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class CustomTagEntry
     {
+        public CustomTagEntry(long key, string path, string vr, CustomTagLevel level, CustomTagStatus status)
+        {
+            Key = key;
+            Path = path;
+            VR = vr;
+            Level = level;
+            Status = status;
+        }
+
         /// <summary>
         /// Key of this custom tag entry.
         /// </summary>
