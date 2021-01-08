@@ -5,15 +5,13 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 
-namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
+namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
     /// <summary>
-    /// Store persistent data in table store
+    /// Service that supports storing exceptions.
     /// </summary>
-    public interface ITableStore
+    public interface IExceptionStore
     {
         /// <summary>
         /// Store an exception to an azure storage table.
@@ -25,6 +23,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.TableStorage
         /// <param name="exceptionToStore">The exception that was thrown and needs to be stored</param>
         /// <param name="errorType">The type of error thrown</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        Task StoreExceptionToTable(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default);
+        void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default);
     }
 }

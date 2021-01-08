@@ -9,8 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -20,6 +22,12 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 {
     public static class DicomMediatorExtensions
     {
+        public static Task<AddCustomTagResponse> AddCustomTagsAsync(
+            this IMediator mediator, IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken)
+        {
+            return mediator.Send(new AddCustomTagRequest(customTags), cancellationToken);
+        }
+
         public static Task<StoreResponse> StoreDicomResourcesAsync(
             this IMediator mediator, Stream requestBody, string requestContentType, string studyInstanceUid, CancellationToken cancellationToken)
         {

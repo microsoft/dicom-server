@@ -98,7 +98,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                             instanceUID,
                             changeFeedSequence,
                             ex,
-                            TableErrorType.FhirError,
+                            ErrorType.FhirError,
                             cancellationToken);
 
                         throw;

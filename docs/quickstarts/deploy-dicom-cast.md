@@ -2,16 +2,22 @@
 
 In this quickstart, you will learn how to deploy DICOM Cast for your Medical Imaging Server for DICOM. DICOM Cast is a service which pushes Medical Imaging Server for DICOM metadata into a FHIR&trade; server to support integrated queries across clinical and imaging data. To learn more about the architecture of DICOM Cast, refer to the [DICOM Cast Concept](../concepts/dicom-cast.md).
 
-DICOM Cast is deployed as an Azure Container Instance using the provided [ARM template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
+## Deploy via docker
 
-## Prerequisites
+If you would like to deploy via docker-compose, please follow the quickstart [Deploy Via Docker](deploy-via-docker.md). This will deploy the Medical Imaging Server for DICOM and DICOM Cast.
+
+## Deploy via Azure
+
+DICOM Cast can be deployed as an Azure Container Instance using the provided [ARM template](/converter/dicom-cast/samples/templates/default-azuredeploy.json).
+
+### Prerequisites
 
 * A deployed [FHIR Server for Azure](https://github.com/microsoft/fhir-server)
 * A deployed [Medical Imaging Server for DICOM](https://github.com/microsoft/dicom-server)
 
 > Note: Currently DICOM Cast is only supported by the Open Source FHIR Server for Azure, not the Azure API for FHIR. Ensure that the FHIR server is on version R4 of FHIR.
 
-## Deployment
+### Deployment
 
 If you have an Azure subscription, click the link below to deploy to Azure:
 
@@ -41,7 +47,7 @@ Instructions for how to deploy an ARM template can be found in the following doc
 * [Deploy via CLI](https://docs.microsoft.com/azure/azure-resource-manager/templates/deploy-cli)
 * [Deploy via PowerShell](https://docs.microsoft.com/azure/azure-resource-manager/templates/deploy-powershell)
 
-### Deploy DICOM Server, FHIR Server and DICOM Cast
+#### Deploy DICOM Server, FHIR Server and DICOM Cast
 
 If you have not yet deployed a DICOM or FHIR Server, you can use use a single ARM Template to deploy the Medical Imaging Server for DICOM, a FHIR OSS Server and a DICOM Cast instance at once. If you do not yet have an Azure subscription, create a [free account](https://azure.microsoft.com/free) before deploying.
 

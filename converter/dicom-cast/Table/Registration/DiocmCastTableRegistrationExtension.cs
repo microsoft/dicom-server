@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Health.DicomCast.Core.Features.TableStorage;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.DicomCast.TableStorage.Features.Health;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage;
@@ -33,22 +33,11 @@ namespace Microsoft.Health.DicomCast.TableStorage
 
             if (configuration.GetSection("TableStore").GetSection("Enabled").Get<bool>() == true)
             {
-                serviceCollection
-                        .AddTableDataStore(configuration)
-                        .AddHealthChecks().AddCheck<TableHealthCheck>(name: nameof(TableHealthCheck));
+            serviceCollection
+                    .AddTableDataStore(configuration)
+                    .AddHealthChecks().AddCheck<TableHealthCheck>(name: nameof(TableHealthCheck));
 
-                serviceCollection.Add<TableExceptionStore>()
-                    .Singleton()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-            }
-            else
-            {
-                serviceCollection.Add<NullExceptionStore>()
-                    .Singleton()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-            }
+            serviceCollection.Replace(new ServiceDescriptor(typeof(IExceptionStore), typeof(TableExceptionStore), ServiceLifetime.Singleton));
 
             return serviceCollection;
         }

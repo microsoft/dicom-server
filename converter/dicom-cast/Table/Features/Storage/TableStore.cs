@@ -11,6 +11,7 @@ using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
@@ -52,6 +53,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             {
                 return;
             }
+
+            table = _client.GetTableReference(Constants.FhirTableName);
+            entity = new FhirIntransientEntity(studyUID, seriesUID, instanceUID, changeFeedSequence, exceptionToStore);
 
             TableOperation operation = TableOperation.InsertOrMerge(entity);
 
