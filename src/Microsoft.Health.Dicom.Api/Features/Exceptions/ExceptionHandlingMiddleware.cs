@@ -123,6 +123,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 
         protected internal virtual async Task ExecuteResultAsync(HttpContext context, IActionResult result)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(result, nameof(result));
             await result.ExecuteResultAsync(new ActionContext { HttpContext = context });
         }
