@@ -290,8 +290,12 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="MissingVRCode" xml:space="preserve">
     <value>The VR code is missing.</value>
   </data>
-  <data name="UnsupportedVRCode" xml:space="preserve">
+  <data name="UnsupportedVRCodeOnTag" xml:space="preserve">
     <value>The VR code '{0}' is not supported for tag '{1}'.</value>
     <comment>{0} VR Code. {1} Dicom Tag.</comment>
+  </data>
+  <data name="UnsupportedVRCode" xml:space="preserve">
+    <value>The CR code '{0}' is not supported.</value>
+    <comment>{0} VR Code.</comment>
   </data>
 </root>

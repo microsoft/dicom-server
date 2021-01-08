@@ -467,11 +467,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; is not supported for tag &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The CR code &apos;{0}&apos; is not supported..
         /// </summary>
         internal static string UnsupportedVRCode {
             get {
                 return ResourceManager.GetString("UnsupportedVRCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; is not supported for tag &apos;{1}&apos;..
+        /// </summary>
+        internal static string UnsupportedVRCodeOnTag {
+            get {
+                return ResourceManager.GetString("UnsupportedVRCodeOnTag", resourceCulture);
             }
         }
         

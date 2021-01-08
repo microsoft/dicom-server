@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using Dicom;
@@ -18,6 +19,32 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     {
         private const string UnknownTagName = "Unknown";
 
+        // Unsupported VRCodes:
+        // LT(Long Text), OB (Other Byte), OD (Other Double), OF(Other Float), OL (Other Long), OV(other Very long), OW (other Word), ST(Short Text, SV (Signed Very long)
+        // UC (Unlimited Characters), UN (Unknown), UR (URI), UT (Unlimited Text), UV (Unsigned Very long)
+        // Note: we dont' find definition for UR, UV and SV in DICOM standard (http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
+
+        private static readonly IImmutableSet<string> SupportedVRCodes = ImmutableHashSet.Create(
+            DicomVRCode.AE,
+            DicomVRCode.AS,
+            DicomVRCode.AT,
+            DicomVRCode.CS,
+            DicomVRCode.DA,
+            DicomVRCode.DS,
+            DicomVRCode.DT,
+            DicomVRCode.FD,
+            DicomVRCode.FL,
+            DicomVRCode.IS,
+            DicomVRCode.LO,
+            DicomVRCode.PN,
+            DicomVRCode.SH,
+            DicomVRCode.SL,
+            DicomVRCode.SS,
+            DicomVRCode.TM,
+            DicomVRCode.UI,
+            DicomVRCode.UL,
+            DicomVRCode.US);
+
         public void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries)
         {
             EnsureArg.IsNotNull(customTagEntries, nameof(customTagEntries));
@@ -29,58 +56,71 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             HashSet<string> pathSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (CustomTagEntry tagEntry in customTagEntries)
             {
-                DicomTag tag = ParseTag(tagEntry.Path);
-
-                // cannot be any tag we already support
-                if (QueryLimit.AllInstancesTags.Contains(tag))
-                {
-                    throw new CustomTagEntryValidationException(
-                       string.Format(CultureInfo.InvariantCulture, DicomCoreResource.CustomTagAlreadySupported, tag.DictionaryEntry.Name));
-                }
-
-                if (tag.IsPrivate)
-                {
-                    // this is private tag, VR is required
-                    ParseVR(tagEntry.VR);
-                }
-                else
-                {
-                    // stardard tag must have name - should not be "Unknown".
-                    if (tag.DictionaryEntry.Name.Equals(UnknownTagName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // not a valid dicom tag
-                        throw new CustomTagEntryValidationException(
-                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, tag));
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(tagEntry.VR))
-                    {
-                        // when VR is specified, verify it's correct
-                        // parse VR
-                        DicomVR vr = ParseVR(tagEntry.VR);
-                        if (!tag.DictionaryEntry.ValueRepresentations.Contains(vr))
-                        {
-                            // not a valid VR
-                            throw new CustomTagEntryValidationException(
-                                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCode, vr.Code, tag));
-                        }
-                    }
-
-                    // Since we are able to infer VR for standard tag, user don't need to specify
-                }
+                ValidateCustomTagEntry(tagEntry);
 
                 // don't allow duplicated path
                 if (pathSet.Contains(tagEntry.Path))
                 {
                     throw new CustomTagEntryValidationException(
-                         string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DuplicateCustomTag, tag));
+                         string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DuplicateCustomTag, tagEntry.Path));
                 }
 
                 pathSet.Add(tagEntry.Path);
             }
         }
 
-        private DicomVR ParseVR(string vrCode)
+        private void ValidateCustomTagEntry(CustomTagEntry tagEntry)
+        {
+            DicomTag tag = ParseTag(tagEntry.Path);
+
+            // cannot be any tag we already support
+            if (QueryLimit.AllInstancesTags.Contains(tag))
+            {
+                throw new CustomTagEntryValidationException(
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.CustomTagAlreadySupported, tag.DictionaryEntry.Name));
+            }
+
+            if (tag.IsPrivate)
+            {
+                // this is private tag, VR is required
+                ParseVR(tagEntry.VR);
+                EnsureVRIsSupported(tagEntry.VR);
+            }
+            else
+            {
+                // stardard tag must have name - should not be "Unknown".
+                if (tag.DictionaryEntry.Name.Equals(UnknownTagName, StringComparison.OrdinalIgnoreCase))
+                {
+                    // not a valid dicom tag
+                    throw new CustomTagEntryValidationException(
+                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, tag));
+                }
+
+                if (string.IsNullOrWhiteSpace(tagEntry.VR))
+                {
+                    // When VR is missing for standard tag, still need to verify VRCode
+                    string vrCode = tag.DictionaryEntry.ValueRepresentations[0].Code;
+                    EnsureVRIsSupported(vrCode);
+                }
+                else
+                {
+                    // when VR is specified, verify it's correct
+                    // parse VR
+                    DicomVR vr = ParseVR(tagEntry.VR);
+
+                    EnsureVRIsSupported(vr.Code);
+
+                    if (!tag.DictionaryEntry.ValueRepresentations.Contains(vr))
+                    {
+                        // not a valid VR
+                        throw new CustomTagEntryValidationException(
+                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCodeOnTag, vr.Code, tag));
+                    }
+                }
+            }
+        }
+
+        private static DicomVR ParseVR(string vrCode)
         {
             if (string.IsNullOrWhiteSpace(vrCode))
             {
@@ -98,7 +138,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             }
         }
 
-        private DicomTag ParseTag(string path)
+        private static DicomTag ParseTag(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -113,6 +153,15 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             {
                 throw new CustomTagEntryValidationException(
                       string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, path), ex);
+            }
+        }
+
+        private static void EnsureVRIsSupported(string vrCode)
+        {
+            if (!SupportedVRCodes.Contains(vrCode))
+            {
+                throw new CustomTagEntryValidationException(
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCode, vrCode));
             }
         }
     }
