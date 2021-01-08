@@ -13,10 +13,16 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     /// </summary>
     public static class DicomTagExtensions
     {
+        /// <summary>
+        /// Get path of given Dicom Tag.
+        /// e.g:Path of Dicom tag (0008,0070) is 00080070
+        /// </summary>
+        /// <param name="dicomTag">The dicom tag</param>
+        /// <returns>The path.</returns>
         public static string GetPath(this DicomTag dicomTag)
         {
             EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
-            return dicomTag.Group.ToString("X2") + dicomTag.Element.ToString("X2");
+            return dicomTag.Group.ToString("X4") + dicomTag.Element.ToString("X4");
         }
     }
 }
