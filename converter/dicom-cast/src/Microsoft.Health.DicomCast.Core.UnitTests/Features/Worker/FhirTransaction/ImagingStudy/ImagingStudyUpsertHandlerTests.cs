@@ -41,7 +41,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             IOptions<DicomWebConfiguration> optionsConfiguration = Options.Create(_configuration);
 
             _fhirService = Substitute.For<IFhirService>();
-            _imagingStudySynchronizer = new ImagingStudySynchronizer(new ImagingStudyPropertySynchronizer(_dicomValidationConfig, _exceptionStore), new ImagingStudySeriesPropertySynchronizer(_dicomValidationConfig, _exceptionStore), new ImagingStudyInstancePropertySynchronizer(_dicomValidationConfig, _exceptionStore));
+            _imagingStudySynchronizer = new ImagingStudySynchronizer(new ImagingStudyPropertySynchronizer(Options.Create(_dicomValidationConfig), _exceptionStore), new ImagingStudySeriesPropertySynchronizer(Options.Create(_dicomValidationConfig), _exceptionStore), new ImagingStudyInstancePropertySynchronizer(Options.Create(_dicomValidationConfig), _exceptionStore));
             _imagingStudyUpsertHandler = new ImagingStudyUpsertHandler(_fhirService, _imagingStudySynchronizer, optionsConfiguration);
         }
 

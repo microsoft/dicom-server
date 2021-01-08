@@ -10,6 +10,7 @@ using Dicom;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 
@@ -27,7 +28,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public PatientSynchronizer(
             IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers,
-            DicomValidationConfiguration dicomValidationConfiguration,
+            IOptions<DicomValidationConfiguration> dicomValidationConfiguration,
             IExceptionStore exceptionStore,
             ILogger<PatientSynchronizer> logger)
         {
@@ -37,13 +38,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _patientPropertySynchronizers = patientPropertySynchronizers;
-            _dicomValidationConfiguration = dicomValidationConfiguration;
+            _dicomValidationConfiguration = dicomValidationConfiguration.Value;
             _exceptionStore = exceptionStore;
             _logger = logger;
         }
 
         /// <inheritdoc/>
-        public void SynchronizeAsync(FhirTransactionContext context, Patient patient, bool isNewPatient, CancellationToken cancellationToken)
+        public void Synchronize(FhirTransactionContext context, Patient patient, bool isNewPatient, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(patient, nameof(patient));

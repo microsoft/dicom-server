@@ -8,6 +8,7 @@ using System.Threading;
 using Dicom;
 using EnsureThat;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 
@@ -19,13 +20,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         private readonly IExceptionStore _exceptionStore;
 
         public ImagingStudyInstancePropertySynchronizer(
-            DicomValidationConfiguration dicomValidationConfiguration,
+            IOptions<DicomValidationConfiguration> dicomValidationConfiguration,
             IExceptionStore exceptionStore)
         {
             EnsureArg.IsNotNull(dicomValidationConfiguration, nameof(dicomValidationConfiguration));
             EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
 
-            _dicomValidationConfiguration = dicomValidationConfiguration;
+            _dicomValidationConfiguration = dicomValidationConfiguration.Value;
             _exceptionStore = exceptionStore;
         }
 

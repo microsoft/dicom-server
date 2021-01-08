@@ -20,6 +20,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <param name="patient">The <see cref="Patient"/> resource.</param>
         /// <param name="isNewPatient">Flag to determine whether or not the patient being synchronized is new.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        void SynchronizeAsync(FhirTransactionContext context, Patient patient, bool isNewPatient, CancellationToken cancellationToken = default);
+        void Synchronize(FhirTransactionContext context, Patient patient, bool isNewPatient, CancellationToken cancellationToken = default);
     }
 }

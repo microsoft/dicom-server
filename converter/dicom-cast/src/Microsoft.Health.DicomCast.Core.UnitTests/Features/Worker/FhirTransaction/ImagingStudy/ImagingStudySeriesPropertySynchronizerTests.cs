@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
@@ -30,7 +31,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
         public ImagingStudySeriesPropertySynchronizerTests()
         {
-            _imagingStudySeriesPropertySynchronizer = new ImagingStudySeriesPropertySynchronizer(_dicomValidationConfig, _exceptionStore);
+            _imagingStudySeriesPropertySynchronizer = new ImagingStudySeriesPropertySynchronizer(Options.Create(_dicomValidationConfig), _exceptionStore);
         }
 
         [Fact]

@@ -38,31 +38,29 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         {
             CloudTable table;
             TableEntity entity;
+            string tableName;
 
-            if (errorType == ErrorType.FhirError)
+            switch (errorType)
             {
-                table = _client.GetTableReference(Constants.FhirTableName);
-                entity = new FhirIntransientEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore);
-            }
-            else if (errorType == ErrorType.DicomError)
-            {
-                table = _client.GetTableReference(Constants.DicomValidationTableName);
-                entity = new FhirIntransientEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore);
-            }
-            else
-            {
-                return;
+                case ErrorType.FhirError:
+                    tableName = Constants.FhirTableName;
+                    break;
+                case ErrorType.DicomError:
+                    tableName = Constants.DicomValidationTableName;
+                    break;
+                default:
+                    return;
             }
 
-            table = _client.GetTableReference(Constants.FhirTableName);
-            entity = new FhirIntransientEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore);
+            table = _client.GetTableReference(tableName);
+            entity = new IntransientEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore);
 
             TableOperation operation = TableOperation.InsertOrMerge(entity);
 
             try
             {
                 TableResult result = await table.ExecuteAsync(operation, cancellationToken);
-                _logger.LogInformation(exceptionToStore, "Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Stored to table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid);
+                _logger.LogInformation(exceptionToStore, "Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, tableName);
             }
             catch (Exception ex)
             {
