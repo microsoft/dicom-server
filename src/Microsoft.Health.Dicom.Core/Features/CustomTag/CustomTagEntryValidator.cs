@@ -19,12 +19,13 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     {
         private const string UnknownTagName = "Unknown";
 
-        // Unsupported VRCodes:
-        // LT(Long Text), OB (Other Byte), OD (Other Double), OF(Other Float), OL (Other Long), OV(other Very long), OW (other Word), ST(Short Text, SV (Signed Very long)
-        // UC (Unlimited Characters), UN (Unknown), UR (URI), UT (Unlimited Text), UV (Unsigned Very long)
-        // Note: we dont' find definition for UR, UV and SV in DICOM standard (http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
+        /* Unsupported VRCodes:
+         LT(Long Text), OB (Other Byte), OD (Other Double), OF(Other Float), OL (Other Long), OV(other Very long), OW (other Word), ST(Short Text, SV (Signed Very long)
+         UC (Unlimited Characters), UN (Unknown), UR (URI), UT (Unlimited Text), UV (Unsigned Very long)
+         Note: we dont' find definition for UR, UV and SV in DICOM standard (http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
+        */
 
-        private static readonly IImmutableSet<string> SupportedVRCodes = ImmutableHashSet.Create(
+        public static readonly IImmutableSet<string> SupportedVRCodes = ImmutableHashSet.Create(
             DicomVRCode.AE,
             DicomVRCode.AS,
             DicomVRCode.AT,
@@ -83,7 +84,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             if (tag.IsPrivate)
             {
                 // this is private tag, VR is required
-                ParseVR(tagEntry.VR);
+                ParseVRCode(tagEntry.VR);
                 EnsureVRIsSupported(tagEntry.VR);
             }
             else
@@ -106,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 {
                     // when VR is specified, verify it's correct
                     // parse VR
-                    DicomVR vr = ParseVR(tagEntry.VR);
+                    DicomVR vr = ParseVRCode(tagEntry.VR);
 
                     EnsureVRIsSupported(vr.Code);
 
@@ -120,7 +121,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             }
         }
 
-        private static DicomVR ParseVR(string vrCode)
+        private static DicomVR ParseVRCode(string vrCode)
         {
             if (string.IsNullOrWhiteSpace(vrCode))
             {
@@ -129,6 +130,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
             try
             {
+                // DicomVR.Parse only accept upper case  VR code.
                 return DicomVR.Parse(vrCode.ToUpper(CultureInfo.InvariantCulture));
             }
             catch (Exception ex)

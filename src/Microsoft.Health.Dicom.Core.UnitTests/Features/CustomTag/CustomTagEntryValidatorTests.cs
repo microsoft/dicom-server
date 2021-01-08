@@ -112,5 +112,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             CustomTagEntry validEntry = DicomTag.DeviceSerialNumber.BuildCustomTagEntry();
             Assert.Throws<CustomTagEntryValidationException>(() => _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { validEntry, invalidEntry }));
         }
+
+        [Fact]
+        public void GivenDuplicatedTag_WhenValidating_ThenShouldThrowException()
+        {
+            CustomTagEntry entry = DicomTag.PatientName.BuildCustomTagEntry();
+            Assert.Throws<CustomTagEntryValidationException>(() => _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry, entry }));
+        }
     }
 }
