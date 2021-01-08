@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 }
                 else
                 {
-                    // stardard tag must have name
+                    // stardard tag must have name - should not be "Unknown".
                     if (tag.DictionaryEntry.Name.Equals(UnknownTagName, StringComparison.OrdinalIgnoreCase))
                     {
                         // not a valid dicom tag
@@ -65,6 +65,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                                 string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCode, vr.Code, tag));
                         }
                     }
+
+                    // Since we are able to infer VR for standard tag, user don't need to specify
                 }
 
                 // don't allow duplicated path
