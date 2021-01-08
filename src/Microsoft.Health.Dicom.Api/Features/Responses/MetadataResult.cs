@@ -17,9 +17,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
         private readonly RetrieveMetadataResponse _response;
 
         public MetadataResult(RetrieveMetadataResponse response)
-            : base(response.ResponseMetadata)
+            : base(EnsureArg.IsNotNull(response, nameof(response)).ResponseMetadata)
         {
-            EnsureArg.IsNotNull(response, nameof(response));
             _response = response;
         }
 

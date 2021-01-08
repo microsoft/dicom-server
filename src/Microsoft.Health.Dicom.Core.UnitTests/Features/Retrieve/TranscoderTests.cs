@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
+using EnsureThat;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -72,6 +73,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             DicomTransferSyntax tsTo,
             PhotometricInterpretation photometricInterpretation)
         {
+            EnsureArg.IsNotNull(photometricInterpretation, nameof(photometricInterpretation));
+            EnsureArg.IsNotNull(tsFrom, nameof(tsFrom));
+            EnsureArg.IsNotNull(tsTo, nameof(tsTo));
             (DicomFile dicomFile, Stream stream) = await StreamAndStoredFileFromDataset(photometricInterpretation, false, tsFrom);
             dicomFile.Dataset.ToInstanceIdentifier();
 
@@ -87,6 +91,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             DicomTransferSyntax tsTo,
             PhotometricInterpretation photometricInterpretation)
         {
+            EnsureArg.IsNotNull(photometricInterpretation, nameof(photometricInterpretation));
+            EnsureArg.IsNotNull(tsFrom, nameof(tsFrom));
+            EnsureArg.IsNotNull(tsTo, nameof(tsTo));
             DicomFile dicomFile = StreamAndStoredFileFromDataset(photometricInterpretation, false, tsFrom).Result.dicomFile;
             dicomFile.Dataset.ToInstanceIdentifier();
 

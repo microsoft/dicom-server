@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IO;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Extensions
 {
@@ -13,6 +14,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
         {
             using (MemoryStream ms = new MemoryStream())
             {
+                EnsureArg.IsNotNull(stream, nameof(stream));
                 stream.CopyTo(ms);
                 return ms.ToArray();
             }

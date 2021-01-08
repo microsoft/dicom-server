@@ -5,6 +5,7 @@
 
 using System.Linq;
 using Dicom;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Xunit;
 
@@ -14,6 +15,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
     {
         public static void ValidateReferencedSopSequence(DicomDataset actualDicomDataset, params (string SopInstanceUid, string RetrieveUri, string SopClassUid)[] expectedValues)
         {
+            EnsureArg.IsNotNull(actualDicomDataset, nameof(actualDicomDataset));
+            EnsureArg.IsNotNull(expectedValues, nameof(expectedValues));
             Assert.True(actualDicomDataset.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence sequence));
             Assert.Equal(expectedValues.Length, sequence.Count());
 
@@ -29,6 +32,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
 
         public static void ValidateFailedSopSequence(DicomDataset actualDicomDataset, params (string SopInstanceUid, string SopClassUid, ushort FailureReason)[] expectedValues)
         {
+            EnsureArg.IsNotNull(actualDicomDataset, nameof(actualDicomDataset));
+            EnsureArg.IsNotNull(expectedValues, nameof(expectedValues));
             Assert.True(actualDicomDataset.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence sequence));
             Assert.Equal(expectedValues.Length, sequence.Count());
 

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Primitives;
@@ -21,6 +22,7 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
 
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
+            EnsureArg.IsNotNull(bindingContext, nameof(bindingContext));
             IList<MediaTypeHeaderValue> acceptHeaders = bindingContext.HttpContext.Request.GetTypedHeaders().Accept;
 
             // Validate the accept headers has one of the specified accepted media types.

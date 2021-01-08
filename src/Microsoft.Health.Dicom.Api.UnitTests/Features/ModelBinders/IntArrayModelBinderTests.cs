@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
@@ -20,6 +21,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders
         [InlineData("1, -234, 34", new int[] { 1, -234, 34 })]
         public async Task GivenStringContent_WhenBindingIntArrayData_ModelIsSetAndExpectedResultIsParsed(string contextValue, int[] expectedResult)
         {
+            EnsureArg.IsNotNull(expectedResult, nameof(expectedResult));
             ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
             bindingContext.ValueProvider.GetValue(bindingContext.ModelName).Returns(new ValueProviderResult(new StringValues(contextValue)));
 

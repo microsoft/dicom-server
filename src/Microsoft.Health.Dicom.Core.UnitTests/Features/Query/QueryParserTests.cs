@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
+using EnsureThat;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -19,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 {
     public class QueryParserTests
     {
-        private readonly QueryParser _queryParser = null;
+        private readonly QueryParser _queryParser;
 
         public QueryParserTests()
         {
@@ -33,6 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("includefield", "StudyDate, StudyTime")]
         public void GivenIncludeField_WithValidAttributeId_CheckIncludeFields(string key, string value)
         {
+            EnsureArg.IsNotNull(value, nameof(value));
             VerifyIncludeFieldsForValidAttributeIds(key, value);
         }
 
@@ -122,6 +124,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("PatientName=Joe&fuzzyMatching=true&Modality=CT", QueryResource.AllSeries)]
         public void GivenFilterCondition_WithValidQueryString_ParseSucceeds(string queryString, QueryResource resourceType)
         {
+            EnsureArg.IsNotNull(queryString, nameof(queryString));
             _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType));
         }
 
@@ -226,6 +229,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("StudyDate", "19510910-20200220")]
         public void GivenStudyDate_WithValidRangeMatch_CheckCondition(string key, string value)
         {
+            EnsureArg.IsNotNull(value, nameof(value));
             QueryExpression queryExpression = _queryParser
                 .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies));
             var cond = queryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
@@ -263,6 +267,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("PatientName=CoronaPatient&StudyDate=20200403&fuzzyMatching=true", QueryResource.AllStudies)]
         public void GivenPatientNameFilterCondition_WithFuzzyMatchingTrue_FuzzyMatchConditionAdded(string queryString, QueryResource resourceType)
         {
+            EnsureArg.IsNotNull(queryString, nameof(queryString));
             QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType));
 
             Assert.Equal(2, queryExpression.FilterConditions.Count);
@@ -284,7 +289,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies));
             Assert.False(queryExpression.HasFilters);
             Assert.False(queryExpression.IncludeFields.All);
-            Assert.True(queryExpression.IncludeFields.DicomTags.Count == value.Split(',').Count());
+            Assert.True(queryExpression.IncludeFields.DicomTags.Count == value.Split(',').Length);
         }
 
         private IEnumerable<KeyValuePair<string, StringValues>> GetQueryCollection(string key, string value)

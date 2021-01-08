@@ -10,6 +10,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
+using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -26,6 +27,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public DicomRetrieveMetadataETagTests(HttpIntegrationTestFixture<Startup> fixture)
         {
+            EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.Client;
         }
 
@@ -323,7 +325,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             if (response.ResponseHeaders.TryGetValues(HeaderNames.ETag, out IEnumerable<string> eTagValues))
             {
-                if (eTagValues.Count() > 0)
+                if (eTagValues.Any())
                 {
                     eTag = eTagValues.FirstOrDefault();
                 }

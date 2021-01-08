@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Dicom;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -28,6 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         // only works for single value dicom element
         public void Validate(DicomTag dicomTag, string value)
         {
+            EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
             DicomVR dicomVR = dicomTag.DictionaryEntry.ValueRepresentations.FirstOrDefault();
 
             if (dicomVR == null)

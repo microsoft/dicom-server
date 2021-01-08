@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 
             try
             {
-                IReadOnlyList<IDicomInstanceEntry> dicomInstanceEntries = await _dicomInstanceEntryReader.ReadAsync(contentType, stream);
+                IReadOnlyList<IDicomInstanceEntry> dicomInstanceEntries = await _dicomInstanceEntryReader.ReadAsync(contentType, stream, cancellationToken);
 
                 LogSuccessfullyReadDelegate(_logger, dicomInstanceEntries?.Count ?? 0, null);
 
