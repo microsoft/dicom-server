@@ -34,17 +34,17 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc/>
-        public async Task StoreExceptionToTable(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, TableErrorType errorType, CancellationToken cancellationToken)
+        public async Task StoreExceptionToTable(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken)
         {
             CloudTable table;
             TableEntity entity;
 
-            if (errorType == TableErrorType.FhirError)
+            if (errorType == ErrorType.FhirError)
             {
                 table = _client.GetTableReference(Constants.FhirTableName);
                 entity = new FhirIntransientEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore);
             }
-            else if (errorType == TableErrorType.DicomError)
+            else if (errorType == ErrorType.DicomError)
             {
                 table = _client.GetTableReference(Constants.DicomValidationTableName);
                 entity = new FhirIntransientEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore);
@@ -55,7 +55,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             }
 
             table = _client.GetTableReference(Constants.FhirTableName);
-            entity = new FhirIntransientEntity(studyUID, seriesUID, instanceUID, changeFeedSequence, exceptionToStore);
+            entity = new FhirIntransientEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore);
 
             TableOperation operation = TableOperation.InsertOrMerge(entity);
 

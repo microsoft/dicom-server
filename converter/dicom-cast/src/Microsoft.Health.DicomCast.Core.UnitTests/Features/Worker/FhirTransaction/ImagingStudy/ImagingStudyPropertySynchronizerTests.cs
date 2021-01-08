@@ -6,7 +6,10 @@
 using System;
 using System.Collections.Generic;
 using Hl7.Fhir.Model;
+using Microsoft.Health.DicomCast.Core.Configurations;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
@@ -20,9 +23,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private const string NewAccessionNumber = "2";
         private readonly IImagingStudyPropertySynchronizer _imagingStudyPropertySynchronizer;
 
+        private readonly DicomValidationConfiguration _dicomValidationConfig = new DicomValidationConfiguration();
+        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+
         public ImagingStudyPropertySynchronizerTests()
         {
-            _imagingStudyPropertySynchronizer = new ImagingStudyPropertySynchronizer();
+            _imagingStudyPropertySynchronizer = new ImagingStudyPropertySynchronizer(_dicomValidationConfig, _exceptionStore);
         }
 
         [Fact]

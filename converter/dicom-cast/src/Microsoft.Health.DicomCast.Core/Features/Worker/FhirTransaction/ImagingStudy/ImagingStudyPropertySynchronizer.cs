@@ -75,7 +75,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                         instanceUID,
                         context.ChangeFeedEntry.Sequence,
                         ex,
-                        TableErrorType.DicomError,
+                        ErrorType.DicomError,
                         cancellationToken);
                 }
                 else

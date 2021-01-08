@@ -13,6 +13,7 @@ using Hl7.Fhir.Model;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Configurations;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using NSubstitute;
@@ -29,6 +30,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private readonly IImagingStudySynchronizer _imagingStudySynchronizer;
         private readonly ImagingStudyUpsertHandler _imagingStudyUpsertHandler;
         private readonly DicomWebConfiguration _configuration;
+        private readonly DicomValidationConfiguration _dicomValidationConfig = new DicomValidationConfiguration();
+        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
 
         private FhirTransactionContext _fhirTransactionContext;
 
@@ -38,7 +41,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             IOptions<DicomWebConfiguration> optionsConfiguration = Options.Create(_configuration);
 
             _fhirService = Substitute.For<IFhirService>();
-            _imagingStudySynchronizer = new ImagingStudySynchronizer(new ImagingStudyPropertySynchronizer(), new ImagingStudySeriesPropertySynchronizer(), new ImagingStudyInstancePropertySynchronizer());
+            _imagingStudySynchronizer = new ImagingStudySynchronizer(new ImagingStudyPropertySynchronizer(_dicomValidationConfig, _exceptionStore), new ImagingStudySeriesPropertySynchronizer(_dicomValidationConfig, _exceptionStore), new ImagingStudyInstancePropertySynchronizer(_dicomValidationConfig, _exceptionStore));
             _imagingStudyUpsertHandler = new ImagingStudyUpsertHandler(_fhirService, _imagingStudySynchronizer, optionsConfiguration);
         }
 

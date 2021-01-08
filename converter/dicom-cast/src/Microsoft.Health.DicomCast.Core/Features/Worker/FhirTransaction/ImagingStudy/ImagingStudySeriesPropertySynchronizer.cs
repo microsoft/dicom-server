@@ -8,7 +8,6 @@ using System.Threading;
 using Dicom;
 using EnsureThat;
 using Hl7.Fhir.Model;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
@@ -19,20 +18,16 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         private readonly DicomValidationConfiguration _dicomValidationConfiguration;
         private readonly IExceptionStore _exceptionStore;
-        private readonly ILogger<ImagingStudySeriesPropertySynchronizer> _logger;
 
         public ImagingStudySeriesPropertySynchronizer(
             DicomValidationConfiguration dicomValidationConfiguration,
-            IExceptionStore exceptionStore,
-            ILogger<ImagingStudySeriesPropertySynchronizer> logger)
+            IExceptionStore exceptionStore)
         {
             EnsureArg.IsNotNull(dicomValidationConfiguration, nameof(dicomValidationConfiguration));
             EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
-            EnsureArg.IsNotNull(logger, nameof(logger));
 
             _dicomValidationConfiguration = dicomValidationConfiguration;
             _exceptionStore = exceptionStore;
-            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -76,7 +71,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                         instanceUID,
                         context.ChangeFeedEntry.Sequence,
                         ex,
-                        TableErrorType.DicomError,
+                        ErrorType.DicomError,
                         cancellationToken);
                 }
                 else

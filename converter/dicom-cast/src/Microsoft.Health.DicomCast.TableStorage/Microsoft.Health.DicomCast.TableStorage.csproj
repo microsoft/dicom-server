@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Microsoft.Health.DicomCast.Core\Microsoft.Health.DicomCast.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.DicomCast.Core\Microsoft.Health.DicomCast.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -31,8 +31,6 @@ namespace Microsoft.Health.DicomCast.TableStorage
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            if (configuration.GetSection("TableStore").GetSection("Enabled").Get<bool>() == true)
-            {
             serviceCollection
                     .AddTableDataStore(configuration)
                     .AddHealthChecks().AddCheck<TableHealthCheck>(name: nameof(TableHealthCheck));
