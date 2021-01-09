@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     {
         private readonly Stream _stream;
         private DicomFile _dicomFile;
-        private int _dicomFileLoadedState = 0;
+        private int _dicomFileLoadedState;
         private TaskCompletionSource<bool> _dicomFileLoadingCompletionSource = new TaskCompletionSource<bool>();
 
         /// <summary>

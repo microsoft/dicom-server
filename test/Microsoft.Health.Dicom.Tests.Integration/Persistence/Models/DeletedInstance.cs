@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 using Microsoft.Data.SqlClient;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
@@ -30,6 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public DeletedInstance(SqlDataReader sqlDataReader)
         {
+            EnsureArg.IsNotNull(sqlDataReader, nameof(sqlDataReader));
             StudyInstanceUid = sqlDataReader.GetString(0);
             SeriesInstanceUid = sqlDataReader.GetString(1);
             SopInstanceUid = sqlDataReader.GetString(2);

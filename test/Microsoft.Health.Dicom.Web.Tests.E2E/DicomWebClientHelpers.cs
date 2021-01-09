@@ -6,6 +6,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Net.Http.Headers;
 using Xunit;
@@ -16,6 +17,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
     {
         public static async Task ValidateResponseStatusCodeAsync(this IDicomWebClient dicomWebClient, string requestUri, string acceptHeader, HttpStatusCode expectedStatusCode)
         {
+            EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
             using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
 

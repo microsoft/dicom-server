@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 using Microsoft.Data.SqlClient;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
@@ -32,6 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public StudyMetadata(SqlDataReader sqlDataReader)
         {
+            EnsureArg.IsNotNull(sqlDataReader, nameof(sqlDataReader));
             StudyKey = sqlDataReader.GetInt64(0);
             StudyInstanceUid = sqlDataReader.GetString(1);
             PatientID = sqlDataReader.GetString(2);

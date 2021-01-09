@@ -276,7 +276,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .AppendLine();
         }
 
-        private string GetTableAlias(DicomTagSqlEntry sqlEntry)
+        private static string GetTableAlias(DicomTagSqlEntry sqlEntry)
         {
             switch (sqlEntry.SqlTableType)
             {

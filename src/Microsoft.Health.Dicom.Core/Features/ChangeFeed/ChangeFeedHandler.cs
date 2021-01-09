@@ -25,6 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 
         public async Task<ChangeFeedResponse> Handle(ChangeFeedRequest request, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(request, nameof(request));
             IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries = await _changeFeedService.GetChangeFeedAsync(request.Offset, request.Limit, request.IncludeMetadata, cancellationToken);
 
             return new ChangeFeedResponse(changeFeedEntries);

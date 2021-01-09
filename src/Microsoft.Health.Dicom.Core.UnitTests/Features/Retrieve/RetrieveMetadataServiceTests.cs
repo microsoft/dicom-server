@@ -130,7 +130,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string ifNoneMatch = null;
             RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken);
 
-            Assert.Equal(response.ResponseMetadata.Count(), versionedInstanceIdentifiers.Count());
+            Assert.Equal(response.ResponseMetadata.Count(), versionedInstanceIdentifiers.Count);
         }
 
         [Fact]
@@ -157,7 +157,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string ifNoneMatch = null;
             RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken);
 
-            Assert.Equal(response.ResponseMetadata.Count(), versionedInstanceIdentifiers.Count());
+            Assert.Equal(response.ResponseMetadata.Count(), versionedInstanceIdentifiers.Count);
         }
 
         [Fact]
