@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities;
@@ -42,10 +41,10 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             switch (errorType)
             {
-                case ErrorType.FhirError:
-                    tableName = Constants.FhirTableName;
+                case ErrorType.IntransientError:
+                    tableName = Constants.IntransientExceptionTableName;
                     break;
-                case ErrorType.DicomError:
+                case ErrorType.DicomValidationError:
                     tableName = Constants.DicomValidationTableName;
                     break;
                 default:
@@ -59,13 +58,13 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             try
             {
-                TableResult result = await table.ExecuteAsync(operation, cancellationToken);
-                _logger.LogInformation(exceptionToStore, "Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, tableName);
+                await table.ExecuteAsync(operation, cancellationToken);
+                _logger.LogInformation("Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, tableName);
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogInformation(exceptionToStore, "Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Failed to store to table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid);
-                throw new DataStoreException(ex);
+                _logger.LogInformation("Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Failed to store to table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid);
+                throw;
             }
         }
     }
