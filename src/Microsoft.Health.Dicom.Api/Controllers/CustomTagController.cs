@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
@@ -37,9 +38,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
+        [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.Accepted)]
         [HttpPost]
         [Route(KnownRoutes.CustomTagRoute)]
-        [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.Accepted)]
         [AuditEventType(AuditEventSubType.CustomTag)]
         public async Task<IActionResult> PostAsync([FromBody] IEnumerable<CustomTagEntry> customTags)
         {
@@ -49,6 +50,36 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             return StatusCode(
                (int)HttpStatusCode.Accepted, response);
+        }
+
+        /// <summary>
+        /// Handles requests to get individual/all custom tags.
+        /// </summary>
+        /// <param name="tagPath">Path for requested custom tag. Value is null when retrieving all custom tags.</param>
+        /// <returns>
+        /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
+        /// custom tag or if no custom tags are stored. Returns OK with a JSON body of requested tag(s) in other cases.
+        /// </returns>
+        [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [HttpGet]
+        [Route(KnownRoutes.CustomTagRoute)]
+        [AuditEventType(AuditEventSubType.CustomTag)]
+        public async Task<IActionResult> GetAsync(string tagPath)
+        {
+            if (tagPath == null)
+            {
+                _logger.LogInformation("DICOM Web Get Custom Tag request received for all custom tags");
+            }
+            else
+            {
+                _logger.LogInformation("DICOM Web Get Custom Tag request received for custom tag: {0}", tagPath);
+            }
+
+            GetCustomTagResponse response = await _mediator.GetCustomTagsAsync(tagPath, HttpContext.RequestAborted);
+
+            return StatusCode((int)HttpStatusCode.OK, null);
         }
     }
 }
