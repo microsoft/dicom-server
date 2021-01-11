@@ -101,7 +101,11 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 {
                     // When VR is missing for standard tag, still need to verify VRCode
                     string vrCode = tag.DictionaryEntry.ValueRepresentations[0].Code;
+
                     EnsureVRIsSupported(vrCode);
+
+                    // fill VR if missing
+                    tagEntry.VR = vrCode;
                 }
                 else
                 {
