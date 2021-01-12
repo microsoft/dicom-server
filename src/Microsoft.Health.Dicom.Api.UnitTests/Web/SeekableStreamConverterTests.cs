@@ -71,8 +71,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             Stream nonseekableStream = Substitute.For<Stream>();
 
             nonseekableStream.CanSeek.Returns(false);
-            nonseekableStream.DrainAsync(DefaultCancellationToken)
-                .Throws(_ => throw new TException());
+            nonseekableStream.ReadAsync(Arg.Any<Memory<byte>>(), Arg.Any<CancellationToken>()).ThrowsForAnyArgs<TException>();
 
             return nonseekableStream;
         }
