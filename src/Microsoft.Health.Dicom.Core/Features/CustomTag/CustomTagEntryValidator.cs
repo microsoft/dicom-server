@@ -70,6 +70,10 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             }
         }
 
+        /// <summary>
+        /// Validate custom tag entry.
+        /// </summary>
+        /// <param name="tagEntry">the tag entry.</param>
         private void ValidateCustomTagEntry(CustomTagEntry tagEntry)
         {
             DicomTag tag = ParseTag(tagEntry.Path);
