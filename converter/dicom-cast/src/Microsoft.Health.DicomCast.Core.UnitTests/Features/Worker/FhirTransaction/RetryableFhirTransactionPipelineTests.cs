@@ -28,9 +28,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
         public RetryableFhirTransactionPipelineTests()
         {
             _retryableFhirTransactionPipeline = new RetryableFhirTransactionPipeline(
-                _fhirTransactionPipeline,
-                DefaultRetryCount,
-                _ => TimeSpan.FromMilliseconds(50));
+                _fhirTransactionPipeline);
         }
 
         [Fact]

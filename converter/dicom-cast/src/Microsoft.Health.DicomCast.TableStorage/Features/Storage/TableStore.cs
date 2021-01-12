@@ -47,6 +47,12 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
                 case ErrorType.DicomValidationError:
                     tableName = Constants.DicomValidationTableName;
                     break;
+                case ErrorType.TransientFailure:
+                    tableName = Constants.TransientFailureTableName;
+                    break;
+                case ErrorType.TransientRetry:
+                    tableName = Constants.TransientRetryTableName;
+                    break;
                 default:
                     return;
             }

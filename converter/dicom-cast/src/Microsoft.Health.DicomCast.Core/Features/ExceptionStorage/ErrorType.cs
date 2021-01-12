@@ -11,9 +11,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
     public enum ErrorType
     {
         /// <summary>
-        /// A transient error
+        /// A transient error that has reached the maximum number of retries
         /// </summary>
-        Transient,
+        TransientFailure,
+
+        /// <summary>
+        /// A transient error that will still be retried
+        /// </summary>
+        TransientRetry,
 
         /// <summary>
         /// An intransient error that occurs which is not resolvable and thus fail to store to fhir

@@ -9,6 +9,8 @@ using System.Threading;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Exceptions;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Task = System.Threading.Tasks.Task;
 
@@ -21,6 +23,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         private readonly IEnumerable<IFhirTransactionPipelineStep> _fhirTransactionPipelines;
         private readonly IFhirTransactionExecutor _fhirTransactionExecutor;
+
 
         private readonly IReadOnlyList<FhirTransactionRequestResponsePropertyAccessor> _requestResponsePropertyAccessors;
 
@@ -82,21 +85,29 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 return;
             }
 
-            // Execute the transaction.
-            Bundle responseBundle = await _fhirTransactionExecutor.ExecuteTransactionAsync(bundle, cancellationToken);
-
-            // Process the response.
-            for (int i = 0; i < usedPropertyAccessors.Count; i++)
+            try
             {
-                FhirTransactionResponseEntry responseEntry = CreateResponseEntry(responseBundle.Entry[i]);
+                // Execute the transaction.
+                Bundle responseBundle = await _fhirTransactionExecutor.ExecuteTransactionAsync(bundle, cancellationToken);
 
-                usedPropertyAccessors[i].ResponseEntrySetter(context.Response, responseEntry);
+                // Process the response.
+                for (int i = 0; i < usedPropertyAccessors.Count; i++)
+                {
+                    FhirTransactionResponseEntry responseEntry = CreateResponseEntry(responseBundle.Entry[i]);
+
+                    usedPropertyAccessors[i].ResponseEntrySetter(context.Response, responseEntry);
+                }
+
+                // Execute any additional checks of the response.
+                foreach (IFhirTransactionPipelineStep pipeline in _fhirTransactionPipelines)
+                {
+                    pipeline.ProcessResponse(context);
+                }
             }
-
-            // Execute any additional checks of the response.
-            foreach (IFhirTransactionPipelineStep pipeline in _fhirTransactionPipelines)
+            catch (RetryableException ex)
             {
-                pipeline.ProcessResponse(context);
+                ex.ChangeFeedEntry = changeFeedEntry;
+                throw;
             }
 
             static Bundle.EntryComponent CreateRequestBundleEntryComponent(FhirTransactionRequestEntry requestEntry)

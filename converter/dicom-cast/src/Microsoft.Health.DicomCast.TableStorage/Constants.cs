@@ -13,7 +13,11 @@ namespace Microsoft.Health.DicomCast.TableStorage
 
         public const string DicomValidationTableName = "DicomValidationExceptionTable";
 
+        public const string TransientFailureTableName = "TransientFailureExceptionTable";
+
+        public const string TransientRetryTableName = "TransientRetryExceptionTable";
+
         // List of all the tables that need to be initialized
-        public static readonly IEnumerable<string> AllTables = new List<string>() { IntransientExceptionTableName, DicomValidationTableName };
+        public static readonly IEnumerable<string> AllTables = new List<string>() { IntransientExceptionTableName, DicomValidationTableName, TransientFailureTableName, TransientRetryTableName };
     }
 }
