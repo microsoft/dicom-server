@@ -88,6 +88,7 @@
                 "fhirVersion":{"value": "R4"},
                 "enableExport":{"value": false}, 
                 "enableConvertData":{"value": false},   
+                "enableReindex":{"value": false},   
                 "sqlSchemaAutomaticUpdatesEnabled":{"value": true}    
                 }
             }
