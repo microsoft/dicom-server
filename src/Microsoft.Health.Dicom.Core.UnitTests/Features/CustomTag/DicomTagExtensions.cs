@@ -11,9 +11,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
 {
     public static class DicomTagExtensions
     {
-        public static CustomTagEntry BuildCustomTagEntry(this DicomTag tag, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Reindexing)
+        public static CustomTagEntry BuildCustomTagEntry(this DicomTag tag, CustomTagLevel level = CustomTagLevel.Series)
         {
-            return new CustomTagEntry(key: 0, path: tag.GetPath(), vr: tag.DictionaryEntry.ValueRepresentations[0].Code, level: level, status: status);
+            return new CustomTagEntry(path: tag.GetPath(), vr: tag.DictionaryEntry.ValueRepresentations[0].Code, level: level);
         }
     }
 }

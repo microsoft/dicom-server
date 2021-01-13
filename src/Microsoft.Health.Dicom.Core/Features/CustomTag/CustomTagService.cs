@@ -47,22 +47,22 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             // Validate input
             _customTagEntryValidator.ValidateCustomTags(customTags);
 
-            HashSet<long> addedTagKeys = new HashSet<long>();
+            Dictionary<long, CustomTagStoreEntry> addedTags = new Dictionary<long, CustomTagStoreEntry>();
             foreach (var tag in customTags)
             {
                 try
                 {
-                    long key = await _customTagStore.AddCustomTagAsync(tag.Path, tag.VR, tag.Level, CustomTagStatus.Reindexing);
-                    addedTagKeys.Add(key);
-                    tag.Key = key;
-                    tag.Status = CustomTagStatus.Reindexing;
+                    CustomTagStatus initStatus = CustomTagStatus.Reindexing;
+                    long key = await _customTagStore.AddCustomTagAsync(tag.Path, tag.VR, tag.Level, initStatus);
+                    CustomTagStoreEntry storeEntry = new CustomTagStoreEntry(key, tag.Path, tag.VR, tag.Level, initStatus);
+                    addedTags.Add(key, storeEntry);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogCritical(ex, "Failed to add custom tag {tag}.", tag);
 
                     // clean up
-                    foreach (var tagkey in addedTagKeys)
+                    foreach (var tagkey in addedTags.Keys)
                     {
                         await _customTagStore.DeleteCustomTagAsync(tagkey);
                     }
@@ -79,19 +79,18 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             {
                 // Reindex from latest one to earliest
                 // Current solution won't be able to handle when reindex fail in the middle, when moving to job framework, should solve it.
-                await _reindexJob.ReindexAsync(customTags, lastWatermark.Value);
+                await _reindexJob.ReindexAsync(addedTags.Values, lastWatermark.Value);
             }
 
             // Update tag status
-            foreach (var tag in customTags)
+            foreach (var tagkey in addedTags.Keys)
             {
                 // Current solution won't be able to handle when update custom tag fail in the middle, when moving to job framework, should solve it.
-                await _customTagStore.UpdateCustomTagStatusAsync(tag.Key, CustomTagStatus.Added);
-                tag.Status = CustomTagStatus.Added;
+                await _customTagStore.UpdateCustomTagStatusAsync(tagkey, CustomTagStatus.Added);
             }
 
             // Current solution is synchronouse, no job uri is generated, so always return emtpy.
-            return new AddCustomTagResponse(customTags, job: string.Empty);
+            return new AddCustomTagResponse(job: string.Empty);
         }
     }
 }

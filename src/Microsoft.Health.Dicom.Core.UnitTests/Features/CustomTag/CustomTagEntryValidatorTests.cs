@@ -6,6 +6,7 @@
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag;
 using Xunit;
@@ -18,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
         public CustomTagEntryValidatorTests()
         {
-            _customTagEntryValidator = new CustomTagEntryValidator();
+            _customTagEntryValidator = new CustomTagEntryValidator(new DicomTagParser());
         }
 
         [Fact]
@@ -34,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Theory]
         public void GivenInvalidTag_WhenValidating_ThenShouldThrowException(string path)
         {
-            CustomTagEntry entry = new CustomTagEntry(0, path, DicomVRCode.AE, CustomTagLevel.Instance, CustomTagStatus.Reindexing);
+            CustomTagEntry entry = new CustomTagEntry(path, DicomVRCode.AE, CustomTagLevel.Instance);
             Assert.Throws<CustomTagEntryValidationException>(() => { _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry }); });
         }
 
@@ -43,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Theory]
         public void GivenValidTag_WhenValidating_ThenShouldSucceed(string path)
         {
-            CustomTagEntry entry = new CustomTagEntry(0, path, DicomVRCode.DS, CustomTagLevel.Instance, CustomTagStatus.Reindexing);
+            CustomTagEntry entry = new CustomTagEntry(path, DicomVRCode.DS, CustomTagLevel.Instance);
             _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry });
         }
 
@@ -52,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Theory]
         public void GivenStandardTagWithoutVR_WhenValidating_ThenShouldSucceed(string vr)
         {
-            CustomTagEntry entry = new CustomTagEntry(0, DicomTag.DeviceSerialNumber.GetPath(), vr, CustomTagLevel.Instance, CustomTagStatus.Reindexing);
+            CustomTagEntry entry = new CustomTagEntry(DicomTag.DeviceSerialNumber.GetPath(), vr, CustomTagLevel.Instance);
             _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry });
         }
 
@@ -61,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Theory]
         public void GivenInvalidVR_WhenValidating_ThenShouldThrowException(string vr)
         {
-            CustomTagEntry entry = new CustomTagEntry(0, DicomTag.DeviceSerialNumber.GetPath(), vr, CustomTagLevel.Instance, CustomTagStatus.Reindexing);
+            CustomTagEntry entry = new CustomTagEntry(DicomTag.DeviceSerialNumber.GetPath(), vr, CustomTagLevel.Instance);
             Assert.Throws<CustomTagEntryValidationException>(() => { _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry }); });
         }
 
@@ -71,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Theory]
         public void GivenUnsupportedVR_WhenValidating_ThenShouldThrowException(string path, string vr)
         {
-            CustomTagEntry entry = new CustomTagEntry(0, path, vr, CustomTagLevel.Instance, CustomTagStatus.Reindexing);
+            CustomTagEntry entry = new CustomTagEntry(path, vr, CustomTagLevel.Instance);
             Assert.Throws<CustomTagEntryValidationException>(() => { _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry }); });
         }
 
@@ -80,21 +81,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Theory]
         public void GivenValidVR_WhenValidating_ThenShouldSucceed(string vr)
         {
-            CustomTagEntry entry = new CustomTagEntry(0, DicomTag.DeviceSerialNumber.GetPath(), vr, CustomTagLevel.Instance, CustomTagStatus.Reindexing);
+            CustomTagEntry entry = new CustomTagEntry(DicomTag.DeviceSerialNumber.GetPath(), vr, CustomTagLevel.Instance);
             _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry });
         }
 
         [Fact]
         public void GivenPrivateTagWithoutVR_WhenValidating_ThenShouldThrowException()
         {
-            CustomTagEntry entry = new CustomTagEntry(0, "12051003", string.Empty, CustomTagLevel.Instance, CustomTagStatus.Reindexing);
+            CustomTagEntry entry = new CustomTagEntry("12051003", string.Empty, CustomTagLevel.Instance);
             Assert.Throws<CustomTagEntryValidationException>(() => _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry }));
         }
 
         [Fact]
         public void GivenPrivateTagWithVR_WhenValidating_ThenShouldSucceed()
         {
-            CustomTagEntry entry = new CustomTagEntry(0, "12051003", DicomVRCode.AE, CustomTagLevel.Instance, CustomTagStatus.Reindexing);
+            CustomTagEntry entry = new CustomTagEntry("12051003", DicomVRCode.AE, CustomTagLevel.Instance);
             _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry });
         }
 

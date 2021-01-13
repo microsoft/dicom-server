@@ -11,20 +11,18 @@ using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     public class CustomTagEntryValidator : ICustomTagEntryValidator
     {
-        private const string UnknownTagName = "Unknown";
-
         /* Unsupported VRCodes:
-         LT(Long Text), OB (Other Byte), OD (Other Double), OF(Other Float), OL (Other Long), OV(other Very long), OW (other Word), ST(Short Text, SV (Signed Very long)
-         UC (Unlimited Characters), UN (Unknown), UR (URI), UT (Unlimited Text), UV (Unsigned Very long)
-         Note: we dont' find definition for UR, UV and SV in DICOM standard (http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
-        */
-
+       LT(Long Text), OB (Other Byte), OD (Other Double), OF(Other Float), OL (Other Long), OV(other Very long), OW (other Word), ST(Short Text, SV (Signed Very long)
+       UC (Unlimited Characters), UN (Unknown), UR (URI), UT (Unlimited Text), UV (Unsigned Very long)
+       Note: we dont' find definition for UR, UV and SV in DICOM standard (http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
+      */
         public static readonly IImmutableSet<string> SupportedVRCodes = ImmutableHashSet.Create(
             DicomVRCode.AE,
             DicomVRCode.AS,
@@ -45,6 +43,14 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             DicomVRCode.UI,
             DicomVRCode.UL,
             DicomVRCode.US);
+
+        private readonly IDicomTagParser _dicomTagParser;
+
+        public CustomTagEntryValidator(IDicomTagParser dicomTagParser)
+        {
+            EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
+            _dicomTagParser = dicomTagParser;
+        }
 
         public void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries)
         {
@@ -94,7 +100,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             else
             {
                 // stardard tag must have name - should not be "Unknown".
-                if (tag.DictionaryEntry.Name.Equals(UnknownTagName, StringComparison.OrdinalIgnoreCase))
+                if (tag.DictionaryEntry.Equals(DicomDictionary.UnknownTag))
                 {
                     // not a valid dicom tag
                     throw new CustomTagEntryValidationException(
@@ -137,29 +143,23 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 // DicomVR.Parse only accept upper case  VR code.
                 return DicomVR.Parse(vrCode.ToUpper(CultureInfo.InvariantCulture));
             }
-            catch (Exception ex)
+            catch (DicomDataException ex)
             {
                 throw new CustomTagEntryValidationException(
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidVRCode, vrCode), ex);
             }
         }
 
-        private static DicomTag ParseTag(string path)
+        private DicomTag ParseTag(string path)
         {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                throw new CustomTagEntryValidationException(DicomCoreResource.MissingCustomTag);
-            }
-
-            try
-            {
-                return DicomTag.Parse(path);
-            }
-            catch (Exception ex)
+            DicomTag[] result;
+            if (!_dicomTagParser.TryParse(path, out result, supportMultiple: false))
             {
                 throw new CustomTagEntryValidationException(
-                      string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, path), ex);
+                      string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, path));
             }
+
+            return result[0];
         }
 
         private static void EnsureVRIsSupported(string vrCode)

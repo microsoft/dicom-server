@@ -51,12 +51,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
             await _reindexJob.ReceivedWithAnyArgs()
                 .ReindexAsync(default, default, default);
-
-            // Verify status
-            foreach (CustomTagEntry item in response.CustomTags)
-            {
-                Assert.Equal(CustomTagStatus.Added, item.Status);
-            }
         }
 
         [Fact]
@@ -89,7 +83,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                 customTagEntry2,
             };
 
-            _customTagStore.AddCustomTagAsync(customTagEntry2.Path, customTagEntry2.VR, customTagEntry2.Level, customTagEntry2.Status, Arg.Any<CancellationToken>())
+            _customTagStore.AddCustomTagAsync(customTagEntry2.Path, customTagEntry2.VR, customTagEntry2.Level, CustomTagStatus.Reindexing, Arg.Any<CancellationToken>())
                 .Throws(new Exception());
 
             await Assert.ThrowsAsync<Exception>(() => _customTagService.AddCustomTagAsync(entries));

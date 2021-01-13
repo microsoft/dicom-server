@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     public interface ICustomTagEntryValidator
     {
         /// <summary>
-        /// Validate if given custom tag ehtries are valid.
+        /// Validate if given custom tag entries are valid.
         /// </summary>
         /// <param name="customTagEntries">The custom tag entries</param>
         void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries);

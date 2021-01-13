@@ -7,6 +7,7 @@ using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -107,6 +108,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            services.Add<DicomTagParser>()
+                         .Scoped()
+                         .AsSelf()
+                         .AsImplementedInterfaces();
 
             services.AddTransient<IQueryParser, QueryParser>();
 

@@ -5,12 +5,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 
@@ -21,7 +21,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public partial class QueryParser : IQueryParser
     {
+        private readonly IDicomTagParser _dicomTagPathParser;
         private readonly ILogger<QueryParser> _logger;
+
         private const string IncludeFieldValueAll = "all";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
         private QueryExpressionImp _parsedQuery = null;
@@ -33,9 +35,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public const string DateTagValueFormat = "yyyyMMdd";
 
-        public QueryParser(ILogger<QueryParser> logger)
+        public QueryParser(IDicomTagParser dicomTagPathParser, ILogger<QueryParser> logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
+            _dicomTagPathParser = dicomTagPathParser;
             _logger = logger;
 
             // register parameter parsers
@@ -163,19 +167,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return condition != null;
         }
 
-        private static bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
+        private bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
         {
             dicomTag = null;
-
-            // Try Keyword match, returns null if not found
-            dicomTag = DicomDictionary.Default[attributeId];
-
-            if (dicomTag == null)
+            DicomTag[] result;
+            bool succeed = _dicomTagPathParser.TryParse(attributeId, out result, supportMultiple: false);
+            if (succeed)
             {
-                dicomTag = ParseDicomTagNumber(attributeId);
+                dicomTag = result[0];
             }
 
-            return dicomTag != null;
+            return succeed;
         }
 
         private static void ValidateIfTagSupported(DicomTag dicomTag, string attributeId, QueryResource resourceType)
@@ -186,36 +188,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
             }
-        }
-
-        private static DicomTag ParseDicomTagNumber(string s)
-        {
-            if (s.Length < 8)
-            {
-                return null;
-            }
-
-            if (!ushort.TryParse(s.Substring(0, 4), NumberStyles.HexNumber, null, out ushort group))
-            {
-                return null;
-            }
-
-            if (!ushort.TryParse(s.Substring(4, 4), NumberStyles.HexNumber, null, out ushort element))
-            {
-                return null;
-            }
-
-            var dicomTag = new DicomTag(group, element);
-            DicomDictionaryEntry knownTag = DicomDictionary.Default[dicomTag];
-
-            // Check if the tag is null or unknown.
-            // Tag with odd group is considered as private.
-            if (knownTag == null || (!dicomTag.IsPrivate && knownTag == DicomDictionary.UnknownTag))
-            {
-                return null;
-            }
-
-            return dicomTag;
         }
 
         private class QueryExpressionImp
