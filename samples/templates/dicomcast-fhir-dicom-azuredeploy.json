@@ -186,6 +186,20 @@
                 "description": "Determines whether export will be enabled for this fhir instance. If true, a storage account will be created as part of the deployment. You will need owner or user-administrator permissions for this."
             }
         },
+        "enableConvertData": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Determines whether the $convert-data operation will be enabled for this fhir instance. If true, an Azure container registry will be created as part of the deployment. You will need owner or user-administrator permissions for this."
+            }
+        },
+        "enableReindex": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Determines whether the $reindex operation will be enabled for this fhir instance."
+            }
+        },
         "dicomCastServiceName": {
             "minLength": 3,
             "maxLength": 24,
@@ -267,9 +281,7 @@
     "variables": {
         "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
         "appServicePlanName": "[if(empty(parameters('appServicePlanName')), concat(parameters('dicomServiceName'),'-asp'), parameters('appServicePlanName'))]",
-        "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
-        "serviceName": "[toLower(parameters('fhirServiceName'))]",
-        "storageAccountName": "[concat(substring(replace(variables('serviceName'), '-', ''), 0, min(11, length(replace(variables('serviceName'), '-', '')))), uniquestring(resourceGroup().id, variables('serviceName')))]"
+        "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]"
     },
     "resources": [
         {
@@ -325,7 +337,7 @@
         "properties": {
           "mode": "Incremental",
           "templateLink": {
-            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/master/samples/templates/default-azuredeploy-sql.json",
+            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/main/samples/templates/default-azuredeploy.json",
             "contentVersion":"1.0.0.0"
             },
             "parameters":{
@@ -345,6 +357,8 @@
                 "sqlLocation":{"value": "[resourceGroup().location]"},
                 "fhirVersion":{"value": "[parameters('fhirVersion')]"},
                 "enableExport":{"value": "[parameters('enableExport')]"},    
+                "enableConvertData":{"value": "[parameters('enableConvertData')]"}, 
+                "enableReindex":{"value": "[parameters('enableReindex')]"}, 
                 "sqlSchemaAutomaticUpdatesEnabled":{"value": true}    
                 }
             }
@@ -372,36 +386,6 @@
                     "dicomWebEndpoint":{"value": "[concat('https://',parameters('dicomServiceName'),'.azurewebsites.net')]"},
                     "fhirEndpoint":{"value": "[concat('https://',parameters('fhirServiceName'),'.azurewebsites.net')]"}
                     }
-                }
-            },
-            {
-                "name": "[variables('storageAccountName')]",
-                "type": "Microsoft.Storage/storageAccounts",
-                "apiVersion": "2019-06-01",
-                "location": "[resourceGroup().location]",
-                "properties": {
-                    "supportsHttpsTrafficOnly": "true"
-                },
-                "condition": "[parameters('enableExport')]",
-                "dependsOn": [],
-                "sku": {
-                    "name": "Standard_LRS"
-                },
-                "kind": "Storage",
-                "tags": {}
-            },
-            {
-                "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
-                "apiVersion": "2018-09-01-preview",
-                "name": "[concat(variables('storageAccountName'), '/Microsoft.Authorization/', guid(uniqueString(variables('storageAccountName'), parameters('fhirVersion'), variables('serviceName'))))]",
-                "condition": "[parameters('enableExport')]",
-                "dependsOn": [
-                    "[variables('storageAccountName')]"
-                ],
-                "properties": {
-                    "roleDefinitionId": "[variables('storageBlobDataContributerRoleId')]",
-                    "principalId": "[reference(concat('Microsoft.Web/sites/', variables('serviceName')), '2018-11-01', 'full').identity.principalId]",
-                    "principalType": "ServicePrincipal"
                 }
             }
     ],
