@@ -14,6 +14,7 @@ using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using NSubstitute;
 using Xunit;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
 {
@@ -35,7 +36,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public void GivenATransactionContexAndImagingStudy_WhenprocessedForInstance_ThenDicomPropertiesAreCorrectlyMappedtoInstanceWithinImagingStudy()
+        public async Task GivenATransactionContexAndImagingStudy_WhenprocessedForInstance_ThenDicomPropertiesAreCorrectlyMappedtoInstanceWithinImagingStudyAsync()
         {
             DicomDataset dataset = FhirTransactionContextBuilder.CreateDicomDataset();
 
@@ -45,14 +46,14 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             ImagingStudy.SeriesComponent series = imagingStudy.Series.First();
             ImagingStudy.InstanceComponent instance = series.Instance.First();
 
-            _imagingStudyInstancePropertySynchronizer.Synchronize(context, instance, DefaultCancellationToken);
+            await _imagingStudyInstancePropertySynchronizer.SynchronizeAsync(context, instance, DefaultCancellationToken);
 
             Assert.Equal(sopClassUid, instance.SopClass.Code);
             Assert.Equal(1, instance.Number);
         }
 
         [Fact]
-        public void GivenATransactionContextWithUpdatedInstanceNumber_WhenprocessedForInstance_ThenDicomPropertyValuesAreUpdatedCorrectly()
+        public async Task GivenATransactionContextWithUpdatedInstanceNumber_WhenprocessedForInstance_ThenDicomPropertyValuesAreUpdatedCorrectlyAsync()
         {
             DicomDataset dataset = FhirTransactionContextBuilder.CreateDicomDataset();
 
@@ -62,18 +63,18 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             ImagingStudy.SeriesComponent series = imagingStudy.Series.First();
             ImagingStudy.InstanceComponent instance = series.Instance.First();
 
-            _imagingStudyInstancePropertySynchronizer.Synchronize(context, instance, DefaultCancellationToken);
+            await _imagingStudyInstancePropertySynchronizer.SynchronizeAsync(context, instance, DefaultCancellationToken);
 
             Assert.Equal(1, instance.Number);
 
             FhirTransactionContext newContext = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(instanceNumber: "2"));
 
-            _imagingStudyInstancePropertySynchronizer.Synchronize(newContext, instance, DefaultCancellationToken);
+            await _imagingStudyInstancePropertySynchronizer.SynchronizeAsync(newContext, instance, DefaultCancellationToken);
             Assert.Equal(2, instance.Number);
         }
 
         [Fact]
-        public void GivenATransactionContextWithNoDicomPropertyValueChange_WhenprocessedForInstancee_ThenDicomPropertyValuesUpdateIsSkipped()
+        public async Task GivenATransactionContextWithNoDicomPropertyValueChange_WhenprocessedForInstancee_ThenDicomPropertyValuesUpdateIsSkippedAsync()
         {
             DicomDataset dataset = FhirTransactionContextBuilder.CreateDicomDataset();
 
@@ -83,13 +84,13 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             ImagingStudy.SeriesComponent series = imagingStudy.Series.First();
             ImagingStudy.InstanceComponent instance = series.Instance.First();
 
-            _imagingStudyInstancePropertySynchronizer.Synchronize(context, instance, DefaultCancellationToken);
+            await _imagingStudyInstancePropertySynchronizer.SynchronizeAsync(context, instance, DefaultCancellationToken);
 
             Assert.Equal(1, instance.Number);
 
             FhirTransactionContext newContext = FhirTransactionContextBuilder.DefaultFhirTransactionContext(dataset);
 
-            _imagingStudyInstancePropertySynchronizer.Synchronize(newContext, instance, DefaultCancellationToken);
+            await _imagingStudyInstancePropertySynchronizer.SynchronizeAsync(newContext, instance, DefaultCancellationToken);
             Assert.Equal(1, instance.Number);
         }
     }

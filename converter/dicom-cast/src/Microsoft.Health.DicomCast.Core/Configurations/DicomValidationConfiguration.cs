@@ -11,7 +11,7 @@ namespace Microsoft.Health.DicomCast.Core.Configurations
     public class DicomValidationConfiguration
     {
         /// <summary>
-        /// If partial validaiton is enabled or not. If false then only change feed entries with completely validated
+        /// If partial validation is enabled or not. If false then only change feed entries with completely validated
         /// data will be stored in fhir.
         /// </summary>
         public bool PartialValidation { get; set; }

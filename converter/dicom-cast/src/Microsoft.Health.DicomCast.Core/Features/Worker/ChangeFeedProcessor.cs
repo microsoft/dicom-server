@@ -13,7 +13,6 @@ using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
-using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Task = System.Threading.Tasks.Task;
@@ -93,11 +92,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                         string instanceUid = changeFeedEntry.SopInstanceUid;
                         long changeFeedSequence = changeFeedEntry.Sequence;
 
-                        await _exceptionStore.StoreException(
-                            studyUid,
-                            seriesUid,
-                            instanceUid,
-                            changeFeedSequence,
+                        await _exceptionStore.WriteExceptionAsync(
+                            changeFeedEntry,
                             ex,
                             ErrorType.IntransientError,
                             cancellationToken);

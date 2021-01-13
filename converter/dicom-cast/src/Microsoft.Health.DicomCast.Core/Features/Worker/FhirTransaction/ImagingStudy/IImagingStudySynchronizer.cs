@@ -5,6 +5,7 @@
 
 using System.Threading;
 using Hl7.Fhir.Model;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
@@ -16,7 +17,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <param name="context">The transaction context.</param>
         /// <param name="imagingStudy">The <see cref="ImagingStudy"/> resource.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        void SynchronizeStudyProperties(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken);
+        Task SynchronizeStudyPropertiesAsync(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken);
 
         /// <summary>
         /// Synchronizes the DICOM properties to <paramref name="series"/>.
@@ -24,7 +25,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <param name="context">The transaction context.</param>
         /// <param name="series">The <see cref="ImagingStudy.SeriesComponent"/> resource.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        void SynchronizeSeriesProperties(FhirTransactionContext context, ImagingStudy.SeriesComponent series, CancellationToken cancellationToken);
+        Task SynchronizeSeriesPropertiesAsync(FhirTransactionContext context, ImagingStudy.SeriesComponent series, CancellationToken cancellationToken);
 
         /// <summary>
         /// Synchronizes the DICOM properties to <paramref name="instance"/>.
@@ -32,6 +33,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <param name="context">The transaction context.</param>
         /// <param name="instance">The <see cref="ImagingStudy.InstanceComponent"/> resource.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        void SynchronizeInstanceProperties(FhirTransactionContext context, ImagingStudy.InstanceComponent instance, CancellationToken cancellationToken);
+        Task SynchronizeInstancePropertiesAsync(FhirTransactionContext context, ImagingStudy.InstanceComponent instance, CancellationToken cancellationToken);
     }
 }

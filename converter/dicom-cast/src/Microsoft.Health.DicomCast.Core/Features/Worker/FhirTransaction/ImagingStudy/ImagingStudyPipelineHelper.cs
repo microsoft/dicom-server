@@ -8,11 +8,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Threading;
 using Dicom;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
 using Microsoft.Health.DicomCast.Core.Extensions;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
@@ -121,6 +124,29 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 catch (FormatException)
                 {
                     throw new InvalidDicomTagValueException(nameof(DicomTag.TimezoneOffsetFromUTC), utcOffsetInString);
+                }
+            }
+        }
+
+        public static async Task SynchronizePropertiesAsync<T>(T component, FhirTransactionContext context, Action<T, FhirTransactionContext> synchronizeAction, bool requiredProperty, bool partialValidation, IExceptionStore exceptionStore, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                synchronizeAction(component, context);
+            }
+            catch (Exception ex)
+            {
+                if (partialValidation && !requiredProperty)
+                {
+                    await exceptionStore.WriteExceptionAsync(
+                        context.ChangeFeedEntry,
+                        ex,
+                        ErrorType.DicomValidationError,
+                        cancellationToken);
+                }
+                else
+                {
+                    throw;
                 }
             }
         }

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Dicom;
 using EnsureThat;
@@ -11,6 +12,7 @@ using Hl7.Fhir.Model;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
@@ -18,6 +20,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         private readonly DicomValidationConfiguration _dicomValidationConfiguration;
         private readonly IExceptionStore _exceptionStore;
+        private IEnumerable<(Action<ImagingStudy.InstanceComponent, FhirTransactionContext> PropertyAction, bool RequiredProperty)> propertiesToSync = new List<(Action<ImagingStudy.InstanceComponent, FhirTransactionContext> PropertyAction, bool RequiredProperty)>()
+            {
+                (AddSopClass, true),
+                (AddInstanceNumber, false),
+            };
 
         public ImagingStudyInstancePropertySynchronizer(
             IOptions<DicomValidationConfiguration> dicomValidationConfiguration,
@@ -31,7 +38,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         }
 
         /// <inheritdoc/>
-        public void Synchronize(FhirTransactionContext context, ImagingStudy.InstanceComponent instance, CancellationToken cancellationToken)
+        public async Task SynchronizeAsync(FhirTransactionContext context, ImagingStudy.InstanceComponent instance, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(context.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
@@ -44,42 +51,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 return;
             }
 
-            SynchronizePropertiesAsync(instance, context, true, AddSopClass, cancellationToken);
-            SynchronizePropertiesAsync(instance, context, false, AddInstanceNumber, cancellationToken);
-        }
-
-        private void SynchronizePropertiesAsync(ImagingStudy.InstanceComponent instance, FhirTransactionContext context, bool required, Action<ImagingStudy.InstanceComponent, FhirTransactionContext> synchronizeAction, CancellationToken cancellationToken = default)
-        {
-            try
+            foreach (var property in propertiesToSync)
             {
-                synchronizeAction(instance, context);
-            }
-            catch (Exception ex)
-            {
-                if (_dicomValidationConfiguration.PartialValidation && !required)
-                {
-                    DicomDataset dataset = context.ChangeFeedEntry.Metadata;
-                    string studyUID = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-                    string seriesUID = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
-                    string instanceUID = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
-
-                    _exceptionStore.StoreException(
-                        studyUID,
-                        seriesUID,
-                        instanceUID,
-                        context.ChangeFeedEntry.Sequence,
-                        ex,
-                        ErrorType.DicomValidationError,
-                        cancellationToken);
-                }
-                else
-                {
-                    throw;
-                }
+                await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(instance, context, property.PropertyAction, property.RequiredProperty, _dicomValidationConfiguration.PartialValidation, _exceptionStore, cancellationToken);
             }
         }
 
-        private void AddSopClass(ImagingStudy.InstanceComponent instance, FhirTransactionContext context)
+        private static void AddSopClass(ImagingStudy.InstanceComponent instance, FhirTransactionContext context)
         {
             DicomDataset dataset = context.ChangeFeedEntry.Metadata;
             if (dataset.TryGetSingleValue(DicomTag.SOPClassUID, out string sopClassUid) &&
@@ -89,7 +67,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
         }
 
-        private void AddInstanceNumber(ImagingStudy.InstanceComponent instance, FhirTransactionContext context)
+        private static void AddInstanceNumber(ImagingStudy.InstanceComponent instance, FhirTransactionContext context)
         {
             DicomDataset dataset = context.ChangeFeedEntry.Metadata;
             if (dataset.TryGetSingleValue(DicomTag.InstanceNumber, out int instanceNumber))
