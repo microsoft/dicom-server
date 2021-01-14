@@ -9,7 +9,6 @@ using System.Threading;
 using Dicom;
 using EnsureThat;
 using Hl7.Fhir.Model;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
@@ -25,23 +24,19 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         private readonly IEnumerable<IPatientPropertySynchronizer> _patientPropertySynchronizers;
         private readonly DicomValidationConfiguration _dicomValidationConfiguration;
         private readonly IExceptionStore _exceptionStore;
-        private readonly ILogger<PatientSynchronizer> _logger;
 
         public PatientSynchronizer(
             IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers,
             IOptions<DicomValidationConfiguration> dicomValidationConfiguration,
-            IExceptionStore exceptionStore,
-            ILogger<PatientSynchronizer> logger)
+            IExceptionStore exceptionStore)
         {
             EnsureArg.IsNotNull(patientPropertySynchronizers, nameof(patientPropertySynchronizers));
             EnsureArg.IsNotNull(dicomValidationConfiguration, nameof(dicomValidationConfiguration));
             EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
-            EnsureArg.IsNotNull(logger, nameof(logger));
 
             _patientPropertySynchronizers = patientPropertySynchronizers;
             _dicomValidationConfiguration = dicomValidationConfiguration.Value;
             _exceptionStore = exceptionStore;
-            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -62,10 +57,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 {
                     if (_dicomValidationConfiguration.PartialValidation && !patientPropertySynchronizer.IsRequired())
                     {
-                        string studyUID = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-                        string seriesUID = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
-                        string instanceUID = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
-
                         await _exceptionStore.WriteExceptionAsync(
                             context.ChangeFeedEntry,
                             ex,
