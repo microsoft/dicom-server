@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Microsoft.Health.Dicom.Api.Modules
 {
@@ -42,9 +44,16 @@ namespace Microsoft.Health.Dicom.Api.Modules
                 .AddJwtBearer(options =>
                 {
                     options.Authority = _securityConfiguration.Authentication.Authority;
-                    options.Audience = _securityConfiguration.Authentication.Audience;
                     options.RequireHttpsMetadata = true;
                     options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{_securityConfiguration.Authentication.Audience}\", realm=\"{_securityConfiguration.Authentication.Audience}\"";
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidAudiences = new[]
+                        {
+                            _securityConfiguration.Authentication.Audience,
+                            GenerateSecondaryAudience(),
+                        },
+                    };
                 });
 
                 services.AddControllers(mvcOptions =>
@@ -63,6 +72,16 @@ namespace Microsoft.Health.Dicom.Api.Modules
                 .AsService<IDicomRequestContextAccessor>();
 
             services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();
+        }
+
+        internal string GenerateSecondaryAudience()
+        {
+            if (_securityConfiguration.Authentication.Audience.EndsWith('/'))
+            {
+                return _securityConfiguration.Authentication.Audience.TrimEnd('/');
+            }
+
+            return _securityConfiguration.Authentication.Audience + '/';
         }
     }
 }
