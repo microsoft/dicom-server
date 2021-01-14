@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             Match match = Regex.Match(tagPath, @"\A\(\d{4},\d{4}\)(\.\((\d){4},(\d){4}\))*$");
             if (!match.Success)
             {
-                throw new TagPathValidationException(string.Format("Requested tag path {0} is not in the required format.", tagPath));
+                throw new TagPathValidationException(string.Format(DicomCoreResource.TagPathValidation, tagPath));
             }
         }
     }

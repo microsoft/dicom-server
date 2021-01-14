@@ -377,7 +377,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to TagPathValidation.
         /// </summary>
         internal static string TagPathValidation {
             get {
