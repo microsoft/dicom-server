@@ -3,20 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using MediatR;
+using System.Collections.Generic;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Messages.CustomTag
 {
-    public class GetCustomTagRequest : IRequest<GetCustomTagResponse>
+    public class GetAllCustomTagsResponse
     {
-        public GetCustomTagRequest(string customTagPath)
+        public GetAllCustomTagsResponse(IEnumerable<CustomTagEntry> customTagEntries)
         {
-            CustomTagPath = customTagPath;
+            CustomTags = customTagEntries;
         }
 
-        /// <summary>
-        /// Path for the custom tag that is requested.
-        /// </summary>
-        public string CustomTagPath { get; }
+        public IEnumerable<CustomTagEntry> CustomTags { get; }
     }
 }

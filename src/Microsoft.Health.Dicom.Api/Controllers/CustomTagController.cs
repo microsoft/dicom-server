@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation("DICOM Web Get Custom Tag request received for all custom tags");
 
-            GetCustomTagResponse response = await _mediator.GetCustomTagsAsync(null, HttpContext.RequestAborted);
+            GetAllCustomTagsResponse response = await _mediator.GetAllCustomTagsAsync(null, HttpContext.RequestAborted);
 
             return StatusCode(
                 (int)HttpStatusCode.OK, response);
@@ -90,9 +90,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.GetCustomTag)]
         public async Task<IActionResult> GetTagAsync(string tagPath)
         {
-            _logger.LogInformation("DICOM Web Get Custom Tag request received for custom tag: {0}", tagPath);
+            _logger.LogInformation("DICOM Web Get Custom Tag request received for custom tag: {tagPath}");
 
-            GetCustomTagResponse response = await _mediator.GetCustomTagsAsync(tagPath, HttpContext.RequestAborted);
+            GetCustomTagResponse response = await _mediator.GetCustomTagAsync(tagPath, HttpContext.RequestAborted);
 
             return StatusCode(
                 (int)HttpStatusCode.OK, response);

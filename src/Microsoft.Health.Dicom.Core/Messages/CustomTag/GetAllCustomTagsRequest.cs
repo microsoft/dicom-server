@@ -7,16 +7,10 @@ using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.CustomTag
 {
-    public class GetCustomTagRequest : IRequest<GetCustomTagResponse>
+    public class GetAllCustomTagsRequest : IRequest<GetAllCustomTagsResponse>
     {
-        public GetCustomTagRequest(string customTagPath)
+        public GetAllCustomTagsRequest()
         {
-            CustomTagPath = customTagPath;
         }
-
-        /// <summary>
-        /// Path for the custom tag that is requested.
-        /// </summary>
-        public string CustomTagPath { get; }
     }
 }
