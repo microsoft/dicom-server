@@ -269,4 +269,7 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
     <value>The request contains multiple accept headers, which is not supported.</value>
   </data>
+  <data name="TagPathValidation" xml:space="preserve">
+    <value />
+  </data>
 </root>

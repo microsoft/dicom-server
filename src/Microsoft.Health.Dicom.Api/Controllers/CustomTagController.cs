@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation("DICOM Web Get Custom Tag request received for all custom tags");
 
-            GetAllCustomTagsResponse response = await _mediator.GetAllCustomTagsAsync(null, HttpContext.RequestAborted);
+            GetAllCustomTagsResponse response = await _mediator.GetAllCustomTagsAsync(HttpContext.RequestAborted);
 
             return StatusCode(
                 (int)HttpStatusCode.OK, response);

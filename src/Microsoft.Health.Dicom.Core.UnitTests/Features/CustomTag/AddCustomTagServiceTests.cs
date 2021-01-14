@@ -18,19 +18,19 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 {
-    public class CustomTagServiceTests
+    public class AddCustomTagServiceTests
     {
         private IReindexJob _reindexJob;
         private ICustomTagEntryValidator _customTagEntryValidator;
         private ICustomTagStore _customTagStore;
-        private ICustomTagService _customTagService;
+        private IAddCustomTagService _customTagService;
 
-        public CustomTagServiceTests()
+        public AddCustomTagServiceTests()
         {
             _reindexJob = Substitute.For<IReindexJob>();
             _customTagEntryValidator = Substitute.For<ICustomTagEntryValidator>();
             _customTagStore = Substitute.For<ICustomTagStore>();
-            _customTagService = new CustomTagService(_customTagStore, _reindexJob, _customTagEntryValidator, NullLogger<CustomTagService>.Instance);
+            _customTagService = new AddCustomTagService(_customTagStore, _reindexJob, _customTagEntryValidator, NullLogger<AddCustomTagService>.Instance);
         }
 
         [Fact]

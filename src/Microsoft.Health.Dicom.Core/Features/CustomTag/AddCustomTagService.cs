@@ -13,14 +13,14 @@ using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
-    public class CustomTagService : ICustomTagService
+    public class AddCustomTagService : IAddCustomTagService
     {
         private readonly ICustomTagStore _customTagStore;
         private readonly IReindexJob _reindexJob;
         private readonly ICustomTagEntryValidator _customTagEntryValidator;
-        private readonly ILogger<CustomTagService> _logger;
+        private readonly ILogger<AddCustomTagService> _logger;
 
-        public CustomTagService(ICustomTagStore customTagStore, IReindexJob reindexJob, ICustomTagEntryValidator customTagEntryValidator, ILogger<CustomTagService> logger)
+        public AddCustomTagService(ICustomTagStore customTagStore, IReindexJob reindexJob, ICustomTagEntryValidator customTagEntryValidator, ILogger<AddCustomTagService> logger)
         {
             EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
             EnsureArg.IsNotNull(reindexJob, nameof(reindexJob));

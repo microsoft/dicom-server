@@ -13,17 +13,17 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     public class AddCustomTagHandler : IRequestHandler<AddCustomTagRequest, AddCustomTagResponse>
     {
-        private readonly ICustomTagService _customTagService;
+        private readonly IAddCustomTagService _addCustomTagService;
 
-        public AddCustomTagHandler(ICustomTagService customTagService)
+        public AddCustomTagHandler(IAddCustomTagService addCustomTagService)
         {
-            EnsureArg.IsNotNull(customTagService, nameof(customTagService));
-            _customTagService = customTagService;
+            EnsureArg.IsNotNull(addCustomTagService, nameof(addCustomTagService));
+            _addCustomTagService = addCustomTagService;
         }
 
         public async Task<AddCustomTagResponse> Handle(AddCustomTagRequest request, CancellationToken cancellationToken)
         {
-            return await _customTagService.AddCustomTagAsync(request.CustomTags, cancellationToken);
+            return await _addCustomTagService.AddCustomTagAsync(request.CustomTags, cancellationToken);
         }
     }
 }

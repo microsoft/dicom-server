@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,6 +21,21 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The tag key.</returns>
         Task<long> AddCustomTagAsync(string path, string vr, CustomTagLevel level, CustomTagStatus status, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Get a requested custom tag from CustomTagStore by tagPath.
+        /// </summary>
+        /// <param name="path">Path associated with requested custom tag formatted as it is stored internally.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>Custom tag entry with path, VR, level and status.</returns>
+        Task<CustomTagEntry> GetCustomTagAsync(string path, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Get all stored custom tags from CustomTagStore.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>Custom tag entries with path, VR, level and status.</returns>
+        Task<IEnumerable<CustomTagEntry>> GetAllCustomTagsAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Update custom tag status.
