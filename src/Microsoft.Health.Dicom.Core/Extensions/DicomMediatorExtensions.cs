@@ -23,13 +23,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 {
     public static class DicomMediatorExtensions
     {
-        public static Task<AddCustomTagResponse> AddCustomTagsAsync(
-            this IMediator mediator, IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new AddCustomTagRequest(customTags), cancellationToken);
-        }
-
         public static Task<StoreResponse> StoreDicomResourcesAsync(
             this IMediator mediator, Stream requestBody, string requestContentType, string studyInstanceUid, CancellationToken cancellationToken)
         {
@@ -145,6 +138,27 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new ChangeFeedLatestRequest(includeMetadata), cancellationToken);
+        }
+
+        public static Task<AddCustomTagResponse> AddCustomTagsAsync(
+            this IMediator mediator, IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new AddCustomTagRequest(customTags), cancellationToken);
+        }
+
+        public static Task<GetAllCustomTagsResponse> GetAllCustomTagsAsync(
+            this IMediator mediator, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new GetAllCustomTagsRequest(), cancellationToken);
+        }
+
+        public static Task<GetCustomTagResponse> GetCustomTagAsync(
+            this IMediator mediator, string customTagPath, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new GetCustomTagRequest(customTagPath), cancellationToken);
         }
     }
 }
