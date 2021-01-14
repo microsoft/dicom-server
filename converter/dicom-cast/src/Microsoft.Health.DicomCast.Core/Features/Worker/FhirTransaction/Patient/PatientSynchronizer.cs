@@ -22,20 +22,20 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     public class PatientSynchronizer : IPatientSynchronizer
     {
         private readonly IEnumerable<IPatientPropertySynchronizer> _patientPropertySynchronizers;
-        private readonly DicomValidationConfiguration _dicomValidationConfiguration;
+        private readonly DicomCastConfiguration _dicomCastconfiguration;
         private readonly IExceptionStore _exceptionStore;
 
         public PatientSynchronizer(
             IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers,
-            IOptions<DicomValidationConfiguration> dicomValidationConfiguration,
+            IOptions<DicomCastConfiguration> dicomCastConfiguration,
             IExceptionStore exceptionStore)
         {
             EnsureArg.IsNotNull(patientPropertySynchronizers, nameof(patientPropertySynchronizers));
-            EnsureArg.IsNotNull(dicomValidationConfiguration, nameof(dicomValidationConfiguration));
+            EnsureArg.IsNotNull(dicomCastConfiguration, nameof(dicomCastConfiguration));
             EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
 
             _patientPropertySynchronizers = patientPropertySynchronizers;
-            _dicomValidationConfiguration = dicomValidationConfiguration.Value;
+            _dicomCastconfiguration = dicomCastConfiguration.Value;
             _exceptionStore = exceptionStore;
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 }
                 catch (Exception ex)
                 {
-                    if (_dicomValidationConfiguration.PartialValidation && !patientPropertySynchronizer.IsRequired())
+                    if (_dicomCastconfiguration.Features.IgnoreSyncOfInvalidTagValue)
                     {
                         await _exceptionStore.WriteExceptionAsync(
                             context.ChangeFeedEntry,

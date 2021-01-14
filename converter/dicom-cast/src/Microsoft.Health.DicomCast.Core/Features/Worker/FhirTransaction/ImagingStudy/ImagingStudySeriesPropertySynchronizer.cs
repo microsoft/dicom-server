@@ -19,7 +19,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
     public class ImagingStudySeriesPropertySynchronizer : IImagingStudySeriesPropertySynchronizer
     {
-        private readonly DicomValidationConfiguration _dicomValidationConfiguration;
+        private readonly DicomCastConfiguration _dicomCastConfiguration;
         private readonly IExceptionStore _exceptionStore;
         private IEnumerable<(Action<ImagingStudy.SeriesComponent, FhirTransactionContext> PropertyAction, bool RequiredProperty)> propertiesToSync = new List<(Action<ImagingStudy.SeriesComponent, FhirTransactionContext>, bool)>()
             {
@@ -30,13 +30,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             };
 
         public ImagingStudySeriesPropertySynchronizer(
-            IOptions<DicomValidationConfiguration> dicomValidationConfiguration,
+            IOptions<DicomCastConfiguration> dicomCastConfiguration,
             IExceptionStore exceptionStore)
         {
-            EnsureArg.IsNotNull(dicomValidationConfiguration, nameof(dicomValidationConfiguration));
+            EnsureArg.IsNotNull(dicomCastConfiguration, nameof(dicomCastConfiguration));
             EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
 
-            _dicomValidationConfiguration = dicomValidationConfiguration.Value;
+            _dicomCastConfiguration = dicomCastConfiguration.Value;
             _exceptionStore = exceptionStore;
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             foreach (var property in propertiesToSync)
             {
-                await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(series, context, property.PropertyAction, property.RequiredProperty, _dicomValidationConfiguration.PartialValidation, _exceptionStore, cancellationToken);
+                await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(series, context, property.PropertyAction, property.RequiredProperty, _dicomCastConfiguration.Features.IgnoreSyncOfInvalidTagValue, _exceptionStore, cancellationToken);
             }
         }
 

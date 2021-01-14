@@ -26,14 +26,14 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
         private IPatientPropertySynchronizer _propertySynchronizer = Substitute.For<IPatientPropertySynchronizer>();
 
-        private readonly DicomValidationConfiguration _dicomValidationConfig = new DicomValidationConfiguration();
+        private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
 
         private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
 
         [Fact]
         public async Task WhenPatialValidationDisabled_AndError_ThrowsError()
         {
-            _dicomValidationConfig.PartialValidation = false;
+            _dicomCastConfig.Features.IgnoreSyncOfInvalidTagValue = false;
 
             _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new Exception(); });
 
@@ -42,28 +42,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 _propertySynchronizer,
             };
 
-            PatientSynchronizer patientSynchronizer = new PatientSynchronizer(patientPropertySynchronizers, Options.Create(_dicomValidationConfig), _exceptionStore);
-
-            FhirTransactionContext context = new FhirTransactionContext(ChangeFeedGenerator.Generate(metadata: DefaultDicomDataset));
-            var patient = new Patient();
-
-            await Assert.ThrowsAsync<Exception>(() => patientSynchronizer.SynchronizeAsync(context, patient, false, DefaultCancellationToken));
-        }
-
-        [Fact]
-        public async Task WhenPatialValidationEnabled_AndPropertyRequired_ThrowsError()
-        {
-            _dicomValidationConfig.PartialValidation = true;
-
-            _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new Exception(); });
-            _propertySynchronizer.IsRequired().Returns(true);
-
-            IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers = new List<IPatientPropertySynchronizer>()
-            {
-                _propertySynchronizer,
-            };
-
-            PatientSynchronizer patientSynchronizer = new PatientSynchronizer(patientPropertySynchronizers, Options.Create(_dicomValidationConfig), _exceptionStore);
+            PatientSynchronizer patientSynchronizer = new PatientSynchronizer(patientPropertySynchronizers, Options.Create(_dicomCastConfig), _exceptionStore);
 
             FhirTransactionContext context = new FhirTransactionContext(ChangeFeedGenerator.Generate(metadata: DefaultDicomDataset));
             var patient = new Patient();
@@ -74,17 +53,16 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public async Task WhenPatialValidationEnabled_AndPropertyNotRequired_DoesNotThrowError()
         {
-            _dicomValidationConfig.PartialValidation = true;
+            _dicomCastConfig.Features.IgnoreSyncOfInvalidTagValue = true;
 
             _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new Exception(); });
-            _propertySynchronizer.IsRequired().Returns(false);
 
             IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers = new List<IPatientPropertySynchronizer>()
             {
                 _propertySynchronizer,
             };
 
-            PatientSynchronizer patientSynchronizer = new PatientSynchronizer(patientPropertySynchronizers, Options.Create(_dicomValidationConfig), _exceptionStore);
+            PatientSynchronizer patientSynchronizer = new PatientSynchronizer(patientPropertySynchronizers, Options.Create(_dicomCastConfig), _exceptionStore);
 
             FhirTransactionContext context = new FhirTransactionContext(ChangeFeedGenerator.Generate(metadata: DefaultDicomDataset));
             var patient = new Patient();

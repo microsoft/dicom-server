@@ -25,12 +25,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private const string NewAccessionNumber = "2";
         private readonly IImagingStudyPropertySynchronizer _imagingStudyPropertySynchronizer;
 
-        private readonly DicomValidationConfiguration _dicomValidationConfig = new DicomValidationConfiguration();
+        private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
         private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
 
         public ImagingStudyPropertySynchronizerTests()
         {
-            _imagingStudyPropertySynchronizer = new ImagingStudyPropertySynchronizer(Options.Create(_dicomValidationConfig), _exceptionStore);
+            _imagingStudyPropertySynchronizer = new ImagingStudyPropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore);
         }
 
         [Fact]

@@ -27,12 +27,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private readonly string sopInstanceUid = "333";
         private readonly string sopClassUid = "4444";
         private readonly string patientResourceId = "555";
-        private readonly DicomValidationConfiguration _dicomValidationConfig = new DicomValidationConfiguration();
+        private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
         private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
 
         public ImagingStudyInstancePropertySynchronizerTests()
         {
-            _imagingStudyInstancePropertySynchronizer = new ImagingStudyInstancePropertySynchronizer(Options.Create(_dicomValidationConfig), _exceptionStore);
+            _imagingStudyInstancePropertySynchronizer = new ImagingStudyInstancePropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore);
         }
 
         [Fact]

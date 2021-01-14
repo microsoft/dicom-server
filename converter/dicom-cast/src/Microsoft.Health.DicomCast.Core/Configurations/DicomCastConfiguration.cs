@@ -6,14 +6,10 @@
 namespace Microsoft.Health.DicomCast.Core.Configurations
 {
     /// <summary>
-    /// Level of validation for Dicom data
+    /// Configuration for DicomCast
     /// </summary>
-    public class DicomValidationConfiguration
+    public class DicomCastConfiguration
     {
-        /// <summary>
-        /// If partial validation is enabled or not. If false then only change feed entries with completely validated
-        /// data will be stored in fhir.
-        /// </summary>
-        public bool PartialValidation { get; set; }
+        public FeatureConfiguration Features { get; } = new FeatureConfiguration();
     }
 }
