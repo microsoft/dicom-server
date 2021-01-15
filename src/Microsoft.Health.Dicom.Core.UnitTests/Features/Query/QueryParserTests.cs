@@ -10,6 +10,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Messages.Query;
@@ -24,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         public QueryParserTests()
         {
-            _queryParser = new QueryParser(NullLogger<QueryParser>.Instance);
+            _queryParser = new QueryParser(new DicomTagParser(), NullLogger<QueryParser>.Instance);
         }
 
         [Theory]

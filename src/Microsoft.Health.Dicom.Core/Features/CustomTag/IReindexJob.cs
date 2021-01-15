@@ -18,6 +18,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <param name="endWatermark">The end watermark.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The result.</returns>
-        Task ReindexAsync(IEnumerable<CustomTagEntry> customTags, long endWatermark, CancellationToken cancellationToken = default);
+        Task ReindexAsync(IEnumerable<CustomTagStoreEntry> customTags, long endWatermark, CancellationToken cancellationToken = default);
     }
 }

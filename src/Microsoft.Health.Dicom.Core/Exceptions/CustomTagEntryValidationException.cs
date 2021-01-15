@@ -3,18 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Messages.CustomTag
+using System;
+
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class AddCustomTagResponse
+    public class CustomTagEntryValidationException : ValidationException
     {
-        public AddCustomTagResponse(string job)
+        public CustomTagEntryValidationException(string message)
+            : base(message)
         {
-            Job = job;
         }
 
-        /// <summary>
-        /// The Url to view job details.
-        /// </summary>
-        public string Job { get; }
+        public CustomTagEntryValidationException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
     }
 }
