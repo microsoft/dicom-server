@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -34,6 +35,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("345%^&")]
         public async Task GivenARequestWithInvalidIdentifier_WhenRetrievingStudy_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
         {
+            EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             RetrieveResourceRequest request = new RetrieveResourceRequest(studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() });
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
@@ -47,6 +49,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("aaaa-bbbb", "aaaa-bbbb")]
         public async Task GivenARequestWithInvalidStudyAndSeriesIdentifiers_WhenRetrievingSeries_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid, string seriesInstanceUid)
         {
+            EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             RetrieveResourceRequest request = new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() });
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
@@ -60,6 +63,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidSeriesIdentifier_WhenRetrievingSeries_ThenDicomInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
         {
+            EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
             RetrieveResourceRequest request = new RetrieveResourceRequest(TestUidGenerator.Generate(), seriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() });
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
@@ -73,6 +77,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidInstanceIdentifier_WhenRetrievingInstance_ThenDicomInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
         {
+            EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
             RetrieveResourceRequest request = new RetrieveResourceRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() });
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 
@@ -86,6 +91,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("()")]
         public async Task GivenARequestWithInvalidInstanceIdentifier_WhenRetrievingFrames_ThenDicomInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
         {
+            EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
             RetrieveResourceRequest request = new RetrieveResourceRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, new List<int> { 1 }, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
 

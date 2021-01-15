@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         /// <param name="eTag">ETag.</param>
         /// <param name="ifNoneMatch">If-None-Match</param>
         /// <returns>True if cache is valid, i.e. content has not modified, else returns false.</returns>
-        private bool IsCacheValid(string eTag, string ifNoneMatch)
+        private static bool IsCacheValid(string eTag, string ifNoneMatch)
         {
             bool isCacheValid = false;
 

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 using Microsoft.Data.SqlClient;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
@@ -36,6 +37,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public Instance(SqlDataReader sqlDataReader)
         {
+            EnsureArg.IsNotNull(sqlDataReader, nameof(sqlDataReader));
             InstanceKey = sqlDataReader.GetInt64(0);
             SeriesKey = sqlDataReader.GetInt64(1);
             InstanceKey = sqlDataReader.GetInt64(2);

@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private static readonly HashSet<DicomTag> AllSeriesInstanceTags = new HashSet<DicomTag>(AllSeriesTags.Union(AllInstancesTags));
 
-        private HashSet<DicomTag> _tagsToReturn = null;
+        private HashSet<DicomTag> _tagsToReturn;
 
         public QueryResponseBuilder(QueryExpression queryExpression)
         {

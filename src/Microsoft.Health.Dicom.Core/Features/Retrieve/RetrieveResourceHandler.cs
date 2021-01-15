@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             return await _retrieveResourceService.GetInstanceResourceAsync(request, cancellationToken);
         }
 
-        private void ValidateRetrieveResourceRequest(RetrieveResourceRequest request)
+        private static void ValidateRetrieveResourceRequest(RetrieveResourceRequest request)
         {
             RetrieveRequestValidator.ValidateInstanceIdentifiers(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
             if (request.ResourceType == ResourceType.Frames)

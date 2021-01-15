@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Client;
 using Microsoft.Health.Dicom.Client;
@@ -52,6 +53,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public DicomWebClient GetDicomWebClient(TestApplication clientApplication)
         {
+            EnsureArg.IsNotNull(clientApplication, nameof(clientApplication));
             HttpMessageHandler messageHandler = TestDicomWebServer.CreateMessageHandler();
             if (AuthenticationSettings.SecurityEnabled && !clientApplication.Equals(TestApplications.InvalidClient))
             {

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
 using Dicom.IO.Buffer;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -36,6 +37,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData(0, 1, 2)]
         public async Task GivenDicomFileWithFrames_WhenRetrievingFrameWithOriginalTransferSyntax_ThenExpectedFramesAreReturned(params int[] frames)
         {
+            EnsureArg.IsNotNull(frames, nameof(frames));
             (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
             IReadOnlyCollection<Stream> framesStream = await _frameHandler.GetFramesResourceAsync(stream, frames, true, "*");
             var framesOutput = framesStream.ToArray();

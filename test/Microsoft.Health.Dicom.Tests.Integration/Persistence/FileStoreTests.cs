@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -23,6 +24,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public FileStoreTests(DataStoreTestsFixture fixture)
         {
+            EnsureArg.IsNotNull(fixture, nameof(fixture));
             _blobDataStore = fixture.FileStore;
             _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
         }

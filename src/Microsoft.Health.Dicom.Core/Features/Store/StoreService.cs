@@ -93,7 +93,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                         // Fire and forget.
                         int capturedIndex = index;
 
-                        _ = Task.Run(() => DisposeResourceAsync(capturedIndex));
+                        _ = Task.Run(() => DisposeResourceAsync(capturedIndex), CancellationToken.None);
                     }
                 }
             }

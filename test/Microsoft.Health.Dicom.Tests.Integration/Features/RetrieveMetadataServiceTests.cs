@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -38,6 +39,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
         public RetrieveMetadataServiceTests(DataStoreTestsFixture storagefixture)
         {
+            EnsureArg.IsNotNull(storagefixture, nameof(storagefixture));
             _instanceStore = Substitute.For<IInstanceStore>();
             _metadataStore = storagefixture.MetadataStore;
             _eTagGenerator = Substitute.For<IETagGenerator>();

@@ -5,6 +5,7 @@
 
 using System.IO;
 using Dicom;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Extensions
 {
@@ -14,6 +15,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
         {
             using (MemoryStream ms = new MemoryStream())
             {
+                EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
                 dicomFile.Save(ms);
                 return ms.ToArray();
             }
