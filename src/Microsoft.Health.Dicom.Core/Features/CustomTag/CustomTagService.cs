@@ -5,10 +5,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
@@ -18,18 +23,21 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         private readonly ICustomTagStore _customTagStore;
         private readonly IReindexJob _reindexJob;
         private readonly ICustomTagEntryValidator _customTagEntryValidator;
+        private readonly IDicomTagParser _dicomTagParser;
         private readonly ILogger<CustomTagService> _logger;
 
-        public CustomTagService(ICustomTagStore customTagStore, IReindexJob reindexJob, ICustomTagEntryValidator customTagEntryValidator, ILogger<CustomTagService> logger)
+        public CustomTagService(ICustomTagStore customTagStore, IReindexJob reindexJob, ICustomTagEntryValidator customTagEntryValidator, IDicomTagParser dicomTagParser, ILogger<CustomTagService> logger)
         {
             EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
             EnsureArg.IsNotNull(reindexJob, nameof(reindexJob));
             EnsureArg.IsNotNull(customTagEntryValidator, nameof(customTagEntryValidator));
+            EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _customTagStore = customTagStore;
             _reindexJob = reindexJob;
             _customTagEntryValidator = customTagEntryValidator;
+            _dicomTagParser = dicomTagParser;
             _logger = logger;
         }
 
@@ -45,21 +53,34 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             // 4. What if fail out during update custom tag status
 
             // Validate input
-            _customTagEntryValidator.ValidateCustomTags(customTags, fillVRIfMissing: true);
+            _customTagEntryValidator.ValidateCustomTags(customTags);
 
             Dictionary<long, CustomTagStoreEntry> addedTags = new Dictionary<long, CustomTagStoreEntry>();
-            foreach (var tag in customTags)
+            foreach (var customTag in customTags)
             {
                 try
                 {
                     CustomTagStatus initStatus = CustomTagStatus.Reindexing;
-                    long key = await _customTagStore.AddCustomTagAsync(tag.Path, tag.VR, tag.Level, initStatus);
-                    CustomTagStoreEntry storeEntry = new CustomTagStoreEntry(key, tag.Path, tag.VR, tag.Level, initStatus);
+
+                    // we only support path that has 1 attrubteId for now, will support path which is composed of multiple attributeId later (e.g: 00100010.00100020)
+                    DicomTag[] tags;
+                    if (!_dicomTagParser.TryParse(customTag.Path, out tags, supportMultiple: false))
+                    {
+                        // not a valid dicom tag path
+                        throw new CustomTagEntryValidationException(
+                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, customTag));
+                    }
+
+                    DicomTag tag = tags[0];
+                    string path = tag.GetPath();
+                    string vr = tag.GetDefaultVR().Code;
+                    long key = await _customTagStore.AddCustomTagAsync(path, vr, customTag.Level, initStatus);
+                    CustomTagStoreEntry storeEntry = new CustomTagStoreEntry(key, path, vr, customTag.Level, initStatus);
                     addedTags.Add(key, storeEntry);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogCritical(ex, "Failed to add custom tag {tag}.", tag);
+                    _logger.LogCritical(ex, "Failed to add custom tag {tag}.", customTag);
 
                     // clean up
                     foreach (var tagkey in addedTags.Keys)

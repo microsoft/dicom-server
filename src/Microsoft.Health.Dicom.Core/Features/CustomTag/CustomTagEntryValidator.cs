@@ -11,6 +11,7 @@ using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query;
 
@@ -52,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             _dicomTagParser = dicomTagParser;
         }
 
-        public void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries, bool fillVRIfMissing)
+        public void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries)
         {
             EnsureArg.IsNotNull(customTagEntries, nameof(customTagEntries));
             if (customTagEntries.Count() == 0)
@@ -63,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             HashSet<string> pathSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (CustomTagEntry tagEntry in customTagEntries)
             {
-                ValidateCustomTagEntry(tagEntry, fillVRIfMissing);
+                ValidateCustomTagEntry(tagEntry);
 
                 // don't allow duplicated path
                 if (pathSet.Contains(tagEntry.Path))
@@ -80,7 +81,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// Validate custom tag entry.
         /// </summary>
         /// <param name="tagEntry">the tag entry.</param>
-        private void ValidateCustomTagEntry(CustomTagEntry tagEntry, bool fillVRIfMissing)
+        private void ValidateCustomTagEntry(CustomTagEntry tagEntry)
         {
             DicomTag tag = ParseTag(tagEntry.Path);
 
@@ -110,15 +111,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 if (string.IsNullOrWhiteSpace(tagEntry.VR))
                 {
                     // When VR is missing for standard tag, still need to verify VRCode
-                    string vrCode = tag.DictionaryEntry.ValueRepresentations[0].Code;
+                    string vrCode = tag.GetDefaultVR()?.Code;
 
                     EnsureVRIsSupported(vrCode);
-
-                    // fill VR if missing
-                    if (fillVRIfMissing)
-                    {
-                        tagEntry.VR = vrCode;
-                    }
                 }
                 else
                 {
