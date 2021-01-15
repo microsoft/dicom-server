@@ -88,27 +88,32 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                     }
                     catch (Exception ex)
                     {
-                        ErrorType errorType = ErrorType.IntransientError;
-                        if (ex is RetryableException)
+                        if (ex is FhirNonRetryableException || ex is DicomTagException)
                         {
-                            errorType = ErrorType.TransientFailure;
-                        }
+                            string studyUid = changeFeedEntry.StudyInstanceUid;
+                            string seriesUid = changeFeedEntry.SeriesInstanceUid;
+                            string instanceUid = changeFeedEntry.SopInstanceUid;
+                            long changeFeedSequence = changeFeedEntry.Sequence;
 
-                        string studyUid = changeFeedEntry.StudyInstanceUid;
-                        string seriesUid = changeFeedEntry.SeriesInstanceUid;
-                        string instanceUid = changeFeedEntry.SopInstanceUid;
-                        long changeFeedSequence = changeFeedEntry.Sequence;
+                            ErrorType errorType = ErrorType.FhirError;
 
-                        await _exceptionStore.StoreException(
-                            studyUid,
-                            seriesUid,
-                            instanceUid,
-                            changeFeedSequence,
+                            if (ex is DicomTagException)
+                            {
+                                errorType = ErrorType.DicomError;
+                            }
+
+                            await _exceptionStore.WriteExceptionAsync(
+                            changeFeedEntry,
                             ex,
                             errorType,
                             cancellationToken);
 
-                        _logger.LogInformation("Failed to process DICOM event with SequenceID: {sequenceId}, StudyUid: {studyUid}, SeriesUid: {seriesUid}, instanceUid: {instanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyUid, seriesUid, instanceUid);
+                            _logger.LogInformation("Failed to process DICOM event with SequenceID: {sequenceId}, StudyUid: {studyUid}, SeriesUid: {seriesUid}, instanceUid: {instanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyUid, seriesUid, instanceUid);
+                        }
+                        else
+                        {
+                            throw;
+                        }
                     }
                 }
 

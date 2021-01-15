@@ -17,12 +17,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     public class PatientNameSynchronizer : IPatientPropertySynchronizer
     {
         /// <inheritdoc/>
-        public bool IsRequired()
-        {
-            return false;
-        }
-
-        /// <inheritdoc/>
         public void Synchronize(DicomDataset dataset, Patient patient, bool isNewPatient)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));

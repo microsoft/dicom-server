@@ -4,14 +4,26 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using Dicom;
+using Hl7.Fhir.Model;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+using NSubstitute;
 using Xunit;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
 {
     public class ImagingStudyPipelineHelperTests
     {
+        private const string DefaultStudyInstanceUid = "111";
+        private const string DefaultSeriesInstanceUid = "222";
+        private const string DefaultSopInstanceUid = "333";
+        private const string DefaultPatientResourceId = "555";
+
+        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+
         [Fact]
         public void GivenAChangeFeedEntryWithInvalidUtcTimeOffset_WhenDateTimeOffsetIsCalculated_ThenInvalidDicomTagValueExceptionIsThrown()
         {
@@ -48,6 +60,42 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             string accessionNumber = "01234";
             var result = ImagingStudyPipelineHelper.GetAccessionNumber(accessionNumber);
             ValidationUtility.ValidateAccessionNumber(null, accessionNumber, result);
+        }
+
+        [Fact]
+        public async Task SyncPropertiesAsync_PartialValidationNotEnabled_ThrowsError()
+        {
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+
+            Action<ImagingStudy, FhirTransactionContext> actionSubstitute = Substitute.For<Action<ImagingStudy, FhirTransactionContext>>();
+            actionSubstitute.When(x => x.Invoke(imagingStudy, context)).Do(x => throw new InvalidDicomTagValueException("invalid tag", "invalid tag"));
+
+            await Assert.ThrowsAsync<InvalidDicomTagValueException>(() => ImagingStudyPipelineHelper.SynchronizePropertiesAsync(imagingStudy, context, actionSubstitute, false, false, _exceptionStore));
+        }
+
+        [Fact]
+        public async Task SyncPropertiesAsync_PartialValidationEnabledAndPropertyRequired_ThrowsError()
+        {
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+
+            Action<ImagingStudy, FhirTransactionContext> actionSubstitute = Substitute.For<Action<ImagingStudy, FhirTransactionContext>>();
+            actionSubstitute.When(x => x.Invoke(imagingStudy, context)).Do(x => throw new InvalidDicomTagValueException("invalid tag", "invalid tag"));
+
+            await Assert.ThrowsAsync<InvalidDicomTagValueException>(() => ImagingStudyPipelineHelper.SynchronizePropertiesAsync(imagingStudy, context, actionSubstitute, true, true, _exceptionStore));
+        }
+
+        [Fact]
+        public async Task SyncPropertiesAsync_PartialValidationEnabledAndPropertyNotRequired_NoError()
+        {
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+
+            Action<ImagingStudy, FhirTransactionContext> actionSubstitute = Substitute.For<Action<ImagingStudy, FhirTransactionContext>>();
+            actionSubstitute.When(x => x.Invoke(imagingStudy, context)).Do(x => throw new InvalidDicomTagValueException("invalid tag", "invalid tag"));
+
+            await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(imagingStudy, context, actionSubstitute, false, true, _exceptionStore);
         }
     }
 }

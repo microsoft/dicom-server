@@ -6,9 +6,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Dicom;
 using EnsureThat;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities;
@@ -33,7 +35,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc/>
-        public async Task StoreExceptionToTable(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken)
+        public async Task StoreExceptionToTable(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken)
         {
             CloudTable table;
             TableEntity entity;
@@ -41,8 +43,11 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             switch (errorType)
             {
-                case ErrorType.IntransientError:
-                    tableName = Constants.IntransientExceptionTableName;
+                case ErrorType.FhirError:
+                    tableName = Constants.FhirExceptionTableName;
+                    break;
+                case ErrorType.DicomError:
+                    tableName = Constants.DicomExceptionTableName;
                     break;
                 case ErrorType.DicomValidationError:
                     tableName = Constants.DicomValidationTableName;
@@ -56,6 +61,12 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
                 default:
                     return;
             }
+
+            DicomDataset dataset = changeFeedEntry.Metadata;
+            string studyUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            string seriesUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            string instanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+            long changeFeedSequence = changeFeedEntry.Sequence;
 
             table = _client.GetTableReference(tableName);
             entity = new IntransientEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore);

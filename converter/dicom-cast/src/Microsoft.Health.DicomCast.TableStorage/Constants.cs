@@ -9,15 +9,17 @@ namespace Microsoft.Health.DicomCast.TableStorage
 {
     internal static class Constants
     {
-        public const string IntransientExceptionTableName = "IntransientExceptionTable";
+        public const string FhirExceptionTableName = "FhirFailToStoreExceptionTable";
 
-        public const string DicomValidationTableName = "DicomValidationExceptionTable";
+        public const string DicomExceptionTableName = "DicomFailToStoreExceptionTable";
+
+        public const string DicomValidationTableName = "InvalidDicomTagExceptionTable";
 
         public const string TransientFailureTableName = "TransientFailureExceptionTable";
 
         public const string TransientRetryTableName = "TransientRetryExceptionTable";
 
         // List of all the tables that need to be initialized
-        public static readonly IEnumerable<string> AllTables = new List<string>() { IntransientExceptionTableName, DicomValidationTableName, TransientFailureTableName, TransientRetryTableName };
+        public static readonly IEnumerable<string> AllTables = new List<string>() { FhirExceptionTableName, DicomExceptionTableName, TransientFailureTableName, DicomValidationTableName, TransientRetryTableName };
     }
 }

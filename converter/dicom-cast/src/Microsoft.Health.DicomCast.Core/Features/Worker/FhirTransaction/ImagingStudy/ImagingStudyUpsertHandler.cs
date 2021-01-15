@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
@@ -73,7 +74,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 requestMode = FhirTransactionRequestMode.Create;
             }
 
-            SynchronizeImagingStudyProperties(context, imagingStudy, cancellationToken);
+            await SynchronizeImagingStudyPropertiesAsync(context, imagingStudy, cancellationToken);
 
             if (requestMode != FhirTransactionRequestMode.Create &&
                 !existingImagingStudy.IsExactly(imagingStudy))
@@ -101,14 +102,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 imagingStudy);
         }
 
-        private void SynchronizeImagingStudyProperties(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
+        private async Task SynchronizeImagingStudyPropertiesAsync(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
         {
-            _imagingStudySynchronizer.SynchronizeStudyProperties(context, imagingStudy, cancellationToken);
+            await _imagingStudySynchronizer.SynchronizeStudyPropertiesAsync(context, imagingStudy, cancellationToken);
 
-            AddSeriesToImagingStudy(context, imagingStudy, cancellationToken);
+            await AddSeriesToImagingStudyAsync(context, imagingStudy, cancellationToken);
         }
 
-        private void AddSeriesToImagingStudy(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
+        private async Task AddSeriesToImagingStudyAsync(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
         {
             ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
 
@@ -146,8 +147,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 }
             }
 
-            _imagingStudySynchronizer.SynchronizeSeriesProperties(context, series, cancellationToken);
-            _imagingStudySynchronizer.SynchronizeInstanceProperties(context, instance, cancellationToken);
+            await _imagingStudySynchronizer.SynchronizeSeriesPropertiesAsync(context, series, cancellationToken);
+            await _imagingStudySynchronizer.SynchronizeInstancePropertiesAsync(context, instance, cancellationToken);
         }
     }
 }
