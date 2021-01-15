@@ -10,6 +10,7 @@ using Dicom;
 using Hl7.Fhir.Model;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
+using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using NSubstitute;
@@ -35,7 +36,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             _dicomCastConfig.Features.IgnoreSyncOfInvalidTagValue = false;
 
-            _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new Exception(); });
+            _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new InvalidDicomTagValueException("invalid tag", "invalid tag"); });
 
             IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers = new List<IPatientPropertySynchronizer>()
             {
@@ -47,7 +48,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             FhirTransactionContext context = new FhirTransactionContext(ChangeFeedGenerator.Generate(metadata: DefaultDicomDataset));
             var patient = new Patient();
 
-            await Assert.ThrowsAsync<Exception>(() => patientSynchronizer.SynchronizeAsync(context, patient, false, DefaultCancellationToken));
+            await Assert.ThrowsAsync<InvalidDicomTagValueException>(() => patientSynchronizer.SynchronizeAsync(context, patient, false, DefaultCancellationToken));
         }
 
         [Fact]
@@ -55,7 +56,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             _dicomCastConfig.Features.IgnoreSyncOfInvalidTagValue = true;
 
-            _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new Exception(); });
+            _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new InvalidDicomTagValueException("invalid tag", "invalid tag"); });
 
             IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers = new List<IPatientPropertySynchronizer>()
             {
