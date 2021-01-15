@@ -10,7 +10,7 @@
     <!--This will target the latest patch release of the runtime released with the current SDK.  -->
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <SdkPackageVersion>3.1.8</SdkPackageVersion>
-    <HealthcareSharedPackageVersion>1.0.80</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>1.1.0</HealthcareSharedPackageVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(EnableSourceLink)' == 'true' ">
