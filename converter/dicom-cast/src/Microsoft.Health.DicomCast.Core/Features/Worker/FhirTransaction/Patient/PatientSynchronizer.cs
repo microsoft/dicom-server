@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Dicom;
@@ -11,6 +10,7 @@ using EnsureThat;
 using Hl7.Fhir.Model;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
+using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Task = System.Threading.Tasks.Task;
 
@@ -53,7 +53,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 {
                     patientPropertySynchronizer.Synchronize(dataset, patient, isNewPatient);
                 }
-                catch (Exception ex)
+                catch (DicomTagException ex)
                 {
                     if (_dicomCastconfiguration.Features.IgnoreSyncOfInvalidTagValue)
                     {
