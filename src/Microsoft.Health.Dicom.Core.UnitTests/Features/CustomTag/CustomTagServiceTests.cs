@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 using Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag;
@@ -30,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             _reindexJob = Substitute.For<IReindexJob>();
             _customTagEntryValidator = Substitute.For<ICustomTagEntryValidator>();
             _customTagStore = Substitute.For<ICustomTagStore>();
-            _customTagService = new CustomTagService(_customTagStore, _reindexJob, _customTagEntryValidator, NullLogger<CustomTagService>.Instance);
+            _customTagService = new CustomTagService(_customTagStore, _reindexJob, _customTagEntryValidator, new DicomTagParser(), NullLogger<CustomTagService>.Instance);
         }
 
         [Fact]
@@ -44,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             AddCustomTagResponse response = await _customTagService.AddCustomTagAsync(entries);
 
             _customTagEntryValidator.ReceivedWithAnyArgs()
-               .ValidateCustomTags(default, default);
+               .ValidateCustomTags(default);
 
             await _customTagStore.ReceivedWithAnyArgs()
                 .GetLatestInstanceAsync(default);
@@ -56,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Fact]
         public async Task GivenInvalidInput_WhenAddCustomTagIsInvoked_ThenShouldFailAtValidation()
         {
-            _customTagEntryValidator.WhenForAnyArgs(x => x.ValidateCustomTags(default, default))
+            _customTagEntryValidator.WhenForAnyArgs(x => x.ValidateCustomTags(default))
                 .Throw(new Exception());
             IEnumerable<CustomTagEntry> entries = new CustomTagEntry[]
             {
@@ -93,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         }
 
         [Fact]
-        public async Task GivenValidInput_WhenThereIsNoInstance_ThenShouldNotReinde()
+        public async Task GivenValidInput_WhenThereIsNoInstance_ThenShouldNotReindex()
         {
             _customTagStore.GetLatestInstanceAsync(default)
                 .ReturnsForAnyArgs((long?)null);
@@ -107,6 +109,26 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
             await _reindexJob.DidNotReceiveWithAnyArgs()
                 .ReindexAsync(default, default, default);
+        }
+
+        [Fact]
+        public async Task GivenKeywordAsTagPath_WhenAddCustomTagIsInvoked_ThenShouldConvertToAttributeId()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            CustomTagEntry entry = new CustomTagEntry(path: tag.DictionaryEntry.Keyword, tag.GetDefaultVR().Code, CustomTagLevel.Instance);
+            IEnumerable<CustomTagEntry> entries = new CustomTagEntry[] { entry };
+            AddCustomTagResponse response = await _customTagService.AddCustomTagAsync(entries);
+            await _customTagStore.Received(1).AddCustomTagAsync(tag.GetPath(), entry.VR, entry.Level, Arg.Any<CustomTagStatus>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenStandardTagWithoutVR_WhenAddCustomTagIsInvoked_ThenShouldUseDefaultVR()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            CustomTagEntry entry = new CustomTagEntry(path: tag.GetPath(), string.Empty, CustomTagLevel.Instance);
+            IEnumerable<CustomTagEntry> entries = new CustomTagEntry[] { entry };
+            AddCustomTagResponse response = await _customTagService.AddCustomTagAsync(entries);
+            await _customTagStore.Received(1).AddCustomTagAsync(entry.Path, tag.GetDefaultVR().Code, entry.Level, Arg.Any<CustomTagStatus>(), Arg.Any<CancellationToken>());
         }
     }
 }
