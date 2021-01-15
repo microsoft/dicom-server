@@ -6,18 +6,20 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Dicom;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
-    public interface IReindexJob
+    public interface ICustomTagIndexService
     {
         /// <summary>
-        /// Reindex through ealiest instance till endWatermark (include endWatermark) on given customTags.
+        /// Add custom tag indexes into store.
         /// </summary>
-        /// <param name="customTagStoreEntries">The custom tag store entries.</param>
-        /// <param name="endWatermark">The end watermark.</param>
+        /// <param name="customTagIndexes">The index dictionary. Key is custom tag key, value is DicomItem.</param>
+        /// <param name="instanceIdentifier">The instance identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The result.</returns>
-        Task ReindexAsync(IEnumerable<CustomTagStoreEntry> customTagStoreEntries, long endWatermark, CancellationToken cancellationToken = default);
+        /// <returns>the task.</returns>
+        Task AddCustomTagIndexes(Dictionary<long, DicomItem> customTagIndexes, VersionedInstanceIdentifier instanceIdentifier, CancellationToken cancellationToken = default);
     }
 }

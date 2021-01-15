@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             _dicomTagParser = dicomTagParser;
         }
 
-        public void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries)
+        public void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries, bool fillVRIfMissing)
         {
             EnsureArg.IsNotNull(customTagEntries, nameof(customTagEntries));
             if (customTagEntries.Count() == 0)
@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             HashSet<string> pathSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (CustomTagEntry tagEntry in customTagEntries)
             {
-                ValidateCustomTagEntry(tagEntry);
+                ValidateCustomTagEntry(tagEntry, fillVRIfMissing);
 
                 // don't allow duplicated path
                 if (pathSet.Contains(tagEntry.Path))
@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// Validate custom tag entry.
         /// </summary>
         /// <param name="tagEntry">the tag entry.</param>
-        private void ValidateCustomTagEntry(CustomTagEntry tagEntry)
+        private void ValidateCustomTagEntry(CustomTagEntry tagEntry, bool fillVRIfMissing)
         {
             DicomTag tag = ParseTag(tagEntry.Path);
 
@@ -111,7 +111,14 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 {
                     // When VR is missing for standard tag, still need to verify VRCode
                     string vrCode = tag.DictionaryEntry.ValueRepresentations[0].Code;
+
                     EnsureVRIsSupported(vrCode);
+
+                    // fill VR if missing
+                    if (fillVRIfMissing)
+                    {
+                        tagEntry.VR = vrCode;
+                    }
                 }
                 else
                 {

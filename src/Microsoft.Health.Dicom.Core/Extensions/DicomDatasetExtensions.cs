@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
@@ -157,6 +158,38 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             {
                 dicomDataset.Add(dicomTag, value);
             }
+        }
+
+        /// <summary>
+        /// Get custom tag indexes
+        /// </summary>
+        /// <param name="dicomDataset">The dicom dataset.</param>
+        /// <param name="customTagStoreEntries">The custom tag entries stored.</param>
+        /// <returns>The indexes.</returns>
+        public static Dictionary<long, DicomItem> GetCustomTagIndexes(this DicomDataset dicomDataset, IEnumerable<CustomTagStoreEntry> customTagStoreEntries)
+        {
+            // We only support index on top level custom tag for now, will support embeded tag later.
+            Dictionary<long, DicomItem> indexes = new Dictionary<long, DicomItem>();
+            Dictionary<string, CustomTagStoreEntry> tagPathDictionary = customTagStoreEntries.ToDictionary(keySelector: item => item.Path, comparer: StringComparer.OrdinalIgnoreCase);
+            if (tagPathDictionary.Count != 0)
+            {
+                foreach (var item in dicomDataset)
+                {
+                    string path = item.Tag.GetPath();
+                    if (tagPathDictionary.ContainsKey(path))
+                    {
+                        CustomTagStoreEntry entry = tagPathDictionary[path];
+
+                        // check if VR match
+                        if (string.Equals(entry.VR, item.ValueRepresentation.Code, StringComparison.OrdinalIgnoreCase))
+                        {
+                            indexes[entry.Key] = item;
+                        }
+                    }
+                }
+            }
+
+            return indexes;
         }
     }
 }
