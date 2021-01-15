@@ -3,15 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System;
 
-namespace Microsoft.Health.DicomCast.TableStorage
+namespace Microsoft.Health.DicomCast.Core.Exceptions
 {
-    internal static class Constants
+    public class DicomTagException : Exception
     {
-        public const string FhirTableName = "FhirExceptionTable";
+        protected DicomTagException(string message)
+            : base(message)
+        {
+        }
 
-        // List of all the tables that need to be initialized
-        public static readonly IEnumerable<string> AllTables = new List<string>() { FhirTableName };
+        protected DicomTagException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
     }
 }

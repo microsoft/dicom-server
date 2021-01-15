@@ -6,17 +6,44 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Dicom;
 using EnsureThat;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
     public class ImagingStudyPropertySynchronizer : IImagingStudyPropertySynchronizer
     {
+        private readonly DicomCastConfiguration _dicomCastConfiguration;
+        private readonly IExceptionStore _exceptionStore;
+        private IEnumerable<(Action<ImagingStudy, FhirTransactionContext> PropertyAction, bool RequiredProperty)> propertiesToSync = new List<(Action<ImagingStudy, FhirTransactionContext>, bool)>()
+            {
+                (AddStartedElement, false),
+                (AddImagingStudyEndpoint, false),
+                (AddModality, false),
+                (AddNote, false),
+                (AddAccessionNumber, false),
+            };
+
+        public ImagingStudyPropertySynchronizer(
+            IOptions<DicomCastConfiguration> dicomCastConfiguration,
+            IExceptionStore exceptionStore)
+        {
+            EnsureArg.IsNotNull(dicomCastConfiguration, nameof(dicomCastConfiguration));
+            EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
+
+            _dicomCastConfiguration = dicomCastConfiguration.Value;
+            _exceptionStore = exceptionStore;
+        }
+
         /// <inheritdoc/>
-        public void Synchronize(FhirTransactionContext context, ImagingStudy imagingStudy)
+        public async Task SynchronizeAsync(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(imagingStudy, nameof(imagingStudy));
@@ -30,17 +57,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 return;
             }
 
-            ImagingStudyPipelineHelper.SetDateTimeOffSet(context);
-
-            AddStartedElement(imagingStudy, dataset, context.UtcDateTimeOffset);
-            AddImagingStudyEndpoint(imagingStudy, context);
-            AddModality(imagingStudy, dataset);
-            AddNote(imagingStudy, dataset);
-            AddAccessionNumber(imagingStudy, dataset);
+            foreach (var property in propertiesToSync)
+            {
+                await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(imagingStudy, context, property.PropertyAction, property.RequiredProperty, _dicomCastConfiguration.Features.IgnoreSyncOfInvalidTagValue, _exceptionStore, cancellationToken);
+            }
         }
 
-        private static void AddNote(ImagingStudy imagingStudy, DicomDataset dataset)
+        private static void AddNote(ImagingStudy imagingStudy, FhirTransactionContext context)
         {
+            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
             if (dataset.TryGetSingleValue(DicomTag.StudyDescription, out string description))
             {
                 if (!imagingStudy.Note.Any(note => string.Equals(note.Text.Value, description, StringComparison.Ordinal)))
@@ -55,7 +80,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
         }
 
-        private void AddImagingStudyEndpoint(ImagingStudy imagingStudy, FhirTransactionContext context)
+        private static void AddImagingStudyEndpoint(ImagingStudy imagingStudy, FhirTransactionContext context)
         {
             var endpointReference = context.Request.Endpoint.ResourceId.ToResourceReference();
 
@@ -65,13 +90,18 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
         }
 
-        private void AddStartedElement(ImagingStudy imagingStudy, DicomDataset dataset, TimeSpan utcOffset)
+        private static void AddStartedElement(ImagingStudy imagingStudy, FhirTransactionContext context)
         {
+            ImagingStudyPipelineHelper.SetDateTimeOffSet(context);
+            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
+            TimeSpan utcOffset = context.UtcDateTimeOffset;
+
             imagingStudy.StartedElement = dataset.GetDateTimePropertyIfNotDefaultValue(DicomTag.StudyDate, DicomTag.StudyTime, utcOffset);
         }
 
-        private void AddModality(ImagingStudy imagingStudy, DicomDataset dataset)
+        private static void AddModality(ImagingStudy imagingStudy, FhirTransactionContext context)
         {
+            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
             string modalityInString = ImagingStudyPipelineHelper.GetModalityInString(dataset);
 
             if (modalityInString != null)
@@ -88,8 +118,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
         }
 
-        private void AddAccessionNumber(ImagingStudy imagingStudy, DicomDataset dataset)
+        private static void AddAccessionNumber(ImagingStudy imagingStudy, FhirTransactionContext context)
         {
+            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
             string accessionNumber = ImagingStudyPipelineHelper.GetAccessionNumberInString(dataset);
             if (accessionNumber != null)
             {

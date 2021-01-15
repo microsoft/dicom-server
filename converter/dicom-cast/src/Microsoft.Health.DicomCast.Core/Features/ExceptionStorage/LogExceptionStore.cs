@@ -5,8 +5,11 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
+using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Client.Models;
 
 namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
@@ -26,9 +29,16 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         }
 
         /// <inheritdoc/>
-        public void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default)
+        public Task WriteExceptionAsync(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation(exceptionToStore, "Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}.", changeFeedSequence, studyUid, seriesUid, instanceUid);
+            DicomDataset dataset = changeFeedEntry.Metadata;
+            string studyUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            string seriesUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            string instanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+            long changeFeedSequence = changeFeedEntry.Sequence;
+
+            _logger.LogInformation("Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}.", changeFeedSequence, studyUid, seriesUid, instanceUid);
+            return Task.CompletedTask;
         }
     }
 }

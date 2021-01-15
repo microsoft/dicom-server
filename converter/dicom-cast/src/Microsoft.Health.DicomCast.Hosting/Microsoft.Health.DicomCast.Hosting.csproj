@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Table\Microsoft.Health.DicomCast.TableStorage.csproj" />
     <ProjectReference Include="..\Microsoft.Health.DicomCast.Blob\Microsoft.Health.DicomCast.Blob.csproj" />
     <ProjectReference Include="..\Microsoft.Health.DicomCast.Core\Microsoft.Health.DicomCast.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.DicomCast.TableStorage\Microsoft.Health.DicomCast.TableStorage.csproj" />
   </ItemGroup>
 </Project>
