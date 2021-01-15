@@ -16,6 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// Validate if given custom tag entries are valid.
         /// </summary>
         /// <param name="customTagEntries">The custom tag entries</param>
-        void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries);
+        /// <param name="fillVRIfMissing">Fill VR if missing</param>
+        void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries, bool fillVRIfMissing);
     }
 }

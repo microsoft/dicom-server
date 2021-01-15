@@ -11,6 +11,8 @@ using System.Text;
 using Dicom;
 using Dicom.Serialization;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -222,6 +224,50 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
                 return result.ToString();
             }
+        }
+
+        [Fact]
+        public void GivenDicomDatasetContainsCustomTag_WhenGetCustomTagIndexes_ThenShouldReturnMatchingDicomItem()
+        {
+            DicomTag dicomTag = DicomTag.DeviceSerialNumber;
+            DicomLongString dicomElement = new DicomLongString(dicomTag, "TestDeviceSN");
+            DicomDataset dataset = new DicomDataset(dicomElement);
+            CustomTagStoreEntry customTagStoreEntry = dicomTag.BuildCustomTagStoreEntry();
+            Dictionary<long, DicomItem> expectedResult = new Dictionary<long, DicomItem>()
+            {
+                { customTagStoreEntry.Key, dicomElement },
+            };
+            Dictionary<long, DicomItem> result = dataset.GetCustomTagIndexes(new CustomTagStoreEntry[] { customTagStoreEntry });
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Fact]
+        public void GivenDicomDatasetNotContainsCustomTag_WhenGetCustomTagIndexes_ThenShouldReturnEmptyDictionary()
+        {
+            DicomTag dicomTag = DicomTag.DeviceSerialNumber;
+            DicomLongString dicomElement = new DicomLongString(dicomTag, "TestDeviceSN");
+            DicomDataset dataset = new DicomDataset(dicomElement);
+
+            CustomTagStoreEntry customTagEntry = DicomTag.AccessionNumber.BuildCustomTagStoreEntry();
+
+            Dictionary<long, DicomItem> result = dataset.GetCustomTagIndexes(new CustomTagStoreEntry[] { customTagEntry });
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void GivenDicomDatasetContainsgDuplicateCustomTag_WhenGetCustomTagIndexes_ThenShouldReturnLastOne()
+        {
+            DicomTag dicomTag = DicomTag.DeviceSerialNumber;
+            DicomLongString dicomElement1 = new DicomLongString(dicomTag, "TestDeviceSN1");
+            DicomLongString dicomElement2 = new DicomLongString(dicomTag, "TestDeviceSN2");
+            DicomDataset dataset = new DicomDataset(dicomElement1, dicomElement2);
+            CustomTagStoreEntry customTagStoreEntry = dicomTag.BuildCustomTagStoreEntry();
+            Dictionary<long, DicomItem> expectedResult = new Dictionary<long, DicomItem>()
+            {
+                { customTagStoreEntry.Key, dicomElement2 },
+            };
+            Dictionary<long, DicomItem> result = dataset.GetCustomTagIndexes(new CustomTagStoreEntry[] { customTagStoreEntry });
+            Assert.Equal(expectedResult, result);
         }
     }
 }

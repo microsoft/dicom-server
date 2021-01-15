@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             AddCustomTagResponse response = await _customTagService.AddCustomTagAsync(entries);
 
             _customTagEntryValidator.ReceivedWithAnyArgs()
-               .ValidateCustomTags(default);
+               .ValidateCustomTags(default, default);
 
             await _customTagStore.ReceivedWithAnyArgs()
                 .GetLatestInstanceAsync(default);
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Fact]
         public async Task GivenInvalidInput_WhenAddCustomTagIsInvoked_ThenShouldFailAtValidation()
         {
-            _customTagEntryValidator.WhenForAnyArgs(x => x.ValidateCustomTags(default))
+            _customTagEntryValidator.WhenForAnyArgs(x => x.ValidateCustomTags(default, default))
                 .Throw(new Exception());
             IEnumerable<CustomTagEntry> entries = new CustomTagEntry[]
             {

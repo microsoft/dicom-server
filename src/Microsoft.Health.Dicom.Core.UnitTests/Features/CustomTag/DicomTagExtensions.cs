@@ -15,5 +15,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         {
             return new CustomTagEntry(path: tag.GetPath(), vr: tag.DictionaryEntry.ValueRepresentations[0].Code, level: level);
         }
+
+        public static CustomTagStoreEntry BuildCustomTagStoreEntry(this DicomTag tag, long key = 1, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Reindexing)
+        {
+            return new CustomTagStoreEntry(key: key, path: tag.GetPath(), vr: tag.DictionaryEntry.ValueRepresentations[0].Code, level: level, status: status);
+        }
     }
 }
