@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Task = System.Threading.Tasks.Task;
@@ -88,7 +89,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                     }
                     catch (Exception ex)
                     {
-                        if (ex is FhirNonRetryableException || ex is DicomTagException)
+                        if (ex is FhirNonRetryableException || ex is DicomTagException || ex is RetryableException)
                         {
                             string studyUid = changeFeedEntry.StudyInstanceUid;
                             string seriesUid = changeFeedEntry.SeriesInstanceUid;
@@ -100,6 +101,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                             if (ex is DicomTagException)
                             {
                                 errorType = ErrorType.DicomError;
+                            }
+                            else if (ex is RetryableException)
+                            {
+                                errorType = ErrorType.TransientFailure;
                             }
 
                             await _exceptionStore.WriteExceptionAsync(

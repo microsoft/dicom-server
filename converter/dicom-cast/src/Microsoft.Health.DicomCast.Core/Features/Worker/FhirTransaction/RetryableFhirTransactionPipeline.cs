@@ -56,18 +56,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                         {
                             RetryableException ex = (RetryableException)exception;
                             ChangeFeedEntry changeFeedEntry = ex.ChangeFeedEntry;
-                            string studyUid = changeFeedEntry.StudyInstanceUid;
-                            string seriesUid = changeFeedEntry.SeriesInstanceUid;
-                            string instanceUid = changeFeedEntry.SopInstanceUid;
-                            long changeFeedSequence = changeFeedEntry.Sequence;
 
                             // Todo need to overload the storeException method to store the retry number as well and figure out the cancellation token 
 
-                            await _exceptionStore.StoreException(
-                                studyUid,
-                                seriesUid,
-                                instanceUid,
-                                changeFeedSequence,
+                            await _exceptionStore.WriteExceptionAsync(
+                                changeFeedEntry,
                                 ex,
                                 ErrorType.TransientRetry);
                         }

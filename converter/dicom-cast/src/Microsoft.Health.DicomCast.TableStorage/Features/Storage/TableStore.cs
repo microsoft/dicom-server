@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities;
+using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entities;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
@@ -81,6 +82,34 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             catch
             {
                 _logger.LogInformation("Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Failed to store to table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task StoreRetryableExceptionToTable(ChangeFeedEntry changeFeedEntry, int retryNum, Exception exceptionToStore, CancellationToken cancellationToken)
+        {
+            string tableName = Constants.TransientRetryTableName;
+
+            DicomDataset dataset = changeFeedEntry.Metadata;
+            string studyUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            string seriesUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            string instanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+            long changeFeedSequence = changeFeedEntry.Sequence;
+
+            CloudTable table = _client.GetTableReference(tableName);
+            TableEntity entity = new RetryableEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, retryNum, exceptionToStore);
+
+            TableOperation operation = TableOperation.InsertOrMerge(entity);
+
+            try
+            {
+                await table.ExecuteAsync(operation, cancellationToken);
+                _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Retried {retryNum} times. Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, tableName, retryNum);
+            }
+            catch
+            {
+                _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Retried {retryNum} times. Failed to store to table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid);
                 throw;
             }
         }

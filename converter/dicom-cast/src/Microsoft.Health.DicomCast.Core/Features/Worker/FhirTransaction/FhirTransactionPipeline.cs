@@ -10,7 +10,6 @@ using EnsureThat;
 using Hl7.Fhir.Model;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Exceptions;
-using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Task = System.Threading.Tasks.Task;
 
