@@ -16,12 +16,17 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         Transient,
 
         /// <summary>
-        /// An intransient error that occurs which is not resolvable and thus fail to store to fhir
+        /// An intransient error caused by fhir server that has caused a failure to sync to fhir
         /// </summary>
-        IntransientError,
+        FhirError,
 
         /// <summary>
-        /// An intransient error that occurered due to invalid data for a non required entry in the DICOM change feed entry
+        /// An intransient error caused by an invalid dicom value that has caused a failure to sync to fhir
+        /// </summary>
+        DicomError,
+
+        /// <summary>
+        /// An intransient error that occurered due to invalid data for a non required entry in the DICOM change feed entry. Does not mean failed to sync to fhir yet
         /// </summary>
         DicomValidationError,
     }

@@ -43,8 +43,11 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             switch (errorType)
             {
-                case ErrorType.IntransientError:
-                    tableName = Constants.IntransientExceptionTableName;
+                case ErrorType.FhirError:
+                    tableName = Constants.FhirExceptionTableName;
+                    break;
+                case ErrorType.DicomError:
+                    tableName = Constants.DicomExceptionTableName;
                     break;
                 case ErrorType.DicomValidationError:
                     tableName = Constants.DicomValidationTableName;

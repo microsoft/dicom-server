@@ -13,6 +13,7 @@ using Dicom;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
+using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Task = System.Threading.Tasks.Task;
@@ -134,7 +135,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             {
                 synchronizeAction(component, context);
             }
-            catch (Exception ex)
+            catch (DicomTagException ex)
             {
                 if (partialValidation && !requiredProperty)
                 {
