@@ -88,11 +88,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; has already been supported..
+        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; already exists..
         /// </summary>
-        internal static string CustomTagAlreadySupported {
+        internal static string CustomTagAlreadyExists {
             get {
-                return ResourceManager.GetString("CustomTagAlreadySupported", resourceCulture);
+                return ResourceManager.GetString("CustomTagAlreadyExists", resourceCulture);
             }
         }
         

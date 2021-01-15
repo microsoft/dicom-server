@@ -269,8 +269,9 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
     <value>The request contains multiple accept headers, which is not supported.</value>
   </data>
-  <data name="CustomTagAlreadySupported" xml:space="preserve">
-    <value>The custom tag '{0}' has already been supported.</value>
+  <data name="CustomTagAlreadyExists" xml:space="preserve">
+    <value>The custom tag '{0}' already exists.</value>
+    <comment>{0} Dicom Tag</comment>
   </data>
   <data name="DuplicateCustomTag" xml:space="preserve">
     <value>The custom tag '{0}' has been specified before.</value>
