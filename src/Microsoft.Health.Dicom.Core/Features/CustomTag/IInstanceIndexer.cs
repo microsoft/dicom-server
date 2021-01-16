@@ -10,6 +10,9 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
+    /// <summary>
+    /// Index a dicom instance.
+    /// </summary>
     public interface IInstanceIndexer
     {
         /// <summary>

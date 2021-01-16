@@ -130,5 +130,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             AddCustomTagResponse response = await _customTagService.AddCustomTagAsync(entries);
             await _customTagStore.Received(1).AddCustomTagAsync(entry.Path, tag.GetDefaultVR().Code, entry.Level, Arg.Any<CustomTagStatus>(), Arg.Any<CancellationToken>());
         }
+
+        [Fact]
+        public async Task GivenStandardTagWithVR_WhenAddCustomTagIsInvoked_ThenShouldNotUseDefaultVR()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            CustomTagEntry entry = new CustomTagEntry(path: tag.GetPath(), DicomVR.CS.Code, CustomTagLevel.Instance); // Default VR is LO
+            IEnumerable<CustomTagEntry> entries = new CustomTagEntry[] { entry };
+            AddCustomTagResponse response = await _customTagService.AddCustomTagAsync(entries);
+            await _customTagStore.Received(1).AddCustomTagAsync(entry.Path, entry.VR, entry.Level, Arg.Any<CustomTagStatus>(), Arg.Any<CancellationToken>());
+        }
     }
 }
