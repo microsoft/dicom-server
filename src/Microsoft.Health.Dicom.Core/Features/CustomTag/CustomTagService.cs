@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 {
                     CustomTagStatus initStatus = CustomTagStatus.Reindexing;
 
-                    // we only support path that has 1 attrubteId for now, will support path which is composed of multiple attributeId later (e.g: 00100010.00100020)
+                    // we only support top level dicomtag right now, will support embeded dicomtag soon.
                     DicomTag[] tags;
                     if (!_dicomTagParser.TryParse(customTag.Path, out tags, supportMultiple: false))
                     {
@@ -73,7 +73,18 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
                     DicomTag tag = tags[0];
                     string path = tag.GetPath();
-                    string vr = tag.GetDefaultVR().Code;
+
+                    string vr = customTag.VR;
+
+                    // when VR is not specified for standard tag,
+                    if (!tag.IsPrivate && tag.DictionaryEntry != DicomDictionary.UnknownTag)
+                    {
+                        if (string.IsNullOrWhiteSpace(vr))
+                        {
+                            vr = tag.GetDefaultVR()?.Code;
+                        }
+                    }
+
                     long key = await _customTagStore.AddCustomTagAsync(path, vr, customTag.Level, initStatus);
                     CustomTagStoreEntry storeEntry = new CustomTagStoreEntry(key, path, vr, customTag.Level, initStatus);
                     addedTags.Add(key, storeEntry);
