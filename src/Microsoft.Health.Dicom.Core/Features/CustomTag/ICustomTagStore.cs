@@ -49,13 +49,13 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         Task<long?> GetLatestInstanceAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Get instances that earlier or equal to endWatermark.
+        /// Get instances with watermark upto maxWatermark.
         /// </summary>
-        /// <param name="endWatermark">The end watermark</param>
+        /// <param name="maxWatermark">The max watermark</param>
         /// <param name="top">Top X instanances.</param>
         /// <param name="indexStatus">The index status.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The instances.</returns>
-        Task<IEnumerable<VersionedInstanceIdentifier>> GetInstancesInThePastAsync(long endWatermark, int top, IndexStatus indexStatus = IndexStatus.Created, CancellationToken cancellationToken = default);
+        Task<IEnumerable<VersionedInstanceIdentifier>> GetInstancesInThePastAsync(long maxWatermark, int top, IndexStatus indexStatus = IndexStatus.Created, CancellationToken cancellationToken = default);
     }
 }
