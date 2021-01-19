@@ -67,8 +67,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             await _reindexJob.ReindexAsync(new CustomTagStoreEntry[] { testTag.BuildCustomTagStoreEntry() }, instanceId2.Version);
 
             // all instances are indexed
-            await _instanceIndexer.Received(1).IndexInstanceAsync(Arg.Any<IEnumerable<CustomTagStoreEntry>>(), instanceId2, Arg.Any<CancellationToken>());
-            await _instanceIndexer.Received(1).IndexInstanceAsync(Arg.Any<IEnumerable<CustomTagStoreEntry>>(), instanceId1, Arg.Any<CancellationToken>());
+            await _instanceIndexer.Received(1).IndexInstanceAsync(Arg.Any<Dictionary<string, CustomTagStoreEntry>>(), instanceId2, Arg.Any<CancellationToken>());
+            await _instanceIndexer.Received(1).IndexInstanceAsync(Arg.Any<Dictionary<string, CustomTagStoreEntry>>(), instanceId1, Arg.Any<CancellationToken>());
         }
     }
 }

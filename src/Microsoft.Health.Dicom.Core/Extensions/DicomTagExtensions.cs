@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Linq;
 using Dicom;
 using EnsureThat;
 
@@ -45,14 +46,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 return null;
             }
 
-            DicomVR[] vrs = dicomTag.DictionaryEntry.ValueRepresentations;
-            if (vrs.Length == 0)
-            {
-                return null;
-            }
-
-            // Use the first valid VR as default VR
-            return vrs[0];
+            return dicomTag.DictionaryEntry.ValueRepresentations.FirstOrDefault();
         }
     }
 }
