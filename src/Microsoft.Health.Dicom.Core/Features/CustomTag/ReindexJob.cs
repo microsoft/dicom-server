@@ -40,6 +40,10 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 return;
             }
 
+            Dictionary<string, CustomTagStoreEntry> tagPathDictionary = customTagStoreEntries.ToDictionary(
+                   keySelector: entry => entry.Path,
+                   comparer: StringComparer.OrdinalIgnoreCase);
+
             while (true)
             {
                 IEnumerable<VersionedInstanceIdentifier> instances = await _customTagStore.GetInstancesInThePastAsync(endWatermark, top: Top, indexStatus: IndexStatus.Created, cancellationToken);
@@ -49,17 +53,27 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 }
 
                 instances = instances.OrderByDescending(item => item.Version);
-                Dictionary<string, CustomTagStoreEntry> tagPathDictionary = customTagStoreEntries.ToDictionary(
-                    keySelector: entry => entry.Path,
-                    comparer: StringComparer.OrdinalIgnoreCase);
-                foreach (var instance in instances)
-                {
-                    await _instanceIndexer.IndexInstanceAsync(tagPathDictionary, instance, cancellationToken);
-                }
+
+                // Please note that, if reindexing any instances fails in IndexInstances, the excution throws exception and stop.
+                // Then resuming job will reindex these instances again even they have been reindexed already.
+                IndexInstances(instances, tagPathDictionary, cancellationToken);
 
                 // TODO:  Once we have job framework, job status should be saved and kept updating
                 endWatermark = instances.Last().Version - 1;
             }
+        }
+
+        private void IndexInstances(IEnumerable<VersionedInstanceIdentifier> instances, Dictionary<string, CustomTagStoreEntry> tagPathDictionary, CancellationToken cancellationToken)
+        {
+            Task[] tasks = new Task[instances.Count()];
+            int taskIndex = 0;
+            foreach (var instance in instances)
+            {
+                tasks[taskIndex] = _instanceIndexer.IndexInstanceAsync(tagPathDictionary, instance, cancellationToken);
+                taskIndex++;
+            }
+
+            Task.WaitAll(tasks, cancellationToken);
         }
     }
 }
