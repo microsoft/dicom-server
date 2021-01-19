@@ -9,7 +9,7 @@ namespace Microsoft.Health.DicomCast.Core.Exceptions
 {
     public class DicomTagException : Exception
     {
-        protected DicomTagException(string message)
+        public DicomTagException(string message)
             : base(message)
         {
         }

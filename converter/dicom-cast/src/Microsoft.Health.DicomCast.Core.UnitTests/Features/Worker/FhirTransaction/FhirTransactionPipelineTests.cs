@@ -3,9 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Hl7.Fhir.Model;
+using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using NSubstitute;
@@ -122,6 +125,74 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             Assert.NotNull(patientResponse);
             Assert.Equal(responseEntry.Response, patientResponse.Response);
             Assert.Equal(responseEntry.Resource, patientResponse.Resource);
+        }
+
+        [Fact]
+        public async Task WhenThrowAnExceptionInProcess_ThrowTheSameException()
+        {
+            var pipelineStep = new MockFhirTransactionPipelineStep()
+            {
+                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
+                {
+                    throw new Exception();
+                },
+            };
+
+            _fhirTransactionPipelineSteps.Add(pipelineStep);
+
+            // Process
+            await Assert.ThrowsAsync<Exception>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task WhenThrowAnResourceConflictExceptionInProcess_ThrowRetryableExceptionException()
+        {
+            var pipelineStep = new MockFhirTransactionPipelineStep()
+            {
+                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
+                {
+                    throw new ResourceConflictException();
+                },
+            };
+
+            _fhirTransactionPipelineSteps.Add(pipelineStep);
+
+            // Process
+            await Assert.ThrowsAsync<RetryableException>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task WhenThrowAServerTooBusyExceptionInProcess_ThrowRetryableExceptionException()
+        {
+            var pipelineStep = new MockFhirTransactionPipelineStep()
+            {
+                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
+                {
+                    throw new ServerTooBusyException();
+                },
+            };
+
+            _fhirTransactionPipelineSteps.Add(pipelineStep);
+
+            // Process
+            await Assert.ThrowsAsync<RetryableException>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task WhenThrowATaskCanceledExceptionInProcess_ThrowRetryableExceptionException()
+        {
+            var pipelineStep = new MockFhirTransactionPipelineStep()
+            {
+                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
+                {
+                    throw new TaskCanceledException();
+                },
+            };
+
+            _fhirTransactionPipelineSteps.Add(pipelineStep);
+
+            // Process
+            await Assert.ThrowsAsync<RetryableException>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken));
         }
 
         [Fact]
