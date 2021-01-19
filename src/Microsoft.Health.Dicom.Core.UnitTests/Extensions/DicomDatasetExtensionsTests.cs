@@ -237,7 +237,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             {
                 { customTagStoreEntry.Key, dicomElement },
             };
-            Dictionary<long, DicomItem> result = dataset.GetCustomTagIndexes(new CustomTagStoreEntry[] { customTagStoreEntry });
+            Dictionary<long, DicomItem> result = dataset.GetCustomTagIndexes(new CustomTagStoreEntry[] { customTagStoreEntry }.ToTagPathDictionary());
             Assert.Equal(expectedResult, result);
         }
 
@@ -250,7 +250,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
             CustomTagStoreEntry customTagEntry = DicomTag.AccessionNumber.BuildCustomTagStoreEntry();
 
-            Dictionary<long, DicomItem> result = dataset.GetCustomTagIndexes(new CustomTagStoreEntry[] { customTagEntry });
+            Dictionary<long, DicomItem> result = dataset.GetCustomTagIndexes(new CustomTagStoreEntry[] { customTagEntry }.ToTagPathDictionary());
             Assert.Empty(result);
         }
 
@@ -266,7 +266,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             {
                 { customTagStoreEntry.Key, dicomElement2 },
             };
-            Dictionary<long, DicomItem> result = dataset.GetCustomTagIndexes(new CustomTagStoreEntry[] { customTagStoreEntry });
+            Dictionary<long, DicomItem> result = dataset.GetCustomTagIndexes(new CustomTagStoreEntry[] { customTagStoreEntry }.ToTagPathDictionary());
             Assert.Equal(expectedResult, result);
         }
     }

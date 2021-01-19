@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -48,9 +49,12 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 }
 
                 instances = instances.OrderByDescending(item => item.Version);
+                Dictionary<string, CustomTagStoreEntry> tagPathDictionary = customTagStoreEntries.ToDictionary(
+                    keySelector: entry => entry.Path,
+                    comparer: StringComparer.OrdinalIgnoreCase);
                 foreach (var instance in instances)
                 {
-                    await _instanceIndexer.IndexInstanceAsync(customTagStoreEntries, instance, cancellationToken);
+                    await _instanceIndexer.IndexInstanceAsync(tagPathDictionary, instance, cancellationToken);
                 }
 
                 // TODO:  Once we have job framework, job status should be saved and kept updating

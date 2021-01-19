@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             _customTagIndexService = customTagIndexService;
         }
 
-        public async Task IndexInstanceAsync(IEnumerable<CustomTagStoreEntry> customTagStoreEntries, VersionedInstanceIdentifier instance, CancellationToken cancellationToken = default)
+        public async Task IndexInstanceAsync(IDictionary<string, CustomTagStoreEntry> customTagStoreEntries, VersionedInstanceIdentifier instance, CancellationToken cancellationToken = default)
         {
             // TODO:  GetInstanceMetadataAsync could fail, once move to job framework, resumeing the job should be able to solve this problem. Double check after moving.
             if (customTagStoreEntries.Count() == 0)

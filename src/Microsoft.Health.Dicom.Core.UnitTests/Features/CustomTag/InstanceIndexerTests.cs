@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -31,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Fact]
         public async Task GivenNoCustomTagIndexes_WhenIndex_ThenShouldNotCallUnderlyingService()
         {
-            await _instanceIndexer.IndexInstanceAsync(new CustomTagStoreEntry[0], new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 1));
+            await _instanceIndexer.IndexInstanceAsync(new Dictionary<string, CustomTagStoreEntry>(), new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 1));
 
             await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(default, default);
             await _customTagIndexService.DidNotReceiveWithAnyArgs().AddCustomTagIndexes(default, default, default);
@@ -45,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             DicomDataset testDataset = new DicomDataset(testTagElement);
             CustomTagStoreEntry testEntry = testTag.BuildCustomTagStoreEntry();
             _metadataStore.GetInstanceMetadataAsync(default, default).ReturnsForAnyArgs(testDataset);
-            await _instanceIndexer.IndexInstanceAsync(new CustomTagStoreEntry[] { testEntry }, new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 1));
+            await _instanceIndexer.IndexInstanceAsync(new CustomTagStoreEntry[] { testEntry }.ToTagPathDictionary(), new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 1));
 
             await _customTagIndexService.ReceivedWithAnyArgs(1).AddCustomTagIndexes(default, default, default);
         }

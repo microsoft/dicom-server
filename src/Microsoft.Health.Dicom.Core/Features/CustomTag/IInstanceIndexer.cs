@@ -18,10 +18,10 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <summary>
         /// Index instance on custom tags.
         /// </summary>
-        /// <param name="customTagStoreEntries">The custom tag entried stored.</param>
+        /// <param name="tagPathDictionary">The tagPath - CustomTagStoreEntry dictionary.</param>
         /// <param name="instance">The dicom instance.</param>
         /// <param name="cancellationToken">the cancellation token.</param>
         /// <returns>The task.</returns>
-        Task IndexInstanceAsync(IEnumerable<CustomTagStoreEntry> customTagStoreEntries, VersionedInstanceIdentifier instance, CancellationToken cancellationToken = default);
+        Task IndexInstanceAsync(IDictionary<string, CustomTagStoreEntry> tagPathDictionary, VersionedInstanceIdentifier instance, CancellationToken cancellationToken = default);
     }
 }
