@@ -57,12 +57,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                             RetryableException ex = (RetryableException)exception;
                             ChangeFeedEntry changeFeedEntry = ex.ChangeFeedEntry;
 
-                            // Todo need to overload the storeException method to store the retry number as well and figure out the cancellation token 
-
-                            await _exceptionStore.WriteExceptionAsync(
+                            await _exceptionStore.WriteRetryableExceptionAsync(
                                 changeFeedEntry,
-                                ex,
-                                ErrorType.TransientRetry);
+                                retryCount,
+                                ex);
                         }
                     });
         }

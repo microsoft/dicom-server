@@ -49,7 +49,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
             string instanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
             long changeFeedSequence = changeFeedEntry.Sequence;
 
-            _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Retried {retryNum} times.", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum);
+            _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Trued {retryNum} time(s).", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum);
             return Task.CompletedTask;
         }
     }

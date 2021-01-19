@@ -11,6 +11,5 @@ namespace Microsoft.Health.DicomCast.Core.Configurations
     public class DicomCastConfiguration
     {
         public FeatureConfiguration Features { get; } = new FeatureConfiguration();
-
     }
 }

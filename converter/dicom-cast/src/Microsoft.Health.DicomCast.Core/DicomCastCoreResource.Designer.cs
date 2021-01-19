@@ -223,6 +223,15 @@ namespace Microsoft.Health.DicomCast.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A retryable exception was thrown..
+        /// </summary>
+        internal static string RetryableException {
+            get {
+                return ResourceManager.GetString("RetryableException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The transaction failed. Please examine the OperationOutcome for more detail..
         /// </summary>
         internal static string TransactionFailed {

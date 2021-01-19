@@ -105,11 +105,11 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             try
             {
                 await table.ExecuteAsync(operation, cancellationToken);
-                _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Retried {retryNum} times. Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, tableName, retryNum);
+                _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Tried {retryNum} time(s). Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum, tableName);
             }
             catch
             {
-                _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Retried {retryNum} times. Failed to store to table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid);
+                _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Tried {retryNum} time(s). Failed to store to table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum);
                 throw;
             }
         }

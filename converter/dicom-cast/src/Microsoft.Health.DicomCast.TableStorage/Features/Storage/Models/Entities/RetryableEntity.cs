@@ -1,4 +1,9 @@
-﻿using System;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using System;
 using EnsureThat;
 using Microsoft.Azure.Cosmos.Table;
 
@@ -13,6 +18,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entiti
         /// <param name="seriesUid">SeriesUID of the changefeed entry that failed</param>
         /// <param name="instanceUid">InstanceUID of the changefeed entry that failed</param>
         /// <param name="changeFeedSequence">Changefeed sequence number that threw exception</param>
+        /// <param name="retryNum">Number of times changefeed entry has been retried</param>
         /// <param name="ex">The exception that was thrown</param>
         public RetryableEntity(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, int retryNum, Exception ex)
         {

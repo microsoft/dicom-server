@@ -7,7 +7,7 @@ using System;
 using System.Threading;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Exceptions;
-using Microsoft.Health.DicomCast.Core.Features.Fhir;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -24,23 +24,19 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
 
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline = Substitute.For<IFhirTransactionPipeline>();
         private RetryableFhirTransactionPipeline _retryableFhirTransactionPipeline;
+        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
 
         public RetryableFhirTransactionPipelineTests()
         {
             _retryableFhirTransactionPipeline = new RetryableFhirTransactionPipeline(
-                _fhirTransactionPipeline);
+                _fhirTransactionPipeline,
+                _exceptionStore);
         }
 
         [Fact]
-        public async Task GivenResourceConflictException_WhenProcessed_ThenItShouldRetry()
+        public async Task GivenRetryableException_WhenProcessed_ThenItShouldRetry()
         {
-            await ExecuteAndValidate(new ResourceConflictException(), DefaultRetryCount + 1);
-        }
-
-        [Fact]
-        public async Task GivenServerTooBusyException_WhenProcessed_ThenItShouldRetry()
-        {
-            await ExecuteAndValidate(new ServerTooBusyException(), DefaultRetryCount + 1);
+            await ExecuteAndValidate(new RetryableException(new Exception(), ChangeFeedGenerator.Generate()), DefaultRetryCount + 1);
         }
 
         [Fact]

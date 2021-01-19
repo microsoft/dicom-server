@@ -13,10 +13,5 @@ namespace Microsoft.Health.DicomCast.Core.Exceptions
             : base(message)
         {
         }
-
-        protected DicomTagException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
     }
 }

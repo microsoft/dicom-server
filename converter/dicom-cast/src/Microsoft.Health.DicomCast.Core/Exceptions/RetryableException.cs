@@ -10,18 +10,10 @@ namespace Microsoft.Health.DicomCast.Core.Exceptions
 {
     public class RetryableException : Exception
     {
-        protected RetryableException()
+        public RetryableException(Exception innerException, ChangeFeedEntry changeFeedEntry)
+            : base(DicomCastCoreResource.RetryableException, innerException)
         {
-        }
-
-        protected RetryableException(string message)
-            : base(message)
-        {
-        }
-
-        protected RetryableException(string message, Exception innerException)
-            : base(message, innerException)
-        {
+            ChangeFeedEntry = changeFeedEntry;
         }
 
         public ChangeFeedEntry ChangeFeedEntry { get; set; }

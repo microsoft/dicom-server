@@ -30,7 +30,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
             await _store.StoreExceptionToTable(changeFeedEntry, exceptionToStore, errorType, cancellationToken);
         }
 
-        public Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, Exception exceptionToStore, CancellationToken cancellationToken = default)
+        public async Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, Exception exceptionToStore, CancellationToken cancellationToken = default)
         {
             await _store.StoreRetryableExceptionToTable(changeFeedEntry, retryNum, exceptionToStore, cancellationToken);
         }
