@@ -47,26 +47,34 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             _exceptionStore = exceptionStore;
             _retryPolicy = Policy
                 .Handle<RetryableException>()
+                .Or<TaskCanceledException>()
                 .WaitAndRetryAsync(
                     maxRetryCount,
                     retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                    async (exception, timeSpan, retryCount, context) =>
+                    (exception, timeSpan, retryCount, context) =>
                     {
-                        if (exception is RetryableException)
+                        CancellationToken token = (CancellationToken)context[nameof(CancellationToken)];
+                        if (exception is TaskCanceledException && token.IsCancellationRequested)
                         {
-                            RetryableException ex = (RetryableException)exception;
-                            ChangeFeedEntry changeFeedEntry = ex.ChangeFeedEntry;
-
-                            await _exceptionStore.WriteRetryableExceptionAsync(
-                                changeFeedEntry,
-                                retryCount,
-                                ex);
+                            return Task.CompletedTask;
                         }
+
+                        ChangeFeedEntry changeFeedEntry = (ChangeFeedEntry)context[nameof(ChangeFeedEntry)];
+
+                        return _exceptionStore.WriteRetryableExceptionAsync(
+                            changeFeedEntry,
+                            retryCount,
+                            exception);
                     });
         }
 
         /// <inheritdoc/>
         public Task ProcessAsync(ChangeFeedEntry changeFeedEntry, CancellationToken cancellationToken)
-            => _retryPolicy.ExecuteAsync(() => _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken));
+        {
+            Context context = new Context();
+            context[nameof(ChangeFeedEntry)] = changeFeedEntry;
+            context[nameof(CancellationToken)] = cancellationToken;
+            return _retryPolicy.ExecuteAsync(_ => _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken), context);
+        }
     }
 }

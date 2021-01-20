@@ -16,11 +16,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         TransientFailure,
 
         /// <summary>
-        /// A transient error that will still be retried
-        /// </summary>
-        TransientRetry,
-
-        /// <summary>
         /// An intransient error caused by fhir server that has caused a failure to sync to fhir
         /// </summary>
         FhirError,

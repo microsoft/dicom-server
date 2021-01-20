@@ -116,7 +116,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, DefaultCancellationToken).Returns(changeFeeds1);
             _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
 
-            _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new RetryableException(new Exception(), changeFeeds1[0]); });
+            _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new RetryableException(); });
 
             await ExecuteProcessAsync();
         }

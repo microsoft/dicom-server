@@ -38,16 +38,16 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entiti
             Exception = ex.ToString();
         }
 
-        public string StudyUID { get; set; }
+        public string StudyUID { get; }
 
-        public string SeriesUID { get; set; }
+        public string SeriesUID { get; }
 
-        public string InstanceUID { get; set; }
+        public string InstanceUID { get; }
 
-        public long ChangeFeedSequence { get; set; }
+        public long ChangeFeedSequence { get; }
 
-        public int RetryNumber { get; set; }
+        public int RetryNumber { get; }
 
-        public string Exception { get; set; }
+        public string Exception { get; }
     }
 }

@@ -12,21 +12,20 @@ using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
-using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entities;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
     /// <inheritdoc/>
-    public class TableStore : ITableStore
+    public class TableExceptionStore : IExceptionStore
     {
         private readonly CloudTableClient _client;
-        private readonly ILogger<TableStore> _logger;
+        private readonly ILogger<TableExceptionStore> _logger;
 
-        public TableStore(
+        public TableExceptionStore(
             CloudTableClient client,
-            ILogger<TableStore> logger)
+            ILogger<TableExceptionStore> logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -36,7 +35,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc/>
-        public async Task StoreExceptionToTable(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken)
+        public async Task WriteExceptionAsync(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken)
         {
             CloudTable table;
             TableEntity entity;
@@ -55,9 +54,6 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
                     break;
                 case ErrorType.TransientFailure:
                     tableName = Constants.TransientFailureTableName;
-                    break;
-                case ErrorType.TransientRetry:
-                    tableName = Constants.TransientRetryTableName;
                     break;
                 default:
                     return;
@@ -87,7 +83,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc/>
-        public async Task StoreRetryableExceptionToTable(ChangeFeedEntry changeFeedEntry, int retryNum, Exception exceptionToStore, CancellationToken cancellationToken)
+        public async Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, Exception exceptionToStore, CancellationToken cancellationToken)
         {
             string tableName = Constants.TransientRetryTableName;
 

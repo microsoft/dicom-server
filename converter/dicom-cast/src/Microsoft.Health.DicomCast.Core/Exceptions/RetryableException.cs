@@ -4,18 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Health.Dicom.Client.Models;
 
 namespace Microsoft.Health.DicomCast.Core.Exceptions
 {
     public class RetryableException : Exception
     {
-        public RetryableException(Exception innerException, ChangeFeedEntry changeFeedEntry)
-            : base(DicomCastCoreResource.RetryableException, innerException)
+        public RetryableException()
         {
-            ChangeFeedEntry = changeFeedEntry;
         }
-
-        public ChangeFeedEntry ChangeFeedEntry { get; set; }
     }
 }

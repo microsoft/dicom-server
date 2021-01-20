@@ -36,7 +36,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
         [Fact]
         public async Task GivenRetryableException_WhenProcessed_ThenItShouldRetry()
         {
-            await ExecuteAndValidate(new RetryableException(new Exception(), ChangeFeedGenerator.Generate()), DefaultRetryCount + 1);
+            await ExecuteAndValidate(new RetryableException(), DefaultRetryCount + 1);
         }
 
         [Fact]

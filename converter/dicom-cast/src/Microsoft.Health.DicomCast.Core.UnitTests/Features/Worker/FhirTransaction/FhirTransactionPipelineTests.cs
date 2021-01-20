@@ -145,57 +145,6 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public async Task WhenThrowAnResourceConflictExceptionInProcess_ThrowRetryableExceptionException()
-        {
-            var pipelineStep = new MockFhirTransactionPipelineStep()
-            {
-                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
-                {
-                    throw new ResourceConflictException();
-                },
-            };
-
-            _fhirTransactionPipelineSteps.Add(pipelineStep);
-
-            // Process
-            await Assert.ThrowsAsync<RetryableException>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken));
-        }
-
-        [Fact]
-        public async Task WhenThrowAServerTooBusyExceptionInProcess_ThrowRetryableExceptionException()
-        {
-            var pipelineStep = new MockFhirTransactionPipelineStep()
-            {
-                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
-                {
-                    throw new ServerTooBusyException();
-                },
-            };
-
-            _fhirTransactionPipelineSteps.Add(pipelineStep);
-
-            // Process
-            await Assert.ThrowsAsync<RetryableException>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken));
-        }
-
-        [Fact]
-        public async Task WhenThrowATaskCanceledExceptionInProcess_ThrowRetryableExceptionException()
-        {
-            var pipelineStep = new MockFhirTransactionPipelineStep()
-            {
-                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
-                {
-                    throw new TaskCanceledException();
-                },
-            };
-
-            _fhirTransactionPipelineSteps.Add(pipelineStep);
-
-            // Process
-            await Assert.ThrowsAsync<RetryableException>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken));
-        }
-
-        [Fact]
         public async Task GivenNoResourceToProcess_WhenProcessed_ThenTransactionShouldBeExecuted()
         {
             // Setup the pipeline step to simulate no requests.
