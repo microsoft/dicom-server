@@ -114,7 +114,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                             errorType,
                             cancellationToken);
 
-                            _logger.LogInformation("Failed to process DICOM event with SequenceID: {sequenceId}, StudyUid: {studyUid}, SeriesUid: {seriesUid}, instanceUid: {instanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyUid, seriesUid, instanceUid);
+                            _logger.LogError("Failed to process DICOM event with SequenceID: {sequenceId}, StudyUid: {studyUid}, SeriesUid: {seriesUid}, instanceUid: {instanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyUid, seriesUid, instanceUid);
                         }
                         else
                         {
