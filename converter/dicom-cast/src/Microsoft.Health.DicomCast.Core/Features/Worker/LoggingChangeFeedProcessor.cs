@@ -17,7 +17,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
     public class LoggingChangeFeedProcessor : IChangeFeedProcessor
     {
         private static readonly Func<ILogger, IDisposable> LogProcessingDelegate =
-            LoggerMessage.DefineScope("Processing change feeds.");
+            LoggerMessage.DefineScope("Processing change feed.");
 
         private readonly IChangeFeedProcessor _changeFeedProcessor;
         private readonly ILogger _logger;

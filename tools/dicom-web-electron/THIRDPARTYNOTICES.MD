@@ -53,7 +53,7 @@ This file is based on or incorporates material from the projects listed below (T
   > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   > SOFTWARE.
 
-## axios 0.19.2
+## axios 0.21.1
 * Component Source:   https://github.com/axios/axios
 * Component Copyright and Licence:
   > Copyright (c) 2014-present Matt Zabriskie

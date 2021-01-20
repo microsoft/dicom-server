@@ -6,6 +6,7 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
@@ -16,6 +17,7 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
 
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
+            EnsureArg.IsNotNull(bindingContext, nameof(bindingContext));
             string valueString = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).ToString();
 
             if (string.IsNullOrEmpty(valueString))

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Dicom;
 using Dicom.IO.Buffer;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
@@ -72,6 +73,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 
         public int GetHashCode([DisallowNull] DicomItem obj)
         {
+            EnsureArg.IsNotNull(obj, nameof(obj));
             return obj.GetHashCode();
         }
     }

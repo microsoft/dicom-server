@@ -24,6 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 
         public async Task<ChangeFeedLatestResponse> Handle(ChangeFeedLatestRequest request, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(request, nameof(request));
             ChangeFeedEntry latestEntry = await _changeFeedService.GetChangeFeedLatestAsync(request.IncludeMetadata, cancellationToken);
             return new ChangeFeedLatestResponse(latestEntry);
         }

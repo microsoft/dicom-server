@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Dicom;
+using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -22,6 +23,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
         {
+            EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.Client;
         }
 

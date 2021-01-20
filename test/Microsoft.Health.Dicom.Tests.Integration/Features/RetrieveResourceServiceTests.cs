@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Imaging;
+using EnsureThat;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -46,6 +47,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
         public RetrieveResourceServiceTests(DataStoreTestsFixture blobStorageFixture, SqlDataStoreTestsFixture sqlIndexStorageFixture)
         {
+            EnsureArg.IsNotNull(sqlIndexStorageFixture, nameof(sqlIndexStorageFixture));
+            EnsureArg.IsNotNull(blobStorageFixture, nameof(blobStorageFixture));
             _indexDataStore = sqlIndexStorageFixture.IndexDataStore;
             _instanceStore = sqlIndexStorageFixture.InstanceStore;
             _fileStore = blobStorageFixture.FileStore;

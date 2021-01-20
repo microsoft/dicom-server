@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -29,6 +30,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
 
         public AcceptContentFilterAttribute(string[] mediaTypes, bool allowSingle, bool allowMultiple)
         {
+            EnsureArg.IsNotNull(mediaTypes, nameof(mediaTypes));
             Debug.Assert(mediaTypes.Length > 0, "The accept content type filter must have at least one media type specified.");
 
             _mediaTypes = new HashSet<MediaTypeHeaderValue>(mediaTypes.Length);
@@ -51,6 +53,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
             IList<MediaTypeHeaderValue> acceptHeaders = context.HttpContext.Request.GetTypedHeaders().Accept;
 
             bool acceptable = false;

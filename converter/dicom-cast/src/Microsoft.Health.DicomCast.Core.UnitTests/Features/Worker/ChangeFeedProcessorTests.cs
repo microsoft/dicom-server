@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Core.Internal;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.Core.Features.Worker;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
@@ -27,6 +28,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
         private readonly IChangeFeedRetrieveService _changeFeedRetrieveService = Substitute.For<IChangeFeedRetrieveService>();
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline = Substitute.For<IFhirTransactionPipeline>();
         private readonly ISyncStateService _syncStateService = Substitute.For<ISyncStateService>();
+        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
         private readonly ChangeFeedProcessor _changeFeedProcessor;
 
         public ChangeFeedProcessorTests()
@@ -35,6 +37,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
                 _changeFeedRetrieveService,
                 _fhirTransactionPipeline,
                 _syncStateService,
+                _exceptionStore,
                 NullLogger<ChangeFeedProcessor>.Instance);
 
             SetupSyncState();
