@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -48,11 +49,7 @@ namespace Microsoft.Health.Dicom.Api.Modules
                     options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{_securityConfiguration.Authentication.Audience}\", realm=\"{_securityConfiguration.Authentication.Audience}\"";
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidAudiences = new[]
-                        {
-                            _securityConfiguration.Authentication.Audience,
-                            GenerateSecondaryAudience(),
-                        },
+                        ValidAudiences = GetAuthenticationAudiences(),
                     };
                 });
 
@@ -74,14 +71,12 @@ namespace Microsoft.Health.Dicom.Api.Modules
             services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();
         }
 
-        internal string GenerateSecondaryAudience()
+        internal IEnumerable<string> GetAuthenticationAudiences()
         {
-            if (_securityConfiguration.Authentication.Audience.EndsWith('/'))
+            return _securityConfiguration.Authentication.Audiences ?? new[]
             {
-                return _securityConfiguration.Authentication.Audience.TrimEnd('/');
-            }
-
-            return _securityConfiguration.Authentication.Audience + '/';
+                _securityConfiguration.Authentication.Audience,
+            };
         }
     }
 }

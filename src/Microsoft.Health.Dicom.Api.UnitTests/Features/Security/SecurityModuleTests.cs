@@ -12,12 +12,8 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Security
 {
     public class SecurityModuleTests
     {
-        [Theory]
-        [InlineData("https://example.com", "https://example.com/")]
-        [InlineData("https://example.com/", "https://example.com")]
-        [InlineData("", "/")]
-        [InlineData("/", "")]
-        public void GivenASecurityConfiguration_WhenGettingTheSecondaryAudience_ThenCorrectAudienceShouldBeReturned(string initialAudience, string expectedAudience)
+        [Fact]
+        public void GivenASecurityConfigurationWithAudience_WhenGettingAudiences_ThenCorrectAudienceShouldBeReturned()
         {
             var dicomServerConfiguration = new DicomServerConfiguration
             {
@@ -25,14 +21,53 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Security
                 {
                     Authentication = new AuthenticationConfiguration
                     {
-                        Audience = initialAudience,
+                        Audience = "initialAudience",
                     },
                 },
             };
 
             var securityModule = new SecurityModule(dicomServerConfiguration);
 
-            Assert.Equal(expectedAudience, securityModule.GenerateSecondaryAudience());
+            Assert.Equal(new[] { "initialAudience" }, securityModule.GetAuthenticationAudiences());
+        }
+
+        [Fact]
+        public void GivenASecurityConfigurationWithAudienceAndAudiences_WhenGettingAudiences_ThenCorrectAudienceShouldBeReturned()
+        {
+            var dicomServerConfiguration = new DicomServerConfiguration
+            {
+                Security =
+                {
+                    Authentication = new AuthenticationConfiguration
+                    {
+                        Audience = "initialAudience",
+                        Audiences = new[] { "audience1", "audience2" },
+                    },
+                },
+            };
+
+            var securityModule = new SecurityModule(dicomServerConfiguration);
+
+            Assert.Equal(new[] { "audience1", "audience2" }, securityModule.GetAuthenticationAudiences());
+        }
+
+        [Fact]
+        public void GivenASecurityConfigurationWithAudiences_WhenGettingAudiences_ThenCorrectAudienceShouldBeReturned()
+        {
+            var dicomServerConfiguration = new DicomServerConfiguration
+            {
+                Security =
+                {
+                    Authentication = new AuthenticationConfiguration
+                    {
+                        Audiences = new[] { "audience1", "audience2" },
+                    },
+                },
+            };
+
+            var securityModule = new SecurityModule(dicomServerConfiguration);
+
+            Assert.Equal(new[] { "audience1", "audience2" }, securityModule.GetAuthenticationAudiences());
         }
     }
 }
