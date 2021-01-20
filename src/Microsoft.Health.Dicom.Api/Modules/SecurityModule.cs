@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +17,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Microsoft.Health.Dicom.Api.Modules
@@ -36,6 +38,9 @@ namespace Microsoft.Health.Dicom.Api.Modules
 
             if (_securityConfiguration.Enabled)
             {
+                string[] validAudiences = GetValidAudiences();
+                string challengeAudience = validAudiences?.FirstOrDefault();
+
                 services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -46,10 +51,10 @@ namespace Microsoft.Health.Dicom.Api.Modules
                 {
                     options.Authority = _securityConfiguration.Authentication.Authority;
                     options.RequireHttpsMetadata = true;
-                    options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{_securityConfiguration.Authentication.Audience}\", realm=\"{_securityConfiguration.Authentication.Audience}\"";
+                    options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{challengeAudience}\", realm=\"{challengeAudience}\"";
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidAudiences = GetAuthenticationAudiences(),
+                        ValidAudiences = validAudiences,
                     };
                 });
 
@@ -71,12 +76,22 @@ namespace Microsoft.Health.Dicom.Api.Modules
             services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();
         }
 
-        internal IEnumerable<string> GetAuthenticationAudiences()
+        internal string[] GetValidAudiences()
         {
-            return _securityConfiguration.Authentication.Audiences ?? new[]
+            if (_securityConfiguration.Authentication.Audiences != null)
             {
-                _securityConfiguration.Authentication.Audience,
-            };
+                return _securityConfiguration.Authentication.Audiences.ToArray();
+            }
+
+            if (!string.IsNullOrWhiteSpace(_securityConfiguration.Authentication.Audience))
+            {
+                return new[]
+                {
+                    _securityConfiguration.Authentication.Audience,
+                };
+            }
+
+            return null;
         }
     }
 }
