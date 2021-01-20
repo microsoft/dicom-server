@@ -10,6 +10,11 @@ Once you have your subscription, click the link below to begin deployment.
     <img src="https://azuredeploy.net/deploybutton.png"/>
 </a>
 
+Instructions for how to deploy an ARM template can be found in the following docs
+* [Deploy via Portal](https://docs.microsoft.com/azure/azure-resource-manager/templates/deploy-portal)
+* [Deploy via CLI](https://docs.microsoft.com/azure/azure-resource-manager/templates/deploy-cli)
+* [Deploy via PowerShell](https://docs.microsoft.com/azure/azure-resource-manager/templates/deploy-powershell)
+
 ## Enter account details
 
 1. Select your Azure subscription.
