@@ -394,6 +394,28 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
 )
 
 /*************************************************************
+    Custom Tag Table
+    Store custom tag information
+    
+    Current Instance State
+    CurrentWatermark = null,               Current State = Deleted
+    CurrentWatermark = OriginalWatermark,  Current State = Created
+    CurrentWatermark <> OriginalWatermark, Current State = Replaced
+**************************************************************/
+CREATE TABLE dbo.CustomTag (
+    [Key]                   BIGINT              NOT NULL,  -- Primary Key
+    Path                    VARCHAR(64)         NOT NULL,  -- Custom Tag Path. Each custom tag take 8 bytes, support upto 8 levels, no delimeter between each level.
+    VR                      VARCHAR(2)             NOT NULL,  -- Custom Tag VR.
+    Level                   TINYINT             NOT NULL,  -- Custom Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
+    Status                  TINYINT             NOT NULL,  -- Custom Tag Status. 0 -- Reindexing, 1 -- Added, 2 -- Deindexing
+) WITH (DATA_COMPRESSION = PAGE)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_CustomTag ON dbo.CustomTag
+(
+    [Key]
+)
+
+/*************************************************************
     Sequence for generating sequential unique ids
 **************************************************************/
 
@@ -428,6 +450,14 @@ CREATE SEQUENCE dbo.InstanceKeySequence
     MINVALUE 1
     NO CYCLE
     CACHE 1000000
+
+CREATE SEQUENCE dbo.CustomTagKeySequence
+    AS BIGINT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 1000
 
 
 GO
@@ -947,3 +977,126 @@ BEGIN
     ORDER BY Sequence DESC
 END
 GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     AddCustomTag
+--
+-- DESCRIPTION
+--     Add custom tag
+/***************************************************************************************/
+CREATE PROCEDURE dbo.AddCustomTag (
+    @path   VARCHAR(64),
+    @vr     VARCHAR(2),
+    @level  TINYINT,
+    @status TINYINT)
+AS
+
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    DECLARE @key BIGINT
+    BEGIN TRANSACTION
+        
+        -- Check if tag with same path already exist
+        SELECT @key = [Key] FROM dbo.CustomTag WHERE Path = @path
+	    
+        IF @@ROWCOUNT <> 0
+            THROW 50409, 'custom tag already exist', @key
+
+        -- add to table 
+        SET @key =  NEXT VALUE FOR CustomTagKeySequence
+        INSERT INTO dbo.CustomTag 
+            ([Key], Path, VR, Level, Status)
+        VALUES 
+            (@key, @path, @vr, @level, @status)
+        
+        -- return key
+        SELECT @key
+    COMMIT TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     DeleteCustomTag
+--
+-- DESCRIPTION
+--     Delete custom tag
+/***************************************************************************************/
+CREATE PROCEDURE dbo.DeleteCustomTag (
+    @key  BIGINT)
+AS
+
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    DECLARE @key BIGINT
+    BEGIN TRANSACTION
+        
+        DELETE FROM dbo.CustomTag WHERE [Key]=@key
+        IF @@ROWCOUNT = 0
+            THROW 50404,'Custom tag not found',@key
+    COMMIT TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     UpdateCustomTagStatus
+--
+-- DESCRIPTION
+--     Update custom tag status
+/***************************************************************************************/
+CREATE PROCEDURE dbo.UpdateCustomTagStatus (
+      @key  BIGINT,
+      @status TINYINT)
+AS
+
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    DECLARE @key BIGINT
+    BEGIN TRANSACTION        
+        UPDATE dbo.CustomTag
+        SET Status = @status WHERE [Key] = @key
+        IF @@ROWCOUNT = 0
+            THROW 50404,'Custom tag not found', @key
+    COMMIT TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     Get latest dicom instance
+--
+-- DESCRIPTION
+--     Get watermark of latest dicom instance
+/***************************************************************************************/
+CREATE PROCEDURE dbo.GetLatestInstance
+AS
+
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT MAX(Watermark) FROM dbo.Instance
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     Get instances in the past
+--
+-- DESCRIPTION
+--     Get top @top instances in the past.
+/***************************************************************************************/
+CREATE PROCEDURE dbo.GetInstancesInThePast(
+    @maxWatermark  AS BIGINT,
+    @top AS INT,
+    @status AS TINYINT)
+AS
+
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT TOP (@top) StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark FROM dbo.Instance
+    WHERE Status = @status AND Watermark <= @maxWatermark 
+    ORDER BY Watermark DESC
+GO
+

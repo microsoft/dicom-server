@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <param name="status">The tag status.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The custom tag store entry.</returns>
-        Task<CustomTagStoreEntry> AddCustomTagAsync(string path, string vr, CustomTagLevel level, CustomTagStatus status, CancellationToken cancellationToken = default);
+        Task<long> AddCustomTagAsync(string path, string vr, CustomTagLevel level, CustomTagStatus status, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Update custom tag status.

@@ -85,7 +85,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                         }
                     }
 
-                    CustomTagStoreEntry storeEntry = await _customTagStore.AddCustomTagAsync(path, vr, customTag.Level, initStatus);
+                    long key = await _customTagStore.AddCustomTagAsync(path, vr, customTag.Level, initStatus);
+                    CustomTagStoreEntry storeEntry = new CustomTagStoreEntry(key, path, vr, customTag.Level, initStatus);
                     addedCustomTagStoreEntries.Add(storeEntry);
                 }
                 catch (Exception ex)
