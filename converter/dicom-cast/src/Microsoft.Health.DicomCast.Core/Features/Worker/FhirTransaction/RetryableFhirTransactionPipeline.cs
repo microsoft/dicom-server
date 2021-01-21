@@ -21,8 +21,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         private const int MaxRetryCount = 3;
 
-        // private static readonly TimeSpan SleepDuration = TimeSpan.FromMilliseconds(100);
-
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
         private readonly IExceptionStore _exceptionStore;
         private readonly IAsyncPolicy _retryPolicy;
@@ -53,12 +51,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                     retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                     (exception, timeSpan, retryCount, context) =>
                     {
-                        CancellationToken token = (CancellationToken)context[nameof(CancellationToken)];
-                        if (exception is TaskCanceledException && token.IsCancellationRequested)
-                        {
-                            return Task.CompletedTask;
-                        }
-
                         ChangeFeedEntry changeFeedEntry = (ChangeFeedEntry)context[nameof(ChangeFeedEntry)];
 
                         return _exceptionStore.WriteRetryableExceptionAsync(
@@ -73,8 +65,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         {
             Context context = new Context();
             context[nameof(ChangeFeedEntry)] = changeFeedEntry;
-            context[nameof(CancellationToken)] = cancellationToken;
-            return _retryPolicy.ExecuteAsync(_ => _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken), context);
+            return _retryPolicy.ExecuteAsync((ctx, tkn) => _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken), context, cancellationToken);
         }
     }
 }

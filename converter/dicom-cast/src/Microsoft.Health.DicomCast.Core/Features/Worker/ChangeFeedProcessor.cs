@@ -109,10 +109,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                             }
 
                             await _exceptionStore.WriteExceptionAsync(
-                            changeFeedEntry,
-                            ex,
-                            errorType,
-                            cancellationToken);
+                                changeFeedEntry,
+                                ex,
+                                errorType,
+                                cancellationToken);
 
                             _logger.LogError("Failed to process DICOM event with SequenceID: {sequenceId}, StudyUid: {studyUid}, SeriesUid: {seriesUid}, instanceUid: {instanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyUid, seriesUid, instanceUid);
                         }
