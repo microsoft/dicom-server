@@ -94,6 +94,20 @@
             "metadata": {
                 "description": "The endpoint of the FHIR server."
             }
+        },
+        "enableTableStorage": {
+            "defaultValue": false,
+            "type": "Bool",
+            "metadata": {
+                "description": "Enable table storage to store dicom-cast errors"
+            }
+        },
+        "enablePartialValidation": {
+            "defaultValue": false,
+            "type": "Bool",
+            "metadata": {
+                "description": "Enable "
+            }
         }
     },
     "variables": {
@@ -147,6 +161,15 @@
                                 {
                                     "name": "ApplicationInsights__InstrumentationKey",
                                     "value": "[if(variables('deployAppInsights'), reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey, '')]"
+                                },
+                                {
+                                    "name": "DicomCast__Features__IgnoreSyncOfInvalidTagValue",
+                                    "value": "[parameters('enablePartialValidation')]"
+
+                                },
+                                {
+                                    "name": "TableStore__Enabled",
+                                    "value": "[parameters('enableTableStorage')]"
                                 }
                             ]
                         }
