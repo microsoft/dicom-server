@@ -24,6 +24,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         public async Task<GetCustomTagResponse> Handle(GetCustomTagRequest request, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(request, nameof(request));
+
             TagPathValidator.Validate(request.CustomTagPath);
 
             return await _getCustomTagsService.GetCustomTagAsync(request.CustomTagPath, cancellationToken);

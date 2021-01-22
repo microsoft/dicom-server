@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             _logger = logger;
         }
 
-        public async Task<AddCustomTagResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken = default)
+        public async Task<AddCustomTagResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken)
         {
             // TODO: this synchronous solution is transient, we will finally move onto job framework once it comes out.
             // This transient solution should be able to work on main scnearios.

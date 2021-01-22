@@ -3,13 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
 {
     public class DicomTagParserTests
     {
@@ -38,6 +39,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             DicomTag[] tags;
             bool succeed = _dicomTagParser.TryParse(dicomTagPath, out tags, supportMultiple: false);
             Assert.False(succeed);
+        }
+
+        [Fact]
+        public void GivenDicomTagPath_WhenParsingFormattedTagPath_ThenShouldRemoveUnnecessaryCharacters()
+        {
+            string parsedString = _dicomTagParser.ParseFormattedTagPath("(0000,1111)");
+            Assert.True(!parsedString.Contains('(', System.StringComparison.OrdinalIgnoreCase));
+            Assert.True(!parsedString.Contains(')', System.StringComparison.OrdinalIgnoreCase));
+            Assert.True(!parsedString.Contains('.', System.StringComparison.OrdinalIgnoreCase));
+        }
+
+        [Fact]
+        public void GivenSequentialDicomTagPath_WhenParsingFormattedTagPath_ThenShouldThrow()
+        {
+            Assert.Throws<NotImplementedException>(() => { _dicomTagParser.ParseFormattedTagPath("(0000,1111).(2323,4545)"); });
         }
 
         public static IEnumerable<object[]> GetValidTags()

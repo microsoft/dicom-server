@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             dicomTags = null;
             if (supportMultiple)
             {
-                throw new System.NotImplementedException("Multiple dicom tag in tag path will be supported later");
+                throw new System.NotImplementedException("Sequential dicom tags are currently not supported.");
             }
 
             if (string.IsNullOrWhiteSpace(dicomTagPath))
@@ -36,6 +36,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 
             dicomTags = new DicomTag[] { dicomTag };
             return dicomTag != null;
+        }
+
+        public string ParseFormattedTagPath(string dicomTagPath, bool supportMultiple = false)
+        {
+            if ((!supportMultiple && dicomTagPath.Contains('.', System.StringComparison.OrdinalIgnoreCase)) || supportMultiple)
+            {
+                throw new System.NotImplementedException("Sequential dicom tags are currently not supported.");
+            }
+
+            return string.Join(string.Empty, dicomTagPath.Split('(', ',', ')', '.'));
         }
 
         private static DicomTag ParseDicomTagNumber(string s)

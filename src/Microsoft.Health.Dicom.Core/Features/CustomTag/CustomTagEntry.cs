@@ -8,7 +8,7 @@ using System;
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     /// <summary>
-    /// Represent each custom tag entry from customer input.
+    /// External representation of a custom tag entry.
     /// </summary>
     public class CustomTagEntry
     {
@@ -43,6 +43,12 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// </summary>
         public CustomTagLevel Level { get; set; }
 
+        /// <summary>
+        /// Status of this tag. Represents the current state the tag is in.
+        /// This value is null when the entry represents a tag to be created.
+        /// </summary>
+        public CustomTagStatus Status { get; set; }
+
         public override string ToString()
         {
             return $"Path: {Path}, VR:{VR}, Level:{Level}";
@@ -50,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Key.GetHashCode(), Path, VR, Level.GetHashCode(), Status.GetHashCode());
+            return HashCode.Combine(Path, VR, Level.GetHashCode(), Status.GetHashCode());
         }
 
         public override bool Equals(object obj)
@@ -61,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 return false;
             }
 
-            return Key == other.Key && Path == other.Path && VR == other.VR && Level == other.Level && Status == other.Status;
+            return Path == other.Path && VR == other.VR && Level == other.Level && Status == other.Status;
         }
     }
 }

@@ -23,6 +23,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         public async Task<GetAllCustomTagsResponse> Handle(GetAllCustomTagsRequest request, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(request, nameof(request));
+
             return await _getCustomTagsService.GetAllCustomTagsAsync(cancellationToken);
         }
     }
