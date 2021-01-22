@@ -14,10 +14,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     internal class VLatest
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
+        internal readonly static CustomTagTable CustomTag = new CustomTagTable();
+        internal readonly static CustomTagJobTable CustomTagJob = new CustomTagJobTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
+        internal readonly static JobTable Job = new JobTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
+        internal readonly static AcquireCustomTagJobsProcedure AcquireCustomTagJobs = new AcquireCustomTagJobsProcedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
@@ -44,6 +48,25 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
             internal readonly Index IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
+        }
+
+        internal class CustomTagTable : Table
+        {
+            internal CustomTagTable() : base("dbo.CustomTag")
+            {
+            }
+
+            internal readonly BigIntColumn Key = new BigIntColumn("Key");
+        }
+
+        internal class CustomTagJobTable : Table
+        {
+            internal CustomTagJobTable() : base("dbo.CustomTagJob")
+            {
+            }
+
+            internal readonly BigIntColumn JobKey = new BigIntColumn("JobKey");
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
         }
 
         internal class DeletedInstanceTable : Table
@@ -89,6 +112,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Instance_StudyKey_Status = new Index("IX_Instance_StudyKey_Status");
         }
 
+        internal class JobTable : Table
+        {
+            internal JobTable() : base("dbo.Job")
+            {
+            }
+
+            internal readonly BigIntColumn Key = new BigIntColumn("Key");
+            internal readonly IntColumn Type = new IntColumn("Type");
+            internal readonly NullableBigIntColumn CompletedWatermark = new NullableBigIntColumn("CompletedWatermark");
+            internal readonly BigIntColumn MaxWatermark = new BigIntColumn("MaxWatermark");
+            internal readonly NullableDateTime2Column HeartBeatTimeStamp = new NullableDateTime2Column("HeartBeatTimeStamp", 7);
+            internal readonly IntColumn Status = new IntColumn("Status");
+        }
+
         internal class SeriesTable : Table
         {
             internal SeriesTable() : base("dbo.Series")
@@ -130,6 +167,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Study_StudyDate = new Index("IX_Study_StudyDate");
             internal readonly Index IX_Study_StudyDescription = new Index("IX_Study_StudyDescription");
             internal readonly Index IX_Study_AccessionNumber = new Index("IX_Study_AccessionNumber");
+        }
+
+        internal class AcquireCustomTagJobsProcedure : StoredProcedure
+        {
+            internal AcquireCustomTagJobsProcedure() : base("dbo.AcquireCustomTagJobs")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _maxCount = new ParameterDefinition<System.Int32>("@maxCount", global::System.Data.SqlDbType.Int, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 maxCount)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.AcquireCustomTagJobs";
+                _maxCount.AddParameter(command.Parameters, maxCount);
+            }
         }
 
         internal class AddInstanceProcedure : StoredProcedure

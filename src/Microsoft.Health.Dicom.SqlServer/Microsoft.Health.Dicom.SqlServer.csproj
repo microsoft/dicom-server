@@ -4,7 +4,7 @@
     <RootNamespace>Microsoft.Health.Dicom.SqlServer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
+    <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
     </EmbeddedResource>
   </ItemGroup>
@@ -32,7 +32,7 @@
       <Generated Include="Features\Schema\Model\VLatest.Generated.cs">
         <Generator>MutableSqlModelGenerator</Generator>
         <Namespace>Microsoft.Health.Dicom.SqlServer.Features.Schema.Model</Namespace>
-        <Args>@(MutableSqlGeneratorInputs->'&quot;%(FullPath)&quot;', ' ')</Args>
+        <Args>@(MutableSqlGeneratorInputs->'"%(FullPath)"', ' ')</Args>
       </Generated>
     </ItemGroup>
   </Target>

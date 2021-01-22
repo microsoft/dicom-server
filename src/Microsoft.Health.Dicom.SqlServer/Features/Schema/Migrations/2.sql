@@ -28,6 +28,35 @@ Full text catalog creation
 CREATE FULLTEXT CATALOG Dicom_Catalog WITH ACCENT_SENSITIVITY = OFF AS DEFAULT
 GO
 
+CREATE TABLE dbo.CustomTagJob(
+    JobKey BIGINT NOT NULL,
+    TagKey BIGINT NOT NULL,
+)
+
+CREATE TABLE dbo.Job (
+    [Key] BIGINT NOT NULL,
+    [Type] INT NOT NULL,
+    CompletedWatermark BIGINT NULL,
+    MaxWatermark BIGINT NOT NULL,
+    HeartBeatTimeStamp DATETIME2(7) NULL,
+    [Status] INT NOT NULL,
+)
+
+CREATE TABLE dbo.CustomTag(
+    [Key] BIGINT NOT NULL,
+)
+
+GO
+
+CREATE PROCEDURE dbo.AcquireCustomTagJobs(
+    @maxCount     INT
+)
+AS
+    SET NOCOUNT ON
+    SET XACT_ABORT ON
+    -- Return only Queued jobs
+    SELECT TOP (@maxCount) * FROM dbo.Job WHERE [Status] = 0
+GO
 /*************************************************************
     Instance Table
     Dicom instances with unique Study, Series and Instance Uid
