@@ -68,7 +68,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 requestMode = FhirTransactionRequestMode.Create;
             }
 
-            _patientSynchronizer.Synchronize(dataset, patient, requestMode.Equals(FhirTransactionRequestMode.Create));
+            await _patientSynchronizer.SynchronizeAsync(context, patient, requestMode.Equals(FhirTransactionRequestMode.Create), cancellationToken);
 
             if (requestMode == FhirTransactionRequestMode.None &&
                 !existingPatient.IsExactly(patient))

@@ -273,4 +273,34 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
     <value>The request contains multiple accept headers, which is not supported.</value>
   </data>
+  <data name="CustomTagAlreadyExists" xml:space="preserve">
+    <value>The custom tag '{0}' already exists.</value>
+    <comment>{0} Dicom Tag</comment>
+  </data>
+  <data name="DuplicateCustomTag" xml:space="preserve">
+    <value>The custom tag '{0}' has been specified before.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="InvalidCustomTag" xml:space="preserve">
+    <value>The custom tag '{0}' is invalid.</value>
+    <comment>{0} Dicom Tag</comment>
+  </data>
+  <data name="InvalidVRCode" xml:space="preserve">
+    <value>The VR code '{0}' is invalid.</value>
+    <comment>{0} VR code.</comment>
+  </data>
+  <data name="MissingCustomTag" xml:space="preserve">
+    <value>The custom tag(s) is missing.</value>
+  </data>
+  <data name="MissingVRCode" xml:space="preserve">
+    <value>The VR code is missing.</value>
+  </data>
+  <data name="UnsupportedVRCodeOnTag" xml:space="preserve">
+    <value>The VR code '{0}' is not supported for tag '{1}'.</value>
+    <comment>{0} VR Code. {1} Dicom Tag.</comment>
+  </data>
+  <data name="UnsupportedVRCode" xml:space="preserve">
+    <value>The CR code '{0}' is not supported.</value>
+    <comment>{0} VR Code.</comment>
+  </data>
 </root>

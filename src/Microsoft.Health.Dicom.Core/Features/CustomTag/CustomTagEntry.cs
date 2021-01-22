@@ -8,17 +8,15 @@ using System;
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     /// <summary>
-    /// Represent each custom tag entry has retrieved from the store.
+    /// Represent each custom tag entry from customer input.
     /// </summary>
     public class CustomTagEntry
     {
-        public CustomTagEntry(long key, string path, string vr, CustomTagLevel level, CustomTagStatus status)
+        public CustomTagEntry(string path, string vr, CustomTagLevel level)
         {
-            Key = key;
             Path = path;
             VR = vr;
             Level = level;
-            Status = status;
         }
 
         public CustomTagEntry(string path, string vr, CustomTagLevel level, CustomTagStatus status)
@@ -28,11 +26,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             Level = level;
             Status = status;
         }
-
-        /// <summary>
-        /// Key of this custom tag entry.
-        /// </summary>
-        public long Key { get; set; }
 
         /// <summary>
         /// Path of this tag. Normally it's composed of groupid and elementid.
@@ -50,14 +43,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// </summary>
         public CustomTagLevel Level { get; set; }
 
-        /// <summary>
-        /// Status of this tag.
-        /// </summary>
-        public CustomTagStatus Status { get; set; }
-
         public override string ToString()
         {
-            return $"Key: {Key}, Path: {Path}, VR:{VR}, Level:{Level}, Status:{Status}";
+            return $"Path: {Path}, VR:{VR}, Level:{Level}";
         }
 
         public override int GetHashCode()

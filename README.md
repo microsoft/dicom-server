@@ -4,28 +4,29 @@
 
 The Medical Imaging Server for DICOM is an open source DICOM server that is easily deployed on Azure. It allows standards-based communication with any DICOMweb&trade; enabled systems, and injects DICOM metadata into a FHIR server to create a holistic view of patient data. The Medical Imaging Server for DICOM integrates tightly with the [FHIR Server for Azure](https://github.com/microsoft/fhir-server) enabling healthcare professionals, ISVs, and medical device vendors to create new and innovative solutions. FHIR is becoming an important standard for clinical data and provides extensibility to support integration of other types of data directly, or through references. By using the Medical Imaging Server for DICOM, organizations can store references to imaging data in FHIR and enable queries across clinical and imaging datasets.
 
+![Architecture](/docs/images/dicom-arch.png)
+
 The Medical Imaging Server for DICOM is a .NET Core implementation of DICOMweb&trade;. [DICOMweb&trade;](https://www.dicomstandard.org/dicomweb) is the DICOM Standard for web-based medical imaging. Details of our conformance to the standard can be found in our [Conformance Statement](docs/resources/conformance-statement.md).
 
 ## Deploy the Medical Imaging Server for DICOM
 
-The Medical Imaging Server for DICOM is designed to run on Azure. However, for dev/test environments it can be deployed locally as a set of Docker containers to speed up development.
+The Medical Imaging Server for DICOM is designed to run on Azure. However, for development and test environments it can be deployed locally as a set of Docker containers to speed up development.
 
 ### Deploy to Azure
 
-To deploy the Medical Imaging Server for DICOM to Azure, follow the instructions [here](docs/quickstarts/deploy-via-azure.md).
+If you already have an Azure subscription, deploy the Medical Imaging Server for DICOM directly to Azure: <br/>
+    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdefault-azuredeploy.json" target="_blank"><img src="https://azuredeploy.net/deploybutton.png"/></a>
 
-If you have an Azure subscription, click the link below:
-
-- Medical Imaging Server for DICOM <br/>
-    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdefault-azuredeploy.json" target="_blank"><img src="https://azuredeploy.net/deploybutton.png"/></a> 
-
-- DICOM Cast <br/>
+To sync your Medical Imaging Server for DICOM metadata directly into a FHIR server, deploy **DICOM Cast** (alongside a FHIR OSS Server and Medical Imaging Server for DICOM) via: <br/>
     <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fdcmcistorage.blob.core.windows.net%2Fcibuild%2Fdicom-cast%2Fdefault-azuredeploy.json" target="_blank"><img src="https://azuredeploy.net/deploybutton.png"/>
     </a> 
 
+
+For a complete set of instructions for how to deploy the Medical Imaging Server for DICOM to Azure, refer to the Quickstart [Deploy to Azure ](docs/quickstarts/deploy-via-azure.md).
+
 ### Deploy locally
 
-Follow the steps [here](docs/development/setup.md) to deploy a local copy of the Medical Imaging Server for DICOM. Be aware that this deployment leverages the [Azurite container](https://github.com/Azure/Azurite) which emulates the Azure Storage API, and should not be used in production.
+Follow the [Development Setup Instructions](docs/development/setup.md) to deploy a local copy of the Medical Imaging Server for DICOM. Be aware that this deployment leverages the [Azurite container](https://github.com/Azure/Azurite) which emulates the Azure Storage API, and should not be used in production.
 
 ## Quickstarts
 

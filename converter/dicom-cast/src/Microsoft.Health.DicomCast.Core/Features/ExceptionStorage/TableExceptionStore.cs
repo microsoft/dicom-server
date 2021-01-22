@@ -5,7 +5,9 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.TableStorage;
 
 namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
@@ -23,9 +25,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         }
 
         /// <inheritdoc/>
-        public async void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default)
+        public async Task WriteExceptionAsync(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default)
         {
-            await _store.StoreExceptionToTable(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore, errorType, cancellationToken);
+            await _store.StoreExceptionToTable(changeFeedEntry, exceptionToStore, errorType, cancellationToken);
         }
     }
 }

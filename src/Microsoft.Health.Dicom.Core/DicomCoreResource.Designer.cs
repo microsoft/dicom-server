@@ -88,6 +88,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; already exists..
+        /// </summary>
+        internal static string CustomTagAlreadyExists {
+            get {
+                return ResourceManager.GetString("CustomTagAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
         internal static string DataStoreOperationFailed {
@@ -102,6 +111,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string DicomElementValidationFailed {
             get {
                 return ResourceManager.GetString("DicomElementValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; has been specified before..
+        /// </summary>
+        internal static string DuplicateCustomTag {
+            get {
+                return ResourceManager.GetString("DuplicateCustomTag", resourceCulture);
             }
         }
         
@@ -156,6 +174,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InstanceNotFound {
             get {
                 return ResourceManager.GetString("InstanceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; is invalid..
+        /// </summary>
+        internal static string InvalidCustomTag {
+            get {
+                return ResourceManager.GetString("InvalidCustomTag", resourceCulture);
             }
         }
         
@@ -251,6 +278,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; is invalid..
+        /// </summary>
+        internal static string InvalidVRCode {
+            get {
+                return ResourceManager.GetString("InvalidVRCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified item cannot be found..
         /// </summary>
         internal static string ItemNotFound {
@@ -269,6 +305,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The custom tag(s) is missing..
+        /// </summary>
+        internal static string MissingCustomTag {
+            get {
+                return ResourceManager.GetString("MissingCustomTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The request body is missing..
         /// </summary>
         internal static string MissingRequestBody {
@@ -283,6 +328,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MissingRequiredTag {
             get {
                 return ResourceManager.GetString("MissingRequiredTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The VR code is missing..
+        /// </summary>
+        internal static string MissingVRCode {
+            get {
+                return ResourceManager.GetString("MissingVRCode", resourceCulture);
             }
         }
         
@@ -418,6 +472,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string UnsupportedTranscoding {
             get {
                 return ResourceManager.GetString("UnsupportedTranscoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The CR code &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string UnsupportedVRCode {
+            get {
+                return ResourceManager.GetString("UnsupportedVRCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; is not supported for tag &apos;{1}&apos;..
+        /// </summary>
+        internal static string UnsupportedVRCodeOnTag {
+            get {
+                return ResourceManager.GetString("UnsupportedVRCodeOnTag", resourceCulture);
             }
         }
         

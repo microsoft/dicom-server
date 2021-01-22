@@ -3,16 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Globalization;
 using EnsureThat;
+using Microsoft.Health.DicomCast.Core.Exceptions;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
     /// <summary>
     /// Exception thrown when a DICOM tag value is invalid.
     /// </summary>
-    public class InvalidDicomTagValueException : Exception
+    public class InvalidDicomTagValueException : DicomTagException
     {
         public InvalidDicomTagValueException(string tagName, string value)
             : base(FormatMessage(tagName, value))

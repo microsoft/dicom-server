@@ -3,8 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
 using EnsureThat;
 using Hl7.Fhir.Model;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
@@ -28,28 +30,28 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             _imagingStudyInstancePropertySynchronizer = imagingStudyInstancePropertySynchronizer;
         }
 
-        public void SynchronizeStudyProperties(FhirTransactionContext context, ImagingStudy imagingStudy)
+        public async Task SynchronizeStudyPropertiesAsync(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(imagingStudy, nameof(imagingStudy));
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy, cancellationToken);
         }
 
-        public void SynchronizeSeriesProperties(FhirTransactionContext context, ImagingStudy.SeriesComponent series)
+        public async Task SynchronizeSeriesPropertiesAsync(FhirTransactionContext context, ImagingStudy.SeriesComponent series, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(series, nameof(series));
 
-            _imagingStudySeriesPropertySynchronizer.Synchronize(context, series);
+            await _imagingStudySeriesPropertySynchronizer.SynchronizeAsync(context, series, cancellationToken);
         }
 
-        public void SynchronizeInstanceProperties(FhirTransactionContext context, ImagingStudy.InstanceComponent instance)
+        public async Task SynchronizeInstancePropertiesAsync(FhirTransactionContext context, ImagingStudy.InstanceComponent instance, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(instance, nameof(instance));
 
-            _imagingStudyInstancePropertySynchronizer.Synchronize(context, instance);
+            await _imagingStudyInstancePropertySynchronizer.SynchronizeAsync(context, instance, cancellationToken);
         }
     }
 }
