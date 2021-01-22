@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
                 instances = instances.OrderByDescending(item => item.Version);
 
-                // Please note that, if reindexing any instances fails in IndexInstances, the excution throws exception and stop.
+                // Please note that, if reindexing any instances fails in IndexInstances, the execution throws exception and stop.
                 // Then resuming job will reindex these instances again even they have been reindexed already.
                 IndexInstances(instances, tagPathDictionary, cancellationToken);
 
