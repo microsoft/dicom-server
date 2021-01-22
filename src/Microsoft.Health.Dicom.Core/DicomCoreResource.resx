@@ -299,4 +299,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The CR code '{0}' is not supported.</value>
     <comment>{0} VR Code.</comment>
   </data>
+  <data name="Forbidden" xml:space="preserve">
+    <value>Authorization failed.</value>
+  </data>
 </root>

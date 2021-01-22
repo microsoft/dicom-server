@@ -7,22 +7,31 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Security;
+using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
-    public class AddCustomTagHandler : IRequestHandler<AddCustomTagRequest, AddCustomTagResponse>
+    public class AddCustomTagHandler : BaseHandler, IRequestHandler<AddCustomTagRequest, AddCustomTagResponse>
     {
         private readonly ICustomTagService _customTagService;
 
-        public AddCustomTagHandler(ICustomTagService customTagService)
+        public AddCustomTagHandler(IDicomAuthorizationService dicomAuthorizationService, ICustomTagService customTagService)
+            : base(dicomAuthorizationService)
         {
-            EnsureArg.IsNotNull(customTagService, nameof(customTagService));
-            _customTagService = customTagService;
+            _customTagService = EnsureArg.IsNotNull(customTagService, nameof(customTagService));
         }
 
         public async Task<AddCustomTagResponse> Handle(AddCustomTagRequest request, CancellationToken cancellationToken)
         {
+            if (await AuthorizationService.CheckAccess(DataActions.Write) != DataActions.Write)
+            {
+                throw new UnauthorizedDicomActionException();
+            }
+
             return await _customTagService.AddCustomTagAsync(request.CustomTags, cancellationToken);
         }
     }
