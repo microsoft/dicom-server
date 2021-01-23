@@ -1,18 +1,34 @@
 {
     "users": [
         {
-            "id": "user1"
+            "id": "user1",
+            "roles": [
+                "globalReader"
+            ]
         },
         {
-            "id": "user2"
+            "id": "user2",
+            "roles": [
+                "globalAdmin"
+            ]
         }
     ],
     "clientApplications": [
         {
-            "id": "globalAdminServicePrincipal"
+            "id": "globalAdminServicePrincipal",
+            "roles": [
+                "globalAdmin"
+            ]
         },
         {
-            "id": "invalidClient"
+            "id": "globalReaderServicePrincipal",
+            "roles": [
+                "globalReader"
+            ]
+        },
+        {
+            "id": "invalidClient",
+            "roles": []
         }
     ]
 }

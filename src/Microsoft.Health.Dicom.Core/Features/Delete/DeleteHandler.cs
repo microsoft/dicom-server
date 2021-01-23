@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
-            if (await AuthorizationService.CheckAccess(DataActions.Delete) != DataActions.Delete)
+            if (await AuthorizationService.CheckAccess(DataActions.Delete, cancellationToken) != DataActions.Delete)
             {
                 throw new UnauthorizedDicomActionException();
             }

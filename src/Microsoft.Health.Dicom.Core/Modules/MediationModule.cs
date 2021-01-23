@@ -29,7 +29,6 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.TypesInSameAssemblyAs<MediationModule>()
                 .Transient()
-                .AsSelf()
                 .AsImplementedInterfaces(IsPipelineBehavior);
 
             var openRequestInterfaces = new Type[] { typeof(IRequestHandler<,>) };

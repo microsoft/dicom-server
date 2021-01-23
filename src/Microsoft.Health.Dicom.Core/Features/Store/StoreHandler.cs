@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         {
             EnsureArg.IsNotNull(message, nameof(message));
 
-            if (await AuthorizationService.CheckAccess(DataActions.Write) != DataActions.Write)
+            if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
             {
                 throw new UnauthorizedDicomActionException();
             }

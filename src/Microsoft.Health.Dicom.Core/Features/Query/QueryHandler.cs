@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public async Task<QueryResourceResponse> Handle(QueryResourceRequest message, CancellationToken cancellationToken)
         {
-            if (await AuthorizationService.CheckAccess(DataActions.Read) != DataActions.Read)
+            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
             {
                 throw new UnauthorizedDicomActionException();
             }

@@ -3,19 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using Microsoft.Health.Dicom.Core.Features.Security;
 
-namespace Microsoft.Health.Dicom.Core.Configs
+namespace Microsoft.Health.Dicom.Web
 {
-    public class AuthorizationConfiguration
+    public class DevelopmentIdentityProviderUserConfiguration
     {
-        public string RolesClaim { get; set; } = "roles";
+        public string Id { get; set; }
 
-        public bool Enabled { get; set; }
-
-        public IReadOnlyList<Role> Roles { get; internal set; } = ImmutableList<Role>.Empty;
+        public IList<string> Roles { get; } = new List<string>();
     }
 }
