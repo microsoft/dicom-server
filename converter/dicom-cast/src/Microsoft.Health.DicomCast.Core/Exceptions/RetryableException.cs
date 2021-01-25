@@ -12,5 +12,10 @@ namespace Microsoft.Health.DicomCast.Core.Exceptions
         public RetryableException()
         {
         }
+
+        public RetryableException(Exception innerException)
+            : base(DicomCastCoreResource.RetryableException, innerException)
+        {
+        }
     }
 }

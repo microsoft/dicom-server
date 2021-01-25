@@ -45,7 +45,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             _exceptionStore = exceptionStore;
             _retryPolicy = Policy
                 .Handle<RetryableException>()
-                .Or<TaskCanceledException>()
                 .WaitAndRetryAsync(
                     maxRetryCount,
                     retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
@@ -65,7 +64,26 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         {
             Context context = new Context();
             context[nameof(ChangeFeedEntry)] = changeFeedEntry;
-            return _retryPolicy.ExecuteAsync((ctx, tkn) => _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken), context, cancellationToken);
+
+            return _retryPolicy.ExecuteAsync(
+                (ctx, tkn) =>
+                {
+                    try
+                    {
+                       return _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
+                    }
+                    catch (TaskCanceledException ex)
+                    {
+                        if (!cancellationToken.IsCancellationRequested)
+                        {
+                            throw new RetryableException(ex);
+                        }
+
+                        throw;
+                    }
+                },
+                context,
+                cancellationToken);
         }
     }
 }
