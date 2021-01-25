@@ -7,22 +7,20 @@ using System;
 using EnsureThat;
 using Microsoft.Azure.Cosmos.Table;
 
-namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
+namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entities
 {
-    /// <summary>
-    /// Entity used to represent a fhir intransient error
-    /// </summary>
-    public class IntransientEntity : TableEntity
+    public class RetryableEntity : TableEntity
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="IntransientEntity"/> class.
+        /// Initializes a new instance of the <see cref="RetryableEntity"/> class.
         /// </summary>
         /// <param name="studyUid">StudyUID of the changefeed entry that failed </param>
         /// <param name="seriesUid">SeriesUID of the changefeed entry that failed</param>
         /// <param name="instanceUid">InstanceUID of the changefeed entry that failed</param>
         /// <param name="changeFeedSequence">Changefeed sequence number that threw exception</param>
+        /// <param name="retryNum">Number of times changefeed entry has been retried</param>
         /// <param name="ex">The exception that was thrown</param>
-        public IntransientEntity(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception ex)
+        public RetryableEntity(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, int retryNum, Exception ex)
         {
             EnsureArg.IsNotNull(studyUid, nameof(studyUid));
             EnsureArg.IsNotNull(seriesUid, nameof(seriesUid));
@@ -36,6 +34,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
             SeriesUID = seriesUid;
             InstanceUID = instanceUid;
             ChangeFeedSequence = changeFeedSequence;
+            RetryNumber = retryNum;
             Exception = ex.ToString();
         }
 
@@ -45,8 +44,10 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
 
         public string InstanceUID { get; }
 
-        public string Exception { get; }
-
         public long ChangeFeedSequence { get; }
+
+        public int RetryNumber { get; }
+
+        public string Exception { get; }
     }
 }

@@ -2,7 +2,9 @@
 
 In this quickstart, you will learn how to deploy DICOM Cast for your Medical Imaging Server for DICOM. DICOM Cast is a service which pushes Medical Imaging Server for DICOM metadata into a FHIR&trade; server to support integrated queries across clinical and imaging data. To learn more about the architecture of DICOM Cast, refer to the [DICOM Cast Concept](../concepts/dicom-cast.md).
 
-## Deploy via docker
+By competing this quickstart, you will have deployed DICOM Cast for your Medical Imaging Server for DICOM. To learn how to sync your Medical Imaging Server for DICOM metadata into a FHIR&trade; server, see [Sync DICOM Metadata to FHIR&trade; with DICOM Cast](../how-to-guides/sync-dicom-metadata-to-fhir.md).
+
+## Deploy via Docker
 
 If you would like to deploy via docker-compose, please follow the quickstart [Deploy Via Docker](deploy-via-docker.md). This will deploy the Medical Imaging Server for DICOM and DICOM Cast.
 
@@ -53,7 +55,7 @@ If you have not yet deployed a DICOM or FHIR Server, you can use use a single AR
 
 For a simplified quick deploy, click the link below to deploy to Azure:
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmaster%2Fsamples%2Ftemplates%2Fdicomcast-quick-deploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmain%2Fsamples%2Ftemplates%2Fdicomcast-quick-deploy.json" target="_blank">
   <img src="https://aka.ms/deploytoazurebutton"/>
 </a>
 
@@ -61,11 +63,9 @@ For a simplified quick deploy, click the link below to deploy to Azure:
 
 If you want to customize all DICOM, FHIR and DICOM Cast settings during deployment, click the link below to deploy to Azure:
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmaster%2Fsamples%2Ftemplates%2Fdicomcast-fhir-dicom-azuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmain%2Fsamples%2Ftemplates%2Fdicomcast-fhir-dicom-azuredeploy.json" target="_blank">
   <img src="https://aka.ms/deploytoazurebutton"/>
 </a>
-
-
 
 Both of these ARM templates will deploy:
 
@@ -77,4 +77,4 @@ These three instances will be hosted within the same Resource Group and App Serv
 
 ## Summary
 
-In this quickstart, you will learned how to deploy DICOM Cast for your Medical Imaging Server for DICOM. Reference the [DICOM Cast Concept](../concepts/dicom-cast.md) to learn more. To start using DICOM Cast, see [Sync DICOM Metadata to FHIR&trade; with DICOM Cast](../how-to-guides/sync-dicom-metadata-to-fhir.md).
+In this Quickstart, you will learned how to deploy DICOM Cast for your Medical Imaging Server for DICOM. Reference the [DICOM Cast Concept](../concepts/dicom-cast.md) to learn more. To start using DICOM Cast, see [Sync DICOM Metadata to FHIR&trade; with DICOM Cast](../how-to-guides/sync-dicom-metadata-to-fhir.md).
