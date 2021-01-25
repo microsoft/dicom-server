@@ -72,14 +72,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                     {
                        return _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
                     }
-                    catch (TaskCanceledException ex)
+                    catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
                     {
-                        if (!cancellationToken.IsCancellationRequested)
-                        {
-                            throw new RetryableException(ex);
-                        }
-
-                        throw;
+                        throw new RetryableException(ex);
                     }
                 },
                 context,
