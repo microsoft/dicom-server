@@ -9,7 +9,7 @@ namespace Microsoft.Health.Dicom.Web
 {
     public class DevelopmentIdentityProviderConfiguration
     {
-        public const string Audience = "fhir-api";
+        public const string Audience = "health-api";
         public const string LastModifiedClaim = "appid";
         public const string ClientIdClaim = "client_id";
 

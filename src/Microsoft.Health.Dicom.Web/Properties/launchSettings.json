@@ -13,7 +13,7 @@
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "DicomServer:Security:Enabled": "true",
-                "DicomServer:Security:Authentication:Audience": "fhir-api",
+                "DicomServer:Security:Authentication:Audience": "health-api",
                 "DicomServer:Security:Authentication:Authority": "https://localhost:63838/",
                 "DicomServer:Security:Authorization:Enabled": "true",
                 "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json"
