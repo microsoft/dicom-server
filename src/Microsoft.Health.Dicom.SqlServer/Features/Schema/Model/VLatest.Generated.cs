@@ -22,14 +22,21 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
         internal readonly static AcquireCustomTagJobsProcedure AcquireCustomTagJobs = new AcquireCustomTagJobsProcedure();
+        internal readonly static AddCustomTagProcedure AddCustomTag = new AddCustomTagProcedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
+        internal readonly static DeleteCustomTagProcedure DeleteCustomTag = new DeleteCustomTagProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
+        internal readonly static GetCustomTagJobProcedure GetCustomTagJob = new GetCustomTagJobProcedure();
+        internal readonly static GetCustomTagsOnJobProcedure GetCustomTagsOnJob = new GetCustomTagsOnJobProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
+        internal readonly static GetInstancesInThePastProcedure GetInstancesInThePast = new GetInstancesInThePastProcedure();
+        internal readonly static GetLatestInstanceProcedure GetLatestInstance = new GetLatestInstanceProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
+        internal readonly static UpdateCustomTagStatusProcedure UpdateCustomTagStatus = new UpdateCustomTagStatusProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
 
         internal class ChangeFeedTable : Table
@@ -57,6 +64,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal readonly BigIntColumn Key = new BigIntColumn("Key");
+            internal readonly VarCharColumn Path = new VarCharColumn("Path", 64);
+            internal readonly VarCharColumn VR = new VarCharColumn("VR", 2);
+            internal readonly TinyIntColumn Level = new TinyIntColumn("Level");
+            internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
+            internal readonly Index IXC_CustomTag = new Index("IXC_CustomTag");
         }
 
         internal class CustomTagJobTable : Table
@@ -185,6 +197,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class AddCustomTagProcedure : StoredProcedure
+        {
+            internal AddCustomTagProcedure() : base("dbo.AddCustomTag")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _path = new ParameterDefinition<System.String>("@path", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _vr = new ParameterDefinition<System.String>("@vr", global::System.Data.SqlDbType.VarChar, false, 2);
+            private readonly ParameterDefinition<System.Byte> _level = new ParameterDefinition<System.Byte>("@level", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String path, System.String vr, System.Byte level, System.Byte status)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.AddCustomTag";
+                _path.AddParameter(command.Parameters, path);
+                _vr.AddParameter(command.Parameters, vr);
+                _level.AddParameter(command.Parameters, level);
+                _status.AddParameter(command.Parameters, status);
+            }
+        }
+
         internal class AddInstanceProcedure : StoredProcedure
         {
             internal AddInstanceProcedure() : base("dbo.AddInstance")
@@ -220,6 +254,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _modality.AddParameter(command.Parameters, modality);
                 _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
                 _initialStatus.AddParameter(command.Parameters, initialStatus);
+            }
+        }
+
+        internal class DeleteCustomTagProcedure : StoredProcedure
+        {
+            internal DeleteCustomTagProcedure() : base("dbo.DeleteCustomTag")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _key = new ParameterDefinition<System.Int64>("@key", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 key)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.DeleteCustomTag";
+                _key.AddParameter(command.Parameters, key);
             }
         }
 
@@ -300,6 +350,38 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetCustomTagJobProcedure : StoredProcedure
+        {
+            internal GetCustomTagJobProcedure() : base("dbo.GetCustomTagJob")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _jobKey = new ParameterDefinition<System.Int64>("@jobKey", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 jobKey)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetCustomTagJob";
+                _jobKey.AddParameter(command.Parameters, jobKey);
+            }
+        }
+
+        internal class GetCustomTagsOnJobProcedure : StoredProcedure
+        {
+            internal GetCustomTagsOnJobProcedure() : base("dbo.GetCustomTagsOnJob")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _jobKey = new ParameterDefinition<System.Int64>("@jobKey", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 jobKey)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetCustomTagsOnJob";
+                _jobKey.AddParameter(command.Parameters, jobKey);
+            }
+        }
+
         internal class GetInstanceProcedure : StoredProcedure
         {
             internal GetInstanceProcedure() : base("dbo.GetInstance")
@@ -319,6 +401,39 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+            }
+        }
+
+        internal class GetInstancesInThePastProcedure : StoredProcedure
+        {
+            internal GetInstancesInThePastProcedure() : base("dbo.GetInstancesInThePast")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _maxWatermark = new ParameterDefinition<System.Int64>("@maxWatermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int32> _top = new ParameterDefinition<System.Int32>("@top", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 maxWatermark, System.Int32 top, System.Byte status)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetInstancesInThePast";
+                _maxWatermark.AddParameter(command.Parameters, maxWatermark);
+                _top.AddParameter(command.Parameters, top);
+                _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        internal class GetLatestInstanceProcedure : StoredProcedure
+        {
+            internal GetLatestInstanceProcedure() : base("dbo.GetLatestInstance")
+            {
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetLatestInstance";
             }
         }
 
@@ -361,6 +476,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandText = "dbo.RetrieveDeletedInstance";
                 _count.AddParameter(command.Parameters, count);
                 _maxRetries.AddParameter(command.Parameters, maxRetries);
+            }
+        }
+
+        internal class UpdateCustomTagStatusProcedure : StoredProcedure
+        {
+            internal UpdateCustomTagStatusProcedure() : base("dbo.UpdateCustomTagStatus")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _key = new ParameterDefinition<System.Int64>("@key", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 key, System.Byte status)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.UpdateCustomTagStatus";
+                _key.AddParameter(command.Parameters, key);
+                _status.AddParameter(command.Parameters, status);
             }
         }
 

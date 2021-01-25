@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                V2.AddCustomTag.PopulateCommand(sqlCommandWrapper, path, vr, (byte)level, (byte)status);
+                VLatest.AddCustomTag.PopulateCommand(sqlCommandWrapper, path, vr, (byte)level, (byte)status);
 
                 try
                 {
@@ -66,7 +66,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                V2.DeleteCustomTag.PopulateCommand(sqlCommandWrapper, key);
+                VLatest.DeleteCustomTag.PopulateCommand(sqlCommandWrapper, key);
 
                 try
                 {
@@ -92,7 +92,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                V2.GetInstancesInThePast.PopulateCommand(sqlCommandWrapper, maxWatermark, top, (byte)indexStatus);
+                VLatest.GetInstancesInThePast.PopulateCommand(sqlCommandWrapper, maxWatermark, top, (byte)indexStatus);
 
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                V2.GetLatestInstance.PopulateCommand(sqlCommandWrapper);
+                VLatest.GetLatestInstance.PopulateCommand(sqlCommandWrapper);
                 return (long?)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
             }
         }
@@ -131,7 +131,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                V2.UpdateCustomTagStatus.PopulateCommand(sqlCommandWrapper, key, (byte)status);
+                VLatest.UpdateCustomTagStatus.PopulateCommand(sqlCommandWrapper, key, (byte)status);
                 try
                 {
                     await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);

@@ -29,7 +29,7 @@
       <!--We create this item group to that MSBuild can know when the GenerateFiles can be skipped.-->
       <GenerateFilesInputs Include="@(MutableSqlGeneratorInputs)" />
 
-      <Generated Include="Features\Schema\Model\V2.Generated.cs">
+      <Generated Include="Features\Schema\Model\VLatest.Generated.cs">
         <Generator>MutableSqlModelGenerator</Generator>
         <Namespace>Microsoft.Health.Dicom.SqlServer.Features.Schema.Model</Namespace>
         <Args>@(MutableSqlGeneratorInputs->'"%(FullPath)"', ' ')</Args>

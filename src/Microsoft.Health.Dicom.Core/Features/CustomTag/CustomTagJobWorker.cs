@@ -21,13 +21,16 @@ namespace Microsoft.Health.Fhir.Core.Features.Operations.Reindex
     {
         private readonly ILogger<CustomTagJobWorker> _logger;
         private readonly ICustomTagJobStore _customTagJobStore;
+        private readonly IReindexJob _reindexJob;
         private const int Delay = 30000;
 
-        public CustomTagJobWorker(ICustomTagJobStore customTagJobStore, ILogger<CustomTagJobWorker> logger)
+        public CustomTagJobWorker(ICustomTagJobStore customTagJobStore, IReindexJob reindexJob, ILogger<CustomTagJobWorker> logger)
         {
             EnsureArg.IsNotNull(customTagJobStore, nameof(customTagJobStore));
+            EnsureArg.IsNotNull(reindexJob, nameof(reindexJob));
             EnsureArg.IsNotNull(logger, nameof(logger));
             _customTagJobStore = customTagJobStore;
+            _reindexJob = reindexJob;
             _logger = logger;
         }
 
@@ -81,17 +84,15 @@ namespace Microsoft.Health.Fhir.Core.Features.Operations.Reindex
             }
         }
 
-        private static Task CreateTask(CustomTagJob job, CancellationToken cancellationToken)
+        private Task CreateTask(CustomTagJob job, CancellationToken cancellationToken)
         {
             Task task;
             switch (job.Type)
             {
                 case CustomTagJobType.Reindexing:
-                    task = new ReindexJobTask().ExecuteAsync(job, cancellationToken);
+                    task = _reindexJob.ReindexAsync(job.Key, cancellationToken);
                     break;
                 case CustomTagJobType.Deindexing:
-                    task = new DeindexJobTask().ExecuteAsync(job, cancellationToken);
-                    break;
                 default:
                     throw new NotSupportedException();
             }

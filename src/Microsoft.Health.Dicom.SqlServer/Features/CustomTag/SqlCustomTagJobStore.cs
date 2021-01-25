@@ -67,5 +67,49 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
 
             return results;
         }
+
+        public async Task<CustomTagJob> GetCustomTagJobAsync(long jobKey, CancellationToken cancellationToken = default)
+        {
+            await Task.CompletedTask;
+            return null;
+        }
+
+        public async Task<IEnumerable<CustomTagStoreEntry>> GetCustomTagsOnJobAsync(int jobKey, CancellationToken cancellationToken)
+        {
+            var results = new List<CustomTagStoreEntry>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.GetCustomTagsOnJob.PopulateCommand(sqlCommandWrapper, jobKey);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (long rKey, string rPath, string rVR, byte rLevel, byte rStatus) = reader.ReadRow(
+                            VLatest.CustomTag.Key,
+                            VLatest.CustomTag.Path,
+                            VLatest.CustomTag.VR,
+                            VLatest.CustomTag.Level,
+                            VLatest.CustomTag.Status);
+
+                        results.Add(new CustomTagStoreEntry(
+                                rKey,
+                                rPath,
+                                rVR,
+                                (CustomTagLevel)rLevel,
+                                (CustomTagStatus)rStatus));
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        public Task<IEnumerable<CustomTagStoreEntry>> GetCustomTagsOnJobAsync(long jobKey, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

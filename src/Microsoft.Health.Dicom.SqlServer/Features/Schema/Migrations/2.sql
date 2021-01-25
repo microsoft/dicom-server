@@ -28,35 +28,6 @@ Full text catalog creation
 CREATE FULLTEXT CATALOG Dicom_Catalog WITH ACCENT_SENSITIVITY = OFF AS DEFAULT
 GO
 
-CREATE TABLE dbo.CustomTagJob(
-    JobKey BIGINT NOT NULL,
-    TagKey BIGINT NOT NULL,
-)
-
-CREATE TABLE dbo.Job (
-    [Key] BIGINT NOT NULL,
-    [Type] INT NOT NULL,
-    CompletedWatermark BIGINT NULL,
-    MaxWatermark BIGINT NOT NULL,
-    HeartBeatTimeStamp DATETIME2(7) NULL,
-    [Status] INT NOT NULL,
-)
-
-CREATE TABLE dbo.CustomTag(
-    [Key] BIGINT NOT NULL,
-)
-
-GO
-
-CREATE PROCEDURE dbo.AcquireCustomTagJobs(
-    @maxCount     INT
-)
-AS
-    SET NOCOUNT ON
-    SET XACT_ABORT ON
-    -- Return only Queued jobs
-    SELECT TOP (@maxCount) * FROM dbo.Job WHERE [Status] = 0
-GO
 /*************************************************************
     Instance Table
     Dicom instances with unique Study, Series and Instance Uid
@@ -394,28 +365,6 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
 )
 
 /*************************************************************
-    Custom Tag Table
-    Store custom tag information
-    
-    Current Instance State
-    CurrentWatermark = null,               Current State = Deleted
-    CurrentWatermark = OriginalWatermark,  Current State = Created
-    CurrentWatermark <> OriginalWatermark, Current State = Replaced
-**************************************************************/
-CREATE TABLE dbo.CustomTag (
-    [Key]                   BIGINT              NOT NULL,  -- Primary Key
-    Path                    VARCHAR(64)         NOT NULL,  -- Custom Tag Path. Each custom tag take 8 bytes, support upto 8 levels, no delimeter between each level.
-    VR                      VARCHAR(2)             NOT NULL,  -- Custom Tag VR.
-    Level                   TINYINT             NOT NULL,  -- Custom Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
-    Status                  TINYINT             NOT NULL,  -- Custom Tag Status. 0 -- Reindexing, 1 -- Added, 2 -- Deindexing
-) WITH (DATA_COMPRESSION = PAGE)
-
-CREATE UNIQUE CLUSTERED INDEX IXC_CustomTag ON dbo.CustomTag
-(
-    [Key]
-)
-
-/*************************************************************
     Sequence for generating sequential unique ids
 **************************************************************/
 
@@ -450,14 +399,6 @@ CREATE SEQUENCE dbo.InstanceKeySequence
     MINVALUE 1
     NO CYCLE
     CACHE 1000000
-
-CREATE SEQUENCE dbo.CustomTagKeySequence
-    AS BIGINT
-    START WITH 1
-    INCREMENT BY 1
-    MINVALUE 1
-    NO CYCLE
-    CACHE 1000
 
 
 GO
@@ -978,6 +919,103 @@ BEGIN
 END
 GO
 
+
+
+---- VERSION 2
+
+/*************************************************************
+    Custom Tag Table
+    Store custom tag information
+    
+    Current Instance State
+    CurrentWatermark = null,               Current State = Deleted
+    CurrentWatermark = OriginalWatermark,  Current State = Created
+    CurrentWatermark <> OriginalWatermark, Current State = Replaced
+**************************************************************/
+CREATE TABLE dbo.CustomTag (
+    [Key]                   BIGINT              NOT NULL,  -- Primary Key
+    Path                    VARCHAR(64)         NOT NULL,  -- Custom Tag Path. Each custom tag take 8 bytes, support upto 8 levels, no delimeter between each level.
+    VR                      VARCHAR(2)             NOT NULL,  -- Custom Tag VR.
+    Level                   TINYINT             NOT NULL,  -- Custom Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
+    Status                  TINYINT             NOT NULL,  -- Custom Tag Status. 0 -- Reindexing, 1 -- Added, 2 -- Deindexing
+) WITH (DATA_COMPRESSION = PAGE)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_CustomTag ON dbo.CustomTag
+(
+    [Key]
+)
+
+CREATE TABLE dbo.CustomTagJob(
+    JobKey BIGINT NOT NULL,
+    TagKey BIGINT NOT NULL,
+)
+
+CREATE TABLE dbo.Job (
+    [Key] BIGINT NOT NULL,
+    [Type] INT NOT NULL,
+    CompletedWatermark BIGINT NULL,
+    MaxWatermark BIGINT NOT NULL,
+    HeartBeatTimeStamp DATETIME2(7) NULL,
+    [Status] INT NOT NULL,
+)
+
+GO
+
+CREATE SEQUENCE dbo.CustomTagKeySequence
+    AS BIGINT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 1000
+
+CREATE SEQUENCE dbo.JobKeySequence
+    AS BIGINT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 1000
+GO
+
+CREATE PROCEDURE dbo.AcquireCustomTagJobs(
+    @maxCount     INT
+)
+AS
+    SET NOCOUNT ON
+    SET XACT_ABORT ON
+    -- Return only Queued jobs
+    SELECT TOP (@maxCount) * FROM dbo.Job WHERE [Status] = 0
+GO
+
+CREATE PROCEDURE dbo.GetCustomTagJob(
+    @jobKey    BIGINT
+)
+AS
+    SET NOCOUNT ON
+    SET XACT_ABORT ON
+    -- Return only Queued jobs
+    SELECT * FROM dbo.Job WHERE [Key] = @jobKey
+GO
+
+CREATE PROCEDURE dbo.GetCustomTagsOnJob(
+    @jobKey BIGINT
+)
+AS
+    SET NOCOUNT ON
+    SET XACT_ABORT ON
+    
+    SELECT [Key],Path,VR,Level,Status FROM dbo.CustomTag INNER JOIN dbo.CustomTagJob ON CustomTagJob.JobKey = @jobKey AND CustomTagJob.TagKey = dbo.CustomTag.[Key]
+GO
+
+CREATE TYPE Udt_AddCustomTagsInput AS TABLE
+(
+    Path   VARCHAR(64),
+    VR     VARCHAR(2),
+    Level  TINYINT
+)
+GO
+
 /***************************************************************************************/
 -- STORED PROCEDURE
 --     AddCustomTag
@@ -985,34 +1023,41 @@ GO
 -- DESCRIPTION
 --     Add custom tag
 /***************************************************************************************/
-CREATE PROCEDURE dbo.AddCustomTag (
-    @path   VARCHAR(64),
-    @vr     VARCHAR(2),
-    @level  TINYINT,
-    @status TINYINT)
+CREATE PROCEDURE dbo.AddCustomTags (
+    @customTags [Udt_AddCustomTagsInput])
 AS
 
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    DECLARE @key BIGINT
     BEGIN TRANSACTION
+        DECLARE @jobKey BIGINT
         
         -- Check if tag with same path already exist
-        SELECT @key = [Key] FROM dbo.CustomTag WHERE Path = @path
+        SELECT [Key] FROM dbo.CustomTag INNER JOIN @customTags input ON input.Path = dbo.CustomTag.Path
 	    
         IF @@ROWCOUNT <> 0
-            THROW 50409, 'custom tag already exist', @key
+            THROW 50409, 'custom tag(s) already exist', 0; -- figure out better state (the 0)
 
-        -- add to table 
-        SET @key =  NEXT VALUE FOR CustomTagKeySequence
+        -- add to CustomTag
         INSERT INTO dbo.CustomTag 
             ([Key], Path, VR, Level, Status)
-        VALUES 
-            (@key, @path, @vr, @level, @status)
+        SELECT CustomTagKeySequence.nextval, Path, VR, Level, 0 FROM @customTags -- status 0 means reindexing
         
-        -- return key
-        SELECT @key
+        -- Add Jobs
+        
+        -- Create a job
+        SET @jobKey = JobKeySequence.nextval
+        INSERT INTO dbo.Job
+         ([Key], [Type], CompletedWatermark, MaxWatermark, HeartBeatTimeStamp, [Status])
+         VAlUES
+         (@jobKey, )
+            
+        -- Add tagkey and jobkey relationship
+
+        -- return job
+
+        
     COMMIT TRANSACTION
 GO
 
@@ -1099,4 +1144,3 @@ AS
     WHERE Status = @status AND Watermark <= @maxWatermark 
     ORDER BY Watermark DESC
 GO
-
