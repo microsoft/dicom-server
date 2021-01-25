@@ -40,5 +40,17 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
             _logger.LogInformation("Error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}.", changeFeedSequence, studyUid, seriesUid, instanceUid);
             return Task.CompletedTask;
         }
+
+        public Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, Exception exceptionToStore, CancellationToken cancellationToken = default)
+        {
+            DicomDataset dataset = changeFeedEntry.Metadata;
+            string studyUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            string seriesUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            string instanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+            long changeFeedSequence = changeFeedEntry.Sequence;
+
+            _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Tried {retryNum} time(s).", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum);
+            return Task.CompletedTask;
+        }
     }
 }
