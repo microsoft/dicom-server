@@ -95,6 +95,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     // One of the required resources is missing.
                     statusCode = HttpStatusCode.InternalServerError;
                     break;
+                case UnauthorizedDicomActionException _:
+                    statusCode = HttpStatusCode.Forbidden;
+                    break;
                 case DicomServerException _:
                     _logger.LogWarning(exception, "Service exception.");
                     statusCode = HttpStatusCode.ServiceUnavailable;

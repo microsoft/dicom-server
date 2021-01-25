@@ -17,9 +17,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Security.Authorization
 {
     public class RoleBasedDicomAuthorizationService : IDicomAuthorizationService
     {
-        private IDicomRequestContextAccessor _dicomRequestContextAccessor;
-        private string _rolesClaimName;
-        private Dictionary<string, Role> _roles;
+        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+        private readonly string _rolesClaimName;
+        private readonly Dictionary<string, Role> _roles;
 
         public RoleBasedDicomAuthorizationService(AuthorizationConfiguration authorizationConfiguration, IDicomRequestContextAccessor dicomRequestContextAccessor)
         {
