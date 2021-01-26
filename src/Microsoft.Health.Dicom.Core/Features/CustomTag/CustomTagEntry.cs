@@ -10,11 +10,16 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class CustomTagEntry
     {
-        public CustomTagEntry(string path, string vr, CustomTagLevel level)
+        public CustomTagEntry()
+        {
+        }
+
+        public CustomTagEntry(string path, string vr, CustomTagLevel level, CustomTagStatus status)
         {
             Path = path;
             VR = vr;
             Level = level;
+            Status = status;
         }
 
         /// <summary>
@@ -33,9 +38,15 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// </summary>
         public CustomTagLevel Level { get; set; }
 
+        /// <summary>
+        /// Status of this tag. Represents the current state the tag is in.
+        /// This value is null when the entry represents a tag to be created.
+        /// </summary>
+        public CustomTagStatus Status { get; set; }
+
         public override string ToString()
         {
-            return $"Path: {Path}, VR:{VR}, Level:{Level}";
+            return $"Path: {Path}, VR:{VR}, Level:{Level} Status:{Status}";
         }
     }
 }

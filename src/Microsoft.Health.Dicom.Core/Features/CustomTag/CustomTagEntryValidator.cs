@@ -11,6 +11,7 @@ using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query;
 
@@ -110,7 +111,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 if (string.IsNullOrWhiteSpace(tagEntry.VR))
                 {
                     // When VR is missing for standard tag, still need to verify VRCode
-                    string vrCode = tag.DictionaryEntry.ValueRepresentations[0].Code;
+                    string vrCode = tag.GetDefaultVR()?.Code;
+
                     EnsureVRIsSupported(vrCode);
                 }
                 else
