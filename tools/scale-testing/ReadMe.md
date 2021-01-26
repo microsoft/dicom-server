@@ -13,7 +13,7 @@ After, you need to determine what level of permissions you have over your subscr
 Also, while DownloadBlobNames.psm1 can be used to download the names of successfully stored instances, series and studies, at the [end](#download-successfully-stored-instances-series-and-studies-using-ssms) of this readme, another simpler and faster (but more manual) way is laid out.
 
 ## **Powershell scripts with regular permissions**
-As a prerequisite, start a powershell console with administrator mode in the current folder and open the visual studio solution in the current folder using visual studio. Run the following commands in the powershell console to ensure the correct execution policy is set and the (necessary modules are installed)[https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-4.5.0#install-the-azure-powershell-module]. 
+As a prerequisite, start a powershell console with administrator mode in the current folder and open the visual studio solution in the current folder using visual studio. Run the following commands in the powershell console to ensure the correct execution policy is set and the [necessary modules are installed](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-4.5.0#install-the-azure-powershell-module). 
 ```
 Set-ExecutionPolicy Unrestricted
 Install-Module -Name Az -AllowClobber -Scope CurrentUser
