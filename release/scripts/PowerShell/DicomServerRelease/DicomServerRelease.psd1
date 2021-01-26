@@ -9,7 +9,7 @@
     CompanyName       = 'https://microsoft.com'
     Description       = 'PowerShell Module for managing Azure Active Directory registrations and users for Microsoft Dicom Server for a Test Environment. This module relies on the DicomServer module, and it must be imported before use of this module'
     PowerShellVersion = '3.0'
-    FunctionsToExport = 'Add-AadTestAuthEnvironment', 'Remove-AadTestAuthEnvironment', 'Set-DicomServerApiApplicationRoles', 'Set-DicomServerUserAppRoleAssignments'
+    FunctionsToExport = 'Add-AadTestAuthEnvironment', 'Remove-AadTestAuthEnvironment', 'Set-DicomServerApiApplicationRoles', 'Set-DicomServerClientAppRoleAssignments', 'Set-DicomServerUserAppRoleAssignments'
     CmdletsToExport   = @()
     AliasesToExport   = @()    
 }
