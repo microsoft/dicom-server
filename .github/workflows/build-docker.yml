@@ -26,8 +26,17 @@ jobs:
     - 
       name: launch docker
       run: |
-        docker-compose up -d
+        env SAPASSWORD='123!@#passforCI#$' docker-compose up -d
       working-directory: samples/docker
+    # - name: get logs
+    #   run: |
+    #     sleep 60
+    #     docker ps
+    #     docker logs docker_sql_1
+    #     docker logs docker_azurite_1
+    #     docker logs docker_fhir_1
+    #     docker logs docker_dicom-api_1
+    #     docker logs docker_dicom-cast_1
     - 
       name: ensure dicom-api comes up
       uses: KnicKnic/os-specific-run@v1.0.3
