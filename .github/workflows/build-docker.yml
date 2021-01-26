@@ -23,3 +23,39 @@ jobs:
       run: |
         docker-compose build
       working-directory: samples/docker
+    - 
+      name: launch docker
+      run: |
+        docker-compose up -d
+      working-directory: samples/docker
+    - 
+      name: ensure dicom-api comes up
+      run: |
+        do {
+          sleep 1
+          curl localhost:8080/health/check -f
+        } while($LASTEXITCODE -ne 0)        
+      working-directory: docs/dcm
+      shell: pwsh
+      timeout-minutes: 4
+    - 
+      name: ensure dicom-api can post file
+      run: |
+        curl --location --request POST "http://localhost:8080/studies" --header "Accept: application/dicom+json" --header "Content-Type: multipart/related; type=\"application/dicom\"" --form "file1=@red-triangle.dcm;type=application/dicom" --trace-ascii "trace.txt" -f --verbose 
+      working-directory: docs/dcm
+      shell: bash
+      timeout-minutes: 4
+    -
+      name: ensure dicom-cast works
+      run: |
+        $success=$false
+        while(-not $success) {
+          try{
+              sleep 1
+              $f = curl http://localhost:8081/Patient | convertfrom-json -ashashtable
+              $success = $f.entry[0].resource.gender -eq 'female'
+          }catch{}
+        }
+      working-directory: docs/dcm
+      shell: pwsh
+      timeout-minutes: 1
