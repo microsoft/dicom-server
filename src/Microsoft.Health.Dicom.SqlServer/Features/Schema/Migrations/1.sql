@@ -473,10 +473,8 @@ AS
         AND SopInstanceUid = @sopInstanceUid
 
     IF @@ROWCOUNT <> 0
-    BEGIN
         -- The instance already exists. Set the state = @existingStatus to indicate what state it is in.
         THROW 50409, 'Instance already exists', @existingStatus;
-    END
 
     -- The instance does not exist, insert it.
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
@@ -586,10 +584,8 @@ AS
     AND Watermark = @watermark
 
     IF @@ROWCOUNT = 0
-    BEGIN
         -- The instance does not exist. Perhaps it was deleted?
         THROW 50404, 'Instance does not exist', 1;
-    END
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created
@@ -709,9 +705,7 @@ AS
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     IF (@@ROWCOUNT = 0)
-    BEGIN
         THROW 50404, 'Instance not found', 1;
-    END
 
     INSERT INTO dbo.DeletedInstance
     (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)

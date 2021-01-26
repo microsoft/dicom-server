@@ -3,14 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
-    public interface ICustomTagStore
+    /// <summary>
+    /// Validate if given custom tag entries are valid
+    /// </summary>
+    public interface ICustomTagEntryFormalizer
     {
-        Task AddCustomTagsAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken = default);
+        CustomTagEntry Formalize(CustomTagEntry customTagEntry);
     }
 }

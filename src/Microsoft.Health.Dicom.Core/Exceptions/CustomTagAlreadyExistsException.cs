@@ -3,14 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Microsoft.Health.Dicom.Core.Features.CustomTag
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public interface ICustomTagStore
+    /// <summary>
+    /// Exception thrown when the custom tag already exists.
+    /// </summary>
+    public class CustomTagAlreadyExistsException : DicomServerException
     {
-        Task AddCustomTagsAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken = default);
+        public CustomTagAlreadyExistsException()
+            : base(DicomCoreResource.CustomTagAlreadyExists)
+        {
+        }
     }
 }

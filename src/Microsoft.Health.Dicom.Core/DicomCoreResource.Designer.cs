@@ -97,6 +97,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified custom tag cannot be found..
+        /// </summary>
+        internal static string CustomTagNotFound {
+            get {
+                return ResourceManager.GetString("CustomTagNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
         internal static string DataStoreOperationFailed {

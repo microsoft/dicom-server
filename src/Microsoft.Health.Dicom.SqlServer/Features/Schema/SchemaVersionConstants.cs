@@ -3,14 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Microsoft.Health.Dicom.Core.Features.CustomTag
+namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
 {
-    public interface ICustomTagStore
+    public static class SchemaVersionConstants
     {
-        Task AddCustomTagsAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken = default);
+        public const int Min = (int)SchemaVersion.V2;
+        public const int Max = (int)SchemaVersion.V2;
+        public const int SupportCustomTagSchemaVersion = (int)SchemaVersion.V2;
     }
 }
