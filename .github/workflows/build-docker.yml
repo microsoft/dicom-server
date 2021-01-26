@@ -30,13 +30,14 @@ jobs:
       working-directory: samples/docker
     - 
       name: ensure dicom-api comes up
-      run: |
-        do {
-          sleep 1
-          curl localhost:8080/health/check -f
-        } while($LASTEXITCODE -ne 0)        
-      working-directory: docs/dcm
-      shell: pwsh
+      uses: KnicKnic/os-specific-run@v1.0.3
+      with:
+        linux: |
+          do {
+            sleep 1
+            curl localhost:8080/health/check -f
+          } while($LASTEXITCODE -ne 0)        
+        linuxShell: pwsh
       timeout-minutes: 4
     - 
       name: ensure dicom-api can post file
@@ -47,15 +48,16 @@ jobs:
       timeout-minutes: 4
     -
       name: ensure dicom-cast works
-      run: |
-        $success=$false
-        while(-not $success) {
-          try{
-              sleep 1
-              $f = curl http://localhost:8081/Patient | convertfrom-json -ashashtable
-              $success = $f.entry[0].resource.gender -eq 'female'
-          }catch{}
-        }
-      working-directory: docs/dcm
-      shell: pwsh
+      uses: KnicKnic/os-specific-run@v1.0.3
+      with:
+        linux: |
+          $success=$false
+          while(-not $success) {
+            try{
+                sleep 1
+                $f = curl http://localhost:8081/Patient | convertfrom-json -ashashtable
+                $success = $f.entry[0].resource.gender -eq 'female'
+            }catch{}
+          }    
+        linuxShell: pwsh
       timeout-minutes: 1
