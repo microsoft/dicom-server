@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     {
         public static void Validate(string tagPath)
         {
-            Match match = Regex.Match(tagPath, @"\A\(\d{4},\d{4}\)(\.\((\d){4},(\d){4}\))*$");
+            Match match = Regex.Match(tagPath, @"\A\d{8}(\.(\d){8})*$");
             if (!match.Success)
             {
                 throw new TagPathValidationException(string.Format(DicomCoreResource.TagPathValidation, tagPath));

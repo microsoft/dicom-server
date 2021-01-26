@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 throw new System.NotImplementedException("Sequential dicom tags are currently not supported.");
             }
 
-            return string.Join(string.Empty, dicomTagPath.Split('(', ',', ')', '.'));
+            return dicomTagPath;
         }
 
         private static DicomTag ParseDicomTagNumber(string s)

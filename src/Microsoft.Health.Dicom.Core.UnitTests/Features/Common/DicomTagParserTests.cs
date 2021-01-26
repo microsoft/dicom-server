@@ -44,16 +44,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
         [Fact]
         public void GivenDicomTagPath_WhenParsingFormattedTagPath_ThenShouldRemoveUnnecessaryCharacters()
         {
-            string parsedString = _dicomTagParser.ParseFormattedTagPath("(0000,1111)");
-            Assert.True(!parsedString.Contains('(', System.StringComparison.OrdinalIgnoreCase));
-            Assert.True(!parsedString.Contains(')', System.StringComparison.OrdinalIgnoreCase));
-            Assert.True(!parsedString.Contains('.', System.StringComparison.OrdinalIgnoreCase));
+            string tag = "00001111";
+            string parsedString = _dicomTagParser.ParseFormattedTagPath(tag);
+            Assert.True(parsedString.Equals(tag));
         }
 
         [Fact]
         public void GivenSequentialDicomTagPath_WhenParsingFormattedTagPath_ThenShouldThrow()
         {
-            Assert.Throws<NotImplementedException>(() => { _dicomTagParser.ParseFormattedTagPath("(0000,1111).(2323,4545)"); });
+            Assert.Throws<NotImplementedException>(() => { _dicomTagParser.ParseFormattedTagPath("00001111.23234545"); });
         }
 
         public static IEnumerable<object[]> GetValidTags()
