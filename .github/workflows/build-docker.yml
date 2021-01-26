@@ -21,3 +21,9 @@ jobs:
       run: |
         docker-compose build
       working-directory: samples/docker
+    - 
+      name: test-docker
+      run: .github/workflows/test-docker.ps1
+      shell: pwsh
+      timeout-minutes: 6
+    
