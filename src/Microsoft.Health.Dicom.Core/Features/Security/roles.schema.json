@@ -7,12 +7,7 @@
                 "*",
                 "read",
                 "write",
-                "delete",
-                "hardDelete",
-                "export",
-                "resourceValidate",
-                "reindex",
-                "convertData"
+                "delete"
             ]
         }
     },

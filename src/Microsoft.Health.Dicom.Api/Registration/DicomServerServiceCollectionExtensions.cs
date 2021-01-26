@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Builder
 
                     app.UseAuthentication();
 
-                    app.UseMiddleware<DicomRequestContextAfterAuthenticationMiddleware>();
+                    app.UseDicomRequestContextAfterAuthentication();
 
                     next(app);
                 };
