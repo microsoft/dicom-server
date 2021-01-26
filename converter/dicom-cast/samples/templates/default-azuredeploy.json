@@ -106,7 +106,7 @@
             "defaultValue": false,
             "type": "Bool",
             "metadata": {
-                "description": "Enable "
+                "description": "Ignore values that are not required when syncing to FHIR if they are invalid "
             }
         }
     },
@@ -245,6 +245,19 @@
             "type": "Microsoft.KeyVault/vaults/secrets",
             "apiVersion": "2015-06-01",
             "name": "[concat(variables('serviceName'), '/BlobStore--ConnectionString')]",
+            "dependsOn": [
+                "[variables('keyVaultResourceId')]",
+                "[variables('storageResourceId')]"
+            ],
+            "properties": {
+                "contentType": "text/plain",
+                "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';')]"
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2015-06-01",
+            "name": "[concat(variables('serviceName'), '/TableStore--ConnectionString')]",
             "dependsOn": [
                 "[variables('keyVaultResourceId')]",
                 "[variables('storageResourceId')]"
