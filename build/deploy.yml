@@ -25,6 +25,7 @@ jobs:
     
         $additionalProperties = @{
             "SqlServer__DeleteAllDataOnStartup" = "true"
+            "DicomServer__Security__Authorization__Enabled" = "true"
         }
     
         $templateParameters = @{
