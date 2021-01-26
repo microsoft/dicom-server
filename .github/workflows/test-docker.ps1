@@ -1,6 +1,7 @@
 #!/usr/bin/env pwsh
 
 #region start docker
+<#[SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="random test password for sql")]#>
 $env:SAPASSWORD='123!@#passforCI#$' 
 docker-compose  -f samples/docker/docker-compose.yaml up -d
 echo 'docker up'
