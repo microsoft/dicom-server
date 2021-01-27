@@ -102,11 +102,11 @@
                 "description": "Enable table storage to store dicom-cast errors"
             }
         },
-        "enablePartialValidation": {
+        "IgnoreSyncOfInvalidTagValue": {
             "defaultValue": false,
             "type": "Bool",
             "metadata": {
-                "description": "Ignore values that are not required when syncing to FHIR if they are invalid "
+                "description": "Ignore values that are not required when syncing to FHIR if they are invalid"
             }
         }
     },
@@ -164,7 +164,7 @@
                                 },
                                 {
                                     "name": "DicomCast__Features__IgnoreSyncOfInvalidTagValue",
-                                    "value": "[parameters('enablePartialValidation')]"
+                                    "value": "[parameters('IgnoreSyncOfInvalidTagValue')]"
 
                                 },
                                 {
@@ -256,6 +256,7 @@
         },
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
+            "condition": "[parameters('enableTableStorage')]", 
             "apiVersion": "2015-06-01",
             "name": "[concat(variables('serviceName'), '/TableStore--ConnectionString')]",
             "dependsOn": [
