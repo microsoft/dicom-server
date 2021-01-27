@@ -10,7 +10,14 @@ jobs:
       azureSubscription: $(azureSubscriptionName)
       azurePowerShellVersion: latestVersion
       ScriptType: InlineScript
-      Inline: 'Get-AzResourceGroup -Name $(deploymentName) | Remove-AzResourceGroup -Verbose -Force'
+      Inline: |
+        Get-AzResourceGroup -Name $(deploymentName) | Remove-AzResourceGroup -Verbose -Force
+        
+        # If a deleted keyvault exists, remove it
+        if (Get-AzKeyVault -VaultName "${environmentName}-ts" -Location "$(resourceGroupRegion)" -InRemovedState)
+        {
+            Remove-AzKeyVault -VaultName "${environmentName}-ts" -InRemovedState -Location "$(resourceGroupRegion)" -Force
+        }
 
 - job: cleanupAad
   displayName: 'Cleanup Azure Active Directory'
