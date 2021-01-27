@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         {
             if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
             {
-                throw new UnauthorizedDicomActionException();
+                throw new UnauthorizedDicomActionException(DataActions.Write);
             }
 
             return await _customTagService.AddCustomTagAsync(request.CustomTags, cancellationToken);

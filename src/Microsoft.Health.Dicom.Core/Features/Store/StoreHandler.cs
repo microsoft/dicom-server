@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
             {
-                throw new UnauthorizedDicomActionException();
+                throw new UnauthorizedDicomActionException(DataActions.Write);
             }
 
             StoreRequestValidator.ValidateRequest(message);

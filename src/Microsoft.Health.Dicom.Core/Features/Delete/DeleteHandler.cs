@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
             if (await AuthorizationService.CheckAccess(DataActions.Delete, cancellationToken) != DataActions.Delete)
             {
-                throw new UnauthorizedDicomActionException();
+                throw new UnauthorizedDicomActionException(DataActions.Delete);
             }
 
             ValidateDeleteResourcesRequest(request);

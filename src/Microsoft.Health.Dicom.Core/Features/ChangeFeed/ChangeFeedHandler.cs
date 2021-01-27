@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 
             if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
             {
-                throw new UnauthorizedDicomActionException();
+                throw new UnauthorizedDicomActionException(DataActions.Read);
             }
 
             IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries = await _changeFeedService.GetChangeFeedAsync(request.Offset, request.Limit, request.IncludeMetadata, cancellationToken);

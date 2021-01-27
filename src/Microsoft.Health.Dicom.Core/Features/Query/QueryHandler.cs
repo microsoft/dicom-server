@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         {
             if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
             {
-                throw new UnauthorizedDicomActionException();
+                throw new UnauthorizedDicomActionException(DataActions.Read);
             }
 
             return await _queryService.QueryAsync(message, cancellationToken);

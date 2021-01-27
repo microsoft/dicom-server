@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
             {
-                throw new UnauthorizedDicomActionException();
+                throw new UnauthorizedDicomActionException(DataActions.Read);
             }
 
             ValidateRetrieveResourceRequest(request);
