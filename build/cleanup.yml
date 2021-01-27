@@ -12,12 +12,6 @@ jobs:
       ScriptType: InlineScript
       Inline: |
         Get-AzResourceGroup -Name $(deploymentName) | Remove-AzResourceGroup -Verbose -Force
-        
-        # If a deleted keyvault exists, remove it
-        if (Get-AzKeyVault -VaultName "${environmentName}-ts" -Location "$(resourceGroupRegion)" -InRemovedState)
-        {
-            Remove-AzKeyVault -VaultName "${environmentName}-ts" -InRemovedState -Location "$(resourceGroupRegion)" -Force
-        }
 
 - job: cleanupAad
   displayName: 'Cleanup Azure Active Directory'
@@ -52,6 +46,12 @@ jobs:
             client_id     = $clientId
             client_secret = $clientSecret
             resource      = $resource
+        }
+        
+        # If a deleted keyvault exists, remove it
+        if (Get-AzKeyVault -VaultName "${deploymentName}-ts" -Location "$(resourceGroupRegion)" -InRemovedState)
+        {
+            Remove-AzKeyVault -VaultName "${deploymentName}-ts" -InRemovedState -Location "$(resourceGroupRegion)" -Force
         }
 
         $response = Invoke-RestMethod -Method 'Post' -Uri $adTokenUrl -ContentType "application/x-www-form-urlencoded" -Body $body
