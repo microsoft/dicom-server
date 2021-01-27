@@ -1,6 +1,6 @@
 ﻿{
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://microsoft.com/fhir/roles.schema.json",
+    "$id": "http://microsoft.com/dicom/roles.schema.json",
     "definitions": {
         "dataActions": {
             "enum": [

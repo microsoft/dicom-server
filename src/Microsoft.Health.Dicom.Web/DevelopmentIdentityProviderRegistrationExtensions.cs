@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Web
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             var authorizationConfiguration = new AuthorizationConfiguration();
-            configuration.GetSection("FhirServer:Security:Authorization").Bind(authorizationConfiguration);
+            configuration.GetSection("DicomServer:Security:Authorization").Bind(authorizationConfiguration);
 
             var developmentIdentityProviderConfiguration = new DevelopmentIdentityProviderConfiguration();
             configuration.GetSection("DevelopmentIdentityProvider").Bind(developmentIdentityProviderConfiguration);
@@ -169,10 +169,10 @@ namespace Microsoft.Health.Dicom.Web
 
             private class Provider : JsonConfigurationProvider
             {
-                private const string AuthorityKey = "FhirServer:Security:Authentication:Authority";
-                private const string AudienceKey = "FhirServer:Security:Authentication:Audience";
+                private const string AuthorityKey = "DicomServer:Security:Authentication:Authority";
+                private const string AudienceKey = "DicomServer:Security:Authentication:Audience";
                 private const string DevelopmentIdpEnabledKey = "DevelopmentIdentityProvider:Enabled";
-                private const string PrincipalClaimsKey = "FhirServer:Security:PrincipalClaims";
+                private const string PrincipalClaimsKey = "DicomServer:Security:PrincipalClaims";
 
                 private readonly IConfigurationRoot _existingConfiguration;
 
