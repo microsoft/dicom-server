@@ -20,8 +20,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// Normalize custom tag entry before saving to CustomTagStore.
         /// </summary>
         /// <param name="customTagEntry">The custom tag entry.</param>
-        /// <returns>Formalized custom tag entry.</returns>
-        internal static CustomTagEntry Normalize(this CustomTagEntry customTagEntry)
+        /// <returns>Normalize custom tag entry.</returns>
+        public static CustomTagEntry Normalize(this CustomTagEntry customTagEntry)
         {
             DicomTagParser dicomTagParser = new DicomTagParser();
             DicomTag[] tags;

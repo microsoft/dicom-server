@@ -18,10 +18,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         [MemberData(nameof(GetValidCustomTagEntries))]
         public void GivenValidCustomTagEntry_WhenFormalizing_ThenShouldReturnSameEntry(CustomTagEntry entry)
         {
-            CustomTagEntry formalized = entry.Normalize();
-            Assert.Equal(entry.Path, formalized.Path);
-            Assert.Equal(entry.VR, formalized.VR);
-            Assert.Equal(entry.Level, formalized.Level);
+            CustomTagEntry normalized = entry.Normalize();
+            Assert.Equal(entry.Path, normalized.Path);
+            Assert.Equal(entry.VR, normalized.VR);
+            Assert.Equal(entry.Level, normalized.Level);
         }
 
         [Theory]
@@ -32,8 +32,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             CustomTagEntry entry = new CustomTagEntry(tag.GetPath(), vr, CustomTagLevel.Instance, CustomTagStatus.Added);
-            CustomTagEntry formalized = entry.Normalize();
-            Assert.Equal(tag.GetDefaultVR().Code, formalized.VR);
+            CustomTagEntry normalized = entry.Normalize();
+            Assert.Equal(tag.GetDefaultVR().Code, normalized.VR);
         }
 
         [Fact]
@@ -42,8 +42,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             DicomTag tag = DicomTag.DeviceSerialNumber;
             string vr = DicomVR.CS.Code;
             CustomTagEntry entry = new CustomTagEntry(tag.GetPath(), vr, CustomTagLevel.Instance, CustomTagStatus.Added);
-            CustomTagEntry formalized = entry.Normalize();
-            Assert.Equal(vr, formalized.VR);
+            CustomTagEntry normalized = entry.Normalize();
+            Assert.Equal(vr, normalized.VR);
         }
 
         [Fact]
@@ -51,8 +51,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         {
             DicomTag tag = DicomTag.DeviceLabel;
             CustomTagEntry entry = new CustomTagEntry(tag.GetPath().ToLowerInvariant(), tag.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added);
-            CustomTagEntry formalized = entry.Normalize();
-            Assert.Equal(entry.Path.ToUpperInvariant(), formalized.Path);
+            CustomTagEntry normalized = entry.Normalize();
+            Assert.Equal(entry.Path.ToUpperInvariant(), normalized.Path);
         }
 
         [Fact]
@@ -60,8 +60,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         {
             DicomTag tag = DicomTag.DeviceLabel;
             CustomTagEntry entry = new CustomTagEntry(tag.GetPath(), tag.GetDefaultVR().Code.ToLowerInvariant(), CustomTagLevel.Instance, CustomTagStatus.Added);
-            CustomTagEntry formalized = entry.Normalize();
-            Assert.Equal(entry.VR.ToUpperInvariant(), formalized.VR);
+            CustomTagEntry normalized = entry.Normalize();
+            Assert.Equal(entry.VR.ToUpperInvariant(), normalized.VR);
         }
 
         [Fact]
@@ -71,8 +71,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             DicomTag tag = DicomTag.DeviceSerialNumber;
             CustomTagEntry entry = new CustomTagEntry(path: tag.DictionaryEntry.Keyword, tag.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added);
             string expectedPath = tag.GetPath();
-            CustomTagEntry formalized = entry.Normalize();
-            Assert.Equal(formalized.Path, expectedPath);
+            CustomTagEntry normalized = entry.Normalize();
+            Assert.Equal(normalized.Path, expectedPath);
         }
 
         public static IEnumerable<object[]> GetValidCustomTagEntries()
