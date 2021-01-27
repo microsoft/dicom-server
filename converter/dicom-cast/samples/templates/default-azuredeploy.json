@@ -95,13 +95,6 @@
                 "description": "The endpoint of the FHIR server."
             }
         },
-        "enableTableStorage": {
-            "defaultValue": false,
-            "type": "Bool",
-            "metadata": {
-                "description": "Enable table storage to store dicom-cast errors"
-            }
-        },
         "IgnoreSyncOfInvalidTagValue": {
             "defaultValue": false,
             "type": "Bool",
@@ -169,7 +162,7 @@
                                 },
                                 {
                                     "name": "TableStore__Enabled",
-                                    "value": "[parameters('enableTableStorage')]"
+                                    "value": "true"
                                 }
                             ]
                         }
@@ -256,7 +249,6 @@
         },
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
-            "condition": "[parameters('enableTableStorage')]", 
             "apiVersion": "2015-06-01",
             "name": "[concat(variables('serviceName'), '/TableStore--ConnectionString')]",
             "dependsOn": [
