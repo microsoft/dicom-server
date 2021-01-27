@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
@@ -17,19 +18,16 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     {
         private readonly ICustomTagStore _customTagStore;
         private readonly ICustomTagEntryValidator _customTagEntryValidator;
-        private readonly ICustomTagEntryFormalizer _customTagEntryFormalizer;
         private readonly ILogger<CustomTagService> _logger;
 
-        public CustomTagService(ICustomTagStore customTagStore, ICustomTagEntryValidator customTagEntryValidator, ICustomTagEntryFormalizer customTagEntryFormalizer, ILogger<CustomTagService> logger)
+        public CustomTagService(ICustomTagStore customTagStore, ICustomTagEntryValidator customTagEntryValidator, ILogger<CustomTagService> logger)
         {
             EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
             EnsureArg.IsNotNull(customTagEntryValidator, nameof(customTagEntryValidator));
-            EnsureArg.IsNotNull(customTagEntryFormalizer, nameof(customTagEntryFormalizer));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _customTagStore = customTagStore;
             _customTagEntryValidator = customTagEntryValidator;
-            _customTagEntryFormalizer = customTagEntryFormalizer;
             _logger = logger;
         }
 
@@ -39,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
             IEnumerable<CustomTagEntry> result = customTags.Select(item =>
             {
-                CustomTagEntry formalized = _customTagEntryFormalizer.Formalize(item);
+                CustomTagEntry formalized = item.Normalize();
                 formalized.Status = CustomTagStatus.Added;
                 return formalized;
             });

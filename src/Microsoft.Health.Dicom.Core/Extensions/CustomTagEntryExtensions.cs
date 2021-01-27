@@ -5,27 +5,27 @@
 
 using System.Globalization;
 using Dicom;
-using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.CustomTag
+namespace Microsoft.Health.Dicom.Core.Extensions
 {
-    public class CustomTagEntryFormalizer : ICustomTagEntryFormalizer
+    /// <summary>
+    /// Extension methods for <see cref="CustomTagEntry"/>.
+    /// </summary>
+    internal static class CustomTagEntryExtensions
     {
-        private readonly IDicomTagParser _dicomTagParser;
-
-        public CustomTagEntryFormalizer(IDicomTagParser dicomTagParser)
+        /// <summary>
+        /// Normalize custom tag entry before saving to CustomTagStore.
+        /// </summary>
+        /// <param name="customTagEntry">The custom tag entry.</param>
+        /// <returns>Formalized custom tag entry.</returns>
+        internal static CustomTagEntry Normalize(this CustomTagEntry customTagEntry)
         {
-            EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
-            _dicomTagParser = dicomTagParser;
-        }
-
-        public CustomTagEntry Formalize(CustomTagEntry customTagEntry)
-        {
+            DicomTagParser dicomTagParser = new DicomTagParser();
             DicomTag[] tags;
-            if (!_dicomTagParser.TryParse(customTagEntry.Path, out tags, supportMultiple: false))
+            if (!dicomTagParser.TryParse(customTagEntry.Path, out tags, supportMultiple: false))
             {
                 // not a valid dicom tag path
                 throw new CustomTagEntryValidationException(
