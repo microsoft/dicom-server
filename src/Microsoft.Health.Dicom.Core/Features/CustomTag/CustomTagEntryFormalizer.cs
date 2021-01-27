@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             }
 
             DicomTag tag = tags[0];
-            string path = tag.GetPath().ToUpperInvariant();
+            string path = tag.GetPath();
             string vr = customTagEntry.VR;
 
             // when VR is not specified for standard tag,

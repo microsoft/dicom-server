@@ -28,57 +28,57 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             Assert.Throws<CustomTagEntryValidationException>(() => { _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[0]); });
         }
 
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData("BABC")]
         [InlineData("0018B001")]
-        [Theory]
         public void GivenInvalidTag_WhenValidating_ThenShouldThrowException(string path)
         {
             CustomTagEntry entry = CreateCustomTagEntry(path, DicomVRCode.AE);
             Assert.Throws<CustomTagEntryValidationException>(() => { _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry }); });
         }
 
+        [Theory]
         [InlineData("0040A30a")] // lower case is also supported
         [InlineData("0040A30A")]
-        [Theory]
         public void GivenValidTag_WhenValidating_ThenShouldSucceed(string path)
         {
             CustomTagEntry entry = CreateCustomTagEntry(path, DicomVRCode.DS);
             _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry });
         }
 
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
-        [Theory]
         public void GivenStandardTagWithoutVR_WhenValidating_ThenShouldSucceed(string vr)
         {
             CustomTagEntry entry = CreateCustomTagEntry(DicomTag.DeviceSerialNumber.GetPath(), vr);
             _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry });
         }
 
+        [Theory]
         [InlineData("LOX")]
         [InlineData("CS")] // expected vr should be LO. CS is not acceptable
-        [Theory]
         public void GivenInvalidVR_WhenValidating_ThenShouldThrowException(string vr)
         {
             CustomTagEntry entry = CreateCustomTagEntry(DicomTag.DeviceSerialNumber.GetPath(), vr);
             Assert.Throws<CustomTagEntryValidationException>(() => { _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry }); });
         }
 
+        [Theory]
         [InlineData("0018A001", DicomVRCode.SQ)]
         [InlineData("0018A001", "")] // when VR is missing for standard tag
         [InlineData("12051003", DicomVRCode.OB)] // private tag
-        [Theory]
         public void GivenUnsupportedVR_WhenValidating_ThenShouldThrowException(string path, string vr)
         {
             CustomTagEntry entry = CreateCustomTagEntry(path, vr);
             Assert.Throws<CustomTagEntryValidationException>(() => { _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry }); });
         }
 
+        [Theory]
         [InlineData("Lo")] // verify lower case
         [InlineData("LO")]
-        [Theory]
         public void GivenValidVR_WhenValidating_ThenShouldSucceed(string vr)
         {
             CustomTagEntry entry = CreateCustomTagEntry(DicomTag.DeviceSerialNumber.GetPath(), vr);

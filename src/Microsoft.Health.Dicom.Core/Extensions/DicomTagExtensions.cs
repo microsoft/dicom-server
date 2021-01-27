@@ -23,12 +23,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static string GetPath(this DicomTag dicomTag)
         {
             EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
-            return dicomTag.Group.ToString("X4").ToUpperInvariant() + dicomTag.Element.ToString("X4").ToUpperInvariant();
+            return dicomTag.Group.ToString("X4") + dicomTag.Element.ToString("X4");
         }
 
         /// <summary>
         /// Get default VR for dicom tag.
         /// </summary>
+        /// <remarks>If the dicom tag is private or unknown tag, Null is returned.</remarks>
         /// <param name="dicomTag">The dicm tag</param>
         /// <returns>The default VR.</returns>
         public static DicomVR GetDefaultVR(this DicomTag dicomTag)
@@ -46,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 return null;
             }
 
-            return dicomTag.DictionaryEntry.ValueRepresentations.FirstOrDefault();
+            return dicomTag.DictionaryEntry.ValueRepresentations.Length > 0 ? dicomTag.DictionaryEntry.ValueRepresentations[0] : null;
         }
     }
 }

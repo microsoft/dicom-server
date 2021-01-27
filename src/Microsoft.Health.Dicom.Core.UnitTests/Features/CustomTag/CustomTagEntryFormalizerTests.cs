@@ -15,15 +15,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 {
     public class CustomTagEntryFormalizerTests
     {
-        private ICustomTagEntryFormalizer _customTagEntryFormalizer;
+        private static readonly ICustomTagEntryFormalizer _customTagEntryFormalizer = new CustomTagEntryFormalizer(new DicomTagParser());
 
-        public CustomTagEntryFormalizerTests()
-        {
-            _customTagEntryFormalizer = new CustomTagEntryFormalizer(new DicomTagParser());
-        }
-
-        [MemberData(nameof(GetValidCustomTagEntries))]
         [Theory]
+        [MemberData(nameof(GetValidCustomTagEntries))]
         public void GivenValidCustomTagEntry_WhenFormalizing_ThenShouldReturnSameEntry(CustomTagEntry entry)
         {
             CustomTagEntry formalized = _customTagEntryFormalizer.Formalize(entry);
@@ -32,9 +27,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             Assert.Equal(entry.Level, formalized.Level);
         }
 
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
-        [Theory]
 
         public void GivenStandardTagWithoutVR_WhenFormalizing_ThenVRShouldBeFilled(string vr)
         {

@@ -10,10 +10,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class CustomTagEntry
     {
-        public CustomTagEntry()
-        {
-        }
-
         public CustomTagEntry(string path, string vr, CustomTagLevel level, CustomTagStatus status)
         {
             Path = path;

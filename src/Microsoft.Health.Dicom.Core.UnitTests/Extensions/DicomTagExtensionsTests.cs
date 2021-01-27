@@ -18,8 +18,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             Assert.Equal("0014408B", DicomTag.UserSelectedGainY.GetPath());
         }
 
-        [MemberData(nameof(MemberDataForTestingGetDefaultVR))]
         [Theory]
+        [MemberData(nameof(MemberDataForTestingGetDefaultVR))]
         public void GivenDicomTag_WhenGetDefaultVR_ThenShouldReturnExpectedValue(DicomTag dicomTag, DicomVR expectedVR)
         {
             Assert.Equal(expectedVR, dicomTag.GetDefaultVR());
