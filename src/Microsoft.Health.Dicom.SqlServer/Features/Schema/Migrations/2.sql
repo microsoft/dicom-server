@@ -365,6 +365,274 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
 )
 
 /*************************************************************
+    Custom Tag Table
+    Stores added custom tags
+    TagPath is represented without any delimiters and each level takes 8 bytes
+    TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
+**************************************************************/
+CREATE TABLE dbo.CustomTag (
+    TagKey                  BIGINT               NOT NULL, --PK
+    TagPath                 VARCHAR(64)          NOT NULL,
+    TagVR                   VARCHAR(2)           NOT NULL,
+    TagLevel                TINYINT              NOT NULL
+)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_CustomTag ON dbo.CustomTag
+(
+    TagKey
+)
+
+CREATE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
+(
+    TagPath
+)
+
+/*************************************************************
+    Custom Tag Data Table for VR Types mapping to String
+**************************************************************/
+CREATE TABLE dbo.CustomTagString (
+    TagKey                  BIGINT               NOT NULL, --PK
+    TagValue                VARCHAR(64)          NOT NULL,
+    StudyKey                BIGINT               NOT NULL, --FK
+    SeriesKey               BIGINT               NULL,     --FK
+    InstanceKey             BIGINT               NULL,     --FK
+    Watermark               BIGINT               NOT NULL
+) WITH (DATA_COMPRESSION = PAGE)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagString ON dbo.CustomTagString
+(
+    TagKey,
+    StudyKey,
+    SeriesKey,
+    InstanceKey
+)
+INCLUDE
+(
+    WaterMark
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_StudyKey ON dbo.CustomTagString
+(
+    TagKey,
+    StudyKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_SeriesKey ON dbo.CustomTagString
+(
+    TagKey,
+    SeriesKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_InstanceKey ON dbo.CustomTagString
+(
+    TagKey,
+    InstanceKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_TagValue ON dbo.CustomTagString
+(
+    TagKey,
+    TagValue
+)
+
+/*************************************************************
+    Custom Tag Data Table for VR Types mapping to Int
+**************************************************************/
+CREATE TABLE dbo.CustomTagInt (
+    TagKey                  BIGINT               NOT NULL, --PK
+    TagValue                BIGINT               NOT NULL,
+    StudyKey                BIGINT               NOT NULL, --FK
+    SeriesKey               BIGINT               NULL,     --FK
+    InstanceKey             BIGINT               NULL,     --FK
+    Watermark               BIGINT               NOT NULL
+) WITH (DATA_COMPRESSION = PAGE)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagInt ON dbo.CustomTagInt
+(
+    TagKey,
+    StudyKey,
+    SeriesKey,
+    InstanceKey
+)
+INCLUDE
+(
+    WaterMark
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagInt_TagKey_StudyKey ON dbo.CustomTagInt
+(
+    TagKey,
+    StudyKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagInt_TagKey_SeriesKey ON dbo.CustomTagInt
+(
+    TagKey,
+    SeriesKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagInt_TagKey_InstanceKey ON dbo.CustomTagInt
+(
+    TagKey,
+    InstanceKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagInt_TagKey_TagValue ON dbo.CustomTagInt
+(
+    TagKey,
+    TagValue
+)
+
+/*************************************************************
+    Custom Tag Data Table for VR Types mapping to Double
+**************************************************************/
+CREATE TABLE dbo.CustomTagDouble (
+    TagKey                  BIGINT               NOT NULL, --PK
+    TagValue                FLOAT(53)            NOT NULL,
+    StudyKey                BIGINT               NOT NULL, --FK
+    SeriesKey               BIGINT               NULL,     --FK
+    InstanceKey             BIGINT               NULL,     --FK
+    Watermark               BIGINT               NOT NULL
+) WITH (DATA_COMPRESSION = PAGE)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDouble ON dbo.CustomTagDouble
+(
+    TagKey,
+    StudyKey,
+    SeriesKey,
+    InstanceKey
+)
+INCLUDE
+(
+    WaterMark
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagDouble_TagKey_StudyKey ON dbo.CustomTagDouble
+(
+    TagKey,
+    StudyKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagDouble_TagKey_SeriesKey ON dbo.CustomTagDouble
+(
+    TagKey,
+    SeriesKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagDouble_TagKey_InstanceKey ON dbo.CustomTagDouble
+(
+    TagKey,
+    InstanceKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagDouble_TagKey_TagValue ON dbo.CustomTagDouble
+(
+    TagKey,
+    TagValue
+)
+
+/*************************************************************
+    Custom Tag Data Table for VR Types mapping to DateTime
+**************************************************************/
+CREATE TABLE dbo.CustomTagDateTime (
+    TagKey                  BIGINT               NOT NULL, --PK
+    TagValue                DATETIME2(7)         NOT NULL,
+    StudyKey                BIGINT               NOT NULL, --FK
+    SeriesKey               BIGINT               NULL,     --FK
+    InstanceKey             BIGINT               NULL,     --FK
+    Watermark               BIGINT               NOT NULL
+) WITH (DATA_COMPRESSION = PAGE)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDateTime ON dbo.CustomTagDateTime
+(
+    TagKey,
+    StudyKey,
+    SeriesKey,
+    InstanceKey
+)
+INCLUDE
+(
+    WaterMark
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_StudyKey ON dbo.CustomTagDateTime
+(
+    TagKey,
+    StudyKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_SeriesKey ON dbo.CustomTagDateTime
+(
+    TagKey,
+    SeriesKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_InstanceKey ON dbo.CustomTagDateTime
+(
+    TagKey,
+    InstanceKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_TagValue ON dbo.CustomTagDateTime
+(
+    TagKey,
+    TagValue
+)
+
+/*************************************************************
+    Custom Tag Data Table for VR Types mapping to PersonName
+**************************************************************/
+CREATE TABLE dbo.CustomTagPersonName (
+    TagKey                  BIGINT               NOT NULL, --PK
+    TagValue                NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
+    StudyKey                BIGINT               NOT NULL, --FK
+    SeriesKey               BIGINT               NULL,     --FK
+    InstanceKey             BIGINT               NULL,     --FK
+    Watermark               BIGINT               NOT NULL,
+    TagValueWords        AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
+) WITH (DATA_COMPRESSION = PAGE)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagPersonName ON dbo.CustomTagPersonName
+(
+    TagKey,
+    StudyKey,
+    SeriesKey,
+    InstanceKey
+)
+INCLUDE
+(
+    WaterMark
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_StudyKey ON dbo.CustomTagPersonName
+(
+    TagKey,
+    StudyKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_SeriesKey ON dbo.CustomTagPersonName
+(
+    TagKey,
+    SeriesKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_InstanceKey ON dbo.CustomTagPersonName
+(
+    TagKey,
+    InstanceKey,
+)
+
+CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_TagValue ON dbo.CustomTagPersonName
+(
+    TagKey,
+    TagValue
+)
+
+CREATE FULLTEXT INDEX ON CustomTagPersonName(TagValueWords LANGUAGE 1033)
+KEY INDEX IXC_CustomTagPersonName
+WITH STOPLIST = OFF;
+
+/*************************************************************
     Sequence for generating sequential unique ids
 **************************************************************/
 
@@ -400,6 +668,13 @@ CREATE SEQUENCE dbo.InstanceKeySequence
     NO CYCLE
     CACHE 1000000
 
+CREATE SEQUENCE dbo.TagKeySequence
+    AS BIGINT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 1000000
 
 GO
 /*************************************************************
