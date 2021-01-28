@@ -85,28 +85,3 @@ stages:
   jobs:
   - template: run-e2e-tests.yml
 
-- stage: PublishNuget
-  displayName: 'Publish Nugets'
-  dependsOn:
-  - RunIntegrationTests
-  - RunE2ETests
-  jobs:
-  - job: PublishNugets
-    pool:
-      vmImage: $(windowsVmImage)
-    steps:
-    - template: publish-nuget.yml
-
-- stage: PublishContainer
-  displayName: 'Publish Docker CI Container'
-  dependsOn:
-  - RunIntegrationTests
-  - RunE2ETests
-  jobs:
-  - job: 'Docker'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - template: docker-build-push.yml
-      parameters:
-        tag: $(imageTag)
