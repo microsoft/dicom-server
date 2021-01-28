@@ -94,6 +94,13 @@
             "metadata": {
                 "description": "The endpoint of the FHIR server."
             }
+        },
+        "IgnoreSyncOfInvalidTagValue": {
+            "defaultValue": true,
+            "type": "Bool",
+            "metadata": {
+                "description": "Ignore values that are not required when syncing to FHIR if they are invalid"
+            }
         }
     },
     "variables": {
@@ -147,6 +154,15 @@
                                 {
                                     "name": "ApplicationInsights__InstrumentationKey",
                                     "value": "[if(variables('deployAppInsights'), reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey, '')]"
+                                },
+                                {
+                                    "name": "DicomCast__Features__IgnoreSyncOfInvalidTagValue",
+                                    "value": "[parameters('IgnoreSyncOfInvalidTagValue')]"
+
+                                },
+                                {
+                                    "name": "TableStore__Enabled",
+                                    "value": "true"
                                 }
                             ]
                         }
@@ -222,6 +238,19 @@
             "type": "Microsoft.KeyVault/vaults/secrets",
             "apiVersion": "2015-06-01",
             "name": "[concat(variables('serviceName'), '/BlobStore--ConnectionString')]",
+            "dependsOn": [
+                "[variables('keyVaultResourceId')]",
+                "[variables('storageResourceId')]"
+            ],
+            "properties": {
+                "contentType": "text/plain",
+                "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';')]"
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2015-06-01",
+            "name": "[concat(variables('serviceName'), '/TableStore--ConnectionString')]",
             "dependsOn": [
                 "[variables('keyVaultResourceId')]",
                 "[variables('storageResourceId')]"
