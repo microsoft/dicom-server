@@ -14,10 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - 
-      bash: |
-        set -exo pipefail
-        sed -i 's;</packageSources>;</packageSources><packageSourceCredentials><Internalfeed><add key="Username" value="any" /><add key="ClearTextPassword" value="$(System.AccessToken)" /></Internalfeed></packageSourceCredentials>;' nuget.config
-      displayName: 'Authenticate additional nuget packages'
+      name: 'Authenticate additional nuget packages'
+      run: .github/workflows/add-internalfeed-credentials.sh
     - 
       uses: actions/checkout@v2
     -
