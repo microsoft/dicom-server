@@ -96,7 +96,7 @@
             }
         },
         "IgnoreSyncOfInvalidTagValue": {
-            "defaultValue": false,
+            "defaultValue": true,
             "type": "Bool",
             "metadata": {
                 "description": "Ignore values that are not required when syncing to FHIR if they are invalid"
