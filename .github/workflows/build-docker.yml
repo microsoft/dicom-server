@@ -14,6 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - 
+      bash: |
+        set -exo pipefail
+        sed -i 's;</packageSources>;</packageSources><packageSourceCredentials><Internalfeed><add key="Username" value="any" /><add key="ClearTextPassword" value="$(System.AccessToken)" /></Internalfeed></packageSourceCredentials>;' nuget.config
+      displayName: 'Authenticate additional nuget packages'
+    - 
       uses: actions/checkout@v2
     -
       # sample contains all the docker files
