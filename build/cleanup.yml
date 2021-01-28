@@ -49,9 +49,9 @@ jobs:
         }
         
         # If a deleted keyvault exists, remove it
-        if (Get-AzKeyVault -VaultName "${deploymentName}-ts" -Location "$(resourceGroupRegion)" -InRemovedState)
+        if (Get-AzKeyVault -VaultName "$(deploymentName)-ts" -Location "$(resourceGroupRegion)" -InRemovedState)
         {
-            Remove-AzKeyVault -VaultName "${deploymentName}-ts" -InRemovedState -Location "$(resourceGroupRegion)" -Force
+            Remove-AzKeyVault -VaultName "$(deploymentName)-ts" -InRemovedState -Location "$(resourceGroupRegion)" -Force
         }
 
         $response = Invoke-RestMethod -Method 'Post' -Uri $adTokenUrl -ContentType "application/x-www-form-urlencoded" -Body $body
