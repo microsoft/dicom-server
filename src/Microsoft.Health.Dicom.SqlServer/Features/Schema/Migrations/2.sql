@@ -392,7 +392,7 @@ CREATE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
 **************************************************************/
 CREATE TABLE dbo.CustomTagString (
     TagKey                  BIGINT               NOT NULL, --PK
-    TagValue                VARCHAR(64)          NOT NULL,
+    TagValue                NVARCHAR(64)         NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
     SeriesKey               BIGINT               NULL,     --FK
     InstanceKey             BIGINT               NULL,     --FK
@@ -409,24 +409,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagString ON dbo.CustomTagString
 INCLUDE
 (
     WaterMark
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_StudyKey ON dbo.CustomTagString
-(
-    TagKey,
-    StudyKey,
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_SeriesKey ON dbo.CustomTagString
-(
-    TagKey,
-    SeriesKey,
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_InstanceKey ON dbo.CustomTagString
-(
-    TagKey,
-    InstanceKey,
 )
 
 CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_TagValue ON dbo.CustomTagString
@@ -459,24 +441,6 @@ INCLUDE
     WaterMark
 )
 
-CREATE NONCLUSTERED INDEX IXC_CustomTagInt_TagKey_StudyKey ON dbo.CustomTagInt
-(
-    TagKey,
-    StudyKey,
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagInt_TagKey_SeriesKey ON dbo.CustomTagInt
-(
-    TagKey,
-    SeriesKey,
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagInt_TagKey_InstanceKey ON dbo.CustomTagInt
-(
-    TagKey,
-    InstanceKey,
-)
-
 CREATE NONCLUSTERED INDEX IXC_CustomTagInt_TagKey_TagValue ON dbo.CustomTagInt
 (
     TagKey,
@@ -505,24 +469,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDouble ON dbo.CustomTagDouble
 INCLUDE
 (
     WaterMark
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagDouble_TagKey_StudyKey ON dbo.CustomTagDouble
-(
-    TagKey,
-    StudyKey,
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagDouble_TagKey_SeriesKey ON dbo.CustomTagDouble
-(
-    TagKey,
-    SeriesKey,
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagDouble_TagKey_InstanceKey ON dbo.CustomTagDouble
-(
-    TagKey,
-    InstanceKey,
 )
 
 CREATE NONCLUSTERED INDEX IXC_CustomTagDouble_TagKey_TagValue ON dbo.CustomTagDouble
@@ -555,24 +501,6 @@ INCLUDE
     WaterMark
 )
 
-CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_StudyKey ON dbo.CustomTagDateTime
-(
-    TagKey,
-    StudyKey,
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_SeriesKey ON dbo.CustomTagDateTime
-(
-    TagKey,
-    SeriesKey,
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_InstanceKey ON dbo.CustomTagDateTime
-(
-    TagKey,
-    InstanceKey,
-)
-
 CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_TagValue ON dbo.CustomTagDateTime
 (
     TagKey,
@@ -589,7 +517,7 @@ CREATE TABLE dbo.CustomTagPersonName (
     SeriesKey               BIGINT               NULL,     --FK
     InstanceKey             BIGINT               NULL,     --FK
     Watermark               BIGINT               NOT NULL,
-    TagValueWords        AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
+    TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagPersonName ON dbo.CustomTagPersonName
@@ -602,24 +530,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagPersonName ON dbo.CustomTagPersonName
 INCLUDE
 (
     WaterMark
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_StudyKey ON dbo.CustomTagPersonName
-(
-    TagKey,
-    StudyKey,
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_SeriesKey ON dbo.CustomTagPersonName
-(
-    TagKey,
-    SeriesKey,
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_InstanceKey ON dbo.CustomTagPersonName
-(
-    TagKey,
-    InstanceKey,
 )
 
 CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_TagValue ON dbo.CustomTagPersonName
@@ -674,7 +584,7 @@ CREATE SEQUENCE dbo.TagKeySequence
     INCREMENT BY 1
     MINVALUE 1
     NO CYCLE
-    CACHE 1000000
+    CACHE 10000
 
 GO
 /*************************************************************

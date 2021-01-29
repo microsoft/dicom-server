@@ -6,6 +6,11 @@
   <ItemGroup>
     <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>Latest</MutableClassVersion>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>2</MutableClassVersion>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -29,7 +34,7 @@
       <!--We create this item group to that MSBuild can know when the GenerateFiles can be skipped.-->
       <GenerateFilesInputs Include="@(MutableSqlGeneratorInputs)" />
 
-      <Generated Include="Features\Schema\Model\VLatest.Generated.cs">
+      <Generated Include="Features\Schema\Model\V%(MutableSqlGeneratorInputs.MutableClassVersion).Generated.cs">
         <Generator>MutableSqlModelGenerator</Generator>
         <Namespace>Microsoft.Health.Dicom.SqlServer.Features.Schema.Model</Namespace>
         <Args>@(MutableSqlGeneratorInputs->'&quot;%(FullPath)&quot;', ' ')</Args>
