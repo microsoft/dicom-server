@@ -17,35 +17,35 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         {
         }
 
-        internal readonly VarCharColumn Path = new VarCharColumn("Path", 64);
-        internal readonly VarCharColumn VR = new VarCharColumn("VR", 2);
-        internal readonly TinyIntColumn Level = new TinyIntColumn("Level");
-        internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
+        internal readonly VarCharColumn TagPath = new VarCharColumn("TagPath", 64);
+        internal readonly VarCharColumn TagVR = new VarCharColumn("TagVR", 2);
+        internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+        internal readonly TinyIntColumn TagStatus = new TinyIntColumn("TagStatus");
 
-        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { Path, VR, Level, Status };
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagPath, TagVR, TagLevel, TagStatus };
 
         protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, AddCustomTagsInputTableTypeV1Row rowData)
         {
-            Path.Set(record, 0, rowData.Path);
-            VR.Set(record, 1, rowData.VR);
-            Level.Set(record, 2, rowData.Level);
-            Status.Set(record, 3, rowData.Status);
+            TagPath.Set(record, 0, rowData.TagPath);
+            TagVR.Set(record, 1, rowData.TagVR);
+            TagLevel.Set(record, 2, rowData.TagLevel);
+            TagStatus.Set(record, 3, rowData.TagStatus);
         }
     }
 
     internal struct AddCustomTagsInputTableTypeV1Row
     {
-        internal AddCustomTagsInputTableTypeV1Row(System.String Path, System.String VR, System.Byte Level, System.Byte Status)
+        internal AddCustomTagsInputTableTypeV1Row(System.String TagPath, System.String TagVR, System.Byte TagLevel, System.Byte TagStatus)
         {
-            this.Path = Path;
-            this.VR = VR;
-            this.Level = Level;
-            this.Status = Status;
+            this.TagPath = TagPath;
+            this.TagVR = TagVR;
+            this.TagLevel = TagLevel;
+            this.TagStatus = TagStatus;
         }
 
-        internal System.String Path { get; }
-        internal System.String VR { get; }
-        internal System.Byte Level { get; }
-        internal System.Byte Status { get; }
+        internal System.String TagPath { get; }
+        internal System.String TagVR { get; }
+        internal System.Byte TagLevel { get; }
+        internal System.Byte TagStatus { get; }
     }
 }

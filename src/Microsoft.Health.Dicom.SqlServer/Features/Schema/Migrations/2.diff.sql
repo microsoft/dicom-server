@@ -1,48 +1,66 @@
----- VERSION 2 -----
+/*************************************************************
+    SQL VERSION 2
+*************************************************************/
+/*************************************************************
+    TABLES
+*************************************************************/
+
 /*************************************************************
     Custom Tag Table
-    Store custom tag information
-    
-    Current Instance State
-    CurrentWatermark = null,               Current State = Deleted
-    CurrentWatermark = OriginalWatermark,  Current State = Created
-    CurrentWatermark <> OriginalWatermark, Current State = Replaced
+    Stores added custom tags
+    TagPath is represented without any delimiters and each level takes 8 bytes
+    TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
 **************************************************************/
 CREATE TABLE dbo.CustomTag (
-    [Key]                   BIGINT              NOT NULL,  -- Primary Key
-    Path                    VARCHAR(64)         NOT NULL,  -- Custom Tag Path. Each custom tag take 8 bytes, support upto 8 levels, no delimeter between each level.
-    VR                      VARCHAR(2)             NOT NULL,  -- Custom Tag VR.
-    Level                   TINYINT             NOT NULL,  -- Custom Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
-    Status                  TINYINT             NOT NULL,  -- Custom Tag Status. 0 -- Reindexing, 1 -- Added, 2 -- Deindexing
-) WITH (DATA_COMPRESSION = PAGE)
+    TagKey                  BIGINT               NOT NULL, --PK
+    TagPath                 VARCHAR(64)          NOT NULL,
+    TagVR                   VARCHAR(2)           NOT NULL,
+    TagLevel                TINYINT              NOT NULL,
+    TagStatus               TINYINT              NOT NULL,
+)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_CustomTag ON dbo.CustomTag
 (
-    [Key]
+    TagKey
+)
+
+CREATE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
+(
+    TagPath
 )
 
 
-/*Sequences */
-CREATE SEQUENCE dbo.CustomTagKeySequence
+/*************************************************************
+    SEQUENCES
+*************************************************************/
+CREATE SEQUENCE dbo.TagKeySequence
     AS BIGINT
     START WITH 1
     INCREMENT BY 1
     MINVALUE 1
     NO CYCLE
-    CACHE 1000
+    CACHE 10000
 GO
 
-/* UDT*/
+/*************************************************************
+    USER DEFINED TABLES
+*************************************************************/
+/*************************************************************
+    The user defined table for AddCustomTagsInput
+*************************************************************/
 CREATE TYPE dbo.AddCustomTagsInputTableType_1 AS TABLE
 (
-    Path                    VARCHAR(64),  -- Custom Tag Path. Each custom tag take 8 bytes, support upto 8 levels, no delimeter between each level.
-    VR                      VARCHAR(2),  -- Custom Tag VR.
-    Level                   TINYINT,  -- Custom Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
-    Status                  TINYINT
+    TagPath                    VARCHAR(64),  -- Custom Tag Path. Each custom tag take 8 bytes, support upto 8 levels, no delimeter between each level.
+    TagVR                      VARCHAR(2),  -- Custom Tag VR.
+    TagLevel                   TINYINT,  -- Custom Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
+    TagStatus                  TINYINT
 )
 
 GO
-/*Procedure*/
+
+/*************************************************************
+    PROCEDURES
+*************************************************************/
 
 CREATE PROCEDURE dbo.AddCustomTags (
     @customTags dbo.AddCustomTagsInputTableType_1 READONLY)
@@ -51,22 +69,21 @@ AS
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    DECLARE @key BIGINT
+    DECLARE @duplicateCount BIGINT
+
     BEGIN TRANSACTION
         
         -- Check if tag with same path already exist
-        SELECT [Key] FROM dbo.CustomTag INNER JOIN @customTags input ON input.Path = dbo.CustomTag.Path
+        SELECT TagKey FROM dbo.CustomTag INNER JOIN @customTags input ON input.TagPath = dbo.CustomTag.TagPath
 	    
-        IF @@ROWCOUNT <> 0
-            THROW 50409, 'custom tag(s) already exist', 0; --TODO:figure out better state (0)
+        SET @duplicateCount = @@ROWCOUNT
+        IF @duplicateCount <> 0
+            THROW 50409, 'custom tag(s) already exist', @duplicateCount; 
 
-        -- add to table 
+        -- add to custom tag table 
         INSERT INTO dbo.CustomTag 
-            ([Key], Path, VR, Level, Status)
-        SELECT NEXT VALUE FOR CustomTagKeySequence, Path, VR, Level, 0 FROM @customTags -- status 0 means reindexing
+            (TagKey, TagPath, TagVR, TagLevel, TagStatus)
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagVR,TagLevel, TagStatus FROM @customTags
         
-        -- return tags
-        SELECT [Key],customtag.Path,customtag.VR, customtag.Level,customtag.Status FROM dbo.CustomTag customtag INNER JOIN @customTags input ON input.Path = customtag.Path
-
     COMMIT TRANSACTION
 GO

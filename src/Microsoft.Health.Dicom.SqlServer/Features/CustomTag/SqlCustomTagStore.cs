@@ -5,11 +5,11 @@
 
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
@@ -56,14 +56,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
 
                 try
                 {
-                    await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
                 }
                 catch (SqlException ex)
                 {
                     switch (ex.Number)
                     {
                         case SqlErrorCodes.Conflict:
-                            throw new CustomTagAlreadyExistsException();
+                            throw new CustomTagsAlreadyExistsException();
 
                         default:
                             throw new DataStoreException(ex);
@@ -74,8 +74,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
 
         private static AddCustomTagsInputTableTypeV1Row ToAddCustomTagsInputTableTypeV1Row(CustomTagEntry entry)
         {
-            // TODO: CustomTagEntry should support status?
-            return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, (byte)entry.Level, Status: (byte)entry.Status);
+            return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, (byte)entry.Level, (byte)entry.Status);
         }
     }
 }

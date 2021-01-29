@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             if (QueryLimit.AllInstancesTags.Contains(tag))
             {
                 throw new CustomTagEntryValidationException(
-                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.CustomTagAlreadyExists, tag.DictionaryEntry.Name));
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, tag.DictionaryEntry.Name));
             }
 
             if (tag.IsPrivate)
