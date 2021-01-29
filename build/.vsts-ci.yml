@@ -40,7 +40,7 @@ stages:
     steps:
     - template: build.yml
 
-  - job: Linuxg
+  - job: Linux
     pool:
       vmImage: 'ubuntu-latest'
     steps:
