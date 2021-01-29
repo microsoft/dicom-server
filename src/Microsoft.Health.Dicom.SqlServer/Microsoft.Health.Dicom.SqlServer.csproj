@@ -4,15 +4,12 @@
     <RootNamespace>Microsoft.Health.Dicom.SqlServer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>Latest</MutableClassVersion>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\1.sql" />
+    <EmbeddedResource Include="Features\Schema\Migrations\2.diff.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
       <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>2</MutableClassVersion>
+      <MutableClassVersion>Latest</MutableClassVersion>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

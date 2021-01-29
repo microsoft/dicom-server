@@ -139,11 +139,6 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             if (_featureConfiguration.EnableCustomQueryTags)
             {
-                services.Add<CustomTagEntryFormalizer>()
-                   .Singleton()
-                   .AsSelf()
-                   .AsImplementedInterfaces();
-
                 services.Add<CustomTagEntryValidator>()
                     .Singleton()
                     .AsSelf()

@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 IEnumerable<AddCustomTagsInputTableTypeV1Row> rows = customTagEntries.Select(entry => ToAddCustomTagsInputTableTypeV1Row(entry));
-                V2.AddCustomTags.PopulateCommand(sqlCommandWrapper, new V2.AddCustomTagsTableValuedParameters(rows));
+                VLatest.AddCustomTags.PopulateCommand(sqlCommandWrapper, new VLatest.AddCustomTagsTableValuedParameters(rows));
 
                 try
                 {
