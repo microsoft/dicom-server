@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             _customTagEntryValidator = Substitute.For<ICustomTagEntryValidator>();
             _customTagStore = Substitute.For<ICustomTagStore>();
-            _customTagService = new AddCustomTagService(_customTagStore, _customTagEntryValidator, NullLogger<CustomTagService>.Instance);
+            _customTagService = new AddCustomTagService(_customTagStore, _customTagEntryValidator, NullLogger<AddCustomTagService>.Instance);
         }
 
         [Fact]

@@ -10,10 +10,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     public static class TagPathValidator
     {
+        private static readonly Regex _expectedTagPathFormat = new Regex(@"\A\d{8}(\.(\d){8})*$", RegexOptions.Compiled);
+
         public static void Validate(string tagPath)
         {
-            Match match = Regex.Match(tagPath, @"\A\d{8}(\.(\d){8})*$");
-            if (!match.Success)
+            MatchCollection matches = _expectedTagPathFormat.Matches(tagPath);
+            if (matches.Count != 1)
             {
                 throw new TagPathValidationException(string.Format(DicomCoreResource.TagPathValidation, tagPath));
             }

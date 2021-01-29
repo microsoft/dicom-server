@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         private readonly ICustomTagEntryValidator _customTagEntryValidator;
         private readonly ILogger<AddCustomTagService> _logger;
 
-        public AddCustomTagService(ICustomTagStore customTagStore, ICustomTagEntryValidator customTagEntryValidator, ILogger<CustomTagService> logger)
+        public AddCustomTagService(ICustomTagStore customTagStore, ICustomTagEntryValidator customTagEntryValidator, ILogger<AddCustomTagService> logger)
         {
             EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
             EnsureArg.IsNotNull(customTagEntryValidator, nameof(customTagEntryValidator));

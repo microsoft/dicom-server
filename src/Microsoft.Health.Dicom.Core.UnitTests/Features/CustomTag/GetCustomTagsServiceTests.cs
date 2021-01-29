@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             _customTagStore.GetAllCustomTagsAsync(default).Returns(new List<CustomTagEntry>());
             GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync(default);
 
-            Assert.True(response.CustomTags.Count() == 0);
+            Assert.Empty(response.CustomTags);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
 
             List<CustomTagEntry> result = storedEntries.Except(response.CustomTags).ToList();
 
-            Assert.True(result.Count == 0);
+            Assert.Empty(result);
         }
 
         [Fact]
