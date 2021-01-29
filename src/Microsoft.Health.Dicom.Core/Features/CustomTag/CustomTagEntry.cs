@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// <summary>
     /// External representation of a custom tag entry.
     /// </summary>
-    public class CustomTagEntry
+    public class CustomTagEntry : IEquatable<CustomTagEntry>
     {
         public CustomTagEntry(string path, string vr, CustomTagLevel level, CustomTagStatus status)
         {
@@ -60,7 +60,17 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 return false;
             }
 
-            return Path == other.Path && VR == other.VR && Level == other.Level && Status == other.Status;
+            return Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase) && VR.Equals(other.VR, StringComparison.OrdinalIgnoreCase) && Level == other.Level && Status == other.Status;
+        }
+
+        public bool Equals(CustomTagEntry other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            return Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase) && VR.Equals(other.VR, StringComparison.OrdinalIgnoreCase) && Level == other.Level && Status == other.Status;
         }
     }
 }
