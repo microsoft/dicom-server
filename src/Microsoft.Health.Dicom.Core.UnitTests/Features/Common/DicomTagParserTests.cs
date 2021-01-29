@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
         {
             string tag = "00001111";
             string parsedString = _dicomTagParser.ParseFormattedTagPath(tag);
-            Assert.True(parsedString.Equals(tag));
+            Assert.Equal(tag, parsedString);
         }
 
         [Fact]
