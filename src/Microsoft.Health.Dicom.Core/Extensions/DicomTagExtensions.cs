@@ -24,5 +24,29 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
             return dicomTag.Group.ToString("X4") + dicomTag.Element.ToString("X4");
         }
+
+        /// <summary>
+        /// Get default VR for dicom tag.
+        /// </summary>
+        /// <remarks>If the dicom tag is private or unknown tag, Null is returned.</remarks>
+        /// <param name="dicomTag">The dicm tag</param>
+        /// <returns>The default VR.</returns>
+        public static DicomVR GetDefaultVR(this DicomTag dicomTag)
+        {
+            EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
+            if (dicomTag.IsPrivate)
+            {
+                // Private tag don't have default VR.
+                return null;
+            }
+
+            if (dicomTag.DictionaryEntry == DicomDictionary.UnknownTag)
+            {
+                // this tag is invalid
+                return null;
+            }
+
+            return dicomTag.DictionaryEntry.ValueRepresentations.Length > 0 ? dicomTag.DictionaryEntry.ValueRepresentations[0] : null;
+        }
     }
 }

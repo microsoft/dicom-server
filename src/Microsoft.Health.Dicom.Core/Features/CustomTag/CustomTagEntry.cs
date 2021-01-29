@@ -12,11 +12,12 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class CustomTagEntry
     {
-        public CustomTagEntry(string path, string vr, CustomTagLevel level)
+        public CustomTagEntry(string path, string vr, CustomTagLevel level, CustomTagStatus status)
         {
             Path = path;
             VR = vr;
             Level = level;
+            Status = status;
         }
 
         public CustomTagEntry(string path, string vr, CustomTagLevel level, CustomTagStatus status)
@@ -51,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         public override string ToString()
         {
-            return $"Path: {Path}, VR:{VR}, Level:{Level}";
+            return $"Path: {Path}, VR:{VR}, Level:{Level} Status:{Status}";
         }
 
         public override int GetHashCode()

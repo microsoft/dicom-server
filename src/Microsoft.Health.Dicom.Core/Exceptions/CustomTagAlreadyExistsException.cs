@@ -3,14 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
-namespace Microsoft.Health.DicomCast.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class DicomTagException : Exception
+    /// <summary>
+    /// Exception thrown when the custom tag already exists.
+    /// </summary>
+    public class CustomTagAlreadyExistsException : DicomServerException
     {
-        public DicomTagException(string message)
-            : base(message)
+        public CustomTagAlreadyExistsException()
+            : base(DicomCoreResource.CustomTagAlreadyExists)
         {
         }
     }

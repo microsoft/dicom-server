@@ -22,6 +22,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         /// <param name="exceptionToStore">The exception that was thrown and needs to be stored</param>
         /// <param name="errorType">The type of error thrown</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        public Task WriteExceptionAsync(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default);
+        Task WriteExceptionAsync(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Store a retryrable exception to an azure storage table.
+        /// </summary>
+        /// <param name="changeFeedEntry">ChangeFeedEntry that threw exception</param>
+        /// <param name="retryNum">Number of times the entry has been tried</param>
+        /// <param name="exceptionToStore">The exception that was thrown and needs to be stored</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, Exception exceptionToStore, CancellationToken cancellationToken = default);
     }
 }

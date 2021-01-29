@@ -307,7 +307,7 @@
         "properties": {
           "mode": "Incremental",
           "templateLink": {
-            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/samples/templates/default-azuredeploy.json",
+            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/main/samples/templates/default-azuredeploy.json",
             "contentVersion":"1.0.0.0"
             },
             "parameters":{
@@ -370,7 +370,7 @@
             "properties": {
               "mode": "Incremental",
                 "templateLink": {
-                "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/converter/dicom-cast/samples/templates/default-azuredeploy.json",
+                "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/main/converter/dicom-cast/samples/templates/default-azuredeploy.json",
                 "contentVersion":"1.0.0.0"
                 },
                 "parameters":{

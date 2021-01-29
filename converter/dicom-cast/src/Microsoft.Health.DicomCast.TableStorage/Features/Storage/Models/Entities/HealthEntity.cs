@@ -12,6 +12,10 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
     /// </summary>
     public class HealthEntity : TableEntity
     {
+        public HealthEntity()
+        {
+        }
+
         public HealthEntity(string partitionKey, string rowKey)
         {
             PartitionKey = partitionKey;
