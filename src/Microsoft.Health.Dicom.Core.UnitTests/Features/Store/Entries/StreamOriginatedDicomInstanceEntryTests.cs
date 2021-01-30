@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
             new DicomUniqueIdentifier(DicomTag.SOPInstanceUID, "123"));
 
         [Fact]
-        public async Task GivenAnInvalidStream_WhenDicomDatasetIsRequested_ThenInvalidDicomInstanceExceptionShouldBeThrown()
+        public async Task GivenAnInvalidStream_WhenDicomDatasetIsRequested_ThenInvalidInstanceExceptionShouldBeThrown()
         {
             Stream stream = new MemoryStream();
 
