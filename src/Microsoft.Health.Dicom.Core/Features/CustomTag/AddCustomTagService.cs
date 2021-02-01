@@ -14,13 +14,13 @@ using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
-    public class CustomTagService : ICustomTagService
+    public class AddCustomTagService : IAddCustomTagService
     {
         private readonly ICustomTagStore _customTagStore;
         private readonly ICustomTagEntryValidator _customTagEntryValidator;
-        private readonly ILogger<CustomTagService> _logger;
+        private readonly ILogger<AddCustomTagService> _logger;
 
-        public CustomTagService(ICustomTagStore customTagStore, ICustomTagEntryValidator customTagEntryValidator, ILogger<CustomTagService> logger)
+        public AddCustomTagService(ICustomTagStore customTagStore, ICustomTagEntryValidator customTagEntryValidator, ILogger<AddCustomTagService> logger)
         {
             EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
             EnsureArg.IsNotNull(customTagEntryValidator, nameof(customTagEntryValidator));
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             _logger = logger;
         }
 
-        public async Task<AddCustomTagResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken = default)
+        public async Task<AddCustomTagResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken)
         {
             _customTagEntryValidator.ValidateCustomTags(customTags);
 
