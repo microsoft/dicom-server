@@ -6,6 +6,8 @@ parameters:
     type: string
 
 steps:
+  - template: add-internalfeed-credentials.yml
+
   - task: DockerCompose@0
     displayName: 'Build Dicom Server Image'
     inputs:

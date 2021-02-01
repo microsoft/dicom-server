@@ -6,7 +6,7 @@ on:
     - main
   pull_request:
     branches:
-    - main
+    - personal/v-shaaal/sql-pii-redaction
 
 jobs:
   build_docker_files:

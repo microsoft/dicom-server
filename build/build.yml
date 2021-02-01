@@ -8,6 +8,8 @@ steps:
     inputs:
       useGlobalJson: true
 
+  - template: add-internalfeed-credentials.yml
+
   - task: DotNetCoreCLI@2
     displayName: 'dotnet build $(buildConfiguration)'
     inputs:
