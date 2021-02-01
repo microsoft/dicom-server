@@ -8,7 +8,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public static class TagPathValidator
+    internal static class TagPathValidator
     {
         private static readonly Regex _expectedTagPathFormat = new Regex(@"\A\d{8}(\.(\d){8})*$", RegexOptions.Compiled);
 

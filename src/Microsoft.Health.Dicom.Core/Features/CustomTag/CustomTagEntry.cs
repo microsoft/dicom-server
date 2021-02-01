@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 return false;
             }
 
-            return Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase) && VR.Equals(other.VR, StringComparison.OrdinalIgnoreCase) && Level == other.Level && Status == other.Status;
+            return Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase) && string.Equals(VR, other.VR, StringComparison.OrdinalIgnoreCase) && Level == other.Level && Status == other.Status;
         }
 
         public bool Equals(CustomTagEntry other)
@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 return false;
             }
 
-            return Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase) && VR.Equals(other.VR, StringComparison.OrdinalIgnoreCase) && Level == other.Level && Status == other.Status;
+            return Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase) && string.Equals(VR, other.VR, StringComparison.OrdinalIgnoreCase) && Level == other.Level && Status == other.Status;
         }
     }
 }
