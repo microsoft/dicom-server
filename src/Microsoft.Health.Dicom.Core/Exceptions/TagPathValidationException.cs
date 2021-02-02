@@ -3,13 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
-namespace Microsoft.Health.DicomCast.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class DicomTagException : Exception
+    public class TagPathValidationException : ValidationException
     {
-        public DicomTagException(string message)
+        public TagPathValidationException(string message)
             : base(message)
         {
         }

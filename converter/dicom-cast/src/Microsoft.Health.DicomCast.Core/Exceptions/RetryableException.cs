@@ -7,10 +7,14 @@ using System;
 
 namespace Microsoft.Health.DicomCast.Core.Exceptions
 {
-    public class DicomTagException : Exception
+    public class RetryableException : Exception
     {
-        public DicomTagException(string message)
-            : base(message)
+        public RetryableException()
+        {
+        }
+
+        public RetryableException(Exception innerException)
+            : base(DicomCastCoreResource.RetryableException, innerException)
         {
         }
     }

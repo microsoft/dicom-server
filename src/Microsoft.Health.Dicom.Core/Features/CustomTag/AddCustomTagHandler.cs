@@ -17,12 +17,13 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     public class AddCustomTagHandler : BaseHandler, IRequestHandler<AddCustomTagRequest, AddCustomTagResponse>
     {
-        private readonly ICustomTagService _customTagService;
+        private readonly IAddCustomTagService _addCustomTagService;
 
-        public AddCustomTagHandler(IDicomAuthorizationService dicomAuthorizationService, ICustomTagService customTagService)
+        public AddCustomTagHandler(IDicomAuthorizationService dicomAuthorizationService, IAddCustomTagService addCustomTagService)
             : base(dicomAuthorizationService)
         {
-            _customTagService = EnsureArg.IsNotNull(customTagService, nameof(customTagService));
+            EnsureArg.IsNotNull(addCustomTagService, nameof(addCustomTagService));
+            _addCustomTagService = addCustomTagService;
         }
 
         public async Task<AddCustomTagResponse> Handle(AddCustomTagRequest request, CancellationToken cancellationToken)
@@ -32,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 throw new UnauthorizedDicomActionException(DataActions.Write);
             }
 
-            return await _customTagService.AddCustomTagAsync(request.CustomTags, cancellationToken);
+            return await _addCustomTagService.AddCustomTagAsync(request.CustomTags, cancellationToken);
         }
     }
 }

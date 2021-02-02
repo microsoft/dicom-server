@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
-    public interface ICustomTagService
+    public interface IAddCustomTagService
     {
         /// <summary>
         /// Add Custom Tags.

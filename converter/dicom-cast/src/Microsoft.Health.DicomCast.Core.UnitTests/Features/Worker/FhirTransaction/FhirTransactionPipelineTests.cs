@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Hl7.Fhir.Model;
@@ -122,6 +123,23 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             Assert.NotNull(patientResponse);
             Assert.Equal(responseEntry.Response, patientResponse.Response);
             Assert.Equal(responseEntry.Resource, patientResponse.Resource);
+        }
+
+        [Fact]
+        public async Task WhenThrowAnExceptionInProcess_ThrowTheSameException()
+        {
+            var pipelineStep = new MockFhirTransactionPipelineStep()
+            {
+                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
+                {
+                    throw new Exception();
+                },
+            };
+
+            _fhirTransactionPipelineSteps.Add(pipelineStep);
+
+            // Process
+            await Assert.ThrowsAsync<Exception>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken));
         }
 
         [Fact]

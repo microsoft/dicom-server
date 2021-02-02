@@ -1,5 +1,5 @@
 # Start from the sdk image
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.404-bionic AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.402-bionic AS build
 
 # Set teh working directory to where the source is located
 WORKDIR /src
@@ -12,7 +12,7 @@ RUN dotnet build --configuration Release
 RUN dotnet publish "./src/Microsoft.Health.Dicom.Web/Microsoft.Health.Dicom.Web.csproj" -c Release -o "/build" --no-build
 
 # Build the runtime image
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.7-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.8-alpine3.12 AS runtime
 
 RUN set -x && \
     # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/

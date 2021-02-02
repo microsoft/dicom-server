@@ -70,8 +70,8 @@ services:
       SqlServer__SchemaOptions__AutomaticUpdatesEnabled: "true"
       DataStore: "SqlServer"
     # # uncomment if you want to expose fhir against localhost
-    # ports:     
-    #   - "8081:8080"
+    ports:     
+      - "8081:8080"
     depends_on:
       - sql
 

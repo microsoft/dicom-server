@@ -1,7 +1,7 @@
 # How to Use the Scale Testing Tool
 
 ## **Initial Setup:**
-To use the scale testing tool, first use the [ARM template](templates/default-azuredeploy.json) and deploy your Azure Resource using Template Deployment. In the same resource group, deploy the Dicom Server infrastructure using the [Dicom Server ARM template](../../samples/templates/default-azuredeploy.json) and the dicom-servre code to the AppService that the ARM template creates. After that, run the following manual setup steps:
+To use the scale testing tool, first use the [ARM template](templates/default-azuredeploy.json) and deploy your Azure Resource using Template Deployment. In the same resource group, deploy the Dicom Server infrastructure using the [Dicom Server ARM template](../../samples/templates/default-azuredeploy.json) and the dicom-server code to the AppService that the ARM template creates. After that, run the following manual setup steps:
 1. In [KnownApplicationUrls.cs](Common/KnownApplicationUrls.cs), update the KeyVaultUrl and DicomServerUrl with the urls of the KeyVault resource (the one deployed using the Scale Testing ARM template) and the Dicom Server App Service resource respectively.
 2. In the App Configuration resource, add a key-value in the configuration explorer named 'RunType'. The individual runs will tell you what the value should be (e.g. 'stow-rs' for [STOW-RS](#stow-rs)).
 3. To setup monitoring correctly, ensure Application Insights is enabled in both the Scale Testing App Service and the Dicom Server App Service.
