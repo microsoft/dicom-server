@@ -923,7 +923,6 @@ BEGIN
     ORDER BY Sequence DESC
 END
 GO
-
 /*************************************************************
     SQL VERSION 2
 *************************************************************/
@@ -1007,7 +1006,7 @@ AS
         
         -- Check if tag with same path already exist
         SELECT TagKey 
-        FROM dbo.CustomTag WITH(UPDLOCK) 
+        FROM dbo.CustomTag WITH(HOLDLOCK) 
         INNER JOIN @customTags input 
         ON input.TagPath = dbo.CustomTag.TagPath 
 	    
