@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// <summary>
         /// Get default VR for dicom tag.
         /// </summary>
-        /// <remarks>If the dicom tag is private or unknown tag, null is returned.</remarks>
+        /// <remarks>If the dicom tag is private or unknown tag, <see langword="null"/> is returned.</remarks>
         /// <param name="dicomTag">The dicm tag</param>
         /// <returns>The default VR.</returns>
         public static DicomVR GetDefaultVR(this DicomTag dicomTag)

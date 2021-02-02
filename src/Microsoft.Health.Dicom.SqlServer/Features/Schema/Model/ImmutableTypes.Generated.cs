@@ -20,32 +20,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly VarCharColumn TagPath = new VarCharColumn("TagPath", 64);
         internal readonly VarCharColumn TagVR = new VarCharColumn("TagVR", 2);
         internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
-        internal readonly TinyIntColumn TagStatus = new TinyIntColumn("TagStatus");
 
-        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagPath, TagVR, TagLevel, TagStatus };
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagPath, TagVR, TagLevel };
 
         protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, AddCustomTagsInputTableTypeV1Row rowData)
         {
             TagPath.Set(record, 0, rowData.TagPath);
             TagVR.Set(record, 1, rowData.TagVR);
             TagLevel.Set(record, 2, rowData.TagLevel);
-            TagStatus.Set(record, 3, rowData.TagStatus);
         }
     }
 
     internal struct AddCustomTagsInputTableTypeV1Row
     {
-        internal AddCustomTagsInputTableTypeV1Row(System.String TagPath, System.String TagVR, System.Byte TagLevel, System.Byte TagStatus)
+        internal AddCustomTagsInputTableTypeV1Row(System.String TagPath, System.String TagVR, System.Byte TagLevel)
         {
             this.TagPath = TagPath;
             this.TagVR = TagVR;
             this.TagLevel = TagLevel;
-            this.TagStatus = TagStatus;
         }
 
         internal System.String TagPath { get; }
         internal System.String TagVR { get; }
         internal System.Byte TagLevel { get; }
-        internal System.Byte TagStatus { get; }
     }
 }

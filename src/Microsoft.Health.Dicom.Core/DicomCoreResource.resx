@@ -296,6 +296,6 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} VR Code.</comment>
   </data>
   <data name="CustomTagsAlreadyExists" xml:space="preserve">
-    <value>One or multiple custom tags already exists.</value>
+    <value>One or multiple custom tag(s) already exist(s).</value>
   </data>
 </root>

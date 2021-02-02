@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
 
         private static AddCustomTagsInputTableTypeV1Row ToAddCustomTagsInputTableTypeV1Row(CustomTagEntry entry)
         {
-            return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, (byte)entry.Level, (byte)entry.Status);
+            return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, (byte)entry.Level);
         }
     }
 }
