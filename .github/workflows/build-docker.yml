@@ -6,16 +6,13 @@ on:
     - main
   pull_request:
     branches:
-    - personal/v-shaaal/sql-pii-redaction
+    - main
 
 jobs:
   build_docker_files:
     # create a quick build to get sane output and error messages
     runs-on: ubuntu-latest
     steps:
-    - 
-      name: 'Authenticate additional nuget packages'
-      run: .github/workflows/add-internalfeed-credentials.sh
     - 
       uses: actions/checkout@v2
     -

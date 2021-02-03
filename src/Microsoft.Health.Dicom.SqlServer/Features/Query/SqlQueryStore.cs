@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Cloud.Common.LogRedactor.LogRedactors;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -26,6 +25,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
         private readonly ILogger<SqlQueryStore> _logger;
+
+        private const string DefaultRedactedValue = "***";
 
         public SqlQueryStore(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
@@ -88,7 +89,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     .Append(p.SqlDbType)
                     .Append(p.Value is string ? $"({p.Size})" : p.Value is decimal ? $"({p.Precision},{p.Scale})" : null)
                     .Append(" = ")
-                    .Append(StringRedactor.DefaultRedactedValue)
+                    .Append(DefaultRedactedValue)
                     .AppendLine(";");
             }
 
