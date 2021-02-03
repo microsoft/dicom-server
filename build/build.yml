@@ -13,7 +13,7 @@ steps:
     inputs:
       command: 'build'
       projects: '**/*.csproj'
-      arguments: '--configuration $(buildConfiguration) --version-suffix $(build.buildNumber) -p:ContinuousIntegrationBuild=true'
+      arguments: '--configuration $(buildConfiguration) /p:AssemblyVersion="$(assemblySemVer)" /p:FileVersion="$(assemblySemFileVer)" /p:InformationalVersion="$(informationalVersion)" -p:ContinuousIntegrationBuild=true'
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet test UnitTests'

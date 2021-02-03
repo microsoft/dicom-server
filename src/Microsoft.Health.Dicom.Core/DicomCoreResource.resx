@@ -233,6 +233,10 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="StudyInstanceNotFound" xml:space="preserve">
     <value>The specified study cannot be found.</value>
   </data>
+  <data name="TagPathValidation" xml:space="preserve">
+    <value>The requested tag {0} is in the wrong format.</value>
+    <comment> {0} tagPath on request</comment>
+  </data>
   <data name="UnknownQueryParameter" xml:space="preserve">
     <value>Invalid QIDO-RS query. Unknown query parameter '{0}'. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and queryable attributes.</value>
     <comment>{0} Parameter name</comment>
