@@ -187,6 +187,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The custom tag path &apos;{0}&apos; is invalid..
+        /// </summary>
+        internal static string InvalidCustomTagPath {
+            get {
+                return ResourceManager.GetString("InvalidCustomTagPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
         ///The first part date {1} should be lesser than or equal to the second part date {2}..
         /// </summary>

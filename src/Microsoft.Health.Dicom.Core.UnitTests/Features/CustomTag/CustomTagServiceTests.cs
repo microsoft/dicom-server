@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag;
 using NSubstitute;
@@ -24,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             _customTagEntryValidator = Substitute.For<ICustomTagEntryValidator>();
             _customTagStore = Substitute.For<ICustomTagStore>();
-            _customTagService = new CustomTagService(_customTagStore, _customTagEntryValidator, NullLogger<CustomTagService>.Instance);
+            _customTagService = new CustomTagService(_customTagStore, _customTagEntryValidator, new DicomTagParser(), NullLogger<CustomTagService>.Instance);
         }
 
         [Fact]

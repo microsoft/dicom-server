@@ -26,6 +26,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Audit
 
         public const string AddCustomTag = "add-custom-tag";
 
+        public const string RemoveCustomTag = "remove-custom-tag";
+
         public const string GetAllCustomTags = "get-all-custom-tag";
 
         public const string GetCustomTag = "get-custom-tag";
