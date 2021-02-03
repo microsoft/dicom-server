@@ -40,6 +40,7 @@ This will deploy the following resources to the specified resource group:
   + If `deployApplicationInsights` is specified, an Application Insights instance is deployed for logging
 * Storage Account
   + Used to keep track of the state of the service
+  + Persists information about exceptions in table storage
 * KeyVault
   + Used to store the storage connection string
   + Is accessed via the managed identity specified on ACI

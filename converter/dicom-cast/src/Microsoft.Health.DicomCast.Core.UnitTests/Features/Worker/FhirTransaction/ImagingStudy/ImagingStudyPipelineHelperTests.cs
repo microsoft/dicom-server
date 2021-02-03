@@ -71,7 +71,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             Action<ImagingStudy, FhirTransactionContext> actionSubstitute = Substitute.For<Action<ImagingStudy, FhirTransactionContext>>();
             actionSubstitute.When(x => x.Invoke(imagingStudy, context)).Do(x => throw new InvalidDicomTagValueException("invalid tag", "invalid tag"));
 
-            await Assert.ThrowsAsync<InvalidDicomTagValueException>(() => ImagingStudyPipelineHelper.SynchronizePropertiesAsync(imagingStudy, context, actionSubstitute, false, false, _exceptionStore));
+            await Assert.ThrowsAsync<InvalidDicomTagValueException>(() => ImagingStudyPipelineHelper.SynchronizePropertiesAsync(imagingStudy, context, actionSubstitute, false, true, _exceptionStore));
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             Action<ImagingStudy, FhirTransactionContext> actionSubstitute = Substitute.For<Action<ImagingStudy, FhirTransactionContext>>();
             actionSubstitute.When(x => x.Invoke(imagingStudy, context)).Do(x => throw new InvalidDicomTagValueException("invalid tag", "invalid tag"));
 
-            await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(imagingStudy, context, actionSubstitute, false, true, _exceptionStore);
+            await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(imagingStudy, context, actionSubstitute, false, false, _exceptionStore);
         }
     }
 }
