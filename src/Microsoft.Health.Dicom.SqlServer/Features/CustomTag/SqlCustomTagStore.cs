@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, (byte)entry.Level);
         }
 
-        public Task<CustomTagEntry> GetCustomTagAsync(string tagPath, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<CustomTagEntry>> GetCustomTagsAsync(string tagPath = null, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }

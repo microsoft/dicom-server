@@ -62,6 +62,11 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// </summary>
         private const int MaxDeleteRecordCount = 10000;
 
+        /// <summary>
+        /// Delay between each delete transaction.
+        /// </summary>
+        private const int DelayBetweenDeleteTransaction = 100;
+
         public CustomTagService(ICustomTagStore customTagStore, ICustomTagEntryValidator customTagEntryValidator, IDicomTagParser dicomTagParser, ILogger<CustomTagService> logger)
         {
             EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
@@ -76,11 +81,11 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
             indexTypeAndDeleteFunctionMapping = new Dictionary<CustomTagIndexType, Func<string, int, CancellationToken, Task<long>>>()
             {
-                { CustomTagIndexType.StringIndex, _customTagStore.DeleteCustomTagStringIndexAsync},
-                { CustomTagIndexType.LongIndex, _customTagStore.DeleteCustomTagLongIndexAsync},
-                { CustomTagIndexType.DoubleIndex, _customTagStore.DeleteCustomTagDoubleIndexAsync},
-                { CustomTagIndexType.DateTimeIndex, _customTagStore.DeleteCustomTagDateTimeIndexAsync},
-                { CustomTagIndexType.PersonNameIndex, _customTagStore.DeleteCustomTagPersonNameIndexAsync},
+                { CustomTagIndexType.StringIndex, _customTagStore.DeleteCustomTagStringIndexAsync },
+                { CustomTagIndexType.LongIndex, _customTagStore.DeleteCustomTagLongIndexAsync },
+                { CustomTagIndexType.DoubleIndex, _customTagStore.DeleteCustomTagDoubleIndexAsync },
+                { CustomTagIndexType.DateTimeIndex, _customTagStore.DeleteCustomTagDateTimeIndexAsync },
+                { CustomTagIndexType.PersonNameIndex, _customTagStore.DeleteCustomTagPersonNameIndexAsync },
             };
         }
 
@@ -128,6 +133,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             do
             {
                 affectedRows = await deleteFunc.Invoke(normalizedPath, MaxDeleteRecordCount, cancellationToken);
+                await Task.Delay(DelayBetweenDeleteTransaction);
             }
             while (affectedRows == MaxDeleteRecordCount);
 
