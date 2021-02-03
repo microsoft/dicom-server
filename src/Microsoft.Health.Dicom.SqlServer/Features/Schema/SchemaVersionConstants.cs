@@ -5,12 +5,10 @@
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
 {
-    /// <summary>
-    /// Enum to keep track of available SQL schema versions.
-    /// </summary>
-    public enum SchemaVersion
+    public static class SchemaVersionConstants
     {
-        V1 = 1,
-        V2 = 2,
+        public const int Min = (int)SchemaVersion.V1;
+        public const int Max = (int)SchemaVersion.V2;
+        public const int SupportCustomTagSchemaVersion = (int)SchemaVersion.V2;
     }
 }

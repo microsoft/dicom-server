@@ -10,14 +10,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class CustomTagEntry
     {
-        public CustomTagEntry(string path, string vr, CustomTagLevel level, CustomTagStatus status)
-        {
-            Path = path;
-            VR = vr;
-            Level = level;
-            Status = status;
-        }
-
         /// <summary>
         /// Path of this tag. Normally it's composed of groupid and elementid.
         /// E.g: 00100020 is path of patient id.
