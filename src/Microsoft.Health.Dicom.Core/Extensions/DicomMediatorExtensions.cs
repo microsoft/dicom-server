@@ -7,10 +7,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using MediatR;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -23,12 +26,14 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static Task<StoreResponse> StoreDicomResourcesAsync(
             this IMediator mediator, Stream requestBody, string requestContentType, string studyInstanceUid, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new StoreRequest(requestBody, requestContentType, studyInstanceUid), cancellationToken);
         }
 
         public static Task<RetrieveResourceResponse> RetrieveDicomStudyAsync(
             this IMediator mediator, string studyInstanceUid, IEnumerable<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(
                 new RetrieveResourceRequest(studyInstanceUid, acceptHeaders),
                 cancellationToken);
@@ -37,12 +42,14 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static Task<RetrieveMetadataResponse> RetrieveDicomStudyMetadataAsync(
             this IMediator mediator, string studyInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch), cancellationToken);
         }
 
         public static Task<RetrieveResourceResponse> RetrieveDicomSeriesAsync(
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, IEnumerable<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(
                 new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, acceptHeaders),
                 cancellationToken);
@@ -51,12 +58,14 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static Task<RetrieveMetadataResponse> RetrieveDicomSeriesMetadataAsync(
            this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch), cancellationToken);
         }
 
         public static Task<RetrieveResourceResponse> RetrieveDicomInstanceAsync(
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IEnumerable<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(
                 new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, acceptHeaders),
                 cancellationToken);
@@ -65,12 +74,14 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static Task<RetrieveMetadataResponse> RetrieveDicomInstanceMetadataAsync(
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch), cancellationToken);
         }
 
         public static Task<RetrieveResourceResponse> RetrieveDicomFramesAsync(
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int[] frames, IEnumerable<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(
                 new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, acceptHeaders),
                 cancellationToken);
@@ -79,18 +90,21 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static Task<DeleteResourcesResponse> DeleteDicomStudyAsync(
             this IMediator mediator, string studyInstanceUid, CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new DeleteResourcesRequest(studyInstanceUid), cancellationToken);
         }
 
         public static Task<DeleteResourcesResponse> DeleteDicomSeriesAsync(
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new DeleteResourcesRequest(studyInstanceUid, seriesInstanceUid), cancellationToken);
         }
 
         public static Task<DeleteResourcesResponse> DeleteDicomInstanceAsync(
             this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new DeleteResourcesRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid), cancellationToken);
         }
 
@@ -102,6 +116,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             string seriesInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new QueryResourceRequest(requestQuery, resourceType, studyInstanceUid, seriesInstanceUid), cancellationToken);
         }
 
@@ -112,6 +127,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             bool includeMetadata,
             CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new ChangeFeedRequest(offset, limit, includeMetadata), cancellationToken);
         }
 
@@ -120,7 +136,29 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             bool includeMetadata,
             CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new ChangeFeedLatestRequest(includeMetadata), cancellationToken);
+        }
+
+        public static Task<AddCustomTagResponse> AddCustomTagsAsync(
+            this IMediator mediator, IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new AddCustomTagRequest(customTags), cancellationToken);
+        }
+
+        public static Task<GetAllCustomTagsResponse> GetAllCustomTagsAsync(
+            this IMediator mediator, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new GetAllCustomTagsRequest(), cancellationToken);
+        }
+
+        public static Task<GetCustomTagResponse> GetCustomTagAsync(
+            this IMediator mediator, string customTagPath, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new GetCustomTagRequest(customTagPath), cancellationToken);
         }
     }
 }

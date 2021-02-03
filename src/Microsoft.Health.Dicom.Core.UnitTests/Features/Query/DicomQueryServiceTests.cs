@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 {
     public class DicomQueryServiceTests
     {
-        private readonly QueryService _queryService = null;
+        private readonly QueryService _queryService;
 
         public DicomQueryServiceTests()
         {

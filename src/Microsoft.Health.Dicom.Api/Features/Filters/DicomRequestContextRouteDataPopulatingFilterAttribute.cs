@@ -33,6 +33,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
             IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.DicomRequestContext;
             dicomRequestContext.RouteName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
 

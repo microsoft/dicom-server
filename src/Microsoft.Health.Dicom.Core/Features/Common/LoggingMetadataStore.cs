@@ -87,6 +87,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <inheritdoc />
         public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             LogDeleteInstanceMetadataDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
 
             try

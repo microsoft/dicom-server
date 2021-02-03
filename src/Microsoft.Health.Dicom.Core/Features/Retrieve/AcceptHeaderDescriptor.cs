@@ -44,6 +44,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public bool IsAcceptable(AcceptHeader acceptHeader, out string transferSyntax)
         {
+            EnsureArg.IsNotNull(acceptHeader, nameof(acceptHeader));
             transferSyntax = null;
 
             // Check if payload type match

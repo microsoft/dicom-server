@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 using Microsoft.Data.SqlClient;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
@@ -32,6 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
         public ChangeFeedRow(SqlDataReader sqlDataReader)
         {
+            EnsureArg.IsNotNull(sqlDataReader, nameof(sqlDataReader));
             Sequence = sqlDataReader.GetInt64(0);
             Timestamp = sqlDataReader.GetDateTimeOffset(1);
             Action = sqlDataReader.GetByte(2);

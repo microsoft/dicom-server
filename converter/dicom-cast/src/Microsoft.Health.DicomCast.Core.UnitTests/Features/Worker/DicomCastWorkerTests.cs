@@ -68,7 +68,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             await _changeFeedProcessor.Received(invocationCount).ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, _cancellationToken);
         }
 
-        [Fact]
+        [Fact(Skip = "Flaky test, bug: https://microsofthealth.visualstudio.com/Health/_boards/board/t/Medical%20Imaging/Stories/?workitem=78349")]
         public async Task GivenWorker_WhenExecuting_ThenPollIntervalShouldBeHonored()
         {
             var pollInterval = TimeSpan.FromMilliseconds(50);

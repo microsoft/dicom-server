@@ -161,13 +161,6 @@
                 "description": "Additional configuration properties for the FHIR server. In the form {\"path1\":\"value1\",\"path2\":\"value2\"}"
             }
         },
-        "fhirSolutionType": {
-            "type": "string",
-            "defaultValue": "FhirServerSqlServer",
-            "metadata": {
-                "description": "The type of the solution for FHIR"
-            }
-        },
         "fhirSqlAdminPassword": {
             "type": "securestring",
             "metadata": {
@@ -191,6 +184,20 @@
             "defaultValue": false,
             "metadata": {
                 "description": "Determines whether export will be enabled for this fhir instance. If true, a storage account will be created as part of the deployment. You will need owner or user-administrator permissions for this."
+            }
+        },
+        "enableConvertData": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Determines whether the $convert-data operation will be enabled for this fhir instance. If true, an Azure container registry will be created as part of the deployment. You will need owner or user-administrator permissions for this."
+            }
+        },
+        "enableReindex": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Determines whether the $reindex operation will be enabled for this fhir instance."
             }
         },
         "dicomCastServiceName": {
@@ -300,7 +307,7 @@
         "properties": {
           "mode": "Incremental",
           "templateLink": {
-            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/samples/templates/default-azuredeploy.json",
+            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/main/samples/templates/default-azuredeploy.json",
             "contentVersion":"1.0.0.0"
             },
             "parameters":{
@@ -330,7 +337,7 @@
         "properties": {
           "mode": "Incremental",
           "templateLink": {
-            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/master/samples/templates/default-azuredeploy-sql.json",
+            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/main/samples/templates/default-azuredeploy.json",
             "contentVersion":"1.0.0.0"
             },
             "parameters":{
@@ -345,11 +352,13 @@
                 "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
                 "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
                 "additionalFhirServerConfigProperties":{"value": "[parameters('additionalFhirServerConfigProperties')]"},
-                "solutionType":{"value": "[parameters('fhirSolutionType')]"},
+                "solutionType":{"value": "FhirServerSqlServer"},
                 "sqlAdminPassword":{"value": "[parameters('fhirSqlAdminPassword')]"},
                 "sqlLocation":{"value": "[resourceGroup().location]"},
                 "fhirVersion":{"value": "[parameters('fhirVersion')]"},
                 "enableExport":{"value": "[parameters('enableExport')]"},    
+                "enableConvertData":{"value": "[parameters('enableConvertData')]"}, 
+                "enableReindex":{"value": "[parameters('enableReindex')]"}, 
                 "sqlSchemaAutomaticUpdatesEnabled":{"value": true}    
                 }
             }
@@ -361,7 +370,7 @@
             "properties": {
               "mode": "Incremental",
                 "templateLink": {
-                "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/converter/dicom-cast/samples/templates/default-azuredeploy.json",
+                "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/main/converter/dicom-cast/samples/templates/default-azuredeploy.json",
                 "contentVersion":"1.0.0.0"
                 },
                 "parameters":{

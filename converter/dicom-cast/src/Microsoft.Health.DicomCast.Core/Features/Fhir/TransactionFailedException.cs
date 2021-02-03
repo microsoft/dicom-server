@@ -11,7 +11,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
     /// <summary>
     /// Exception thrown when the transaction fails.
     /// </summary>
-    public class TransactionFailedException : Exception
+    public class TransactionFailedException : FhirNonRetryableException
     {
         public TransactionFailedException(OperationOutcome operationOutcome, Exception innerException)
             : base(DicomCastCoreResource.TransactionFailed, innerException)

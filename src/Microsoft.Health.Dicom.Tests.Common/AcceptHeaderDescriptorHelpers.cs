@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
@@ -13,6 +14,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
     {
         public static AcceptHeaderDescriptor CreateAcceptHeaderDescriptor(AcceptHeader acceptHeader, bool match = true)
         {
+            EnsureArg.IsNotNull(acceptHeader, nameof(acceptHeader));
             return new AcceptHeaderDescriptor(
                 payloadType: acceptHeader.PayloadType,
                 mediaType: acceptHeader.MediaType.Value,

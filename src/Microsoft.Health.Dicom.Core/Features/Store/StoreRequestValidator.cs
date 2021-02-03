@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -23,6 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         // TODO cleanup this method with Unit tests #72595
         public static void ValidateRequest(StoreRequest request)
         {
+            EnsureArg.IsNotNull(request, nameof(request));
             if (request.RequestBody == null)
             {
                 throw new BadRequestException(DicomCoreResource.MissingRequestBody);

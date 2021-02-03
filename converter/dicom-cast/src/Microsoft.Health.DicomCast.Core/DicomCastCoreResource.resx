@@ -180,6 +180,9 @@
     <value>The change feed action '{0}' is not supported.</value>
     <comment>{0} is the change feed action enum value.</comment>
   </data>
+  <data name="RetryableException" xml:space="preserve">
+    <value>A retryable exception was thrown.</value>
+  </data>
   <data name="TransactionFailed" xml:space="preserve">
     <value>The transaction failed. Please examine the OperationOutcome for more detail.</value>
   </data>

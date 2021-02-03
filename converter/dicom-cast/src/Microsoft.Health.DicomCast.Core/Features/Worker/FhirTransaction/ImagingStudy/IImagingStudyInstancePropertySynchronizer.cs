@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
 using Hl7.Fhir.Model;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
@@ -14,6 +16,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// </summary>
         /// <param name="context">The transaction context.</param>
         /// <param name="instance">The instance component within study.</param>
-        void Synchronize(FhirTransactionContext context, ImagingStudy.InstanceComponent instance);
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task SynchronizeAsync(FhirTransactionContext context, ImagingStudy.InstanceComponent instance, CancellationToken cancellationToken);
     }
 }

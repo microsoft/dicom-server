@@ -19,6 +19,7 @@ namespace Microsoft.Health.DicomCast.Core.Modules
     public class WorkerModule : IStartupModule
     {
         private const string DicomCastWorkerConfigurationSectionName = "DicomCastWorker";
+        private const string DicomValidationConfigurationSectionName = "DicomCast";
 
         private readonly IConfiguration _configuration;
 
@@ -36,6 +37,10 @@ namespace Microsoft.Health.DicomCast.Core.Modules
             DicomCastWorkerConfiguration dicomCastWorkerConfiguration = services.Configure<DicomCastWorkerConfiguration>(
                 _configuration,
                 DicomCastWorkerConfigurationSectionName);
+
+            DicomCastConfiguration dicomValidationConfiguration = services.Configure<DicomCastConfiguration>(
+                _configuration,
+                DicomValidationConfigurationSectionName);
 
             services.Add<DicomCastWorker>()
                 .Singleton()

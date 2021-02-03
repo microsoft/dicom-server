@@ -593,7 +593,7 @@
 						}
 					]
 				},
-				"description": "This request enables searches for studies, series and instances by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies?StudyInstanceUID={{study1}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
+				"description": "This request enables searches for studies, series and instances by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/main/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies?StudyInstanceUID={{study1}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		},
@@ -623,7 +623,7 @@
 						}
 					]
 				},
-				"description": "This request enables searches for one or more series by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../series?SeriesInstanceUID={{series}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
+				"description": "This request enables searches for one or more series by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/main/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../series?SeriesInstanceUID={{series}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		},
@@ -655,7 +655,7 @@
 						}
 					]
 				},
-				"description": "This request enables searches for one or more series within a single study by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series?SeriesInstanceUID={{series}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
+				"description": "This request enables searches for one or more series within a single study by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/main/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series?SeriesInstanceUID={{series}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		},
@@ -690,7 +690,7 @@
 						}
 					]
 				},
-				"description": "This request enables searches for one or more instances by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
+				"description": "This request enables searches for one or more instances by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/main/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		},
@@ -727,7 +727,7 @@
 						}
 					]
 				},
-				"description": "This request enables searches for one or more instances within a single study by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`"
+				"description": "This request enables searches for one or more instances within a single study by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/main/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`"
 			},
 			"response": []
 		},
@@ -766,7 +766,7 @@
 						}
 					]
 				},
-				"description": "This request enables searches for one or more instances within a single study and single series by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/master/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series/{{series}}instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`"
+				"description": "This request enables searches for one or more instances within a single study and single series by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/main/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series/{{series}}instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`"
 			},
 			"response": []
 		},

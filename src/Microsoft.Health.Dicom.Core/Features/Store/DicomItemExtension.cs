@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Dicom;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -11,6 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     {
         public static void ValidateDicomItem(this DicomItem dicomItem)
         {
+            EnsureArg.IsNotNull(dicomItem, nameof(dicomItem));
             try
             {
                 dicomItem.Validate();

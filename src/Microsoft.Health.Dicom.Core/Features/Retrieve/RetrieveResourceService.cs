@@ -107,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
         }
 
-        private Stream ResetDicomFileStream(Stream stream)
+        private static Stream ResetDicomFileStream(Stream stream)
         {
             stream.Seek(offset: 0, SeekOrigin.Begin);
             return stream;

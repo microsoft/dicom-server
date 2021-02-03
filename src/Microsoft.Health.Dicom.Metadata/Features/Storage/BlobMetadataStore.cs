@@ -101,6 +101,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         /// <inheritdoc />
         public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
             await ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
@@ -109,6 +110,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         /// <inheritdoc />
         public async Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             BlockBlobClient cloudBlockBlob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
             DicomDataset dicomDataset = null;
@@ -139,7 +141,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             return _container.GetBlockBlobClient(blobName);
         }
 
-        private async Task ExecuteAsync(Func<Task> action)
+        private static async Task ExecuteAsync(Func<Task> action)
         {
             try
             {

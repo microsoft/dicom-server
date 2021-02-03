@@ -24,6 +24,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
 
         public async Task Invoke(HttpContext context, IDicomRequestContextAccessor dicomRequestContextAccessor)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
+            EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
             HttpRequest request = context.Request;
 
             string baseUriInString = UriHelper.BuildAbsolute(

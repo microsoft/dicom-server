@@ -10,7 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Core.Internal;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
+using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.Core.Features.Worker;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
@@ -27,6 +30,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
         private readonly IChangeFeedRetrieveService _changeFeedRetrieveService = Substitute.For<IChangeFeedRetrieveService>();
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline = Substitute.For<IFhirTransactionPipeline>();
         private readonly ISyncStateService _syncStateService = Substitute.For<ISyncStateService>();
+        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
         private readonly ChangeFeedProcessor _changeFeedProcessor;
 
         public ChangeFeedProcessorTests()
@@ -35,6 +39,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
                 _changeFeedRetrieveService,
                 _fhirTransactionPipeline,
                 _syncStateService,
+                _exceptionStore,
                 NullLogger<ChangeFeedProcessor>.Instance);
 
             SetupSyncState();
@@ -82,6 +87,70 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             await _fhirTransactionPipeline.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
             await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
             await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds2[0], DefaultCancellationToken);
+        }
+
+        [Fact]
+        public async Task WhenThrowUnhandledError_ErrorThrown()
+        {
+            ChangeFeedEntry[] changeFeeds1 = new[]
+            {
+                ChangeFeedGenerator.Generate(1),
+            };
+
+            _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, DefaultCancellationToken).Returns(changeFeeds1);
+            _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+
+            _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new Exception(); });
+
+            await Assert.ThrowsAsync<Exception>(() => ExecuteProcessAsync());
+        }
+
+        [Fact]
+        public async Task WhenThrowRetryableException_ExceptionNotThrown()
+        {
+            ChangeFeedEntry[] changeFeeds1 = new[]
+            {
+                ChangeFeedGenerator.Generate(1),
+            };
+
+            _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, DefaultCancellationToken).Returns(changeFeeds1);
+            _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+
+            _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new RetryableException(); });
+
+            await ExecuteProcessAsync();
+        }
+
+        [Fact]
+        public async Task WhenThrowDicomTagException_ExceptionNotThrown()
+        {
+            ChangeFeedEntry[] changeFeeds1 = new[]
+            {
+                ChangeFeedGenerator.Generate(1),
+            };
+
+            _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, DefaultCancellationToken).Returns(changeFeeds1);
+            _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+
+            _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new DicomTagException("exception"); });
+
+            await ExecuteProcessAsync();
+        }
+
+        [Fact]
+        public async Task WhenThrowFhirNonRetryableException_ExceptionNotThrown()
+        {
+            ChangeFeedEntry[] changeFeeds1 = new[]
+            {
+                ChangeFeedGenerator.Generate(1),
+            };
+
+            _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, DefaultCancellationToken).Returns(changeFeeds1);
+            _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+
+            _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new FhirNonRetryableException("exception"); });
+
+            await ExecuteProcessAsync();
         }
 
         [Fact]

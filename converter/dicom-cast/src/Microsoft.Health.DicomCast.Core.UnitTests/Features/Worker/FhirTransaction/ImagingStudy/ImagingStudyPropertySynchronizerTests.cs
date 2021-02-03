@@ -6,8 +6,13 @@
 using System;
 using System.Collections.Generic;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.DicomCast.Core.Configurations;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+using NSubstitute;
 using Xunit;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
 {
@@ -20,18 +25,21 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private const string NewAccessionNumber = "2";
         private readonly IImagingStudyPropertySynchronizer _imagingStudyPropertySynchronizer;
 
+        private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
+        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+
         public ImagingStudyPropertySynchronizerTests()
         {
-            _imagingStudyPropertySynchronizer = new ImagingStudyPropertySynchronizer();
+            _imagingStudyPropertySynchronizer = new ImagingStudyPropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore);
         }
 
         [Fact]
-        public void GivenATransactionContexAndImagingStudy_WhenProcessedForStudy_ThenDicomPropertiesAreCorrectlyMappedtoImagingStudy()
+        public async Task GivenATransactionContexAndImagingStudy_WhenProcessedForStudy_ThenDicomPropertiesAreCorrectlyMappedtoImagingStudyAsync()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
                imagingStudy.Endpoint,
@@ -54,12 +62,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public void GivenATransactionContexAndImagingStudyWithNewModality_WhenProcessedForStudy_ThenNewModalityIsAdded()
+        public async Task GivenATransactionContexAndImagingStudyWithNewModality_WhenProcessedForStudy_ThenNewModalityIsAddedAsync()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
                imagingStudy.Modality,
@@ -67,7 +75,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             FhirTransactionContext newConText = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(modalityInStudy: "NEWMODALITY", modalityInSeries: "NEWMODALITY"));
 
-            _imagingStudyPropertySynchronizer.Synchronize(newConText, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(newConText, imagingStudy);
 
             Assert.Collection(
                imagingStudy.Modality,
@@ -76,18 +84,18 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public void GivenATransactionContextAndImagingStudyWithExitsingModality_WhenProcessedForStudy_ThenModalityIsNotAdded()
+        public async Task GivenATransactionContextAndImagingStudyWithExitsingModality_WhenProcessedForStudy_ThenModalityIsNotAddedAsync()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
                imagingStudy.Modality,
                modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
                imagingStudy.Modality,
@@ -95,12 +103,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public void GivenATransactionContexAndImagingStudyWithNewAccessionNumber_WhenProcessedForStudy_ThenNewAccessionNumberIsAdded()
+        public async Task GivenATransactionContexAndImagingStudyWithNewAccessionNumber_WhenProcessedForStudy_ThenNewAccessionNumberIsAddedAsync()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
                 imagingStudy.Identifier,
@@ -109,7 +117,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             FhirTransactionContext newConText = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(accessionNumber: NewAccessionNumber));
 
-            _imagingStudyPropertySynchronizer.Synchronize(newConText, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(newConText, imagingStudy);
 
             Assert.Collection(
                 imagingStudy.Identifier,
@@ -119,19 +127,19 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public void GivenATransactionContextAndImagingStudyWithExitsingAccessionNumber_WhenProcessedForStudy_ThenAccessionNumberIsNotAdded()
+        public async Task GivenATransactionContextAndImagingStudyWithExitsingAccessionNumber_WhenProcessedForStudy_ThenAccessionNumberIsNotAddedAsync()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
                 imagingStudy.Identifier,
                 identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier),
                 identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
                 imagingStudy.Identifier,
@@ -140,12 +148,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public void GivenATransactionContextAndImagingStudyWithNoEndpoint_WhenProcessedForStudy_ThenNewEndpointIsAdded()
+        public async Task GivenATransactionContextAndImagingStudyWithNoEndpoint_WhenProcessedForStudy_ThenNewEndpointIsAddedAsync()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
                imagingStudy.Endpoint,
@@ -153,7 +161,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public void GivenATransactionContextAndImagingStudyWithExistingEndpointReference_WhenProcessedForStudy_ThenEndpointResourceIsNotAdded()
+        public async Task GivenATransactionContextAndImagingStudyWithExistingEndpointReference_WhenProcessedForStudy_ThenEndpointResourceIsNotAddedAsync()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
             Endpoint endpoint = FhirResourceBuilder.CreateEndpointResource();
@@ -165,7 +173,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             imagingStudy.Endpoint.Add(endpointReference);
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
              imagingStudy.Endpoint,
@@ -173,7 +181,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public void GivenATransactionContextAndImagingStudyWithNewEndpointReference_WhenProcessedForStudyWithEndpoint_ThenEndpointIsAdded()
+        public async Task GivenATransactionContextAndImagingStudyWithNewEndpointReference_WhenProcessedForStudyWithEndpoint_ThenEndpointIsAddedAsync()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
 
@@ -191,7 +199,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
             context.Request.Endpoint = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Endpoint>(endpointResourceId);
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
              imagingStudy.Endpoint,
@@ -200,12 +208,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public void GivenATransactionContexAndImagingStudyWithNewStudyDescription_WhenProcessedForStudy_ThenNewNoteIsAdded()
+        public async Task GivenATransactionContexAndImagingStudyWithNewStudyDescription_WhenProcessedForStudy_ThenNewNoteIsAddedAsync()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
                imagingStudy.Note,
@@ -213,7 +221,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             // When studyDescription is same, note is not added twice
 
-            _imagingStudyPropertySynchronizer.Synchronize(context, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
             Assert.Collection(
                imagingStudy.Note,
@@ -222,7 +230,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             // When study description is new, new note is added
             FhirTransactionContext newConText = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(studyDescription: "New Study Description"));
 
-            _imagingStudyPropertySynchronizer.Synchronize(newConText, imagingStudy);
+            await _imagingStudyPropertySynchronizer.SynchronizeAsync(newConText, imagingStudy);
 
             Assert.Collection(
                imagingStudy.Note,

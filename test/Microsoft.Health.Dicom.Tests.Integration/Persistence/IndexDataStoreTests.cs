@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
+using EnsureThat;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -28,6 +29,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IndexDataStoreTests(SqlDataStoreTestsFixture fixture)
         {
+            EnsureArg.IsNotNull(fixture, nameof(fixture));
             _indexDataStore = fixture.IndexDataStore;
             _testHelper = fixture.TestHelper;
         }

@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new QueryResourceResponse(responseMetadata);
         }
 
-        private void ValidateRequestIdentifiers(QueryResourceRequest message)
+        private static void ValidateRequestIdentifiers(QueryResourceRequest message)
         {
             switch (message.QueryResourceType)
             {

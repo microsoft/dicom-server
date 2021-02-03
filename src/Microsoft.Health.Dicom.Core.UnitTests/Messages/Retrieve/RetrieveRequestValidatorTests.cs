@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using Dicom;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -20,6 +21,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("345%^&")]
         public void GivenAnInvalidStudyInstanceIdentifier_WhenValidatedForRequestedResourceTypeStudy_ThenInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
         {
+            EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             var ex = Assert.Throws<InvalidIdentifierException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Study, studyInstanceUid));
             Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
@@ -31,6 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("()")]
         public void GivenAnInvalidSeriesInstanceIdentifier_WhenValidatedForRequestedResourceTypeSeries_ThenInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
         {
+            EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
             var ex = Assert.Throws<InvalidIdentifierException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Series, TestUidGenerator.Generate(), seriesInstanceUid));
             Assert.Equal($"DICOM Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
         }
@@ -42,6 +45,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         [InlineData("()")]
         public void GivenAnInvalidInstanceIdentifier_WhenValidatedForRequestedResourceTypeInstance_ThenInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
         {
+            EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
             string expectedErrorMessage = $"DICOM Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.";
 
             var ex = Assert.Throws<InvalidIdentifierException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Instance, TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid));
