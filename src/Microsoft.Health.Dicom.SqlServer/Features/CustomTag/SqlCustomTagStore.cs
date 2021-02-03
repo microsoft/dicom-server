@@ -91,5 +91,45 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
         {
             throw new System.NotImplementedException();
         }
+
+        public Task<CustomTagStoreEntry> GetCustomTagAsync(string tagPath, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task StartDeleteCustomTagAsync(long tagKey, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task CompleteDeleteCustomTagAsync(long tagKey, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<long> DeleteCustomTagStringIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<long> DeleteCustomTagLongIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<long> DeleteCustomTagDoubleIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<long> DeleteCustomTagDateTimeIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<long> DeleteCustomTagPersonNameIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

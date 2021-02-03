@@ -52,6 +52,20 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                (int)HttpStatusCode.Accepted, response);
         }
 
+        [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.NoContent)]
+        [HttpDelete]
+        [Route(KnownRoutes.DeleteCustomTagRoute)]
+        [AuditEventType(AuditEventSubType.RemoveCustomTag)]
+        public async Task<IActionResult> DeleteAsync(string tagPath)
+        {
+            _logger.LogInformation("DICOM Web Delete Custom Tag request received, with custom tag path {tagPath}.", tagPath);
+
+            DeleteCustomTagResponse response = await _mediator.DeleteCustomTagAsync(tagPath, HttpContext.RequestAborted);
+
+            return StatusCode(
+               (int)HttpStatusCode.NoContent, response);
+        }
+
         /// <summary>
         /// Handles requests to get all custom tags.
         /// </summary>

@@ -45,5 +45,21 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Result.</returns>
         Task DeleteCustomTagAsync(long key, CancellationToken cancellationToken = default);
+
+        Task<CustomTagStoreEntry> GetCustomTagAsync(string tagPath, CancellationToken cancellationToken = default);
+
+        Task StartDeleteCustomTagAsync(long tagKey, CancellationToken cancellationToken = default);
+
+        Task CompleteDeleteCustomTagAsync(long tagKey, CancellationToken cancellationToken = default);
+
+        Task<long> DeleteCustomTagStringIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default);
+
+        Task<long> DeleteCustomTagLongIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default);
+
+        Task<long> DeleteCustomTagDoubleIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default);
+
+        Task<long> DeleteCustomTagDateTimeIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default);
+
+        Task<long> DeleteCustomTagPersonNameIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default);
     }
 }

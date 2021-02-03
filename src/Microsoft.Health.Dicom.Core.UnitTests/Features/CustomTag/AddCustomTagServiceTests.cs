@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag;
 using NSubstitute;

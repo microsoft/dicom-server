@@ -19,5 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The response.</returns>
         public Task<AddCustomTagResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken = default);
+
+        public Task DeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken = default);
     }
 }
