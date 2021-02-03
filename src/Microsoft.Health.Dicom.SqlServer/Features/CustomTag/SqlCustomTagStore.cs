@@ -97,37 +97,37 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             throw new System.NotImplementedException();
         }
 
-        public Task StartDeleteCustomTagAsync(long tagKey, CancellationToken cancellationToken = default)
+        public Task StartDeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task CompleteDeleteCustomTagAsync(long tagKey, CancellationToken cancellationToken = default)
+        public Task CompleteDeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<long> DeleteCustomTagStringIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default)
+        public Task<long> DeleteCustomTagStringIndexAsync(string tagPath, int top, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<long> DeleteCustomTagLongIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default)
+        public Task<long> DeleteCustomTagLongIndexAsync(string tagPath, int top, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<long> DeleteCustomTagDoubleIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default)
+        public Task<long> DeleteCustomTagDoubleIndexAsync(string tagPath, int top, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<long> DeleteCustomTagDateTimeIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default)
+        public Task<long> DeleteCustomTagDateTimeIndexAsync(string tagPath, int top, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<long> DeleteCustomTagPersonNameIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default)
+        public Task<long> DeleteCustomTagPersonNameIndexAsync(string tagPath, int top, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }

@@ -302,4 +302,8 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="CustomTagsAlreadyExists" xml:space="preserve">
     <value>One or more custom tags already exist.</value>
   </data>
+  <data name="CustomTagNotFound" xml:space="preserve">
+    <value>The specified custom tag '{0}' cannot be found.</value>
+    <comment>{0} is input tagpath</comment>
+  </data>
 </root>

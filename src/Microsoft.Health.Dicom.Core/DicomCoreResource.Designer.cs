@@ -88,6 +88,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified custom tag &apos;{0}&apos; cannot be found..
+        /// </summary>
+        internal static string CustomTagNotFound {
+            get {
+                return ResourceManager.GetString("CustomTagNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to One or more custom tags already exist..
         /// </summary>
         internal static string CustomTagsAlreadyExists {
@@ -183,15 +192,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidCustomTag {
             get {
                 return ResourceManager.GetString("InvalidCustomTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The custom tag path &apos;{0}&apos; is invalid..
-        /// </summary>
-        internal static string InvalidCustomTagPath {
-            get {
-                return ResourceManager.GetString("InvalidCustomTagPath", resourceCulture);
             }
         }
         

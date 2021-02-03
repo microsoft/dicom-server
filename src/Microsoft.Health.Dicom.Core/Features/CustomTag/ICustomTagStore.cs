@@ -48,18 +48,67 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         Task<CustomTagStoreEntry> GetCustomTagAsync(string tagPath, CancellationToken cancellationToken = default);
 
-        Task StartDeleteCustomTagAsync(long tagKey, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Start deleting custom tag.
+        /// </summary>
+        /// <remarks>It validates custom tag status, and update to deindexing if valid.</remarks>
+        /// <param name="tagPath">The tag path.</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns>The task.</returns>
+        Task StartDeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken = default);
 
-        Task CompleteDeleteCustomTagAsync(long tagKey, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Complete deleting custom tag.
+        /// </summary>
+        /// <remarks>It validates custom tag status, and remove if valid.</remarks>
+        /// <param name="tagPath">The tag path.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The task.</returns>
+        Task CompleteDeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken = default);
 
-        Task<long> DeleteCustomTagStringIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Delete custom tag indexed as string.
+        /// </summary>
+        /// <param name="tagPath">The tag path</param>
+        /// <param name="maxDeleteRecord">The max records are deleted.</param>
+        /// <param name="cancellationToken">The cancellatio token.</param>
+        /// <returns>Number of deleted records.</returns>
+        Task<long> DeleteCustomTagStringIndexAsync(string tagPath, int maxDeleteRecord, CancellationToken cancellationToken = default);
 
-        Task<long> DeleteCustomTagLongIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Delete custom tag indexed as long.
+        /// </summary>
+        /// <param name="tagPath">The tag path</param>
+        /// <param name="maxDeleteRecord">The max records are deleted.</param>
+        /// <param name="cancellationToken">The cancellatio token.</param>
+        /// <returns>Number of deleted records.</returns>
+        Task<long> DeleteCustomTagLongIndexAsync(string tagPath, int maxDeleteRecord, CancellationToken cancellationToken = default);
 
-        Task<long> DeleteCustomTagDoubleIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Delete custom tag indexed as double.
+        /// </summary>
+        /// <param name="tagPath">The tag path</param>
+        /// <param name="maxDeleteRecord">The max records are deleted.</param>
+        /// <param name="cancellationToken">The cancellatio token.</param>
+        /// <returns>Number of deleted records.</returns>
+        Task<long> DeleteCustomTagDoubleIndexAsync(string tagPath, int maxDeleteRecord, CancellationToken cancellationToken = default);
 
-        Task<long> DeleteCustomTagDateTimeIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Delete custom tag indexed as datetime.
+        /// </summary>
+        /// <param name="tagPath">The tag path</param>
+        /// <param name="maxDeleteRecord">The max records are deleted.</param>
+        /// <param name="cancellationToken">The cancellatio token.</param>
+        /// <returns>Number of deleted records.</returns>
+        Task<long> DeleteCustomTagDateTimeIndexAsync(string tagPath, int maxDeleteRecord, CancellationToken cancellationToken = default);
 
-        Task<long> DeleteCustomTagPersonNameIndexAsync(long tagKey, int top, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Delete custom tag indexed as personName.
+        /// </summary>
+        /// <param name="tagPath">The tag path</param>
+        /// <param name="maxDeleteRecord">The max records are deleted.</param>
+        /// <param name="cancellationToken">The cancellatio token.</param>
+        /// <returns>Number of deleted records.</returns>
+        Task<long> DeleteCustomTagPersonNameIndexAsync(string tagPath, int maxDeleteRecord, CancellationToken cancellationToken = default);
     }
 }
