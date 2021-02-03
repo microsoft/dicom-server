@@ -25,7 +25,42 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         private readonly ICustomTagEntryValidator _customTagEntryValidator;
         private readonly IDicomTagParser _dicomTagParser;
         private readonly ILogger<CustomTagService> _logger;
-        private const int DeleteTop = 10000;
+
+        /// <summary>
+        /// Mapping from CustomTagVR to IndexType
+        /// </summary>
+        private static readonly IReadOnlyDictionary<string, CustomTagIndexType> CustomTagVRAndIndexTypeMapping = new Dictionary<string, CustomTagIndexType>()
+            {
+                { DicomVR.AE.Code, CustomTagIndexType.StringIndex },
+                { DicomVR.AS.Code, CustomTagIndexType.StringIndex },
+                { DicomVR.AT.Code,  CustomTagIndexType.LongIndex },
+                { DicomVR.CS.Code,   CustomTagIndexType.StringIndex },
+                { DicomVR.DA.Code,   CustomTagIndexType.DateTimeIndex },
+                { DicomVR.DS.Code,  CustomTagIndexType.StringIndex },
+                { DicomVR.DT.Code,  CustomTagIndexType.DateTimeIndex },
+                { DicomVR.FL.Code,  CustomTagIndexType.DoubleIndex },
+                { DicomVR.FD.Code,  CustomTagIndexType.DoubleIndex },
+                { DicomVR.IS.Code,   CustomTagIndexType.StringIndex },
+                { DicomVR.LO.Code,   CustomTagIndexType.StringIndex },
+                { DicomVR.PN.Code,   CustomTagIndexType.StringIndex },
+                { DicomVR.SH.Code,  CustomTagIndexType.StringIndex },
+                { DicomVR.SL.Code,   CustomTagIndexType.LongIndex },
+                { DicomVR.SS.Code,   CustomTagIndexType.LongIndex },
+                { DicomVR.TM.Code,   CustomTagIndexType.DateTimeIndex },
+                { DicomVR.UI.Code,   CustomTagIndexType.StringIndex },
+                { DicomVR.UL.Code,   CustomTagIndexType.LongIndex },
+                { DicomVR.US.Code,   CustomTagIndexType.LongIndex },
+            };
+
+        /// <summary>
+        /// Mapping from IndexType to the delete function
+        /// </summary>
+        private readonly IReadOnlyDictionary<CustomTagIndexType, Func<string, int, CancellationToken, Task<long>>> indexTypeAndDeleteFunctionMapping;
+
+        /// <summary>
+        /// Max records are deleted in each transaction.
+        /// </summary>
+        private const int MaxDeleteRecordCount = 10000;
 
         public CustomTagService(ICustomTagStore customTagStore, ICustomTagEntryValidator customTagEntryValidator, IDicomTagParser dicomTagParser, ILogger<CustomTagService> logger)
         {
@@ -38,6 +73,15 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             _customTagEntryValidator = customTagEntryValidator;
             _dicomTagParser = dicomTagParser;
             _logger = logger;
+
+            indexTypeAndDeleteFunctionMapping = new Dictionary<CustomTagIndexType, Func<string, int, CancellationToken, Task<long>>>()
+            {
+                { CustomTagIndexType.StringIndex, _customTagStore.DeleteCustomTagStringIndexAsync},
+                { CustomTagIndexType.LongIndex, _customTagStore.DeleteCustomTagLongIndexAsync},
+                { CustomTagIndexType.DoubleIndex, _customTagStore.DeleteCustomTagDoubleIndexAsync},
+                { CustomTagIndexType.DateTimeIndex, _customTagStore.DeleteCustomTagDateTimeIndexAsync},
+                { CustomTagIndexType.PersonNameIndex, _customTagStore.DeleteCustomTagPersonNameIndexAsync},
+            };
         }
 
         public async Task<AddCustomTagResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken = default)
@@ -57,89 +101,37 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             return new AddCustomTagResponse(job: string.Empty);
         }
 
-        public async Task DeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken = default)
+        public async Task DeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken)
         {
             DicomTag[] tags;
             if (!_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
             {
                 throw new InvalidCustomTagPathException(
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTagPath, tagPath == null ? string.Empty : tagPath));
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, tagPath ?? string.Empty));
             }
 
-            string path = tags[0].GetPath();
+            string normalizedPath = tags[0].GetPath();
 
-            CustomTagStoreEntry customTagStoreEntry = await _customTagStore.GetCustomTagAsync(path, cancellationToken);
-
-            if (customTagStoreEntry == null)
+            IEnumerable<CustomTagEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(normalizedPath, cancellationToken);
+            if (customTagEntries.Count() == 0)
             {
-                throw new Exception("Not Found");
+                throw new CustomTagNotFoundException(
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.CustomTagNotFound, tagPath ?? string.Empty));
             }
 
-            await _customTagStore.StartDeleteCustomTagAsync(customTagStoreEntry.Key, cancellationToken);
+            CustomTagEntry customTagEntry = customTagEntries.First();
 
-            CustomTagIndexType indexType = GetIndexType(DicomVR.Parse(customTagStoreEntry.VR));
-            if (indexType == CustomTagIndexType.Unknown)
-            {
-                throw new ApplicationException("Unknwon error.");
-            }
-
+            await _customTagStore.StartDeleteCustomTagAsync(normalizedPath, cancellationToken);
+            CustomTagIndexType indexType = CustomTagVRAndIndexTypeMapping[customTagEntry.VR];
+            var deleteFunc = indexTypeAndDeleteFunctionMapping[indexType];
             long affectedRows;
-
             do
             {
-                switch (indexType)
-                {
-                    case CustomTagIndexType.StringIndex:
-                        affectedRows = await _customTagStore.DeleteCustomTagStringIndexAsync(customTagStoreEntry.Key, DeleteTop, cancellationToken);
-                        break;
-                    case CustomTagIndexType.LongIndex:
-                        affectedRows = await _customTagStore.DeleteCustomTagLongIndexAsync(customTagStoreEntry.Key, DeleteTop, cancellationToken);
-                        break;
-                    case CustomTagIndexType.DoubleIndex:
-                        affectedRows = await _customTagStore.DeleteCustomTagDoubleIndexAsync(customTagStoreEntry.Key, DeleteTop, cancellationToken);
-                        break;
-                    case CustomTagIndexType.DateTimeIndex:
-                        affectedRows = await _customTagStore.DeleteCustomTagDateTimeIndexAsync(customTagStoreEntry.Key, DeleteTop, cancellationToken);
-                        break;
-                    case CustomTagIndexType.PersonNameIndex:
-                        affectedRows = await _customTagStore.DeleteCustomTagPersonNameIndexAsync(customTagStoreEntry.Key, DeleteTop, cancellationToken);
-                        break;
-                    case CustomTagIndexType.Unknown:
-                    default:
-                        throw new ApplicationException("Unknwon error.");
-                }
+                affectedRows = await deleteFunc.Invoke(normalizedPath, MaxDeleteRecordCount, cancellationToken);
             }
-            while (affectedRows == DeleteTop);
+            while (affectedRows == MaxDeleteRecordCount);
 
-            await _customTagStore.CompleteDeleteCustomTagAsync(customTagStoreEntry.Key, cancellationToken);
-        }
-
-        private static CustomTagIndexType GetIndexType(DicomVR vr)
-        {
-            Dictionary<DicomVR, CustomTagIndexType> mapping = new Dictionary<DicomVR, CustomTagIndexType>()
-            {
-                { DicomVR.AE, CustomTagIndexType.StringIndex },
-                { DicomVR.AS, CustomTagIndexType.StringIndex },
-                { DicomVR.AT,  CustomTagIndexType.LongIndex },
-                { DicomVR.CS,   CustomTagIndexType.StringIndex },
-                { DicomVR.DA,   CustomTagIndexType.DateTimeIndex },
-                { DicomVR.DS,  CustomTagIndexType.StringIndex },
-                { DicomVR.DT,  CustomTagIndexType.DateTimeIndex },
-                { DicomVR.FL,  CustomTagIndexType.DoubleIndex },
-                { DicomVR.FD,  CustomTagIndexType.DoubleIndex },
-                { DicomVR.IS,   CustomTagIndexType.StringIndex },
-                { DicomVR.LO,   CustomTagIndexType.StringIndex },
-                { DicomVR.PN,   CustomTagIndexType.StringIndex },
-                { DicomVR.SH,  CustomTagIndexType.StringIndex },
-                { DicomVR.SL,   CustomTagIndexType.LongIndex },
-                { DicomVR.SS,   CustomTagIndexType.LongIndex },
-                { DicomVR.TM,   CustomTagIndexType.DateTimeIndex },
-                { DicomVR.UI,   CustomTagIndexType.StringIndex },
-                { DicomVR.UL,   CustomTagIndexType.LongIndex },
-                { DicomVR.US,   CustomTagIndexType.LongIndex },
-            };
-
-            return mapping.GetValueOrDefault(vr, CustomTagIndexType.Unknown);
+            await _customTagStore.CompleteDeleteCustomTagAsync(normalizedPath, cancellationToken);
         }
     }
 }

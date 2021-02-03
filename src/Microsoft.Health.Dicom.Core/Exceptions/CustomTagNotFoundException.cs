@@ -6,11 +6,11 @@
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Exception thrown when custom tag path is invalid.
+    /// Exception thrown when custom tag is not found.
     /// </summary>
-    public class InvalidCustomTagPathException : ValidationException
+    public class CustomTagNotFoundException : ValidationException
     {
-        public InvalidCustomTagPathException(string message)
+        public CustomTagNotFoundException(string message)
             : base(message)
         {
         }
