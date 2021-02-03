@@ -26,10 +26,6 @@
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Features\CustomTag\" />
-    <Folder Include="Features\Schema\Model\" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Update="DicomSqlServerResource.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

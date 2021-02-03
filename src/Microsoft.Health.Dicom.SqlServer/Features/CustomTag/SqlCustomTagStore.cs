@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                IEnumerable<AddCustomTagsInputTableTypeV1Row> rows = customTagEntries.Select(entry => ToAddCustomTagsInputTableTypeV1Row(entry));
+                IEnumerable<AddCustomTagsInputTableTypeV1Row> rows = customTagEntries.Select(ToAddCustomTagsInputTableTypeV1Row);
                 VLatest.AddCustomTags.PopulateCommand(sqlCommandWrapper, new VLatest.AddCustomTagsTableValuedParameters(rows));
 
                 try

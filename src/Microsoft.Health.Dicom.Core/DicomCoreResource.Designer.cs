@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One or multiple custom tag(s) already exist(s)..
+        ///   Looks up a localized string similar to One or more custom tags already exist..
         /// </summary>
         internal static string CustomTagsAlreadyExists {
             get {

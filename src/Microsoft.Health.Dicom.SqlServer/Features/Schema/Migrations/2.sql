@@ -1016,7 +1016,7 @@ AS
         -- add to custom tag table with status 1(Added)
         INSERT INTO dbo.CustomTag 
             (TagKey, TagPath, TagVR, TagLevel, TagStatus)
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagVR,TagLevel, 1 FROM @customTags
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagVR, TagLevel, 1 FROM @customTags
         
     COMMIT TRANSACTION
 GO

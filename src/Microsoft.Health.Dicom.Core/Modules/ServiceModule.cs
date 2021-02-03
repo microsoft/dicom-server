@@ -110,7 +110,10 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.AddSingleton<IDicomTagParser, DicomTagParser>();
+            services.Add<DicomTagParser>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             services.AddTransient<IQueryParser, QueryParser>();
 
