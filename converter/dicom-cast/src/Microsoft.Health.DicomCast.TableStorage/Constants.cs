@@ -19,7 +19,13 @@ namespace Microsoft.Health.DicomCast.TableStorage
 
         public const string TransientRetryTableName = "TransientRetryExceptionTable";
 
+        public const string SyncStateTableName = "SyncStateTable";
+
+        public const string SyncStatePartitionKey = "SyncStatePartitionKey";
+
+        public const string SyncStateRowKey = "SyncStateRowKey";
+
         // List of all the tables that need to be initialized
-        public static readonly List<string> AllTables = new List<string> { FhirExceptionTableName, DicomExceptionTableName, TransientFailureTableName, DicomValidationTableName, TransientRetryTableName };
+        public static readonly List<string> AllTables = new List<string> { SyncStateTableName, FhirExceptionTableName, DicomExceptionTableName, TransientFailureTableName, DicomValidationTableName, TransientRetryTableName };
     }
 }
