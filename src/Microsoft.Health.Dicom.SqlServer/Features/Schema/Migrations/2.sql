@@ -1090,3 +1090,33 @@ BEGIN
     ORDER BY Sequence DESC
 END
 GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetCustomTag(s)
+--
+-- DESCRIPTION
+--     Gets all custom tags or given custom tag by tag path
+--
+-- PARAMETERS
+--     @tagPath
+--         * The TagPath for the custom tag to retrieve.
+/***************************************************************************************/
+CREATE PROCEDURE dbo.GetCustomTag (
+    @tagPath  VARCHAR(64) = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+
+        SELECT  TagPath,
+                TagVR,
+                TagLevel,
+                TagStatus
+        FROM    dbo.CustomTag
+        WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
+
+END
+GO
