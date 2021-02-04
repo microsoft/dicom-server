@@ -495,14 +495,16 @@ CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_TagValue ON dbo.CustomTag
 
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to PersonName
+	Note: The primary key is designed on the assumption that tags only occur once in an instance.
 **************************************************************/
 CREATE TABLE dbo.CustomTagPersonName (
-    TagKey                  BIGINT               NOT NULL, --PK
+    TagKey                  BIGINT               NOT NULL, --FK
     TagValue                NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
     SeriesKey               BIGINT               NULL,     --FK
     InstanceKey             BIGINT               NULL,     --FK
     Watermark               BIGINT               NOT NULL,
+	WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark), --PK
     TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
 ) WITH (DATA_COMPRESSION = PAGE)
 
@@ -520,13 +522,13 @@ CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_TagValue ON dbo.CustomT
     TagValue
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey ON dbo.CustomTagPersonName
+CREATE UNIQUE NONCLUSTERED INDEX IXC_CustomTagPersonName_WatermarkAndTagKey ON dbo.CustomTagPersonName
 (
-	TagKey
+	WatermarkAndTagKey
 )
 
 CREATE FULLTEXT INDEX ON CustomTagPersonName(TagValueWords LANGUAGE 1033)
-KEY INDEX IXC_CustomTagPersonName_TagKey
+KEY INDEX IXC_CustomTagPersonName_WatermarkAndTagKey
 WITH STOPLIST = OFF;
 
 /*************************************************************
