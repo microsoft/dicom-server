@@ -10,8 +10,6 @@ using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.DicomCast.Blob.Registration;
-using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Modules;
 using Microsoft.Health.DicomCast.TableStorage;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -41,14 +39,7 @@ namespace Microsoft.Health.DicomCast.Hosting
 
                     services.RegisterAssemblyModules(typeof(WorkerModule).Assembly, configuration);
 
-                    services.AddBlobStorageDataStore(configuration);
-
-                    services.AddDefaultExceptionStore();
-
-                    if (configuration.GetSection("TableStore").GetSection("Enabled").Get<bool>() == true)
-                    {
-                        services.AddTableStorageDataStore(configuration);
-                    }
+                    services.AddTableStorageDataStore(configuration);
 
                     services.AddHostedService<DicomCastBackgroundService>();
 
