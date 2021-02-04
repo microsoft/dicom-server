@@ -14,6 +14,10 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
     /// </summary>
     public class IntransientEntity : TableEntity
     {
+        public IntransientEntity()
+        {
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="IntransientEntity"/> class.
         /// </summary>
@@ -39,14 +43,14 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
             Exception = ex.ToString();
         }
 
-        public string StudyUID { get; }
+        public string StudyUID { get; set; }
 
-        public string SeriesUID { get; }
+        public string SeriesUID { get; set; }
 
-        public string InstanceUID { get; }
+        public string InstanceUID { get; set; }
 
-        public string Exception { get; }
+        public string Exception { get; set; }
 
-        public long ChangeFeedSequence { get; }
+        public long ChangeFeedSequence { get; set; }
     }
 }

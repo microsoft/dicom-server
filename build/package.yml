@@ -7,7 +7,7 @@ steps:
     inputs:
       command: publish
       projects: '**/Microsoft.Health.Dicom.Web.csproj'
-      arguments: '--output $(build.artifactStagingDirectory)/web --configuration $(buildConfiguration) --version-suffix $(build.buildnumber)'
+      arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/web --no-build'
       publishWebProjects: false
 
   - task: DotNetCoreCLI@2
@@ -15,7 +15,7 @@ steps:
     inputs:
       command: publish
       projects: 'test/**/*.csproj'
-      arguments: '--version-suffix $(build.buildnumber) -o "$(build.binariesdirectory)/IntegrationTests" --configuration $(buildConfiguration) --no-build'
+      arguments: '--configuration $(buildConfiguration) --output "$(build.binariesdirectory)/IntegrationTests" --no-build'
       publishWebProjects: false
       zipAfterPublish: false
 
@@ -27,12 +27,12 @@ steps:
       command: pack
       configuration: '$(buildConfiguration)'
       packDirectory: '$(build.artifactStagingDirectory)/nupkgs'
-      versioningScheme: 'byEnvVar'
+      versioningScheme: byEnvVar
       versionEnvVar: 'nuget_version'
       nobuild: true
       zipAfterPublish: true
     env:
-      nuget_version: 1.0.0-$(build.buildNumber)
+      nuget_version: $(nuGetVersion)
 
   # Publish artifacts
 

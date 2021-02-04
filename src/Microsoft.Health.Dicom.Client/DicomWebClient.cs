@@ -46,8 +46,10 @@ namespace Microsoft.Health.Dicom.Client
 
         /// <summary>
         /// Func used to obtain a <see cref="MemoryStream" />. The default value returns a new memory stream.
-        /// This can be used in conjunction with a <see cref="RecyclableMemoryStreamManager"/> to provide a way to obtain a memory stream from the pool.
         /// </summary>
+        /// <remarks>
+        /// This can be used in conjunction with a memory stream pool.
+        /// </remarks>
         public Func<MemoryStream> GetMemoryStream { get; set; }
 
         public async Task<DicomWebResponse<DicomFile>> RetrieveInstanceAsync(
