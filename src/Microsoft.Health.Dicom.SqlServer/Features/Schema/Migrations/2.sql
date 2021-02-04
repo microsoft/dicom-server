@@ -369,12 +369,14 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     Stores added custom tags
     TagPath is represented without any delimiters and each level takes 8 bytes
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
+    TagStatus can be 0, 1 or 2 to represent Reindexing, Added or Deindexing
 **************************************************************/
 CREATE TABLE dbo.CustomTag (
     TagKey                  BIGINT               NOT NULL, --PK
     TagPath                 VARCHAR(64)          NOT NULL,
     TagVR                   VARCHAR(2)           NOT NULL,
-    TagLevel                TINYINT              NOT NULL
+    TagLevel                TINYINT              NOT NULL,
+    TagStatus               TINYINT              NOT NULL
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_CustomTag ON dbo.CustomTag

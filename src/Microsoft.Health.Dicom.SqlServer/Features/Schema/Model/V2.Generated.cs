@@ -62,6 +62,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn TagPath = new VarCharColumn("TagPath", 64);
             internal readonly VarCharColumn TagVR = new VarCharColumn("TagVR", 2);
             internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+            internal readonly TinyIntColumn TagStatus = new TinyIntColumn("TagStatus");
             internal readonly Index IXC_CustomTag = new Index("IXC_CustomTag");
             internal readonly Index IX_CustomTag_TagPath = new Index("IX_CustomTag_TagPath");
         }
