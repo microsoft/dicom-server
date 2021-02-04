@@ -19,10 +19,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <summary>
         /// Asynchronously processes the <paramref name="instanceEntries"/>.
         /// </summary>
+        /// <remarks>
+        /// If the <paramref name="requiredStudyInstanceUid"/> is specified, every element in the
+        /// <paramref name="instanceEntries"/> must have the given attribute value.
+        /// </remarks>
         /// <param name="instanceEntries">The list of <see cref="IDicomInstanceEntry"/> to process.</param>
-        /// <param name="requiredStudyInstanceUid">
-        /// If supplied, the StudyInstanceUID in the <paramref name="dicomDataset"/> must match to be considered valid.
-        /// </param>
+        /// <param name="requiredStudyInstanceUid">An optional value for the StudyInstanceUID tag.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
         Task<StoreResponse> ProcessAsync(
