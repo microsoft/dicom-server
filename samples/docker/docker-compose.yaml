@@ -21,16 +21,20 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite
     restart: always
     # # uncomment if you want to expose azure storage explorer against localhost
-    # ports:
+    # ports:cd
     #   - "10001:10001"
     #   - "10000:10000"
+  #Currently using azurite v2 for table storage as azurite v3 only supports blob and queue storage and v2 supports table storage. Once v3 supports queue storage this can be removed.
   tableazurite:
-    image: myazurite
+    build:
+      context: ../Azurite
+      dockerfile: ./Dockerfile
     restart: always
+    environment: 
+      executable: table
     # # uncomment if you want to expose azure storage explorer against localhost
     # ports:
-    #   - "10001:10001"
-    #   - "10000:10000"
+    #   - "10002:10002"
   sql:
     build: 
       context: ./../../
