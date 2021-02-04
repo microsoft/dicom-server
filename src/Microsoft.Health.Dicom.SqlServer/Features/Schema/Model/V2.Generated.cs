@@ -15,9 +15,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static CustomTagTable CustomTag = new CustomTagTable();
+        internal readonly static CustomTagBigIntTable CustomTagBigInt = new CustomTagBigIntTable();
         internal readonly static CustomTagDateTimeTable CustomTagDateTime = new CustomTagDateTimeTable();
         internal readonly static CustomTagDoubleTable CustomTagDouble = new CustomTagDoubleTable();
-        internal readonly static CustomTagIntTable CustomTagInt = new CustomTagIntTable();
         internal readonly static CustomTagPersonNameTable CustomTagPersonName = new CustomTagPersonNameTable();
         internal readonly static CustomTagStringTable CustomTagString = new CustomTagStringTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -67,6 +67,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_CustomTag_TagPath = new Index("IX_CustomTag_TagPath");
         }
 
+        internal class CustomTagBigIntTable : Table
+        {
+            internal CustomTagBigIntTable() : base("dbo.CustomTagBigInt")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly Index IXC_CustomTagBigInt = new Index("IXC_CustomTagBigInt");
+            internal readonly Index IXC_CustomTagBigInt_TagKey_TagValue = new Index("IXC_CustomTagBigInt_TagKey_TagValue");
+        }
+
         internal class CustomTagDateTimeTable : Table
         {
             internal CustomTagDateTimeTable() : base("dbo.CustomTagDateTime")
@@ -99,22 +115,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IXC_CustomTagDouble_TagKey_TagValue = new Index("IXC_CustomTagDouble_TagKey_TagValue");
         }
 
-        internal class CustomTagIntTable : Table
-        {
-            internal CustomTagIntTable() : base("dbo.CustomTagInt")
-            {
-            }
-
-            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
-            internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
-            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
-            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
-            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
-            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly Index IXC_CustomTagInt = new Index("IXC_CustomTagInt");
-            internal readonly Index IXC_CustomTagInt_TagKey_TagValue = new Index("IXC_CustomTagInt_TagKey_TagValue");
-        }
-
         internal class CustomTagPersonNameTable : Table
         {
             internal CustomTagPersonNameTable() : base("dbo.CustomTagPersonName")
@@ -130,6 +130,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal const string TagValueWords = "TagValueWords";
             internal readonly Index IXC_CustomTagPersonName = new Index("IXC_CustomTagPersonName");
             internal readonly Index IXC_CustomTagPersonName_TagKey_TagValue = new Index("IXC_CustomTagPersonName_TagKey_TagValue");
+            internal readonly Index IXC_CustomTagPersonName_TagKey = new Index("IXC_CustomTagPersonName_TagKey");
         }
 
         internal class CustomTagStringTable : Table

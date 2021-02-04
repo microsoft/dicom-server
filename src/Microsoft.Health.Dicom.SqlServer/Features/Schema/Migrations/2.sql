@@ -416,7 +416,7 @@ CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_TagValue ON dbo.CustomTagSt
 )
 
 /*************************************************************
-    Custom Tag Data Table for VR Types mapping to Int
+    Custom Tag Data Table for VR Types mapping to BigInt
 **************************************************************/
 CREATE TABLE dbo.CustomTagBigInt (
     TagKey                  BIGINT               NOT NULL, --PK
@@ -427,7 +427,7 @@ CREATE TABLE dbo.CustomTagBigInt (
     Watermark               BIGINT               NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagBigInt ON dbo.CustomTagInt
+CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagBigInt ON dbo.CustomTagBigInt
 (
     TagKey,
     StudyKey,
@@ -435,7 +435,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagBigInt ON dbo.CustomTagInt
     InstanceKey
 )
 
-CREATE NONCLUSTERED INDEX IXC_CustomTagBigInt_TagKey_TagValue ON dbo.CustomTagInt
+CREATE NONCLUSTERED INDEX IXC_CustomTagBigInt_TagKey_TagValue ON dbo.CustomTagBigInt
 (
     TagKey,
     TagValue
@@ -520,8 +520,13 @@ CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_TagValue ON dbo.CustomT
     TagValue
 )
 
+CREATE UNIQUE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey ON dbo.CustomTagPersonName
+(
+	TagKey
+)
+
 CREATE FULLTEXT INDEX ON CustomTagPersonName(TagValueWords LANGUAGE 1033)
-KEY INDEX IXC_CustomTagPersonName
+KEY INDEX IXC_CustomTagPersonName_TagKey
 WITH STOPLIST = OFF;
 
 /*************************************************************
