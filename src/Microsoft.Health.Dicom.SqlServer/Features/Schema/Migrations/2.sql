@@ -408,10 +408,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagString ON dbo.CustomTagString
     SeriesKey,
     InstanceKey
 )
-INCLUDE
-(
-    WaterMark
-)
 
 CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_TagValue ON dbo.CustomTagString
 (
@@ -422,7 +418,7 @@ CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_TagValue ON dbo.CustomTagSt
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to Int
 **************************************************************/
-CREATE TABLE dbo.CustomTagInt (
+CREATE TABLE dbo.CustomTagBigInt (
     TagKey                  BIGINT               NOT NULL, --PK
     TagValue                BIGINT               NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
@@ -431,19 +427,15 @@ CREATE TABLE dbo.CustomTagInt (
     Watermark               BIGINT               NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagInt ON dbo.CustomTagInt
+CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagBigInt ON dbo.CustomTagInt
 (
     TagKey,
     StudyKey,
     SeriesKey,
     InstanceKey
 )
-INCLUDE
-(
-    WaterMark
-)
 
-CREATE NONCLUSTERED INDEX IXC_CustomTagInt_TagKey_TagValue ON dbo.CustomTagInt
+CREATE NONCLUSTERED INDEX IXC_CustomTagBigInt_TagKey_TagValue ON dbo.CustomTagInt
 (
     TagKey,
     TagValue
@@ -467,10 +459,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDouble ON dbo.CustomTagDouble
     StudyKey,
     SeriesKey,
     InstanceKey
-)
-INCLUDE
-(
-    WaterMark
 )
 
 CREATE NONCLUSTERED INDEX IXC_CustomTagDouble_TagKey_TagValue ON dbo.CustomTagDouble
@@ -498,10 +486,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDateTime ON dbo.CustomTagDateTime
     SeriesKey,
     InstanceKey
 )
-INCLUDE
-(
-    WaterMark
-)
 
 CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_TagValue ON dbo.CustomTagDateTime
 (
@@ -528,10 +512,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagPersonName ON dbo.CustomTagPersonName
     StudyKey,
     SeriesKey,
     InstanceKey
-)
-INCLUDE
-(
-    WaterMark
 )
 
 CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_TagValue ON dbo.CustomTagPersonName
