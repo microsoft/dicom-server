@@ -3,12 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.Cosmos.Table;
-using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entities;
 
@@ -30,25 +28,11 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models
             CloudTable table = _client.GetTableReference(Constants.SyncStateTableName);
             TableOperation retrieveOperation = TableOperation.Retrieve<SyncStateEntity>(Constants.SyncStatePartitionKey, Constants.SyncStateRowKey);
 
-            TableResult result;
+            TableResult result = await table.ExecuteAsync(retrieveOperation, cancellationToken);
 
-            try
-            {
-                result = await table.ExecuteAsync(retrieveOperation);
-            }
-            catch (Exception ex)
-            {
-                throw new DataStoreException(ex);
-            }
-
-            SyncStateEntity syncState = result.Result as SyncStateEntity;
-
-            if (syncState != null)
-            {
-                return new SyncState(syncState.SyncedSequence, syncState.Timestamp);
-            }
-
-            return SyncState.CreateInitialSyncState();
+            return result.Result is SyncStateEntity syncState
+                ? new SyncState(syncState.SyncedSequence, syncState.Timestamp)
+                : SyncState.CreateInitialSyncState();
         }
 
         public async Task UpdateAsync(SyncState state, CancellationToken cancellationToken = default)
@@ -57,14 +41,8 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models
             TableEntity entity = new SyncStateEntity(state);
 
             TableOperation operation = TableOperation.InsertOrReplace(entity);
-            try
-            {
-                await table.ExecuteAsync(operation, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                throw new DataStoreException(ex);
-            }
+
+            await table.ExecuteAsync(operation, cancellationToken);
         }
     }
 }
