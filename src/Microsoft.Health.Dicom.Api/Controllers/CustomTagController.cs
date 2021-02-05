@@ -62,8 +62,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             DeleteCustomTagResponse response = await _mediator.DeleteCustomTagAsync(tagPath, HttpContext.RequestAborted);
 
-            return StatusCode(
-               (int)HttpStatusCode.NoContent, response);
+            return StatusCode((int)HttpStatusCode.NoContent, response);
         }
 
         /// <summary>
