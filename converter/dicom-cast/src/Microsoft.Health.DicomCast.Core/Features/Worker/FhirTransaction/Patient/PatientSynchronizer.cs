@@ -55,7 +55,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 }
                 catch (DicomTagException ex)
                 {
-                    if (_dicomCastconfiguration.Features.IgnoreSyncOfInvalidTagValue)
+                    if (!_dicomCastconfiguration.Features.EnforceValidationOfTagValues)
                     {
                         await _exceptionStore.WriteExceptionAsync(
                             context.ChangeFeedEntry,
