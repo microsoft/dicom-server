@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Net.Cache;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -66,13 +68,17 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             context[nameof(ChangeFeedEntry)] = changeFeedEntry;
 
             return _retryPolicy.ExecuteAsync(
-                (ctx, tkn) =>
+                async (ctx, tkn) =>
                 {
                     try
                     {
-                       return _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
+                       await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
                     }
                     catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+                    {
+                        throw new RetryableException(ex);
+                    }
+                    catch (HttpRequestException ex)
                     {
                         throw new RetryableException(ex);
                     }
