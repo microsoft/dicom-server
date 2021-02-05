@@ -1110,13 +1110,11 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-
         SELECT  TagPath,
                 TagVR,
                 TagLevel,
                 TagStatus
         FROM    dbo.CustomTag
         WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
-
 END
 GO
