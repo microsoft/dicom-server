@@ -45,6 +45,7 @@ Follow the [Development Setup Instructions](docs/development/setup.md) to deploy
 
 - [Configure Medical Imaging Server for DICOM server settings](docs/how-to-guides/configure-dicom-server-settings.md)
 - [Enable Authentication and retrieve an OAuth token](docs/how-to-guides/enable-authentication-with-tokens.md)
+- [Enable Authoriazation](docs/how-to-guides/enable-authorization.md)
 - [Pull Changes from Medical Imaging Server for DICOM with Change Feed](docs/how-to-guides/pull-changes-from-change-feed.md)
 - [Sync DICOM metadata to FHIR](docs/how-to-guides/sync-dicom-metadata-to-fhir.md)
 
@@ -69,6 +70,7 @@ Follow the [Development Setup Instructions](docs/development/setup.md) to deploy
 - [Exception handling](docs/development/exception-handling.md)
 - [Tests](docs/development/tests.md)
 - [Identity Server Authentication](docs/development/identity-server-authentication.md)
+- [Roles](docs/development/roles.md)
 
 ## Contributing
 
