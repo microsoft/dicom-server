@@ -159,10 +159,6 @@
                                     "name": "DicomCast__Features__EnforceValidationOfTagValues",
                                     "value": "[parameters('EnforceValidationOfTagValues')]"
 
-                                },
-                                {
-                                    "name": "TableStore__Enabled",
-                                    "value": "true"
                                 }
                             ]
                         }
@@ -232,19 +228,6 @@
                     }
                 ],
                 "enabledForDeployment": false
-            }
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "apiVersion": "2015-06-01",
-            "name": "[concat(variables('serviceName'), '/BlobStore--ConnectionString')]",
-            "dependsOn": [
-                "[variables('keyVaultResourceId')]",
-                "[variables('storageResourceId')]"
-            ],
-            "properties": {
-                "contentType": "text/plain",
-                "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';')]"
             }
         },
         {
