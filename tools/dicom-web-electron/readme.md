@@ -31,7 +31,7 @@ You can get sample DICOM files at [../../docs/dcms](../../docs/dcms)
 
 ## Change Feed
 
-The change feed offers the ability to go through the history of the Medical Imaging Server for DICOM and act upon the creates and deletes in the service. Learn more about Change Feed [here](https://github.com/microsoft/dicom-server/blob/master/docs/users/ChangeFeed.md).
+The change feed offers the ability to go through the history of the Medical Imaging Server for DICOM and act upon the creates and deletes in the service. Learn more about Change Feed [here](https://github.com/microsoft/dicom-server/blob/main/docs/users/ChangeFeed.md).
 
 Navigate to Change Feed to update the Offset value, which is the number of records to skip before the values to return.
 

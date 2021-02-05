@@ -45,7 +45,7 @@
         "properties": {
           "mode": "Incremental",
           "templateLink": {
-            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/samples/templates/default-azuredeploy.json",
+            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/main/samples/templates/default-azuredeploy.json",
             "contentVersion":"1.0.0.0"
             },
             "parameters":{
@@ -71,7 +71,7 @@
         "properties": {
           "mode": "Incremental",
           "templateLink": {
-            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/master/samples/templates/default-azuredeploy-sql.json",
+            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/main/samples/templates/default-azuredeploy.json",
             "contentVersion":"1.0.0.0"
             },
             "parameters":{
@@ -86,7 +86,9 @@
                 "sqlAdminPassword":{"value": "[parameters('sqlAdminPassword')]"},
                 "sqlLocation":{"value": "[resourceGroup().location]"},
                 "fhirVersion":{"value": "R4"},
-                "enableExport":{"value": false},    
+                "enableExport":{"value": false}, 
+                "enableConvertData":{"value": false},   
+                "enableReindex":{"value": false},   
                 "sqlSchemaAutomaticUpdatesEnabled":{"value": true}    
                 }
             }
@@ -98,7 +100,7 @@
             "properties": {
               "mode": "Incremental",
                 "templateLink": {
-                "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/master/converter/dicom-cast/samples/templates/default-azuredeploy.json",
+                "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/main/converter/dicom-cast/samples/templates/default-azuredeploy.json",
                 "contentVersion":"1.0.0.0"
                 },
                 "parameters":{

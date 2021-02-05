@@ -5,6 +5,8 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Client.Models;
 
 namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
 {
@@ -16,13 +18,19 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         /// <summary>
         /// Store an exception to an azure storage table.
         /// </summary>
-        /// <param name="studyUid">StudyUID of dicom instance that threw exception</param>
-        /// <param name="seriesUid">SeriesUID of dicom instance that threw exception</param>
-        /// <param name="instanceUid">InstanceUID of dicom instance that threw exception</param>
-        /// <param name="changeFeedSequence">Changefeed sequence number that threw exception</param>
+        /// <param name="changeFeedEntry">ChangeFeedEntry that threw exception</param>
         /// <param name="exceptionToStore">The exception that was thrown and needs to be stored</param>
         /// <param name="errorType">The type of error thrown</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        void StoreException(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default);
+        Task WriteExceptionAsync(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Store a retryrable exception to an azure storage table.
+        /// </summary>
+        /// <param name="changeFeedEntry">ChangeFeedEntry that threw exception</param>
+        /// <param name="retryNum">Number of times the entry has been tried</param>
+        /// <param name="exceptionToStore">The exception that was thrown and needs to be stored</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, Exception exceptionToStore, CancellationToken cancellationToken = default);
     }
 }

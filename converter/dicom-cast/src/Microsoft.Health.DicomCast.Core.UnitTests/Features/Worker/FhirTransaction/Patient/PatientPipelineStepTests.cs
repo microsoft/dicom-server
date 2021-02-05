@@ -60,7 +60,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             Patient creatingPatient = null;
 
-            _patientSynchronizer.When(synchronizer => synchronizer.Synchronize(DefaultDicomDataset, Arg.Any<Patient>(), isNewPatient: true)).Do(callback =>
+            _patientSynchronizer.When(async synchronizer => await synchronizer.SynchronizeAsync(context, Arg.Any<Patient>(), isNewPatient: true, DefaultCancellationToken)).Do(callback =>
             {
                 creatingPatient = callback.ArgAt<Patient>(1);
 
@@ -104,7 +104,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             Patient updatingPatient = null;
 
-            _patientSynchronizer.When(synchronizer => synchronizer.Synchronize(DefaultDicomDataset, Arg.Any<Patient>(), isNewPatient: false)).Do(callback =>
+            _patientSynchronizer.When(async synchronizer => await synchronizer.SynchronizeAsync(context, Arg.Any<Patient>(), isNewPatient: false, DefaultCancellationToken)).Do(callback =>
             {
                 updatingPatient = callback.ArgAt<Patient>(1);
 

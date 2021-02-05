@@ -9,12 +9,12 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
 {
     public class FhirNonRetryableException : Exception
     {
-        protected FhirNonRetryableException(string message)
+        public FhirNonRetryableException(string message)
             : base(message)
         {
         }
 
-        protected FhirNonRetryableException(string message, Exception innerException)
+        public FhirNonRetryableException(string message, Exception innerException)
             : base(message, innerException)
         {
         }

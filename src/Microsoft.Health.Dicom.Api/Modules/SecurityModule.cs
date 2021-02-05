@@ -3,6 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +17,8 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Microsoft.Health.Dicom.Api.Modules
 {
@@ -33,6 +38,9 @@ namespace Microsoft.Health.Dicom.Api.Modules
 
             if (_securityConfiguration.Enabled)
             {
+                string[] validAudiences = GetValidAudiences();
+                string challengeAudience = validAudiences?.FirstOrDefault();
+
                 services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -42,9 +50,12 @@ namespace Microsoft.Health.Dicom.Api.Modules
                 .AddJwtBearer(options =>
                 {
                     options.Authority = _securityConfiguration.Authentication.Authority;
-                    options.Audience = _securityConfiguration.Authentication.Audience;
                     options.RequireHttpsMetadata = true;
-                    options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{_securityConfiguration.Authentication.Audience}\", realm=\"{_securityConfiguration.Authentication.Audience}\"";
+                    options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{challengeAudience}\", realm=\"{challengeAudience}\"";
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidAudiences = validAudiences,
+                    };
                 });
 
                 services.AddControllers(mvcOptions =>
@@ -63,6 +74,24 @@ namespace Microsoft.Health.Dicom.Api.Modules
                 .AsService<IDicomRequestContextAccessor>();
 
             services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();
+        }
+
+        internal string[] GetValidAudiences()
+        {
+            if (_securityConfiguration.Authentication.Audiences != null)
+            {
+                return _securityConfiguration.Authentication.Audiences.ToArray();
+            }
+
+            if (!string.IsNullOrWhiteSpace(_securityConfiguration.Authentication.Audience))
+            {
+                return new[]
+                {
+                    _securityConfiguration.Authentication.Audience,
+                };
+            }
+
+            return null;
         }
     }
 }

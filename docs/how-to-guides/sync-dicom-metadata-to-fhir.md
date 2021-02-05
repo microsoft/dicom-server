@@ -54,7 +54,7 @@ For both your FHIR and DICOM servers, you will set the Audience and Authority fo
 1. Navigate to the DICOM Cast Key Vault that was created when you deployed DICOM Cast.
 1. Select **Access Policies** in the menu bar and click **Add Access Policy**.
     1. Under **Configure from template**, select **Secret Management**.
-    1. Under **Select principal**, click **None selected**. Search for your Service Principle, click **Select** and then **Add**. 
+    1. Under **Select principal**, click **None selected**. Search for your Service Principle, click **Select** and then **Add**.
     1. Select **Save**.
 1. Select **Secrets** in the menu bar and click **Generate/Import**. Use the tables below to add secrets for your DICOM and FHIR servers. For each secret, use the **Manual Upload option** and click **Create**:
 

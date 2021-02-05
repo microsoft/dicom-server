@@ -1,7 +1,7 @@
 # Start from the sdk image
 FROM mcr.microsoft.com/dotnet/sdk:5.0.101@sha256:b77f3a3dc3db717405b1c98c2917a14bee4cdd19b36c2d7b477d7596f644f3cd AS build
 
-# Set teh working directory to where the source is located
+# Set the working directory to where the source is located
 WORKDIR /src
 
 # Copy everything

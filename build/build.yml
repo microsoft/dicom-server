@@ -17,14 +17,14 @@ steps:
     inputs:
       command: 'build'
       projects: '**/*.csproj'
-      arguments: '--configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror'
+      arguments: '--configuration $(buildConfiguration) -p:AssemblyVersion="$(assemblySemVer)" -p:FileVersion="$(assemblySemFileVer)" -p:InformationalVersion="$(informationalVersion)" -p:ContinuousIntegrationBuild=true'
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet test UnitTests'
     inputs:
       command: test
       projects: '**/*UnitTests/*.csproj'
-      arguments: '--configuration $(buildConfiguration)'
+      arguments: '--configuration $(buildConfiguration) --no-build'
 
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml

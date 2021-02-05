@@ -8,9 +8,31 @@ variables:
 - template: pr-variables.yml
 
 stages:
+- stage: UpdateVersion
+  displayName: 'Determine Semver'
+  dependsOn: []
+  jobs:
+  - job: Semver
+    pool:
+      vmImage: $(WindowsVmImage)
+    steps:
+    - template: ./update-semver.yml  
+    - powershell: |
+        $buildNumber = "$(GitVersion.semVer)" -replace "\.", "" 
+        Write-Host "##vso[build.updatebuildnumber]$buildNumber" 
+        Write-Host "Updated  build number to '$buildNumber"
+      name: SetBuildVersion
+
 - stage: BuildRunUnitTests
   displayName: 'Build and run unit tests'
-  dependsOn: []
+  dependsOn:
+  - UpdateVersion
+  variables:
+    assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.assemblySemVer']]
+    assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.assemblySemFileVer']]
+    informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.informationalVersion']]
+    majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.majorMinorPatch']]
+    nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.nuGetVersion']]
   jobs:
   - job: Windows
     pool:

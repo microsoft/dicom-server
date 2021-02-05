@@ -3,11 +3,9 @@ name: build-docker-files
 on:
   push:
     branches: 
-    - master
     - main
   pull_request:
     branches:
-    - master
     - main
 
 jobs:
@@ -17,9 +15,17 @@ jobs:
     steps:
     - 
       uses: actions/checkout@v2
+      with:
+        submodules: true
     -
       # sample contains all the docker files
       name: Build all docker files
       run: |
         docker-compose build
       working-directory: samples/docker
+    - 
+      name: test-docker
+      run: .github/workflows/test-docker.ps1
+      shell: pwsh
+      timeout-minutes: 6
+    

@@ -24,6 +24,17 @@ services:
     # ports:
     #   - "10001:10001"
     #   - "10000:10000"
+  #Currently using azurite v2 for table storage as azurite v3 only supports blob and queue storage and v2 supports table storage. Once v3 supports queue storage this can be removed.
+  tableazurite:
+    build:
+      context: ../Azurite
+      dockerfile: ./Dockerfile
+    restart: always
+    environment: 
+      executable: table
+    # # uncomment if you want to expose azure storage explorer against localhost
+    # ports:
+    #   - "10002:10002"
   sql:
     build: 
       context: ./../../
@@ -47,7 +58,7 @@ services:
       context: ./../../
       dockerfile: ./converter/dicom-cast/build/docker/Dockerfile
     environment:
-      BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      TableStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://tableazurite:10002/devstoreaccount1;"
       Fhir__Endpoint: http://fhir:8080
       DicomWeb__endpoint: http://dicom-api:8080
       DicomCastWorker__PollInterval: "00:00:05"
@@ -55,6 +66,7 @@ services:
     depends_on:
       - dicom-api
       - azurite
+      - tableazurite
       - fhir
     restart: always
 
@@ -70,8 +82,8 @@ services:
       SqlServer__SchemaOptions__AutomaticUpdatesEnabled: "true"
       DataStore: "SqlServer"
     # # uncomment if you want to expose fhir against localhost
-    # ports:     
-    #   - "8081:8080"
+    ports:     
+      - "8081:8080"
     depends_on:
       - sql
 

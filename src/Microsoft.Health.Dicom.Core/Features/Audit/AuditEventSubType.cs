@@ -24,6 +24,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Audit
 
         public const string Store = "store";
 
-        public const string CustomTag = "custom-tag";
+        public const string AddCustomTag = "add-custom-tag";
+
+        public const string GetAllCustomTags = "get-all-custom-tag";
+
+        public const string GetCustomTag = "get-custom-tag";
     }
 }
