@@ -87,47 +87,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             throw new System.NotImplementedException();
         }
 
-        public Task DeleteCustomTagAsync(long key, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<CustomTagStoreEntry> GetCustomTagAsync(string tagPath, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task StartDeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task CompleteDeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<long> DeleteCustomTagStringIndexAsync(string tagPath, int top, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<long> DeleteCustomTagLongIndexAsync(string tagPath, int top, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<long> DeleteCustomTagDoubleIndexAsync(string tagPath, int top, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<long> DeleteCustomTagDateTimeIndexAsync(string tagPath, int top, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<long> DeleteCustomTagPersonNameIndexAsync(string tagPath, int top, CancellationToken cancellationToken = default)
+        public Task DeleteCustomTagAsync(string tagPath, CustomTagIndexType customTagIndexType, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }

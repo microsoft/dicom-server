@@ -3,21 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
-    public interface IAddCustomTagService
+    public interface IDeleteCustomTagService
     {
         /// <summary>
-        /// Add Custom Tags.
+        /// Delete custom tag.
         /// </summary>
-        /// <param name="customTags">The custom tags.</param>
+        /// <param name="tagPath">The custom tag path.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The response.</returns>
-        public Task<AddCustomTagResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken = default);
+        /// <returns>The task.</returns>
+        public Task DeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken = default);
     }
 }

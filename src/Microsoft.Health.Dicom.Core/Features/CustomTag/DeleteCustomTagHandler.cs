@@ -13,17 +13,17 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     public class DeleteCustomTagHandler : IRequestHandler<DeleteCustomTagRequest, DeleteCustomTagResponse>
     {
-        private readonly ICustomTagService _customTagService;
+        private readonly IDeleteCustomTagService _deleteCustomTagService;
 
-        public DeleteCustomTagHandler(ICustomTagService customTagService)
+        public DeleteCustomTagHandler(IDeleteCustomTagService deleteCustomTagService)
         {
-            EnsureArg.IsNotNull(customTagService, nameof(customTagService));
-            _customTagService = customTagService;
+            EnsureArg.IsNotNull(deleteCustomTagService, nameof(deleteCustomTagService));
+            _deleteCustomTagService = deleteCustomTagService;
         }
 
         public async Task<DeleteCustomTagResponse> Handle(DeleteCustomTagRequest request, CancellationToken cancellationToken)
         {
-            await _customTagService.DeleteCustomTagAsync(request.TagPath, cancellationToken);
+            await _deleteCustomTagService.DeleteCustomTagAsync(request.TagPath, cancellationToken);
             return new DeleteCustomTagResponse();
         }
     }
