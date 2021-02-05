@@ -98,7 +98,7 @@ while(-Not($lastRelease -eq $currentRelease)) {
         # Only the latest release will be approved.
         $updateStatusObj = @{
             "status" = "approved"
-           "comment" = "Approved by automation"
+            "comment" = "Approved by automation"
         } | ConvertTo-Json
 
         "Accepting $($($($approval[0]).release).name)"
