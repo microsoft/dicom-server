@@ -7,10 +7,17 @@ This quickstart details how to build and run the Medical Imaging Server for DICO
 
 ## Prerequisites
 
-To deploy the Medical Imaging Server for DICOM using Docker Compose, you have to have a local version of the OSS repository. To clone the repository via the command line, run the following command:
+To deploy the Medical Imaging Server for DICOM using Docker Compose, you have to have a local version of the OSS repository along with the submodules. To clone the repository via the command line with the submodles, run the following command:
 
 ```bash
-git clone https://github.com/microsoft/dicom-server.git
+git clone --recurse-submodules https://github.com/microsoft/dicom-server.git
+
+```
+
+If you already have a copy of the OSS repository, you can initialize the submodules with the following command:
+
+```bash
+git submodule update --init --recursive
 
 ```
 

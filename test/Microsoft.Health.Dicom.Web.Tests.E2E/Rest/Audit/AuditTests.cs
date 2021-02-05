@@ -15,13 +15,12 @@ using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
 {
     /// <summary>
     /// Provides Audit specific tests.
-    /// </summary
+    /// </summary>
     public class AuditTests : IClassFixture<AuditTestFixture>
     {
         private readonly AuditTestFixture _fixture;

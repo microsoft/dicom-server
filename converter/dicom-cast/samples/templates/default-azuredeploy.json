@@ -95,11 +95,11 @@
                 "description": "The endpoint of the FHIR server."
             }
         },
-        "IgnoreSyncOfInvalidTagValue": {
-            "defaultValue": true,
+        "EnforceValidationOfTagValues": {
+            "defaultValue": false,
             "type": "Bool",
             "metadata": {
-                "description": "Ignore values that are not required when syncing to FHIR if they are invalid"
+                "description": "Enforce validation of all tag values and do not store to FHIR even if only non-required tags are invalid"
             }
         }
     },
@@ -156,8 +156,9 @@
                                     "value": "[if(variables('deployAppInsights'), reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey, '')]"
                                 },
                                 {
-                                    "name": "DicomCast__Features__IgnoreSyncOfInvalidTagValue",
-                                    "value": "[parameters('IgnoreSyncOfInvalidTagValue')]"
+                                    "name": "DicomCast__Features__EnforceValidationOfTagValues",
+                                    "value": "[parameters('EnforceValidationOfTagValues')]"
+
                                 }
                             ]
                         }

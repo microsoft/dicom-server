@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 {
@@ -21,7 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>An instance of <see cref="DicomDataset"/>.</returns>
-        /// <exception cref="InvalidDicomInstanceException">Thrown when the DICOM instance entry is invalid.</exception>
+        /// <exception cref="InvalidInstanceException">Thrown when the DICOM instance entry is invalid.</exception>
         ValueTask<DicomDataset> GetDicomDatasetAsync(CancellationToken cancellationToken);
 
         /// <summary>
