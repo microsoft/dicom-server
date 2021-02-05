@@ -127,10 +127,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal const string WatermarkAndTagKey = "WatermarkAndTagKey";
             internal const string TagValueWords = "TagValueWords";
             internal readonly Index IXC_CustomTagPersonName = new Index("IXC_CustomTagPersonName");
             internal readonly Index IXC_CustomTagPersonName_TagKey_TagValue = new Index("IXC_CustomTagPersonName_TagKey_TagValue");
-            internal readonly Index IXC_CustomTagPersonName_TagKey = new Index("IXC_CustomTagPersonName_TagKey");
+            internal readonly Index IXC_CustomTagPersonName_WatermarkAndTagKey = new Index("IXC_CustomTagPersonName_WatermarkAndTagKey");
         }
 
         internal class CustomTagStringTable : Table
