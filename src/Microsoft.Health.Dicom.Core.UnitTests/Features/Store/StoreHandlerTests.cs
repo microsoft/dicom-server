@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -28,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         public StoreHandlerTests()
         {
-            _storeHandler = new StoreHandler(_dicomInstanceEntryReaderManager, _storeService);
+            _storeHandler = new StoreHandler(new DisabledDicomAuthorizationService(), _dicomInstanceEntryReaderManager, _storeService);
         }
 
         [Fact]

@@ -10,25 +10,28 @@ using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.Health.Abstractions.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Security;
+using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
-    public class StoreHandler : IRequestHandler<StoreRequest, StoreResponse>
+    public class StoreHandler : BaseHandler, IRequestHandler<StoreRequest, StoreResponse>
     {
         private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager;
         private readonly IStoreService _storeService;
 
         public StoreHandler(
+            IDicomAuthorizationService dicomAuthorizationService,
             IDicomInstanceEntryReaderManager dicomInstanceEntryReaderManager,
             IStoreService storeService)
+            : base(dicomAuthorizationService)
         {
-            EnsureArg.IsNotNull(dicomInstanceEntryReaderManager, nameof(dicomInstanceEntryReaderManager));
-            EnsureArg.IsNotNull(storeService, nameof(storeService));
-
-            _dicomInstanceEntryReaderManager = dicomInstanceEntryReaderManager;
-            _storeService = storeService;
+            _dicomInstanceEntryReaderManager = EnsureArg.IsNotNull(dicomInstanceEntryReaderManager, nameof(dicomInstanceEntryReaderManager));
+            _storeService = EnsureArg.IsNotNull(storeService, nameof(storeService));
         }
 
         /// <inheritdoc />
@@ -37,6 +40,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(message, nameof(message));
+
+            if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
+            {
+                throw new UnauthorizedDicomActionException(DataActions.Write);
+            }
 
             StoreRequestValidator.ValidateRequest(message);
 
