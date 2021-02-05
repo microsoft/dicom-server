@@ -129,7 +129,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
         }
 
-        public static async Task SynchronizePropertiesAsync<T>(T component, FhirTransactionContext context, Action<T, FhirTransactionContext> synchronizeAction, bool requiredProperty, bool partialValidation, IExceptionStore exceptionStore, CancellationToken cancellationToken = default)
+        public static async Task SynchronizePropertiesAsync<T>(T component, FhirTransactionContext context, Action<T, FhirTransactionContext> synchronizeAction, bool requiredProperty, bool enforceAllFields, IExceptionStore exceptionStore, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -137,7 +137,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
             catch (DicomTagException ex)
             {
-                if (partialValidation && !requiredProperty)
+                if (!enforceAllFields && !requiredProperty)
                 {
                     await exceptionStore.WriteExceptionAsync(
                         context.ChangeFeedEntry,

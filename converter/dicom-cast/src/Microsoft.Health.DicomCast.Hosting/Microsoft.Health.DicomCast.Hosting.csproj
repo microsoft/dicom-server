@@ -1,18 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.14.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.10" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.14.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Health.DicomCast.Blob\Microsoft.Health.DicomCast.Blob.csproj" />
     <ProjectReference Include="..\Microsoft.Health.DicomCast.Core\Microsoft.Health.DicomCast.Core.csproj" />
     <ProjectReference Include="..\Microsoft.Health.DicomCast.TableStorage\Microsoft.Health.DicomCast.TableStorage.csproj" />
   </ItemGroup>
