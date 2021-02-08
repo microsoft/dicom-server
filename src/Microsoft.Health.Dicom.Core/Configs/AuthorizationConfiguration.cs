@@ -5,18 +5,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
+using System.Collections.Immutable;
+using Microsoft.Health.Dicom.Core.Features.Security;
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
-    public class SecurityConfiguration
+    public class AuthorizationConfiguration
     {
+        public string RolesClaim { get; set; } = "roles";
+
         public bool Enabled { get; set; }
 
-        public AuthenticationConfiguration Authentication { get; set; } = new AuthenticationConfiguration();
-
-        public virtual HashSet<string> PrincipalClaims { get; } = new HashSet<string>(StringComparer.Ordinal);
-
-        public AuthorizationConfiguration Authorization { get; set; } = new AuthorizationConfiguration();
+        public IReadOnlyList<Role> Roles { get; internal set; } = ImmutableList<Role>.Empty;
     }
 }

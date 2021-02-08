@@ -7,25 +7,34 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Security;
+using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    public class RetrieveResourceHandler : IRequestHandler<RetrieveResourceRequest, RetrieveResourceResponse>
+    public class RetrieveResourceHandler : BaseHandler, IRequestHandler<RetrieveResourceRequest, RetrieveResourceResponse>
     {
         private readonly IRetrieveResourceService _retrieveResourceService;
 
-        public RetrieveResourceHandler(IRetrieveResourceService retrieveResourceService)
+        public RetrieveResourceHandler(IDicomAuthorizationService dicomAuthorizationService, IRetrieveResourceService retrieveResourceService)
+            : base(dicomAuthorizationService)
         {
-            EnsureArg.IsNotNull(retrieveResourceService, nameof(retrieveResourceService));
-            _retrieveResourceService = retrieveResourceService;
+            _retrieveResourceService = EnsureArg.IsNotNull(retrieveResourceService, nameof(retrieveResourceService));
         }
 
         public async Task<RetrieveResourceResponse> Handle(
             RetrieveResourceRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
+
+            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
+            {
+                throw new UnauthorizedDicomActionException(DataActions.Read);
+            }
 
             ValidateRetrieveResourceRequest(request);
 

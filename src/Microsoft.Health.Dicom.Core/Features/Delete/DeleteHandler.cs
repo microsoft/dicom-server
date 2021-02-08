@@ -8,27 +8,35 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Security;
+using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 
 namespace Microsoft.Health.Dicom.Core.Features.Delete
 {
-    public class DeleteHandler : IRequestHandler<DeleteResourcesRequest, DeleteResourcesResponse>
+    public class DeleteHandler : BaseHandler, IRequestHandler<DeleteResourcesRequest, DeleteResourcesResponse>
     {
         private readonly IDeleteService _deleteService;
 
-        public DeleteHandler(IDeleteService deleteService)
+        public DeleteHandler(IDicomAuthorizationService dicomAuthorizationService, IDeleteService deleteService)
+            : base(dicomAuthorizationService)
         {
-            EnsureArg.IsNotNull(deleteService, nameof(deleteService));
-
-            _deleteService = deleteService;
+            _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
         }
 
         /// <inheritdoc />
         public async Task<DeleteResourcesResponse> Handle(DeleteResourcesRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
+
+            if (await AuthorizationService.CheckAccess(DataActions.Delete, cancellationToken) != DataActions.Delete)
+            {
+                throw new UnauthorizedDicomActionException(DataActions.Delete);
+            }
 
             ValidateDeleteResourcesRequest(request);
 
