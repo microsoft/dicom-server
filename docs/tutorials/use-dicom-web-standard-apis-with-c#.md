@@ -22,9 +22,14 @@ Once you have deployed an instance of the Medical Imaging Server for DICOM, retr
 1. Search for **App Services** and select your Medical Imaging Server for DICOM App Service.
 1. Copy the **URL** of your App Service.
 
+In your application install the following nuget packages:
+
+1. The Dicom Client nuget package [instructions for connecting to the nuget feed](https://microsofthealthoss.visualstudio.com/FhirServer/_packaging?_a=package&feed=Public&package=Microsoft.Health.Dicom.Client&protocolType=NuGet)
+2. The fo-dicom nuget package
+
 ## Create a `DicomWebClient`
 
-After you have deployed your Medical Imaging Server for DICOM, you will create a 'DicomWebClient'. Run the following code snippet to create `DicomWebClient` which we will be using for the rest of the tutorial. You will also need to install the fo-dicom nuget package into your console application.
+After you have deployed your Medical Imaging Server for DICOM, you will create a 'DicomWebClient'. Run the following code snippet to create `DicomWebClient` which we will be using for the rest of the tutorial. Ensure you have both nuget packages mentioned above installed.
 
 ```c#
 string webServerUrl ="{Your DicomWeb Server URL}"
