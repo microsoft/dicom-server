@@ -24,8 +24,8 @@ Once you have deployed an instance of the Medical Imaging Server for DICOM, retr
 
 In your application install the following nuget packages:
 
-1. The Dicom Client nuget package [instructions for connecting to the nuget feed](https://microsofthealthoss.visualstudio.com/FhirServer/_packaging?_a=package&feed=Public&package=Microsoft.Health.Dicom.Client&protocolType=NuGet)
-2. The fo-dicom nuget package
+1.  [Dicom Client](https://microsofthealthoss.visualstudio.com/FhirServer/_packaging?_a=package&feed=Public&package=Microsoft.Health.Dicom.Client&protocolType=NuGet)
+2.  [fo-dicom](https://www.nuget.org/packages/fo-dicom/)
 
 ## Create a `DicomWebClient`
 
