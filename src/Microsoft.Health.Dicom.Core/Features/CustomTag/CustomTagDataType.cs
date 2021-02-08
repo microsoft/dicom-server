@@ -6,33 +6,33 @@
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     /// <summary>
-    /// Index type of custom tag.
+    /// Date type of custom tag.
     /// </summary>
-    public enum CustomTagIndexType
+    public enum CustomTagDataType
     {
         /// <summary>
-        /// The custom tag is indexed as String.
+        /// The custom tag is treated as String.
         /// </summary>
-        StringIndex = 1,
+        StringData = 1,
 
         /// <summary>
-        /// The custom tag is indexed as Long.
+        /// The custom tag is treated as Long.
         /// </summary>
-        LongIndex = 2,
+        LongData = 2,
 
         /// <summary>
-        /// The custom tag is indexed as Double.
+        /// The custom tag is treated as Double.
         /// </summary>
-        DoubleIndex = 3,
+        DoubleData = 3,
 
         /// <summary>
-        /// The custom tag is indexed as DateTime.
+        /// The custom tag is treated as DateTime.
         /// </summary>
-        DateTimeIndex = 4,
+        DateTimeData = 4,
 
         /// <summary>
-        /// The custom tag is indexed as PersonName.
+        /// The custom tag is treated as PersonName.
         /// </summary>
-        PersonNameIndex = 5,
+        PersonNameData = 5,
     }
 }

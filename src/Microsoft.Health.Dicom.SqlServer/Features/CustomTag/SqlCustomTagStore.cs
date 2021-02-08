@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             throw new System.NotImplementedException();
         }
 
-        public Task DeleteCustomTagAsync(string tagPath, CustomTagIndexType customTagIndexType, CancellationToken cancellationToken = default)
+        public Task DeleteCustomTagAsync(string tagPath, CustomTagDataType customTagIndexType, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }

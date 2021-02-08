@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
@@ -21,32 +21,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         private readonly ICustomTagStore _customTagStore;
         private readonly IDicomTagParser _dicomTagParser;
         private readonly ILogger<DeleteCustomTagService> _logger;
-
-        /// <summary>
-        /// Mapping from CustomTagVR to IndexType
-        /// </summary>
-        private static readonly IReadOnlyDictionary<string, CustomTagIndexType> CustomTagVRAndIndexTypeMapping = new Dictionary<string, CustomTagIndexType>()
-            {
-                { DicomVR.AE.Code, CustomTagIndexType.StringIndex },
-                { DicomVR.AS.Code, CustomTagIndexType.StringIndex },
-                { DicomVR.AT.Code, CustomTagIndexType.LongIndex },
-                { DicomVR.CS.Code, CustomTagIndexType.StringIndex },
-                { DicomVR.DA.Code, CustomTagIndexType.DateTimeIndex },
-                { DicomVR.DS.Code, CustomTagIndexType.StringIndex },
-                { DicomVR.DT.Code, CustomTagIndexType.DateTimeIndex },
-                { DicomVR.FL.Code, CustomTagIndexType.DoubleIndex },
-                { DicomVR.FD.Code, CustomTagIndexType.DoubleIndex },
-                { DicomVR.IS.Code, CustomTagIndexType.StringIndex },
-                { DicomVR.LO.Code, CustomTagIndexType.StringIndex },
-                { DicomVR.PN.Code, CustomTagIndexType.StringIndex },
-                { DicomVR.SH.Code, CustomTagIndexType.StringIndex },
-                { DicomVR.SL.Code, CustomTagIndexType.LongIndex },
-                { DicomVR.SS.Code, CustomTagIndexType.LongIndex },
-                { DicomVR.TM.Code, CustomTagIndexType.DateTimeIndex },
-                { DicomVR.UI.Code, CustomTagIndexType.StringIndex },
-                { DicomVR.UL.Code, CustomTagIndexType.LongIndex },
-                { DicomVR.US.Code, CustomTagIndexType.LongIndex },
-            };
 
         public DeleteCustomTagService(ICustomTagStore customTagStore, IDicomTagParser dicomTagParser, ILogger<DeleteCustomTagService> logger)
         {
@@ -72,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
             CustomTagEntry customTagEntry = await _customTagStore.GetCustomTagAsync(normalizedPath, cancellationToken);
 
-            await _customTagStore.DeleteCustomTagAsync(normalizedPath, CustomTagVRAndIndexTypeMapping[customTagEntry.VR], cancellationToken);
+            await _customTagStore.DeleteCustomTagAsync(normalizedPath, CustomTagLimit.CustomTagVRAndIndexTypeMapping[customTagEntry.VR], cancellationToken);
         }
     }
 }
