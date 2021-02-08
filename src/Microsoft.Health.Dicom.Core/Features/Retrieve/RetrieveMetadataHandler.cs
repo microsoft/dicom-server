@@ -8,24 +8,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Security;
+using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
-    internal class RetrieveMetadataHandler : IRequestHandler<RetrieveMetadataRequest, RetrieveMetadataResponse>
+    internal class RetrieveMetadataHandler : BaseHandler, IRequestHandler<RetrieveMetadataRequest, RetrieveMetadataResponse>
     {
         private readonly IRetrieveMetadataService _retrieveMetadataService;
 
-        public RetrieveMetadataHandler(IRetrieveMetadataService retrieveMetadataService)
+        public RetrieveMetadataHandler(IDicomAuthorizationService dicomAuthorizationService, IRetrieveMetadataService retrieveMetadataService)
+            : base(dicomAuthorizationService)
         {
-            EnsureArg.IsNotNull(retrieveMetadataService, nameof(retrieveMetadataService));
-            _retrieveMetadataService = retrieveMetadataService;
+            _retrieveMetadataService = EnsureArg.IsNotNull(retrieveMetadataService, nameof(retrieveMetadataService));
         }
 
         public async Task<RetrieveMetadataResponse> Handle(RetrieveMetadataRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
+
+            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
+            {
+                throw new UnauthorizedDicomActionException(DataActions.Read);
+            }
 
             ValidateRetrieveMetadataRequest(request);
 
