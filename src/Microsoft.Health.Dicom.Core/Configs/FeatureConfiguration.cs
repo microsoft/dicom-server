@@ -16,5 +16,10 @@ namespace Microsoft.Health.Dicom.Core.Configs
         /// Enables stricter validation of each DicomItem value based on their VR type
         /// </summary>
         public bool EnableFullDicomItemValidation { get; set; }
+
+        /// <summary>
+        /// Enables CustomTagQueryTags feature.
+        /// </summary>
+        public bool EnableCustomQueryTags { get; set; }
     }
 }

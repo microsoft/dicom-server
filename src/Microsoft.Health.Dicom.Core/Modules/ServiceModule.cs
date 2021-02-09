@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -110,9 +111,9 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<DicomTagParser>()
-                         .Scoped()
-                         .AsSelf()
-                         .AsImplementedInterfaces();
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             services.AddTransient<IQueryParser, QueryParser>();
 
@@ -135,6 +136,19 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            if (_featureConfiguration.EnableCustomQueryTags)
+            {
+                services.Add<CustomTagEntryValidator>()
+                    .Singleton()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+
+                services.Add<CustomTagService>()
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+            }
         }
     }
 }
