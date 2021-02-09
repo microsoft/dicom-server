@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
@@ -46,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
             CustomTagEntry customTagEntry = await _customTagStore.GetCustomTagAsync(normalizedPath, cancellationToken);
 
-            await _customTagStore.DeleteCustomTagAsync(normalizedPath, CustomTagLimit.CustomTagVRAndIndexTypeMapping[customTagEntry.VR], cancellationToken);
+            await _customTagStore.DeleteCustomTagAsync(normalizedPath, customTagEntry.VR, cancellationToken);
         }
     }
 }

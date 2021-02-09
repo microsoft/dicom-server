@@ -42,9 +42,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// Delete custom tag.
         /// </summary>
         /// <param name="tagPath">The tag path.</param>
-        /// <param name="customTagDataType">The custom tag data type.</param>
+        /// <param name="vr">The VR code.</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>The task.</returns>
-        Task DeleteCustomTagAsync(string tagPath, CustomTagDataType customTagDataType, CancellationToken cancellationToken = default);
+        Task DeleteCustomTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default);
     }
 }
