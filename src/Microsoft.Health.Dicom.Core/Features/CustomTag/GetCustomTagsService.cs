@@ -4,9 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
@@ -30,14 +32,28 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         {
             string internalTagPath = _dicomTagParser.ParseFormattedTagPath(tagPath);
 
-            CustomTagEntry customTag = await _customTagStore.GetCustomTagAsync(internalTagPath, cancellationToken);
+            IEnumerable<CustomTagEntry> customTags = await _customTagStore.GetCustomTagsAsync(internalTagPath, cancellationToken);
 
-            return new GetCustomTagResponse(customTag);
+            if (!customTags.Any())
+            {
+                throw new CustomTagNotFoundException(string.Format(DicomCoreResource.CustomTagNotFound, tagPath));
+            }
+            else if (customTags.Count() > 1)
+            {
+                throw new MultipleCustomTagsFoundException(string.Format(DicomCoreResource.MultipleCustomTagsFound, tagPath));
+            }
+
+            return new GetCustomTagResponse(customTags.First());
         }
 
         public async Task<GetAllCustomTagsResponse> GetAllCustomTagsAsync(CancellationToken cancellationToken)
         {
-            IEnumerable<CustomTagEntry> customTags = await _customTagStore.GetAllCustomTagsAsync(cancellationToken);
+            IEnumerable<CustomTagEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
+
+            if (!customTags.Any())
+            {
+                throw new CustomTagNotFoundException();
+            }
 
             return new GetAllCustomTagsResponse(customTags);
         }

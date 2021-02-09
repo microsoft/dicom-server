@@ -19,7 +19,7 @@ using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
 {
     public class SqlCustomTagStore : ICustomTagStore
     {
@@ -72,14 +72,36 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             }
         }
 
-        public Task<CustomTagEntry> GetCustomTagAsync(string path, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<CustomTagEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default)
         {
-            throw new System.NotImplementedException();
-        }
+            if (_schemaInformation.Current < SchemaVersionConstants.SupportCustomTagSchemaVersion)
+            {
+                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+            }
 
-        public Task<IEnumerable<CustomTagEntry>> GetAllCustomTagsAsync(CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
+            List<CustomTagEntry> results = new List<CustomTagEntry>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                V2.GetCustomTag.PopulateCommand(sqlCommandWrapper, path);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (string tagPath, string tagVR, int tagLevel, int tagStatus) = reader.ReadRow(
+                           V2.CustomTag.TagPath,
+                           V2.CustomTag.TagVR,
+                           V2.CustomTag.TagLevel,
+                           V2.CustomTag.TagStatus);
+
+                        results.Add(new CustomTagEntry { Path = tagPath, VR = tagVR, Level = (CustomTagLevel)tagLevel, Status = (CustomTagStatus)tagStatus });
+                    }
+                }
+            }
+
+            return results;
         }
 
         public Task DeleteCustomTagAsync(long key, CancellationToken cancellationToken = default)

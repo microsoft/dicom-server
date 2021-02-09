@@ -88,11 +88,29 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified custom tag with tag path {0} cannot be found..
+        /// </summary>
+        internal static string CustomTagNotFound {
+            get {
+                return ResourceManager.GetString("CustomTagNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to One or more custom tags already exist..
         /// </summary>
         internal static string CustomTagsAlreadyExists {
             get {
                 return ResourceManager.GetString("CustomTagsAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No custom tags can be found..
+        /// </summary>
+        internal static string CustomTagsDoNotExist {
+            get {
+                return ResourceManager.GetString("CustomTagsDoNotExist", resourceCulture);
             }
         }
         
@@ -341,6 +359,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Multiple custom tags found for the specified tag path {0}.
+        /// </summary>
+        internal static string MultipleCustomTagsFound {
+            get {
+                return ResourceManager.GetString("MultipleCustomTagsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The request headers are not acceptable.
         /// </summary>
         internal static string NotAcceptableHeaders {
@@ -431,7 +458,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TagPathValidation.
+        ///   Looks up a localized string similar to The requested tag {0} is in the wrong format..
         /// </summary>
         internal static string TagPathValidation {
             get {

@@ -302,4 +302,15 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="CustomTagsAlreadyExists" xml:space="preserve">
     <value>One or more custom tags already exist.</value>
   </data>
+  <data name="MultipleCustomTagsFound" xml:space="preserve">
+    <value>Multiple custom tags found for the specified tag path {0}</value>
+    <comment>{0} tagPath on request</comment>
+  </data>
+  <data name="CustomTagNotFound" xml:space="preserve">
+    <value>The specified custom tag with tag path {0} cannot be found.</value>
+    <comment>{0} tagPath on request</comment>
+  </data>
+  <data name="CustomTagsDoNotExist" xml:space="preserve">
+    <value>No custom tags can be found.</value>
+  </data>
 </root>
