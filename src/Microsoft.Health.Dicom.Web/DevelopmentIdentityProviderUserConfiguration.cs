@@ -3,10 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.DicomCast.Blob
+using System.Collections.Generic;
+
+namespace Microsoft.Health.Dicom.Web
 {
-    internal static class Constants
+    public class DevelopmentIdentityProviderUserConfiguration
     {
-        public const string ContainerConfigurationOptionsName = "dicomCastSyncStateBlob";
+        public string Id { get; set; }
+
+        public IList<string> Roles { get; } = new List<string>();
     }
 }

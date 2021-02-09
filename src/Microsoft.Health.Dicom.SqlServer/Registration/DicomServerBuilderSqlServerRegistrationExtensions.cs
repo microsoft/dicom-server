@@ -47,7 +47,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsSelf();
 
-            services.Add(provider => new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V1))
+            services.Add(provider => new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max))
                 .Singleton()
                 .AsSelf();
 
@@ -76,6 +76,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsImplementedInterfaces();
 
             services.Add<SqlChangeFeedStore>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<SqlCustomTagStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

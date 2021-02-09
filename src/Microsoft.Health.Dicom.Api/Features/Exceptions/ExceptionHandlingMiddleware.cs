@@ -83,6 +83,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
                 case InstanceAlreadyExistsException _:
+                case CustomTagsAlreadyExistsException _:
                     statusCode = HttpStatusCode.Conflict;
                     break;
                 case UnsupportedMediaTypeException _:
@@ -94,6 +95,10 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                 case ItemNotFoundException _:
                     // One of the required resources is missing.
                     statusCode = HttpStatusCode.InternalServerError;
+                    break;
+                case UnauthorizedDicomActionException unauthorizedDicomActionException:
+                    _logger.LogInformation("Expected dataActions not available: {dataActions}", unauthorizedDicomActionException.ExpectedDataActions);
+                    statusCode = HttpStatusCode.Forbidden;
                     break;
                 case DicomServerException _:
                     _logger.LogWarning(exception, "Service exception.");

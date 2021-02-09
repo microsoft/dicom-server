@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class HttpIntegrationTestFixture<TStartup> : IDisposable
     {
-        private Dictionary<string, AuthenticationHttpMessageHandler> _authenticationHandlers = new Dictionary<string, AuthenticationHttpMessageHandler>();
+        private readonly Dictionary<(string, string), AuthenticationHttpMessageHandler> _authenticationHandlers = new Dictionary<(string, string), AuthenticationHttpMessageHandler>();
 
         public HttpIntegrationTestFixture()
             : this(Path.Combine("src"))
@@ -51,31 +51,50 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             return GetDicomWebClient(TestApplications.GlobalAdminServicePrincipal);
         }
 
-        public DicomWebClient GetDicomWebClient(TestApplication clientApplication)
+        public DicomWebClient GetDicomWebClient(TestApplication clientApplication, TestUser testUser = null)
         {
             EnsureArg.IsNotNull(clientApplication, nameof(clientApplication));
             HttpMessageHandler messageHandler = TestDicomWebServer.CreateMessageHandler();
             if (AuthenticationSettings.SecurityEnabled && !clientApplication.Equals(TestApplications.InvalidClient))
             {
-                if (_authenticationHandlers.ContainsKey(clientApplication.ClientId))
+                if (_authenticationHandlers.ContainsKey((clientApplication.ClientId, testUser?.UserId)))
                 {
-                    messageHandler = _authenticationHandlers[clientApplication.ClientId];
+                    messageHandler = _authenticationHandlers[(clientApplication.ClientId, testUser?.UserId)];
                 }
                 else
                 {
-                    var credentialConfiguration = new OAuth2ClientCredentialConfiguration(
-                        AuthenticationSettings.TokenUri,
-                        AuthenticationSettings.Resource,
-                        AuthenticationSettings.Scope,
-                        clientApplication.ClientId,
-                        clientApplication.ClientSecret);
-                    var credentialProvider = new OAuth2ClientCredentialProvider(Options.Create(credentialConfiguration), new HttpClient(messageHandler));
+                    ICredentialProvider credentialProvider;
+                    if (testUser != null)
+                    {
+                        var credentialConfiguration = new OAuth2UserPasswordCredentialConfiguration(
+                            AuthenticationSettings.TokenUri,
+                            AuthenticationSettings.Resource,
+                            AuthenticationSettings.Scope,
+                            clientApplication.ClientId,
+                            clientApplication.ClientSecret,
+                            testUser.UserId,
+                            testUser.Password);
+
+                        credentialProvider = new OAuth2UserPasswordCredentialProvider(Options.Create(credentialConfiguration), new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
+                    }
+                    else
+                    {
+                        var credentialConfiguration = new OAuth2ClientCredentialConfiguration(
+                            AuthenticationSettings.TokenUri,
+                            AuthenticationSettings.Resource,
+                            AuthenticationSettings.Scope,
+                            clientApplication.ClientId,
+                            clientApplication.ClientSecret);
+
+                        credentialProvider = new OAuth2ClientCredentialProvider(Options.Create(credentialConfiguration), new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
+                    }
+
                     var authHandler = new AuthenticationHttpMessageHandler(credentialProvider)
                     {
                         InnerHandler = messageHandler,
                     };
 
-                    _authenticationHandlers.Add(clientApplication.ClientId, authHandler);
+                    _authenticationHandlers.Add((clientApplication.ClientId, testUser?.UserId), authHandler);
                     messageHandler = authHandler;
                 }
             }

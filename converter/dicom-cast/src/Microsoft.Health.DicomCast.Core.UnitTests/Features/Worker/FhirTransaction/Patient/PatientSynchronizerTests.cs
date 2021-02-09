@@ -30,9 +30,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
 
         [Fact]
-        public async Task WhenPatialValidationDisabled_AndError_ThrowsError()
+        public async Task WhenEnforceAllFields_AndError_ThrowsError()
         {
-            _dicomCastConfig.Features.IgnoreSyncOfInvalidTagValue = false;
+            _dicomCastConfig.Features.EnforceValidationOfTagValues = true;
 
             _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new InvalidDicomTagValueException("invalid tag", "invalid tag"); });
 
@@ -50,9 +50,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         }
 
         [Fact]
-        public async Task WhenPatialValidationEnabled_AndPropertyNotRequired_DoesNotThrowError()
+        public async Task WhenDoesNotEnforceAllFields_AndPropertyNotRequired_DoesNotThrowError()
         {
-            _dicomCastConfig.Features.IgnoreSyncOfInvalidTagValue = true;
+            _dicomCastConfig.Features.EnforceValidationOfTagValues = false;
 
             _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new InvalidDicomTagValueException("invalid tag", "invalid tag"); });
 

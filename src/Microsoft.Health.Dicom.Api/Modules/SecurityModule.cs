@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,6 +17,7 @@ using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Security;
+using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -35,6 +37,9 @@ namespace Microsoft.Health.Dicom.Api.Modules
         public void Load(IServiceCollection services)
         {
             EnsureArg.IsNotNull(services, nameof(services));
+
+            // Set the token handler to not do auto inbound mapping. (e.g. "roles" -> "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
             if (_securityConfiguration.Enabled)
             {
@@ -66,6 +71,22 @@ namespace Microsoft.Health.Dicom.Api.Modules
 
                     mvcOptions.Filters.Add(new AuthorizeFilter(policy));
                 });
+
+                if (_securityConfiguration.Authorization.Enabled)
+                {
+                    services.Add<RoleLoader>().Transient().AsImplementedInterfaces();
+                    services.AddSingleton(_securityConfiguration.Authorization);
+
+                    services.AddSingleton<IDicomAuthorizationService, RoleBasedDicomAuthorizationService>();
+                }
+                else
+                {
+                    services.AddSingleton<IDicomAuthorizationService, DisabledDicomAuthorizationService>();
+                }
+            }
+            else
+            {
+                services.AddSingleton<IDicomAuthorizationService, DisabledDicomAuthorizationService>();
             }
 
             services.Add<DicomRequestContextAccessor>()
