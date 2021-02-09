@@ -19,7 +19,7 @@ using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
 {
     public class SqlCustomTagStore : ICustomTagStore
     {
@@ -87,9 +87,34 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             throw new System.NotImplementedException();
         }
 
-        public Task DeleteCustomTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
+        public async Task DeleteCustomTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
         {
-            throw new System.NotImplementedException();
+            if (_schemaInformation.Current < SchemaVersionConstants.SupportCustomTagSchemaVersion)
+            {
+                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+            }
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.DeleteCustomTag.PopulateCommand(sqlCommandWrapper, tagPath, (byte)CustomTagLimit.CustomTagVRAndIndexTypeMapping[vr]);
+
+                try
+                {
+                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    switch (ex.Number)
+                    {
+                        case SqlErrorCodes.NotFound:
+                            throw new CustomTagNotFoundException();
+
+                        default:
+                            throw new DataStoreException(ex);
+                    }
+                }
+            }
         }
     }
 }

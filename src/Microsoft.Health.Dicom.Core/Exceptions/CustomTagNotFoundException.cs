@@ -10,8 +10,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     /// </summary>
     public class CustomTagNotFoundException : ValidationException
     {
-        public CustomTagNotFoundException(string message)
-            : base(message)
+        public CustomTagNotFoundException()
+            : base(DicomCoreResource.CustomTagNotFound)
         {
         }
     }
