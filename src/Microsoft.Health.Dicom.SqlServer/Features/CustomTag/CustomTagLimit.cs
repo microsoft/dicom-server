@@ -13,9 +13,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
     public static class CustomTagLimit
     {
         /// <summary>
-        /// Mapping from CustomTagVR to IndexType
+        /// Mapping from CustomTagVR to DateType
         /// </summary>
-        public static readonly IReadOnlyDictionary<string, CustomTagDataType> CustomTagVRAndIndexTypeMapping = new Dictionary<string, CustomTagDataType>()
+        public static readonly IReadOnlyDictionary<string, CustomTagDataType> CustomTagVRAndDataTypeMapping = new Dictionary<string, CustomTagDataType>()
         {
             { DicomVR.AE.Code, CustomTagDataType.StringData },
             { DicomVR.AS.Code, CustomTagDataType.StringData },
