@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 IEnumerable<AddCustomTagsInputTableTypeV1Row> rows = customTagEntries.Select(ToAddCustomTagsInputTableTypeV1Row);
-                VLatest.AddCustomTags.PopulateCommand(sqlCommandWrapper, new VLatest.AddCustomTagsTableValuedParameters(rows));
+                V2.AddCustomTags.PopulateCommand(sqlCommandWrapper, new V2.AddCustomTagsTableValuedParameters(rows));
 
                 try
                 {
@@ -70,6 +70,21 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
                     }
                 }
             }
+        }
+
+        public Task<CustomTagEntry> GetCustomTagAsync(string path, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<IEnumerable<CustomTagEntry>> GetAllCustomTagsAsync(CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task DeleteCustomTagAsync(long key, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
         }
 
         private static AddCustomTagsInputTableTypeV1Row ToAddCustomTagsInputTableTypeV1Row(CustomTagEntry entry)
