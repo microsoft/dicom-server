@@ -42,6 +42,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public const string ChangeFeedLatest = ChangeFeed + "/" + "latest";
 
         public const string CustomTagRoute = CustomTagsRouteSegment;
+        public const string DeleteCustomTagRoute = CustomTagsRouteSegment + "/" + CustomTagPathRouteSegment;
         public const string GetCustomTagRoute = CustomTagsRouteSegment + "/" + CustomTagPathRouteSegment;
 
         public const string HealthCheck = "/health/check";

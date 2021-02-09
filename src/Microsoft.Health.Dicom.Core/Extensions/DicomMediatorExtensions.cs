@@ -147,6 +147,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new AddCustomTagRequest(customTags), cancellationToken);
         }
 
+        public static Task<DeleteCustomTagResponse> DeleteCustomTagAsync(
+           this IMediator mediator, string tagPath, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new DeleteCustomTagRequest(tagPath), cancellationToken);
+        }
+
         public static Task<GetAllCustomTagsResponse> GetAllCustomTagsAsync(
             this IMediator mediator, CancellationToken cancellationToken)
         {
