@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net.Cache;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,24 +20,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     /// </summary>
     public class RetryableFhirTransactionPipeline : IFhirTransactionPipeline
     {
-        private const int MaxRetryCount = 3;
-
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
         private readonly IExceptionStore _exceptionStore;
         private readonly IAsyncPolicy _retryPolicy;
 
-        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore)
-            : this(
-                  fhirTransactionPipeline,
-                  exceptionStore,
-                  MaxRetryCount)
-        {
-        }
-
-        internal RetryableFhirTransactionPipeline(
-            IFhirTransactionPipeline fhirTransactionPipeline,
-            IExceptionStore exceptionStore,
-            int maxRetryCount)
+        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore, int maxRetryCount = 15)
         {
             EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
             EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
@@ -49,7 +35,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 .Handle<RetryableException>()
                 .WaitAndRetryAsync(
                     maxRetryCount,
-                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    (retryAttempt) =>
+                    {
+                        double waitTime = Math.Pow(2, retryAttempt);
+                        return waitTime < 60 ? TimeSpan.FromSeconds(waitTime) : TimeSpan.FromSeconds(60);
+                    },
                     (exception, timeSpan, retryCount, context) =>
                     {
                         ChangeFeedEntry changeFeedEntry = (ChangeFeedEntry)context[nameof(ChangeFeedEntry)];
@@ -57,6 +47,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                         return _exceptionStore.WriteRetryableExceptionAsync(
                             changeFeedEntry,
                             retryCount,
+                            timeSpan.TotalSeconds,
                             exception);
                     });
         }
