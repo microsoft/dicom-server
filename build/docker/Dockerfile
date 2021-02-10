@@ -12,7 +12,7 @@ RUN dotnet build --configuration Release
 RUN dotnet publish "./src/Microsoft.Health.Dicom.Web/Microsoft.Health.Dicom.Web.csproj" -c Release -o "/build" --no-build
 
 # Build the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.2-alpine3.12@sha256:efd03222416e60b50eb86183a6018c698eebcf496dfa427711ebd7d5c50b427f AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.3-alpine3.12@sha256:5de46fc04b1dc08994ea810d427536cbb2491604768cf665d2001634181937ab AS runtime
 
 RUN set -x && \
     # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/
