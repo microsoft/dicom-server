@@ -23,24 +23,24 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
         private readonly IExceptionStore _exceptionStore;
         private readonly IAsyncPolicy _retryPolicy;
+        private readonly IAsyncPolicy _timeoutPolicy;
 
-        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore, int maxRetryCount = 15)
+        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore, double minutesToRetry = 10)
         {
             EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
             EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
 
             _fhirTransactionPipeline = fhirTransactionPipeline;
             _exceptionStore = exceptionStore;
+            _timeoutPolicy = Policy.TimeoutAsync((int)Math.Floor(60 * minutesToRetry));
             _retryPolicy = Policy
                 .Handle<RetryableException>()
-                .WaitAndRetryAsync(
-                    maxRetryCount,
-                    (retryAttempt) =>
+                .WaitAndRetryForeverAsync(
+                    (retryAttempt, exception, context) =>
                     {
-                        double waitTime = Math.Pow(2, retryAttempt);
-                        return waitTime < 60 ? TimeSpan.FromSeconds(waitTime) : TimeSpan.FromSeconds(60);
+                        return TimeSpan.FromSeconds(Math.Min(60, Math.Pow(2, retryAttempt)));
                     },
-                    (exception, timeSpan, retryCount, context) =>
+                    (exception, retryCount, timeSpan, context) =>
                     {
                         ChangeFeedEntry changeFeedEntry = (ChangeFeedEntry)context[nameof(ChangeFeedEntry)];
 
@@ -58,7 +58,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             Context context = new Context();
             context[nameof(ChangeFeedEntry)] = changeFeedEntry;
 
-            return _retryPolicy.ExecuteAsync(
+            return _timeoutPolicy.WrapAsync(_retryPolicy).ExecuteAsync(
                 async (ctx, tkn) =>
                 {
                     try

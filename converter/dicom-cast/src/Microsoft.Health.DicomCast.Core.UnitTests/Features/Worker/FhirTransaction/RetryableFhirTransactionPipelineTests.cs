@@ -13,6 +13,7 @@ using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using Polly.Timeout;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
@@ -20,7 +21,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
 {
     public class RetryableFhirTransactionPipelineTests
     {
-        private const int DefaultRetryCount = 3;
+        private const double DefaultRetryTime = .5;
+        private const int DefaultRetryCount = 3; // This value calculated based on defaultRetryTime
 
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
@@ -33,13 +35,13 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             _retryableFhirTransactionPipeline = new RetryableFhirTransactionPipeline(
                 _fhirTransactionPipeline,
                 _exceptionStore,
-                DefaultRetryCount);
+                DefaultRetryTime);
         }
 
         [Fact]
         public async Task GivenRetryableException_WhenProcessed_ThenItShouldRetry()
         {
-            await ExecuteAndValidate(new RetryableException(), DefaultRetryCount + 1);
+            await ExecuteAndValidateRetryThenThrow(new RetryableException(), DefaultRetryCount + 1);
         }
 
         [Fact]
@@ -51,13 +53,13 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
         [Fact]
         public async Task GivenHttpRequestExceptionException_ProcessAsync_ShouldRetryRetryableException()
         {
-            await ExecuteAndValidateThrowsRetryable(new HttpRequestException(), DefaultRetryCount + 1);
+            await ExecuteAndValidateRetryThenThrow(new HttpRequestException(), DefaultRetryCount + 1);
         }
 
         [Fact]
         public async Task GivenTaskCancelledExceptionException_ProcessAsync_ShouldRetryRetryableException()
         {
-            await ExecuteAndValidateThrowsRetryable(new TaskCanceledException(), DefaultRetryCount + 1);
+            await ExecuteAndValidateRetryThenThrow(new TaskCanceledException(), DefaultRetryCount + 1);
         }
 
         private async Task ExecuteAndValidate(Exception ex, int expectedNumberOfCalls)
@@ -71,13 +73,13 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             await _fhirTransactionPipeline.Received(expectedNumberOfCalls).ProcessAsync(changeFeedEntry, DefaultCancellationToken);
         }
 
-        private async Task ExecuteAndValidateThrowsRetryable(Exception ex, int expectedNumberOfCalls)
+        private async Task ExecuteAndValidateRetryThenThrow(Exception ex, int expectedNumberOfCalls)
         {
             ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate();
 
             _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken).Throws(ex);
 
-            await Assert.ThrowsAsync<RetryableException>(() => _retryableFhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken));
+            await Assert.ThrowsAsync<TimeoutRejectedException>(() => _retryableFhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken));
 
             await _fhirTransactionPipeline.Received(expectedNumberOfCalls).ProcessAsync(changeFeedEntry, DefaultCancellationToken);
         }
