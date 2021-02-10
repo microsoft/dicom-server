@@ -384,7 +384,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTag ON dbo.CustomTag
     TagKey
 )
 
-CREATE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
+CREATE UNIQUE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
 (
     TagPath
 )
@@ -1096,49 +1096,6 @@ BEGIN
     FROM    dbo.ChangeFeed
     ORDER BY Sequence DESC
 END
-GO
-/*************************************************************
-    SQL VERSION 2
-*************************************************************/
-/*************************************************************
-    TABLES
-*************************************************************/
-
-/*************************************************************
-    Custom Tag Table
-    Stores added custom tags
-    TagPath is represented without any delimiters and each level takes 8 bytes
-    TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
-**************************************************************/
-CREATE TABLE dbo.CustomTag (
-    TagKey                  BIGINT               NOT NULL, --PK
-    TagPath                 VARCHAR(64)          NOT NULL,
-    TagVR                   VARCHAR(2)           NOT NULL,
-    TagLevel                TINYINT              NOT NULL,
-    TagStatus               TINYINT              NOT NULL,
-)
-
-CREATE UNIQUE CLUSTERED INDEX IXC_CustomTag ON dbo.CustomTag
-(
-    TagKey
-)
-
-CREATE UNIQUE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
-(
-    TagPath
-)
-
-
-/*************************************************************
-    SEQUENCES
-*************************************************************/
-CREATE SEQUENCE dbo.TagKeySequence
-    AS BIGINT
-    START WITH 1
-    INCREMENT BY 1
-    MINVALUE 1
-    NO CYCLE
-    CACHE 10000
 GO
 
 /*************************************************************
