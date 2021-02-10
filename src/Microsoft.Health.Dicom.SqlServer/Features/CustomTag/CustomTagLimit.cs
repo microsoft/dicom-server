@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
     /// <summary>
     /// Limits on CustomTag feature.
     /// </summary>
-    public static class CustomTagLimit
+    internal static class CustomTagLimit
     {
         /// <summary>
         /// Mapping from CustomTagVR to DateType

@@ -8,7 +8,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
     /// <summary>
     /// Date type of custom tag.
     /// </summary>
-    public enum CustomTagDataType
+    internal enum CustomTagDataType
     {
         /// <summary>
         /// The custom tag is treated as String.
