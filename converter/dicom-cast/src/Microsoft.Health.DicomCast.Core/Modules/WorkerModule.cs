@@ -20,6 +20,7 @@ namespace Microsoft.Health.DicomCast.Core.Modules
     {
         private const string DicomCastWorkerConfigurationSectionName = "DicomCastWorker";
         private const string DicomValidationConfigurationSectionName = "DicomCast";
+        private const string RetryConfigurationSectionName = "RetryConfiguration";
 
         private readonly IConfiguration _configuration;
 
@@ -41,6 +42,10 @@ namespace Microsoft.Health.DicomCast.Core.Modules
             DicomCastConfiguration dicomValidationConfiguration = services.Configure<DicomCastConfiguration>(
                 _configuration,
                 DicomValidationConfigurationSectionName);
+
+            RetryConfiguration retryConfiguration = services.Configure<RetryConfiguration>(
+                _configuration,
+                RetryConfigurationSectionName);
 
             services.Add<DicomCastWorker>()
                 .Singleton()

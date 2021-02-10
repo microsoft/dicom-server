@@ -7,7 +7,9 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
@@ -21,7 +23,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
 {
     public class RetryableFhirTransactionPipelineTests
     {
-        private const double DefaultRetryTime = .5;
+        private TimeSpan _defaultRetryTime = new TimeSpan(0, 0, 30);
         private const int DefaultRetryCount = 3; // This value calculated based on defaultRetryTime
 
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
@@ -32,10 +34,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
 
         public RetryableFhirTransactionPipelineTests()
         {
+            RetryConfiguration config = new RetryConfiguration();
+            config.TotalRetryDuration = new TimeSpan(0, 0, 30);
             _retryableFhirTransactionPipeline = new RetryableFhirTransactionPipeline(
                 _fhirTransactionPipeline,
                 _exceptionStore,
-                DefaultRetryTime);
+                Options.Create(config));
         }
 
         [Fact]

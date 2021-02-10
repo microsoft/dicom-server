@@ -8,7 +8,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Polly;
@@ -25,14 +27,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         private readonly IAsyncPolicy _retryPolicy;
         private readonly IAsyncPolicy _timeoutPolicy;
 
-        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore, double minutesToRetry = 10)
+        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore, IOptions<RetryConfiguration> retryConfiguration)
         {
             EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
             EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
+            EnsureArg.IsNotNull(retryConfiguration, nameof(retryConfiguration));
 
             _fhirTransactionPipeline = fhirTransactionPipeline;
             _exceptionStore = exceptionStore;
-            _timeoutPolicy = Policy.TimeoutAsync((int)Math.Floor(60 * minutesToRetry));
+            _timeoutPolicy = Policy.TimeoutAsync(retryConfiguration.Value.TotalRetryDuration);
             _retryPolicy = Policy
                 .Handle<RetryableException>()
                 .WaitAndRetryForeverAsync(
