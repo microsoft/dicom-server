@@ -51,7 +51,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
         /// Should check for AuthX failure and print LogExecuted messages only if it is AuthX failure.
         /// This is no-op in DICOM as all the log executed messages are written at one place.
         /// </param>
-        /// </summary>
         public void LogExecuted(HttpContext httpContext, IClaimsExtractor claimsExtractor, bool shouldCheckForAuthXFailure)
         {
             EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));

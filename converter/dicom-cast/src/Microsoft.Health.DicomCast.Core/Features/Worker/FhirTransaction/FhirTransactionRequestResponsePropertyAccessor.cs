@@ -44,16 +44,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public static bool operator ==(FhirTransactionRequestResponsePropertyAccessor left, FhirTransactionRequestResponsePropertyAccessor right)
         {
-            if (ReferenceEquals(left, default))
-            {
-                if (ReferenceEquals(right, default))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
             return left.Equals(right);
         }
 
@@ -79,15 +69,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public bool Equals(FhirTransactionRequestResponsePropertyAccessor other)
         {
-            if (ReferenceEquals(other, default))
-            {
-                return false;
-            }
-            else if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-            else if (GetType() != other.GetType())
+            if (GetType() != other.GetType())
             {
                 return false;
             }

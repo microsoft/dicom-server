@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
@@ -26,6 +25,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
         private readonly ILogger<SqlQueryStore> _logger;
+
+        private const string DefaultRedactedValue = "***";
 
         public SqlQueryStore(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
@@ -88,8 +89,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     .Append(p.SqlDbType)
                     .Append(p.Value is string ? $"({p.Size})" : p.Value is decimal ? $"({p.Precision},{p.Scale})" : null)
                     .Append(" = ")
-                    .Append(p.SqlDbType == SqlDbType.NChar || p.SqlDbType == SqlDbType.NText || p.SqlDbType == SqlDbType.NVarChar ? "N" : null)
-                    .Append(p.Value is string || p.Value is DateTime ? $"'{p.Value}'" : p.Value.ToString())
+                    .Append(DefaultRedactedValue)
                     .AppendLine(";");
             }
 

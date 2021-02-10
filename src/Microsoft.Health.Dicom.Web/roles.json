@@ -1,0 +1,25 @@
+﻿{
+    "$schema": "../Microsoft.Health.Dicom.Core/Features/Security/roles.schema.json",
+    "roles": [
+        {
+            "name": "globalReader",
+            "dataActions": [
+                "read"
+            ],
+            "notDataActions": [],
+            "scopes": [
+                "/"
+            ]
+        },
+        {
+            "name": "globalAdmin",
+            "dataActions": [
+                "*"
+            ],
+            "notDataActions": [],
+            "scopes": [
+                "/"
+            ]
+        }
+    ]
+}

@@ -1,5 +1,6 @@
 variables:
-  deploymentName: 'dcm-$(build.buildNumber)'
+  prNumber: $(system.pullRequest.pullRequestNumber)
+  deploymentName: 'msh-dicom-pr-$(prNumber)'
   testEnvironmentUrl: 'https://$(deploymentName).azurewebsites.net/'
   resourceGroupName: $(deploymentName)
   resourceGroupRegion: 'southcentralus'

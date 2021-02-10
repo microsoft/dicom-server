@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
@@ -45,6 +47,18 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             await ExecuteAndValidate(new Exception(), 1);
         }
 
+        [Fact]
+        public async Task GivenHttpRequestExceptionException_ProcessAsync_ShouldRetryRetryableException()
+        {
+            await ExecuteAndValidateThrowsRetryable(new HttpRequestException(), DefaultRetryCount + 1);
+        }
+
+        [Fact]
+        public async Task GivenTaskCancelledExceptionException_ProcessAsync_ShouldRetryRetryableException()
+        {
+            await ExecuteAndValidateThrowsRetryable(new TaskCanceledException(), DefaultRetryCount + 1);
+        }
+
         private async Task ExecuteAndValidate(Exception ex, int expectedNumberOfCalls)
         {
             ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate();
@@ -52,6 +66,17 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken).Throws(ex);
 
             await Assert.ThrowsAsync(ex.GetType(), () => _retryableFhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken));
+
+            await _fhirTransactionPipeline.Received(expectedNumberOfCalls).ProcessAsync(changeFeedEntry, DefaultCancellationToken);
+        }
+
+        private async Task ExecuteAndValidateThrowsRetryable(Exception ex, int expectedNumberOfCalls)
+        {
+            ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate();
+
+            _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken).Throws(ex);
+
+            await Assert.ThrowsAsync<RetryableException>(() => _retryableFhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken));
 
             await _fhirTransactionPipeline.Received(expectedNumberOfCalls).ProcessAsync(changeFeedEntry, DefaultCancellationToken);
         }

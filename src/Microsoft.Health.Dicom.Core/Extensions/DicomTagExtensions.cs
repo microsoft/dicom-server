@@ -9,7 +9,7 @@ using EnsureThat;
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
     /// <summary>
-    /// Extension methods for <see cref="DiomTag"/>.
+    /// Extension methods for <see cref="DicomTag"/>.
     /// </summary>
     public static class DicomTagExtensions
     {
