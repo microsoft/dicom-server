@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Query;
@@ -22,18 +24,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private readonly IQueryParser _queryParser;
         private readonly IQueryStore _queryStore;
         private readonly IMetadataStore _metadataStore;
+        private readonly ICustomTagStore _customTagStore;
+        private readonly IDicomTagParser _dicomTagPathParser;
 
         public QueryService(
             IQueryParser queryParser,
             IQueryStore queryStore,
-            IMetadataStore metadataStore)
+            IMetadataStore metadataStore,
+            ICustomTagStore customTagStore,
+            IDicomTagParser dicomTagPathParser)
         {
             EnsureArg.IsNotNull(queryParser, nameof(queryParser));
             EnsureArg.IsNotNull(queryStore, nameof(queryStore));
+            EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
+            EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
 
             _queryParser = queryParser;
             _queryStore = queryStore;
             _metadataStore = metadataStore;
+            _customTagStore = customTagStore;
+            _dicomTagPathParser = dicomTagPathParser;
         }
 
         public async Task<QueryResourceResponse> QueryAsync(
@@ -44,7 +54,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             ValidateRequestIdentifiers(message);
 
-            QueryExpression queryExpression = _queryParser.Parse(message);
+            IEnumerable<CustomTagEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
+
+            Dictionary<QueryResource, HashSet<DicomTag>> queryResourceToCustomTagMapping = null;
+
+            if (customTags.Any())
+            {
+                queryResourceToCustomTagMapping = GenerateQueryResourceToCustomTagMapping(customTags);
+            }
+
+            QueryExpression queryExpression = _queryParser.Parse(message, queryResourceToCustomTagMapping);
 
             QueryResult queryResult = await _queryStore.QueryAsync(queryExpression, cancellationToken);
 
@@ -61,6 +80,77 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
 
             return new QueryResourceResponse(responseMetadata);
+        }
+
+        private Dictionary<QueryResource, HashSet<DicomTag>> GenerateQueryResourceToCustomTagMapping(IEnumerable<CustomTagEntry> customTags)
+        {
+            Dictionary<QueryResource, HashSet<DicomTag>> ret = new Dictionary<QueryResource, HashSet<DicomTag>>();
+
+            foreach (CustomTagEntry customTag in customTags)
+            {
+                DicomTag[] result;
+                DicomTag dicomTag;
+                if (_dicomTagPathParser.TryParse(customTag.Path, out result))
+                {
+                    dicomTag = result[0];
+                    switch (customTag.Level)
+                    {
+                        case CustomTagLevel.Instance:
+                            if (!ret.ContainsKey(QueryResource.AllInstances))
+                            {
+                                ret.Add(QueryResource.AllInstances, new HashSet<DicomTag>());
+                            }
+
+                            ret[QueryResource.AllInstances].Add(dicomTag);
+
+                            if (!ret.ContainsKey(QueryResource.StudyInstances))
+                            {
+                                ret.Add(QueryResource.StudyInstances, new HashSet<DicomTag>());
+                            }
+
+                            ret[QueryResource.StudyInstances].Add(dicomTag);
+
+                            if (!ret.ContainsKey(QueryResource.StudySeriesInstances))
+                            {
+                                ret.Add(QueryResource.StudySeriesInstances, new HashSet<DicomTag>());
+                            }
+
+                            ret[QueryResource.StudySeriesInstances].Add(dicomTag);
+
+                            break;
+                        case CustomTagLevel.Series:
+                            if (!ret.ContainsKey(QueryResource.AllSeries))
+                            {
+                                ret.Add(QueryResource.AllSeries, new HashSet<DicomTag>());
+                            }
+
+                            ret[QueryResource.AllSeries].Add(dicomTag);
+
+                            if (!ret.ContainsKey(QueryResource.StudySeries))
+                            {
+                                ret.Add(QueryResource.StudySeries, new HashSet<DicomTag>());
+                            }
+
+                            ret[QueryResource.StudySeries].Add(dicomTag);
+
+                            break;
+                        case CustomTagLevel.Study:
+                            if (!ret.ContainsKey(QueryResource.AllStudies))
+                            {
+                                ret.Add(QueryResource.AllStudies, new HashSet<DicomTag>());
+                            }
+
+                            ret[QueryResource.AllStudies].Add(dicomTag);
+
+                            break;
+
+                        default:
+                            throw new ArgumentException("invalid enum value for CustomTagLevel");
+                    }
+                }
+            }
+
+            return ret;
         }
 
         private static void ValidateRequestIdentifiers(QueryResourceRequest message)

@@ -47,6 +47,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new StringSingleValueMatchCondition(dicomTag, value);
         }
 
+        private static QueryFilterCondition ParseDoubleTagValue(DicomTag dicomTag, string value)
+        {
+            return new DoubleSingleValueMatchCondition(dicomTag, double.Parse(value));
+        }
+
+        private static QueryFilterCondition ParseLongTagValue(DicomTag dicomTag, string value)
+        {
+            return new LongSingleValueMatchCondition(dicomTag, long.Parse(value));
+        }
+
         private static DateTime ParseDate(string date, string tagKeyword)
         {
             DateTime parsedDate;

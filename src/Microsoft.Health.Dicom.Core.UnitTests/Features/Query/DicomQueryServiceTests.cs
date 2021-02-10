@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using NSubstitute;
@@ -24,7 +25,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             _queryService = new QueryService(
                 Substitute.For<IQueryParser>(),
                 Substitute.For<IQueryStore>(),
-                Substitute.For<IMetadataStore>());
+                Substitute.For<IMetadataStore>(),
+                Substitute.For<ICustomTagStore>(),
+                Substitute.For<IDicomTagParser>());
         }
 
         [Theory]

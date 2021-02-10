@@ -234,6 +234,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .AppendLine();
         }
 
+        public override void Visit(DoubleSingleValueMatchCondition doubleSingleValueMatchCondition)
+        {
+            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(doubleSingleValueMatchCondition.DicomTag);
+            var tableAlias = GetTableAlias(dicomTagSqlEntry);
+            _stringBuilder
+                .Append("AND ")
+                .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
+                .Append("=")
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, doubleSingleValueMatchCondition.Value))
+                .AppendLine();
+        }
+
+        public override void Visit(LongSingleValueMatchCondition longSingleValueMatchCondition)
+        {
+            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(longSingleValueMatchCondition.DicomTag);
+            var tableAlias = GetTableAlias(dicomTagSqlEntry);
+            _stringBuilder
+                .Append("AND ")
+                .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
+                .Append("=")
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, longSingleValueMatchCondition.Value))
+                .AppendLine();
+        }
+
         public override void Visit(DateRangeValueMatchCondition rangeValueMatchCondition)
         {
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(rangeValueMatchCondition.DicomTag);
