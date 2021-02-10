@@ -12,29 +12,21 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class CustomTagEntry : IEquatable<CustomTagEntry>
     {
-        public CustomTagEntry(string path, string vr, CustomTagLevel level, CustomTagStatus status)
-        {
-            Path = path;
-            VR = vr;
-            Level = level;
-            Status = status;
-        }
-
         /// <summary>
         /// Path of this tag. Normally it's composed of groupid and elementid.
         /// E.g: 00100020 is path of patient id.
         /// </summary>
-        public string Path { get; }
+        public string Path { get; set; }
 
         /// <summary>
         /// VR of this tag.
         /// </summary>
-        public string VR { get; }
+        public string VR { get; set; }
 
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public CustomTagLevel Level { get; }
+        public CustomTagLevel Level { get; set; }
 
         /// <summary>
         /// Status of this tag. Represents the current state the tag is in.

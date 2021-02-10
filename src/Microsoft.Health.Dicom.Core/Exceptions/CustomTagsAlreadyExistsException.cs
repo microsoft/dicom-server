@@ -8,10 +8,10 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     /// <summary>
     /// Exception thrown when the custom tag already exists.
     /// </summary>
-    public class CustomTagAlreadyExistsException : DicomServerException
+    public class CustomTagsAlreadyExistsException : DicomServerException
     {
-        public CustomTagAlreadyExistsException()
-            : base(DicomCoreResource.CustomTagAlreadyExists)
+        public CustomTagsAlreadyExistsException()
+            : base(DicomCoreResource.CustomTagsAlreadyExists)
         {
         }
     }
