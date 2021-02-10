@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -90,7 +91,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                     }
                     catch (Exception ex)
                     {
-                        if (ex is FhirNonRetryableException || ex is DicomTagException || ex is RetryableException || ex is TaskCanceledException)
+                        if (ex is FhirNonRetryableException || ex is DicomTagException || ex is RetryableException)
                         {
                             string studyUid = changeFeedEntry.StudyInstanceUid;
                             string seriesUid = changeFeedEntry.SeriesInstanceUid;
@@ -103,7 +104,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                             {
                                 errorType = ErrorType.DicomError;
                             }
-                            else if (ex is RetryableException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested))
+                            else if (ex is RetryableException)
                             {
                                 errorType = ErrorType.TransientFailure;
                             }

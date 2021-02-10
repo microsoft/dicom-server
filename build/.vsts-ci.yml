@@ -63,6 +63,7 @@ stages:
         downloadType: 'single'
         downloadPath: '$(System.ArtifactsDirectory)'
         artifactName: 'deploy'
+    - template: add-aad-test-environment.yml     
     - task: AzureRmWebAppDeployment@3
       displayName: 'Azure app service deployment'
       inputs:

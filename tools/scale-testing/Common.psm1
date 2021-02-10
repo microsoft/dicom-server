@@ -40,7 +40,7 @@ function generateProject([String] $ProjectName){
 }
 
 function generateApplicationFromProject([String]$Project, [String]$ProjectDirectory){
-    -join($ProjectDirectory, "\bin\Release\netcoreapp3.1\", $Project, ".exe")
+    -join($ProjectDirectory, "\bin\Release\net5.0\", $Project, ".exe")
 }
 
 $global:PersonGenerator = 'PersonInstanceGenerator'

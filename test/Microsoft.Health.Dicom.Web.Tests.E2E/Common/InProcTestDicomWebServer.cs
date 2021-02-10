@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Reflection;
+using System.Threading;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
@@ -26,8 +27,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
     /// </summary>
     public class InProcTestDicomWebServer : TestDicomWebServer
     {
-        private readonly HttpMessageHandler _messageHandler;
-
         public InProcTestDicomWebServer(Type startupType)
             : base(new Uri("http://localhost/"))
         {
@@ -37,6 +36,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
             {
                 { "TestAuthEnvironment:FilePath", "testauthenvironment.json" },
                 { "DicomServer:Security:Authentication:Authority", "https://inprochost" },
+                { "DicomServer:Security:Authorization:Enabled", "true" },
+                { "DicomServer:Security:Enabled", "true" },
             };
 
             IWebHostBuilder builder = WebHost.CreateDefaultBuilder()
@@ -54,26 +55,24 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 })
                 .ConfigureServices(serviceCollection =>
                 {
-                    // ensure that HttpClients
-                    // use a message handler for the test server
                     serviceCollection
                         .AddHttpClient(Options.DefaultName)
-                        .ConfigurePrimaryHttpMessageHandler(() => _messageHandler);
+                        .ConfigurePrimaryHttpMessageHandler(() => Server.CreateHandler())
+                        .SetHandlerLifetime(Timeout.InfiniteTimeSpan); // So that it is not disposed after 2 minutes;
 
                     serviceCollection.PostConfigure<JwtBearerOptions>(
                         JwtBearerDefaults.AuthenticationScheme,
-                        options => options.BackchannelHttpHandler = _messageHandler);
+                        options => options.BackchannelHttpHandler = Server.CreateHandler());
                 });
 
             Server = new TestServer(builder);
-            _messageHandler = Server.CreateHandler();
         }
 
         public TestServer Server { get; }
 
         public override HttpMessageHandler CreateMessageHandler()
         {
-            return _messageHandler;
+            return Server.CreateHandler();
         }
 
         public override void Dispose()

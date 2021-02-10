@@ -8,7 +8,5 @@ namespace Microsoft.Health.DicomCast.TableStorage.Configs
     public class TableDataStoreConfiguration
     {
         public string ConnectionString { get; set; }
-
-        public bool Enabled { get; set; }
     }
 }

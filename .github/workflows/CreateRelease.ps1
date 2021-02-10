@@ -48,13 +48,25 @@ while(-Not($lastRelease -eq $currentRelease)) {
     # Validate that only one release is pending approval - any others should be approved, rejected or queued.
     if($approval.Count -gt 1) {
         $pendingApprovals = "Pending releases for approval: "
+        $pendingReleaseIds = @()
         foreach ($pendingApproval in $approval) {
-            $pendingApprovals += $pendingApproval.release.name + " "
+            if($pendingReleaseIds.Contains($pendingApproval.release.id))
+            {
+                # Ensure pending approvals are associated with unique releases
+                $pendingApprovals += $pendingApproval.release.name + " "
+            }
+            else {
+                $pendingReleaseIds += $pendingApproval.release.id
+            }
         }
 
-        $multipleApprovalsError = "Error: More than 1 approval at a time was unexpected $pendingApprovals"
-        log $multipleApprovalsError
-        throw $multipleApprovalsError
+        if($pendingReleaseIds.Count -gt 1)
+        {
+            # If approvals are not associated with unique releases, throw.
+            $multipleApprovalsError = "Error: More than 1 approval ($approval.Count) at a time was unexpected $pendingApprovals"
+            log $multipleApprovalsError
+            throw $multipleApprovalsError
+        }
     }
     elseif($approval.Count -eq 0) {
         # If there are no pending approvals, exit as there are no new changes to release.

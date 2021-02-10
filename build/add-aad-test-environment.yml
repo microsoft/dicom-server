@@ -32,6 +32,17 @@ steps:
           resource   = $resource 
           client_id  = "1950a258-227b-4e31-a9cf-717495945fc2" # Microsoft Azure PowerShell
       }
+              
+      # If a deleted keyvault exists, remove it
+      if (Get-AzKeyVault -VaultName "$(deploymentName)-ts" -Location "$(resourceGroupRegion)" -InRemovedState)
+      {
+          Write-Host "'$(deploymentName)-ts' found in '$(resourceGroupRegion)'. Attempting to remove."
+          Remove-AzKeyVault -VaultName "$(deploymentName)-ts" -InRemovedState -Location "$(resourceGroupRegion)" -Force
+      }
+      else
+      {
+          Write-Host "'$(deploymentName)-ts' not found in '$(resourceGroupRegion)'"
+      }
 
       $response = Invoke-RestMethod -Method 'Post' -Uri $adTokenUrl -ContentType "application/x-www-form-urlencoded" -Body $body
       Connect-AzureAD -TenantId $tenantId -AadAccessToken $response.access_token -AccountId $username

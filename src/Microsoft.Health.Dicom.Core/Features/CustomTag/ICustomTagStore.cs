@@ -39,27 +39,11 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         Task<IEnumerable<CustomTagEntry>> GetAllCustomTagsAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Update custom tag status.
-        /// </summary>
-        /// <param name="key">The tag key.</param>
-        /// <param name="status">The tag status.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Result.</returns>
-        Task UpdateCustomTagStatusAsync(long key, CustomTagStatus status, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Delete custom tag from CustomTagStore.
         /// </summary>
         /// <param name="key">The tag key.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Result.</returns>
         Task DeleteCustomTagAsync(long key, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Get latest instance.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The watermark of latest instance.</returns>
-        Task<long?> GetLatestInstanceAsync(CancellationToken cancellationToken = default);
     }
 }
