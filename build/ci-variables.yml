@@ -13,4 +13,4 @@ variables:
   azureContainerRegistry: 'dicomoss.azurecr.io'
   dicomServerComposeLocation: 'build/docker/docker-compose.yaml'
   dicomCastComposeLocation: 'converter/dicom-cast/build/docker/docker-compose.yaml'
-  NugetSecurityAnalysisWarningLevel: 'none' # NuGet config contains multiple feeds but meets exception criteria
+  skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria
