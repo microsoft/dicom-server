@@ -83,7 +83,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc/>
-        public async Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, double nextDelayTimeSeconds, Exception exceptionToStore, CancellationToken cancellationToken)
+        public async Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, TimeSpan nextDelayTimeSpan, Exception exceptionToStore, CancellationToken cancellationToken)
         {
             string tableName = Constants.TransientRetryTableName;
 
@@ -101,7 +101,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             try
             {
                 await table.ExecuteAsync(operation, cancellationToken);
-                _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Tried {retryNum} time(s). Waiting {seconds} seconds. Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum, nextDelayTimeSeconds, tableName);
+                _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Tried {retryNum} time(s). Waiting {milliseconds} milliseconds . Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum, nextDelayTimeSpan.TotalMilliseconds, tableName);
             }
             catch
             {

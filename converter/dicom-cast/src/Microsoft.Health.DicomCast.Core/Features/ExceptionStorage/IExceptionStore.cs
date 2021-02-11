@@ -29,9 +29,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         /// </summary>
         /// <param name="changeFeedEntry">ChangeFeedEntry that threw exception</param>
         /// <param name="retryNum">Number of times the entry has been tried</param>
-        /// <param name="nextDelayTimeSeconds">Amount of time to wait before retrying</param>
+        /// <param name="nextDelayTimeSpan">TimeSpan to wait before next retry</param>
         /// <param name="exceptionToStore">The exception that was thrown and needs to be stored</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, double nextDelayTimeSeconds, Exception exceptionToStore, CancellationToken cancellationToken = default);
+        Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, TimeSpan nextDelayTimeSpan, Exception exceptionToStore, CancellationToken cancellationToken = default);
     }
 }

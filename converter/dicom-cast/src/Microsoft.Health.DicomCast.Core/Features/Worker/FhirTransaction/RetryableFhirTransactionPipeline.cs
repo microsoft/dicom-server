@@ -50,7 +50,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                         return _exceptionStore.WriteRetryableExceptionAsync(
                             changeFeedEntry,
                             retryCount,
-                            timeSpan.TotalSeconds,
+                            timeSpan,
                             exception);
                     });
         }
