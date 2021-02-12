@@ -32,11 +32,12 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         Task<IEnumerable<CustomTagEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Delete custom tag from CustomTagStore.
+        /// Delete custom tag.
         /// </summary>
-        /// <param name="key">The tag key.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Result.</returns>
-        Task DeleteCustomTagAsync(long key, CancellationToken cancellationToken = default);
+        /// <param name="tagPath">The tag path.</param>
+        /// <param name="vr">The VR code.</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns>The task.</returns>
+        Task DeleteCustomTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default);
     }
 }

@@ -104,24 +104,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             return results;
         }
 
-        public Task DeleteCustomTagAsync(long key, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
         private static AddCustomTagsInputTableTypeV1Row ToAddCustomTagsInputTableTypeV1Row(CustomTagEntry entry)
         {
             return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, (byte)entry.Level);
-        }
-
-        public Task<CustomTagEntry> GetCustomTagAsync(string path, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<IEnumerable<CustomTagEntry>> GetAllCustomTagsAsync(CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
         }
 
         public Task DeleteCustomTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
