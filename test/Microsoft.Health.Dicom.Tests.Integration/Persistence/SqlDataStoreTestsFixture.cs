@@ -19,6 +19,7 @@ using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Schema.Manager;
 using Microsoft.Health.SqlServer.Features.Storage;
 using NSubstitute;
 using Polly;
@@ -60,7 +61,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var sqlConnectionFactory = new DefaultSqlConnectionFactory(config);
 
-            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, mediator, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory);
+            var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory);
+
+            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, mediator, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
 
             var schemaInformation = new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V1);
 
