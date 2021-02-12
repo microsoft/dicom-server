@@ -81,7 +81,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_CustomTagBigInt = new Index("IXC_CustomTagBigInt");
-            internal readonly Index IXC_CustomTagBigInt_TagKey_TagValue = new Index("IXC_CustomTagBigInt_TagKey_TagValue");
         }
 
         internal class CustomTagDateTimeTable : Table
@@ -97,7 +96,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_CustomTagDateTime = new Index("IXC_CustomTagDateTime");
-            internal readonly Index IXC_CustomTagDateTime_TagKey_TagValue = new Index("IXC_CustomTagDateTime_TagKey_TagValue");
         }
 
         internal class CustomTagDoubleTable : Table
@@ -113,7 +111,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_CustomTagDouble = new Index("IXC_CustomTagDouble");
-            internal readonly Index IXC_CustomTagDouble_TagKey_TagValue = new Index("IXC_CustomTagDouble_TagKey_TagValue");
         }
 
         internal class CustomTagPersonNameTable : Table
@@ -131,7 +128,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal const string WatermarkAndTagKey = "WatermarkAndTagKey";
             internal const string TagValueWords = "TagValueWords";
             internal readonly Index IXC_CustomTagPersonName = new Index("IXC_CustomTagPersonName");
-            internal readonly Index IXC_CustomTagPersonName_TagKey_TagValue = new Index("IXC_CustomTagPersonName_TagKey_TagValue");
             internal readonly Index IXC_CustomTagPersonName_WatermarkAndTagKey = new Index("IXC_CustomTagPersonName_WatermarkAndTagKey");
         }
 
@@ -148,7 +144,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_CustomTagString = new Index("IXC_CustomTagString");
-            internal readonly Index IXC_CustomTagString_TagKey_TagValue = new Index("IXC_CustomTagString_TagKey_TagValue");
         }
 
         internal class DeletedInstanceTable : Table
