@@ -41,20 +41,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
             Assert.False(succeed);
         }
 
-        [Fact]
-        public void GivenDicomTagPath_WhenParsingFormattedTagPath_ThenShouldRemoveUnnecessaryCharacters()
-        {
-            string tag = "00001111";
-            string parsedString = _dicomTagParser.ParseFormattedTagPath(tag);
-            Assert.Equal(tag, parsedString);
-        }
-
-        [Fact]
-        public void GivenSequentialDicomTagPath_WhenParsingFormattedTagPath_ThenShouldThrow()
-        {
-            Assert.Throws<NotImplementedException>(() => { _dicomTagParser.ParseFormattedTagPath("00001111.23234545"); });
-        }
-
         public static IEnumerable<object[]> GetValidTags()
         {
             yield return new object[] { DicomTag.AcquisitionDateTime.GetPath(), DicomTag.AcquisitionDateTime }; // attribute id

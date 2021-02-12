@@ -26,8 +26,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
-            TagPathValidator.Validate(request.CustomTagPath);
-
             return await _getCustomTagsService.GetCustomTagAsync(request.CustomTagPath, cancellationToken);
         }
     }
