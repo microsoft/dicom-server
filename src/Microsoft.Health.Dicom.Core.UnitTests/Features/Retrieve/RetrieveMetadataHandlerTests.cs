@@ -10,6 +10,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -25,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public RetrieveMetadataHandlerTests()
         {
             _retrieveMetadataService = Substitute.For<IRetrieveMetadataService>();
-            _retrieveMetadataHandler = new RetrieveMetadataHandler(_retrieveMetadataService);
+            _retrieveMetadataHandler = new RetrieveMetadataHandler(new DisabledDicomAuthorizationService(), _retrieveMetadataService);
         }
 
         [Theory]

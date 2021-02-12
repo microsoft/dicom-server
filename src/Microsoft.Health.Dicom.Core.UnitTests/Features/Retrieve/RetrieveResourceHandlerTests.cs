@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -27,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public RetrieveResourceHandlerTests()
         {
             _retrieveResourceService = Substitute.For<IRetrieveResourceService>();
-            _retrieveResourceHandler = new RetrieveResourceHandler(_retrieveResourceService);
+            _retrieveResourceHandler = new RetrieveResourceHandler(new DisabledDicomAuthorizationService(), _retrieveResourceService);
         }
 
         [Theory]

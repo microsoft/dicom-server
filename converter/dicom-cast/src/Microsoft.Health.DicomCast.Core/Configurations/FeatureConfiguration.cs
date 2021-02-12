@@ -10,6 +10,6 @@ namespace Microsoft.Health.DicomCast.Core.Configurations
         /// <summary>
         /// Do not sync values that are invalid and are not required
         /// </summary>
-        public bool IgnoreSyncOfInvalidTagValue { get; set; }
+        public bool EnforceValidationOfTagValues { get; set; }
     }
 }

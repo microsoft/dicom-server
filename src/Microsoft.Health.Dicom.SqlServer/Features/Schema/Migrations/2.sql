@@ -384,13 +384,17 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTag ON dbo.CustomTag
     TagKey
 )
 
-CREATE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
+CREATE UNIQUE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
 (
     TagPath
 )
 
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to String
+    Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
+          For example, with multiple instances in a series, while indexing a series level tag,
+          the Watermark is used to ensure that if there are different values between instances,
+          the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagString (
     TagKey                  BIGINT               NOT NULL, --PK
@@ -404,19 +408,18 @@ CREATE TABLE dbo.CustomTagString (
 CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagString ON dbo.CustomTagString
 (
     TagKey,
+    TagValue,
     StudyKey,
     SeriesKey,
     InstanceKey
 )
 
-CREATE NONCLUSTERED INDEX IXC_CustomTagString_TagKey_TagValue ON dbo.CustomTagString
-(
-    TagKey,
-    TagValue
-)
-
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to BigInt
+    Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
+          For example, with multiple instances in a series, while indexing a series level tag,
+          the Watermark is used to ensure that if there are different values between instances,
+          the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagBigInt (
     TagKey                  BIGINT               NOT NULL, --PK
@@ -430,19 +433,18 @@ CREATE TABLE dbo.CustomTagBigInt (
 CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagBigInt ON dbo.CustomTagBigInt
 (
     TagKey,
+    TagValue,
     StudyKey,
     SeriesKey,
     InstanceKey
 )
 
-CREATE NONCLUSTERED INDEX IXC_CustomTagBigInt_TagKey_TagValue ON dbo.CustomTagBigInt
-(
-    TagKey,
-    TagValue
-)
-
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to Double
+    Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
+          For example, with multiple instances in a series, while indexing a series level tag,
+          the Watermark is used to ensure that if there are different values between instances,
+          the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagDouble (
     TagKey                  BIGINT               NOT NULL, --PK
@@ -456,19 +458,18 @@ CREATE TABLE dbo.CustomTagDouble (
 CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDouble ON dbo.CustomTagDouble
 (
     TagKey,
+    TagValue,
     StudyKey,
     SeriesKey,
     InstanceKey
 )
 
-CREATE NONCLUSTERED INDEX IXC_CustomTagDouble_TagKey_TagValue ON dbo.CustomTagDouble
-(
-    TagKey,
-    TagValue
-)
-
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to DateTime
+    Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
+          For example, with multiple instances in a series, while indexing a series level tag,
+          the Watermark is used to ensure that if there are different values between instances,
+          the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagDateTime (
     TagKey                  BIGINT               NOT NULL, --PK
@@ -482,19 +483,18 @@ CREATE TABLE dbo.CustomTagDateTime (
 CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDateTime ON dbo.CustomTagDateTime
 (
     TagKey,
+    TagValue,
     StudyKey,
     SeriesKey,
     InstanceKey
 )
 
-CREATE NONCLUSTERED INDEX IXC_CustomTagDateTime_TagKey_TagValue ON dbo.CustomTagDateTime
-(
-    TagKey,
-    TagValue
-)
-
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to PersonName
+    Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
+          For example, with multiple instances in a series, while indexing a series level tag,
+          the Watermark is used to ensure that if there are different values between instances,
+          the value on the instance with the highest watermark wins.
 	Note: The primary key is designed on the assumption that tags only occur once in an instance.
 **************************************************************/
 CREATE TABLE dbo.CustomTagPersonName (
@@ -511,15 +511,10 @@ CREATE TABLE dbo.CustomTagPersonName (
 CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagPersonName ON dbo.CustomTagPersonName
 (
     TagKey,
+    TagValue,
     StudyKey,
     SeriesKey,
     InstanceKey
-)
-
-CREATE NONCLUSTERED INDEX IXC_CustomTagPersonName_TagKey_TagValue ON dbo.CustomTagPersonName
-(
-    TagKey,
-    TagValue
 )
 
 CREATE UNIQUE NONCLUSTERED INDEX IXC_CustomTagPersonName_WatermarkAndTagKey ON dbo.CustomTagPersonName

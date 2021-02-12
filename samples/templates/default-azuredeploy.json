@@ -226,20 +226,20 @@
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[if(variables('deployAppInsights'),concat('Microsoft.Insights/components/', variables('appInsightsName')),resourceId('Microsoft.KeyVault/vaults', variables('serviceName')))]",
-                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.3.1.x64')]",
+                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.5.0.x64')]",
                         "[concat(variables('appServiceResourceId'), '/extensions/MSDeploy')]"
                     ],
                     "properties": "[if(variables('deployAppInsights'), union(variables('combinedDicomServerConfigProperties'), json(concat('{\"ApplicationInsights:InstrumentationKey\": \"', reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey, '\"}'))), variables('combinedDicomServerConfigProperties'))]"
                 },
                 {
                     "apiVersion": "2015-08-01",
-                    "name": "AspNetCoreRuntime.3.1.x64",
+                    "name": "AspNetCoreRuntime.5.0.x64",
                     "type": "siteextensions",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]"
                     ],
                     "properties": {
-                        "version": "3.1.8"
+                        "version": "5.0.2"
                     }
                 },
                 {
@@ -249,7 +249,7 @@
                     "condition": "[parameters('deployPackage')]",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
-                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.3.1.x64')]"
+                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.5.0.x64')]"
                     ],
                     "properties": {
                         "packageUri": "[variables('deployPackageUrl')]"
