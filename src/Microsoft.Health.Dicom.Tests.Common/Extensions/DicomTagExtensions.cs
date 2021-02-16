@@ -7,7 +7,7 @@ using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
+namespace Microsoft.Health.Dicom.Tests.Common.Extensions
 {
     public static class DicomTagExtensions
     {
