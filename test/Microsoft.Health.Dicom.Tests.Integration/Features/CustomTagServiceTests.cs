@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _customTagServiceTestsFixture = customTagServiceTestsFixture;
         }
 
-        [Fact]
+        [Fact(Skip = "Feature not ready")]
         public async Task GivenValidCustomTags_WhenAddCustomTag_ThenTagShouldBeAdded()
         {
             DicomTag tag1 = DicomTag.DeviceSerialNumber;
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Feature not ready")]
         public async Task GivenExistingCustomTag_WhenAddCustomTag_ThenShouldThrowException()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Feature not ready")]
         public async Task GivenExistingCustomTag_WhenDeleteCustomTag_ThenTagShouldBeRemoved()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             await VerifyTagNotExist(customTagEntry.Path);
         }
 
-        [Fact]
+        [Fact(Skip = "Feature not ready")]
         public async Task GivenNonExistingCustomTag_WhenDeleteCustomTag_ThenShouldThrowException()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
