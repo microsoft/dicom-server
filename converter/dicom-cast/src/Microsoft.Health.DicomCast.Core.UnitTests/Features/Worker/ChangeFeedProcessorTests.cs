@@ -19,6 +19,7 @@ using Microsoft.Health.DicomCast.Core.Features.Worker;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Microsoft.Health.Test.Utilities;
 using NSubstitute;
+using Polly.Timeout;
 using Xunit;
 
 namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
@@ -106,7 +107,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
         }
 
         [Fact]
-        public async Task WhenThrowRetryableException_ExceptionNotThrown()
+        public async Task WhenThrowTimeoutRejectedException_ExceptionNotThrown()
         {
             ChangeFeedEntry[] changeFeeds1 = new[]
             {
@@ -116,7 +117,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, DefaultCancellationToken).Returns(changeFeeds1);
             _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
 
-            _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new RetryableException(); });
+            _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new TimeoutRejectedException(); });
 
             await ExecuteProcessAsync();
         }
