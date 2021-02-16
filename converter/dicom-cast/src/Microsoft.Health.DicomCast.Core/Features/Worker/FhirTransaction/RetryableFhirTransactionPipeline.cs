@@ -4,12 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net.Cache;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Polly;
@@ -21,42 +22,35 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     /// </summary>
     public class RetryableFhirTransactionPipeline : IFhirTransactionPipeline
     {
-        private const int MaxRetryCount = 3;
-
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
         private readonly IExceptionStore _exceptionStore;
         private readonly IAsyncPolicy _retryPolicy;
+        private readonly IAsyncPolicy _timeoutPolicy;
 
-        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore)
-            : this(
-                  fhirTransactionPipeline,
-                  exceptionStore,
-                  MaxRetryCount)
-        {
-        }
-
-        internal RetryableFhirTransactionPipeline(
-            IFhirTransactionPipeline fhirTransactionPipeline,
-            IExceptionStore exceptionStore,
-            int maxRetryCount)
+        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore, IOptions<RetryConfiguration> retryConfiguration)
         {
             EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
             EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
+            EnsureArg.IsNotNull(retryConfiguration, nameof(retryConfiguration));
 
             _fhirTransactionPipeline = fhirTransactionPipeline;
             _exceptionStore = exceptionStore;
+            _timeoutPolicy = Policy.TimeoutAsync(retryConfiguration.Value.TotalRetryDuration);
             _retryPolicy = Policy
                 .Handle<RetryableException>()
-                .WaitAndRetryAsync(
-                    maxRetryCount,
-                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                    (exception, timeSpan, retryCount, context) =>
+                .WaitAndRetryForeverAsync(
+                    (retryAttempt, exception, context) =>
+                    {
+                        return TimeSpan.FromSeconds(Math.Min(60, Math.Pow(2, retryAttempt)));
+                    },
+                    (exception, retryCount, timeSpan, context) =>
                     {
                         ChangeFeedEntry changeFeedEntry = (ChangeFeedEntry)context[nameof(ChangeFeedEntry)];
 
                         return _exceptionStore.WriteRetryableExceptionAsync(
                             changeFeedEntry,
                             retryCount,
+                            timeSpan,
                             exception);
                     });
         }
@@ -67,7 +61,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             Context context = new Context();
             context[nameof(ChangeFeedEntry)] = changeFeedEntry;
 
-            return _retryPolicy.ExecuteAsync(
+            return _timeoutPolicy.WrapAsync(_retryPolicy).ExecuteAsync(
                 async (ctx, tkn) =>
                 {
                     try
