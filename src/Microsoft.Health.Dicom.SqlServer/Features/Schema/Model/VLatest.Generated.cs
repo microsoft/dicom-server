@@ -15,6 +15,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static CustomTagTable CustomTag = new CustomTagTable();
+        internal readonly static CustomTagBigIntTable CustomTagBigInt = new CustomTagBigIntTable();
+        internal readonly static CustomTagDateTimeTable CustomTagDateTime = new CustomTagDateTimeTable();
+        internal readonly static CustomTagDoubleTable CustomTagDouble = new CustomTagDoubleTable();
+        internal readonly static CustomTagPersonNameTable CustomTagPersonName = new CustomTagPersonNameTable();
+        internal readonly static CustomTagStringTable CustomTagString = new CustomTagStringTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SeriesTable Series = new SeriesTable();
@@ -62,6 +67,84 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly TinyIntColumn TagStatus = new TinyIntColumn("TagStatus");
             internal readonly Index IXC_CustomTag = new Index("IXC_CustomTag");
             internal readonly Index IX_CustomTag_TagPath = new Index("IX_CustomTag_TagPath");
+        }
+
+        internal class CustomTagBigIntTable : Table
+        {
+            internal CustomTagBigIntTable() : base("dbo.CustomTagBigInt")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly Index IXC_CustomTagBigInt = new Index("IXC_CustomTagBigInt");
+        }
+
+        internal class CustomTagDateTimeTable : Table
+        {
+            internal CustomTagDateTimeTable() : base("dbo.CustomTagDateTime")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly Index IXC_CustomTagDateTime = new Index("IXC_CustomTagDateTime");
+        }
+
+        internal class CustomTagDoubleTable : Table
+        {
+            internal CustomTagDoubleTable() : base("dbo.CustomTagDouble")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly FloatColumn TagValue = new FloatColumn("TagValue", 53);
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly Index IXC_CustomTagDouble = new Index("IXC_CustomTagDouble");
+        }
+
+        internal class CustomTagPersonNameTable : Table
+        {
+            internal CustomTagPersonNameTable() : base("dbo.CustomTagPersonName")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 200, "SQL_Latin1_General_CP1_CI_AI");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal const string WatermarkAndTagKey = "WatermarkAndTagKey";
+            internal const string TagValueWords = "TagValueWords";
+            internal readonly Index IXC_CustomTagPersonName = new Index("IXC_CustomTagPersonName");
+            internal readonly Index IXC_CustomTagPersonName_WatermarkAndTagKey = new Index("IXC_CustomTagPersonName_WatermarkAndTagKey");
+        }
+
+        internal class CustomTagStringTable : Table
+        {
+            internal CustomTagStringTable() : base("dbo.CustomTagString")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 64);
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly Index IXC_CustomTagString = new Index("IXC_CustomTagString");
         }
 
         internal class DeletedInstanceTable : Table

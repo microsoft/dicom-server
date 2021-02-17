@@ -10,3 +10,4 @@ variables:
   azureSubscriptionName: 'Microsoft Health Open Source Subscription-DicomServer'
   windowsVmImage: 'windows-latest'
   buildConfiguration: 'Release'
+  skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria

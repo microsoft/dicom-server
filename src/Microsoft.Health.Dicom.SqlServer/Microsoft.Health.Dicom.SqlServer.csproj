@@ -45,6 +45,7 @@
       <ImmutableSqlGeneratorInputs Include="@(EmbeddedResource)" Condition="'%(EmbeddedResource.InputToImmutableSqlGenerator)' == 'true'" />
 
       <!--We create this item group to that MSBuild can know when the GenerateFiles can be skipped.-->
+
       <GenerateFilesInputs Include="@(MutableSqlGeneratorInputs);@(ImmutableSqlGeneratorInputs)" />
       <Generated Include="Features\Schema\Model\ImmutableTypes.Generated.cs">
         <Generator>ImmutableSqlModelGenerator</Generator>
