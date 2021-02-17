@@ -1057,11 +1057,6 @@ AS
         IF @tagStatus <> 1 
             THROW 50412, 'custom tag is not in status Added', 1
 
-        -- Update status to deindexing
-        UPDATE dbo.CustomTag
-        SET TagStatus = 2
-        WHERE TagKey = @tagKey
-
         -- Delete index data
         IF @dataType = 0
             DELETE FROM dbo.CustomTagString WHERE TagKey = @tagKey
