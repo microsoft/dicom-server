@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; is not in invalid status..
+        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; is not in valid status..
         /// </summary>
         internal static string InvalidCustomTagStatus {
             get {
