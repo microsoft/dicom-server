@@ -111,8 +111,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
                         case SqlErrorCodes.NotFound:
                             throw new CustomTagNotFoundException();
                         case SqlErrorCodes.PreconditionFailed:
-                            throw new PreconditionFailedException(
-                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.InvalidCustomTagStatus, tagPath));
+                            throw new CustomTagBusyException(
+                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.CustomTagIsBusy, tagPath));
                         default:
                             throw new DataStoreException(ex);
                     }

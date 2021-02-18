@@ -6,11 +6,11 @@
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Exception thrown when preconditation failed.
+    /// Exception thrown when custom tag is busy. (e.g: trying to delete custom tag when it's reindexing)
     /// </summary>
-    public class PreconditionFailedException : ValidationException
+    public class CustomTagBusyException : ValidationException
     {
-        public PreconditionFailedException(string message)
+        public CustomTagBusyException(string message)
             : base(message)
         {
         }

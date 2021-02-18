@@ -117,8 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="InvalidCustomTagStatus" xml:space="preserve">
-    <value>The custom tag '{0}' is not in valid status.</value>
+  <data name="CustomTagIsBusy" xml:space="preserve">
+    <value>The custom tag '{0}' is being processed.</value>
     <comment>{0} is tag path</comment>
   </data>
   <data name="SchemaVersionNeedsToBeUpgraded" xml:space="preserve">

@@ -138,7 +138,7 @@ CREATE TABLE dbo.CustomTagPersonName (
     SeriesKey               BIGINT               NULL,     --FK
     InstanceKey             BIGINT               NULL,     --FK
     Watermark               BIGINT               NOT NULL,
-	WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark), --PK
+    WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark), --PK
     TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
 ) WITH (DATA_COMPRESSION = PAGE)
 
@@ -153,7 +153,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagPersonName ON dbo.CustomTagPersonName
 
 CREATE UNIQUE NONCLUSTERED INDEX IXC_CustomTagPersonName_WatermarkAndTagKey ON dbo.CustomTagPersonName
 (
-	WatermarkAndTagKey
+    WatermarkAndTagKey
 )
 
 CREATE FULLTEXT INDEX ON CustomTagPersonName(TagValueWords LANGUAGE 1033)

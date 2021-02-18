@@ -61,11 +61,11 @@ namespace Microsoft.Health.Dicom.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; is not in valid status..
+        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; is being processed..
         /// </summary>
-        internal static string InvalidCustomTagStatus {
+        internal static string CustomTagIsBusy {
             get {
-                return ResourceManager.GetString("InvalidCustomTagStatus", resourceCulture);
+                return ResourceManager.GetString("CustomTagIsBusy", resourceCulture);
             }
         }
         
