@@ -352,6 +352,30 @@ namespace Microsoft.Health.Dicom.Client
                 });
         }
 
+        public async Task<DicomWebResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken = default)
+        {
+            using var request = new HttpRequestMessage(
+                HttpMethod.Post,
+                new Uri($"/tags", UriKind.Relative));
+            string jsonString = JsonConvert.SerializeObject(customTagEntries);
+            request.Content = new StringContent(jsonString);
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+            return new DicomWebResponse(response);
+        }
+
+        public async Task<DicomWebResponse> DeleteCustomTagAsync(Uri requestUri, CancellationToken cancellationToken = default)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
+            return new DicomWebResponse(response);
+        }
+
         private static MultipartContent ConvertStreamsToMultipartContent(IEnumerable<Stream> streams)
         {
             var multiContent = new MultipartContent("related");

@@ -20,6 +20,7 @@ namespace Microsoft.Health.Dicom.Client
         public const string BaseRetrieveFramesUriFormat = BaseInstanceUriFormat + "/frames/{3}";
         public const string BaseRetrieveFramesRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered";
         public const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
+        public const string BaseCustomTagUriFormat = "/tags/{0}";
         public const string OriginalDicomTransferSyntax = "*";
 
         public const string ApplicationDicomMediaType = "application/dicom";
