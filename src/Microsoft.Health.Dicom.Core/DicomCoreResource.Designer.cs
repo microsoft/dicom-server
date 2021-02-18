@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified custom tag &apos;{0}&apos; cannot be found..
+        ///   Looks up a localized string similar to The specified custom tag cannot be found..
         /// </summary>
         internal static string CustomTagNotFound {
             get {
@@ -468,7 +468,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TagPathValidation.
+        ///   Looks up a localized string similar to The requested tag {0} is in the wrong format..
         /// </summary>
         internal static string TagPathValidation {
             get {

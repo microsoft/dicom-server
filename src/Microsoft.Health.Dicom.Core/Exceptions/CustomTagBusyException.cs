@@ -6,12 +6,12 @@
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Exception thrown when custom tag is not found.
+    /// Exception thrown when custom tag is busy. (e.g: trying to delete custom tag when it's reindexing)
     /// </summary>
-    public class CustomTagNotFoundException : ValidationException
+    public class CustomTagBusyException : ValidationException
     {
-        public CustomTagNotFoundException()
-            : base(DicomCoreResource.CustomTagNotFound)
+        public CustomTagBusyException(string message)
+            : base(message)
         {
         }
     }
