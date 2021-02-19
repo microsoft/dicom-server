@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
-using Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions

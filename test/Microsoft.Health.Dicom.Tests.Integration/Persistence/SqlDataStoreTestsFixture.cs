@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
@@ -65,7 +67,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, mediator, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
 
-            var schemaInformation = new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V1);
+            var schemaInformation = new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V2);
 
             _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, NullLogger<SchemaInitializer>.Instance);
 
@@ -81,6 +83,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 
+            CustomTagStore = new SqlCustomTagStore(SqlConnectionWrapperFactory, schemaInformation, NullLogger<SqlCustomTagStore>.Instance);
+
             TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         }
 
@@ -93,6 +97,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public IIndexDataStore IndexDataStore { get; }
 
         public IInstanceStore InstanceStore { get; }
+
+        public ICustomTagStore CustomTagStore { get; }
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
 

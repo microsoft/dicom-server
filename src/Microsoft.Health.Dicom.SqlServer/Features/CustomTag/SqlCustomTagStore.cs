@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -109,9 +110,36 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, (byte)entry.Level);
         }
 
-        public Task DeleteCustomTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
+        public async Task DeleteCustomTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
         {
-            throw new System.NotImplementedException();
+            if (_schemaInformation.Current < SchemaVersionConstants.SupportCustomTagSchemaVersion)
+            {
+                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+            }
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.DeleteCustomTag.PopulateCommand(sqlCommandWrapper, tagPath, (byte)CustomTagLimit.CustomTagVRAndDataTypeMapping[vr]);
+
+                try
+                {
+                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    switch (ex.Number)
+                    {
+                        case SqlErrorCodes.NotFound:
+                            throw new CustomTagNotFoundException();
+                        case SqlErrorCodes.PreconditionFailed:
+                            throw new CustomTagBusyException(
+                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.CustomTagIsBusy, tagPath));
+                        default:
+                            throw new DataStoreException(ex);
+                    }
+                }
+            }
         }
     }
 }

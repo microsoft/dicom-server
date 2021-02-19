@@ -312,9 +312,6 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The specified custom tag with tag path {0} cannot be found.</value>
     <comment>{0} tagPath on request</comment>
   </data>
-  <data name="CustomTagsDoNotExist" xml:space="preserve">
-    <value>No custom tags can be found.</value>
-  </data>
   <data name="SequentialDicomTagsNotSupported" xml:space="preserve">
     <value>Sequential dicom tags are currently not supported.</value>
   </data>
