@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             }
             else
             {
-                throw new InvalidCustomTagPathException(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, tagPath ?? string.Empty));
+                throw new InvalidCustomTagPathException(string.Format(DicomCoreResource.InvalidCustomTag, tagPath ?? string.Empty));
             }
 
             IEnumerable<CustomTagEntry> customTags = await _customTagStore.GetCustomTagsAsync(tagPath, cancellationToken);
