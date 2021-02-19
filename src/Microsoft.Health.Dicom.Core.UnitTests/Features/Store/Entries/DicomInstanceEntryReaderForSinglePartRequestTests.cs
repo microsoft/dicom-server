@@ -18,12 +18,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
     public class DicomInstanceEntryReaderForSinglePartRequestTests
     {
         private const string DefaultContentType = "application/dicom";
-        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
-        private ISeekableStreamConverter _seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
+        private readonly ISeekableStreamConverter _seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
         private readonly DicomInstanceEntryReaderForSinglePartRequest _dicomInstanceEntryReader;
-
-        private Stream _stream = new MemoryStream();
+        private readonly Stream _stream = new MemoryStream();
 
         public DicomInstanceEntryReaderForSinglePartRequestTests()
         {
@@ -60,17 +58,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
             await Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _dicomInstanceEntryReader.ReadAsync(
                 "not/application/dicom",
                 _stream,
-                DefaultCancellationToken));
+                CancellationToken.None));
         }
 
         [Fact]
         public async Task GivenBodyPartWithValidContentType_WhenReading_ThenCorrectResultsShouldBeReturned()
         {
-            _seekableStreamConverter.ConvertAsync(_stream).Returns(_stream);
+            using var source = new CancellationTokenSource();
+            _seekableStreamConverter.ConvertAsync(_stream, source.Token).Returns(_stream);
             IReadOnlyCollection<IDicomInstanceEntry> results = await _dicomInstanceEntryReader.ReadAsync(
                 DefaultContentType,
                 _stream,
-                DefaultCancellationToken);
+                source.Token);
 
             Assert.NotNull(results);
             Assert.Collection(
@@ -78,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
                 async item =>
                 {
                     Assert.IsType<StreamOriginatedDicomInstanceEntry>(item);
-                    Assert.Same(_stream, await item.GetStreamAsync(DefaultCancellationToken));
+                    Assert.Same(_stream, await item.GetStreamAsync(source.Token));
                 });
         }
     }
