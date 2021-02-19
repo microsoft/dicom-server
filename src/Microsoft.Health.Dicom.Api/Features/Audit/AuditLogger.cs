@@ -50,13 +50,13 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
         /// <inheritdoc />
         public void LogAudit(
             AuditAction auditAction,
-            string action,
+            string operation,
             Uri requestUri,
             HttpStatusCode? statusCode,
             string correlationId,
             string callerIpAddress,
             IReadOnlyCollection<KeyValuePair<string, string>> callerClaims,
-            IReadOnlyDictionary<string, string> customerHeaders = null)
+            IReadOnlyDictionary<string, string> customHeaders = null)
         {
             string claimsInString = null;
             string customerHeadersInString = null;
@@ -66,9 +66,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
                 claimsInString = string.Join(";", callerClaims.Select(claim => $"{claim.Key}={claim.Value}"));
             }
 
-            if (customerHeaders != null)
+            if (customHeaders != null)
             {
-                customerHeadersInString = string.Join(";", customerHeaders.Select(header => $"{header.Key}={header.Value}"));
+                customerHeadersInString = string.Join(";", customHeaders.Select(header => $"{header.Key}={header.Value}"));
             }
 
             _logger.LogInformation(
@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
                 _securityConfiguration.Authentication?.Audience,
                 _securityConfiguration.Authentication?.Authority,
                 requestUri,
-                action,
+                operation,
                 statusCode,
                 correlationId,
                 claimsInString,

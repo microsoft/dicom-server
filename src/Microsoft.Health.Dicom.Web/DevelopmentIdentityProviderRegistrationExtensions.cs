@@ -126,6 +126,7 @@ namespace Microsoft.Health.Dicom.Web
         public static IConfigurationBuilder AddDevelopmentAuthEnvironmentIfConfigured(this IConfigurationBuilder configurationBuilder, IConfigurationRoot existingConfiguration)
         {
             EnsureArg.IsNotNull(existingConfiguration, nameof(existingConfiguration));
+            EnsureArg.IsNotNull(configurationBuilder, nameof(configurationBuilder));
 
             string testEnvironmentFilePath = existingConfiguration["TestAuthEnvironment:FilePath"];
 

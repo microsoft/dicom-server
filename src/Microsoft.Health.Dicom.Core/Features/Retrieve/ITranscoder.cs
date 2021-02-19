@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public interface ITranscoder
     {
-        public Task<Stream> TranscodeFileAsync(Stream streams, string requestedTransferSyntax);
+        public Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax);
 
         Stream TranscodeFrame(DicomFile dicomFile, int frameIndex, string requestedTransferSyntax);
     }

@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, cancellationToken);
 
-            VersionedInstanceIdentifier versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
+            var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 
             try
             {

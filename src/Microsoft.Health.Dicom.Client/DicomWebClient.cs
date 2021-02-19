@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -102,7 +103,7 @@ namespace Microsoft.Health.Dicom.Client
 
             return new DicomWebAsyncEnumerableResponse<DicomFile>(
                 response,
-                ReadMultipartResponseAsDicomFileAsync(response.Content));
+                ReadMultipartResponseAsDicomFileAsync(response.Content, cancellationToken));
         }
 
         public async Task<DicomWebAsyncEnumerableResponse<Stream>> RetrieveFramesAsync(
@@ -127,12 +128,12 @@ namespace Microsoft.Health.Dicom.Client
 
             return new DicomWebAsyncEnumerableResponse<Stream>(
                 response,
-                ReadMultipartResponseAsStreamsAsync(response.Content));
+                ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken));
         }
 
         public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> RetrieveMetadataAsync(
             Uri requestUri,
-            string eTag,
+            string ifNoneMatch,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(requestUri, nameof(requestUri));
@@ -141,9 +142,9 @@ namespace Microsoft.Health.Dicom.Client
 
             request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
 
-            if (!string.IsNullOrEmpty(eTag))
+            if (!string.IsNullOrEmpty(ifNoneMatch))
             {
-                request.Headers.TryAddWithoutValidation(HeaderNames.IfNoneMatch, eTag);
+                request.Headers.TryAddWithoutValidation(HeaderNames.IfNoneMatch, ifNoneMatch);
             }
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
@@ -182,9 +183,10 @@ namespace Microsoft.Health.Dicom.Client
                     postContent.Add(stream);
                 }
 
+                using MultipartContent content = ConvertStreamsToMultipartContent(postContent);
                 return await StoreAsync(
                     GenerateStoreRequestUri(studyInstanceUid),
-                    ConvertStreamsToMultipartContent(postContent),
+                    content,
                     cancellationToken).ConfigureAwait(false);
             }
             finally
@@ -237,9 +239,10 @@ namespace Microsoft.Health.Dicom.Client
             await dicomFile.SaveAsync(stream).ConfigureAwait(false);
             stream.Seek(0, SeekOrigin.Begin);
 
+            using StreamContent content = ConvertStreamToStreamContent(stream);
             return await StoreAsync(
                 GenerateStoreRequestUri(studyInstanceUid),
-                ConvertStreamToStreamContent(stream),
+                content,
                 cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -352,6 +355,7 @@ namespace Microsoft.Health.Dicom.Client
                 });
         }
 
+        [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers will dispose of the StreamContent")]
         private static MultipartContent ConvertStreamsToMultipartContent(IEnumerable<Stream> streams)
         {
             var multiContent = new MultipartContent("related");
@@ -400,7 +404,7 @@ namespace Microsoft.Health.Dicom.Client
         {
             EnsureArg.IsNotNull(httpContent, nameof(httpContent));
 
-            await using Stream stream = await httpContent.ReadAsStreamAsync()
+            await using Stream stream = await httpContent.ReadAsStreamAsync(cancellationToken)
                 .ConfigureAwait(false);
 
             MultipartSection part;

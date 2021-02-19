@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -26,6 +27,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
             _multipartItems = multipartItems;
         }
 
+        [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "MultipartContent and its inner contents are registered for disposal")]
         public async override Task ExecuteResultAsync(ActionContext context)
         {
             EnsureArg.IsNotNull(context, nameof(context));
@@ -34,9 +36,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
             foreach (MultipartItem item in _multipartItems)
             {
                 content.Add(item.Content);
-                context.HttpContext.Response.RegisterForDispose(item);
             }
 
+            context.HttpContext.Response.RegisterForDispose(content);
             context.HttpContext.Response.ContentLength = content.Headers.ContentLength;
             context.HttpContext.Response.ContentType = content.Headers.ContentType.ToString();
             context.HttpContext.Response.StatusCode = _statusCode;

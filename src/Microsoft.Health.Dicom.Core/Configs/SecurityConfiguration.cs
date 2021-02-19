@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {

@@ -5,7 +5,6 @@
 
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag;
@@ -16,15 +15,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 {
     public class AddCustomTagServiceTests
     {
-        private ICustomTagEntryValidator _customTagEntryValidator;
-        private ICustomTagStore _customTagStore;
-        private IAddCustomTagService _customTagService;
+        private readonly ICustomTagEntryValidator _customTagEntryValidator;
+        private readonly ICustomTagStore _customTagStore;
+        private readonly IAddCustomTagService _customTagService;
 
         public AddCustomTagServiceTests()
         {
             _customTagEntryValidator = Substitute.For<ICustomTagEntryValidator>();
             _customTagStore = Substitute.For<ICustomTagStore>();
-            _customTagService = new AddCustomTagService(_customTagStore, _customTagEntryValidator, NullLogger<AddCustomTagService>.Instance);
+            _customTagService = new AddCustomTagService(_customTagStore, _customTagEntryValidator);
         }
 
         [Fact]
@@ -42,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         public async Task GivenInvalidInput_WhenAddCustomTagIsInvoked_ThenStopAfterValidation()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
-            CustomTagEntryValidationException exception = new CustomTagEntryValidationException(string.Empty);
+            var exception = new CustomTagEntryValidationException(string.Empty);
             CustomTagEntry entry = tag.BuildCustomTagEntry();
             _customTagEntryValidator.WhenForAnyArgs(validator => validator.ValidateCustomTags(default))
                 .Throw(exception);

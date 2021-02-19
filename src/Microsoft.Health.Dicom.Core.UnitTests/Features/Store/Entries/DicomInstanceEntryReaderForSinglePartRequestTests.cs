@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Web;
@@ -19,7 +18,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
     public class DicomInstanceEntryReaderForSinglePartRequestTests
     {
         private const string DefaultContentType = "application/dicom";
-        private const string DefaultBodyPartContentType = "application/dicom";
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
         private ISeekableStreamConverter _seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
@@ -29,9 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
 
         public DicomInstanceEntryReaderForSinglePartRequestTests()
         {
-            _dicomInstanceEntryReader = new DicomInstanceEntryReaderForSinglePartRequest(
-                NullLogger<DicomInstanceEntryReaderForSinglePartRequest>.Instance,
-                _seekableStreamConverter);
+            _dicomInstanceEntryReader = new DicomInstanceEntryReaderForSinglePartRequest(_seekableStreamConverter);
         }
 
         [Fact]

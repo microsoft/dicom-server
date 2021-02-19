@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _logger = logger;
         }
 
-        public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptableHeaderDescriptor)
+        public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor)
         {
             EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
 
@@ -58,14 +58,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
 
             AcceptHeaderDescriptors descriptors = _acceptableDescriptors[resourceType];
-            acceptableHeaderDescriptor = null;
+            acceptHeaderDescriptor = null;
 
             // get all accceptable headers and sort by quality (ascendently)
-            SortedDictionary<AcceptHeader, string> accepted = new SortedDictionary<AcceptHeader, string>(new AcceptHeaderQualityComparer());
+            var accepted = new SortedDictionary<AcceptHeader, string>(new AcceptHeaderQualityComparer());
             foreach (AcceptHeader header in acceptHeaders)
             {
-                string transfersyntax;
-                if (descriptors.TryGetMatchedDescriptor(header, out acceptableHeaderDescriptor, out transfersyntax))
+                if (descriptors.TryGetMatchedDescriptor(header, out acceptHeaderDescriptor, out string transfersyntax))
                 {
                     accepted.Add(header, transfersyntax);
                 }
