@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
@@ -33,9 +34,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         public async Task GivenRequestForAllTags_WhenNoTagsAreStored_ThenExceptionShouldBeThrown()
         {
             _customTagStore.GetCustomTagsAsync(default).Returns(new List<CustomTagEntry>());
-            var exception = await Assert.ThrowsAsync<CustomTagNotFoundException>(() => _getCustomTagsService.GetAllCustomTagsAsync());
+            GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync();
 
-            Assert.Equal("No custom tags can be found.", exception.Message);
+            Assert.Empty(response.CustomTags);
         }
 
         [Fact]
@@ -57,11 +58,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         [Fact]
         public async Task GivenRequestForCustomTag_WhenTagDoesntExist_ThenExceptionShouldBeThrown()
         {
-            string tagPath = "(0101,2323)";
-            string storedTagPath = "01012323";
+            string tagPath = DicomTag.DeviceID.GetPath();
+            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
+            {
+                x[0] = DicomTag.DeviceID;
+                return true;
+            });
 
-            _dicomTagParser.ParseFormattedTagPath(tagPath).Returns(storedTagPath);
-            _customTagStore.GetCustomTagsAsync(storedTagPath, default).Returns(new List<CustomTagEntry>());
+            _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagEntry>());
             var exception = await Assert.ThrowsAsync<CustomTagNotFoundException>(() => _getCustomTagsService.GetCustomTagAsync(tagPath));
 
             Assert.Equal(string.Format("The specified custom tag with tag path {0} cannot be found.", tagPath), exception.Message);
@@ -70,12 +74,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         [Fact]
         public async Task GivenRequestForCustomTag_WhenTagExists_ThenCustomTagEntryShouldBeReturned()
         {
-            string tagPath = "(0101,2323)";
-            string storedTagPath = "01012323";
-            CustomTagEntry stored = CreateCustomTagEntry("01012323", DicomVRCode.AE.ToString());
+            string tagPath = DicomTag.DeviceID.GetPath();
+            CustomTagEntry stored = CreateCustomTagEntry(tagPath, DicomVRCode.AE.ToString());
 
-            _dicomTagParser.ParseFormattedTagPath(tagPath).Returns(storedTagPath);
-            _customTagStore.GetCustomTagsAsync(storedTagPath, default).Returns(new List<CustomTagEntry> { stored });
+            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
+            {
+                x[0] = DicomTag.DeviceID;
+                return true;
+            });
+
+            _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagEntry> { stored });
             GetCustomTagResponse response = await _getCustomTagsService.GetCustomTagAsync(tagPath);
 
             Assert.Equal(stored, response.CustomTag);

@@ -35,9 +35,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         public async Task<GetCustomTagResponse> GetCustomTagAsync(string tagPath, CancellationToken cancellationToken)
         {
             DicomTag[] tags;
-            if (_dicomTagParser.TryParse(tagPath, out tags, false))
+            if (_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
             {
-                if (tags.Count() > 1)
+                if (tags.Length > 1)
                 {
                     throw new NotImplementedException(DicomCoreResource.SequentialDicomTagsNotSupported);
                 }
@@ -55,10 +55,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             {
                 throw new CustomTagNotFoundException(string.Format(DicomCoreResource.CustomTagNotFound, tagPath));
             }
-            else if (customTags.Count() > 1)
-            {
-                throw new MultipleCustomTagsFoundException(string.Format(DicomCoreResource.MultipleCustomTagsFound, tagPath));
-            }
 
             return new GetCustomTagResponse(customTags.First());
         }
@@ -66,11 +62,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         public async Task<GetAllCustomTagsResponse> GetAllCustomTagsAsync(CancellationToken cancellationToken)
         {
             IEnumerable<CustomTagEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
-
-            if (!customTags.Any())
-            {
-                throw new CustomTagNotFoundException();
-            }
 
             return new GetAllCustomTagsResponse(customTags);
         }

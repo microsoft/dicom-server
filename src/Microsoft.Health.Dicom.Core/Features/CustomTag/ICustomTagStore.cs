@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         Task AddCustomTagsAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Get stored custom tags from CustomTagStore - if provided, by tagPath.
+        /// Get stored custom tags from CustomTagStore, if provided, by tagPath.
         /// </summary>
         /// <param name="path">Path associated with requested custom tag formatted as it is stored internally.</param>
         /// <param name="cancellationToken">The cancellation token.</param>

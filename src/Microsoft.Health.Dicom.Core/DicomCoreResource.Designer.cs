@@ -387,15 +387,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Multiple custom tags found for the specified tag path {0}.
-        /// </summary>
-        internal static string MultipleCustomTagsFound {
-            get {
-                return ResourceManager.GetString("MultipleCustomTagsFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The request headers are not acceptable.
         /// </summary>
         internal static string NotAcceptableHeaders {

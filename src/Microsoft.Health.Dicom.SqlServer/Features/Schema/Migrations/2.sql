@@ -807,15 +807,15 @@ BEGIN
     SET XACT_ABORT  ON
 
 
-        SELECT  StudyInstanceUid,
-                SeriesInstanceUid,
-                SopInstanceUid,
-                Watermark
-        FROM    dbo.Instance
-        WHERE   StudyInstanceUid        = @studyInstanceUid
-                AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-                AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)
-                AND Status              = @validStatus
+    SELECT  StudyInstanceUid,
+            SeriesInstanceUid,
+            SopInstanceUid,
+            Watermark
+    FROM    dbo.Instance
+    WHERE   StudyInstanceUid        = @studyInstanceUid
+            AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+            AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)
+            AND Status              = @validStatus
 
 END
 GO
@@ -1112,12 +1112,12 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-        SELECT  TagPath,
-                TagVR,
-                TagLevel,
-                TagStatus
-        FROM    dbo.CustomTag
-        WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
+    SELECT  TagPath,
+            TagVR,
+            TagLevel,
+            TagStatus
+    FROM    dbo.CustomTag
+    WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
 END
 GO
 
