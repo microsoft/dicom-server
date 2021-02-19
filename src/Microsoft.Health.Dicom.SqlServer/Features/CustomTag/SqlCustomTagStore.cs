@@ -131,7 +131,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
                     switch (ex.Number)
                     {
                         case SqlErrorCodes.NotFound:
-                            throw new CustomTagNotFoundException();
+                            throw new CustomTagNotFoundException(
+                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.CustomTagNotFound, tagPath));
                         case SqlErrorCodes.PreconditionFailed:
                             throw new CustomTagBusyException(
                                 string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.CustomTagIsBusy, tagPath));

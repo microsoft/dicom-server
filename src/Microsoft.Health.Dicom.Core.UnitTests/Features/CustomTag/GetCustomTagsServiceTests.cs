@@ -59,9 +59,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         public async Task GivenRequestForCustomTag_WhenTagDoesntExist_ThenExceptionShouldBeThrown()
         {
             string tagPath = DicomTag.DeviceID.GetPath();
+            DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
+
             _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
             {
-                x[0] = DicomTag.DeviceID;
+                x[1] = parsedTags;
                 return true;
             });
 
@@ -76,10 +78,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         {
             string tagPath = DicomTag.DeviceID.GetPath();
             CustomTagEntry stored = CreateCustomTagEntry(tagPath, DicomVRCode.AE.ToString());
+            DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
 
             _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
             {
-                x[0] = DicomTag.DeviceID;
+                x[1] = parsedTags;
                 return true;
             });
 
