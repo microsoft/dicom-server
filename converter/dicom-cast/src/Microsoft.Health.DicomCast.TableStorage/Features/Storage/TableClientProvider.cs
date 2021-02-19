@@ -38,7 +38,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         public Task StartAsync(CancellationToken cancellationToken)
         {
             // The result is ignored and will be awaited in EnsureInitialized(). Exceptions are logged within DocumentClientInitializer.
-            _ = _initializationOperation.EnsureInitialized();
+            _ = _initializationOperation.EnsureInitialized().AsTask();
 
             return Task.CompletedTask;
         }
@@ -72,7 +72,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         {
             if (!_initializationOperation.IsInitialized)
             {
-                _initializationOperation.EnsureInitialized().GetAwaiter().GetResult();
+                _initializationOperation.EnsureInitialized().AsTask().GetAwaiter().GetResult();
             }
 
             return _cloudTableClient;

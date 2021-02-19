@@ -45,7 +45,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                     },
                     (exception, retryCount, timeSpan, context) =>
                     {
-                        ChangeFeedEntry changeFeedEntry = (ChangeFeedEntry)context[nameof(ChangeFeedEntry)];
+                        var changeFeedEntry = (ChangeFeedEntry)context[nameof(ChangeFeedEntry)];
 
                         return _exceptionStore.WriteRetryableExceptionAsync(
                             changeFeedEntry,
@@ -58,8 +58,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <inheritdoc/>
         public Task ProcessAsync(ChangeFeedEntry changeFeedEntry, CancellationToken cancellationToken)
         {
-            Context context = new Context();
-            context[nameof(ChangeFeedEntry)] = changeFeedEntry;
+            var context = new Context
+            {
+                { nameof(ChangeFeedEntry), changeFeedEntry },
+            };
 
             return _timeoutPolicy.WrapAsync(_retryPolicy).ExecuteAsync(
                 async (ctx, tkn) =>

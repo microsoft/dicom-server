@@ -11,8 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Model;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.Fhir.Client;
 using static Hl7.Fhir.Model.CapabilityStatement;
@@ -28,22 +26,16 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
     {
         private readonly IFhirClient _fhirClient;
         private readonly IFhirResourceValidator _fhirResourceValidator;
-        private readonly FhirConfiguration _fhirConfiguration;
 
         private readonly IEnumerable<FHIRVersion> _supportedFHIRVersions = new List<FHIRVersion> { FHIRVersion.N4_0_0, FHIRVersion.N4_0_1 };
 
-        public FhirService(
-            IFhirClient fhirClient,
-            IFhirResourceValidator fhirResourceValidator,
-            IOptions<FhirConfiguration> fhirConfiguration)
+        public FhirService(IFhirClient fhirClient, IFhirResourceValidator fhirResourceValidator)
         {
             EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
             EnsureArg.IsNotNull(fhirResourceValidator, nameof(fhirResourceValidator));
-            EnsureArg.IsNotNull(fhirConfiguration, nameof(fhirConfiguration));
 
             _fhirClient = fhirClient;
             _fhirResourceValidator = fhirResourceValidator;
-            _fhirConfiguration = fhirConfiguration.Value;
         }
 
         /// <inheritdoc/>
@@ -62,15 +54,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         public async Task CheckFhirServiceCapability(CancellationToken cancellationToken)
         {
             using FhirResponse<CapabilityStatement> response = await _fhirClient.ReadAsync<CapabilityStatement>("metadata", cancellationToken);
-            var version = response.Resource.FhirVersion ?? throw new InvalidFhirServerException(DicomCastCoreResource.FailedToValidateFhirVersion);
+            FHIRVersion version = response.Resource.FhirVersion ?? throw new InvalidFhirServerException(DicomCastCoreResource.FailedToValidateFhirVersion);
             if (!_supportedFHIRVersions.Contains(version))
             {
                 throw new InvalidFhirServerException(DicomCastCoreResource.InvalidFhirServerVersion);
             }
 
-            foreach (var element in response.Resource.Rest)
+            foreach (RestComponent element in response.Resource.Rest)
             {
-                foreach (var interaction in element.Interaction)
+                foreach (SystemInteractionComponent interaction in element.Interaction)
                 {
                     if (interaction.Code == SystemRestfulInteraction.Transaction)
                     {
@@ -119,7 +111,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
                     // Multiple matches.
                     throw new MultipleMatchingResourcesException(typeof(TResource).Name);
                 }
-                else if (bundle?.Entry.Count == 1)
+                else if (bundle.Entry.Count == 1)
                 {
                     // There was only one match but because the server could return empty continuation token
                     // with more results, we need to follow the links to make sure there are no additional matching resources.
