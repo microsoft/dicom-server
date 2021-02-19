@@ -10,4 +10,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Design", "CA1019:Define accessors for attribute arguments", Justification = "ASP.NET Core attributes leverage arguments that they do not necessarily wish to expose.")]
+[assembly: SuppressMessage("Security", "CA5394:Do not use insecure randomness", Justification = "Project generates pseudo-random test data")]

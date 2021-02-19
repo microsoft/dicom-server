@@ -10,4 +10,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Design", "CA1019:Define accessors for attribute arguments", Justification = "ASP.NET Core attributes leverage arguments that they do not necessarily wish to expose.")]
+[assembly: SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Scale testing does not require localization")]

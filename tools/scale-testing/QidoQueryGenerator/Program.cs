@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Common;
+using EnsureThat;
 
 namespace QidoQueryGenerator
 {
@@ -15,13 +16,15 @@ namespace QidoQueryGenerator
     {
         public static void Main(string[] args)
         {
+            EnsureArg.IsNotNull(args, nameof(args));
+
             string path = args[0];
             string line;
-            StreamReader file = new StreamReader(path);
-            HashSet<string> studyGeneric = new HashSet<string>();
-            HashSet<string> studySpecific = new HashSet<string>();
-            HashSet<string> seriesGeneric = new HashSet<string>();
-            HashSet<string> seriesSpecific = new HashSet<string>();
+            var file = new StreamReader(path);
+            var studyGeneric = new HashSet<string>();
+            var studySpecific = new HashSet<string>();
+            var seriesGeneric = new HashSet<string>();
+            var seriesSpecific = new HashSet<string>();
 
             while ((line = file.ReadLine()) != null)
             {
@@ -45,7 +48,7 @@ namespace QidoQueryGenerator
             file.Close();
 
             string outputPath = args[1];
-            List<string> queries = new List<string>();
+            var queries = new List<string>();
             queries.AddRange(studyGeneric);
             queries.AddRange(studySpecific);
             queries.AddRange(seriesGeneric);
