@@ -352,21 +352,25 @@ namespace Microsoft.Health.Dicom.Client
                 });
         }
 
-        public async Task<DicomWebResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken = default)
+        public async Task<DicomWebResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(customTagEntries, nameof(customTagEntries));
             using var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                new Uri($"/tags", UriKind.Relative));
+                new Uri(DicomWebConstants.BaseCustomTagUri, UriKind.Relative));
             string jsonString = JsonConvert.SerializeObject(customTagEntries);
             request.Content = new StringContent(jsonString);
-            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
             return new DicomWebResponse(response);
         }
 
-        public async Task<DicomWebResponse> DeleteCustomTagAsync(Uri requestUri, CancellationToken cancellationToken = default)
+        public async Task<DicomWebResponse> DeleteCustomTagAsync(string customTagPath, CancellationToken cancellationToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+            EnsureArg.IsNotNullOrWhiteSpace(customTagPath, nameof(customTagPath));
+
+            using var request = new HttpRequestMessage(HttpMethod.Delete, GenerateCustomTagUri(customTagPath));
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
@@ -419,6 +423,9 @@ namespace Microsoft.Health.Dicom.Client
 
         private static Uri GenerateStoreRequestUri(string studyInstanceUid)
             => new Uri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), UriKind.Relative);
+
+        private static Uri GenerateCustomTagUri(string tagPath)
+            => new Uri(string.Format(DicomWebConstants.BaseCustomTagUriFormat, tagPath), UriKind.Relative);
 
         private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
