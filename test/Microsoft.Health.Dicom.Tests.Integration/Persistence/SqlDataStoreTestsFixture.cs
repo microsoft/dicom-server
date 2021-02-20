@@ -6,13 +6,14 @@
 using System;
 using System.Numerics;
 using System.Threading.Tasks;
+using EnsureThat;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
+using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
@@ -34,16 +35,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private const string LocalConnectionString = "server=(local);Integrated Security=true";
 
         private readonly string _masterConnectionString;
+        private readonly string _initConnectionString;
         private readonly string _databaseName;
         private readonly SchemaInitializer _schemaInitializer;
 
-        public SqlDataStoreTestsFixture()
+        public SqlDataStoreTestsFixture(string databaseName)
         {
-            string initialConnectionString = Environment.GetEnvironmentVariable("SqlServer:ConnectionString") ?? LocalConnectionString;
-
-            _databaseName = $"DICOMINTEGRATIONTEST_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}_{BigInteger.Abs(new BigInteger(Guid.NewGuid().ToByteArray()))}";
-            _masterConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = "master" }.ToString();
-            TestConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = _databaseName }.ToString();
+            EnsureArg.IsNotNullOrEmpty(databaseName, nameof(databaseName));
+            _databaseName = databaseName;
+            _initConnectionString = Environment.GetEnvironmentVariable("SqlServer:ConnectionString") ?? LocalConnectionString;
+            _masterConnectionString = new SqlConnectionStringBuilder(_initConnectionString) { InitialCatalog = "master" }.ToString();
+            TestConnectionString = new SqlConnectionStringBuilder(_initConnectionString) { InitialCatalog = _databaseName }.ToString();
 
             var config = new SqlServerDataStoreConfiguration
             {
@@ -67,7 +69,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, mediator, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
 
-            var schemaInformation = new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V2);
+            var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
 
             _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, NullLogger<SchemaInitializer>.Instance);
 
@@ -88,6 +90,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         }
 
+        public SqlDataStoreTestsFixture()
+            : this(GetDatabaseName())
+        {
+        }
+
         public SqlTransactionHandler SqlTransactionHandler { get; }
 
         public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
@@ -102,7 +109,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
 
-        public async Task InitializeAsync()
+        public static string GetDatabaseName(string prefix = "DICOMINTEGRATIONTEST_")
+        {
+            return $"{prefix}{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}_{BigInteger.Abs(new BigInteger(Guid.NewGuid().ToByteArray()))}";
+        }
+
+        public async Task InitializeAsync(bool forceIncrementalSchemaUpgrade)
         {
             // Create the database
             using (var sqlConnection = new SqlConnection(_masterConnectionString))
@@ -136,7 +148,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     }
                 });
 
-            await _schemaInitializer.InitializeAsync();
+            await _schemaInitializer.InitializeAsync(forceIncrementalSchemaUpgrade);
+        }
+
+        public Task InitializeAsync()
+        {
+            return InitializeAsync(forceIncrementalSchemaUpgrade: false);
         }
 
         public async Task DisposeAsync()
