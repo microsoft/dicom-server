@@ -14,13 +14,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenTwoSchemaInitializationMethods_WhenCreatingTwoDatabases_BothSchemasShouldBeEquivalent()
         {
-            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GetDatabaseName("SNAPSHOT"));
-            SqlDataStoreTestsFixture diffFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GetDatabaseName("DIFF"));
-
             // Create two databases, one where we apply the the maximum supported version's snapshot SQL schema file
-            await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"));
 
             // And one where we apply .diff.sql files to upgrade the schema version to the maximum supported version.
+            SqlDataStoreTestsFixture diffFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("DIFF"));
+
+            await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
             await diffFixture.InitializeAsync(forceIncrementalSchemaUpgrade: true);
 
             SchemaCompareDatabaseEndpoint snapshotEndpoint = new SchemaCompareDatabaseEndpoint(snapshotFixture.TestConnectionString);

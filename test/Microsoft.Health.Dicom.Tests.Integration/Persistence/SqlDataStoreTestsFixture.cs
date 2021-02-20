@@ -35,17 +35,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private const string LocalConnectionString = "server=(local);Integrated Security=true";
 
         private readonly string _masterConnectionString;
-        private readonly string _initConnectionString;
         private readonly string _databaseName;
         private readonly SchemaInitializer _schemaInitializer;
 
-        public SqlDataStoreTestsFixture(string databaseName)
+        // Only 1 public constructor is allowed for test fixture.
+        internal SqlDataStoreTestsFixture(string databaseName)
         {
             EnsureArg.IsNotNullOrEmpty(databaseName, nameof(databaseName));
             _databaseName = databaseName;
-            _initConnectionString = Environment.GetEnvironmentVariable("SqlServer:ConnectionString") ?? LocalConnectionString;
-            _masterConnectionString = new SqlConnectionStringBuilder(_initConnectionString) { InitialCatalog = "master" }.ToString();
-            TestConnectionString = new SqlConnectionStringBuilder(_initConnectionString) { InitialCatalog = _databaseName }.ToString();
+            string initialConnectionString = Environment.GetEnvironmentVariable("SqlServer:ConnectionString") ?? LocalConnectionString;
+            _masterConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = "master" }.ToString();
+            TestConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = _databaseName }.ToString();
 
             var config = new SqlServerDataStoreConfiguration
             {
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         public SqlDataStoreTestsFixture()
-            : this(GetDatabaseName())
+            : this(GenerateDatabaseName())
         {
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
 
-        public static string GetDatabaseName(string prefix = "DICOMINTEGRATIONTEST_")
+        public static string GenerateDatabaseName(string prefix = "DICOMINTEGRATIONTEST_")
         {
             return $"{prefix}{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}_{BigInteger.Abs(new BigInteger(Guid.NewGuid().ToByteArray()))}";
         }
