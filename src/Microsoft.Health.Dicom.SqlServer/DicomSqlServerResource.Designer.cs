@@ -61,6 +61,15 @@ namespace Microsoft.Health.Dicom.SqlServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; is being processed..
+        /// </summary>
+        internal static string CustomTagIsBusy {
+            get {
+                return ResourceManager.GetString("CustomTagIsBusy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot carry out the SQL datastore operation because the SQL schema needs to be upgraded..
         /// </summary>
         internal static string SchemaVersionNeedsToBeUpgraded {
