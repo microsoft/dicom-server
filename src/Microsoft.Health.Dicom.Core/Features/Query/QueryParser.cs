@@ -170,11 +170,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 dicomTag = result[0];
                 return true;
             }
-            else
-            {
-                dicomTag = null;
-                return false;
-            }
+
+            dicomTag = null;
+            return false;
         }
 
         private static void ValidateIfTagSupported(DicomTag dicomTag, string attributeId, QueryResource resourceType)
