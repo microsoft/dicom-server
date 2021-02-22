@@ -56,12 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             IEnumerable<CustomTagEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
 
-            Dictionary<QueryResource, HashSet<DicomTag>> queryResourceToCustomTagMapping = null;
-
-            if (customTags.Any())
-            {
-                queryResourceToCustomTagMapping = GenerateQueryResourceToCustomTagMapping(customTags);
-            }
+            Dictionary<QueryResource, HashSet<DicomTag>> queryResourceToCustomTagMapping = GenerateQueryResourceToCustomTagMapping(customTags);
 
             QueryExpression queryExpression = _queryParser.Parse(message, queryResourceToCustomTagMapping);
 
@@ -90,55 +85,37 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 DicomTag[] result;
                 DicomTag dicomTag;
-                if (_dicomTagPathParser.TryParse(customTag.Path, out result))
+                if (CustomTagStatus.Added.Equals(customTag.Status) && _dicomTagPathParser.TryParse(customTag.Path, out result))
                 {
                     dicomTag = result[0];
                     switch (customTag.Level)
                     {
                         case CustomTagLevel.Instance:
-                            if (!ret.ContainsKey(QueryResource.AllInstances))
-                            {
-                                ret.Add(QueryResource.AllInstances, new HashSet<DicomTag>());
-                            }
+                            ret.TryAdd(QueryResource.AllInstances, new HashSet<DicomTag>());
 
                             ret[QueryResource.AllInstances].Add(dicomTag);
 
-                            if (!ret.ContainsKey(QueryResource.StudyInstances))
-                            {
-                                ret.Add(QueryResource.StudyInstances, new HashSet<DicomTag>());
-                            }
+                            ret.TryAdd(QueryResource.StudyInstances, new HashSet<DicomTag>());
 
                             ret[QueryResource.StudyInstances].Add(dicomTag);
 
-                            if (!ret.ContainsKey(QueryResource.StudySeriesInstances))
-                            {
-                                ret.Add(QueryResource.StudySeriesInstances, new HashSet<DicomTag>());
-                            }
+                            ret.TryAdd(QueryResource.StudySeriesInstances, new HashSet<DicomTag>());
 
                             ret[QueryResource.StudySeriesInstances].Add(dicomTag);
 
                             break;
                         case CustomTagLevel.Series:
-                            if (!ret.ContainsKey(QueryResource.AllSeries))
-                            {
-                                ret.Add(QueryResource.AllSeries, new HashSet<DicomTag>());
-                            }
+                            ret.TryAdd(QueryResource.AllSeries, new HashSet<DicomTag>());
 
                             ret[QueryResource.AllSeries].Add(dicomTag);
 
-                            if (!ret.ContainsKey(QueryResource.StudySeries))
-                            {
-                                ret.Add(QueryResource.StudySeries, new HashSet<DicomTag>());
-                            }
+                            ret.TryAdd(QueryResource.StudySeries, new HashSet<DicomTag>());
 
                             ret[QueryResource.StudySeries].Add(dicomTag);
 
                             break;
                         case CustomTagLevel.Study:
-                            if (!ret.ContainsKey(QueryResource.AllStudies))
-                            {
-                                ret.Add(QueryResource.AllStudies, new HashSet<DicomTag>());
-                            }
+                            ret.TryAdd(QueryResource.AllStudies, new HashSet<DicomTag>());
 
                             ret[QueryResource.AllStudies].Add(dicomTag);
 

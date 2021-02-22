@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             _customTagStore.GetCustomTagsAsync(default).Returns(new List<CustomTagEntry>());
             GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync();
 
-            Assert.Equal("No custom tags can be found.", exception.Message);
+            Assert.Empty(response.CustomTags);
         }
 
         [Fact]

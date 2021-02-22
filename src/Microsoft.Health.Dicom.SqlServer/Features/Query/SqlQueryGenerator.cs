@@ -3,11 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Schema.Model;
@@ -24,6 +27,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private const string InstanceTableAlias = "i";
         private const string StudyTableAlias = "st";
         private const string SeriesTableAlias = "se";
+        private const string CustomTagBigIntTableAlias = "ctbi";
+        private const string CustomTagDateTimeTableAlias = "ctdt";
+        private const string CustomTagDoubleTableAlias = "ctd";
+        private const string CustomTagPersonNameTableAlias = "ctpn";
+        private const string CustomTagStringTableAlias = "cts";
 
         public SqlQueryGenerator(
             IndentedStringBuilder stringBuilder,
@@ -110,6 +118,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 AppendStatusClause(InstanceTableAlias);
             }
 
+            AppendCustomTagTables();
+
             _stringBuilder.AppendLine("WHERE 1 = 1");
             using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
             {
@@ -119,6 +129,80 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             AppendFilterPaging();
 
             _stringBuilder.AppendLine($") {filterAlias}");
+        }
+
+        private void AppendCustomTagTables()
+        {
+            HashSet<CustomTagDataType> queriedCustomTagDataTypes = new HashSet<CustomTagDataType>();
+            foreach (DicomVR vrCode in _queryExpression.QueriedCustomTagVRCodes)
+            {
+                CustomTagDataType dataType;
+                CustomTagLimit.CustomTagVRAndDataTypeMapping.TryGetValue(vrCode.Code, out dataType);
+                queriedCustomTagDataTypes.Add(dataType);
+            }
+
+            foreach (CustomTagDataType dataType in queriedCustomTagDataTypes)
+            {
+                string customTagTableAlias = null;
+                _stringBuilder.Append("INNER JOIN ");
+                switch (dataType)
+                {
+                    case CustomTagDataType.StringData:
+                        _stringBuilder.AppendLine($"{VLatest.CustomTagString.TableName} {CustomTagStringTableAlias}");
+                        customTagTableAlias = CustomTagStringTableAlias;
+
+                        break;
+                    case CustomTagDataType.LongData:
+                        _stringBuilder.AppendLine($"{VLatest.CustomTagBigInt.TableName} {CustomTagBigIntTableAlias}");
+                        customTagTableAlias = CustomTagBigIntTableAlias;
+
+                        break;
+                    case CustomTagDataType.DoubleData:
+                        _stringBuilder.AppendLine($"{VLatest.CustomTagDouble.TableName} {CustomTagDoubleTableAlias}");
+                        customTagTableAlias = CustomTagDoubleTableAlias;
+
+                        break;
+                    case CustomTagDataType.DateTimeData:
+                        _stringBuilder.AppendLine($"{VLatest.CustomTagDateTime.TableName} {CustomTagDateTimeTableAlias}");
+                        customTagTableAlias = CustomTagDateTimeTableAlias;
+
+                        break;
+                    case CustomTagDataType.PersonNameData:
+                        _stringBuilder.AppendLine($"{VLatest.CustomTagPersonName.TableName} {CustomTagPersonNameTableAlias}");
+                        customTagTableAlias = CustomTagPersonNameTableAlias;
+
+                        break;
+                }
+
+                _stringBuilder
+                    .Append("ON ")
+                    .Append($"{customTagTableAlias}.StudyKey")
+                    .Append(" = ")
+                    .AppendLine(VLatest.Study.StudyKey, StudyTableAlias);
+
+                using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedOnClause())
+                {
+                    if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
+                    {
+                        _stringBuilder
+                            .Append("AND ")
+                            .Append("ON ")
+                            .Append($"{customTagTableAlias}.SeriesKey")
+                            .Append(" = ")
+                            .AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
+                    }
+
+                    if (_queryExpression.IsInstanceIELevel())
+                    {
+                        _stringBuilder
+                            .Append("AND ")
+                            .Append("ON ")
+                            .Append($"{customTagTableAlias}.InstanceKey")
+                            .Append(" = ")
+                            .AppendLine(VLatest.Instance.InstanceKey, InstanceTableAlias);
+                    }
+                }
+            }
         }
 
         private void AppendCrossApplyTable(string crossApplyAlias, string filterAlias)
@@ -307,6 +391,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 case SqlTableType.InstanceTable: return InstanceTableAlias;
                 case SqlTableType.StudyTable: return StudyTableAlias;
                 case SqlTableType.SeriesTable: return SeriesTableAlias;
+                case SqlTableType.CustomTagBigIntTable: return CustomTagBigIntTableAlias;
+                case SqlTableType.CustomTagDateTimeTable: return CustomTagDateTimeTableAlias;
+                case SqlTableType.CustomTagDoubleTable: return CustomTagDoubleTableAlias;
+                case SqlTableType.CustomTagPersonNameTable: return CustomTagPersonNameTableAlias;
+                case SqlTableType.CustomTagStringTable: return CustomTagStringTableAlias;
             }
 
             Debug.Fail("Invalid table type");

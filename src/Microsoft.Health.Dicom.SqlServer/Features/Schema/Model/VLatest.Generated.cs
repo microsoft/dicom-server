@@ -24,6 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
+        internal readonly static AddCustomTagsProcedure AddCustomTags = new AddCustomTagsProcedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static DeleteCustomTagProcedure DeleteCustomTag = new DeleteCustomTagProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
@@ -231,6 +232,52 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Study_StudyDate = new Index("IX_Study_StudyDate");
             internal readonly Index IX_Study_StudyDescription = new Index("IX_Study_StudyDescription");
             internal readonly Index IX_Study_AccessionNumber = new Index("IX_Study_AccessionNumber");
+        }
+
+        internal class AddCustomTagsProcedure : StoredProcedure
+        {
+            internal AddCustomTagsProcedure() : base("dbo.AddCustomTags")
+            {
+            }
+
+            private readonly AddCustomTagsInputTableTypeV1TableValuedParameterDefinition _customTags = new AddCustomTagsInputTableTypeV1TableValuedParameterDefinition("@customTags");
+
+            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<AddCustomTagsInputTableTypeV1Row> customTags)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.AddCustomTags";
+                _customTags.AddParameter(command.Parameters, customTags);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, AddCustomTagsTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, customTags: tableValuedParameters.CustomTags);
+            }
+        }
+
+        internal class AddCustomTagsTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddCustomTagsTableValuedParameters>
+        {
+            public AddCustomTagsTvpGenerator(ITableValuedParameterRowGenerator<TInput, AddCustomTagsInputTableTypeV1Row> AddCustomTagsInputTableTypeV1RowGenerator)
+            {
+                this.AddCustomTagsInputTableTypeV1RowGenerator = AddCustomTagsInputTableTypeV1RowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, AddCustomTagsInputTableTypeV1Row> AddCustomTagsInputTableTypeV1RowGenerator;
+
+            public AddCustomTagsTableValuedParameters Generate(TInput input)
+            {
+                return new AddCustomTagsTableValuedParameters(AddCustomTagsInputTableTypeV1RowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct AddCustomTagsTableValuedParameters
+        {
+            internal AddCustomTagsTableValuedParameters(global::System.Collections.Generic.IEnumerable<AddCustomTagsInputTableTypeV1Row> CustomTags)
+            {
+                this.CustomTags = CustomTags;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<AddCustomTagsInputTableTypeV1Row> CustomTags { get; }
         }
 
         internal class AddInstanceProcedure : StoredProcedure
