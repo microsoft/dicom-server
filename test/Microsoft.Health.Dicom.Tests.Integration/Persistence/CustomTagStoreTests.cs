@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
@@ -82,7 +83,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task VerifyTagIsAdded(CustomTagEntry customTagEntry)
         {
-            CustomTagEntry actualCustomTagEntry = await _customTagStore.GetCustomTagAsync(customTagEntry.Path);
+            var actualCustomTagEntries = await _customTagStore.GetCustomTagsAsync(customTagEntry.Path);
+            CustomTagEntry actualCustomTagEntry = actualCustomTagEntries.First();
             Assert.Equal(customTagEntry.Path, actualCustomTagEntry.Path);
             Assert.Equal(customTagEntry.VR, actualCustomTagEntry.VR);
             Assert.Equal(customTagEntry.Level, actualCustomTagEntry.Level);
@@ -91,7 +93,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task VerifyTagNotExist(string tagPath)
         {
-            var customTagEntries = await _customTagStore.GetAllCustomTagsAsync();
+            var customTagEntries = await _customTagStore.GetCustomTagsAsync();
             Assert.DoesNotContain(customTagEntries, item => item.Path.Equals(tagPath));
         }
     }

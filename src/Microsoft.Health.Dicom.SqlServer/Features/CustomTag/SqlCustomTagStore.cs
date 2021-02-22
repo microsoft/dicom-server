@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 IEnumerable<AddCustomTagsInputTableTypeV1Row> rows = customTagEntries.Select(ToAddCustomTagsInputTableTypeV1Row);
-                VLatest.AddCustomTags.PopulateCommand(sqlCommandWrapper, new VLatest.AddCustomTagsTableValuedParameters(rows));
+                V2.AddCustomTags.PopulateCommand(sqlCommandWrapper, new V2.AddCustomTagsTableValuedParameters(rows));
 
                 try
                 {
@@ -73,19 +73,41 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             }
         }
 
+        public async Task<IEnumerable<CustomTagEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default)
+        {
+            if (_schemaInformation.Current < SchemaVersionConstants.SupportCustomTagSchemaVersion)
+            {
+                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+            }
+
+            List<CustomTagEntry> results = new List<CustomTagEntry>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                V2.GetCustomTag.PopulateCommand(sqlCommandWrapper, path);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (string tagPath, string tagVR, int tagLevel, int tagStatus) = reader.ReadRow(
+                           V2.CustomTag.TagPath,
+                           V2.CustomTag.TagVR,
+                           V2.CustomTag.TagLevel,
+                           V2.CustomTag.TagStatus);
+
+                        results.Add(new CustomTagEntry { Path = tagPath, VR = tagVR, Level = (CustomTagLevel)tagLevel, Status = (CustomTagStatus)tagStatus });
+                    }
+                }
+            }
+
+            return results;
+        }
+
         private static AddCustomTagsInputTableTypeV1Row ToAddCustomTagsInputTableTypeV1Row(CustomTagEntry entry)
         {
             return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, (byte)entry.Level);
-        }
-
-        public Task<CustomTagEntry> GetCustomTagAsync(string path, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<IEnumerable<CustomTagEntry>> GetAllCustomTagsAsync(CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
         }
 
         public async Task DeleteCustomTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
@@ -109,7 +131,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
                     switch (ex.Number)
                     {
                         case SqlErrorCodes.NotFound:
-                            throw new CustomTagNotFoundException();
+                            throw new CustomTagNotFoundException(
+                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.CustomTagNotFound, tagPath));
                         case SqlErrorCodes.PreconditionFailed:
                             throw new CustomTagBusyException(
                                 string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.CustomTagIsBusy, tagPath));

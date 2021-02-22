@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -43,9 +45,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
             string normalizedPath = tags[0].GetPath();
 
-            CustomTagEntry customTagEntry = await _customTagStore.GetCustomTagAsync(normalizedPath, cancellationToken);
+            IEnumerable<CustomTagEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(normalizedPath, cancellationToken);
 
-            await _customTagStore.DeleteCustomTagAsync(normalizedPath, customTagEntry.VR, cancellationToken);
+            await _customTagStore.DeleteCustomTagAsync(normalizedPath, customTagEntries.First().VR, cancellationToken);
         }
     }
 }

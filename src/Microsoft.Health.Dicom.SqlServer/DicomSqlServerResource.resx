@@ -121,6 +121,10 @@
     <value>The custom tag '{0}' is being processed.</value>
     <comment>{0} is tag path</comment>
   </data>
+  <data name="CustomTagNotFound" xml:space="preserve">
+    <value>The specified custom tag with tag path {0} cannot be found.</value>
+    <comment>{0} tagPath on request</comment>
+  </data>
   <data name="SchemaVersionNeedsToBeUpgraded" xml:space="preserve">
     <value>Cannot carry out the SQL datastore operation because the SQL schema needs to be upgraded.</value>
   </data>

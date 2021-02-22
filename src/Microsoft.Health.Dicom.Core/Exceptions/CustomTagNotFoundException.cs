@@ -6,12 +6,12 @@
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Exception thrown when custom tag is not found.
+    /// Exception thrown when custom tags don't exist or custom tag with given tag path does not exist.
     /// </summary>
-    public class CustomTagNotFoundException : ValidationException
+    public class CustomTagNotFoundException : ResourceNotFoundException
     {
-        public CustomTagNotFoundException()
-            : base(DicomCoreResource.CustomTagNotFound)
+        public CustomTagNotFoundException(string message)
+            : base(message)
         {
         }
     }

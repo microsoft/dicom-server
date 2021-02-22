@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
@@ -25,8 +24,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         public async Task<GetCustomTagResponse> Handle(GetCustomTagRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
-
-            TagPathValidator.Validate(request.CustomTagPath);
 
             return await _getCustomTagsService.GetCustomTagAsync(request.CustomTagPath, cancellationToken);
         }

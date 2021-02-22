@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
@@ -29,10 +31,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         }
 
         [Fact]
-        public async Task GivenRequestForAllTags_WhenNoTagsAreStored_ThenEmptyListShouldBeReturned()
+        public async Task GivenRequestForAllTags_WhenNoTagsAreStored_ThenExceptionShouldBeThrown()
         {
-            _customTagStore.GetAllCustomTagsAsync(default).Returns(new List<CustomTagEntry>());
-            GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync(default);
+            _customTagStore.GetCustomTagsAsync(default).Returns(new List<CustomTagEntry>());
+            GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync();
 
             Assert.Empty(response.CustomTags);
         }
@@ -45,8 +47,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
 
             List<CustomTagEntry> storedEntries = new List<CustomTagEntry>() { tag1, tag2 };
 
-            _customTagStore.GetAllCustomTagsAsync(default).Returns(storedEntries);
-            GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync(default);
+            _customTagStore.GetCustomTagsAsync(default).Returns(storedEntries);
+            GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync();
 
             List<CustomTagEntry> result = storedEntries.Except(response.CustomTags).ToList();
 
@@ -54,28 +56,37 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         }
 
         [Fact]
-        public async Task GivenRequestForCustomTag_WhenTagDoesntExist_ThenCustomTagEntryShouldBeNull()
+        public async Task GivenRequestForCustomTag_WhenTagDoesntExist_ThenExceptionShouldBeThrown()
         {
-            string tagPath = "(0101,2323)";
-            string storedTagPath = "01012323";
-            CustomTagEntry stored = null;
+            string tagPath = DicomTag.DeviceID.GetPath();
+            DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
 
-            _dicomTagParser.ParseFormattedTagPath(tagPath).Returns(storedTagPath);
-            _customTagStore.GetCustomTagAsync(storedTagPath, default).Returns(stored);
-            GetCustomTagResponse response = await _getCustomTagsService.GetCustomTagAsync(tagPath);
+            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
+            {
+                x[1] = parsedTags;
+                return true;
+            });
 
-            Assert.Null(response.CustomTag);
+            _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagEntry>());
+            var exception = await Assert.ThrowsAsync<CustomTagNotFoundException>(() => _getCustomTagsService.GetCustomTagAsync(tagPath));
+
+            Assert.Equal(string.Format("The specified custom tag with tag path {0} cannot be found.", tagPath), exception.Message);
         }
 
         [Fact]
         public async Task GivenRequestForCustomTag_WhenTagExists_ThenCustomTagEntryShouldBeReturned()
         {
-            string tagPath = "(0101,2323)";
-            string storedTagPath = "01012323";
-            CustomTagEntry stored = CreateCustomTagEntry("01012323", DicomVRCode.AE.ToString(), CustomTagLevel.Instance, CustomTagStatus.Added);
+            string tagPath = DicomTag.DeviceID.GetPath();
+            CustomTagEntry stored = CreateCustomTagEntry(tagPath, DicomVRCode.AE.ToString());
+            DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
 
-            _dicomTagParser.ParseFormattedTagPath(tagPath).Returns(storedTagPath);
-            _customTagStore.GetCustomTagAsync(storedTagPath, default).Returns(stored);
+            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
+            {
+                x[1] = parsedTags;
+                return true;
+            });
+
+            _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagEntry> { stored });
             GetCustomTagResponse response = await _getCustomTagsService.GetCustomTagAsync(tagPath);
 
             Assert.Equal(stored, response.CustomTag);

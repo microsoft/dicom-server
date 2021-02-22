@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -37,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Fact]
         public async Task GivenNotExistingTagPath_WhenDeleteCustomTagIsInvoked_ThenShouldThrowException()
         {
-            _customTagStore.GetCustomTagAsync(default, default).ReturnsForAnyArgs(new Func<NSubstitute.Core.CallInfo, CustomTagEntry>((x) => { throw new Exception(); }));
+            _customTagStore.GetCustomTagsAsync(default, default).ReturnsForAnyArgs(new Func<NSubstitute.Core.CallInfo, IEnumerable<CustomTagEntry>>((x) => { throw new Exception(); }));
             await Assert.ThrowsAsync<Exception>(() => _customTagService.DeleteCustomTagAsync(DicomTag.DeviceSerialNumber.GetPath()));
         }
 
@@ -47,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             DicomTag tag = DicomTag.DeviceSerialNumber;
             string tagPath = tag.GetPath();
             CustomTagEntry entry = tag.BuildCustomTagEntry();
-            _customTagStore.GetCustomTagAsync(default, default).ReturnsForAnyArgs(Task.FromResult(entry));
+            _customTagStore.GetCustomTagsAsync(default, default).ReturnsForAnyArgs(new List<CustomTagEntry> { entry });
             await _customTagService.DeleteCustomTagAsync(tagPath);
             await _customTagStore.ReceivedWithAnyArgs(1)
                 .DeleteCustomTagAsync(default, default);

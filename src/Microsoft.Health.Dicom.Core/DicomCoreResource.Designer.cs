@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class DicomCoreResource {
@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified custom tag cannot be found..
+        ///   Looks up a localized string similar to The specified custom tag with tag path {0} cannot be found..
         /// </summary>
         internal static string CustomTagNotFound {
             get {
@@ -423,6 +423,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sequential dicom tags are currently not supported..
+        /// </summary>
+        internal static string SequentialDicomTagsNotSupported {
+            get {
+                return ResourceManager.GetString("SequentialDicomTagsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified series cannot be found..
         /// </summary>
         internal static string SeriesInstanceNotFound {
@@ -464,15 +473,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string StudyNotFound {
             get {
                 return ResourceManager.GetString("StudyNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The requested tag {0} is in the wrong format..
-        /// </summary>
-        internal static string TagPathValidation {
-            get {
-                return ResourceManager.GetString("TagPathValidation", resourceCulture);
             }
         }
         
