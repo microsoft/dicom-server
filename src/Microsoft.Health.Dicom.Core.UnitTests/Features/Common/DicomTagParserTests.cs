@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -39,20 +38,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
             DicomTag[] tags;
             bool succeed = _dicomTagParser.TryParse(dicomTagPath, out tags, supportMultiple: false);
             Assert.False(succeed);
-        }
-
-        [Fact]
-        public void GivenDicomTagPath_WhenParsingFormattedTagPath_ThenShouldRemoveUnnecessaryCharacters()
-        {
-            string tag = "00001111";
-            string parsedString = _dicomTagParser.ParseFormattedTagPath(tag);
-            Assert.Equal(tag, parsedString);
-        }
-
-        [Fact]
-        public void GivenSequentialDicomTagPath_WhenParsingFormattedTagPath_ThenShouldThrow()
-        {
-            Assert.Throws<NotImplementedException>(() => { _dicomTagParser.ParseFormattedTagPath("00001111.23234545"); });
         }
 
         public static IEnumerable<object[]> GetValidTags()

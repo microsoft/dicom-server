@@ -14,15 +14,23 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     internal class VLatest
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
+        internal readonly static CustomTagTable CustomTag = new CustomTagTable();
+        internal readonly static CustomTagBigIntTable CustomTagBigInt = new CustomTagBigIntTable();
+        internal readonly static CustomTagDateTimeTable CustomTagDateTime = new CustomTagDateTimeTable();
+        internal readonly static CustomTagDoubleTable CustomTagDouble = new CustomTagDoubleTable();
+        internal readonly static CustomTagPersonNameTable CustomTagPersonName = new CustomTagPersonNameTable();
+        internal readonly static CustomTagStringTable CustomTagString = new CustomTagStringTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
+        internal readonly static DeleteCustomTagProcedure DeleteCustomTag = new DeleteCustomTagProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
+        internal readonly static GetCustomTagProcedure GetCustomTag = new GetCustomTagProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
@@ -44,6 +52,99 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
             internal readonly Index IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
+        }
+
+        internal class CustomTagTable : Table
+        {
+            internal CustomTagTable() : base("dbo.CustomTag")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly VarCharColumn TagPath = new VarCharColumn("TagPath", 64);
+            internal readonly VarCharColumn TagVR = new VarCharColumn("TagVR", 2);
+            internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+            internal readonly TinyIntColumn TagStatus = new TinyIntColumn("TagStatus");
+            internal readonly Index IXC_CustomTag = new Index("IXC_CustomTag");
+            internal readonly Index IX_CustomTag_TagPath = new Index("IX_CustomTag_TagPath");
+        }
+
+        internal class CustomTagBigIntTable : Table
+        {
+            internal CustomTagBigIntTable() : base("dbo.CustomTagBigInt")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly Index IXC_CustomTagBigInt = new Index("IXC_CustomTagBigInt");
+        }
+
+        internal class CustomTagDateTimeTable : Table
+        {
+            internal CustomTagDateTimeTable() : base("dbo.CustomTagDateTime")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly Index IXC_CustomTagDateTime = new Index("IXC_CustomTagDateTime");
+        }
+
+        internal class CustomTagDoubleTable : Table
+        {
+            internal CustomTagDoubleTable() : base("dbo.CustomTagDouble")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly FloatColumn TagValue = new FloatColumn("TagValue", 53);
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly Index IXC_CustomTagDouble = new Index("IXC_CustomTagDouble");
+        }
+
+        internal class CustomTagPersonNameTable : Table
+        {
+            internal CustomTagPersonNameTable() : base("dbo.CustomTagPersonName")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 200, "SQL_Latin1_General_CP1_CI_AI");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal const string WatermarkAndTagKey = "WatermarkAndTagKey";
+            internal const string TagValueWords = "TagValueWords";
+            internal readonly Index IXC_CustomTagPersonName = new Index("IXC_CustomTagPersonName");
+            internal readonly Index IXC_CustomTagPersonName_WatermarkAndTagKey = new Index("IXC_CustomTagPersonName_WatermarkAndTagKey");
+        }
+
+        internal class CustomTagStringTable : Table
+        {
+            internal CustomTagStringTable() : base("dbo.CustomTagString")
+            {
+            }
+
+            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 64);
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly Index IXC_CustomTagString = new Index("IXC_CustomTagString");
         }
 
         internal class DeletedInstanceTable : Table
@@ -170,6 +271,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class DeleteCustomTagProcedure : StoredProcedure
+        {
+            internal DeleteCustomTagProcedure() : base("dbo.DeleteCustomTag")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Byte> _dataType = new ParameterDefinition<System.Byte>("@dataType", global::System.Data.SqlDbType.TinyInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte dataType)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.DeleteCustomTag";
+                _tagPath.AddParameter(command.Parameters, tagPath);
+                _dataType.AddParameter(command.Parameters, dataType);
+            }
+        }
+
         internal class DeleteDeletedInstanceProcedure : StoredProcedure
         {
             internal DeleteDeletedInstanceProcedure() : base("dbo.DeleteDeletedInstance")
@@ -244,6 +363,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetChangeFeedLatest";
+            }
+        }
+
+        internal class GetCustomTagProcedure : StoredProcedure
+        {
+            internal GetCustomTagProcedure() : base("dbo.GetCustomTag")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, true, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetCustomTag";
+                _tagPath.AddParameter(command.Parameters, tagPath);
             }
         }
 

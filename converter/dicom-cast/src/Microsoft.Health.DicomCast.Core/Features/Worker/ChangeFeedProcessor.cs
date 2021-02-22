@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Core;
@@ -18,6 +17,7 @@ using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+using Polly.Timeout;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker
@@ -90,7 +90,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                     }
                     catch (Exception ex)
                     {
-                        if (ex is FhirNonRetryableException || ex is DicomTagException || ex is RetryableException || ex is TaskCanceledException)
+                        if (ex is FhirNonRetryableException || ex is DicomTagException || ex is TimeoutRejectedException)
                         {
                             string studyUid = changeFeedEntry.StudyInstanceUid;
                             string seriesUid = changeFeedEntry.SeriesInstanceUid;
@@ -103,7 +103,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                             {
                                 errorType = ErrorType.DicomError;
                             }
-                            else if (ex is RetryableException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested))
+                            else if (ex is TimeoutRejectedException)
                             {
                                 errorType = ErrorType.TransientFailure;
                             }

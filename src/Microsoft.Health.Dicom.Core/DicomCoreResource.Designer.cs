@@ -160,6 +160,34 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There are {0} roles with the name &apos;{1}&apos;.
+        /// </summary>
+        internal static string DuplicateRoleNames {
+            get {
+                return ResourceManager.GetString("DuplicateRoleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error validating roles:
+        ///{0}.
+        /// </summary>
+        internal static string ErrorValidatingRoles {
+            get {
+                return ResourceManager.GetString("ErrorValidatingRoles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authorization failed..
+        /// </summary>
+        internal static string Forbidden {
+            get {
+                return ResourceManager.GetString("Forbidden", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified frame cannot be found..
         /// </summary>
         internal static string FrameNotFound {
@@ -413,6 +441,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sequential dicom tags are currently not supported..
+        /// </summary>
+        internal static string SequentialDicomTagsNotSupported {
+            get {
+                return ResourceManager.GetString("SequentialDicomTagsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified series cannot be found..
         /// </summary>
         internal static string SeriesInstanceNotFound {
@@ -454,15 +491,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string StudyNotFound {
             get {
                 return ResourceManager.GetString("StudyNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The requested tag {0} is in the wrong format..
-        /// </summary>
-        internal static string TagPathValidation {
-            get {
-                return ResourceManager.GetString("TagPathValidation", resourceCulture);
             }
         }
         

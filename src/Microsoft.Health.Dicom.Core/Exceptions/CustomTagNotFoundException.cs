@@ -10,11 +10,6 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     /// </summary>
     public class CustomTagNotFoundException : ResourceNotFoundException
     {
-        public CustomTagNotFoundException()
-            : base(DicomCoreResource.CustomTagsDoNotExist)
-        {
-        }
-
         public CustomTagNotFoundException(string message)
             : base(message)
         {

@@ -233,10 +233,6 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="StudyInstanceNotFound" xml:space="preserve">
     <value>The specified study cannot be found.</value>
   </data>
-  <data name="TagPathValidation" xml:space="preserve">
-    <value>The requested tag {0} is in the wrong format.</value>
-    <comment> {0} tagPath on request</comment>
-  </data>
   <data name="UnknownQueryParameter" xml:space="preserve">
     <value>Invalid QIDO-RS query. Unknown query parameter '{0}'. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and queryable attributes.</value>
     <comment>{0} Parameter name</comment>
@@ -299,18 +295,24 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The CR code '{0}' is not supported.</value>
     <comment>{0} VR Code.</comment>
   </data>
+  <data name="Forbidden" xml:space="preserve">
+    <value>Authorization failed.</value>
+  </data>
+  <data name="ErrorValidatingRoles" xml:space="preserve">
+    <value>Error validating roles:
+{0}</value>
+  </data>
+  <data name="DuplicateRoleNames" xml:space="preserve">
+    <value>There are {0} roles with the name '{1}'</value>
+  </data>
   <data name="CustomTagsAlreadyExists" xml:space="preserve">
     <value>One or more custom tags already exist.</value>
-  </data>
-  <data name="MultipleCustomTagsFound" xml:space="preserve">
-    <value>Multiple custom tags found for the specified tag path {0}</value>
-    <comment>{0} tagPath on request</comment>
   </data>
   <data name="CustomTagNotFound" xml:space="preserve">
     <value>The specified custom tag with tag path {0} cannot be found.</value>
     <comment>{0} tagPath on request</comment>
   </data>
-  <data name="CustomTagsDoNotExist" xml:space="preserve">
-    <value>No custom tags can be found.</value>
+  <data name="SequentialDicomTagsNotSupported" xml:space="preserve">
+    <value>Sequential dicom tags are currently not supported.</value>
   </data>
 </root>

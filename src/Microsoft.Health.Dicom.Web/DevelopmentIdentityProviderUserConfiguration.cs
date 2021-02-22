@@ -3,13 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+using System.Collections.Generic;
+
+namespace Microsoft.Health.Dicom.Web
 {
-    public class TagPathValidationException : ValidationException
+    public class DevelopmentIdentityProviderUserConfiguration
     {
-        public TagPathValidationException(string message)
-            : base(message)
-        {
-        }
+        public string Id { get; set; }
+
+        public IList<string> Roles { get; } = new List<string>();
     }
 }

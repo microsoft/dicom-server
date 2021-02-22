@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,6 +105,38 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             return results;
         }
 
+        public async Task<IEnumerable<CustomTagEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default)
+        {
+            if (_schemaInformation.Current < SchemaVersionConstants.SupportCustomTagSchemaVersion)
+            {
+                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+            }
+
+            List<CustomTagEntry> results = new List<CustomTagEntry>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                V2.GetCustomTag.PopulateCommand(sqlCommandWrapper, path);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (string tagPath, string tagVR, int tagLevel, int tagStatus) = reader.ReadRow(
+                           V2.CustomTag.TagPath,
+                           V2.CustomTag.TagVR,
+                           V2.CustomTag.TagLevel,
+                           V2.CustomTag.TagStatus);
+
+                        results.Add(new CustomTagEntry { Path = tagPath, VR = tagVR, Level = (CustomTagLevel)tagLevel, Status = (CustomTagStatus)tagStatus });
+                    }
+                }
+            }
+
+            return results;
+        }
+
         public Task DeleteCustomTagAsync(long key, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
@@ -112,6 +145,39 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
         private static AddCustomTagsInputTableTypeV1Row ToAddCustomTagsInputTableTypeV1Row(CustomTagEntry entry)
         {
             return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, (byte)entry.Level);
+        }
+
+        public async Task DeleteCustomTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
+        {
+            if (_schemaInformation.Current < SchemaVersionConstants.SupportCustomTagSchemaVersion)
+            {
+                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+            }
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.DeleteCustomTag.PopulateCommand(sqlCommandWrapper, tagPath, (byte)CustomTagLimit.CustomTagVRAndDataTypeMapping[vr]);
+
+                try
+                {
+                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    switch (ex.Number)
+                    {
+                        case SqlErrorCodes.NotFound:
+                            throw new CustomTagNotFoundException(
+                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.CustomTagNotFound, tagPath));
+                        case SqlErrorCodes.PreconditionFailed:
+                            throw new CustomTagBusyException(
+                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.CustomTagIsBusy, tagPath));
+                        default:
+                            throw new DataStoreException(ex);
+                    }
+                }
+            }
         }
     }
 }

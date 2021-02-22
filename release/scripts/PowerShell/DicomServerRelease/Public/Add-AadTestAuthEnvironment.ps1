@@ -109,7 +109,11 @@ function Add-AadTestAuthEnvironment {
         $application = Get-AzureAdApplicationByIdentifierUri $dicomServiceAudience
     }
 
-    Write-Host "Ensuring users for API Application exist"
+    Write-Host "Setting roles on API Application"
+    $appRoles = ($testAuthEnvironment.users.roles + $testAuthEnvironment.clientApplications.roles) | Select-Object -Unique
+    Set-DicomServerApiApplicationRoles -ApiAppId $application.AppId -AppRoles $appRoles | Out-Null
+
+    Write-Host "Ensuring users and rol assignments for API Application exist"
     $environmentUsers = Set-DicomServerApiUsers -UserNamePrefix $EnvironmentName -TenantDomain $tenantInfo.TenantDomain -ApiAppId $application.AppId -UserConfiguration $testAuthEnvironment.Users -KeyVaultName $KeyVaultName
 
     $environmentClientApplications = @()
@@ -144,6 +148,8 @@ function Add-AadTestAuthEnvironment {
         $appIdSecureString = ConvertTo-SecureString -String $aadClientApplication.AppId -AsPlainText -Force
         Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "app--$($clientApp.Id)--id" -SecretValue $appIdSecureString | Out-Null
         Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "app--$($clientApp.Id)--secret" -SecretValue $secretSecureString | Out-Null
+        
+        Set-DicomServerClientAppRoleAssignments -ApiAppId $application.AppId -AppId $aadClientApplication.AppId -AppRoles $clientApp.roles | Out-Null
     }
 
     Write-Host "Set token and auth url in key vault"

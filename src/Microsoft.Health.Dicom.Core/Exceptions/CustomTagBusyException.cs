@@ -3,10 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.DicomCast.Blob
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    internal static class Constants
+    /// <summary>
+    /// Exception thrown when custom tag is busy. (e.g: trying to delete custom tag when it's reindexing)
+    /// </summary>
+    public class CustomTagBusyException : ValidationException
     {
-        public const string ContainerConfigurationOptionsName = "dicomCastSyncStateBlob";
+        public CustomTagBusyException(string message)
+            : base(message)
+        {
+        }
     }
 }

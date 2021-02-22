@@ -12,6 +12,7 @@ using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.DicomCast.TableStorage.Features.Health;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage;
+using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.DicomCast.TableStorage
@@ -75,6 +76,11 @@ namespace Microsoft.Health.DicomCast.TableStorage
                 .AsService<ITableClientInitializer>();
 
             serviceCollection.Add<TableExceptionStore>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            serviceCollection.Add<TableSyncStateStore>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
