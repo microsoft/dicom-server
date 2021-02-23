@@ -44,4 +44,12 @@ steps:
   inputs:
     InputType: 'Basic'
     Function: 'analyze'
-    AnalyzeTarget: '$(Build.StagingDirectory)\**.dll;$(Build.StagingDirectory)\**.exe'
+    AnalyzeTarget: '$(Build.StagingDirectory)\bin\*.dll;$(Build.StagingDirectory)\bin\*.exe'
+    AnalyzeRecurse: true
+
+- task: CredScan@2
+  displayName: 'Run CredScan'
+  inputs:
+    scanFolder: '$(Build.SourcesDirectory)'
+    toolMajorVersion: 'V1'
+    outputFormat: 'sarif'
