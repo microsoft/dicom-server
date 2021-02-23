@@ -28,6 +28,7 @@ steps:
     InputType: 'Basic'
     ScanType: 'CustomScan'
     FileDirPath: '$(Build.StagingDirectory)'
+    EnableServices: true
     TreatSignatureUpdateFailureAs: 'Standard'
     SignatureFreshness: 'OneDay'
     TreatStaleSignatureAs: 'Error'
