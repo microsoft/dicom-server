@@ -1,0 +1,33 @@
+steps:
+- task: PowerShell@2
+  displayName: 'Copy Binaries'
+  inputs:
+    targetType: 'inline'
+    script: |
+      # This is a bit of a hack to get the path separator into the regex
+      $binPattern = Join-Path '([^' ']+)' 'bin' '$(buildConfiguration)'
+      $binDirectories = Get-ChildItem -Directory -Recurse -Filter '$(buildConfiguration)' | Select-Object -ExpandProperty 'FullName'
+
+      foreach ($binFolder in $binDirectories)
+      {
+          $matchInfo = $binFolder | Select-String -Pattern $binPattern
+          if ($matchInfo)
+          {
+              $projectName = $matchInfo.Matches[0].Groups[1].Value
+              $outputDir = Join-Path -Path '$(Build.StagingDirectory)' -ChildPath 'bin' -AdditionalChildPath '$projectName'
+
+              Write-Host "Copying '$binFolder' to '$outputDir'"
+              Copy-Item -Path $binFolder -Destination $outputDir -Recurse
+          }
+      }
+    failOnStderr: true
+    pwsh: true
+
+- task: AntiMalware@3
+  inputs:
+    InputType: 'Basic'
+    ScanType: 'CustomScan'
+    FileDirPath: '$(Build.StagingDirectory)'
+    TreatSignatureUpdateFailureAs: 'Standard'
+    SignatureFreshness: 'OneDay'
+    TreatStaleSignatureAs: 'Error'

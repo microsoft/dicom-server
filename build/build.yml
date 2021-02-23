@@ -1,5 +1,6 @@
 parameters:
   packageArtifacts: true
+  runSecurityAnalysis: true
 
 steps:
   - task: UseDotNet@2
@@ -25,6 +26,9 @@ steps:
       command: test
       projects: '**/*UnitTests/*.csproj'
       arguments: '-c $(buildConfiguration) --no-build'
+
+  - ${{ if eq(parameters.runSecurityAnalysis, 'true') }}:
+    - template: analyze.yml
 
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
