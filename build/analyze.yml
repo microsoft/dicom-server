@@ -40,12 +40,11 @@ steps:
     targetDirectory: '$(Build.SourcesDirectory)\samples\templates'
     targetFiles: 'f|*.json'
 
-- task: BinSkim@3
+- task: BinSkim@4
   inputs:
     InputType: 'Basic'
     Function: 'analyze'
-    AnalyzeTarget: '$(Build.StagingDirectory)\bin\*.dll;$(Build.StagingDirectory)\bin\*.exe'
-    AnalyzeRecurse: true
+    AnalyzeTargetGlob: '+:file|$(Build.StagingDirectory)\bin\**\*.dll;+:file|$(Build.StagingDirectory)\bin\**\*.exe;-:dir|**\runtimes'
 
 - task: CredScan@2
   displayName: 'Run CredScan'
