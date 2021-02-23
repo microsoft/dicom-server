@@ -37,5 +37,11 @@ steps:
 - task: Armory@2
   displayName: 'Scan Sample ARM Templates'
   inputs:
-    targetDirectory: '$(Build.SourcesDirectory)/samples/templates'
+    targetDirectory: '$(Build.SourcesDirectory)\samples\templates'
     targetFiles: 'f|*.json'
+
+- task: BinSkim@3
+  inputs:
+    InputType: 'Basic'
+    Function: 'analyze'
+    AnalyzeTarget: '$(Build.StagingDirectory)\**.dll;$(Build.StagingDirectory)\**.exe'
