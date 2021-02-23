@@ -14,7 +14,7 @@ steps:
           if ($matchInfo)
           {
               $projectName = $matchInfo.Matches[0].Groups[1].Value
-              $outputDir = Join-Path -Path '$(Build.StagingDirectory)' -ChildPath 'bin' -AdditionalChildPath '$projectName'
+              $outputDir = Join-Path -Path '$(Build.StagingDirectory)' -ChildPath 'bin' -AdditionalChildPath $projectName
 
               Write-Host "Copying '$binFolder' to '$outputDir'"
               Copy-Item -Path $binFolder -Destination $outputDir -Recurse
