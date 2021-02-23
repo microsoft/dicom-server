@@ -24,6 +24,7 @@ steps:
     pwsh: true
 
 - task: AntiMalware@3
+  displayName: 'Check Binaries for Malware'
   inputs:
     InputType: 'Basic'
     ScanType: 'CustomScan'
@@ -32,3 +33,9 @@ steps:
     TreatSignatureUpdateFailureAs: 'Standard'
     SignatureFreshness: 'OneDay'
     TreatStaleSignatureAs: 'Error'
+
+- task: Armory@2
+  displayName: 'Scan Sample ARM Templates'
+  inputs:
+    targetDirectory: '$(Build.SourcesDirectory)/samples/templates'
+    targetFiles: 'f|*.json'
