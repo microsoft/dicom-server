@@ -298,8 +298,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
             private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
             private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly InsertStringCustomTagTableTypeV1TableValuedParameterDefinition _stringCustomTags = new InsertStringCustomTagTableTypeV1TableValuedParameterDefinition("@stringCustomTags");
+            private readonly InsertBigIntCustomTagTableTypeV1TableValuedParameterDefinition _bigIntCustomTags = new InsertBigIntCustomTagTableTypeV1TableValuedParameterDefinition("@bigIntCustomTags");
+            private readonly InsertDoubleCustomTagTableTypeV1TableValuedParameterDefinition _doubleCustomTags = new InsertDoubleCustomTagTableTypeV1TableValuedParameterDefinition("@doubleCustomTags");
+            private readonly InsertDateTimeCustomTagTableTypeV1TableValuedParameterDefinition _dateTimeCustomTags = new InsertDateTimeCustomTagTableTypeV1TableValuedParameterDefinition("@dateTimeCustomTags");
+            private readonly InsertPersonNameCustomTagTableTypeV1TableValuedParameterDefinition _personNameCustomTags = new InsertPersonNameCustomTagTableTypeV1TableValuedParameterDefinition("@personNameCustomTags");
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus)
+            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus, global::System.Collections.Generic.IEnumerable<InsertStringCustomTagTableTypeV1Row> stringCustomTags, global::System.Collections.Generic.IEnumerable<InsertBigIntCustomTagTableTypeV1Row> bigIntCustomTags, global::System.Collections.Generic.IEnumerable<InsertDoubleCustomTagTableTypeV1Row> doubleCustomTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeCustomTagTableTypeV1Row> dateTimeCustomTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameCustomTagTableTypeV1Row> personNameCustomTags)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddInstance";
@@ -315,7 +320,58 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _modality.AddParameter(command.Parameters, modality);
                 _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
                 _initialStatus.AddParameter(command.Parameters, initialStatus);
+                _stringCustomTags.AddParameter(command.Parameters, stringCustomTags);
+                _bigIntCustomTags.AddParameter(command.Parameters, bigIntCustomTags);
+                _doubleCustomTags.AddParameter(command.Parameters, doubleCustomTags);
+                _dateTimeCustomTags.AddParameter(command.Parameters, dateTimeCustomTags);
+                _personNameCustomTags.AddParameter(command.Parameters, personNameCustomTags);
             }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus, AddInstanceTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid, sopInstanceUid: sopInstanceUid, patientId: patientId, patientName: patientName, referringPhysicianName: referringPhysicianName, studyDate: studyDate, studyDescription: studyDescription, accessionNumber: accessionNumber, modality: modality, performedProcedureStepStartDate: performedProcedureStepStartDate, initialStatus: initialStatus, stringCustomTags: tableValuedParameters.StringCustomTags, bigIntCustomTags: tableValuedParameters.BigIntCustomTags, doubleCustomTags: tableValuedParameters.DoubleCustomTags, dateTimeCustomTags: tableValuedParameters.DateTimeCustomTags, personNameCustomTags: tableValuedParameters.PersonNameCustomTags);
+            }
+        }
+
+        internal class AddInstanceTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddInstanceTableValuedParameters>
+        {
+            public AddInstanceTvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringCustomTagTableTypeV1Row> InsertStringCustomTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertBigIntCustomTagTableTypeV1Row> InsertBigIntCustomTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDoubleCustomTagTableTypeV1Row> InsertDoubleCustomTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeCustomTagTableTypeV1Row> InsertDateTimeCustomTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameCustomTagTableTypeV1Row> InsertPersonNameCustomTagTableTypeV1RowGenerator)
+            {
+                this.InsertStringCustomTagTableTypeV1RowGenerator = InsertStringCustomTagTableTypeV1RowGenerator;
+                this.InsertBigIntCustomTagTableTypeV1RowGenerator = InsertBigIntCustomTagTableTypeV1RowGenerator;
+                this.InsertDoubleCustomTagTableTypeV1RowGenerator = InsertDoubleCustomTagTableTypeV1RowGenerator;
+                this.InsertDateTimeCustomTagTableTypeV1RowGenerator = InsertDateTimeCustomTagTableTypeV1RowGenerator;
+                this.InsertPersonNameCustomTagTableTypeV1RowGenerator = InsertPersonNameCustomTagTableTypeV1RowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertStringCustomTagTableTypeV1Row> InsertStringCustomTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertBigIntCustomTagTableTypeV1Row> InsertBigIntCustomTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertDoubleCustomTagTableTypeV1Row> InsertDoubleCustomTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertDateTimeCustomTagTableTypeV1Row> InsertDateTimeCustomTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertPersonNameCustomTagTableTypeV1Row> InsertPersonNameCustomTagTableTypeV1RowGenerator;
+
+            public AddInstanceTableValuedParameters Generate(TInput input)
+            {
+                return new AddInstanceTableValuedParameters(InsertStringCustomTagTableTypeV1RowGenerator.GenerateRows(input), InsertBigIntCustomTagTableTypeV1RowGenerator.GenerateRows(input), InsertDoubleCustomTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeCustomTagTableTypeV1RowGenerator.GenerateRows(input), InsertPersonNameCustomTagTableTypeV1RowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct AddInstanceTableValuedParameters
+        {
+            internal AddInstanceTableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringCustomTagTableTypeV1Row> StringCustomTags, global::System.Collections.Generic.IEnumerable<InsertBigIntCustomTagTableTypeV1Row> BigIntCustomTags, global::System.Collections.Generic.IEnumerable<InsertDoubleCustomTagTableTypeV1Row> DoubleCustomTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeCustomTagTableTypeV1Row> DateTimeCustomTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameCustomTagTableTypeV1Row> PersonNameCustomTags)
+            {
+                this.StringCustomTags = StringCustomTags;
+                this.BigIntCustomTags = BigIntCustomTags;
+                this.DoubleCustomTags = DoubleCustomTags;
+                this.DateTimeCustomTags = DateTimeCustomTags;
+                this.PersonNameCustomTags = PersonNameCustomTags;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<InsertStringCustomTagTableTypeV1Row> StringCustomTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertBigIntCustomTagTableTypeV1Row> BigIntCustomTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertDoubleCustomTagTableTypeV1Row> DoubleCustomTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertDateTimeCustomTagTableTypeV1Row> DateTimeCustomTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertPersonNameCustomTagTableTypeV1Row> PersonNameCustomTags { get; }
         }
 
         internal class DeleteCustomTagProcedure : StoredProcedure

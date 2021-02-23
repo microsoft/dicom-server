@@ -5,12 +5,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using DicomValidationException = Dicom.DicomValidationException;
@@ -49,6 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IStoreResponseBuilder _storeResponseBuilder;
         private readonly IDicomDatasetValidator _dicomDatasetValidator;
         private readonly IStoreOrchestrator _storeOrchestrator;
+        private readonly ICustomTagStore _customTagStore;
         private readonly ILogger _logger;
 
         private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
@@ -58,16 +61,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             IStoreResponseBuilder storeResponseBuilder,
             IDicomDatasetValidator dicomDatasetValidator,
             IStoreOrchestrator storeOrchestrator,
+            ICustomTagStore customTagStore,
             ILogger<StoreService> logger)
         {
             EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
             EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
             EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
+            EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _storeResponseBuilder = storeResponseBuilder;
             _dicomDatasetValidator = dicomDatasetValidator;
             _storeOrchestrator = storeOrchestrator;
+            _customTagStore = customTagStore;
             _logger = logger;
         }
 
@@ -82,11 +88,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 _dicomInstanceEntries = instanceEntries;
                 _requiredStudyInstanceUid = requiredStudyInstanceUid;
 
+                IEnumerable<CustomTagStoreEntry> storedCustomTagEntries = await _customTagStore.GetCustomTagsAsync(cancellationToken: cancellationToken);
+
                 for (int index = 0; index < instanceEntries.Count; index++)
                 {
                     try
                     {
-                        await ProcessDicomInstanceEntryAsync(index, cancellationToken);
+                        await ProcessDicomInstanceEntryAsync(index, storedCustomTagEntries.ToList(), cancellationToken);
                     }
                     finally
                     {
@@ -101,7 +109,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid);
         }
 
-        private async Task ProcessDicomInstanceEntryAsync(int index, CancellationToken cancellationToken)
+        private async Task ProcessDicomInstanceEntryAsync(int index, IReadOnlyList<CustomTagStoreEntry> storedCustomTagEntries, CancellationToken cancellationToken)
         {
             IDicomInstanceEntry dicomInstanceEntry = _dicomInstanceEntries[index];
 
@@ -145,6 +153,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 // Store the instance.
                 await _storeOrchestrator.StoreDicomInstanceEntryAsync(
                     dicomInstanceEntry,
+                    storedCustomTagEntries,
                     cancellationToken);
 
                 LogSuccessfullyStoredDelegate(_logger, index, null);

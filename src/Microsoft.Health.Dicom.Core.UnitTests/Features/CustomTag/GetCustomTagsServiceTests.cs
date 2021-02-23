@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         [Fact]
         public async Task GivenRequestForAllTags_WhenNoTagsAreStored_ThenExceptionShouldBeThrown()
         {
-            _customTagStore.GetCustomTagsAsync(default).Returns(new List<CustomTagEntry>());
+            _customTagStore.GetCustomTagsAsync(default).Returns(new List<CustomTagStoreEntry>());
             GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync();
 
             Assert.Empty(response.CustomTags);
@@ -42,15 +42,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         [Fact]
         public async Task GivenRequestForAllTags_WhenMultipleTagsAreStored_ThenCustomTagEntryListShouldBeReturned()
         {
-            CustomTagEntry tag1 = CreateCustomTagEntry("45456767", DicomVRCode.AE.ToString(), CustomTagLevel.Instance, CustomTagStatus.Added);
-            CustomTagEntry tag2 = CreateCustomTagEntry("01012323", DicomVRCode.FL.ToString(), CustomTagLevel.Series, CustomTagStatus.Reindexing);
+            CustomTagStoreEntry tag1 = CreateCustomTagEntry(1, "45456767", DicomVRCode.AE.ToString(), CustomTagLevel.Instance, CustomTagStatus.Added);
+            CustomTagStoreEntry tag2 = CreateCustomTagEntry(2, "01012323", DicomVRCode.FL.ToString(), CustomTagLevel.Series, CustomTagStatus.Reindexing);
 
-            List<CustomTagEntry> storedEntries = new List<CustomTagEntry>() { tag1, tag2 };
+            List<CustomTagStoreEntry> storedEntries = new List<CustomTagStoreEntry>() { tag1, tag2 };
 
             _customTagStore.GetCustomTagsAsync(default).Returns(storedEntries);
             GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync();
 
-            List<CustomTagEntry> result = storedEntries.Except(response.CustomTags).ToList();
+            List<CustomTagEntry> result = storedEntries.Select(x => new CustomTagEntry(x)).Except(response.CustomTags).ToList();
 
             Assert.Empty(result);
         }
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
                 return true;
             });
 
-            _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagEntry>());
+            _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagStoreEntry>());
             var exception = await Assert.ThrowsAsync<CustomTagNotFoundException>(() => _getCustomTagsService.GetCustomTagAsync(tagPath));
 
             Assert.Equal(string.Format("The specified custom tag with tag path {0} cannot be found.", tagPath), exception.Message);
@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         public async Task GivenRequestForCustomTag_WhenTagExists_ThenCustomTagEntryShouldBeReturned()
         {
             string tagPath = DicomTag.DeviceID.GetPath();
-            CustomTagEntry stored = CreateCustomTagEntry(tagPath, DicomVRCode.AE.ToString());
+            CustomTagStoreEntry stored = CreateCustomTagEntry(5, tagPath, DicomVRCode.AE.ToString());
             DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
 
             _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
@@ -86,15 +86,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
                 return true;
             });
 
-            _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagEntry> { stored });
+            _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagStoreEntry> { stored });
             GetCustomTagResponse response = await _getCustomTagsService.GetCustomTagAsync(tagPath);
 
-            Assert.Equal(stored, response.CustomTag);
+            Assert.Equal(new CustomTagEntry(stored), response.CustomTag);
         }
 
-        private static CustomTagEntry CreateCustomTagEntry(string path, string vr, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Added)
+        private static CustomTagStoreEntry CreateCustomTagEntry(long key, string path, string vr, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Added)
         {
-            return new CustomTagEntry { Path = path, VR = vr, Level = level, Status = status };
+            return new CustomTagStoreEntry(key, path, vr, level, status);
         }
     }
 }

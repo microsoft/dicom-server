@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -13,9 +14,12 @@ using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -27,19 +31,23 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
     {
         private readonly SqlIndexSchema _sqlServerIndexSchema;
         private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
+        private readonly DicomTagParser _dicomTagParser;
 
         public SqlIndexDataStore(
             SqlIndexSchema indexSchema,
-            SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
+            DicomTagParser dicomTagParser)
         {
             EnsureArg.IsNotNull(indexSchema, nameof(indexSchema));
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
+            EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
 
             _sqlServerIndexSchema = indexSchema;
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
+            _dicomTagParser = dicomTagParser;
         }
 
-        public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, CancellationToken cancellationToken)
+        public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IReadOnlyList<CustomTagStoreEntry> storedCustomTagEntries, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
 
@@ -48,6 +56,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
+                IEnumerable<InsertStringCustomTagTableTypeV1Row> stringCustomTags =
+                    DetermineKeysAndTagsForDataType(storedCustomTagEntries, CustomTagDataType.StringData).Select(x => new InsertStringCustomTagTableTypeV1Row(x.Key, instance.GetString(x.Value)));
+                IEnumerable<InsertBigIntCustomTagTableTypeV1Row> bigIntCustomTags =
+                    DetermineKeysAndTagsForDataType(storedCustomTagEntries, CustomTagDataType.LongData).Select(x => new InsertBigIntCustomTagTableTypeV1Row(x.Key, long.Parse(instance.GetString(x.Value))));
+                IEnumerable<InsertDoubleCustomTagTableTypeV1Row> doubleCustomTags =
+                    DetermineKeysAndTagsForDataType(storedCustomTagEntries, CustomTagDataType.DoubleData).Select(x => new InsertDoubleCustomTagTableTypeV1Row(x.Key, long.Parse(instance.GetString(x.Value))));
+                IEnumerable<InsertDateTimeCustomTagTableTypeV1Row> dateTimeCustomTags =
+                    DetermineKeysAndTagsForDataType(storedCustomTagEntries, CustomTagDataType.DateTimeData).Select(x => new InsertDateTimeCustomTagTableTypeV1Row(x.Key, instance.GetStringDateAsDateTime(x.Value).Value));
+                IEnumerable<InsertPersonNameCustomTagTableTypeV1Row> personNameCustomTags =
+                    DetermineKeysAndTagsForDataType(storedCustomTagEntries, CustomTagDataType.PersonNameData).Select(x => new InsertPersonNameCustomTagTableTypeV1Row(x.Key, instance.GetString(x.Value)));
                 VLatest.AddInstance.PopulateCommand(
                     sqlCommandWrapper,
                     instance.GetString(DicomTag.StudyInstanceUID),
@@ -61,7 +79,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
                     instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
                     instance.GetStringDateAsDateTime(DicomTag.PerformedProcedureStepStartDate),
-                    (byte)IndexStatus.Creating);
+                    (byte)IndexStatus.Creating,
+                    new VLatest.AddInstanceTableValuedParameters(stringCustomTags, bigIntCustomTags, doubleCustomTags, dateTimeCustomTags, personNameCustomTags));
 
                 try
                 {
@@ -284,6 +303,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     }
                 }
             }
+        }
+
+        private Dictionary<long, DicomTag> DetermineKeysAndTagsForDataType(IReadOnlyList<CustomTagStoreEntry> storedEntries, CustomTagDataType dataType)
+        {
+            Dictionary<long, DicomTag> keysAndTagsForDataType = new Dictionary<long, DicomTag>();
+            foreach (CustomTagStoreEntry storedEntry in storedEntries)
+            {
+                if (CustomTagLimit.CustomTagVRAndDataTypeMapping[storedEntry.VR] == dataType)
+                {
+                    DicomTag[] tags;
+                    if (_dicomTagParser.TryParse(storedEntry.Path, out tags))
+                    {
+                        keysAndTagsForDataType.Add(storedEntry.Key, tags[0]);
+                    }
+                }
+            }
+
+            return keysAndTagsForDataType;
         }
     }
 }

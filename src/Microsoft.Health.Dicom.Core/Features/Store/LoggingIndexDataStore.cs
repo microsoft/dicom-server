@@ -11,6 +11,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 
@@ -100,7 +101,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, CancellationToken cancellationToken)
+        public async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IReadOnlyList<CustomTagStoreEntry> storedCustomTagEntries, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -108,7 +109,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, cancellationToken);
+                long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, storedCustomTagEntries, cancellationToken);
 
                 LogCreateInstanceIndexSucceededDelegate(_logger, version, null);
 

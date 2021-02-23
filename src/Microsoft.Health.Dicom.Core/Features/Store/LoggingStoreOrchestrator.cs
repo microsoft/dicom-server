@@ -4,11 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
@@ -51,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task StoreDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken)
+        public async Task StoreDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, IReadOnlyList<CustomTagStoreEntry> storedCustomTagEntries, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
@@ -63,7 +65,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _storeOrchestrator.StoreDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken);
+                await _storeOrchestrator.StoreDicomInstanceEntryAsync(dicomInstanceEntry, storedCustomTagEntries, cancellationToken);
 
                 LogSuccessfullyPersistedDicomInstanceEntryDelegate(_logger, dicomInstanceIdentifier, null);
             }

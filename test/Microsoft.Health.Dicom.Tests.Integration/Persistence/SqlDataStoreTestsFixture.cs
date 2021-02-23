@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -79,7 +80,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             IndexDataStore = new SqlIndexDataStore(
                 dicomSqlIndexSchema,
-                SqlConnectionWrapperFactory);
+                SqlConnectionWrapperFactory,
+                new DicomTagParser());
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 

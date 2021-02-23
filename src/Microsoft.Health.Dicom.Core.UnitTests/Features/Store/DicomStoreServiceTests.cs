@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -40,6 +41,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private readonly IStoreResponseBuilder _storeResponseBuilder = Substitute.For<IStoreResponseBuilder>();
         private readonly IDicomDatasetValidator _dicomDatasetValidator = Substitute.For<IDicomDatasetValidator>();
         private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
+        private readonly ICustomTagStore _customTagStore = Substitute.For<ICustomTagStore>();
         private readonly StoreService _storeService;
 
         public DicomStoreServiceTests()
@@ -50,6 +52,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 _storeResponseBuilder,
                 _dicomDatasetValidator,
                 _storeOrchestrator,
+                _customTagStore,
                 NullLogger<StoreService>.Instance);
         }
 
@@ -137,7 +140,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _storeOrchestrator
-                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
+                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken: DefaultCancellationToken))
                 .Do(_ => throw new InstanceAlreadyExistsException());
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
@@ -154,7 +157,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _storeOrchestrator
-                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
+                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken: DefaultCancellationToken))
                 .Do(_ => throw new DataStoreException("Simulated failure."));
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);

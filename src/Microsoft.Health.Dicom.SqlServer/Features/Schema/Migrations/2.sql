@@ -538,6 +538,56 @@ CREATE TYPE dbo.AddCustomTagsInputTableType_1 AS TABLE
 GO
 
 /*************************************************************
+    Table valued parameter to insert into Custom table for data type String
+*************************************************************/
+CREATE TYPE dbo.InsertStringCustomTagTableType_1 AS TABLE
+(
+    TagKey                     BIGINT,
+    TagValue                   VARCHAR(64)
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Big Int
+*************************************************************/
+CREATE TYPE dbo.InsertBigIntCustomTagTableType_1 AS TABLE
+(
+    TagKey                     BIGINT,
+    TagValue                   BIGINT
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Double
+*************************************************************/
+CREATE TYPE dbo.InsertDoubleCustomTagTableType_1 AS TABLE
+(
+    TagKey                     BIGINT,
+    TagValue                   BIGINT
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Date Time
+*************************************************************/
+CREATE TYPE dbo.InsertDateTimeCustomTagTableType_1 AS TABLE
+(
+    TagKey                     BIGINT,
+    TagValue                   DATETIME2(7)
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Person Name
+*************************************************************/
+CREATE TYPE dbo.InsertPersonNameCustomTagTableType_1 AS TABLE
+(
+    TagKey                     BIGINT,
+    TagValue                   NVARCHAR(200)
+)
+GO
+
+/*************************************************************
     Sequence for generating sequential unique ids
 **************************************************************/
 
@@ -615,6 +665,8 @@ GO
 --         * The modality associated for the series.
 --     @performedProcedureStepStartDate
 --         * The date when the procedure for the series was performed.
+--     @initialStatus
+--         * The initial status to set on the instance table.
 --
 -- RETURN VALUE
 --     The watermark (version).
@@ -632,7 +684,12 @@ CREATE PROCEDURE dbo.AddInstance
     @accessionNumber                    NVARCHAR(64) = NULL,
     @modality                           NVARCHAR(16) = NULL,
     @performedProcedureStepStartDate    DATE = NULL,
-    @initialStatus                      TINYINT
+    @initialStatus                      TINYINT,
+    @stringCustomTags dbo.InsertStringCustomTagTableType_1 READONLY,
+    @bigIntCustomTags dbo.InsertBigIntCustomTagTableType_1 READONLY,
+    @doubleCustomTags dbo.InsertDoubleCustomTagTableType_1 READONLY,
+    @dateTimeCustomTags dbo.InsertDateTimeCustomTagTableType_1 READONLY,
+    @personNameCustomTags dbo.InsertPersonNameCustomTagTableType_1 READONLY
 AS
     SET NOCOUNT ON
 
@@ -715,6 +772,27 @@ AS
         (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
     SELECT @newWatermark
+
+    -- Insert metadata into custom tag tables
+    INSERT INTO dbo.CustomTagString
+        (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+    SELECT TagKey, TagValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM InsertStringCustomTagTableType_1
+
+    INSERT INTO dbo.CustomTagBigInt
+        (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+    SELECT TagKey, TagValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM InsertBigIntCustomTagTableType_1
+
+    INSERT INTO dbo.CustomTagDouble
+        (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+    SELECT TagKey, TagValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM InsertDoubleCustomTagTableType_1
+
+    INSERT INTO dbo.CustomTagDateTime
+        (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+    SELECT TagKey, TagValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM InsertDateTimeCustomTagTableType_1
+
+    INSERT INTO dbo.CustomTagPersonName
+        (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+    SELECT TagKey, TagValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM InsertPersonNameCustomTagTableType_1
 
     COMMIT TRANSACTION
 GO

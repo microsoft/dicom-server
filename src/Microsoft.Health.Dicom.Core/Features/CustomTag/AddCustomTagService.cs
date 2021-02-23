@@ -36,8 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
             IEnumerable<CustomTagEntry> result = customTags.Select(item =>
             {
-                CustomTagEntry normalized = item.Normalize();
-                normalized.Status = CustomTagStatus.Added;
+                CustomTagEntry normalized = item.Normalize(CustomTagStatus.Added);
                 return normalized;
             });
 
