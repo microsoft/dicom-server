@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -54,9 +53,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             ValidateRequestIdentifiers(message);
 
-            IEnumerable<CustomTagEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
+            IEnumerable<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
 
-            Dictionary<QueryResource, HashSet<DicomTag>> queryResourceToCustomTagMapping = GenerateQueryResourceToCustomTagMapping(customTags);
+            Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> queryResourceToCustomTagMapping = GenerateQueryResourceToCustomTagMapping(customTags);
 
             QueryExpression queryExpression = _queryParser.Parse(message, queryResourceToCustomTagMapping);
 
@@ -77,53 +76,47 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new QueryResourceResponse(responseMetadata);
         }
 
-        private Dictionary<QueryResource, HashSet<DicomTag>> GenerateQueryResourceToCustomTagMapping(IEnumerable<CustomTagEntry> customTags)
+        private Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> GenerateQueryResourceToCustomTagMapping(IEnumerable<CustomTagStoreEntry> customTags)
         {
-            Dictionary<QueryResource, HashSet<DicomTag>> ret = new Dictionary<QueryResource, HashSet<DicomTag>>();
+            Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> ret = new Dictionary<QueryResource, HashSet<CustomTagFilterDetails>>();
 
-            foreach (CustomTagEntry customTag in customTags)
+            foreach (CustomTagStoreEntry customTag in customTags)
             {
                 DicomTag[] result;
                 DicomTag dicomTag;
-                if (CustomTagStatus.Added.Equals(customTag.Status) && _dicomTagPathParser.TryParse(customTag.Path, out result))
+                if (customTag.Status.Equals(CustomTagStatus.Added) && _dicomTagPathParser.TryParse(customTag.Path, out result))
                 {
                     dicomTag = result[0];
-                    switch (customTag.Level)
+
+                    if (customTag.Level.Equals(CustomTagLevel.Instance))
                     {
-                        case CustomTagLevel.Instance:
-                            ret.TryAdd(QueryResource.AllInstances, new HashSet<DicomTag>());
+                        ret.TryAdd(QueryResource.AllInstances, new HashSet<CustomTagFilterDetails>());
 
-                            ret[QueryResource.AllInstances].Add(dicomTag);
+                        ret[QueryResource.AllInstances].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
 
-                            ret.TryAdd(QueryResource.StudyInstances, new HashSet<DicomTag>());
+                        ret.TryAdd(QueryResource.StudyInstances, new HashSet<CustomTagFilterDetails>());
 
-                            ret[QueryResource.StudyInstances].Add(dicomTag);
+                        ret[QueryResource.StudyInstances].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
 
-                            ret.TryAdd(QueryResource.StudySeriesInstances, new HashSet<DicomTag>());
+                        ret.TryAdd(QueryResource.StudySeriesInstances, new HashSet<CustomTagFilterDetails>());
 
-                            ret[QueryResource.StudySeriesInstances].Add(dicomTag);
-
-                            break;
-                        case CustomTagLevel.Series:
-                            ret.TryAdd(QueryResource.AllSeries, new HashSet<DicomTag>());
-
-                            ret[QueryResource.AllSeries].Add(dicomTag);
-
-                            ret.TryAdd(QueryResource.StudySeries, new HashSet<DicomTag>());
-
-                            ret[QueryResource.StudySeries].Add(dicomTag);
-
-                            break;
-                        case CustomTagLevel.Study:
-                            ret.TryAdd(QueryResource.AllStudies, new HashSet<DicomTag>());
-
-                            ret[QueryResource.AllStudies].Add(dicomTag);
-
-                            break;
-
-                        default:
-                            throw new ArgumentException("invalid enum value for CustomTagLevel");
+                        ret[QueryResource.StudySeriesInstances].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
                     }
+
+                    if (customTag.Level.Equals(CustomTagLevel.Instance) || customTag.Level.Equals(CustomTagLevel.Series))
+                    {
+                        ret.TryAdd(QueryResource.AllSeries, new HashSet<CustomTagFilterDetails>());
+
+                        ret[QueryResource.AllSeries].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
+
+                        ret.TryAdd(QueryResource.StudySeries, new HashSet<CustomTagFilterDetails>());
+
+                        ret[QueryResource.StudySeries].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
+                    }
+
+                    ret.TryAdd(QueryResource.AllStudies, new HashSet<CustomTagFilterDetails>());
+
+                    ret[QueryResource.AllStudies].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
                 }
             }
 

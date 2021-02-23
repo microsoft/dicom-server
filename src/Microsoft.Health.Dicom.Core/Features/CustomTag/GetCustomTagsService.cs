@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,21 +48,21 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 throw new InvalidCustomTagPathException(string.Format(DicomCoreResource.InvalidCustomTag, tagPath ?? string.Empty));
             }
 
-            IEnumerable<CustomTagEntry> customTags = await _customTagStore.GetCustomTagsAsync(tagPath, cancellationToken);
+            IEnumerable<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(tagPath, cancellationToken);
 
             if (!customTags.Any())
             {
                 throw new CustomTagNotFoundException(string.Format(DicomCoreResource.CustomTagNotFound, tagPath));
             }
 
-            return new GetCustomTagResponse(customTags.First());
+            return new GetCustomTagResponse(new CustomTagEntry(customTags.First()));
         }
 
         public async Task<GetAllCustomTagsResponse> GetAllCustomTagsAsync(CancellationToken cancellationToken)
         {
-            IEnumerable<CustomTagEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
+            IEnumerable<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
 
-            return new GetAllCustomTagsResponse(customTags);
+            return new GetAllCustomTagsResponse(customTags.Select(x => new CustomTagEntry(x)));
         }
     }
 }

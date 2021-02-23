@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using Dicom;
 using Microsoft.Data.SqlClient;
-using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
@@ -84,37 +84,114 @@ ON i.SeriesKey = se.SeriesKey";
         }
 
         [Fact]
-        public void GivenNonUidFilter_WhenIELevelInstance_ValidateDistinctInstances2()
+        public void GivenStudyCustomTagFilter_WhenIELevelStudy_ValidateCustomTagFilter()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var filter = new StringSingleValueMatchCondition(DicomTag.ModelGroupUID, "123");
-            filter.IsCustomTag = true;
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Study, DicomTag.ModelGroupUID);
+            filter.CustomTagFilterDetails = filterDetails;
             var filters = new List<QueryFilterCondition>()
             {
-                new StringSingleValueMatchCondition(DicomTag.ModelGroupUID, "123"),
+                filter,
             };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, new HashSet<DicomVR>() { DicomTag.ModelGroupUID.GetDefaultVR() });
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails });
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
 
-            string expectedDistinctSelect = @"SELECT 
-i.StudyInstanceUid
-,i.SeriesInstanceUid
-,i.SopInstanceUid
-,i.Watermark
-FROM dbo.Study st
-INNER JOIN dbo.Series se
-ON se.StudyKey = st.StudyKey
-INNER JOIN dbo.Instance i
-ON i.SeriesKey = se.SeriesKey";
+            string expectedCustomTagTableFilter = @"INNER JOIN dbo.CustomTagString cts1
+ON cts1.StudyKey = st.StudyKey
+WHERE";
 
-            string expectedFilters = @"AND se.Modality=@p0";
+            string expectedFilters = @"AND cts1.TagKey=@p0
+AND cts1.TagValue=@p1";
 
-            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
-            Assert.Contains(expectedFilters, stringBuilder.ToString());
-            Assert.DoesNotContain("CROSS APPLY", stringBuilder.ToString());
+            string builtString = stringBuilder.ToString();
+            Assert.Contains(expectedCustomTagTableFilter, builtString);
+            Assert.Contains(expectedFilters, builtString);
+        }
+
+        [Fact]
+        public void GivenCustomTagFilterWithNonUidFilter_WhenIELevelSeries_ValidateCustomTagFilter()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var customTagFilter = new StringSingleValueMatchCondition(DicomTag.ModelGroupUID, "123");
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Instance, DicomTag.ModelGroupUID);
+            customTagFilter.CustomTagFilterDetails = filterDetails;
+            var filter = new StringSingleValueMatchCondition(DicomTag.Modality, "abc");
+            var filters = new List<QueryFilterCondition>()
+            {
+                filter,
+                customTagFilter,
+            };
+            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails });
+
+            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+            new SqlQueryGenerator(stringBuilder, query, parm);
+
+            string expectedCustomTagTableFilter = @"INNER JOIN dbo.CustomTagString cts1
+ON cts1.StudyKey = st.StudyKey
+AND ON cts1.SeriesKey = se.SeriesKey
+WHERE";
+
+            string expectedFilter = @"AND se.Modality=@p0";
+            string expectedCustomTagFilter = @"AND cts1.TagKey=@p1
+AND cts1.TagValue=@p2";
+
+            string builtString = stringBuilder.ToString();
+            Assert.Contains(expectedCustomTagTableFilter, builtString);
+            Assert.Contains(expectedFilter, builtString);
+            Assert.Contains(expectedCustomTagFilter, builtString);
+        }
+
+        [Fact]
+        public void GivenMultipleCustomTagFilters_WhenIELevelInstance_ValidateCustomTagFilter()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var filter1 = new StringSingleValueMatchCondition(DicomTag.ModelGroupUID, "abc");
+            var filterDetails1 = new CustomTagFilterDetails(1, CustomTagLevel.Instance, DicomTag.ModelGroupUID);
+            filter1.CustomTagFilterDetails = filterDetails1;
+            var filter2 = new StringSingleValueMatchCondition(DicomTag.ContainerDescription, "description");
+            var filterDetails2 = new CustomTagFilterDetails(2, CustomTagLevel.Series, DicomTag.ContainerDescription);
+            filter2.CustomTagFilterDetails = filterDetails2;
+            var filter3 = new LongSingleValueMatchCondition(DicomTag.NumberOfAssessmentObservations, 123);
+            var filterDetails3 = new CustomTagFilterDetails(4, CustomTagLevel.Study, DicomTag.NumberOfAssessmentObservations);
+            filter3.CustomTagFilterDetails = filterDetails3;
+            var filters = new List<QueryFilterCondition>()
+            {
+                filter1,
+                filter2,
+                filter3,
+            };
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails1, filterDetails2, filterDetails3 });
+
+            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+            new SqlQueryGenerator(stringBuilder, query, parm);
+
+            string expectedCustomTagTableFilter = @"INNER JOIN dbo.CustomTagString cts1
+ON cts1.StudyKey = st.StudyKey
+AND ON cts1.SeriesKey = se.SeriesKey
+AND ON cts1.InstanceKey = i.InstanceKey
+INNER JOIN dbo.CustomTagString cts2
+ON cts2.StudyKey = st.StudyKey
+AND ON cts2.SeriesKey = se.SeriesKey
+INNER JOIN dbo.CustomTagBigInt ctbi4
+ON ctbi4.StudyKey = st.StudyKey
+WHERE";
+
+            string expectedFilters = @"AND cts1.TagKey=@p0
+AND cts1.TagValue=@p1
+AND cts2.TagKey=@p2
+AND cts2.TagValue=@p3
+AND ctbi4.TagKey=@p4
+AND ctbi4.TagValue=@p5";
+
+            string builtString = stringBuilder.ToString();
+            Assert.Contains(expectedCustomTagTableFilter, builtString);
+            Assert.Contains(expectedFilters, builtString);
         }
 
         [Fact]

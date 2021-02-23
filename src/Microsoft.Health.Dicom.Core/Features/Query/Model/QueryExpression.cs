@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Dicom;
 using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query.Model
@@ -22,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             int limit,
             int offset,
             IReadOnlyCollection<QueryFilterCondition> filterConditions,
-            HashSet<DicomVR> queriedCustomTagVRCodes = null)
+            HashSet<CustomTagFilterDetails> queriedCustomTagFilterDetails = null)
         {
             QueryResource = resourceType;
             IncludeFields = includeFields;
@@ -30,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             Limit = limit;
             Offset = offset;
             FilterConditions = filterConditions;
-            QueriedCustomTagVRCodes = queriedCustomTagVRCodes ?? new HashSet<DicomVR>();
+            QueriedCustomTagFilterDetails = queriedCustomTagFilterDetails ?? new HashSet<CustomTagFilterDetails>();
 
             SetIELevel();
          }
@@ -51,9 +50,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
         public QueryIncludeField IncludeFields { get; }
 
         /// <summary>
-        /// VR Codes associated with the custom tags being queried.
+        /// Filter details associated with the custom tags being queried.
         /// </summary>
-        public HashSet<DicomVR> QueriedCustomTagVRCodes { get; }
+        public HashSet<CustomTagFilterDetails> QueriedCustomTagFilterDetails { get; }
 
         /// <summary>
         /// If true do Fuzzy matching of PN tag types

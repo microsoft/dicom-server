@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public DicomTag DicomTag { get; }
 
-        public bool IsCustomTag { get; set; }
+        public CustomTagFilterDetails CustomTagFilterDetails { get; set; }
 
         public abstract void Accept(QueryFilterConditionVisitor visitor);
     }

@@ -74,14 +74,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             }
         }
 
-        public async Task<IEnumerable<CustomTagEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<CustomTagStoreEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default)
         {
             if (_schemaInformation.Current < SchemaVersionConstants.SupportCustomTagSchemaVersion)
             {
                 throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
             }
 
-            List<CustomTagEntry> results = new List<CustomTagEntry>();
+            List<CustomTagStoreEntry> results = new List<CustomTagStoreEntry>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -92,13 +92,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (string tagPath, string tagVR, int tagLevel, int tagStatus) = reader.ReadRow(
-                           VLatest.CustomTag.TagPath,
-                           VLatest.CustomTag.TagVR,
-                           VLatest.CustomTag.TagLevel,
-                           VLatest.CustomTag.TagStatus);
+                        (long tagKey, string tagPath, string tagVR, int tagLevel, int tagStatus) = reader.ReadRow(
+                            VLatest.CustomTag.TagKey,
+                            VLatest.CustomTag.TagPath,
+                            VLatest.CustomTag.TagVR,
+                            VLatest.CustomTag.TagLevel,
+                            VLatest.CustomTag.TagStatus);
 
-                        results.Add(new CustomTagEntry { Path = tagPath, VR = tagVR, Level = (CustomTagLevel)tagLevel, Status = (CustomTagStatus)tagStatus });
+                        results.Add(new CustomTagStoreEntry(tagKey, tagPath, tagVR, (CustomTagLevel)tagLevel, (CustomTagStatus)tagStatus));
                     }
                 }
             }

@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <param name="path">Path associated with requested custom tag formatted as it is stored internally.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Custom tag entry/entries with path, VR, level and status.</returns>
-        Task<IEnumerable<CustomTagEntry>> GetCustomTagsAsync(string path = null, CancellationToken cancellationToken = default);
+        Task<IEnumerable<CustomTagStoreEntry>> GetCustomTagsAsync(string path = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Delete custom tag.

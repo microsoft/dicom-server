@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -57,12 +58,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public static bool IsValidRangeQueryTag(DicomTag tag)
         {
-            return tag == DicomTag.StudyDate;
+            return tag.GetDefaultVR().Equals(DicomVR.DA);
         }
 
         public static bool IsValidFuzzyMatchingQueryTag(DicomTag tag)
         {
-            return tag == DicomTag.PatientName;
+            return tag.GetDefaultVR().Equals(DicomVR.PN);
         }
     }
 }

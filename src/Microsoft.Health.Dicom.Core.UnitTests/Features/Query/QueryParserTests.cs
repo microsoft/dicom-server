@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Messages.Query;
@@ -127,6 +128,70 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType), null);
+        }
+
+        [Fact]
+        public void GivenCustomDateTag_WithUrl_ParseSucceeds()
+        {
+            var queryString = "Date=19510910-20200220";
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Instance, DicomTag.Date);
+            EnsureArg.IsNotNull(queryString, nameof(queryString));
+            Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> filterDetailsByResource = new Dictionary<QueryResource, HashSet<CustomTagFilterDetails>>();
+            filterDetailsByResource.Add(QueryResource.AllStudies, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), filterDetailsByResource);
+            Assert.Contains(filterDetails, queryExpression.QueriedCustomTagFilterDetails);
+            Assert.Equal(filterDetails, queryExpression.FilterConditions.First().CustomTagFilterDetails);
+        }
+
+        [Fact]
+        public void GivenCustomPersonNameTag_WithUrl_ParseSucceeds()
+        {
+            var queryString = "PatientBirthName=Joe&fuzzyMatching=true&limit=50";
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.PatientBirthName);
+            EnsureArg.IsNotNull(queryString, nameof(queryString));
+            Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> filterDetailsByResource = new Dictionary<QueryResource, HashSet<CustomTagFilterDetails>>();
+            filterDetailsByResource.Add(QueryResource.AllSeries, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), filterDetailsByResource);
+            Assert.Contains(filterDetails, queryExpression.QueriedCustomTagFilterDetails);
+        }
+
+        [Fact]
+        public void GivenCustomStringTag_WithUrl_ParseSucceeds()
+        {
+            var queryString = "ModelGroupUID=abc";
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.ModelGroupUID);
+            EnsureArg.IsNotNull(queryString, nameof(queryString));
+            Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> filterDetailsByResource = new Dictionary<QueryResource, HashSet<CustomTagFilterDetails>>();
+            filterDetailsByResource.Add(QueryResource.AllSeries, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), filterDetailsByResource);
+            Assert.Contains(filterDetails, queryExpression.QueriedCustomTagFilterDetails);
+            Assert.Equal(filterDetails, queryExpression.FilterConditions.First().CustomTagFilterDetails);
+        }
+
+        [Fact]
+        public void GivenCustomLongTag_WithUrl_ParseSucceeds()
+        {
+            var queryString = "NumberOfAssessmentObservations=50";
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.NumberOfAssessmentObservations);
+            EnsureArg.IsNotNull(queryString, nameof(queryString));
+            Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> filterDetailsByResource = new Dictionary<QueryResource, HashSet<CustomTagFilterDetails>>();
+            filterDetailsByResource.Add(QueryResource.AllSeries, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), filterDetailsByResource);
+            Assert.Contains(filterDetails, queryExpression.QueriedCustomTagFilterDetails);
+            Assert.Equal(filterDetails, queryExpression.FilterConditions.First().CustomTagFilterDetails);
+        }
+
+        [Fact]
+        public void GivenCustomDoubleTag_WithUrl_ParseSucceeds()
+        {
+            var queryString = "FloatingPointValue=1.1";
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.FloatingPointValue);
+            EnsureArg.IsNotNull(queryString, nameof(queryString));
+            Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> filterDetailsByResource = new Dictionary<QueryResource, HashSet<CustomTagFilterDetails>>();
+            filterDetailsByResource.Add(QueryResource.AllSeries, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), filterDetailsByResource);
+            Assert.Contains(filterDetails, queryExpression.QueriedCustomTagFilterDetails);
+            Assert.Equal(filterDetails, queryExpression.FilterConditions.First().CustomTagFilterDetails);
         }
 
         [Theory]
