@@ -28,6 +28,8 @@ namespace Microsoft.Health.Dicom.Client
     {
         private const string TransferSyntaxHeaderName = "transfer-syntax";
 
+        private static readonly Uri BaseCustomTagUri = new Uri("/tags", UriKind.Relative);
+
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         public DicomWebClient(HttpClient httpClient)
@@ -350,6 +352,35 @@ namespace Microsoft.Health.Dicom.Client
                     string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     return JsonConvert.DeserializeObject<ChangeFeedEntry>(contentText, _jsonSerializerSettings);
                 });
+        }
+
+        public async Task<DicomWebResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(customTagEntries, nameof(customTagEntries));
+            using var request = new HttpRequestMessage(HttpMethod.Post, BaseCustomTagUri);
+            {
+                string jsonString = JsonConvert.SerializeObject(customTagEntries);
+                request.Content = new StringContent(jsonString);
+            }
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+            return new DicomWebResponse(response);
+        }
+
+        public async Task<DicomWebResponse> DeleteCustomTagAsync(string customTagPath, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(customTagPath, nameof(customTagPath));
+
+            using var request = new HttpRequestMessage(HttpMethod.Delete, new Uri(BaseCustomTagUri, customTagPath));
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
+            return new DicomWebResponse(response);
         }
 
         private static MultipartContent ConvertStreamsToMultipartContent(IEnumerable<Stream> streams)
