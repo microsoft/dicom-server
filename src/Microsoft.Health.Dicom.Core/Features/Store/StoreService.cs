@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 {
                     try
                     {
-                        await ProcessDicomInstanceEntryAsync(index, storedCustomTagEntries.ToList(), cancellationToken);
+                        await ProcessDicomInstanceEntryAsync(index, storedCustomTagEntries.Select(x => x).Where(x => x.Status.Equals(CustomTagStatus.Added) || x.Status.Equals(CustomTagStatus.Reindexing)).ToList(), cancellationToken);
                     }
                     finally
                     {
