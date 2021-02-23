@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Dicom;
 using Dicom.Imaging;
 using Dicom.Imaging.Codec;
@@ -11,8 +12,10 @@ using Dicom.IO.Buffer;
 
 namespace Common
 {
+    [SuppressMessage("Design", "CA1027:Mark enums with FlagsAttribute", Justification = "Enum members are not flags")]
     public enum TestFileBitDepth : int
     {
+        None = 0,
         EightBit = 8,
         SixteenBit = 16,
     }
@@ -71,14 +74,14 @@ namespace Common
             int frames = 1,
             string photometricInterpretation = null)
         {
-            var initialTs = DicomTransferSyntax.ExplicitVRLittleEndian;
+            DicomTransferSyntax initialTs = DicomTransferSyntax.ExplicitVRLittleEndian;
 
             if (!encode)
             {
                 initialTs = DicomTransferSyntax.Parse(transferSyntax);
             }
 
-            Random rand = new Random();
+            var rand = new Random();
 
             var dicomFile = new DicomFile(
                 new DicomDataset(initialTs)

@@ -49,8 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private static DateTime ParseDate(string date, string tagKeyword)
         {
-            DateTime parsedDate;
-            if (!DateTime.TryParseExact(date, DateTagValueFormat, null, System.Globalization.DateTimeStyles.None, out parsedDate))
+            if (!DateTime.TryParseExact(date, DateTagValueFormat, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
             {
                 throw new QueryParseException(string.Format(DicomCoreResource.InvalidDateValue, date, tagKeyword));
             }

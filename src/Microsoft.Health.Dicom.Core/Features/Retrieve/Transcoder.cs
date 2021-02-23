@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             EnsureArg.IsNotNull(stream, nameof(stream));
             EnsureArg.IsNotEmptyOrWhiteSpace(requestedTransferSyntax, nameof(requestedTransferSyntax));
-            DicomTransferSyntax parsedDicomTransferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
+            var parsedDicomTransferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
 
             DicomFile dicomFile;
 
@@ -73,7 +73,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             // Validate requested frame index exists in file.
             dicomFile.GetPixelDataAndValidateFrames(new[] { frameIndex });
-            DicomTransferSyntax parsedDicomTransferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
+            var parsedDicomTransferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
 
             IByteBuffer resultByteBuffer = TranscodeFrame(dataset, frameIndex, parsedDicomTransferSyntax);
             return _recyclableMemoryStreamManager.GetStream("RetrieveDicomResourceHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             try
             {
                 DicomDataset datasetForFrame = CreateDatasetForFrame(dataset, frameIndex);
-                DicomTranscoder transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, targetSyntax);
+                var transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, targetSyntax);
                 DicomDataset result = transcoder.Transcode(datasetForFrame);
                 return DicomPixelData.Create(result).GetFrame(0);
             }
@@ -101,7 +101,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             IByteBuffer frameData = DicomPixelData.Create(dataset).GetFrame(frameIndex);
             DicomDataset newDataset = dataset.Clone();
-            DicomPixelData newdata = DicomPixelData.Create(newDataset, true);
+            var newdata = DicomPixelData.Create(newDataset, true);
             newdata.AddFrame(frameData);
             return newDataset;
         }

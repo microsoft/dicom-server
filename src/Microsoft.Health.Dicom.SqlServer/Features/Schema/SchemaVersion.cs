@@ -10,6 +10,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
     /// </summary>
     public enum SchemaVersion
     {
+        Unknown = 0,
         V1 = 1,
     }
 }

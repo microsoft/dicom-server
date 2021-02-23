@@ -14,6 +14,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Common;
 using Common.KeyVault;
+using EnsureThat;
 
 namespace RetrieveBlobNames
 {
@@ -24,7 +25,9 @@ namespace RetrieveBlobNames
 
         public static async Task Main(string[] args)
         {
-            SecretClientOptions options = new SecretClientOptions()
+            EnsureArg.IsNotNull(args, nameof(args));
+
+            var options = new SecretClientOptions()
             {
                 Retry =
                 {
@@ -42,11 +45,11 @@ namespace RetrieveBlobNames
 
             string filepath = args[0];
 
-            BlobContainerClient container = new BlobContainerClient(_containerConnectionString, ContainerName);
+            var container = new BlobContainerClient(_containerConnectionString, ContainerName);
             int i = 0;
-            HashSet<string> studies = new HashSet<string>();
-            HashSet<string> series = new HashSet<string>();
-            using (StreamWriter sw = new StreamWriter(filepath))
+            var studies = new HashSet<string>();
+            var series = new HashSet<string>();
+            using (var sw = new StreamWriter(filepath))
             {
                 await foreach (BlobItem blob in container.GetBlobsAsync())
                 {
