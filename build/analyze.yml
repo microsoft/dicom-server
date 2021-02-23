@@ -4,8 +4,8 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      # This is a bit of a hack to get the path separator into the regex
-      $binPattern = Join-Path '([^' ']+)' 'bin' '$(buildConfiguration)'
+      # Assume we're running on Windows as tasks like AntiMalware require it
+      $binPattern = '([^\\]+)\\bin\\Release$'
       $binDirectories = Get-ChildItem -Directory -Recurse -Filter '$(buildConfiguration)' | Select-Object -ExpandProperty 'FullName'
 
       foreach ($binFolder in $binDirectories)
