@@ -13,15 +13,77 @@ steps:
   inputs:
     targetDirectory: '$(Build.SourcesDirectory)\samples\templates'
     targetFiles: 'f|*.json'
+    excludePassesFromLog: false
 
 - task: BinSkim@4
   inputs:
     InputType: 'Basic'
     Function: 'analyze'
     AnalyzeTargetGlob: '+:file|$(Build.SourcesDirectory)\**\bin\**\Microsoft.Health.Dicom*.dll;+:file|$(Build.SourcesDirectory)\**\bin\**\Microsoft.Health.Dicom*.exe'
+    AnalyzeVerbose: true
 
 - task: CredScan@2
   inputs:
     scanFolder: '$(Build.SourcesDirectory)'
-    toolMajorVersion: 'V1'
+    toolMajorVersion: 'V2'
     outputFormat: 'sarif'
+    verboseOutput: true
+
+- task: SdtReport@1
+  inputs:
+    AllTools: false
+    APIScan: false
+    BinSkim: true
+    BinSkimBreakOn: 'Error'
+    CodesignValidation: false
+    CredScan: true
+    FortifySCA: false
+    FxCop: false
+    ModernCop: false
+    MSRD: false
+    PoliCheck: false
+    RoslynAnalyzers: false
+    SDLNativeRules: false
+    Semmle: false
+    TSLint: false
+    ToolLogsNotFoundAction: 'Error'
+
+- task: PublishSecurityAnalysisLogs@2
+  inputs:
+    ArtifactName: 'CodeAnalysisLogs'
+    ArtifactType: 'Container'
+    AllTools: false
+    AntiMalware: true
+    APIScan: false
+    BinSkim: true
+    CodesignValidation: false
+    CredScan: true
+    FortifySCA: false
+    FxCop: false
+    ModernCop: false
+    MSRD: false
+    PoliCheck: false
+    RoslynAnalyzers: false
+    SDLNativeRules: false
+    Semmle: false
+    TSLint: false
+    WebScout: false
+    ToolLogsNotFoundAction: 'Error'
+
+- task: PostAnalysis@1
+  inputs:
+    AllTools: false
+    APIScan: false
+    BinSkim: true
+    BinSkimBreakOn: 'Error'
+    CodesignValidation: false
+    CredScan: true
+    FortifySCA: false
+    FxCop: false
+    ModernCop: false
+    PoliCheck: false
+    RoslynAnalyzers: false
+    SDLNativeRules: false
+    Semmle: false
+    TSLint: false
+    ToolLogsNotFoundAction: 'Error'
