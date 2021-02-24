@@ -27,6 +27,7 @@ steps:
     scanFolder: '$(Build.SourcesDirectory)'
     toolMajorVersion: 'V2'
     outputFormat: 'sarif'
+    suppressionsFile: 'CredScanSuppressions.json'
     verboseOutput: true
 
 - task: SdtReport@1
