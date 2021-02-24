@@ -1,14 +1,13 @@
 parameters:
   runCodeInspector: false
-  createSecurityWorkItems: false
 
 steps:
 - task: CodeInspector@2
-  condition: eq(variables['${{ parameters.runCodeInspector }}'], 'true')
+  condition: eq('${{ parameters.runCodeInspector }}', 'true')
   inputs:
     ExcludeFilters: 'samples,test,docs,build,.vs,.git,.github,.gdn'
 
-- task: AntiMalware@3
+- task: AntiMalware@4
   inputs:
     InputType: 'Basic'
     ScanType: 'CustomScan'
@@ -31,43 +30,35 @@ steps:
     AnalyzeTargetGlob: '+:file|$(Build.SourcesDirectory)\**\bin\**\Microsoft.Health.Dicom*.dll;+:file|$(Build.SourcesDirectory)\**\bin\**\Microsoft.Health.Dicom*.exe'
     AnalyzeVerbose: true
 
-- task: CredScan@2
+- task: CredScan@3
   inputs:
     scanFolder: '$(Build.SourcesDirectory)'
-    toolMajorVersion: 'V2'
     outputFormat: 'sarif'
     suppressionsFile: 'CredScanSuppressions.json'
     verboseOutput: true
 
-- task: SdtReport@1
+- task: SdtReport@2
   inputs:
-    AllTools: false
-    APIScan: false
-    BinSkim: true
-    BinSkimBreakOn: 'Error'
-    CodesignValidation: false
-    CredScan: true
-    FortifySCA: false
-    FxCop: false
-    ModernCop: false
-    MSRD: false
-    PoliCheck: false
-    RoslynAnalyzers: false
-    SDLNativeRules: false
-    Semmle: false
-    TSLint: false
-    ToolLogsNotFoundAction: 'Error'
+    GdnExportAllTools: false
+    GdnExportGdnToolArmory: true
+    GdnExportGdnToolBinSkim: true
+    GdnExportGdnToolCredScan: true
 
-- task: PublishSecurityAnalysisLogs@2
+- task: PublishSecurityAnalysisLogs@3
   inputs:
     ArtifactName: 'CodeAnalysisLogs'
     ArtifactType: 'Container'
     AllTools: false
     AntiMalware: true
     APIScan: false
+    Armory: true
+    Bandit: false
     BinSkim: true
     CodesignValidation: false
     CredScan: true
+    CSRF: false
+    ESLint: false
+    Flawfinder: false
     FortifySCA: false
     FxCop: false
     ModernCop: false
@@ -76,30 +67,14 @@ steps:
     RoslynAnalyzers: false
     SDLNativeRules: false
     Semmle: false
+    SpotBugs: false
     TSLint: false
     WebScout: false
     ToolLogsNotFoundAction: 'Error'
 
-- task: PostAnalysis@1
+- task: PostAnalysis@2
   inputs:
-    AllTools: false
-    APIScan: false
-    BinSkim: true
-    BinSkimBreakOn: 'Error'
-    CodesignValidation: false
-    CredScan: true
-    FortifySCA: false
-    FxCop: false
-    ModernCop: false
-    PoliCheck: false
-    RoslynAnalyzers: false
-    SDLNativeRules: false
-    Semmle: false
-    TSLint: false
-    ToolLogsNotFoundAction: 'Error'
-
-- task: uploadScanResults@2
-  condition: eq(variables['${{ parameters.createSecurityWorkItems }}'], 'true')
-  inputs:
-    areaPathParent: 'Health'
-    areaPathChild: 'Patient Engagement\Resolute'
+    GdnBreakAllTools: false
+    GdnBreakGdnToolArmory: true
+    GdnBreakGdnToolBinSkim: true
+    GdnBreakGdnToolCredScan: true

@@ -41,7 +41,6 @@ stages:
     - template: build.yml
       parameters:
         runCodeInspector: true
-        createSecurityWorkItems: true
 
   - job: Linux
     pool:
