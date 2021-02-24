@@ -61,7 +61,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var mediator = Substitute.For<IMediator>();
 
-            var sqlConnectionFactory = new DefaultSqlConnectionFactory(config);
+            var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(config);
+
+            var sqlConnectionFactory = new DefaultSqlConnectionFactory(sqlConnectionStringProvider);
 
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory);
 
@@ -69,7 +71,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var schemaInformation = new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V2);
 
-            _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, NullLogger<SchemaInitializer>.Instance);
+            _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, NullLogger<SchemaInitializer>.Instance);
 
             var dicomSqlIndexSchema = new SqlIndexSchema(schemaInformation, NullLogger<SqlIndexSchema>.Instance);
 
