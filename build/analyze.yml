@@ -1,4 +1,8 @@
 steps:
+- task: CodeInspector@2
+  inputs:
+    ExcludeFilters: 'samples,test,docs,build,.vs,.git,.github'
+
 - task: AntiMalware@3
   inputs:
     InputType: 'Basic'
@@ -30,35 +34,27 @@ steps:
     suppressionsFile: 'CredScanSuppressions.json'
     verboseOutput: true
 
-- task: SdtReport@1
+- task: SdtReport@2
   inputs:
-    AllTools: false
-    APIScan: false
-    BinSkim: true
-    BinSkimBreakOn: 'Error'
-    CodesignValidation: false
-    CredScan: true
-    FortifySCA: false
-    FxCop: false
-    ModernCop: false
-    MSRD: false
-    PoliCheck: false
-    RoslynAnalyzers: false
-    SDLNativeRules: false
-    Semmle: false
-    TSLint: false
-    ToolLogsNotFoundAction: 'Error'
+    GdnExportAllTools: false
+    GdnExportGdnToolArmory: true
+    GdnExportGdnToolBinSkim: true
+    GdnExportGdnToolCredScan: true
 
-- task: PublishSecurityAnalysisLogs@2
+- task: PublishSecurityAnalysisLogs@3
   inputs:
     ArtifactName: 'CodeAnalysisLogs'
     ArtifactType: 'Container'
     AllTools: false
     AntiMalware: true
     APIScan: false
+    Armory: true
     BinSkim: true
     CodesignValidation: false
     CredScan: true
+    CSRF: false
+    ESLint: false
+    Flawfinder: false
     FortifySCA: false
     FxCop: false
     ModernCop: false
@@ -67,24 +63,14 @@ steps:
     RoslynAnalyzers: false
     SDLNativeRules: false
     Semmle: false
+    SpotBugs: false
     TSLint: false
     WebScout: false
     ToolLogsNotFoundAction: 'Error'
 
-- task: PostAnalysis@1
+- task: PostAnalysis@2
   inputs:
-    AllTools: false
-    APIScan: false
-    BinSkim: true
-    BinSkimBreakOn: 'Error'
-    CodesignValidation: false
-    CredScan: true
-    FortifySCA: false
-    FxCop: false
-    ModernCop: false
-    PoliCheck: false
-    RoslynAnalyzers: false
-    SDLNativeRules: false
-    Semmle: false
-    TSLint: false
-    ToolLogsNotFoundAction: 'Error'
+    GdnBreakAllTools: false
+    GdnBreakGdnToolArmory: true
+    GdnBreakGdnToolBinSkim: true
+    GdnBreakGdnToolCredScan: true
