@@ -1,34 +1,10 @@
 steps:
-- task: PowerShell@2
-  displayName: 'Copy Binaries'
-  inputs:
-    targetType: 'inline'
-    script: |
-      # Assume we're running on Windows as tasks like AntiMalware require it
-      $binPattern = '([^\\]+)\\bin\\Release$'
-      $binDirectories = Get-ChildItem -Directory -Recurse -Filter '$(buildConfiguration)' | Select-Object -ExpandProperty 'FullName'
-
-      foreach ($binFolder in $binDirectories)
-      {
-          $matchInfo = $binFolder | Select-String -Pattern $binPattern
-          if ($matchInfo)
-          {
-              $projectName = $matchInfo.Matches[0].Groups[1].Value
-              $outputDir = Join-Path -Path '$(Build.StagingDirectory)' -ChildPath 'bin' -AdditionalChildPath $projectName
-
-              Write-Host "Copying '$binFolder' to '$outputDir'"
-              Copy-Item -Path $binFolder -Destination $outputDir -Recurse
-          }
-      }
-    failOnStderr: true
-    pwsh: true
-
 - task: AntiMalware@3
-  displayName: 'Check Binaries for Malware'
+  displayName: 'Run AntiMalware'
   inputs:
     InputType: 'Basic'
     ScanType: 'CustomScan'
-    FileDirPath: '$(Build.StagingDirectory)'
+    FileDirPath: '$(Build.SourcesDirectory)'
     EnableServices: true
     TreatSignatureUpdateFailureAs: 'Standard'
     SignatureFreshness: 'OneDay'
@@ -40,11 +16,11 @@ steps:
     targetDirectory: '$(Build.SourcesDirectory)\samples\templates'
     targetFiles: 'f|*.json'
 
-- task: BinSkim@4
+- task: BinSkim@3
   inputs:
     InputType: 'Basic'
     Function: 'analyze'
-    AnalyzeTargetGlob: '+:file|$(Build.StagingDirectory)\bin\**\*.dll;+:file|$(Build.StagingDirectory)\bin\**\*.exe;-:dir|**\runtimes\**'
+    AnalyzeTarget: '$(Build.SourcesDirectory)\*\Microsoft.Health.Dicom*.dll;$(Build.SourcesDirectory)\*\Microsoft.Health.Dicom*.exe'
 
 - task: CredScan@2
   displayName: 'Run CredScan'
