@@ -1,6 +1,5 @@
 steps:
 - task: AntiMalware@3
-  displayName: 'Run AntiMalware'
   inputs:
     InputType: 'Basic'
     ScanType: 'CustomScan'
@@ -11,19 +10,17 @@ steps:
     TreatStaleSignatureAs: 'Error'
 
 - task: Armory@2
-  displayName: 'Scan Sample ARM Templates'
   inputs:
     targetDirectory: '$(Build.SourcesDirectory)\samples\templates'
     targetFiles: 'f|*.json'
 
-- task: BinSkim@3
+- task: BinSkim@4
   inputs:
     InputType: 'Basic'
     Function: 'analyze'
-    AnalyzeTarget: '$(Build.SourcesDirectory)\*\Microsoft.Health.Dicom*.dll;$(Build.SourcesDirectory)\*\Microsoft.Health.Dicom*.exe'
+    AnalyzeTargetGlob: '+:file|$(Build.SourcesDirectory)\**\bin\**\Microsoft.Health.Dicom*.dll;+:file|$(Build.SourcesDirectory)\**\bin\**\Microsoft.Health.Dicom*.exe'
 
 - task: CredScan@2
-  displayName: 'Run CredScan'
   inputs:
     scanFolder: '$(Build.SourcesDirectory)'
     toolMajorVersion: 'V1'
