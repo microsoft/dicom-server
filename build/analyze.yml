@@ -44,7 +44,7 @@ steps:
   inputs:
     InputType: 'Basic'
     Function: 'analyze'
-    AnalyzeTargetGlob: '+:file|$(Build.StagingDirectory)\bin\**\*.dll;+:file|$(Build.StagingDirectory)\bin\**\*.exe;-:dir|**\runtimes'
+    AnalyzeTargetGlob: '+:file|$(Build.StagingDirectory)\bin\**\*.dll;+:file|$(Build.StagingDirectory)\bin\**\*.exe;-:dir|**\runtimes\**'
 
 - task: CredScan@2
   displayName: 'Run CredScan'
