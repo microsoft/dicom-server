@@ -1,6 +1,8 @@
 parameters:
   packageArtifacts: true
   runSecurityAnalysis: true
+  runCodeInspector: false
+  createSecurityWorkItems: false
 
 steps:
   - task: UseDotNet@2
@@ -29,6 +31,9 @@ steps:
 
   - ${{ if eq(parameters.runSecurityAnalysis, 'true') }}:
     - template: analyze.yml
+      parameters:
+        runCodeInspector: '${{ parameters.runCodeInspector }}'
+        createSecurityWorkItems: '${{ parameters.createSecurityWorkItems }}'
 
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml

@@ -1,7 +1,12 @@
+parameters:
+  runCodeInspector: false
+  createSecurityWorkItems: false
+
 steps:
 - task: CodeInspector@2
+  condition: eq(variables['${{ parameters.runCodeInspector }}'], 'true')
   inputs:
-    ExcludeFilters: 'samples,test,docs,build,.vs,.git,.github'
+    ExcludeFilters: 'samples,test,docs,build,.vs,.git,.github,.gdn'
 
 - task: AntiMalware@3
   inputs:
@@ -34,27 +39,14 @@ steps:
     suppressionsFile: 'CredScanSuppressions.json'
     verboseOutput: true
 
-- task: SdtReport@2
+- task: SdtReport@1
   inputs:
-    GdnExportAllTools: false
-    GdnExportGdnToolArmory: true
-    GdnExportGdnToolBinSkim: true
-    GdnExportGdnToolCredScan: true
-
-- task: PublishSecurityAnalysisLogs@3
-  inputs:
-    ArtifactName: 'CodeAnalysisLogs'
-    ArtifactType: 'Container'
     AllTools: false
-    AntiMalware: true
     APIScan: false
-    Armory: true
     BinSkim: true
+    BinSkimBreakOn: 'Error'
     CodesignValidation: false
     CredScan: true
-    CSRF: false
-    ESLint: false
-    Flawfinder: false
     FortifySCA: false
     FxCop: false
     ModernCop: false
@@ -63,14 +55,51 @@ steps:
     RoslynAnalyzers: false
     SDLNativeRules: false
     Semmle: false
-    SpotBugs: false
+    TSLint: false
+    ToolLogsNotFoundAction: 'Error'
+
+- task: PublishSecurityAnalysisLogs@2
+  inputs:
+    ArtifactName: 'CodeAnalysisLogs'
+    ArtifactType: 'Container'
+    AllTools: false
+    AntiMalware: true
+    APIScan: false
+    BinSkim: true
+    CodesignValidation: false
+    CredScan: true
+    FortifySCA: false
+    FxCop: false
+    ModernCop: false
+    MSRD: false
+    PoliCheck: false
+    RoslynAnalyzers: false
+    SDLNativeRules: false
+    Semmle: false
     TSLint: false
     WebScout: false
     ToolLogsNotFoundAction: 'Error'
 
-- task: PostAnalysis@2
+- task: PostAnalysis@1
   inputs:
-    GdnBreakAllTools: false
-    GdnBreakGdnToolArmory: true
-    GdnBreakGdnToolBinSkim: true
-    GdnBreakGdnToolCredScan: true
+    AllTools: false
+    APIScan: false
+    BinSkim: true
+    BinSkimBreakOn: 'Error'
+    CodesignValidation: false
+    CredScan: true
+    FortifySCA: false
+    FxCop: false
+    ModernCop: false
+    PoliCheck: false
+    RoslynAnalyzers: false
+    SDLNativeRules: false
+    Semmle: false
+    TSLint: false
+    ToolLogsNotFoundAction: 'Error'
+
+- task: uploadScanResults@2
+  condition: eq(variables['${{ parameters.createSecurityWorkItems }}'], 'true')
+  inputs:
+    areaPathParent: 'Health'
+    areaPathChild: 'Patient Engagement\Resolute'
