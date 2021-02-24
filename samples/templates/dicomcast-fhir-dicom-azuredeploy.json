@@ -392,7 +392,7 @@
                     "restartPolicy":{"value": "[parameters('dicomCastRestartPolicy')]"},
                     "dicomWebEndpoint":{"value": "[concat('https://',parameters('dicomServiceName'),'.azurewebsites.net')]"},
                     "fhirEndpoint":{"value": "[concat('https://',parameters('fhirServiceName'),'.azurewebsites.net')]"},
-                    "enforceValidationOfTagValues":{"value": "[parameters('enforceValidationOfTagValues')]"},
+                    "enforceValidationOfTagValues":{"value": "[parameters('enforceValidationOfTagValues')]"}
                     }
                 }
             }
