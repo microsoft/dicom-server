@@ -95,7 +95,7 @@
                 "description": "The endpoint of the FHIR server."
             }
         },
-        "EnforceValidationOfTagValues": {
+        "enforceValidationOfTagValues": {
             "defaultValue": false,
             "type": "Bool",
             "metadata": {
@@ -157,7 +157,7 @@
                                 },
                                 {
                                     "name": "DicomCast__Features__EnforceValidationOfTagValues",
-                                    "value": "[parameters('EnforceValidationOfTagValues')]"
+                                    "value": "[parameters('enforceValidationOfTagValues')]"
 
                                 }
                             ]

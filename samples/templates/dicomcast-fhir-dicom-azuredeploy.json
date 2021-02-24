@@ -276,6 +276,13 @@
             "metadata": {
                 "description": "Select a location for Application Insights. If empty, the region closet to your deployment location is used."
             }
+        },
+        "enforceValidationOfTagValues": {
+            "defaultValue": false,
+            "type": "Bool",
+            "metadata": {
+                "description": "Enforce validation of all tag values when syncing from Dicom to FHIR using dicom-cast and do not store to FHIR even if only non-required tags are invalid"
+            }
         }
     },
     "variables": {
@@ -384,7 +391,8 @@
                     "location":{"value": "[resourceGroup().location]"},
                     "restartPolicy":{"value": "[parameters('dicomCastRestartPolicy')]"},
                     "dicomWebEndpoint":{"value": "[concat('https://',parameters('dicomServiceName'),'.azurewebsites.net')]"},
-                    "fhirEndpoint":{"value": "[concat('https://',parameters('fhirServiceName'),'.azurewebsites.net')]"}
+                    "fhirEndpoint":{"value": "[concat('https://',parameters('fhirServiceName'),'.azurewebsites.net')]"},
+                    "enforceValidationOfTagValues":{"value": "[parameters('enforceValidationOfTagValues')]"},
                     }
                 }
             }
