@@ -37,12 +37,15 @@ steps:
     suppressionsFile: 'CredScanSuppressions.json'
     verboseOutput: true
 
-- task: Semmle@1
+- task: Semmle@0
   condition: eq('${{ parameters.advanced }}', 'true')
   inputs:
     sourceCodeDirectory: '$(Build.SourcesDirectory)'
     language: 'csharp'
     querySuite: 'Recommended'
+    cleanupBuildCommands: |
+      \\\\\\\"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe\\\\\\\" $(BUILD.SourcesDirectory)\Microsoft.Health.Dicom.sln -t:Clean -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
+      \\\\\\\"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe\\\\\\\" $(BUILD.SourcesDirectory)\converter\dicom-cast\Microsoft.Health.DicomCast.sln -t:Clean -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
     buildCommands: |
       \\\\\\\"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe\\\\\\\" $(BUILD.SourcesDirectory)\Microsoft.Health.Dicom.sln -t:Build -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
       \\\\\\\"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe\\\\\\\" $(BUILD.SourcesDirectory)\converter\dicom-cast\Microsoft.Health.DicomCast.sln -t:Build -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true

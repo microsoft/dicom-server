@@ -41,4 +41,4 @@ steps:
   - ${{ if ne(parameters.securityAnalysis, 'none') }}:
     - template: analyze.yml
       parameters:
-        advanced: eq('${{ parameters.securityAnalysis }}', 'advanced')
+        advanced: ${{ eq(parameters.securityAnalysis, 'advanced') }}
