@@ -1,6 +1,6 @@
 parameters:
   packageArtifacts: true
-  securityAnalysis: true
+  analyzeSecurity: true
 
 steps:
   - task: UseDotNet@2
@@ -30,7 +30,5 @@ steps:
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
 
-  - ${{ if ne(parameters.securityAnalysis, 'none') }}:
+  - ${{ if eq(parameters.analyzeSecurity, 'true') }}:
     - template: analyze.yml
-      parameters:
-        advanced: ${{ eq(parameters.securityAnalysis, 'advanced') }}
