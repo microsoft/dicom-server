@@ -7,6 +7,14 @@ steps:
   inputs:
     ExcludeFilters: 'samples,test,docs,build,.vs,.git,.github,.gdn'
 
+- task: ComponentGovernanceComponentDetection@0
+  inputs:
+    scanType: 'Register'
+    verbosity: 'Verbose'
+    alertWarningLevel: 'High'
+    failOnAlert: true
+    ignoreDirectories: '$(Build.SourcesDirectory)\samples\Azurite'
+
 - task: AntiMalware@4
   inputs:
     InputType: 'Basic'

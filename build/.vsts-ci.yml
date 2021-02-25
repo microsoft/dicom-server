@@ -35,10 +35,13 @@ stages:
     nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.nuGetVersion']]
   jobs:
   - job: Windows
+    timeoutInMinutes: 90
     pool:
       vmImage: $(windowsVmImage)
     steps:
     - template: build.yml
+      parameters:
+        securityAnalysis: 'advanced'
 
   - job: Linux
     pool:
@@ -63,7 +66,7 @@ stages:
         downloadType: 'single'
         downloadPath: '$(System.ArtifactsDirectory)'
         artifactName: 'deploy'
-    - template: add-aad-test-environment.yml     
+    - template: add-aad-test-environment.yml
     - task: AzureRmWebAppDeployment@3
       displayName: 'Azure app service deployment'
       inputs:
