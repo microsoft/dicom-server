@@ -42,7 +42,7 @@ steps:
   inputs:
     sourceCodeDirectory: '$(Build.SourcesDirectory)'
     language: 'csharp'
-    querySuite: 'Recommended'
+    querySuite: 'Required'
     cleanupBuildCommands: |
       "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $(BUILD.SourcesDirectory)\Microsoft.Health.Dicom.sln -t:Clean -p:Configuration=$(BuildConfiguration)
       "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $(BUILD.SourcesDirectory)\converter\dicom-cast\Microsoft.Health.DicomCast.sln -t:Clean -p:Configuration=$(BuildConfiguration)
