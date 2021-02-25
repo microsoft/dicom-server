@@ -44,11 +44,11 @@ steps:
     language: 'csharp'
     querySuite: 'Recommended'
     cleanupBuildCommands: |
-      \\\\\\\"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe\\\\\\\" $(BUILD.SourcesDirectory)\Microsoft.Health.Dicom.sln -t:Clean -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
-      \\\\\\\"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe\\\\\\\" $(BUILD.SourcesDirectory)\converter\dicom-cast\Microsoft.Health.DicomCast.sln -t:Clean -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
+      "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $(BUILD.SourcesDirectory)\Microsoft.Health.Dicom.sln -t:Clean -p:Configuration=$(BuildConfiguration)
+      "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $(BUILD.SourcesDirectory)\converter\dicom-cast\Microsoft.Health.DicomCast.sln -t:Clean -p:Configuration=$(BuildConfiguration)
     buildCommands: |
-      \\\\\\\"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe\\\\\\\" $(BUILD.SourcesDirectory)\Microsoft.Health.Dicom.sln -t:Build -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
-      \\\\\\\"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe\\\\\\\" $(BUILD.SourcesDirectory)\converter\dicom-cast\Microsoft.Health.DicomCast.sln -t:Build -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
+      "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $(BUILD.SourcesDirectory)\Microsoft.Health.Dicom.sln -t:Build -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
+      "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $(BUILD.SourcesDirectory)\converter\dicom-cast\Microsoft.Health.DicomCast.sln -t:Build -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
     timeout: '1800'
     ram: '16384'
     addProjectDirToScanningExclusionList: true
