@@ -47,16 +47,19 @@ steps:
 
 - task: Semmle@0
   condition: eq('${{ parameters.advanced }}', 'true')
+  env:
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
   inputs:
+    toolVersion: 'LatestPreRelease'
     sourceCodeDirectory: '$(Build.SourcesDirectory)'
     language: 'csharp'
-    querySuite: 'Required'
+    querySuite: 'Recommended'
     cleanupBuildCommands: |
-      "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $(BUILD.SourcesDirectory)\Microsoft.Health.Dicom.sln -t:Clean -p:Configuration=$(BuildConfiguration)
-      "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $(BUILD.SourcesDirectory)\converter\dicom-cast\Microsoft.Health.DicomCast.sln -t:Clean -p:Configuration=$(BuildConfiguration)
+      dotnet clean Microsoft.Health.Dicom -c $(BuildConfiguration)
+      dotnet clean converter\dicom-cast\Microsoft.Health.DicomCast.sln -c $(BuildConfiguration)
     buildCommands: |
-      "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $(BUILD.SourcesDirectory)\Microsoft.Health.Dicom.sln -t:Build -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
-      "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $(BUILD.SourcesDirectory)\converter\dicom-cast\Microsoft.Health.DicomCast.sln -t:Build -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
+      dotnet build Microsoft.Health.Dicom.sln -c $(buildConfiguration) -p:ContinuousIntegrationBuild=true
+      dotnet build converter\dicom-cast\Microsoft.Health.DicomCast.sln -c $(buildConfiguration) -p:ContinuousIntegrationBuild=true
     timeout: '1800'
     ram: '16384'
     addProjectDirToScanningExclusionList: true
@@ -67,7 +70,7 @@ steps:
     GdnExportGdnToolArmory: true
     GdnExportGdnToolBinSkim: true
     GdnExportGdnToolCredScan: true
-    GdnExportGdnToolSemmle: ${{ parameters.advanced }}
+    GdnExportGdnToolSemmle: false
 
 - task: PublishSecurityAnalysisLogs@3
   inputs:
@@ -91,7 +94,7 @@ steps:
     PoliCheck: false
     RoslynAnalyzers: false
     SDLNativeRules: false
-    Semmle: ${{ parameters.advanced }}
+    Semmle: false
     SpotBugs: false
     TSLint: false
     WebScout: false
@@ -103,4 +106,4 @@ steps:
     GdnBreakGdnToolArmory: true
     GdnBreakGdnToolBinSkim: true
     GdnBreakGdnToolCredScan: true
-    GdnBreakGdnToolSemmle: ${{ parameters.advanced }}
+    GdnBreakGdnToolSemmle: false

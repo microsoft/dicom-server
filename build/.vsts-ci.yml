@@ -35,7 +35,6 @@ stages:
     nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.nuGetVersion']]
   jobs:
   - job: Windows
-    timeoutInMinutes: 90
     pool:
       vmImage: $(windowsVmImage)
     steps:

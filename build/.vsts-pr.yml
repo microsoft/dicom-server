@@ -37,6 +37,8 @@ stages:
   - job: Windows
     pool:
       vmImage: $(windowsVmImage)
+    variables:
+      LGTM.UploadSnapshot: true
     steps:
     - template: build.yml
       parameters:
