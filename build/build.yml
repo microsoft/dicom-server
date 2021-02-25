@@ -1,7 +1,14 @@
 parameters:
-  packageArtifacts: true
-  runSecurityAnalysis: true
-  runCodeInspector: false
+- name: packageArtifacts
+  type: boolean
+  default: true
+- name: securityAnalysis
+  type: string
+  default: basic
+  values:
+  - none
+  - basic
+  - advanced
 
 steps:
   - task: UseDotNet@2
@@ -28,10 +35,10 @@ steps:
       projects: '**/*UnitTests/*.csproj'
       arguments: '-c $(buildConfiguration) --no-build'
 
-  - ${{ if eq(parameters.runSecurityAnalysis, 'true') }}:
-    - template: analyze.yml
-      parameters:
-        runCodeInspector: '${{ parameters.runCodeInspector }}'
-
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
+
+  - ${{ if neq(parameters.securityAnalysis, 'none') }}:
+    - template: analyze.yml
+      parameters:
+        advanced: ${{ if eq(parameters.securityAnalysis, 'advanced') }}

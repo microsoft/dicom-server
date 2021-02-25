@@ -1,9 +1,9 @@
 parameters:
-  runCodeInspector: false
+  advanced: false
 
 steps:
 - task: CodeInspector@2
-  condition: eq('${{ parameters.runCodeInspector }}', 'true')
+  condition: eq('${{ parameters.advanced }}', 'true')
   inputs:
     ExcludeFilters: 'samples,test,docs,build,.vs,.git,.github,.gdn'
 
@@ -37,12 +37,26 @@ steps:
     suppressionsFile: 'CredScanSuppressions.json'
     verboseOutput: true
 
+- task: Semmle@1
+  condition: eq('${{ parameters.advanced }}', 'true')
+  inputs:
+    sourceCodeDirectory: '$(Build.SourcesDirectory)'
+    language: 'csharp'
+    querySuite: 'Recommended'
+    buildCommands: |
+      \\\\\\\"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe\\\\\\\" $(BUILD.SourcesDirectory)\Microsoft.Health.Dicom.sln -t:Build -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
+      \\\\\\\"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe\\\\\\\" $(BUILD.SourcesDirectory)\converter\dicom-cast\Microsoft.Health.DicomCast.sln -t:Build -p:Configuration=$(BuildConfiguration) -p:ContinuousIntegrationBuild=true
+    timeout: '1800'
+    ram: '16384'
+    addProjectDirToScanningExclusionList: true
+
 - task: SdtReport@2
   inputs:
     GdnExportAllTools: false
     GdnExportGdnToolArmory: true
     GdnExportGdnToolBinSkim: true
     GdnExportGdnToolCredScan: true
+    GdnExportGdnToolSemmle: ${{ parameters.advanced }}
 
 - task: PublishSecurityAnalysisLogs@3
   inputs:
@@ -66,7 +80,7 @@ steps:
     PoliCheck: false
     RoslynAnalyzers: false
     SDLNativeRules: false
-    Semmle: false
+    Semmle: ${{ parameters.advanced }}
     SpotBugs: false
     TSLint: false
     WebScout: false
@@ -78,3 +92,4 @@ steps:
     GdnBreakGdnToolArmory: true
     GdnBreakGdnToolBinSkim: true
     GdnBreakGdnToolCredScan: true
+    GdnBreakGdnToolSemmle: ${{ parameters.advanced }}
