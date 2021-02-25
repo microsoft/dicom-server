@@ -1,12 +1,4 @@
-parameters:
-  advanced: false
-
 steps:
-- task: CodeInspector@2
-  condition: eq('${{ parameters.advanced }}', 'true')
-  inputs:
-    ExcludeFilters: 'samples,test,docs,build,.vs,.git,.github,.gdn'
-
 - task: ComponentGovernanceComponentDetection@0
   inputs:
     scanType: 'Register'
@@ -45,32 +37,12 @@ steps:
     suppressionsFile: 'CredScanSuppressions.json'
     verboseOutput: true
 
-- task: Semmle@0
-  condition: eq('${{ parameters.advanced }}', 'true')
-  env:
-    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-  inputs:
-    toolVersion: 'LatestPreRelease'
-    sourceCodeDirectory: '$(Build.SourcesDirectory)'
-    language: 'csharp'
-    querySuite: 'Recommended'
-    cleanupBuildCommands: |
-      dotnet clean Microsoft.Health.Dicom -c $(BuildConfiguration)
-      dotnet clean converter\dicom-cast\Microsoft.Health.DicomCast.sln -c $(BuildConfiguration)
-    buildCommands: |
-      dotnet build Microsoft.Health.Dicom.sln -c $(buildConfiguration) -p:ContinuousIntegrationBuild=true
-      dotnet build converter\dicom-cast\Microsoft.Health.DicomCast.sln -c $(buildConfiguration) -p:ContinuousIntegrationBuild=true
-    timeout: '1800'
-    ram: '16384'
-    addProjectDirToScanningExclusionList: true
-
 - task: SdtReport@2
   inputs:
     GdnExportAllTools: false
     GdnExportGdnToolArmory: true
     GdnExportGdnToolBinSkim: true
     GdnExportGdnToolCredScan: true
-    GdnExportGdnToolSemmle: false
 
 - task: PublishSecurityAnalysisLogs@3
   inputs:

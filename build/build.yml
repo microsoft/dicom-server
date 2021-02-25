@@ -1,14 +1,6 @@
 parameters:
-- name: packageArtifacts
-  type: boolean
-  default: true
-- name: securityAnalysis
-  type: string
-  default: basic
-  values:
-  - none
-  - basic
-  - advanced
+  packageArtifacts: true
+  securityAnalysis: true
 
 steps:
   - task: UseDotNet@2

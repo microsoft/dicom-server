@@ -37,12 +37,8 @@ stages:
   - job: Windows
     pool:
       vmImage: $(windowsVmImage)
-    variables:
-      LGTM.UploadSnapshot: true
     steps:
     - template: build.yml
-      parameters:
-        securityAnalysis: 'advanced'
 
   - job: Linux
     pool:
@@ -51,7 +47,7 @@ stages:
     - template: build.yml
       parameters:
         packageArtifacts: false
-        securityAnalysis: 'none'
+        securityAnalysis: false
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'

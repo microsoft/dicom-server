@@ -39,8 +39,6 @@ stages:
       vmImage: $(windowsVmImage)
     steps:
     - template: build.yml
-      parameters:
-        securityAnalysis: 'advanced'
 
   - job: Linux
     pool:
@@ -49,6 +47,7 @@ stages:
     - template: build.yml
       parameters:
         packageArtifacts: false
+        securityAnalysis: false
 
 - stage: UpdateTestEnvironment
   displayName: 'Update Test Environment'
