@@ -31,7 +31,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
     public class RoleLoader : IHostedService
     {
         private readonly AuthorizationConfiguration _authorizationConfiguration;
-        private readonly IHostEnvironment _hostEnvironment;
         private readonly Microsoft.Extensions.FileProviders.IFileProvider _fileProvider;
 
         public RoleLoader(AuthorizationConfiguration authorizationConfiguration, IHostEnvironment hostEnvironment)
@@ -41,7 +40,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
             EnsureArg.IsNotNull(hostEnvironment.ContentRootFileProvider, nameof(hostEnvironment.ContentRootFileProvider));
 
             _authorizationConfiguration = authorizationConfiguration;
-            _hostEnvironment = hostEnvironment;
             _fileProvider = hostEnvironment.ContentRootFileProvider;
         }
 
