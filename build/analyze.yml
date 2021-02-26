@@ -78,4 +78,3 @@ steps:
     GdnBreakGdnToolArmory: true
     GdnBreakGdnToolBinSkim: true
     GdnBreakGdnToolCredScan: true
-    GdnBreakGdnToolSemmle: false
