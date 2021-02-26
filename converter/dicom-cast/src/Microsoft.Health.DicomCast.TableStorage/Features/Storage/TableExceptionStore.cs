@@ -41,6 +41,8 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             TableEntity entity;
             string tableName;
 
+            EnsureArg.IsNotNull(changeFeedEntry, nameof(changeFeedEntry));
+
             switch (errorType)
             {
                 case ErrorType.FhirError:
@@ -68,7 +70,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             table = _client.GetTableReference(tableName);
             entity = new IntransientEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore);
 
-            TableOperation operation = TableOperation.InsertOrMerge(entity);
+            var operation = TableOperation.InsertOrMerge(entity);
 
             try
             {
@@ -85,7 +87,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         /// <inheritdoc/>
         public async Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, TimeSpan nextDelayTimeSpan, Exception exceptionToStore, CancellationToken cancellationToken)
         {
-            string tableName = Constants.TransientRetryTableName;
+            EnsureArg.IsNotNull(changeFeedEntry, nameof(changeFeedEntry));
 
             DicomDataset dataset = changeFeedEntry.Metadata;
             string studyUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
@@ -93,15 +95,15 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             string instanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
             long changeFeedSequence = changeFeedEntry.Sequence;
 
-            CloudTable table = _client.GetTableReference(tableName);
+            CloudTable table = _client.GetTableReference(Constants.TransientRetryTableName);
             TableEntity entity = new RetryableEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, retryNum, exceptionToStore);
 
-            TableOperation operation = TableOperation.InsertOrMerge(entity);
+            var operation = TableOperation.InsertOrMerge(entity);
 
             try
             {
                 await table.ExecuteAsync(operation, cancellationToken);
-                _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Tried {retryNum} time(s). Waiting {milliseconds} milliseconds . Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum, nextDelayTimeSpan.TotalMilliseconds, tableName);
+                _logger.LogInformation("Retryable error when processsing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Tried {retryNum} time(s). Waiting {milliseconds} milliseconds . Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum, nextDelayTimeSpan.TotalMilliseconds, Constants.TransientRetryTableName);
             }
             catch
             {

@@ -18,7 +18,7 @@ using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
-    public class AcceptContentFilterAttribute : ActionFilterAttribute
+    public sealed class AcceptContentFilterAttribute : ActionFilterAttribute
     {
         private const int NotAcceptableResponseCode = (int)HttpStatusCode.NotAcceptable;
         private const string TypeParameter = "type";
@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
                     if (_allowSingle)
                     {
                         string[] split = acceptHeader.ToString().Split(';');
-                        List<string> stringHeaders = _mediaTypes.Select(x => x.ToString()).ToList();
+                        var stringHeaders = _mediaTypes.Select(x => x.ToString()).ToList();
                         if (split.Any(x => stringHeaders.Contains(x, StringComparer.InvariantCultureIgnoreCase)))
                         {
                             acceptable = true;

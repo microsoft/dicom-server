@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
         private readonly IMultipartReaderFactory _multipartReaderFactory = Substitute.For<IMultipartReaderFactory>();
         private readonly DicomInstanceEntryReaderForMultipartRequest _dicomInstanceEntryReader;
 
-        private Stream _stream = new MemoryStream();
+        private readonly Stream _stream = new MemoryStream();
 
         public DicomInstanceEntryReaderForMultipartRequestTests()
         {

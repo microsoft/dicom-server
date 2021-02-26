@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -19,6 +18,7 @@ using Common.AppConfiguration;
 using Common.KeyVault;
 using Common.ServiceBus;
 using Dicom;
+using EnsureThat;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Client;
@@ -35,7 +35,7 @@ namespace MessageHandler
 
         public static async Task Main()
         {
-            SecretClientOptions options = new SecretClientOptions()
+            var options = new SecretClientOptions()
             {
                 Retry =
                 {
@@ -55,13 +55,17 @@ namespace MessageHandler
             var builder = new ConfigurationBuilder();
             builder.AddAzureAppConfiguration(secret.Value);
 
-            var config = builder.Build();
+            IConfigurationRoot config = builder.Build();
             var runType = config[KnownConfigurationNames.RunType];
             _topicName = runType;
 
             subscriptionClient = new SubscriptionClient(_serviceBusConnectionString, _topicName, KnownSubscriptions.S1, ReceiveMode.PeekLock);
+            using var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
+            };
 
-            SetupDicomWebClient();
+            SetupDicomWebClient(httpClient);
 
             // Register subscription message handler and receive messages in a loop
             RegisterOnMessageHandlerAndReceiveMessages();
@@ -71,13 +75,8 @@ namespace MessageHandler
             await subscriptionClient.CloseAsync();
         }
 
-        private static void SetupDicomWebClient()
+        private static void SetupDicomWebClient(HttpClient httpClient)
         {
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
-            };
-
             client = new DicomWebClient(httpClient);
         }
 
@@ -150,7 +149,7 @@ namespace MessageHandler
             int statusCode = (int)response.StatusCode;
             if (statusCode != 409 && statusCode < 200 && statusCode > 299)
             {
-                throw new Exception();
+                throw new HttpRequestException("Stow operation failed", null, response.StatusCode);
             }
 
             return;
@@ -209,16 +208,18 @@ namespace MessageHandler
             string[] split = messageBody.Split(KnownSeparators.MessageSeparators, StringSplitOptions.RemoveEmptyEntries);
 
             string studyUid = split[0];
-            string seriesUid = split.Count() > 1 ? split[1] : null;
-            string instanceUid = split.Count() > 2 ? split[2] : null;
+            string seriesUid = split.Length > 1 ? split[1] : null;
+            string instanceUid = split.Length > 2 ? split[2] : null;
 
             return (studyUid, seriesUid, instanceUid);
         }
 
         public static Task ExceptionReceivedHandler(ExceptionReceivedEventArgs exceptionReceivedEventArgs)
         {
+            EnsureArg.IsNotNull(exceptionReceivedEventArgs, nameof(exceptionReceivedEventArgs));
+
             System.Diagnostics.Trace.WriteLine($"Message handler encountered an exception {exceptionReceivedEventArgs.Exception}.");
-            var context = exceptionReceivedEventArgs.ExceptionReceivedContext;
+            ExceptionReceivedContext context = exceptionReceivedEventArgs.ExceptionReceivedContext;
             System.Diagnostics.Trace.WriteLine("Exception context for troubleshooting:");
             System.Diagnostics.Trace.WriteLine($"- Endpoint: {context.Endpoint}");
             System.Diagnostics.Trace.WriteLine($"- Entity Path: {context.EntityPath}");

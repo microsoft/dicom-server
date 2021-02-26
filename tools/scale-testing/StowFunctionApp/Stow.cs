@@ -11,7 +11,6 @@ using System.Text.Json;
 using Common;
 using Common.ServiceBus;
 using Dicom;
-using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client;
@@ -26,8 +25,12 @@ namespace StowFunctionApp
         public static void Run([ServiceBusTrigger(KnownTopics.StowRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
         {
             log.LogInformation($"C# ServiceBus topic trigger function processed message: {Encoding.UTF8.GetString(message)}");
+            using var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
+            };
 
-            SetupDicomWebClient();
+            SetupDicomWebClient(httpClient);
 
             try
             {
@@ -41,13 +44,8 @@ namespace StowFunctionApp
             }
         }
 
-        private static void SetupDicomWebClient()
+        private static void SetupDicomWebClient(HttpClient httpClient)
         {
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
-            };
-
             client = new DicomWebClient(httpClient);
         }
 
@@ -58,7 +56,7 @@ namespace StowFunctionApp
             int statusCode = (int)response.StatusCode;
             if (statusCode != 409 && statusCode < 200 && statusCode > 299)
             {
-                throw new Exception();
+                throw new HttpRequestException("Store operation failed", null, response.StatusCode);
             }
 
             return;
@@ -118,17 +116,6 @@ namespace StowFunctionApp
                         columns: 100,
                         frames: 50);
             StoreRetrievedData(dicomFile);
-        }
-
-        private static InstanceIdentifier ToInstanceIdentifier(DicomDataset dicomDataset)
-        {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-
-            // Note: Here we 'GetSingleValueOrDefault' and let the constructor validate the identifier.
-            return new InstanceIdentifier(
-                dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
-                dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
-                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty));
         }
     }
 }

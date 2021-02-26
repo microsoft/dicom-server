@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -44,6 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
             _fileProvider = hostEnvironment.ContentRootFileProvider;
         }
 
+        [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "JSchemaValidatingReader will close input")]
         public Task StartAsync(CancellationToken cancellationToken)
         {
             using Stream schemaContents = GetType().Assembly.GetManifestResourceStream(GetType(), "roles.schema.json");

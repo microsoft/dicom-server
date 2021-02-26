@@ -11,7 +11,6 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 
@@ -22,17 +21,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     /// </summary>
     public class DicomInstanceEntryReaderForSinglePartRequest : IDicomInstanceEntryReader
     {
-        private readonly ILogger _logger;
         private readonly ISeekableStreamConverter _seekableStreamConverter;
 
-        public DicomInstanceEntryReaderForSinglePartRequest(
-            ILogger<DicomInstanceEntryReaderForSinglePartRequest> logger,
-            ISeekableStreamConverter seekableStreamConverter)
+        public DicomInstanceEntryReaderForSinglePartRequest(ISeekableStreamConverter seekableStreamConverter)
         {
-            EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
 
-            _logger = logger;
             _seekableStreamConverter = seekableStreamConverter;
         }
 
@@ -40,25 +34,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         public bool CanRead(string contentType)
         {
             return MediaTypeHeaderValue.TryParse(contentType, out MediaTypeHeaderValue media) &&
-                string.Equals(KnownContentTypes.ApplicationDicom, media.MediaType, StringComparison.InvariantCultureIgnoreCase);
+                string.Equals(KnownContentTypes.ApplicationDicom, media.MediaType, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream body, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
-            EnsureArg.IsNotNull(body, nameof(body));
+            EnsureArg.IsNotNull(stream, nameof(stream));
 
             var dicomInstanceEntries = new List<StreamOriginatedDicomInstanceEntry>();
 
-            if (!KnownContentTypes.ApplicationDicom.Equals(contentType, StringComparison.InvariantCultureIgnoreCase))
+            if (!KnownContentTypes.ApplicationDicom.Equals(contentType, StringComparison.OrdinalIgnoreCase))
             {
                 // TODO: Currently, we only support application/dicom. Support for metadata + bulkdata is coming.
                 throw new UnsupportedMediaTypeException(
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, contentType));
             }
 
-            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(body);
+            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(stream, cancellationToken);
             dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(seekableStream));
 
             return dicomInstanceEntries;

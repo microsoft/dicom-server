@@ -57,7 +57,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             FhirTransactionRequestMode requestMode = FhirTransactionRequestMode.None;
 
             Patient existingPatient = await _fhirService.RetrievePatientAsync(patientIdentifier, cancellationToken);
-            Patient patient = (Patient)existingPatient?.DeepCopy();
+            var patient = (Patient)existingPatient?.DeepCopy();
 
             if (existingPatient == null)
             {
@@ -99,6 +99,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <inheritdoc/>
         public void ProcessResponse(FhirTransactionContext context)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
+
             // If the Patient does not exist, we will use conditional create to create the resource
             // to avoid duplicated resource being created. However, if the resource with the identifier
             // was created externally between the retrieve and create, conditional create will return 200
