@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
@@ -84,7 +85,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task VerifyTagIsAdded(CustomTagEntry customTagEntry)
         {
-            var actualCustomTagEntries = await _customTagStore.GetCustomTagsAsync(customTagEntry.Path);
+            IEnumerable<CustomTagEntry> actualCustomTagEntries = await _customTagStore.GetCustomTagsAsync(customTagEntry.Path);
             CustomTagEntry actualCustomTagEntry = actualCustomTagEntries.First();
             Assert.Equal(customTagEntry.Path, actualCustomTagEntry.Path);
             Assert.Equal(customTagEntry.VR, actualCustomTagEntry.VR);
