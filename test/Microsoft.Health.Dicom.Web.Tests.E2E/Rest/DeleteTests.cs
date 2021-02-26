@@ -10,7 +10,6 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
-using Microsoft.IO;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -18,13 +17,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private readonly IDicomWebClient _client;
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public DeleteTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.Client;
-            _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
         }
 
         [Fact]

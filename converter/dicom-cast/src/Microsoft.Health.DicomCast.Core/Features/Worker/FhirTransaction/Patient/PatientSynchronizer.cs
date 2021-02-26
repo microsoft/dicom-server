@@ -70,11 +70,5 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 }
             }
         }
-
-        private static bool IsPatientUpdated(Patient patient, IDeepCopyable patientBeforeSynchronize)
-        {
-            // check if the patient property has changed after synchronization
-            return !patient.IsExactly((IDeepComparable)patientBeforeSynchronize);
-        }
     }
 }

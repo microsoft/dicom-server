@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 
             if (exceptionDispatchInfo != null)
             {
-                var result = MapExceptionToResult(exceptionDispatchInfo.SourceException);
+                IActionResult result = MapExceptionToResult(exceptionDispatchInfo.SourceException);
                 await ExecuteResultAsync(context, result);
             }
         }
@@ -116,7 +116,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
             return GetContentResult(statusCode, message);
         }
 
-        private IActionResult GetContentResult(HttpStatusCode statusCode, string message)
+        private static IActionResult GetContentResult(HttpStatusCode statusCode, string message)
         {
             return new ContentResult
             {

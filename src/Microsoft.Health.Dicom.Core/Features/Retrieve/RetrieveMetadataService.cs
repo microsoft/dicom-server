@@ -107,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             bool isCacheValid = false;
 
-            if (!string.IsNullOrEmpty(ifNoneMatch) && string.Equals(ifNoneMatch, eTag, StringComparison.InvariantCultureIgnoreCase))
+            if (!string.IsNullOrEmpty(ifNoneMatch) && string.Equals(ifNoneMatch, eTag, StringComparison.OrdinalIgnoreCase))
             {
                 isCacheValid = true;
             }

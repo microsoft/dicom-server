@@ -5,6 +5,7 @@
 
 using System;
 using Dicom;
+using EnsureThat;
 using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.DicomCast.Core.Extensions
@@ -13,9 +14,11 @@ namespace Microsoft.Health.DicomCast.Core.Extensions
     {
         public static Date GetDatePropertyIfNotDefaultValue(this DicomDataset dataset, DicomTag dateDicomTag)
         {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+
             if (dataset.TryGetSingleValue(dateDicomTag, out DateTime dateTagValue) && dateTagValue != DateTime.MinValue)
             {
-                Date fhirDate = new Date(dateTagValue.Year, dateTagValue.Month, dateTagValue.Day);
+                var fhirDate = new Date(dateTagValue.Year, dateTagValue.Month, dateTagValue.Day);
                 if (Date.IsValidValue(fhirDate.Value))
                 {
                     return fhirDate;
@@ -27,11 +30,13 @@ namespace Microsoft.Health.DicomCast.Core.Extensions
 
         public static FhirDateTime GetDateTimePropertyIfNotDefaultValue(this DicomDataset dataset, DicomTag dateDicomTag, DicomTag timeDicomTag, TimeSpan utcOffset)
         {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+
             if (dataset.TryGetSingleValue(dateDicomTag, out DateTime studyDate) && dataset.TryGetSingleValue(timeDicomTag, out DateTime studyTime))
             {
                 if (studyDate != DateTime.MinValue || studyTime != DateTime.MinValue)
                 {
-                    DateTimeOffset studyDateTime = new DateTimeOffset(
+                    var studyDateTime = new DateTimeOffset(
                         studyDate.Year,
                         studyDate.Month,
                         studyDate.Day,

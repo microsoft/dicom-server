@@ -68,11 +68,11 @@ namespace Microsoft.Health.Dicom.Api.Web
             {
                 foreach (NameValueHeaderValue parameter in media.Parameters)
                 {
-                    if (TypeParameterName.Equals(parameter.Name.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    if (TypeParameterName.Equals(parameter.Name.ToString(), StringComparison.OrdinalIgnoreCase))
                     {
                         _rootContentType = HeaderUtilities.RemoveQuotes(parameter.Value).ToString();
                     }
-                    else if (StartParameterName.Equals(parameter.Name.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    else if (StartParameterName.Equals(parameter.Name.ToString(), StringComparison.OrdinalIgnoreCase))
                     {
                         // TODO: According to RFC2387 3.2, the root section can be specified by using the
                         // start parameter. For now, we will assume that the first section is the "root" section
@@ -82,10 +82,11 @@ namespace Microsoft.Health.Dicom.Api.Web
                 }
             }
 
-            _multipartReader = new MultipartReader(boundary, body);
-
-            // set the max length of each section in bytes
-            _multipartReader.BodyLengthLimit = _storeConfiguration.Value.MaxAllowedDicomFileSize;
+            _multipartReader = new MultipartReader(boundary, body)
+            {
+                // set the max length of each section in bytes
+                BodyLengthLimit = _storeConfiguration.Value.MaxAllowedDicomFileSize,
+            };
         }
 
         /// <inheritdoc />

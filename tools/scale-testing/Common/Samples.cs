@@ -16,7 +16,7 @@ namespace Common
 {
     public static class Samples
     {
-        private static readonly Random _random = new Random();
+        private static readonly Random Random = new Random();
 
         public static IEnumerable<DicomFile> GetDicomFilesForTranscoding()
         {
@@ -176,7 +176,7 @@ namespace Common
                    string seriesInstanceUid = null,
                    string sopInstanceUid = null)
         {
-            DicomFile file = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            var file = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
 
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = false;
@@ -193,11 +193,10 @@ namespace Common
 
         private static DicomDataset GenerateNewDataSetWithInvalidVr()
         {
-            var dicomDataset = new DicomDataset();
-
-            dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
-
-            return dicomDataset;
+            return new DicomDataset
+            {
+                { DicomTag.SeriesDescription, "CT1 abdomen\u0000" },
+            };
         }
 
         public static DicomDataset CreateRandomInstanceDataset(
@@ -220,27 +219,19 @@ namespace Common
             return ds;
         }
 
-        public static DicomDataset CreateRandomInstanceDataset(
-            PatientInstance pI)
+        public static DicomDataset CreateRandomInstanceDataset(PatientInstance pI)
         {
-            Random rand = new Random();
-            var studyTime = DateTime.Parse(pI.PerformedProcedureStepStartDate).AddMinutes(-10);
+            EnsureArg.IsNotNull(pI, nameof(pI));
+
+            var rand = new Random();
+            DateTime studyTime = DateTime.Parse(pI.PerformedProcedureStepStartDate).AddMinutes(-10);
             var dicomTime = studyTime.ToString("HHmmss.fffff");
 
-            var procedureTime = DateTime.Parse(pI.PerformedProcedureStepStartDate);
             var procedureDate = studyTime.ToString("yyyyMMdd");
             var dicomProcedureTime = studyTime.ToString("HHmmss.fffff");
 
             var age = int.Parse(pI.PatientAge);
-            string dicomAge = null;
-            if (age > 9)
-            {
-                dicomAge = "0" + age.ToString() + "Y";
-            }
-            else
-            {
-                dicomAge = "00" + age.ToString() + "Y";
-            }
+            string dicomAge = age.ToString().PadLeft(3, '0') + "Y";
 
             var occupation = pI.PatientOccupation.Length > 16 ? pI.PatientOccupation.Substring(0, 16) : pI.PatientOccupation;
             var laterality = new List<string> { "R", "L" };
@@ -291,7 +282,7 @@ namespace Common
             var result = new byte[pixelDataSize];
             for (var i = 0; i < pixelDataSize; i++)
             {
-                result[i] = (byte)_random.Next(0, 255);
+                result[i] = (byte)Random.Next(0, 255);
             }
 
             return new MemoryByteBuffer(result);

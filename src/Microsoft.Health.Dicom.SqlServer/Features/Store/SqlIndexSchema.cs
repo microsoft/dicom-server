@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Storage
             if (schemaInformation.Current != null)
             {
                 // kick off initialization so that it can be ready for requests. Errors will be observed by requests when they call the method.
-                EnsureInitialized();
+                EnsureInitialized().AsTask();
             }
         }
 

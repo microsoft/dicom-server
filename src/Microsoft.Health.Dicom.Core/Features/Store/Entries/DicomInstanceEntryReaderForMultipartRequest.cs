@@ -41,16 +41,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         public bool CanRead(string contentType)
         {
             return MediaTypeHeaderValue.TryParse(contentType, out MediaTypeHeaderValue media) &&
-                string.Equals(KnownContentTypes.MultipartRelated, media.MediaType, StringComparison.InvariantCultureIgnoreCase);
+                string.Equals(KnownContentTypes.MultipartRelated, media.MediaType, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream body, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
-            EnsureArg.IsNotNull(body, nameof(body));
+            EnsureArg.IsNotNull(stream, nameof(stream));
 
-            IMultipartReader multipartReader = _multipartReaderFactory.Create(contentType, body);
+            IMultipartReader multipartReader = _multipartReaderFactory.Create(contentType, stream);
 
             var dicomInstanceEntries = new List<StreamOriginatedDicomInstanceEntry>();
 
@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
                 while ((bodyPart = await multipartReader.ReadNextBodyPartAsync(cancellationToken)) != null)
                 {
                     // Check the content type to make sure we can process.
-                    if (!KnownContentTypes.ApplicationDicom.Equals(bodyPart.ContentType, StringComparison.InvariantCultureIgnoreCase))
+                    if (!KnownContentTypes.ApplicationDicom.Equals(bodyPart.ContentType, StringComparison.OrdinalIgnoreCase))
                     {
                         // TODO: Currently, we only support application/dicom. Support for metadata + bulkdata is coming.
                         throw new UnsupportedMediaTypeException(

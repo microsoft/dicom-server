@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
@@ -18,17 +17,14 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     {
         private readonly ICustomTagStore _customTagStore;
         private readonly ICustomTagEntryValidator _customTagEntryValidator;
-        private readonly ILogger<AddCustomTagService> _logger;
 
-        public AddCustomTagService(ICustomTagStore customTagStore, ICustomTagEntryValidator customTagEntryValidator, ILogger<AddCustomTagService> logger)
+        public AddCustomTagService(ICustomTagStore customTagStore, ICustomTagEntryValidator customTagEntryValidator)
         {
             EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
             EnsureArg.IsNotNull(customTagEntryValidator, nameof(customTagEntryValidator));
-            EnsureArg.IsNotNull(logger, nameof(logger));
 
             _customTagStore = customTagStore;
             _customTagEntryValidator = customTagEntryValidator;
-            _logger = logger;
         }
 
         public async Task<AddCustomTagResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken)

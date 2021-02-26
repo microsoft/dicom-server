@@ -13,6 +13,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Common;
 using Common.KeyVault;
+using EnsureThat;
 using Microsoft.Azure.ServiceBus;
 
 namespace MessageUploader
@@ -26,7 +27,9 @@ namespace MessageUploader
 
         public static async Task Main(string[] args)
         {
-            SecretClientOptions options = new SecretClientOptions()
+            EnsureArg.IsNotNull(args, nameof(args));
+
+            var options = new SecretClientOptions()
             {
                 Retry =
                 {
@@ -58,30 +61,6 @@ namespace MessageUploader
             await SendAllMessagesAsync();
 
             await topicClient.CloseAsync();
-        }
-
-        private static async Task SendMessagesAsync(int start = 0, int end = 1000)
-        {
-            try
-            {
-                for (int i = start; i < end; i++)
-                {
-                    string line = file[i];
-
-                    // Create a new message to send to the topic
-                    var message = new Message(Encoding.UTF8.GetBytes(line));
-
-                    // Write the body of the message to the console
-                    Console.WriteLine($"Sending message: {Encoding.UTF8.GetString(message.Body)}" + $" i = {i}");
-
-                    // Send the message to the topic
-                    await topicClient.SendAsync(message);
-                }
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine($"{DateTime.Now} :: Exception: {exception.Message}");
-            }
         }
 
         private static async Task SendAllMessagesAsync()

@@ -26,20 +26,19 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             CloudTable table = client.GetTableReference(TestTable);
-            await table.CreateIfNotExistsAsync();
+            await table.CreateIfNotExistsAsync(cancellationToken);
 
-            HealthEntity entity = new HealthEntity(TestPartitionKey, TestRowKey);
-            entity.Data = TestData;
+            var entity = new HealthEntity(TestPartitionKey, TestRowKey) { Data = TestData };
 
-            TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
+            var insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
 
-            TableResult result = await table.ExecuteAsync(insertOrMergeOperation, cancellationToken);
+            await table.ExecuteAsync(insertOrMergeOperation, cancellationToken);
 
-            TableOperation retrieveOperation = TableOperation.Retrieve<HealthEntity>(TestPartitionKey, TestRowKey);
-            result = await table.ExecuteAsync(retrieveOperation, cancellationToken);
+            var retrieveOperation = TableOperation.Retrieve<HealthEntity>(TestPartitionKey, TestRowKey);
+            await table.ExecuteAsync(retrieveOperation, cancellationToken);
 
-            TableOperation deleteOperation = TableOperation.Delete(entity);
-            result = await table.ExecuteAsync(deleteOperation, cancellationToken);
+            var deleteOperation = TableOperation.Delete(entity);
+            await table.ExecuteAsync(deleteOperation, cancellationToken);
 
             await table.DeleteAsync(cancellationToken);
         }

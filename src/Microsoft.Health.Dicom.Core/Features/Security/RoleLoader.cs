@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -30,7 +31,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
     public class RoleLoader : IHostedService
     {
         private readonly AuthorizationConfiguration _authorizationConfiguration;
-        private readonly IHostEnvironment _hostEnvironment;
         private readonly Microsoft.Extensions.FileProviders.IFileProvider _fileProvider;
 
         public RoleLoader(AuthorizationConfiguration authorizationConfiguration, IHostEnvironment hostEnvironment)
@@ -40,10 +40,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
             EnsureArg.IsNotNull(hostEnvironment.ContentRootFileProvider, nameof(hostEnvironment.ContentRootFileProvider));
 
             _authorizationConfiguration = authorizationConfiguration;
-            _hostEnvironment = hostEnvironment;
             _fileProvider = hostEnvironment.ContentRootFileProvider;
         }
 
+        [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "JSchemaValidatingReader will close input")]
         public Task StartAsync(CancellationToken cancellationToken)
         {
             using Stream schemaContents = GetType().Assembly.GetManifestResourceStream(GetType(), "roles.schema.json");
