@@ -47,6 +47,7 @@ stages:
     - template: build.yml
       parameters:
         packageArtifacts: false
+        securityAnalysis: false
 
 - stage: UpdateTestEnvironment
   displayName: 'Update Test Environment'
@@ -63,7 +64,7 @@ stages:
         downloadType: 'single'
         downloadPath: '$(System.ArtifactsDirectory)'
         artifactName: 'deploy'
-    - template: add-aad-test-environment.yml     
+    - template: add-aad-test-environment.yml
     - task: AzureRmWebAppDeployment@3
       displayName: 'Azure app service deployment'
       inputs:

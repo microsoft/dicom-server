@@ -1,0 +1,80 @@
+steps:
+- task: ComponentGovernanceComponentDetection@0
+  inputs:
+    scanType: 'Register'
+    verbosity: 'Verbose'
+    alertWarningLevel: 'High'
+    failOnAlert: true
+    ignoreDirectories: '$(Build.SourcesDirectory)\samples\Azurite'
+
+- task: AntiMalware@4
+  inputs:
+    InputType: 'Basic'
+    ScanType: 'CustomScan'
+    FileDirPath: '$(Build.SourcesDirectory)'
+    EnableServices: true
+    TreatSignatureUpdateFailureAs: 'Standard'
+    SignatureFreshness: 'OneDay'
+    TreatStaleSignatureAs: 'Error'
+
+- task: Armory@2
+  inputs:
+    targetDirectory: '$(Build.SourcesDirectory)\samples\templates'
+    targetFiles: 'f|*.json'
+    excludePassesFromLog: false
+
+- task: BinSkim@4
+  inputs:
+    InputType: 'Basic'
+    Function: 'analyze'
+    AnalyzeTargetGlob: '+:file|$(Build.SourcesDirectory)\**\bin\**\Microsoft.Health.Dicom*.dll;+:file|$(Build.SourcesDirectory)\**\bin\**\Microsoft.Health.Dicom*.exe'
+    AnalyzeVerbose: true
+
+- task: CredScan@3
+  inputs:
+    scanFolder: '$(Build.SourcesDirectory)'
+    outputFormat: 'sarif'
+    suppressionsFile: 'CredScanSuppressions.json'
+    verboseOutput: true
+
+- task: SdtReport@2
+  inputs:
+    GdnExportAllTools: false
+    GdnExportGdnToolArmory: true
+    GdnExportGdnToolBinSkim: true
+    GdnExportGdnToolCredScan: true
+
+- task: PublishSecurityAnalysisLogs@3
+  inputs:
+    ArtifactName: 'CodeAnalysisLogs'
+    ArtifactType: 'Container'
+    AllTools: false
+    AntiMalware: true
+    APIScan: false
+    Armory: true
+    Bandit: false
+    BinSkim: true
+    CodesignValidation: false
+    CredScan: true
+    CSRF: false
+    ESLint: false
+    Flawfinder: false
+    FortifySCA: false
+    FxCop: false
+    ModernCop: false
+    MSRD: false
+    PoliCheck: false
+    RoslynAnalyzers: false
+    SDLNativeRules: false
+    Semmle: false
+    SpotBugs: false
+    TSLint: false
+    WebScout: false
+    ToolLogsNotFoundAction: 'Error'
+
+- task: PostAnalysis@2
+  inputs:
+    GdnBreakAllTools: false
+    GdnBreakGdnToolArmory: true
+    GdnBreakGdnToolBinSkim: true
+    GdnBreakGdnToolCredScan: true
