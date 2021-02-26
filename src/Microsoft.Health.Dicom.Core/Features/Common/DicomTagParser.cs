@@ -6,7 +6,6 @@
 using System;
 using System.Globalization;
 using Dicom;
-using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
 {
