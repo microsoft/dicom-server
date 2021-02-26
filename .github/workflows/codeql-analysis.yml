@@ -43,7 +43,8 @@ jobs:
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
     # Build C# solutions manually
-    - run: |
+    - name: dotnet build
+      run: |
         dotnet build Microsoft.Health.Dicom.sln -c Release -p:ContinuousIntegrationBuild=true
         dotnet build converter/dicom-cast/Microsoft.Health.DicomCast.sln -c Release -p:ContinuousIntegrationBuild=true
         dotnet build tools/scale-testing/ScaleTesting.sln -c Release -p:ContinuousIntegrationBuild=true
