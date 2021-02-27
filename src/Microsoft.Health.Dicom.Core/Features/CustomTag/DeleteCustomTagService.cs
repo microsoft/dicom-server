@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -21,17 +20,14 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     {
         private readonly ICustomTagStore _customTagStore;
         private readonly IDicomTagParser _dicomTagParser;
-        private readonly ILogger<DeleteCustomTagService> _logger;
 
-        public DeleteCustomTagService(ICustomTagStore customTagStore, IDicomTagParser dicomTagParser, ILogger<DeleteCustomTagService> logger)
+        public DeleteCustomTagService(ICustomTagStore customTagStore, IDicomTagParser dicomTagParser)
         {
             EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
             EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
-            EnsureArg.IsNotNull(logger, nameof(logger));
 
             _customTagStore = customTagStore;
             _dicomTagParser = dicomTagParser;
-            _logger = logger;
         }
 
         public async Task DeleteCustomTagAsync(string tagPath, CancellationToken cancellationToken)

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -26,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         public DeleteCustomTagServiceTests()
         {
             _customTagStore = Substitute.For<ICustomTagStore>();
-            _customTagService = new DeleteCustomTagService(_customTagStore, new DicomTagParser(), NullLogger<DeleteCustomTagService>.Instance);
+            _customTagService = new DeleteCustomTagService(_customTagStore, new DicomTagParser());
         }
 
         [Fact]
