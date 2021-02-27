@@ -54,6 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
             yield return new object[] { null }; // attribute id on lower case
             yield return new object[] { DicomTag.AcquisitionDateTime.DictionaryEntry.Keyword.ToLowerInvariant() }; // keyword in lower case
             yield return new object[] { "0018B001" }; // unknown tag
+            yield return new object[] { "0018B001F1" }; // longer than 8
         }
     }
 }

@@ -41,7 +41,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 
         private static DicomTag ParseDicomTagNumber(string s)
         {
-            if (s.Length < 8)
+            // When composed with number, length could only be 8
+            if (s.Length != 8)
             {
                 return null;
             }
