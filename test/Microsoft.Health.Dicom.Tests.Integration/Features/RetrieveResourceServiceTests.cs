@@ -16,7 +16,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -38,8 +37,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private readonly ITranscoder _retrieveTranscoder;
         private readonly IFrameHandler _frameHandler;
         private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
-        private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
-        private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         private readonly string _studyInstanceUid = TestUidGenerator.Generate();
         private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
@@ -57,7 +55,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, blobStorageFixture.RecyclableMemoryStreamManager, NullLogger<RetrieveResourceService>.Instance);
+                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, NullLogger<RetrieveResourceService>.Instance);
         }
 
         [Fact]
@@ -65,7 +63,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
-                _defaultCancellationToken));
+                CancellationToken.None));
         }
 
         [Fact]
@@ -77,19 +75,19 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
             await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
-                _defaultCancellationToken));
+                CancellationToken.None));
         }
 
         [Fact]
         public async Task GivenStoredInstances_WhenRetrieveRequestForStudy_ThenInstancesInStudyAreRetrievedSuccesfully()
         {
-            List<DicomDataset> datasets = new List<DicomDataset>();
+            var datasets = new List<DicomDataset>();
             datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
             datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
 
             RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
-                _defaultCancellationToken);
+                CancellationToken.None);
 
             ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds));
         }
@@ -99,7 +97,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
-                _defaultCancellationToken));
+                CancellationToken.None));
         }
 
         [Fact]
@@ -111,26 +109,26 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
             await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
-                _defaultCancellationToken));
+                CancellationToken.None));
         }
 
         [Fact]
         public async Task GivenStoredInstances_WhenRetrieveRequestForSeries_ThenInstancesInSeriesAreRetrievedSuccesfully()
         {
-            List<DicomDataset> datasets = new List<DicomDataset>();
+            var datasets = new List<DicomDataset>();
             datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
             datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
 
             RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
-                _defaultCancellationToken);
+                CancellationToken.None);
 
             ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
         }
 
         private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile)
         {
-            List<DicomDataset> dicomDatasets = new List<DicomDataset>();
+            var dicomDatasets = new List<DicomDataset>();
             for (int i = 0; i < instancesinSeries; i++)
             {
                 var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
@@ -155,22 +153,21 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
 
-            VersionedInstanceIdentifier versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
+            var versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
 
             if (flagToStoreInstance)
             {
-                DicomFile dicomFile = new DicomFile(dataset);
+                var dicomFile = new DicomFile(dataset);
 
                 Samples.AppendRandomPixelData(5, 5, 0, dicomFile);
 
-                await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
-                {
-                    dicomFile.Save(stream);
-                    stream.Position = 0;
-                    await _fileStore.StoreFileAsync(
-                        versionedInstanceIdentifier,
-                        stream);
-                }
+                await using MemoryStream stream = _recyclableMemoryStreamManager.GetStream();
+
+                dicomFile.Save(stream);
+                stream.Position = 0;
+                await _fileStore.StoreFileAsync(
+                    versionedInstanceIdentifier,
+                    stream);
             }
 
             await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created);
@@ -180,7 +177,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             IEnumerable<Stream> responseStreams,
             IEnumerable<DicomDataset> expectedDatasets)
         {
-            List<DicomFile> responseDicomFiles = responseStreams.Select(x => DicomFile.Open(x)).ToList();
+            var responseDicomFiles = responseStreams.Select(x => DicomFile.Open(x)).ToList();
 
             Assert.Equal(expectedDatasets.Count(), responseDicomFiles.Count);
 
@@ -210,11 +207,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
         private byte[] DicomFileToByteArray(DicomFile dicomFile)
         {
-            using (MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream())
-            {
-                dicomFile.Save(memoryStream);
-                return memoryStream.ToArray();
-            }
+            using MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream();
+            dicomFile.Save(memoryStream);
+            return memoryStream.ToArray();
         }
     }
 }

@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
-    public class AcceptTransferSyntaxFilterAttribute : ActionFilterAttribute
+    public sealed class AcceptTransferSyntaxFilterAttribute : ActionFilterAttribute
     {
         private const int NotAcceptableResponseCode = (int)HttpStatusCode.NotAcceptable;
         private const string TransferSyntaxHeaderPrefix = "transfer-syntax";

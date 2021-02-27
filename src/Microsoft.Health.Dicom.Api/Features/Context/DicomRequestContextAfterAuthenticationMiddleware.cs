@@ -26,6 +26,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
 
         public async Task Invoke(HttpContext context, IDicomRequestContextAccessor dicomRequestContextAccessor)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
+            EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
+
             // Now the authentication is completed successfully, sets the user.
             if (context.User != null)
             {

@@ -4,12 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using Common;
 using Common.ServiceBus;
-using Dicom;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client;
@@ -24,7 +22,12 @@ namespace WadoMetadataFunctionApp
         public static void Run([ServiceBusTrigger(KnownTopics.WadoRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
         {
             log.LogInformation($"C# ServiceBus topic trigger function processed message: {message}");
-            SetupDicomWebClient();
+            using var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
+            };
+
+            SetupDicomWebClient(httpClient);
 
             try
             {
@@ -36,35 +39,24 @@ namespace WadoMetadataFunctionApp
             }
         }
 
-        private static void SetupDicomWebClient()
+        private static void SetupDicomWebClient(HttpClient httpClient)
         {
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
-            };
-
             client = new DicomWebClient(httpClient);
         }
 
         private static void RetrieveInstanceMetadata(string studyUid, string seriesUid, string instanceUid)
         {
-            DicomWebAsyncEnumerableResponse<DicomDataset> response = DicomWebClientExtensions.RetrieveInstanceMetadataAsync(client, studyUid, seriesUid, instanceUid).Result;
-
-            return;
+            DicomWebClientExtensions.RetrieveInstanceMetadataAsync(client, studyUid, seriesUid, instanceUid).Wait();
         }
 
         private static void RetrieveSeriesMetadata(string studyUid, string seriesUid)
         {
-            DicomWebAsyncEnumerableResponse<DicomDataset> response = DicomWebClientExtensions.RetrieveSeriesMetadataAsync(client, studyUid, seriesUid).Result;
-
-            return;
+            DicomWebClientExtensions.RetrieveSeriesMetadataAsync(client, studyUid, seriesUid).Wait();
         }
 
         private static void RetrieveStudyMetadata(string studyUid)
         {
-            DicomWebAsyncEnumerableResponse<DicomDataset> response = DicomWebClientExtensions.RetrieveStudyMetadataAsync(client, studyUid).Result;
-
-            return;
+            DicomWebClientExtensions.RetrieveStudyMetadataAsync(client, studyUid).Wait();
         }
 
         private static void ProcessMessage(byte[] message, ILogger log)
@@ -72,15 +64,15 @@ namespace WadoMetadataFunctionApp
             string messageBody = Encoding.UTF8.GetString(message);
             string[] split = messageBody.Split(new string[] { "\t", "  " }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (split.Count() == 1)
+            if (split.Length == 1)
             {
                 RetrieveStudyMetadata(split[0]);
             }
-            else if (split.Count() == 2)
+            else if (split.Length == 2)
             {
                 RetrieveSeriesMetadata(split[0], split[1]);
             }
-            else if (split.Count() == 3)
+            else if (split.Length == 3)
             {
                 RetrieveInstanceMetadata(split[0], split[1], split[2]);
             }

@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,10 +83,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             {
                 try
                 {
-                    List<VersionedInstanceIdentifier> deletedInstanceIdentifiers = (await _indexDataStore.RetrieveDeletedInstancesAsync(
-                        _deletedInstanceCleanupConfiguration.BatchSize,
-                        _deletedInstanceCleanupConfiguration.MaxRetries,
-                        cancellationToken))
+                    var deletedInstanceIdentifiers = (await _indexDataStore
+                        .RetrieveDeletedInstancesAsync(
+                            _deletedInstanceCleanupConfiguration.BatchSize,
+                            _deletedInstanceCleanupConfiguration.MaxRetries,
+                            cancellationToken))
                         .ToList();
 
                     retrievedInstanceCount = deletedInstanceIdentifiers.Count;

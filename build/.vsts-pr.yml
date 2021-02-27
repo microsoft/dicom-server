@@ -16,10 +16,10 @@ stages:
     pool:
       vmImage: $(WindowsVmImage)
     steps:
-    - template: ./update-semver.yml  
+    - template: ./update-semver.yml
     - powershell: |
-        $buildNumber = "$(GitVersion.semVer)" -replace "\.", "" 
-        Write-Host "##vso[build.updatebuildnumber]$buildNumber" 
+        $buildNumber = "$(GitVersion.semVer)" -replace "\.", ""
+        Write-Host "##vso[build.updatebuildnumber]$buildNumber"
         Write-Host "Updated  build number to '$buildNumber"
       name: SetBuildVersion
 
@@ -47,6 +47,7 @@ stages:
     - template: build.yml
       parameters:
         packageArtifacts: false
+        securityAnalysis: false
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'

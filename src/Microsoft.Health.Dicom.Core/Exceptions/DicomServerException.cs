@@ -13,12 +13,12 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     /// </summary>
     public abstract class DicomServerException : MicrosoftHealthException
     {
-        public DicomServerException(string message)
+        protected DicomServerException(string message)
             : base(message)
         {
         }
 
-        public DicomServerException(string message, Exception innerException)
+        protected DicomServerException(string message, Exception innerException)
             : base(message, innerException)
         {
         }

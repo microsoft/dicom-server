@@ -16,13 +16,14 @@ using Common;
 using Common.KeyVault;
 using Common.ServiceBus;
 using Dicom;
+using EnsureThat;
 using Microsoft.Azure.ServiceBus;
 
 namespace PersonInstanceGenerator
 {
     public static class Program
     {
-        private static List<(string, string)> modalities = new List<(string, string)>
+        private static readonly List<(string, string)> Modalities = new List<(string, string)>
         {
             ("CR", "Computed Radiography"),
             ("CT", "Computed Tomography"),
@@ -84,7 +85,7 @@ namespace PersonInstanceGenerator
             ("IVOCT", "Intravascular Optical Coherence Tomography"),
         };
 
-        private static List<string> occupation = new List<string>
+        private static readonly List<string> Occupation = new List<string>
         {
             "Teacher",
             "Doctor",
@@ -114,7 +115,7 @@ namespace PersonInstanceGenerator
             "Truck Driver",
         };
 
-        private static List<string> sex = new List<string>
+        private static readonly List<string> Sex = new List<string>
         {
             "O",
             "F",
@@ -128,7 +129,9 @@ namespace PersonInstanceGenerator
 
         public static async Task Main(string[] args)
         {
-            SecretClientOptions options = new SecretClientOptions()
+            EnsureArg.IsNotNull(args, nameof(args));
+
+            var options = new SecretClientOptions()
             {
                 Retry =
                 {
@@ -152,71 +155,69 @@ namespace PersonInstanceGenerator
             int tracker = 0;
             int totalCount = int.Parse(args[3]);
 
-            using (StreamWriter sw = File.Exists(path) ? File.AppendText(path) : File.CreateText(path))
+            using StreamWriter sw = File.Exists(path) ? File.AppendText(path) : File.CreateText(path);
+            while (tracker < totalCount)
             {
-                while (tracker < totalCount)
+                var patientName = patientNames.RandomElement();
+                var patientId = PatientId();
+                DateTime patientBirthDate = RandomDateTimeBefore1995();
+                var patientSex = Sex.RandomElement();
+                var patientOccupation = Occupation.RandomElement();
+                int studies = rand.Next(1, 5);
+                for (int i = 0; i < studies; i++)
                 {
-                    var patientName = patientNames.RandomElement();
-                    var patientId = PatientId();
-                    var patientBirthDate = RandomDateTimeBefore1995();
-                    var patientSex = sex.RandomElement();
-                    var patientOccupation = occupation.RandomElement();
-                    int studies = rand.Next(1, 5);
-                    for (int i = 0; i < studies; i++)
+                    var physicianName = physiciansNames.RandomElement();
+                    DateTime studyDate = RandomDateTimeAfter1995();
+                    var accession = AccessionNumber();
+                    List<(string, (int, string), (int, string))> instances = InstanceGenerator();
+                    (string, string) modality = Modalities.RandomElement();
+                    var patientAge = Math.Round((decimal)(studyDate - patientBirthDate).Days / 365);
+                    var patientWeight = rand.Next(50, 90);
+
+                    foreach ((string, (int, string), (int, string)) inst in instances)
                     {
-                        var physicianName = physiciansNames.RandomElement();
-                        var studyDate = RandomDateTimeAfter1995();
-                        var accession = AccessionNumber();
-                        var instances = InstanceGenerator();
-                        var modality = modalities.RandomElement();
-                        var patientAge = Math.Round((decimal)(studyDate - patientBirthDate).Days / 365);
-                        var patientWeight = rand.Next(50, 90);
-
-                        foreach (var inst in instances)
+                        var pI = new PatientInstance
                         {
-                            PatientInstance pI = new PatientInstance
-                            {
-                                Name = patientName,
-                                PatientId = patientId.ToString(),
-                                PatientSex = patientSex,
-                                PatientBirthDate = patientBirthDate.Date.Year.ToString() + patientBirthDate.Date.Month.ToString() + patientBirthDate.Date.Day.ToString(),
-                                PatientAge = patientAge.ToString(),
-                                PatientWeight = patientWeight.ToString(),
-                                PatientOccupation = patientOccupation,
-                                PhysicianName = physicianName,
-                                StudyUid = inst.Item1,
-                                SeriesUid = inst.Item2.Item2,
-                                SeriesIndex = inst.Item2.Item1.ToString(),
-                                InstanceUid = inst.Item3.Item2,
-                                InstanceIndex = inst.Item3.Item1.ToString(),
-                                Modality = modality.Item1,
-                                AccessionNumber = accession.ToString(),
-                                StudyDate = studyDate.Date.Year.ToString() + studyDate.Date.Month.ToString() + studyDate.Date.Day.ToString(),
-                                StudyDescription = modality.Item2,
-                                PerformedProcedureStepStartDate = studyDate.AddMinutes(rand.Next(1, 10)).ToString(),
-                            };
+                            Name = patientName,
+                            PatientId = patientId.ToString(),
+                            PatientSex = patientSex,
+                            PatientBirthDate = patientBirthDate.Date.Year.ToString() + patientBirthDate.Date.Month.ToString() + patientBirthDate.Date.Day.ToString(),
+                            PatientAge = patientAge.ToString(),
+                            PatientWeight = patientWeight.ToString(),
+                            PatientOccupation = patientOccupation,
+                            PhysicianName = physicianName,
+                            StudyUid = inst.Item1,
+                            SeriesUid = inst.Item2.Item2,
+                            SeriesIndex = inst.Item2.Item1.ToString(),
+                            InstanceUid = inst.Item3.Item2,
+                            InstanceIndex = inst.Item3.Item1.ToString(),
+                            Modality = modality.Item1,
+                            AccessionNumber = accession.ToString(),
+                            StudyDate = studyDate.Date.Year.ToString() + studyDate.Date.Month.ToString() + studyDate.Date.Day.ToString(),
+                            StudyDescription = modality.Item2,
+                            PerformedProcedureStepStartDate = studyDate.AddMinutes(rand.Next(1, 10)).ToString(),
+                        };
 
-                            var patient = JsonSerializer.Serialize(pI);
+                        var patient = JsonSerializer.Serialize(pI);
 
-                            try
-                            {
-                                // Create a new message to send to the topic
-                                var message = new Message(Encoding.UTF8.GetBytes(patient));
+                        try
+                        {
+                            // Create a new message to send to the topic
+                            var message = new Message(Encoding.UTF8.GetBytes(patient));
 
-                                Console.WriteLine($" tracker = {tracker}");
+                            Console.WriteLine($" tracker = {tracker}");
 
-                                // Send the message to the topic
-                                await topicClient.SendAsync(message);
+                            // Send the message to the topic
+                            await topicClient.SendAsync(message);
 
-                                sw.WriteLine(patient);
-                            }
-                            catch (Exception exception)
-                            {
-                                Console.WriteLine($"{DateTime.Now} :: Exception: {exception.Message}");
-                            }
-
-                            tracker++;
+                            sw.WriteLine(patient);
                         }
+                        catch (Exception exception)
+                        {
+                            Console.WriteLine($"{DateTime.Now} :: Exception: {exception.Message}");
+                        }
+
+                        tracker++;
                     }
                 }
             }
@@ -243,8 +244,8 @@ namespace PersonInstanceGenerator
 
         private static DateTime RandomDateTimeBefore1995()
         {
-            DateTime start = new DateTime(1970, 1, 1);
-            DateTime end = new DateTime(1990, 1, 1);
+            var start = new DateTime(1970, 1, 1);
+            var end = new DateTime(1990, 1, 1);
             int range = (end - start).Days;
             DateTime ret = start.AddDays(rand.Next(range));
             ret = ret.AddHours(rand.Next(24));
@@ -255,7 +256,7 @@ namespace PersonInstanceGenerator
 
         private static DateTime RandomDateTimeAfter1995()
         {
-            DateTime start = new DateTime(1995, 1, 1);
+            var start = new DateTime(1995, 1, 1);
             int range = (DateTime.Today - start).Days;
             DateTime ret = start.AddDays(rand.Next(range));
             ret = ret.AddHours(rand.Next(24));

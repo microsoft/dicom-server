@@ -17,14 +17,6 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 {
     public class FhirTransactionPipelineTests
     {
-        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
-
-        private static readonly FhirTransactionRequestEntry PatientRequestEntry = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Patient>(
-            new ServerResourceId(ResourceType.Parameters, "p1"));
-
-        private static readonly FhirTransactionRequestEntry ImagingStudyRequestEntry = FhirTransactionRequestEntryGenerator.GenerateDefaultUpdateRequestEntry<ImagingStudy>(
-            new ServerResourceId(ResourceType.ImagingStudy, "is1"));
-
         private readonly IList<IFhirTransactionPipelineStep> _fhirTransactionPipelineSteps = new List<IFhirTransactionPipelineStep>();
         private readonly FhirTransactionRequestResponsePropertyAccessors _fhirTransactionRequestResponsePropertyAccessors = new FhirTransactionRequestResponsePropertyAccessors();
         private readonly IFhirTransactionExecutor _fhirTransactionExecutor = Substitute.For<IFhirTransactionExecutor>();
@@ -38,7 +30,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public FhirTransactionPipelineTests()
         {
             // Use this step to capture the context. The same context will be used across all steps.
-            _captureFhirTransactionContextStep.When(pipeline => pipeline.PrepareRequestAsync(Arg.Any<FhirTransactionContext>(), DefaultCancellationToken))
+            _captureFhirTransactionContextStep.When(pipeline => pipeline.PrepareRequestAsync(Arg.Any<FhirTransactionContext>(), CancellationToken.None))
                 .Do(callback =>
                 {
                     FhirTransactionContext context = callback.ArgAt<FhirTransactionContext>(0);
@@ -72,7 +64,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 {
                     context.Request.Patient = patientRequest;
 
-                    Assert.Equal(DefaultCancellationToken, cancellationToken);
+                    Assert.Equal(CancellationToken.None, cancellationToken);
                 },
             };
 
@@ -91,7 +83,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             _fhirTransactionExecutor.ExecuteTransactionAsync(
                 Arg.Any<Bundle>(),
-                DefaultCancellationToken)
+                CancellationToken.None)
                 .Returns(call =>
                 {
                     // Make sure the request bundle is correct.
@@ -113,7 +105,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 });
 
             // Process
-            await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken);
+            await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None);
 
             // The response should have been processed.
             Assert.NotNull(_capturedFhirTransactionContext);
@@ -139,7 +131,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             _fhirTransactionPipelineSteps.Add(pipelineStep);
 
             // Process
-            await Assert.ThrowsAsync<Exception>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken));
+            await Assert.ThrowsAsync<Exception>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None));
         }
 
         [Fact]
@@ -151,7 +143,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             _fhirTransactionPipelineSteps.Add(pipelineStep);
 
             // Process
-            await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken);
+            await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None);
 
             // There should not be any response.
             pipelineStep.DidNotReceiveWithAnyArgs().ProcessResponse(default);
@@ -185,7 +177,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             };
 
             // Setup the pipeline step to simulate creating a new imaging study.
-            var imagingStudyRequest = FhirTransactionRequestEntryGenerator.GenerateDefaultCreateRequestEntry<ImagingStudy>();
+            FhirTransactionRequestEntry imagingStudyRequest = FhirTransactionRequestEntryGenerator.GenerateDefaultCreateRequestEntry<ImagingStudy>();
 
             var imagingStudyStep = new MockFhirTransactionPipelineStep()
             {
@@ -220,7 +212,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             _fhirTransactionExecutor.ExecuteTransactionAsync(
                 Arg.Any<Bundle>(),
-                DefaultCancellationToken)
+                CancellationToken.None)
                 .Returns(call =>
                 {
                     // Make sure the request bundle is correct.
@@ -249,7 +241,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 });
 
             // Process
-            await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), DefaultCancellationToken);
+            await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None);
 
             // The response should have been processed.
             Assert.NotNull(_capturedFhirTransactionContext);

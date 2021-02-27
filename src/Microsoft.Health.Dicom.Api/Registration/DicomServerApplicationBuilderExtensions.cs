@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Builder
 
             app.UseHealthChecksExtension(new PathString(KnownRoutes.HealthCheck));
 
-            var featureConfiguration = app.ApplicationServices.GetRequiredService<IOptions<FeatureConfiguration>>();
+            IOptions<FeatureConfiguration> featureConfiguration = app.ApplicationServices.GetRequiredService<IOptions<FeatureConfiguration>>();
 
             if (featureConfiguration.Value.EnableOhifViewer)
             {

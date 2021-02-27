@@ -34,7 +34,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             return existingSeries.Instance.FirstOrDefault(instance => sopInstanceUid.Equals(instance.Uid, EqualsStringComparison));
         }
 
-        public static ImagingStudy.SeriesComponent GetSeriesWithinAStudy(string seriesInstanceUid, List<ImagingStudy.SeriesComponent> existingSeriesCollection)
+        public static ImagingStudy.SeriesComponent GetSeriesWithinAStudy(string seriesInstanceUid, IEnumerable<ImagingStudy.SeriesComponent> existingSeriesCollection)
         {
             if (existingSeriesCollection == null)
             {
@@ -62,16 +62,20 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public static Bundle.RequestComponent GenerateUpdateRequest(ImagingStudy imagingStudy)
         {
+            EnsureArg.IsNotNull(imagingStudy, nameof(imagingStudy));
+
             return new Bundle.RequestComponent()
             {
                 Method = Bundle.HTTPVerb.PUT,
-                IfMatch = ImagingStudyPipelineHelper.GenerateEtag(imagingStudy.Meta.VersionId),
+                IfMatch = GenerateEtag(imagingStudy.Meta.VersionId),
                 Url = $"{ResourceType.ImagingStudy.GetLiteral()}/{imagingStudy.Id}",
             };
         }
 
         public static Bundle.RequestComponent GenerateDeleteRequest(ImagingStudy imagingStudy)
         {
+            EnsureArg.IsNotNull(imagingStudy, nameof(imagingStudy));
+
             return new Bundle.RequestComponent()
             {
                 Method = Bundle.HTTPVerb.DELETE,
@@ -81,6 +85,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public static string GetModalityInString(DicomDataset dataset)
         {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
             return dataset.GetSingleValueOrDefault<string>(DicomTag.Modality, default);
         }
 
@@ -93,12 +98,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         public static Identifier GetAccessionNumber(string accessionNumber)
         {
             EnsureArg.IsNotNull(accessionNumber, nameof(accessionNumber));
-            Coding coding = new Coding(system: FhirTransactionConstants.AccessionNumberTypeSystem, code: FhirTransactionConstants.AccessionNumberTypeCode);
-            CodeableConcept codeableConcept = new CodeableConcept();
+            var coding = new Coding(system: FhirTransactionConstants.AccessionNumberTypeSystem, code: FhirTransactionConstants.AccessionNumberTypeCode);
+            var codeableConcept = new CodeableConcept();
             codeableConcept.Coding.Add(coding);
-            Identifier identifier = new Identifier(system: null, value: accessionNumber);
-            identifier.Type = codeableConcept;
-            return identifier;
+            return new Identifier(system: null, value: accessionNumber)
+            {
+                Type = codeableConcept,
+            };
         }
 
         public static Coding GetModality(string modalityInString)
@@ -113,6 +119,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public static void SetDateTimeOffSet(FhirTransactionContext context)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
+
             DicomDataset metadata = context.ChangeFeedEntry.Metadata;
 
             if (metadata != null &&
@@ -131,6 +139,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public static async Task SynchronizePropertiesAsync<T>(T component, FhirTransactionContext context, Action<T, FhirTransactionContext> synchronizeAction, bool requiredProperty, bool enforceAllFields, IExceptionStore exceptionStore, CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
+            EnsureArg.IsNotNull(synchronizeAction, nameof(synchronizeAction));
+            EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
+
             try
             {
                 synchronizeAction(component, context);

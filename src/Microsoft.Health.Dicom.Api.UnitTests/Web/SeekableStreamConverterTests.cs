@@ -19,13 +19,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 {
     public class SeekableStreamConverterTests
     {
-        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
-
         private readonly SeekableStreamConverter _seekableStreamConverter;
 
         public SeekableStreamConverterTests()
         {
-            var configuration = Substitute.For<IOptions<StoreConfiguration>>();
+            IOptions<StoreConfiguration> configuration = Substitute.For<IOptions<StoreConfiguration>>();
             configuration.Value.Returns(new StoreConfiguration
             {
                 MaxAllowedDicomFileSize = 1000000,
@@ -40,7 +38,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
             nonseekableStream.CanSeek.Returns(false);
 
-            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(nonseekableStream, DefaultCancellationToken);
+            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None);
 
             Assert.NotNull(seekableStream);
             Assert.True(seekableStream.CanSeek);
@@ -52,7 +50,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             Stream nonseekableStream = SetupNonSeekableStreamException<IOException>();
 
             await Assert.ThrowsAsync<InvalidMultipartBodyPartException>(
-                () => _seekableStreamConverter.ConvertAsync(nonseekableStream, DefaultCancellationToken));
+                () => _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None));
         }
 
         [Fact]
@@ -61,7 +59,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             Stream nonseekableStream = SetupNonSeekableStreamException<InvalidOperationException>();
 
             await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _seekableStreamConverter.ConvertAsync(nonseekableStream, DefaultCancellationToken));
+                () => _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None));
         }
 
         private Stream SetupNonSeekableStreamException<TException>()
