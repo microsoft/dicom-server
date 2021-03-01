@@ -120,7 +120,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 // Open and validate the DICOM instance.
                 dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-                _dicomDatasetValidator.Validate(dicomDataset, _requiredStudyInstanceUid);
+                _dicomDatasetValidator.Validate(dicomDataset, _requiredStudyInstanceUid, storedCustomTagEntries);
             }
             catch (Exception ex)
             {

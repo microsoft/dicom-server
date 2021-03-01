@@ -4,10 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
+using Dicom;
 using MediatR;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
@@ -16,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.SqlServer;
@@ -62,7 +66,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var mediator = Substitute.For<IMediator>();
 
-            var sqlConnectionFactory = new DefaultSqlConnectionFactory(config);
+            var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(config);
+
+            var sqlConnectionFactory = new DefaultSqlConnectionFactory(sqlConnectionStringProvider);
 
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory);
 
@@ -70,7 +76,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var schemaInformation = new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V2);
 
-            _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, NullLogger<SchemaInitializer>.Instance);
+            _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, NullLogger<SchemaInitializer>.Instance);
 
             var dicomSqlIndexSchema = new SqlIndexSchema(schemaInformation, NullLogger<SqlIndexSchema>.Instance);
 
@@ -78,9 +84,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
 
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSqlServerTableRowParameterGenerators();
+            ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+
+            var addInstanceTvpGenerator = serviceProvider.GetRequiredService<VLatest.AddInstanceTvpGenerator<(IReadOnlyList<CustomTagStoreEntry>, DicomDataset)>>();
+
             IndexDataStore = new SqlIndexDataStore(
                 dicomSqlIndexSchema,
                 SqlConnectionWrapperFactory,
+                addInstanceTvpGenerator,
                 new DicomTagParser());
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);

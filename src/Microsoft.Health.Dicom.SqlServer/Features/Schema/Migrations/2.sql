@@ -543,7 +543,8 @@ GO
 CREATE TYPE dbo.InsertStringCustomTagTableType_1 AS TABLE
 (
     TagKey                     BIGINT,
-    TagValue                   VARCHAR(64)
+    StringValue                VARCHAR(64),
+    TagLevel                   TINYINT
 )
 GO
 
@@ -553,7 +554,8 @@ GO
 CREATE TYPE dbo.InsertBigIntCustomTagTableType_1 AS TABLE
 (
     TagKey                     BIGINT,
-    TagValue                   BIGINT
+    BigIntValue                BIGINT,
+    TagLevel                   TINYINT
 )
 GO
 
@@ -563,7 +565,8 @@ GO
 CREATE TYPE dbo.InsertDoubleCustomTagTableType_1 AS TABLE
 (
     TagKey                     BIGINT,
-    TagValue                   BIGINT
+    DoubleValue                FLOAT(53),
+    TagLevel                   TINYINT
 )
 GO
 
@@ -573,7 +576,8 @@ GO
 CREATE TYPE dbo.InsertDateTimeCustomTagTableType_1 AS TABLE
 (
     TagKey                     BIGINT,
-    TagValue                   DATETIME2(7)
+    DateTimeValue              DATETIME2(7),
+    TagLevel                   TINYINT
 )
 GO
 
@@ -583,7 +587,8 @@ GO
 CREATE TYPE dbo.InsertPersonNameCustomTagTableType_1 AS TABLE
 (
     TagKey                     BIGINT,
-    TagValue                   NVARCHAR(200)
+    PersonNameValue            NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
+    TagLevel                   TINYINT
 )
 GO
 
@@ -774,25 +779,240 @@ AS
     SELECT @newWatermark
 
     -- Insert metadata into custom tag tables
-    INSERT INTO dbo.CustomTagString
-        (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-    SELECT TagKey, TagValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM InsertStringCustomTagTableType_1
+    IF EXISTS (SELECT 1 FROM @stringCustomTags)
+    BEGIN
+        INSERT INTO dbo.CustomTagString
+            (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+        SELECT TagKey, StringValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM @stringCustomTags WHERE TagLevel = 0
 
-    INSERT INTO dbo.CustomTagBigInt
-        (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-    SELECT TagKey, TagValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM InsertBigIntCustomTagTableType_1
+        -- Latest wins for series level tags
+        UPDATE dbo.CustomTagString
+        SET TagValue = T.StringValue, Watermark = @newWatermark
+        FROM dbo.CustomTagString
+            INNER JOIN @stringCustomTags AS T ON  T.TagKey = dbo.CustomTagString.TagKey
+        WHERE T.TagLevel = 1
+        AND StudyKey = @studyKey
+        AND SeriesKey = @seriesKey
+        AND TagValue <> T.StringValue
 
-    INSERT INTO dbo.CustomTagDouble
-        (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-    SELECT TagKey, TagValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM InsertDoubleCustomTagTableType_1
+        INSERT INTO dbo.CustomTagString
+            (TagKey, TagValue, StudyKey, SeriesKey, Watermark)
+        SELECT TagKey, StringValue, @StudyKey, @SeriesKey, @newWatermark
+        FROM @stringCustomTags AS T
+        WHERE TagLevel = 1
+        AND NOT EXISTS(SELECT *
+                       FROM dbo.CustomTagString
+                       WHERE TagKey = T.TagKey
+                       AND StudyKey = @studyKey
+                       AND SeriesKey = @seriesKey)
 
-    INSERT INTO dbo.CustomTagDateTime
-        (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-    SELECT TagKey, TagValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM InsertDateTimeCustomTagTableType_1
+        -- Latest wins for study level tags
+        UPDATE dbo.CustomTagString
+        SET TagValue = T.StringValue, Watermark = @newWatermark
+        FROM dbo.CustomTagString
+            INNER JOIN @stringCustomTags AS T ON  T.TagKey = dbo.CustomTagString.TagKey
+        WHERE T.TagLevel = 2
+        AND StudyKey = @studyKey
+        AND TagValue <> T.StringValue
 
-    INSERT INTO dbo.CustomTagPersonName
-        (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-    SELECT TagKey, TagValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM InsertPersonNameCustomTagTableType_1
+        INSERT INTO dbo.CustomTagString
+            (TagKey, TagValue, StudyKey, Watermark)
+        SELECT TagKey, StringValue, @StudyKey, @newWatermark
+        FROM @stringCustomTags AS T
+        WHERE TagLevel = 2
+        AND NOT EXISTS(SELECT *
+                       FROM dbo.CustomTagString
+                       WHERE TagKey = T.TagKey
+                       AND StudyKey = @studyKey)
+    END
+
+    IF EXISTS (SELECT 1 FROM @bigIntCustomTags)
+    BEGIN
+        INSERT INTO dbo.CustomTagBigInt
+            (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+        SELECT TagKey, BigIntValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM @bigIntCustomTags WHERE TagLevel = 0
+
+        -- Latest wins for series level tags
+        UPDATE dbo.CustomTagBigInt
+        SET TagValue = T.BigIntValue, Watermark = @newWatermark
+        FROM dbo.CustomTagBigInt
+            INNER JOIN @bigIntCustomTags AS T ON  T.TagKey = dbo.CustomTagBigInt.TagKey
+        WHERE T.TagLevel = 1
+        AND StudyKey = @studyKey
+        AND SeriesKey = @seriesKey
+        AND TagValue <> T.BigIntValue
+
+        INSERT INTO dbo.CustomTagBigInt
+            (TagKey, TagValue, StudyKey, SeriesKey, Watermark)
+        SELECT TagKey, BigIntValue, @StudyKey, @SeriesKey, @newWatermark
+        FROM @bigIntCustomTags AS T
+        WHERE TagLevel = 1
+        AND NOT EXISTS(SELECT *
+                       FROM dbo.CustomTagBigInt
+                       WHERE TagKey = T.TagKey
+                       AND StudyKey = @studyKey
+                       AND SeriesKey = @seriesKey)
+
+        -- Latest wins for study level tags
+        UPDATE dbo.CustomTagBigInt
+        SET TagValue = T.BigIntValue, Watermark = @newWatermark
+        FROM dbo.CustomTagBigInt
+            INNER JOIN @bigIntCustomTags AS T ON  T.TagKey = dbo.CustomTagBigInt.TagKey
+        WHERE T.TagLevel = 2
+        AND StudyKey = @studyKey
+        AND TagValue <> T.BigIntValue
+
+        INSERT INTO dbo.CustomTagBigInt
+            (TagKey, TagValue, StudyKey, Watermark)
+        SELECT TagKey, BigIntValue, @StudyKey, @newWatermark
+        FROM @bigIntCustomTags AS T
+        WHERE TagLevel = 2
+        AND NOT EXISTS(SELECT *
+                       FROM dbo.CustomTagBigInt
+                       WHERE TagKey = T.TagKey
+                       AND StudyKey = @studyKey)
+    END
+
+    IF EXISTS (SELECT 1 FROM @doubleCustomTags)
+    BEGIN
+        INSERT INTO dbo.CustomTagDouble
+            (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+        SELECT TagKey, DoubleValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM @doubleCustomTags WHERE TagLevel = 0
+
+        -- Latest wins for series level tags
+        UPDATE dbo.CustomTagDouble
+        SET TagValue = T.DoubleValue, Watermark = @newWatermark
+        FROM dbo.CustomTagDouble
+            INNER JOIN @doubleCustomTags AS T ON  T.TagKey = dbo.CustomTagDouble.TagKey
+        WHERE T.TagLevel = 1
+        AND StudyKey = @studyKey
+        AND SeriesKey = @seriesKey
+        AND TagValue <> T.DoubleValue
+
+        INSERT INTO dbo.CustomTagDouble
+            (TagKey, TagValue, StudyKey, SeriesKey, Watermark)
+        SELECT TagKey, DoubleValue, @StudyKey, @SeriesKey, @newWatermark
+        FROM @doubleCustomTags AS T
+        WHERE TagLevel = 1
+        AND NOT EXISTS(SELECT *
+                       FROM dbo.CustomTagDouble
+                       WHERE TagKey = T.TagKey
+                       AND StudyKey = @studyKey
+                       AND SeriesKey = @seriesKey)
+
+        -- Latest wins for study level tags
+        UPDATE dbo.CustomTagDouble
+        SET TagValue = T.DoubleValue, Watermark = @newWatermark
+        FROM dbo.CustomTagDouble
+            INNER JOIN @doubleCustomTags AS T ON  T.TagKey = dbo.CustomTagDouble.TagKey
+        WHERE T.TagLevel = 2
+        AND StudyKey = @studyKey
+        AND TagValue <> T.DoubleValue
+
+        INSERT INTO dbo.CustomTagDouble
+            (TagKey, TagValue, StudyKey, Watermark)
+        SELECT TagKey, DoubleValue, @StudyKey, @newWatermark
+        FROM @doubleCustomTags AS T
+        WHERE TagLevel = 2
+        AND NOT EXISTS(SELECT *
+                       FROM dbo.CustomTagDouble
+                       WHERE TagKey = T.TagKey
+                       AND StudyKey = @studyKey)
+    END
+
+    IF EXISTS (SELECT 1 FROM @dateTimeCustomTags)
+    BEGIN
+        INSERT INTO dbo.CustomTagDateTime
+            (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+        SELECT TagKey, DateTimeValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM @dateTimeCustomTags WHERE TagLevel = 0
+
+        -- Latest wins for series level tags
+        UPDATE dbo.CustomTagDateTime
+        SET TagValue = T.DateTimeValue, Watermark = @newWatermark
+        FROM dbo.CustomTagDateTime
+            INNER JOIN @dateTimeCustomTags AS T ON  T.TagKey = dbo.CustomTagDateTime.TagKey
+        WHERE T.TagLevel = 1
+        AND StudyKey = @studyKey
+        AND SeriesKey = @seriesKey
+        AND TagValue <> T.DateTimeValue
+
+        INSERT INTO dbo.CustomTagDateTime
+            (TagKey, TagValue, StudyKey, SeriesKey, Watermark)
+        SELECT TagKey, DateTimeValue, @StudyKey, @SeriesKey, @newWatermark
+        FROM @dateTimeCustomTags AS T
+        WHERE TagLevel = 1
+        AND NOT EXISTS(SELECT *
+                       FROM dbo.CustomTagDateTime
+                       WHERE TagKey = T.TagKey
+                       AND StudyKey = @studyKey
+                       AND SeriesKey = @seriesKey)
+
+        -- Latest wins for study level tags
+        UPDATE dbo.CustomTagDateTime
+        SET TagValue = T.DateTimeValue, Watermark = @newWatermark
+        FROM dbo.CustomTagDateTime
+            INNER JOIN @dateTimeCustomTags AS T ON  T.TagKey = dbo.CustomTagDateTime.TagKey
+        WHERE T.TagLevel = 2
+        AND StudyKey = @studyKey
+        AND TagValue <> T.DateTimeValue
+
+        INSERT INTO dbo.CustomTagDateTime
+            (TagKey, TagValue, StudyKey, Watermark)
+        SELECT TagKey, DateTimeValue, @StudyKey, @newWatermark
+        FROM @dateTimeCustomTags AS T
+        WHERE TagLevel = 2
+        AND NOT EXISTS(SELECT *
+                       FROM dbo.CustomTagDateTime
+                       WHERE TagKey = T.TagKey
+                       AND StudyKey = @studyKey)
+    END
+
+    IF EXISTS (SELECT 1 FROM @personNameCustomTags)
+    BEGIN
+        INSERT INTO dbo.CustomTagPersonName
+            (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+        SELECT TagKey, PersonNameValue, @StudyKey, @SeriesKey, @InstanceKey, @newWatermark FROM @personNameCustomTags WHERE TagLevel = 0
+
+        -- Latest wins for series level tags
+        UPDATE dbo.CustomTagPersonName
+        SET TagValue = T.PersonNameValue, Watermark = @newWatermark
+        FROM dbo.CustomTagPersonName
+            INNER JOIN @personNameCustomTags AS T ON  T.TagKey = dbo.CustomTagPersonName.TagKey
+        WHERE T.TagLevel = 1
+        AND StudyKey = @studyKey
+        AND SeriesKey = @seriesKey
+        AND TagValue <> T.PersonNameValue
+
+        INSERT INTO dbo.CustomTagPersonName
+            (TagKey, TagValue, StudyKey, SeriesKey, Watermark)
+        SELECT TagKey, PersonNameValue, @StudyKey, @SeriesKey, @newWatermark
+        FROM @personNameCustomTags AS T
+        WHERE TagLevel = 1
+        AND NOT EXISTS(SELECT *
+                       FROM dbo.CustomTagPersonName
+                       WHERE TagKey = T.TagKey
+                       AND StudyKey = @studyKey
+                       AND SeriesKey = @seriesKey)
+
+        -- Latest wins for study level tags
+        UPDATE dbo.CustomTagPersonName
+        SET TagValue = T.PersonNameValue, Watermark = @newWatermark
+        FROM dbo.CustomTagPersonName
+            INNER JOIN @personNameCustomTags AS T ON  T.TagKey = dbo.CustomTagPersonName.TagKey
+        WHERE T.TagLevel = 2
+        AND StudyKey = @studyKey
+        AND TagValue <> T.PersonNameValue
+
+        INSERT INTO dbo.CustomTagPersonName
+            (TagKey, TagValue, StudyKey, Watermark)
+        SELECT TagKey, PersonNameValue, @StudyKey, @newWatermark
+        FROM @personNameCustomTags AS T
+        WHERE TagLevel = 2
+        AND NOT EXISTS(SELECT *
+                       FROM dbo.CustomTagPersonName
+                       WHERE TagKey = T.TagKey
+                       AND StudyKey = @studyKey)  
+    END
 
     COMMIT TRANSACTION
 GO

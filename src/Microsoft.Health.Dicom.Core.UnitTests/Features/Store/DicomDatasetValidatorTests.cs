@@ -9,6 +9,8 @@ using Dicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -43,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public void GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
         {
-            _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null);
+            _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null, storedCustomTagEntries: null);
         }
 
         [Fact]
@@ -55,7 +57,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDatasetValidator.Validate(
                 _dicomDataset,
-                studyInstanceUid);
+                studyInstanceUid,
+                storedCustomTagEntries: null);
         }
 
         public static IEnumerable<object[]> GetDicomTagsToRemove()
@@ -166,14 +169,58 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         public void GivenDatasetWithEmptyIndexedTagValue_WhenValidating_ThenValidationPasses()
         {
             _dicomDataset.AddOrUpdate(DicomTag.ReferringPhysicianName, string.Empty);
-            _dicomDatasetValidator.Validate(_dicomDataset, null);
+            _dicomDatasetValidator.Validate(_dicomDataset, null, storedCustomTagEntries: null);
         }
 
-        private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
+        [Fact]
+        public void GivenDatasetWithValidCustomTag_WhenValidating_ThenValidationPasses()
+        {
+            List<CustomTagStoreEntry> storedTags = new List<CustomTagStoreEntry>()
+            {
+                new CustomTagStoreEntry(1, DicomTag.NumberOfAlarmObjects.GetPath(), DicomTag.NumberOfAlarmObjects.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added),
+            };
+
+            _dicomDataset.AddOrUpdate(DicomTag.NumberOfAlarmObjects, (ushort)2);
+            _dicomDatasetValidator.Validate(_dicomDataset, null, storedTags.AsReadOnly());
+        }
+
+        [Fact]
+        public void GivenDatasetWithInvalidCustomTag_WhenValidating_ThenValidationFails()
+        {
+            List<CustomTagStoreEntry> storedTags = new List<CustomTagStoreEntry>()
+            {
+                new CustomTagStoreEntry(1, DicomTag.AbortReason.GetPath(), DicomTag.AbortReason.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added),
+            };
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            _dicomDataset.AddOrUpdate(DicomTag.AbortReason, "qwertyuiopasdfghjkl");
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            ExecuteAndValidateException<DicomValidationException>(ValidationFailedFailureCode, null, storedTags);
+        }
+
+        [Fact]
+        public void GivenDatasetWithoutCustomTags_WhenValidating_ThenValidationPasses()
+        {
+            List<CustomTagStoreEntry> storedTags = new List<CustomTagStoreEntry>()
+            {
+                new CustomTagStoreEntry(1, DicomTag.NumberOfAlarmObjects.GetPath(), DicomTag.NumberOfAlarmObjects.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added),
+            };
+
+            _dicomDatasetValidator.Validate(_dicomDataset, null, storedTags.AsReadOnly());
+        }
+
+        private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null, IReadOnlyList<CustomTagStoreEntry> storedCustomTagEntries = null)
             where T : Exception
         {
             var exception = Assert.Throws<T>(
-                () => _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid));
+                () => _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid, storedCustomTagEntries));
 
             if (exception is DatasetValidationException)
             {

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -20,6 +21,7 @@ using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.SqlServer.Api.Registration;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.Health.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Registration;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -66,6 +68,8 @@ namespace Microsoft.Extensions.DependencyInjection
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
             services.Decorate<IIndexDataStore, LoggingIndexDataStore>();
 
+            AddSqlServerTableRowParameterGenerators(services);
+
             services.Add<SqlQueryStore>()
                 .Scoped()
                 .AsSelf()
@@ -87,6 +91,28 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsImplementedInterfaces();
 
             return dicomServerBuilder;
+        }
+
+        internal static void AddSqlServerTableRowParameterGenerators(this IServiceCollection serviceCollection)
+        {
+            var types = typeof(SqlIndexDataStore).Assembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract).ToArray();
+            foreach (var type in types)
+            {
+                var interfaces = type.GetInterfaces().ToArray();
+
+                foreach (var interfaceType in interfaces)
+                {
+                    if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IStoredProcedureTableValuedParametersGenerator<,>))
+                    {
+                        serviceCollection.AddSingleton(type);
+                    }
+
+                    if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(ITableValuedParameterRowGenerator<,>))
+                    {
+                        serviceCollection.Add(type).Singleton().AsSelf().AsService(interfaceType);
+                    }
+                }
+            }
         }
     }
 }

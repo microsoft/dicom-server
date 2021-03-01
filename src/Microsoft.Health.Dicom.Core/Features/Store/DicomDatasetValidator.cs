@@ -10,6 +10,8 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -32,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _minimumValidator = minimumValidator;
         }
 
-        public void Validate(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+        public void Validate(DicomDataset dicomDataset, string requiredStudyInstanceUid, IReadOnlyList<CustomTagStoreEntry> storedCustomTagEntries)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -91,6 +93,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             else
             {
                 ValidateIndexedItems(dicomDataset);
+                if (storedCustomTagEntries?.Count > 0)
+                {
+                    ValidateCustomTags(dicomDataset, storedCustomTagEntries);
+                }
             }
         }
 
@@ -106,6 +112,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 {
                     string value = dicomDataset.GetSingleValueOrDefault<string>(indexableTag, default);
                     _minimumValidator.Validate(indexableTag, value);
+                }
+            }
+        }
+
+        private void ValidateCustomTags(DicomDataset dicomDataset, IReadOnlyList<CustomTagStoreEntry> storedCustomTagEntries)
+        {
+            DicomTagParser dicomTagParser = new DicomTagParser();
+            foreach (CustomTagStoreEntry storedCustomTag in storedCustomTagEntries)
+            {
+                DicomTag[] tags;
+                if (dicomTagParser.TryParse(storedCustomTag.Path, out tags))
+                {
+                    DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(tags[0]);
+
+                    if (dicomElement != null)
+                    {
+                        dicomElement.Validate();
+                    }
                 }
             }
         }

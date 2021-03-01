@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
@@ -426,6 +427,152 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var versionedDicomInstanceIdentifier = new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedEntry.Watermark);
             var retryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(versionedDicomInstanceIdentifier, Clock.UtcNow);
             Assert.Equal(1, retryCount);
+        }
+
+        [Fact]
+        public async Task GivenANonExistingDicomInstanceWithStringCustomTag_WhenAdded_ThenItShouldBeAdded()
+        {
+            DicomDataset dataset = CreateTestDicomDataset();
+
+            List<CustomTagStoreEntry> storedTags = new List<CustomTagStoreEntry>()
+            {
+                new CustomTagStoreEntry(1, DicomTag.AbortReason.GetPath(), DicomTag.AbortReason.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added),
+            };
+
+            dataset.Add(DicomTag.AbortReason, "TE");
+            string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, storedTags.AsReadOnly());
+
+            IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
+
+            Assert.Equal(1, studyMetadataEntries.Count);
+        }
+
+        [Fact]
+        public async Task GivenANonExistingDicomInstanceWithLongCustomTag_WhenAdded_ThenItShouldBeAdded()
+        {
+            DicomDataset dataset = CreateTestDicomDataset();
+
+            List<CustomTagStoreEntry> storedTags = new List<CustomTagStoreEntry>()
+            {
+                new CustomTagStoreEntry(1, DicomTag.NumberOfAlarmObjects.GetPath(), DicomTag.NumberOfAlarmObjects.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added),
+            };
+
+            dataset.Add(DicomTag.NumberOfAlarmObjects, (ushort)2);
+            string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, storedTags.AsReadOnly());
+
+            IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
+
+            Assert.Equal(1, studyMetadataEntries.Count);
+        }
+
+        [Fact]
+        public async Task GivenANonExistingDicomInstanceWithDoubleCustomTag_WhenAdded_ThenItShouldBeAdded()
+        {
+            DicomDataset dataset = CreateTestDicomDataset();
+
+            List<CustomTagStoreEntry> storedTags = new List<CustomTagStoreEntry>()
+            {
+                new CustomTagStoreEntry(1, DicomTag.FloatingPointValue.GetPath(), DicomTag.FloatingPointValue.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added),
+            };
+
+            dataset.Add(DicomTag.FloatingPointValue, 2D);
+            string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, storedTags.AsReadOnly());
+
+            IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
+
+            Assert.Equal(1, studyMetadataEntries.Count);
+        }
+
+        [Fact]
+        public async Task GivenANonExistingDicomInstanceWithDateTimeCustomTag_WhenAdded_ThenItShouldBeAdded()
+        {
+            DicomDataset dataset = CreateTestDicomDataset();
+
+            List<CustomTagStoreEntry> storedTags = new List<CustomTagStoreEntry>()
+            {
+                new CustomTagStoreEntry(1, DicomTag.DateOfLastCalibration.GetPath(), DicomTag.DateOfLastCalibration.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added),
+            };
+
+            dataset.Add(DicomTag.DateOfLastCalibration, new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, storedTags.AsReadOnly());
+
+            IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
+
+            Assert.Equal(1, studyMetadataEntries.Count);
+        }
+
+        [Fact]
+        public async Task GivenANonExistingDicomInstanceWithPersonNameCustomTag_WhenAdded_ThenItShouldBeAdded()
+        {
+            DicomDataset dataset = CreateTestDicomDataset();
+
+            List<CustomTagStoreEntry> storedTags = new List<CustomTagStoreEntry>()
+            {
+                new CustomTagStoreEntry(1, DicomTag.NameOfPhysiciansReadingStudy.GetPath(), DicomTag.NameOfPhysiciansReadingStudy.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added),
+            };
+
+            dataset.Add(DicomTag.NameOfPhysiciansReadingStudy, "Anonymous");
+            string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, storedTags.AsReadOnly());
+
+            IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
+
+            Assert.Equal(1, studyMetadataEntries.Count);
+        }
+
+        [Fact]
+        public async Task GivenANonExistingDicomInstanceWithMultipleCustomTags_WhenAdded_ThenItShouldBeAdded()
+        {
+            DicomDataset dataset = CreateTestDicomDataset();
+
+            List<CustomTagStoreEntry> storedTags = new List<CustomTagStoreEntry>()
+            {
+                new CustomTagStoreEntry(1, DicomTag.NameOfPhysiciansReadingStudy.GetPath(), DicomTag.NameOfPhysiciansReadingStudy.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added),
+                new CustomTagStoreEntry(1, DicomTag.DateOfLastCalibration.GetPath(), DicomTag.DateOfLastCalibration.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added),
+            };
+
+            dataset.Add(DicomTag.NameOfPhysiciansReadingStudy, "Anonymous");
+            dataset.Add(DicomTag.DateOfLastCalibration, new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, storedTags.AsReadOnly());
+
+            IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
+
+            Assert.Equal(1, studyMetadataEntries.Count);
+        }
+
+        [Fact]
+        public async Task GivenMultipleInstancesInStudyWithCustomTag_WhenAdded_ThenItShouldBeAdded()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            DicomDataset dataset = CreateTestDicomDataset(studyInstanceUid);
+            DicomDataset dataset2 = CreateTestDicomDataset(studyInstanceUid);
+
+            List<CustomTagStoreEntry> storedTags = new List<CustomTagStoreEntry>()
+            {
+                new CustomTagStoreEntry(1, DicomTag.NumberOfAlarmObjects.GetPath(), DicomTag.NumberOfAlarmObjects.GetDefaultVR().Code, CustomTagLevel.Study, CustomTagStatus.Added),
+            };
+
+            dataset.Add(DicomTag.NumberOfAlarmObjects, (ushort)2);
+
+            dataset2.Add(DicomTag.NumberOfAlarmObjects, (ushort)4);
+
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, storedTags.AsReadOnly());
+            await _indexDataStore.CreateInstanceIndexAsync(dataset2, storedTags.AsReadOnly());
+
+            IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
+
+            Assert.Equal(1, studyMetadataEntries.Count);
         }
 
         private static void ValidateStudyMetadata(

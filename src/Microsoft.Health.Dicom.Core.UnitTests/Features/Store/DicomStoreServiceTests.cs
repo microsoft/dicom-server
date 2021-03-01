@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -140,7 +141,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _storeOrchestrator
-                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken: DefaultCancellationToken))
+                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, Arg.Any<IReadOnlyList<CustomTagStoreEntry>>(), DefaultCancellationToken))
                 .Do(_ => throw new InstanceAlreadyExistsException());
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
@@ -157,7 +158,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _storeOrchestrator
-                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken: DefaultCancellationToken))
+                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, Arg.Any<IReadOnlyList<CustomTagStoreEntry>>(), DefaultCancellationToken))
                 .Do(_ => throw new DataStoreException("Simulated failure."));
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
