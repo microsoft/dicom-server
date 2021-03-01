@@ -21,9 +21,8 @@ jobs:
         foreach($secret in $secrets)
         {
             $environmentVariableName = $secret.Name.Replace("--","_")
-
-            $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName)-ts -Name $secret.Name
-            Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
+            $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName)-ts -Name $secret.Name -AsPlainText
+            Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue)"
         }
 
         Write-Host "##vso[task.setvariable variable=Resource]$(testEnvironmentUrl)"

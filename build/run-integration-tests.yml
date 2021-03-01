@@ -19,8 +19,8 @@ jobs:
         foreach ($secret in $secrets)
         {
             $environmentVariableName = $secret.Name.Replace("--",":")
-            $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name $secret.Name
-            Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue.SecretValueText)"
+            $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name $secret.Name -AsPlainText
+            Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue)"
         }
         
         dotnet dev-certs https
