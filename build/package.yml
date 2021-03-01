@@ -26,11 +26,11 @@ steps:
     inputs:
       command: pack
       configuration: '$(buildConfiguration)'
+      packagesToPack: '**/*.csproj;!test/**/*.csproj;!**/*.UnitTests.csproj'
       packDirectory: '$(build.artifactStagingDirectory)/nupkgs'
       versioningScheme: byEnvVar
       versionEnvVar: 'nuget_version'
       nobuild: true
-      zipAfterPublish: true
     env:
       nuget_version: $(nuGetVersion)
 

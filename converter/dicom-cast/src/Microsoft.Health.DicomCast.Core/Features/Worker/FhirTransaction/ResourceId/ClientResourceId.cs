@@ -55,7 +55,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
             else
             {
-                return string.Equals(Id, other.Id, StringComparison.InvariantCulture);
+                return string.Equals(Id, other.Id, StringComparison.Ordinal);
             }
         }
 

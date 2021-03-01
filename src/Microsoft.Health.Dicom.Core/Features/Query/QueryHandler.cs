@@ -25,14 +25,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _queryService = EnsureArg.IsNotNull(queryService, nameof(queryService));
         }
 
-        public async Task<QueryResourceResponse> Handle(QueryResourceRequest message, CancellationToken cancellationToken)
+        public async Task<QueryResourceResponse> Handle(QueryResourceRequest request, CancellationToken cancellationToken)
         {
             if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
             {
                 throw new UnauthorizedDicomActionException(DataActions.Read);
             }
 
-            return await _queryService.QueryAsync(message, cancellationToken);
+            return await _queryService.QueryAsync(request, cancellationToken);
         }
     }
 }

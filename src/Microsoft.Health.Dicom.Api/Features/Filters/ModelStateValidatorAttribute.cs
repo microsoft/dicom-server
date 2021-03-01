@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
-    public class ModelStateValidatorAttribute : ActionFilterAttribute
+    public sealed class ModelStateValidatorAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {

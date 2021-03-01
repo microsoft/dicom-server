@@ -67,7 +67,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             else
             {
                 return ResourceType == other.ResourceType &&
-                    string.Equals(ResourceId, other.ResourceId, StringComparison.InvariantCulture);
+                    string.Equals(ResourceId, other.ResourceId, StringComparison.Ordinal);
             }
         }
 

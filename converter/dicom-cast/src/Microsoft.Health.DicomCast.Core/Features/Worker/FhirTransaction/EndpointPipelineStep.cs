@@ -35,6 +35,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
+
             string queryParameter = $"name={FhirTransactionConstants.EndpointName}&connection-type={FhirTransactionConstants.EndpointConnectionTypeSystem}|{FhirTransactionConstants.EndpointConnectionTypeCode}";
 
             Endpoint endpoint = await _fhirService.RetrieveEndpointAsync(queryParameter, cancellationToken);
@@ -68,7 +70,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             else
             {
                 // Make sure the address matches.
-                if (!string.Equals(endpoint.Address, _dicomWebEndpoint, StringComparison.InvariantCulture))
+                if (!string.Equals(endpoint.Address, _dicomWebEndpoint, StringComparison.Ordinal))
                 {
                     // We have found an endpoint with matching name and connection-type but the address does not match.
                     throw new FhirResourceValidationException(DicomCastCoreResource.MismatchEndpointAddress);

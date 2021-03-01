@@ -7,11 +7,11 @@
     <Copyright>Copyright © Microsoft Corporation. All rights reserved.</Copyright>
     <Deterministic>true</Deterministic>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <HealthcareSharedPackageVersion>1.1.7</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
-    <LangVersion>8.0</LangVersion>
-    <NoWarn>$(NoWarn);NU5104</NoWarn> <!-- Allow pre-release dependencies -->
+    <LangVersion>Latest</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -19,6 +19,13 @@
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- CA1031 - Allow Exception to be caught -->
+    <!-- CA1305 - Allow the current locale settings to be used by default in string.Format -->
+    <!-- NU5104 - Allow pre-release dependencies -->
+    <NoWarn>$(NoWarn);CA1031;CA1305;NU5104</NoWarn>
   </PropertyGroup>
 
   <Choose>
@@ -47,9 +54,9 @@
 
   <Choose>
     <When Condition="$(MSBuildProjectName)!='Microsoft.Health.Extensions.BuildTimeCodeGenerator' AND !$(MSBuildProjectName.Contains('Test'))">
-      <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.3" PrivateAssets="All" />
-      </ItemGroup>
+      <PropertyGroup>
+        <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+      </PropertyGroup>
     </When>
   </Choose>
 

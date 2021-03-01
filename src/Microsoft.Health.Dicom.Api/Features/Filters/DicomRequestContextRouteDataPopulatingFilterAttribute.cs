@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class DicomRequestContextRouteDataPopulatingFilterAttribute : ActionFilterAttribute
+    public sealed class DicomRequestContextRouteDataPopulatingFilterAttribute : ActionFilterAttribute
     {
         private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
         private readonly IAuditEventTypeMapping _auditEventTypeMapping;

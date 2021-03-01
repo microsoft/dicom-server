@@ -19,12 +19,21 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     public class CustomTagEntryValidator : ICustomTagEntryValidator
     {
-        /* Unsupported VRCodes:
-       LT(Long Text), OB (Other Byte), OD (Other Double), OF(Other Float), OL (Other Long), OV(other Very long), OW (other Word), ST(Short Text, SV (Signed Very long)
-       UC (Unlimited Characters), UN (Unknown), UR (URI), UT (Unlimited Text), UV (Unsigned Very long)
-       Note: we dont' find definition for UR, UV and SV in DICOM standard (http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
-      */
-        public static readonly IImmutableSet<string> SupportedVRCodes = ImmutableHashSet.Create(
+        private readonly IDicomTagParser _dicomTagParser;
+
+        public CustomTagEntryValidator(IDicomTagParser dicomTagParser)
+        {
+            EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
+            _dicomTagParser = dicomTagParser;
+        }
+
+        /*
+         * Unsupported VRCodes:
+         * LT(Long Text), OB (Other Byte), OD (Other Double), OF(Other Float), OL (Other Long), OV(other Very long), OW (other Word), ST(Short Text, SV (Signed Very long)
+         * UC (Unlimited Characters), UN (Unknown), UR (URI), UT (Unlimited Text), UV (Unsigned Very long)
+         * Note: we dont' find definition for UR, UV and SV in DICOM standard (http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
+         */
+        public static IImmutableSet<string> SupportedVRCodes { get; } = ImmutableHashSet.Create(
             DicomVRCode.AE,
             DicomVRCode.AS,
             DicomVRCode.AT,
@@ -45,23 +54,15 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             DicomVRCode.UL,
             DicomVRCode.US);
 
-        private readonly IDicomTagParser _dicomTagParser;
-
-        public CustomTagEntryValidator(IDicomTagParser dicomTagParser)
-        {
-            EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
-            _dicomTagParser = dicomTagParser;
-        }
-
         public void ValidateCustomTags(IEnumerable<CustomTagEntry> customTagEntries)
         {
             EnsureArg.IsNotNull(customTagEntries, nameof(customTagEntries));
-            if (customTagEntries.Count() == 0)
+            if (!customTagEntries.Any())
             {
                 throw new CustomTagEntryValidationException(DicomCoreResource.MissingCustomTag);
             }
 
-            HashSet<string> pathSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var pathSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (CustomTagEntry tagEntry in customTagEntries)
             {
                 ValidateCustomTagEntry(tagEntry);
@@ -154,8 +155,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         private DicomTag ParseTag(string path)
         {
-            DicomTag[] result;
-            if (!_dicomTagParser.TryParse(path, out result, supportMultiple: false))
+            if (!_dicomTagParser.TryParse(path, out DicomTag[] result, supportMultiple: false))
             {
                 throw new CustomTagEntryValidationException(
                       string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, path));

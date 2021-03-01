@@ -28,6 +28,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         public async Task<AddCustomTagResponse> Handle(AddCustomTagRequest request, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(request, nameof(request));
+
             if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
             {
                 throw new UnauthorizedDicomActionException(DataActions.Write);

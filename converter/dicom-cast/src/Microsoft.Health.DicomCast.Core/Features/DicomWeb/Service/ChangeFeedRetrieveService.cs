@@ -37,7 +37,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service
                 $"?offset={offset}&limit={DefaultLimit}&includeMetadata={true}",
                 cancellationToken);
 
-            ChangeFeedEntry[] changeFeedEntries = await result.ToArrayAsync();
+            ChangeFeedEntry[] changeFeedEntries = await result.ToArrayAsync(cancellationToken);
 
             if (changeFeedEntries?.Any() != null)
             {

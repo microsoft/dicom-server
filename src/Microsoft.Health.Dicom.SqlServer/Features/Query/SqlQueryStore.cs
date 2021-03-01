@@ -47,32 +47,29 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
             var results = new List<VersionedInstanceIdentifier>(query.EvaluatedLimit);
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters));
+
+            sqlCommandWrapper.CommandText = stringBuilder.ToString();
+            LogSqlCommand(sqlCommandWrapper);
+
+            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
             {
-                var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-                var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters));
+                (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+                   VLatest.Instance.StudyInstanceUid,
+                   VLatest.Instance.SeriesInstanceUid,
+                   VLatest.Instance.SopInstanceUid,
+                   VLatest.Instance.Watermark);
 
-                sqlCommandWrapper.CommandText = stringBuilder.ToString();
-                LogSqlCommand(sqlCommandWrapper);
-
-                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-                {
-                    while (await reader.ReadAsync(cancellationToken))
-                    {
-                        (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
-                           VLatest.Instance.StudyInstanceUid,
-                           VLatest.Instance.SeriesInstanceUid,
-                           VLatest.Instance.SopInstanceUid,
-                           VLatest.Instance.Watermark);
-
-                        results.Add(new VersionedInstanceIdentifier(
-                                studyInstanceUid,
-                                seriesInstanceUid,
-                                sopInstanceUid,
-                                watermark));
-                    }
-                }
+                results.Add(new VersionedInstanceIdentifier(
+                        studyInstanceUid,
+                        seriesInstanceUid,
+                        sopInstanceUid,
+                        watermark));
             }
 
             return new QueryResult(results);
@@ -85,12 +82,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             {
                 sb.Append("DECLARE ")
                     .Append(p)
-                    .Append(" ")
+                    .Append(' ')
                     .Append(p.SqlDbType)
                     .Append(p.Value is string ? $"({p.Size})" : p.Value is decimal ? $"({p.Precision},{p.Scale})" : null)
                     .Append(" = ")
                     .Append(DefaultRedactedValue)
-                    .AppendLine(";");
+                    .Append(';')
+                    .AppendLine();
             }
 
             sb.AppendLine();

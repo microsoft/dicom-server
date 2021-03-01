@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         private readonly DefaultDicomRequestContext _dicomRequestContext = new DefaultDicomRequestContext();
         private readonly IAuditEventTypeMapping _auditEventTypeMapping = Substitute.For<IAuditEventTypeMapping>();
         private readonly HttpContext _httpContext = new DefaultHttpContext();
-        private ActionExecutingContext _actionExecutingContext;
+        private readonly ActionExecutingContext _actionExecutingContext;
         private const string ControllerName = "controller";
         private const string ActionName = "actionName";
         private const string RouteName = "routeName";
@@ -66,8 +66,10 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         [Fact]
         public void GivenRetrieveRequestForStudy_WhenExecutingAnAction_ThenValuesShouldBeSetOnDicomFhirRequestContext()
         {
-            RouteValueDictionary routeValueDictionary = new RouteValueDictionary();
-            routeValueDictionary.Add(KnownActionParameterNames.StudyInstanceUid, "123");
+            var routeValueDictionary = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, "123" },
+            };
             _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
             ExecuteAndValidateFilter(NormalAuditEventType, NormalAuditEventType, ResourceType.Study);
@@ -76,9 +78,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         [Fact]
         public void GivenRetrieveRequestForSeries_WhenExecutingAnAction_ThenValuesShouldBeSetOnDicomFhirRequestContext()
         {
-            RouteValueDictionary routeValueDictionary = new RouteValueDictionary();
-            routeValueDictionary.Add(KnownActionParameterNames.StudyInstanceUid, StudyInstanceUid);
-            routeValueDictionary.Add(KnownActionParameterNames.SeriesInstanceUid, SeriesInstanceUid);
+            var routeValueDictionary = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, StudyInstanceUid },
+                { KnownActionParameterNames.SeriesInstanceUid, SeriesInstanceUid },
+            };
             _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
             ExecuteAndValidateFilter(NormalAuditEventType, NormalAuditEventType, ResourceType.Series);
@@ -87,10 +91,12 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         [Fact]
         public void GivenRetrieveRequestForSopInstance_WhenExecutingAnAction_ThenValuesShouldBeSetOnDicomFhirRequestContext()
         {
-            RouteValueDictionary routeValueDictionary = new RouteValueDictionary();
-            routeValueDictionary.Add(KnownActionParameterNames.StudyInstanceUid, StudyInstanceUid);
-            routeValueDictionary.Add(KnownActionParameterNames.SeriesInstanceUid, SeriesInstanceUid);
-            routeValueDictionary.Add(KnownActionParameterNames.SopInstanceUid, SopInstanceUid);
+            var routeValueDictionary = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, StudyInstanceUid },
+                { KnownActionParameterNames.SeriesInstanceUid, SeriesInstanceUid },
+                { KnownActionParameterNames.SopInstanceUid, SopInstanceUid },
+            };
             _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
             ExecuteAndValidateFilter(NormalAuditEventType, NormalAuditEventType, ResourceType.Series);
