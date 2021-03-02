@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using EnsureThat;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Core.Configs;
 using Microsoft.Health.Core.Features.Security;
@@ -21,6 +22,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
 
         protected override Role<DataActions> RoleContractToRole(RoleContract roleContract)
         {
+            EnsureArg.IsNotNull(roleContract, nameof(roleContract));
+
             DataActions dataActions = roleContract.DataActions.Aggregate(default(DataActions), (acc, a) => acc | ToEnum<DataActions>(a));
             DataActions notDataActions = roleContract.NotDataActions.Aggregate(default(DataActions), (acc, a) => acc | ToEnum<DataActions>(a));
 

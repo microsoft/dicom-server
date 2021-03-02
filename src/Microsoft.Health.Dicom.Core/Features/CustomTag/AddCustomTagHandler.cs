@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     {
         private readonly IAddCustomTagService _addCustomTagService;
 
-        public AddCustomTagHandler(IAuthorizationService<DataActions> authorizationService, ICustomTagService customTagService)
+        public AddCustomTagHandler(IAuthorizationService<DataActions> authorizationService, IAddCustomTagService addCustomTagService)
             : base(authorizationService)
         {
             EnsureArg.IsNotNull(addCustomTagService, nameof(addCustomTagService));

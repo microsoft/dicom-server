@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Development.IdentityProvider;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Core.Features.Security;
 
