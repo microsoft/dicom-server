@@ -8,62 +8,212 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Dicom;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     public static class DicomElementMinimumValidation
     {
         private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*$", RegexOptions.Compiled);
-        private const string DateFormat = "yyyyMMdd";
+        private const string DateFormatForDA = "yyyyMMdd";
+        private const string DateFormatForDT = "YYYYMMDDHHMMSS.FFFFFF&ZZXX";
+        private const string DateFormatForTM = "HHMMSS.FFFFFF";
 
-        public static void ValidateCS(string value, string name)
+        internal static void ValidateCS(DicomElement element)
         {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateStringMaxLength(element, 16);
+        }
+
+        internal static void ValidateAT(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateByteArrayLength(element, 4);
+        }
+
+        private static string GetName(DicomTag dicomTag) => dicomTag.IsPrivate ? dicomTag.GetPath() : dicomTag.DictionaryEntry.Keyword;
+
+        private static void ValidateStringMaxLength(DicomElement dicomElement, int maxLength)
+        {
+            string value = dicomElement.Get<string>();
             if (string.IsNullOrEmpty(value))
             {
                 return;
             }
 
-            if (value.Length > 16)
+            if (value.Length > maxLength)
             {
-                throw new DicomElementValidationException(name, value, DicomVR.CS, DicomCoreResource.ValueLengthExceeds16Characters);
+                throw new DicomElementValidationException(GetName(dicomElement.Tag), value, dicomElement.ValueRepresentation, $"Value exceeds maximum length of {maxLength} characters.");
             }
         }
 
-        public static void ValidateDA(string value, string name)
+        private static void ValidateStringLength(DicomElement dicomElement, int length)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                return;
-            }
+            string value = dicomElement.Get<string>();
 
-            if (!DateTime.TryParseExact(value, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
+            if (value.Length != length)
             {
-                throw new DicomElementValidationException(name, value, DicomVR.DA, DicomCoreResource.ValueIsInvalidDate);
+                throw new DicomElementValidationException(GetName(dicomElement.Tag), value, dicomElement.ValueRepresentation, $"Element must be length of {length}");
             }
         }
 
-        public static void ValidateLO(string value, string name)
+        private static void ValidateByteArrayMaxLength(DicomElement dicomElement, int maxLength)
         {
+            if (dicomElement.Buffer.Size > maxLength)
+            {
+                // TODO: value should not be required.
+                throw new DicomElementValidationException(GetName(dicomElement.Tag), "<Byte Array>", dicomElement.ValueRepresentation, $"Value exceeds maximum length of {maxLength}.");
+            }
+        }
+
+        private static void ValidateByteArrayLength(DicomElement dicomElement, int length)
+        {
+            if (dicomElement.Buffer.Size != length)
+            {
+                // TODO: value should not be required.
+                throw new DicomElementValidationException(GetName(dicomElement.Tag), "<Byte Array>", dicomElement.ValueRepresentation, $"Value exceeds maximum length of {length}.");
+            }
+        }
+
+        private static void ValidateStringNotContains(DicomElement dicomElement, char[] invalidChars)
+        {
+            string value = dicomElement.Get<string>();
+            if (value.ToCharArray().Any(chr => invalidChars.Contains(chr)))
+            {
+                throw new DicomElementValidationException(GetName(dicomElement.Tag), value, dicomElement.ValueRepresentation, DicomCoreResource.ValueContainsInvalidCharacter);
+            }
+        }
+
+        private static void ValidateStringOnlyContains(DicomElement dicomElement, char[] validChars)
+        {
+            string value = dicomElement.Get<string>();
+            if (!value.ToCharArray().All(chr => validChars.Contains(chr)))
+            {
+                throw new DicomElementValidationException(GetName(dicomElement.Tag), value, dicomElement.ValueRepresentation, DicomCoreResource.ValueContainsInvalidCharacter);
+            }
+        }
+
+        private static void ValidateStringAsDate(DicomElement dicomElement, string dateFormat)
+        {
+            string value = dicomElement.Get<string>();
             if (string.IsNullOrEmpty(value))
             {
                 return;
             }
 
-            if (value.Length > 64)
+            if (!DateTime.TryParseExact(value, dateFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
             {
-                throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
+                throw new DicomElementValidationException(GetName(dicomElement.Tag), value, DicomVR.DT, DicomCoreResource.ValueIsInvalidDate);
             }
+        }
+
+        internal static void ValidateAE(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+
+            // Default Character Repertoire excluding character code 5CH (the BACKSLASH "\" in ISO-IR 6), and control characters LF, FF, CR and ESC.
+            // Notes: LF - NewLine (12), FF - PageBreak(14), CR - CarriageReturn (15), ESC - 13
+            ValidateStringNotContains(element, new char[] { '\\', (char)12, (char)14, (char)15, (char)33 });
+            ValidateStringMaxLength(element, 16);
+        }
+
+        internal static void ValidateDS(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateStringOnlyContains(element, "0123456789+-Ee.".ToCharArray());
+            ValidateStringMaxLength(element, 16);
+        }
+
+        internal static void ValidateDT(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateStringAsDate(element, DateFormatForDT);
+        }
+
+        internal static void ValidateFD(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateByteArrayMaxLength(element, 8);
+        }
+
+        internal static void ValidateIS(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateStringMaxLength(element, 12);
+            ValidateStringOnlyContains(element, "0123456789+-".ToCharArray());
+        }
+
+        internal static void ValidateAS(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateStringLength(element, 4);
+            ValidateStringOnlyContains(element, "0123456789DWMY".ToCharArray());
+        }
+
+        internal static void ValidateSL(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateByteArrayLength(element, 4);
+        }
+
+        internal static void ValidateTM(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateStringAsDate(element, DateFormatForTM);
+        }
+
+        internal static void ValidateSS(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateByteArrayLength(element, 2);
+        }
+
+        internal static void ValidateUS(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateByteArrayLength(element, 2);
+        }
+
+        internal static void ValidateUL(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateStringMaxLength(element, 64);
+            ValidateStringOnlyContains(element, "0123456789.".ToCharArray());
+        }
+
+        internal static void ValidateFL(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateByteArrayLength(element, 4);
+        }
+
+        public static void ValidateDA(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateStringAsDate(element, DateFormatForDA);
+        }
+
+        public static void ValidateLO(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateStringMaxLength(element, 64);
+
+            string value = element.Get<string>();
 
             if (value.Contains("\\", System.StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
             {
-                throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
+                throw new DicomElementValidationException(GetName(element.Tag), value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
             }
         }
 
         // probably can dial down the validation here
-        public static void ValidatePN(string value, string name)
+        public static void ValidatePN(DicomElement element)
         {
+            EnsureArg.IsNotNull(element, nameof(element));
+            string name = GetName(element.Tag);
+            string value = element.Get<string>();
             if (string.IsNullOrEmpty(value))
             {
                 // empty values allowed
@@ -96,17 +246,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        public static void ValidateSH(string value, string name)
+        public static void ValidateSH(DicomElement element)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                return;
-            }
-
-            if (value.Length > 16)
-            {
-                throw new DicomElementValidationException(name, value, DicomVR.SH, DicomCoreResource.ValueLengthExceeds16Characters);
-            }
+            EnsureArg.IsNotNull(element, nameof(element));
+            ValidateStringMaxLength(element, 16);
         }
 
         public static void ValidateUI(string value, string name)
@@ -129,6 +272,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             {
                 throw new InvalidIdentifierException(value, name);
             }
+        }
+
+        public static void ValidateUI(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            string name = GetName(element.Tag);
+            string value = element.Get<string>();
+            ValidateUI(value, name);
         }
 
         private static bool IsControlExceptESC(char c)

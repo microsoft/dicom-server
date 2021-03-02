@@ -315,4 +315,8 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="SequentialDicomTagsNotSupported" xml:space="preserve">
     <value>Sequential dicom tags are currently not supported.</value>
   </data>
+  <data name="ValueLengthExceedMaxAllowedLengthOfCharacters" xml:space="preserve">
+    <value>Value exceeds maximum length of {0} characters.</value>
+    <comment>{0} is max length allowed.</comment>
+  </data>
 </root>

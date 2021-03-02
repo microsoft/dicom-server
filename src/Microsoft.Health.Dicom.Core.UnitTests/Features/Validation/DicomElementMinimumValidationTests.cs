@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
@@ -24,7 +25,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("0123456789abcdefg")]
         public void GivenCSInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateCS(value, nameof(value)));
+            DicomElement element = new DicomCodeString(DicomTag.AcquisitionStartCondition, value);
+            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateCS(element));
         }
 
         [Theory]
@@ -32,7 +34,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("abc\\efg")]
         public void GivenLOInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateLO(value, nameof(value)));
+            DicomElement element = new DicomLongString(DicomTag.WindowCenterWidthExplanation, value);
+            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateLO(element));
         }
 
         [Theory]
@@ -40,14 +43,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("233434343")]
         public void GivenDAInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateDA(value, nameof(value)));
+            DicomElement element = new DicomLongString(DicomTag.AcquisitionDate, value);
+            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateDA(element));
         }
 
         [Theory]
         [InlineData("0123456789abcdefg")]
         public void GivenSHInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateSH(value, nameof(value)));
+            DicomElement element = new DicomShortString(DicomTag.AccessionNumber, value);
+            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateSH(element));
         }
 
         [Theory]
@@ -56,7 +61,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789")]
         public void GivenPNInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidatePN(value, nameof(value)));
+            DicomElement element = new DicomPersonName(DicomTag.PatientName, value);
+            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidatePN(element));
         }
     }
 }
