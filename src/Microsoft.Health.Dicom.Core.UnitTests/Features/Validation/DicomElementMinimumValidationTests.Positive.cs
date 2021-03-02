@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData(float.MaxValue)]
         public void GivenFLValidValue_WhenValidating_ThenShouldSucceed(float value)
         {
-            DicomElement element = new DicomFloatingPointSingle(DicomTag.AnchorPoint, ByteConverter.ToByteBuffer(new float[] { value }));
+            DicomElement element = new DicomFloatingPointSingle(DicomTag.OphthalmicAxialLength, value);
             DicomElementMinimumValidation.ValidateFL(element);
         }
 
