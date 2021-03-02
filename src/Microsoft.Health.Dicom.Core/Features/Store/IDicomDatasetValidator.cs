@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// Validates the <paramref name="dicomDataset"/>.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to validate.</param>
-        /// <param name="customTagEntries">The DICOM dataset to validatesd.</param>
+        /// <param name="customTagEntries">The custom tag entries.</param>
         /// <param name="requiredStudyInstanceUid">
         /// If supplied, the StudyInstanceUID in the <paramref name="dicomDataset"/> must match to be considered valid.
         /// </param>

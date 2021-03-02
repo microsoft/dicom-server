@@ -129,7 +129,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
 
             // Process Private Tag
-            // dicomDataset.GetDicomItem<DicomElement>() is not able to get the private tag, we need to compare through path
+            // dicomDataset.GetDicomItem<DicomElement>() cannot get value for private tag, we need to loop and compare with path.
             foreach (DicomItem item in dicomDataset)
             {
                 if (item.Tag.IsPrivate)

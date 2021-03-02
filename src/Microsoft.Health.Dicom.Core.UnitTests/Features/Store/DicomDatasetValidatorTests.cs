@@ -173,7 +173,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public void GivenAValidDicomDatasetWithCustomTag_WhenValidated_ThenItShouldSucceed()
+        public void GivenAValidDicomDatasetWithCustomTag_WhenValidating_ThenValidationPasses()
         {
             DicomTag tag = DicomTag.PatientAge;
             CustomTagEntry entry = tag.BuildCustomTagEntry();
@@ -182,7 +182,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public void GivenInvalidDicomDatasetWithCustomTag_WhenValidated_ThenValidationExceptionShouldBeThrown()
+        public void GivenInvalidDicomDatasetWithCustomTag_WhenValidating_ThenValidationExceptionShouldBeThrown()
         {
             DicomTag tag = DicomTag.PatientAge;
             CustomTagEntry entry = tag.BuildCustomTagEntry();
