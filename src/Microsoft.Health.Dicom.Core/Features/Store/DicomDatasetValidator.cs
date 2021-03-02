@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
@@ -98,13 +97,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
         }
 
-        private void ValidateIndexedItems(DicomDataset dicomDataset, IReadOnlyList<CustomTagEntry> customTags)
+        private void ValidateIndexedItems(DicomDataset dicomDataset, IReadOnlyList<CustomTagEntry> customTagEntries)
         {
-            // TODO: imporve performance
+            HashSet<DicomTag> standardTags = new HashSet<DicomTag>();
+            Dictionary<string, CustomTagEntry> privateTags = new Dictionary<string, CustomTagEntry>();
+            foreach (var customTagEntry in customTagEntries)
+            {
+                DicomTag dicomTag = DicomTag.Parse(customTagEntry.Path);
+                if (dicomTag.IsPrivate)
+                {
+                    privateTags.Add(customTagEntry.Path, customTagEntry);
+                }
+                else
+                {
+                    standardTags.Add(dicomTag);
+                }
+            }
+
             // Process Standard Tag
             HashSet<DicomTag> indexableTags = QueryLimit.AllInstancesTags;
-
-            indexableTags.UnionWith(customTags.Select(x => DicomTag.Parse(x.Path)).Where(y => !y.IsPrivate));
+            indexableTags.UnionWith(standardTags);
 
             foreach (DicomTag indexableTag in indexableTags)
             {
@@ -116,9 +128,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 }
             }
 
-            Dictionary<string, CustomTagEntry> privateTags = customTags.Where(x => DicomTag.Parse(x.Path).IsPrivate).ToDictionary(y => y.Path);
-
             // Process Private Tag
+            // dicomDataset.GetDicomItem<DicomElement>() is not able to get the private tag, we need to compare through path
             foreach (DicomItem item in dicomDataset)
             {
                 if (item.Tag.IsPrivate)

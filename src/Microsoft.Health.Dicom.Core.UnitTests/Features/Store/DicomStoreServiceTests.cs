@@ -55,6 +55,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 _storeOrchestrator,
                 _customTagStore,
                 NullLogger<StoreService>.Instance);
+
             _customTagStore.GetCustomTagsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
                 .Returns(new List<CustomTagEntry>());
         }
