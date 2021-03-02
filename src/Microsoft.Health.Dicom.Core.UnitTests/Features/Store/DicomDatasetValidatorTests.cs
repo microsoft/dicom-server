@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using NSubstitute;
 using Xunit;
 
@@ -171,11 +172,37 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _dicomDatasetValidator.Validate(_dicomDataset, new List<CustomTagEntry>(), null);
         }
 
-        private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
+        [Fact]
+        public void GivenAValidDicomDatasetWithCustomTag_WhenValidated_ThenItShouldSucceed()
+        {
+            DicomTag tag = DicomTag.PatientAge;
+            CustomTagEntry entry = tag.BuildCustomTagEntry();
+            _dicomDataset.Add(tag, "001W");
+            _dicomDatasetValidator.Validate(_dicomDataset, new List<CustomTagEntry>() { entry }, requiredStudyInstanceUid: null);
+        }
+
+        [Fact]
+        public void GivenInvalidDicomDatasetWithCustomTag_WhenValidated_ThenValidationExceptionShouldBeThrown()
+        {
+            DicomTag tag = DicomTag.PatientAge;
+            CustomTagEntry entry = tag.BuildCustomTagEntry();
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            _dicomDataset.Add(tag, "001w");
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+            ExecuteAndValidateException<DicomElementValidationException>(TestConstants.ValidationFailureReasonCode, customTagEntries: new List<CustomTagEntry>() { entry });
+        }
+
+        private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null, IReadOnlyList<CustomTagEntry> customTagEntries = null)
             where T : Exception
         {
             var exception = Assert.Throws<T>(
-                () => _dicomDatasetValidator.Validate(_dicomDataset, new List<CustomTagEntry>(), requiredStudyInstanceUid));
+                () => _dicomDatasetValidator.Validate(_dicomDataset, customTagEntries ?? new List<CustomTagEntry>(), requiredStudyInstanceUid));
 
             if (exception is DatasetValidationException)
             {
