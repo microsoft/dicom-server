@@ -5,6 +5,7 @@
 
 using System;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
@@ -71,6 +72,9 @@ namespace Microsoft.AspNetCore.Builder
                 options.EnableEndpointRouting = false;
                 options.RespectBrowserAcceptHeader = true;
                 options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
+            }).AddJsonOptions(jsonOptions =>
+            {
+                jsonOptions.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
             services.AddSingleton<IUrlResolver, UrlResolver>();
