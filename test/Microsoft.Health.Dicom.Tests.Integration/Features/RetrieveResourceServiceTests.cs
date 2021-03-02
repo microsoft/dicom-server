@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -151,7 +152,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
         private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
         {
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset, new Dictionary<CustomTagEntry, DicomElement>());
 
             var versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
 

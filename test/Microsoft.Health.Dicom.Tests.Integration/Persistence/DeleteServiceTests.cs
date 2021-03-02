@@ -4,12 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
@@ -51,7 +53,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             var newDataSet = CreateValidMetadataDataset();
 
-            var version = await _fixture.IndexDataStore.CreateInstanceIndexAsync(newDataSet);
+            var version = await _fixture.IndexDataStore.CreateInstanceIndexAsync(newDataSet, new Dictionary<CustomTagEntry, DicomElement>());
             var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 
             if (persistMetadata)

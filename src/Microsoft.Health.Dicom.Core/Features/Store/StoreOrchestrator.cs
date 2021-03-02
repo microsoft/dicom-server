@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
@@ -48,13 +50,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <inheritdoc />
         public async Task StoreDicomInstanceEntryAsync(
             IDicomInstanceEntry dicomInstanceEntry,
+            IReadOnlyList<CustomTagEntry> customTagEntries,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, cancellationToken);
+            IDictionary<CustomTagEntry, DicomElement> customTags = dicomDataset.GetDicomElementsForCustomTags(customTagEntries);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, customTags, cancellationToken);
 
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 

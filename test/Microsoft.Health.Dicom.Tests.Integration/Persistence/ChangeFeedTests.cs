@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
@@ -118,7 +119,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 { DicomTag.PatientID, TestUidGenerator.Generate() },
             };
 
-            var version = await _fixture.DicomIndexDataStore.CreateInstanceIndexAsync(newDataSet);
+            var version = await _fixture.DicomIndexDataStore.CreateInstanceIndexAsync(newDataSet, new Dictionary<CustomTagEntry, DicomElement>());
 
             var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 

@@ -144,7 +144,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _storeOrchestrator
-                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
+                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, Arg.Any<IReadOnlyList<CustomTagEntry>>(), DefaultCancellationToken))
                 .Do(_ => throw new InstanceAlreadyExistsException());
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
@@ -161,7 +161,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _storeOrchestrator
-                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
+                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, Arg.Any<IReadOnlyList<CustomTagEntry>>(), DefaultCancellationToken))
                 .Do(_ => throw new DataStoreException("Simulated failure."));
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);

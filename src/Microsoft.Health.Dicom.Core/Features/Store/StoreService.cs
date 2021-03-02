@@ -152,6 +152,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 // Store the instance.
                 await _storeOrchestrator.StoreDicomInstanceEntryAsync(
                     dicomInstanceEntry,
+                    customTagEntries,
                     cancellationToken);
 
                 LogSuccessfullyStoredDelegate(_logger, index, null);
