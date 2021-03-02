@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using System;
-using Microsoft.Health.Development.IdentityProvider.Configuration;
 using static Microsoft.Health.Dicom.Tests.Common.EnvironmentVariables;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
@@ -15,9 +14,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
     /// </summary>
     public static class AuthenticationSettings
     {
-        public static string Scope => GetEnvironmentVariableWithDefault("security_scope", Provider.Audience);
+        public static string Scope => GetEnvironmentVariableWithDefault("security_scope", DevelopmentIdentityProviderConfiguration.Audience);
 
-        public static string Resource => GetEnvironmentVariableWithDefault("security_resource", Provider.Audience);
+        public static string Resource => GetEnvironmentVariableWithDefault("security_resource", DevelopmentIdentityProviderConfiguration.Audience);
 
         public static Uri TokenUri => new Uri(GetEnvironmentVariableWithDefault("security_tokenUrl", "https://inprochost/connect/token"));
 

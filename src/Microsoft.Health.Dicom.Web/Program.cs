@@ -9,7 +9,6 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
-using Microsoft.Health.Development.IdentityProvider;
 
 namespace Microsoft.Health.Dicom.Web
 {
@@ -30,7 +29,7 @@ namespace Microsoft.Health.Dicom.Web
                         builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
                     }
 
-                    builder.AddDevelopmentAuthEnvironmentIfConfigured(builtConfig, "DicomServer");
+                    builder.AddDevelopmentAuthEnvironmentIfConfigured(builtConfig);
                 })
                 .ConfigureKestrel(option => option.Limits.MaxRequestBodySize = int.MaxValue) // When hosted on Kestrel, it's allowed to upload >2GB file, set to 2GB by default
                 .UseStartup<Startup>()
