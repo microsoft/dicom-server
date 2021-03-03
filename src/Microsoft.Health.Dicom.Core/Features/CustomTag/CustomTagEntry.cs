@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
@@ -22,6 +23,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         public CustomTagEntry(CustomTagStoreEntry storedEntry)
         {
+            EnsureArg.IsNotNull(storedEntry, nameof(storedEntry));
+
             Path = storedEntry.Path;
             VR = storedEntry.VR;
             Level = storedEntry.Level;
