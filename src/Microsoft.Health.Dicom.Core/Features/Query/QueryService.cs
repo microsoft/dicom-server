@@ -55,9 +55,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             IEnumerable<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
 
-            Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> queryResourceToCustomTagMapping = GenerateQueryResourceToCustomTagMapping(customTags);
+            HashSet<CustomTagFilterDetails> supportedCustomTags = RetrieveSuupportedCustomTagsForQueryResourceType(customTags, message.QueryResourceType);
 
-            QueryExpression queryExpression = _queryParser.Parse(message, queryResourceToCustomTagMapping);
+            QueryExpression queryExpression = _queryParser.Parse(message, supportedCustomTags);
 
             QueryResult queryResult = await _queryStore.QueryAsync(queryExpression, cancellationToken);
 
@@ -76,9 +76,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new QueryResourceResponse(responseMetadata);
         }
 
-        private Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> GenerateQueryResourceToCustomTagMapping(IEnumerable<CustomTagStoreEntry> customTags)
+        private HashSet<CustomTagFilterDetails> RetrieveSuupportedCustomTagsForQueryResourceType(IEnumerable<CustomTagStoreEntry> customTags, QueryResource queryResource)
         {
-            Dictionary<QueryResource, HashSet<CustomTagFilterDetails>> ret = new Dictionary<QueryResource, HashSet<CustomTagFilterDetails>>();
+            HashSet<CustomTagFilterDetails> ret = new HashSet<CustomTagFilterDetails>();
 
             foreach (CustomTagStoreEntry customTag in customTags)
             {
@@ -87,36 +87,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 if (customTag.Status.Equals(CustomTagStatus.Added) && _dicomTagPathParser.TryParse(customTag.Path, out result))
                 {
                     dicomTag = result[0];
-
-                    if (customTag.Level.Equals(CustomTagLevel.Instance))
+                    if (queryResource.Equals(QueryResource.AllInstances) || queryResource.Equals(QueryResource.StudyInstances) || queryResource.Equals(QueryResource.StudySeriesInstances)
+                        || ((queryResource.Equals(QueryResource.AllSeries) || queryResource.Equals(QueryResource.StudySeries)) && (customTag.Level.Equals(CustomTagLevel.Study) || customTag.Level.Equals(CustomTagLevel.Series)))
+                        || (queryResource.Equals(QueryResource.AllStudies) && customTag.Level.Equals(CustomTagLevel.Study)))
                     {
-                        ret.TryAdd(QueryResource.AllInstances, new HashSet<CustomTagFilterDetails>());
-
-                        ret[QueryResource.AllInstances].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
-
-                        ret.TryAdd(QueryResource.StudyInstances, new HashSet<CustomTagFilterDetails>());
-
-                        ret[QueryResource.StudyInstances].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
-
-                        ret.TryAdd(QueryResource.StudySeriesInstances, new HashSet<CustomTagFilterDetails>());
-
-                        ret[QueryResource.StudySeriesInstances].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
+                        // When querying for instances, custom tags of all levels can be filtered on.
+                        // When querying for series, study and series custom tags can be filtered on.
+                        // When querying for studies, study custom tags can be filtered on.
+                        ret.Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, customTag.VR, dicomTag));
                     }
-
-                    if (customTag.Level.Equals(CustomTagLevel.Instance) || customTag.Level.Equals(CustomTagLevel.Series))
-                    {
-                        ret.TryAdd(QueryResource.AllSeries, new HashSet<CustomTagFilterDetails>());
-
-                        ret[QueryResource.AllSeries].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
-
-                        ret.TryAdd(QueryResource.StudySeries, new HashSet<CustomTagFilterDetails>());
-
-                        ret[QueryResource.StudySeries].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
-                    }
-
-                    ret.TryAdd(QueryResource.AllStudies, new HashSet<CustomTagFilterDetails>());
-
-                    ret[QueryResource.AllStudies].Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, dicomTag));
                 }
             }
 

@@ -14,9 +14,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public class CustomTagFilterDetails : IEquatable<CustomTagFilterDetails>
     {
-        public CustomTagFilterDetails(long tagKey, CustomTagLevel tagLevel, DicomTag tag)
+        public CustomTagFilterDetails(long tagKey, CustomTagLevel tagLevel, string vr, DicomTag tag)
         {
             Key = tagKey;
+            VR = vr;
             Level = tagLevel;
             Tag = tag;
         }
@@ -28,13 +29,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public long Key { get; }
 
+        public string VR { get; }
+
         public CustomTagLevel Level { get; }
 
         public DicomTag Tag { get; }
 
         public override string ToString()
         {
-            return $"Key: {Key}, Level:{Level} Tag:{Tag}";
+            return $"Key: {Key}, VRL {VR} Level:{Level} Tag:{Tag}";
         }
 
         public override int GetHashCode()
@@ -44,13 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public override bool Equals(object obj)
         {
-            CustomTagFilterDetails other = obj as CustomTagFilterDetails;
-            if (other == null)
-            {
-                return false;
-            }
-
-            return Tag == other.Tag;
+            return Equals(obj as CustomTagFilterDetails);
         }
 
         public bool Equals(CustomTagFilterDetails other)

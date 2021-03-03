@@ -315,4 +315,12 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="SequentialDicomTagsNotSupported" xml:space="preserve">
     <value>Sequential dicom tags are currently not supported.</value>
   </data>
+  <data name="InvalidDoubleValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified value '{0}' custom tag with path '{1}' is not a valid double value.</value>
+    <comment>{0} double value. {1} custom tag path.</comment>
+  </data>
+  <data name="InvalidLongValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified value '{0}' custom tag with path '{1}' is not a valid long value.</value>
+    <comment>{0} long value. {1} custom tag path.</comment>
+  </data>
 </root>

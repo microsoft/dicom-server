@@ -2,10 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -56,14 +56,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             { QueryResource.StudySeriesInstances, StudySeriesInstancesTags },
         };
 
-        public static bool IsValidRangeQueryTag(DicomTag tag)
+        public static bool IsValidRangeQueryTag(DicomTag tag, string vr = null)
         {
-            return tag.GetDefaultVR().Equals(DicomVR.DA);
+            return tag == DicomTag.StudyDate || (vr != null && string.Equals(vr, DicomVR.DA.Code, StringComparison.OrdinalIgnoreCase));
         }
 
-        public static bool IsValidFuzzyMatchingQueryTag(DicomTag tag)
+        public static bool IsValidFuzzyMatchingQueryTag(DicomTag tag, string vr = null)
         {
-            return tag.GetDefaultVR().Equals(DicomVR.PN);
+            return tag == DicomTag.PatientName || (vr != null && string.Equals(vr, DicomVR.PN.Code, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

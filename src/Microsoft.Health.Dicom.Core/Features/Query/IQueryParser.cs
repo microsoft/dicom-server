@@ -11,6 +11,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public interface IQueryParser
     {
-        QueryExpression Parse(QueryResourceRequest request, IDictionary<QueryResource, HashSet<CustomTagFilterDetails>> customTagMapping = null);
+        QueryExpression Parse(QueryResourceRequest request, HashSet<CustomTagFilterDetails> supportedCustomTags = null);
     }
 }

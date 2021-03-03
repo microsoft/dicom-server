@@ -106,15 +106,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No custom tags can be found..
-        /// </summary>
-        internal static string CustomTagsDoNotExist {
-            get {
-                return ResourceManager.GetString("CustomTagsDoNotExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
         internal static string DataStoreOperationFailed {
@@ -270,6 +261,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; custom tag with path &apos;{1}&apos; is not a valid double value..
+        /// </summary>
+        internal static string InvalidDoubleValue {
+            get {
+                return ResourceManager.GetString("InvalidDoubleValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0..
         /// </summary>
         internal static string InvalidFramesValue {
@@ -293,6 +293,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidLimitValue {
             get {
                 return ResourceManager.GetString("InvalidLimitValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; custom tag with path &apos;{1}&apos; is not a valid long value..
+        /// </summary>
+        internal static string InvalidLongValue {
+            get {
+                return ResourceManager.GetString("InvalidLongValue", resourceCulture);
             }
         }
         
@@ -383,15 +392,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MissingVRCode {
             get {
                 return ResourceManager.GetString("MissingVRCode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Multiple custom tags found for the specified tag path {0}.
-        /// </summary>
-        internal static string MultipleCustomTagsFound {
-            get {
-                return ResourceManager.GetString("MultipleCustomTagsFound", resourceCulture);
             }
         }
         
