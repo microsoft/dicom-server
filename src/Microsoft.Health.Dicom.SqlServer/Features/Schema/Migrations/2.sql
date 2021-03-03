@@ -1133,9 +1133,6 @@ BEGIN
 END
 GO
 
-/*************************************************************
-    PROCEDURES
-*************************************************************/
 /***************************************************************************************/
 -- STORED PROCEDURE
 --     AddCustomTags
@@ -1198,7 +1195,7 @@ AS
         
         -- Check if tag exsit
         DECLARE @tagStatus TINYINT
-        DECLARE @tagKey TINYINT
+        DECLARE @tagKey BIGINT
         SELECT @tagKey = TagKey, @tagStatus = TagStatus
         FROM dbo.CustomTag WITH(HOLDLOCK) 
         WHERE dbo.CustomTag.TagPath = @tagPath

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Dicom;
 using EnsureThat;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -27,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         public QueryParserTests()
         {
-            _queryParser = new QueryParser(new DicomTagParser(), NullLogger<QueryParser>.Instance);
+            _queryParser = new QueryParser(new DicomTagParser());
         }
 
         [Theory]
@@ -61,7 +60,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Theory]
         [InlineData("includefield", "12050010")]
         [InlineData("includefield", "12051001")]
-        private void GivenIncludeField_WithPrivateAttributeId_CheckIncludeFields(string key, string value)
+        public void GivenIncludeField_WithPrivateAttributeId_CheckIncludeFields(string key, string value)
         {
             VerifyIncludeFieldsForValidAttributeIds(key, value);
         }
@@ -69,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Theory]
         [InlineData("includefield", "12345678")]
         [InlineData("includefield", "98765432")]
-        private void GivenIncludeField_WithUnknownAttributeId_Throws(string key, string value)
+        public void GivenIncludeField_WithUnknownAttributeId_Throws(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
                 .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null));
@@ -363,7 +362,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var studyDateFilterCondition = queryExpression.FilterConditions.FirstOrDefault(c => c.DicomTag == DicomTag.StudyDate) as DateSingleValueMatchCondition;
             Assert.NotNull(studyDateFilterCondition);
 
-            var patientNameCondition = queryExpression.FilterConditions.FirstOrDefault(c => c.DicomTag == DicomTag.PatientName);
+            QueryFilterCondition patientNameCondition = queryExpression.FilterConditions.FirstOrDefault(c => c.DicomTag == DicomTag.PatientName);
             Assert.NotNull(patientNameCondition);
 
             var fuzzyCondition = patientNameCondition as PersonNameFuzzyMatchCondition;

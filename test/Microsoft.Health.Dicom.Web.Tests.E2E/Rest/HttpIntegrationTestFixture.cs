@@ -44,14 +44,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
-        public DicomWebClient Client { get; }
+        public IDicomWebClient Client { get; }
 
-        public DicomWebClient GetDicomWebClient()
+        public IDicomWebClient GetDicomWebClient()
         {
             return GetDicomWebClient(TestApplications.GlobalAdminServicePrincipal);
         }
 
-        public DicomWebClient GetDicomWebClient(TestApplication clientApplication, TestUser testUser = null)
+        public IDicomWebClient GetDicomWebClient(TestApplication clientApplication, TestUser testUser = null)
         {
             EnsureArg.IsNotNull(clientApplication, nameof(clientApplication));
             HttpMessageHandler messageHandler = TestDicomWebServer.CreateMessageHandler();

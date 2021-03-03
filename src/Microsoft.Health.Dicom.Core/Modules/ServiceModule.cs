@@ -144,6 +144,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                     .AsSelf()
                     .AsImplementedInterfaces();
 
+                services.Add<GetCustomTagsService>()
+                   .Scoped()
+                   .AsSelf()
+                   .AsImplementedInterfaces();
+
                 services.Add<AddCustomTagService>()
                     .Scoped()
                     .AsSelf()

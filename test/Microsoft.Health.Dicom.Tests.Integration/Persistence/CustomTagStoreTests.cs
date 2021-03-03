@@ -24,13 +24,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _customTagStore = fixture.CustomTagStore;
         }
 
-        [Fact(Skip = "Feature not ready")]
+        [Fact]
         public async Task GivenValidCustomTags_WhenAddCustomTag_ThenTagShouldBeAdded()
         {
             DicomTag tag1 = DicomTag.DeviceSerialNumber;
             DicomTag tag2 = DicomTag.ApprovalStatusDateTime;
             CustomTagEntry customTagEntry1 = tag1.BuildCustomTagEntry();
-            CustomTagEntry customTagEntry2 = tag1.BuildCustomTagEntry();
+            CustomTagEntry customTagEntry2 = tag2.BuildCustomTagEntry();
             await _customTagStore.AddCustomTagsAsync(new CustomTagEntry[] { customTagEntry1, customTagEntry2 });
 
             try
@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        [Fact(Skip = "Feature not ready")]
+        [Fact]
         public async Task GivenExistingCustomTag_WhenAddCustomTag_ThenShouldThrowException()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        [Fact(Skip = "Feature not ready")]
+        [Fact]
         public async Task GivenExistingCustomTag_WhenDeleteCustomTag_ThenTagShouldBeRemoved()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
@@ -72,11 +72,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await VerifyTagNotExist(customTagEntry.Path);
         }
 
-        [Fact(Skip = "Feature not ready")]
+        [Fact]
         public async Task GivenNonExistingCustomTag_WhenDeleteCustomTag_ThenShouldThrowException()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             CustomTagEntry customTagEntry = tag.BuildCustomTagEntry();
+            await _customTagStore.AddCustomTagsAsync(new CustomTagEntry[] { customTagEntry });
             await _customTagStore.DeleteCustomTagAsync(customTagEntry.Path, customTagEntry.VR);
             await VerifyTagNotExist(customTagEntry.Path);
         }

@@ -6,6 +6,7 @@
 using System;
 using System.Numerics;
 using System.Threading.Tasks;
+using EnsureThat;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -37,11 +38,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly string _databaseName;
         private readonly SchemaInitializer _schemaInitializer;
 
-        public SqlDataStoreTestsFixture()
+        // Only 1 public constructor is allowed for test fixture.
+        internal SqlDataStoreTestsFixture(string databaseName)
         {
+            EnsureArg.IsNotNullOrEmpty(databaseName, nameof(databaseName));
+            _databaseName = databaseName;
             string initialConnectionString = Environment.GetEnvironmentVariable("SqlServer:ConnectionString") ?? LocalConnectionString;
-
-            _databaseName = $"DICOMINTEGRATIONTEST_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}_{BigInteger.Abs(new BigInteger(Guid.NewGuid().ToByteArray()))}";
             _masterConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = "master" }.ToString();
             TestConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = _databaseName }.ToString();
 
@@ -61,15 +63,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var mediator = Substitute.For<IMediator>();
 
-            var sqlConnectionFactory = new DefaultSqlConnectionFactory(config);
+            var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(config);
+
+            var sqlConnectionFactory = new DefaultSqlConnectionFactory(sqlConnectionStringProvider);
 
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory);
 
             var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, mediator, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
 
-            var schemaInformation = new SchemaInformation((int)SchemaVersion.V1, (int)SchemaVersion.V2);
+            var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
 
-            _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, NullLogger<SchemaInitializer>.Instance);
+            _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, NullLogger<SchemaInitializer>.Instance);
 
             var dicomSqlIndexSchema = new SqlIndexSchema(schemaInformation, NullLogger<SqlIndexSchema>.Instance);
 
@@ -88,6 +92,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         }
 
+        public SqlDataStoreTestsFixture()
+            : this(GenerateDatabaseName())
+        {
+        }
+
         public SqlTransactionHandler SqlTransactionHandler { get; }
 
         public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
@@ -102,7 +111,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
 
-        public async Task InitializeAsync()
+        public static string GenerateDatabaseName(string prefix = "DICOMINTEGRATIONTEST_")
+        {
+            return $"{prefix}{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}_{BigInteger.Abs(new BigInteger(Guid.NewGuid().ToByteArray()))}";
+        }
+
+        public async Task InitializeAsync(bool forceIncrementalSchemaUpgrade)
         {
             // Create the database
             using (var sqlConnection = new SqlConnection(_masterConnectionString))
@@ -136,7 +150,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     }
                 });
 
-            await _schemaInitializer.InitializeAsync();
+            await _schemaInitializer.InitializeAsync(forceIncrementalSchemaUpgrade);
+        }
+
+        public Task InitializeAsync()
+        {
+            return InitializeAsync(forceIncrementalSchemaUpgrade: false);
         }
 
         public async Task DisposeAsync()

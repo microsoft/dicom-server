@@ -184,9 +184,34 @@ CREATE SEQUENCE dbo.TagKeySequence
 
 GO
 
-/*************************************************************
-    PROCEDURES
-*************************************************************/
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetCustomTag(s)
+--
+-- DESCRIPTION
+--     Gets all custom tags or given custom tag by tag path
+--
+-- PARAMETERS
+--     @tagPath
+--         * The TagPath for the custom tag to retrieve.
+/***************************************************************************************/
+CREATE PROCEDURE dbo.GetCustomTag (
+    @tagPath  VARCHAR(64) = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT  TagPath,
+            TagVR,
+            TagLevel,
+            TagStatus
+    FROM    dbo.CustomTag
+    WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
+END
+GO
+
 /***************************************************************************************/
 -- STORED PROCEDURE
 --     AddCustomTags
@@ -278,7 +303,7 @@ AS
         
         -- Check if tag exsit
         DECLARE @tagStatus TINYINT
-        DECLARE @tagKey TINYINT
+        DECLARE @tagKey BIGINT
         SELECT @tagKey = TagKey, @tagStatus = TagStatus
         FROM dbo.CustomTag WITH(HOLDLOCK) 
         WHERE dbo.CustomTag.TagPath = @tagPath

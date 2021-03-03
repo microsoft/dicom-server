@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Dicom;
 using EnsureThat;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -22,7 +21,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     public partial class QueryParser : IQueryParser
     {
         private readonly IDicomTagParser _dicomTagPathParser;
-        private readonly ILogger<QueryParser> _logger;
 
         private const string IncludeFieldValueAll = "all";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
@@ -35,12 +33,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public const string DateTagValueFormat = "yyyyMMdd";
 
-        public QueryParser(IDicomTagParser dicomTagPathParser, ILogger<QueryParser> logger)
+        public QueryParser(IDicomTagParser dicomTagPathParser)
         {
-            EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
             _dicomTagPathParser = dicomTagPathParser;
-            _logger = logger;
 
             // register parameter parsers
             _paramParsers.Add("offset", ParseOffset);
@@ -82,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             _parsedQuery = new QueryExpressionImp();
 
-            foreach (var queryParam in request.RequestQuery)
+            foreach (KeyValuePair<string, StringValues> queryParam in request.RequestQuery)
             {
                 var trimmedKey = queryParam.Key.Trim();
 
@@ -203,15 +199,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
         {
-            dicomTag = null;
-            DicomTag[] result;
-            bool succeed = _dicomTagPathParser.TryParse(attributeId, out result, supportMultiple: false);
-            if (succeed)
+            if (_dicomTagPathParser.TryParse(attributeId, out DicomTag[] result, supportMultiple: false))
             {
                 dicomTag = result[0];
+                return true;
             }
 
-            return succeed;
+            dicomTag = null;
+            return false;
         }
 
         private static void ValidateIfTagSupported(DicomTag dicomTag, string attributeId, QueryResource resourceType, out CustomTagFilterDetails customTagFilterDetails, HashSet<CustomTagFilterDetails> supportedCustomTags = null)

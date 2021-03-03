@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             GetAllCustomTagsResponse response = await _mediator.GetAllCustomTagsAsync(HttpContext.RequestAborted);
 
             return StatusCode(
-                (int)HttpStatusCode.OK, response);
+                (int)HttpStatusCode.OK, response.CustomTags);
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             GetCustomTagResponse response = await _mediator.GetCustomTagAsync(tagPath, HttpContext.RequestAborted);
 
             return StatusCode(
-                (int)HttpStatusCode.OK, response);
+                (int)HttpStatusCode.OK, response.CustomTag);
         }
     }
 }

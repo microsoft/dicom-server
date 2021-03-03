@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
 {
     public class MultipartItem : IDisposable
     {
-        private bool _disposed = false;
+        private bool _disposed;
         private readonly StreamContent _streamContent;
 
         public MultipartItem(string contentType, Stream stream)

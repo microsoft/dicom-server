@@ -57,6 +57,17 @@ dotnet_naming_symbols.constant_fields.required_modifiers = const
 
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
+# static readonly fields should be PascalCase
+dotnet_naming_rule.static_readonly_fields_pascal_case.severity = suggestion
+dotnet_naming_rule.static_readonly_fields_pascal_case.symbols  = static_readonly_fields
+dotnet_naming_rule.static_readonly_fields_pascal_case.style    = static_readonly_style
+
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds           = field
+dotnet_naming_symbols.static_readonly_fields.applicable_accessibilities = private
+dotnet_naming_symbols.static_readonly_fields.required_modifiers         = readonly,static
+
+dotnet_naming_style.static_readonly_style.capitalization = pascal_case
+
 # static fields should have s_ prefix
 dotnet_naming_rule.static_fields_should_have_prefix.severity = suggestion
 dotnet_naming_rule.static_fields_should_have_prefix.symbols  = static_fields
@@ -137,6 +148,10 @@ csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = false
 
 # C++ Files
+
+# IDE0052: Remove unread private members
+dotnet_diagnostic.IDE0052.severity = warning
+
 [*.{cpp,h,in}]
 curly_bracket_next_line = true
 indent_brace_style = Allman

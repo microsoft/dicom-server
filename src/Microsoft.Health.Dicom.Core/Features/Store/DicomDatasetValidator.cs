@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             // If the requestedStudyInstanceUid is specified, then the StudyInstanceUid must match.
             if (requiredStudyInstanceUid != null &&
-                !studyInstanceUid.Equals(requiredStudyInstanceUid, StringComparison.InvariantCultureIgnoreCase))
+                !studyInstanceUid.Equals(requiredStudyInstanceUid, StringComparison.OrdinalIgnoreCase))
             {
                 throw new DatasetValidationException(
                     FailureReasonCodes.MismatchStudyInstanceUid,

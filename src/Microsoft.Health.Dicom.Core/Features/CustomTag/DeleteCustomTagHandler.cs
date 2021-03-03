@@ -23,6 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         public async Task<DeleteCustomTagResponse> Handle(DeleteCustomTagRequest request, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(request, nameof(request));
             await _deleteCustomTagService.DeleteCustomTagAsync(request.TagPath, cancellationToken);
             return new DeleteCustomTagResponse();
         }

@@ -8,7 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public abstract class QueryFilterCondition
     {
-        public QueryFilterCondition(DicomTag tag)
+        protected QueryFilterCondition(DicomTag tag)
         {
             DicomTag = tag;
         }

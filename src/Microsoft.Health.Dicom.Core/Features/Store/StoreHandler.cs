@@ -36,35 +36,35 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         /// <inheritdoc />
         public async Task<StoreResponse> Handle(
-            StoreRequest message,
+            StoreRequest request,
             CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(message, nameof(message));
+            EnsureArg.IsNotNull(request, nameof(request));
 
             if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
             {
                 throw new UnauthorizedDicomActionException(DataActions.Write);
             }
 
-            StoreRequestValidator.ValidateRequest(message);
+            StoreRequestValidator.ValidateRequest(request);
 
             // Find a reader that can parse the request body.
-            IDicomInstanceEntryReader dicomInstanceEntryReader = _dicomInstanceEntryReaderManager.FindReader(message.RequestContentType);
+            IDicomInstanceEntryReader dicomInstanceEntryReader = _dicomInstanceEntryReaderManager.FindReader(request.RequestContentType);
 
             if (dicomInstanceEntryReader == null)
             {
                 throw new UnsupportedMediaTypeException(
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, message.RequestContentType));
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, request.RequestContentType));
             }
 
             // Read list of entries.
             IReadOnlyList<IDicomInstanceEntry> instanceEntries = await dicomInstanceEntryReader.ReadAsync(
-                    message.RequestContentType,
-                    message.RequestBody,
+                    request.RequestContentType,
+                    request.RequestBody,
                     cancellationToken);
 
             // Process list of entries.
-            return await _storeService.ProcessAsync(instanceEntries, message.StudyInstanceUid, cancellationToken);
+            return await _storeService.ProcessAsync(instanceEntries, request.StudyInstanceUid, cancellationToken);
         }
     }
 }

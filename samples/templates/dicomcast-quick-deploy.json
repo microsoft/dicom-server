@@ -114,7 +114,8 @@
                     "location":{"value": "[resourceGroup().location]"},
                     "restartPolicy":{"value": "always"},
                     "dicomWebEndpoint":{"value": "[concat('https://',parameters('serviceName'), 'dicom','.azurewebsites.net')]"},
-                    "fhirEndpoint":{"value": "[concat('https://',parameters('serviceName'),'fhir','.azurewebsites.net')]"}
+                    "fhirEndpoint":{"value": "[concat('https://',parameters('serviceName'),'fhir','.azurewebsites.net')]"},
+                    "enforceValidationOfTagValues":{"value": false}
                     }
                 }
             }

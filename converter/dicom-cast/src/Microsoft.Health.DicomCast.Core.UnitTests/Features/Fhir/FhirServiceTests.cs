@@ -9,8 +9,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Hl7.Fhir.Model;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.Fhir.Client;
@@ -34,9 +32,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
 
         public FhirServiceTests()
         {
-            var fhirConfigurationOptions = Substitute.For<IOptions<FhirConfiguration>>();
-            fhirConfigurationOptions.Value.Returns(new FhirConfiguration { Authentication = new AuthenticationConfiguration() });
-            _fhirService = new FhirService(_fhirClient, _fhirResourceValidator, fhirConfigurationOptions);
+            _fhirService = new FhirService(_fhirClient, _fhirResourceValidator);
         }
 
         private delegate Task<TResource> RetrieveAsyncDelegate<TResource>(Identifier identifier, CancellationToken cancellationToken);
@@ -262,13 +258,14 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
 
         private static FhirResponse<CapabilityStatement> GenerateFhirCapabilityResponse(FHIRVersion version, SystemRestfulInteraction interaction)
         {
-            CapabilityStatement statement = new CapabilityStatement();
-            statement.FhirVersion = version;
-            RestComponent restComponent = new RestComponent();
-            SystemInteractionComponent interactionComponent = new SystemInteractionComponent();
-            interactionComponent.Code = interaction;
-            restComponent.Interaction = new List<SystemInteractionComponent> { interactionComponent };
-            statement.Rest.Add(restComponent);
+            var statement = new CapabilityStatement { FhirVersion = version };
+            statement.Rest.Add(new RestComponent
+            {
+                Interaction = new List<SystemInteractionComponent>
+                {
+                    new SystemInteractionComponent { Code = interaction },
+                },
+            });
 
             return new FhirResponse<CapabilityStatement>(new HttpResponseMessage(), statement);
         }

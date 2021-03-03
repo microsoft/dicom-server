@@ -1,0 +1,13 @@
+{
+    "tool": "Credential Scanner",
+    "suppressions": [
+        {
+            "placeholder": "d8147077-d907-4551-8f40-90c6e86f3f0e",
+            "_justification": "This is an example value and does not represent a real credential."
+        },
+        {
+            "placeholder": "globalAdminServicePrincipal",
+            "_justification": "Service principal for local testing."
+        }
+    ]
+}
