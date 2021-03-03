@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -87,6 +88,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 _dicomInstanceEntries = instanceEntries;
                 _requiredStudyInstanceUid = requiredStudyInstanceUid;
                 IList<CustomTagEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(path: null, cancellationToken: cancellationToken);
+                customTagEntries = customTagEntries.Where(tag => tag.Status == CustomTagStatus.Added || tag.Status == CustomTagStatus.Reindexing).ToList(); // only consider added or reindexing tags
 
                 for (int index = 0; index < instanceEntries.Count; index++)
                 {
