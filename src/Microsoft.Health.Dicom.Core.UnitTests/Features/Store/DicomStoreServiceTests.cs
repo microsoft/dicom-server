@@ -123,7 +123,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             const ushort failureCode = 500;
 
             _dicomDatasetValidator
-                .When(validator => validator.Validate(Arg.Any<DicomDataset>(), Arg.Any<IReadOnlyList<CustomTagEntry>>(), Arg.Any<string>()))
+                .When(validator => validator.Validate(Arg.Any<DicomDataset>(), Arg.Any<IList<CustomTagEntry>>(), Arg.Any<string>()))
                 .Do(_ => throw new DatasetValidationException(failureCode, "test"));
 
             IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
@@ -180,7 +180,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntryToFail.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _dicomDatasetValidator
-                .When(dicomDatasetMinimumRequirementValidator => dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset2, Arg.Any<IReadOnlyList<CustomTagEntry>>(), null))
+                .When(dicomDatasetMinimumRequirementValidator => dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset2, Arg.Any<IList<CustomTagEntry>>(), null))
                 .Do(_ => throw new Exception());
 
             await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToFail);

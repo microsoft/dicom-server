@@ -8,7 +8,7 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public static class QueryLimit
+    internal static class QueryLimit
     {
         public const int MaxQueryResultCount = 200;
         public const int DefaultQueryResultCount = 100;

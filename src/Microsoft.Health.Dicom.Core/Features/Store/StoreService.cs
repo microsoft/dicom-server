@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -87,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 _dicomInstanceEntries = instanceEntries;
                 _requiredStudyInstanceUid = requiredStudyInstanceUid;
-                List<CustomTagEntry> customTagEntries = (await _customTagStore.GetCustomTagsAsync(path: null, cancellationToken: cancellationToken)).ToList();
+                IList<CustomTagEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(path: null, cancellationToken: cancellationToken);
 
                 for (int index = 0; index < instanceEntries.Count; index++)
                 {
@@ -108,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid);
         }
 
-        private async Task ProcessDicomInstanceEntryAsync(int index, List<CustomTagEntry> customTagEntries, CancellationToken cancellationToken)
+        private async Task ProcessDicomInstanceEntryAsync(int index, IList<CustomTagEntry> customTagEntries, CancellationToken cancellationToken)
         {
             IDicomInstanceEntry dicomInstanceEntry = _dicomInstanceEntries[index];
 

@@ -73,7 +73,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             }
         }
 
-        public async Task<IEnumerable<CustomTagEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default)
+        public async Task<IList<CustomTagEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default)
         {
             if (_schemaInformation.Current < SchemaVersionConstants.SupportCustomTagSchemaVersion)
             {

@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public void GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
         {
-            _dicomDatasetValidator.Validate(_dicomDataset, new List<CustomTagEntry>(), requiredStudyInstanceUid: null);
+            _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null);
         }
 
         [Fact]
@@ -57,7 +57,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDatasetValidator.Validate(
                 _dicomDataset,
-                new List<CustomTagEntry>(),
                 studyInstanceUid);
         }
 
@@ -169,7 +168,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         public void GivenDatasetWithEmptyIndexedTagValue_WhenValidating_ThenValidationPasses()
         {
             _dicomDataset.AddOrUpdate(DicomTag.ReferringPhysicianName, string.Empty);
-            _dicomDatasetValidator.Validate(_dicomDataset, new List<CustomTagEntry>(), null);
+            _dicomDatasetValidator.Validate(_dicomDataset, null);
         }
 
         [Fact]
@@ -198,7 +197,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             ExecuteAndValidateException<DicomElementValidationException>(TestConstants.ValidationFailureReasonCode, customTagEntries: new List<CustomTagEntry>() { entry });
         }
 
-        private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null, IReadOnlyList<CustomTagEntry> customTagEntries = null)
+        private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null, IList<CustomTagEntry> customTagEntries = null)
             where T : Exception
         {
             var exception = Assert.Throws<T>(

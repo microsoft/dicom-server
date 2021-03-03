@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         [Fact]
         public async Task GivenRequestForAllTags_WhenNoTagsAreStored_ThenExceptionShouldBeThrown()
         {
-            _customTagStore.GetCustomTagsAsync(default).Returns(new List<CustomTagEntry>());
+            _customTagStore.GetCustomTagsAsync(default).Returns(Array.Empty<CustomTagEntry>());
             GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync();
 
             Assert.Empty(response.CustomTags);
@@ -67,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
                 return true;
             });
 
-            _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagEntry>());
+            _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(Array.Empty<CustomTagEntry>());
             var exception = await Assert.ThrowsAsync<CustomTagNotFoundException>(() => _getCustomTagsService.GetCustomTagAsync(tagPath));
 
             Assert.Equal(string.Format("The specified custom tag with tag path {0} cannot be found.", tagPath), exception.Message);

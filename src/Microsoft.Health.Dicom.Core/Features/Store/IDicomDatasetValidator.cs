@@ -23,6 +23,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// If supplied, the StudyInstanceUID in the <paramref name="dicomDataset"/> must match to be considered valid.
         /// </param>
         /// <exception cref="DatasetValidationException">Thrown when the validation fails.</exception>
-        void Validate(DicomDataset dicomDataset, IReadOnlyList<CustomTagEntry> customTagEntries, string requiredStudyInstanceUid);
+        void Validate(DicomDataset dicomDataset, IList<CustomTagEntry> customTagEntries, string requiredStudyInstanceUid);
     }
 }
