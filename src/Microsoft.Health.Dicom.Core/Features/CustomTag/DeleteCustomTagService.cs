@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
             IReadOnlyList<CustomTagStoreEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(normalizedPath, cancellationToken);
 
-            if (customTagEntries.Any())
+            if (customTagEntries.Count > 0)
             {
                 await _customTagStore.DeleteCustomTagAsync(normalizedPath, customTagEntries[0].VR, cancellationToken);
             }
