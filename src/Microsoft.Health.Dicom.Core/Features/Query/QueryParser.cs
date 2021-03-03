@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
-            HashSet<CustomTagFilterDetails> queriedCustomTags = new HashSet<CustomTagFilterDetails>();
+            var queriedCustomTags = new HashSet<CustomTagFilterDetails>();
 
             _parsedQuery = new QueryExpressionImp();
 
@@ -225,7 +225,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     return;
                 }
 
-                throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
+                string genericResourceType = resourceType.ToString().Contains("instance", StringComparison.OrdinalIgnoreCase)
+                    ? "instance"
+                    : (resourceType.ToString().Contains("series", StringComparison.OrdinalIgnoreCase) ? "series" : "study");
+
+                throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId, genericResourceType));
             }
         }
 

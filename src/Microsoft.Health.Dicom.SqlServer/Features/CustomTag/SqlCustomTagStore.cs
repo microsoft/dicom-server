@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -88,6 +89,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             {
                 VLatest.GetCustomTag.PopulateCommand(sqlCommandWrapper, path);
 
+                var executionTimeWatch = Stopwatch.StartNew();
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
                     while (await reader.ReadAsync(cancellationToken))
@@ -101,6 +103,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
 
                         results.Add(new CustomTagStoreEntry(tagKey, tagPath, tagVR, (CustomTagLevel)tagLevel, (CustomTagStatus)tagStatus));
                     }
+
+                    executionTimeWatch.Stop();
+                    _logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
                 }
             }
 

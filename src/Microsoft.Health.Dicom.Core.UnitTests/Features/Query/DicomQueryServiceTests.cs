@@ -152,8 +152,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
             HashSet<CustomTagFilterDetails> filterDetails = new HashSet<CustomTagFilterDetails>()
             {
-                new CustomTagFilterDetails(1, CustomTagLevel.Instance, "CS", DicomTag.ProcedureStepState),
-                new CustomTagFilterDetails(2, CustomTagLevel.Series, "DA", DicomTag.Date),
                 new CustomTagFilterDetails(3, CustomTagLevel.Study, "PN", DicomTag.PatientBirthName),
             };
 

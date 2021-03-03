@@ -251,6 +251,53 @@ AND cts1.TagValue=@p2";
         }
 
         [Fact]
+        public void GivenMultipleCustomTagFiltersOnSameLevel_WhenIELevelInstance_ValidateCustomTagFilter()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var filter1 = new StringSingleValueMatchCondition(DicomTag.ModelGroupUID, "abc");
+            var filterDetails1 = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR().Code, DicomTag.ModelGroupUID);
+            filter1.CustomTagFilterDetails = filterDetails1;
+            var filter2 = new StringSingleValueMatchCondition(DicomTag.ContainerDescription, "description");
+            var filterDetails2 = new CustomTagFilterDetails(2, CustomTagLevel.Series, DicomTag.ContainerDescription.GetDefaultVR().Code, DicomTag.ContainerDescription);
+            filter2.CustomTagFilterDetails = filterDetails2;
+            var filters = new List<QueryFilterCondition>()
+            {
+                filter1,
+                filter2,
+            };
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails1, filterDetails2 });
+
+            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+            var parm = new SqlQueryParameterManager(sqlParameterCollection);
+            new SqlQueryGenerator(stringBuilder, query, parm);
+
+            // cts1 is associated with filter1 which is at the instance level. This means the join should be on all three keys.
+            // cts2 is associated with filter2 which is at the series level. This means the join should be on only study and series keys.
+            // ctbi4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
+            string expectedCustomTagTableFilter = @"INNER JOIN dbo.CustomTagString cts1
+ON cts1.StudyKey = st.StudyKey
+AND ON cts1.SeriesKey = se.SeriesKey
+INNER JOIN dbo.CustomTagString cts2
+ON cts2.StudyKey = st.StudyKey
+AND ON cts2.SeriesKey = se.SeriesKey
+WHERE";
+
+            string expectedFilters = @"AND cts1.TagKey=@p0
+AND cts1.TagValue=@p1
+AND cts2.TagKey=@p2
+AND cts2.TagValue=@p3";
+
+            string builtString = stringBuilder.ToString();
+            Assert.Equal(filterDetails1.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+            Assert.Equal(filter1.Value.ToString(), sqlParameterCollection[1].Value.ToString());
+            Assert.Equal(filterDetails2.Key.ToString(), sqlParameterCollection[2].Value.ToString());
+            Assert.Equal(filter2.Value.ToString(), sqlParameterCollection[3].Value.ToString());
+            Assert.Contains(expectedCustomTagTableFilter, builtString);
+            Assert.Contains(expectedFilters, builtString);
+        }
+
+        [Fact]
         public void GivenMultipleCustomTagFiltersOnDifferentLevels_WhenIELevelInstance_ValidateCustomTagFilter()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());

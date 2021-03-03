@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -134,17 +133,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         private void AppendCustomTagTables()
         {
-            Dictionary<CustomTagDataType, CustomTagLevel> queriedCustomTagDataTypesPerLevel = new Dictionary<CustomTagDataType, CustomTagLevel>();
-            foreach (CustomTagFilterDetails filterDetails in _queryExpression.QueriedCustomTagFilterDetails)
-            {
-                CustomTagDataType dataType;
-                CustomTagLimit.CustomTagVRAndDataTypeMapping.TryGetValue(filterDetails.VR, out dataType);
-                if (!queriedCustomTagDataTypesPerLevel.TryAdd(dataType, filterDetails.Level) && queriedCustomTagDataTypesPerLevel[dataType] > filterDetails.Level)
-                {
-                    queriedCustomTagDataTypesPerLevel[dataType] = filterDetails.Level;
-                }
-            }
-
             foreach (CustomTagFilterDetails filterDetails in _queryExpression.QueriedCustomTagFilterDetails)
             {
                 CustomTagDataType dataType;

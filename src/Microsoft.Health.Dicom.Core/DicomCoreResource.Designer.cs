@@ -513,7 +513,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} is not queryable. .
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} is not queryable at {1} resource level. .
         /// </summary>
         internal static string UnsupportedSearchParameter {
             get {
