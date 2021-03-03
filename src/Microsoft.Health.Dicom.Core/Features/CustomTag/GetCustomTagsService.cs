@@ -48,19 +48,19 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 throw new InvalidCustomTagPathException(string.Format(DicomCoreResource.InvalidCustomTag, tagPath ?? string.Empty));
             }
 
-            IEnumerable<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(tagPath, cancellationToken);
+            IReadOnlyList<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(tagPath, cancellationToken);
 
             if (!customTags.Any())
             {
                 throw new CustomTagNotFoundException(string.Format(DicomCoreResource.CustomTagNotFound, tagPath));
             }
 
-            return new GetCustomTagResponse(new CustomTagEntry(customTags.First()));
+            return new GetCustomTagResponse(new CustomTagEntry(customTags[0]));
         }
 
         public async Task<GetAllCustomTagsResponse> GetAllCustomTagsAsync(CancellationToken cancellationToken)
         {
-            IEnumerable<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
+            IReadOnlyList<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
 
             return new GetAllCustomTagsResponse(customTags.Select(x => new CustomTagEntry(x)));
         }

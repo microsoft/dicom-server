@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             }
         }
 
-        public async Task<IEnumerable<CustomTagStoreEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<CustomTagStoreEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default)
         {
             if (_schemaInformation.Current < SchemaVersionConstants.SupportCustomTagSchemaVersion)
             {
@@ -109,7 +109,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
                 }
             }
 
-            return results;
+            return results.AsReadOnly();
         }
 
         private static AddCustomTagsInputTableTypeV1Row ToAddCustomTagsInputTableTypeV1Row(CustomTagEntry entry)

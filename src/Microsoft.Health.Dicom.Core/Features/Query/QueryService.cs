@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             ValidateRequestIdentifiers(message);
 
-            IEnumerable<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
+            IReadOnlyList<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
 
             HashSet<CustomTagFilterDetails> supportedCustomTags = RetrieveSuupportedCustomTagsForQueryResourceType(customTags, message.QueryResourceType);
 
@@ -76,7 +76,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new QueryResourceResponse(responseMetadata);
         }
 
-        private HashSet<CustomTagFilterDetails> RetrieveSuupportedCustomTagsForQueryResourceType(IEnumerable<CustomTagStoreEntry> customTags, QueryResource queryResource)
+        private HashSet<CustomTagFilterDetails> RetrieveSuupportedCustomTagsForQueryResourceType(IReadOnlyList<CustomTagStoreEntry> customTags, QueryResource queryResource)
         {
             HashSet<CustomTagFilterDetails> ret = new HashSet<CustomTagFilterDetails>();
 
