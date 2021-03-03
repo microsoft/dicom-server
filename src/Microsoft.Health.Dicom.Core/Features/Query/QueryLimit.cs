@@ -58,12 +58,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public static bool IsValidRangeQueryTag(DicomTag tag, string vr = null)
         {
-            return tag == DicomTag.StudyDate || (vr != null && string.Equals(vr, DicomVR.DA.Code, StringComparison.OrdinalIgnoreCase));
+            return tag == DicomTag.StudyDate || string.Equals(vr, DicomVR.DA.Code, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsValidFuzzyMatchingQueryTag(DicomTag tag, string vr = null)
         {
-            return tag == DicomTag.PatientName || (vr != null && string.Equals(vr, DicomVR.PN.Code, StringComparison.OrdinalIgnoreCase));
+            return tag == DicomTag.PatientName || string.Equals(vr, DicomVR.PN.Code, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

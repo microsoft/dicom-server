@@ -109,7 +109,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
                 }
             }
 
-            return results.AsReadOnly();
+            return results;
         }
 
         private static AddCustomTagsInputTableTypeV1Row ToAddCustomTagsInputTableTypeV1Row(CustomTagEntry entry)

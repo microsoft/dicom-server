@@ -7,11 +7,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public enum QueryResource
     {
-        AllStudies,
-        StudySeries,
-        StudyInstances,
-        AllSeries,
-        StudySeriesInstances,
-        AllInstances,
+        AllStudies = 0,
+        AllSeries = 1,
+        StudySeries = 2,
+        AllInstances = 3,
+        StudyInstances = 4,
+        StudySeriesInstances = 5,
     }
 }

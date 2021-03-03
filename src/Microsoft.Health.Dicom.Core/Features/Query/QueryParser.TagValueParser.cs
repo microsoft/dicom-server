@@ -50,8 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private static QueryFilterCondition ParseDoubleTagValue(DicomTag dicomTag, string value, string vr = null)
         {
-            double val;
-            if (!double.TryParse(value, out val))
+            if (!double.TryParse(value, out double val))
             {
                 throw new QueryParseException(string.Format(DicomCoreResource.InvalidDoubleValue, value, dicomTag.GetPath()));
             }
@@ -61,8 +60,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private static QueryFilterCondition ParseLongTagValue(DicomTag dicomTag, string value, string vr = null)
         {
-            long val;
-            if (!long.TryParse(value, out val))
+            if (!long.TryParse(value, out long val))
             {
                 throw new QueryParseException(string.Format(DicomCoreResource.InvalidLongValue, value, dicomTag.GetPath()));
             }

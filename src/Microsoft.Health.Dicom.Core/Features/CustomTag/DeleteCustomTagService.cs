@@ -45,9 +45,12 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
             string normalizedPath = tags[0].GetPath();
 
-            IEnumerable<CustomTagStoreEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(normalizedPath, cancellationToken);
+            IReadOnlyList<CustomTagStoreEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(normalizedPath, cancellationToken);
 
-            await _customTagStore.DeleteCustomTagAsync(normalizedPath, customTagEntries.First().VR, cancellationToken);
+            if (customTagEntries.Any())
+            {
+                await _customTagStore.DeleteCustomTagAsync(normalizedPath, customTagEntries[0].VR, cancellationToken);
+            }
         }
     }
 }

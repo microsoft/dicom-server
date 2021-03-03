@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _valueParsers.Add(DicomVRCode.FD, ParseDoubleTagValue);
         }
 
-        public QueryExpression Parse(QueryResourceRequest request, HashSet<CustomTagFilterDetails> supportedCustomTags)
+        public QueryExpression Parse(QueryResourceRequest request, ISet<CustomTagFilterDetails> supportedCustomTags)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 }
 
                 // filter conditions with attributeId as key
-                if (ParseFilterCondition(queryParam, request.QueryResourceType, out QueryFilterCondition condition, supportedCustomTags))
+                if (ParseFilterCondition(queryParam, request.QueryResourceType, supportedCustomTags?.ToHashSet(), out QueryFilterCondition condition))
                 {
                     if (_parsedQuery.FilterConditionTags.Contains(condition.DicomTag))
                     {
@@ -146,7 +146,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             if (parsedQuery.FuzzyMatch == true)
             {
                 IEnumerable<QueryFilterCondition> potentialFuzzyConds = parsedQuery.FilterConditions
-                                                                            .Where(c => QueryLimit.IsValidFuzzyMatchingQueryTag(c.DicomTag, c.CustomTagFilterDetails?.VR)).ToList();
+                    .Where(c => QueryLimit.IsValidFuzzyMatchingQueryTag(c.DicomTag, c.CustomTagFilterDetails?.VR))
+                    .ToList();
                 foreach (QueryFilterCondition cond in potentialFuzzyConds)
                 {
                     var singleValueCondition = cond as StringSingleValueMatchCondition;
@@ -162,8 +163,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private bool ParseFilterCondition(
             KeyValuePair<string, StringValues> queryParameter,
             QueryResource resourceType,
-            out QueryFilterCondition condition,
-            HashSet<CustomTagFilterDetails> supportedCustomTags = null)
+            HashSet<CustomTagFilterDetails> supportedCustomTags,
+            out QueryFilterCondition condition)
         {
             condition = null;
             var attributeId = queryParameter.Key.Trim();
@@ -225,9 +226,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     return;
                 }
 
-                string genericResourceType = resourceType.ToString().Contains("instance", StringComparison.OrdinalIgnoreCase)
-                    ? "instance"
-                    : (resourceType.ToString().Contains("series", StringComparison.OrdinalIgnoreCase) ? "series" : "study");
+                string genericResourceType = resourceType >= QueryResource.AllInstances ? "instance" : (resourceType >= QueryResource.AllSeries ? "series" : "study");
 
                 throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId, genericResourceType));
             }

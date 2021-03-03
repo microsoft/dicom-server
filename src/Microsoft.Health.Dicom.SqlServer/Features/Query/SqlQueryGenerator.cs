@@ -5,7 +5,6 @@
 
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -135,8 +134,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         {
             foreach (CustomTagFilterDetails filterDetails in _queryExpression.QueriedCustomTagFilterDetails)
             {
-                CustomTagDataType dataType;
-                CustomTagLimit.CustomTagVRAndDataTypeMapping.TryGetValue(filterDetails.Tag.GetDefaultVR().Code, out dataType);
+                CustomTagDataType dataType = CustomTagLimit.CustomTagVRAndDataTypeMapping[filterDetails.VR];
                 string customTagTableAlias = null;
                 _stringBuilder.Append("INNER JOIN ");
                 switch (dataType)
