@@ -117,7 +117,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private void ValidateStandardTags(DicomDataset dicomDataset, HashSet<DicomTag> standardTags)
         {
-            // Process Standard Tag
             HashSet<DicomTag> indexableTags = new HashSet<DicomTag>(QueryLimit.AllInstancesTags);
             indexableTags.UnionWith(standardTags);
 
@@ -134,7 +133,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private void ValidatePrivateTags(DicomDataset dicomDataset, IDictionary<DicomTag, CustomTagEntry> privateTags)
         {
-            // Process Private Tag
             // dicomDataset.GetDicomItem<DicomElement>() cannot get value for private tag, we need to loop and compare with path.
             foreach (DicomItem item in dicomDataset)
             {

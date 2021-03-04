@@ -137,13 +137,13 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.Add<CustomTagCache>()
+                   .Scoped()
+                   .AsSelf()
+                   .AsImplementedInterfaces();
+
             if (_featureConfiguration.EnableCustomQueryTags)
             {
-                services.Add<CustomTagCache>()
-                    .Scoped()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-
                 services.Add<CustomTagEntryValidator>()
                     .Singleton()
                     .AsSelf()

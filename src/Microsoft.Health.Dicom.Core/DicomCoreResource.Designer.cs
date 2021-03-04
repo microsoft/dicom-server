@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class DicomCoreResource {
@@ -567,6 +567,24 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value length is above {0}..
+        /// </summary>
+        internal static string ValueLengthAboveMaxLength {
+            get {
+                return ResourceManager.GetString("ValueLengthAboveMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value length is below {0}..
+        /// </summary>
+        internal static string ValueLengthBelowMinLength {
+            get {
+                return ResourceManager.GetString("ValueLengthBelowMinLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value exceeds maximum length of 16 characters..
         /// </summary>
         internal static string ValueLengthExceeds16Characters {
@@ -581,6 +599,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ValueLengthExceeds64Characters {
             get {
                 return ResourceManager.GetString("ValueLengthExceeds64Characters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value length is not {0}..
+        /// </summary>
+        internal static string ValueLengthIsNotRequiredLength {
+            get {
+                return ResourceManager.GetString("ValueLengthIsNotRequiredLength", resourceCulture);
             }
         }
     }

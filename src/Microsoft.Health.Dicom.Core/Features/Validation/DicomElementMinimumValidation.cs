@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Dicom;
 using Dicom.IO.Buffer;
-using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
@@ -17,8 +16,77 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     public static class DicomElementMinimumValidation
     {
         private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*$", RegexOptions.Compiled);
-        private const string DateFormat = "yyyyMMdd";
-        private const string BinaryDataContent = "<BinaryData>";
+        private const string DateFormatDA = "yyyyMMdd";
+        private const string BinaryDataPlaceHolder = "<BinaryData>";
+        private static readonly string[] DataFromatTM =
+        {
+            "HHmmss",
+            "HH",
+            "HHmm",
+            "HHmmssf",
+            "HHmmssff",
+            "HHmmssfff",
+            "HHmmssffff",
+            "HHmmssfffff",
+            "HHmmssffffff",
+            "HHmmss.f",
+            "HHmmss.ff",
+            "HHmmss.fff",
+            "HHmmss.ffff",
+            "HHmmss.fffff",
+            "HHmmss.ffffff",
+            "HH.mm",
+            "HH.mm.ss",
+            "HH.mm.ss.f",
+            "HH.mm.ss.ff",
+            "HH.mm.ss.fff",
+            "HH.mm.ss.ffff",
+            "HH.mm.ss.fffff",
+            "HH.mm.ss.ffffff",
+            "HH:mm",
+            "HH:mm:ss",
+            "HH:mm:ss:f",
+            "HH:mm:ss:ff",
+            "HH:mm:ss:fff",
+            "HH:mm:ss:ffff",
+            "HH:mm:ss:fffff",
+            "HH:mm:ss:ffffff",
+            "HH:mm:ss.f",
+            "HH:mm:ss.ff",
+            "HH:mm:ss.fff",
+            "HH:mm:ss.ffff",
+            "HH:mm:ss.fffff",
+            "HH:mm:ss.ffffff",
+        };
+
+        private static readonly string[] DateFormatDT =
+        {
+                "yyyyMMddHHmmss",
+                "yyyyMMddHHmmsszzz",
+                "yyyyMMddHHmmsszz",
+                "yyyyMMddHHmmssz",
+                "yyyyMMddHHmmss.ffffff",
+                "yyyyMMddHHmmss.fffff",
+                "yyyyMMddHHmmss.ffff",
+                "yyyyMMddHHmmss.fff",
+                "yyyyMMddHHmmss.ff",
+                "yyyyMMddHHmmss.f",
+                "yyyyMMddHHmm",
+                "yyyyMMddHH",
+                "yyyyMMdd",
+                "yyyyMM",
+                "yyyy",
+                "yyyyMMddHHmmss.ffffffzzz",
+                "yyyyMMddHHmmss.fffffzzz",
+                "yyyyMMddHHmmss.ffffzzz",
+                "yyyyMMddHHmmss.fffzzz",
+                "yyyyMMddHHmmss.ffzzz",
+                "yyyyMMddHHmmss.fzzz",
+                "yyyyMMddHHmmzzz",
+                "yyyyMMddHHzzz",
+                "yyyy.MM.dd",
+                "yyyy/MM/dd",
+        };
 
         internal static void ValidateAE(string value, string name)
         {
@@ -32,7 +100,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         internal static void ValidateAT(IByteBuffer value, string name)
         {
-            ValidateLength(value.Size, 4, 4, DicomVR.AE, name, BinaryDataContent);
+            ValidateLength(value.Size, 4, 4, DicomVR.AE, name, BinaryDataPlaceHolder);
         }
 
         public static void ValidateCS(string value, string name)
@@ -55,7 +123,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return;
             }
 
-            if (!DateTime.TryParseExact(value, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
+            if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
             {
                 throw new DicomElementValidationException(name, value, DicomVR.DA, DicomCoreResource.ValueIsInvalidDate);
             }
@@ -68,7 +136,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         internal static void ValidateDT(string value, string name)
         {
-            if (!TryParseDT(value, out _))
+            if (!DateTime.TryParseExact(value, DateFormatDT, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out _))
             {
                 throw new DicomElementValidationException(name, value, DicomVR.DT, DicomCoreResource.ValueIsInvalidDate);
             }
@@ -76,12 +144,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         internal static void ValidateFL(IByteBuffer value, string name)
         {
-            ValidateLength(value.Size, 4, 4, DicomVR.FL, name, BinaryDataContent);
+            ValidateLength(value.Size, 4, 4, DicomVR.FL, name, BinaryDataPlaceHolder);
         }
 
         internal static void ValidateFD(IByteBuffer value, string name)
         {
-            ValidateLength(value.Size, 8, 8, DicomVR.FD, name, BinaryDataContent);
+            ValidateLength(value.Size, 8, 8, DicomVR.FD, name, BinaryDataPlaceHolder);
         }
 
         internal static void ValidateIS(string value, string name)
@@ -157,17 +225,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         internal static void ValidateSL(IByteBuffer value, string name)
         {
-            ValidateLength(value.Size, 4, 4, DicomVR.SL, name, BinaryDataContent);
+            ValidateLength(value.Size, 4, 4, DicomVR.SL, name, BinaryDataPlaceHolder);
         }
 
         internal static void ValidateSS(IByteBuffer value, string name)
         {
-            ValidateLength(value.Size, 2, 2, DicomVR.SS, name, BinaryDataContent);
+            ValidateLength(value.Size, 2, 2, DicomVR.SS, name, BinaryDataPlaceHolder);
         }
 
         internal static void ValidateTM(string value, string name)
         {
-            if (!TryParseTM(value, out DateTime dateTime))
+            if (!DateTime.TryParseExact(value, DataFromatTM, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out _))
             {
                 throw new DicomElementValidationException(name, value, DicomVR.DT, DicomCoreResource.ValueIsInvalidDate);
             }
@@ -197,12 +265,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         internal static void ValidateUL(IByteBuffer value, string name)
         {
-            ValidateLength(value.Size, 4, 4, DicomVR.UL, name, BinaryDataContent);
+            ValidateLength(value.Size, 4, 4, DicomVR.UL, name, BinaryDataPlaceHolder);
         }
 
         internal static void ValidateUS(IByteBuffer value, string name)
         {
-            ValidateLength(value.Size, 2, 2, DicomVR.US, name, BinaryDataContent);
+            ValidateLength(value.Size, 2, 2, DicomVR.US, name, BinaryDataPlaceHolder);
         }
 
         private static void ValidateLength(long actualLength, long minLength, long maxLength, DicomVR dicomVR, string name, string valueContent)
@@ -211,100 +279,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             {
                 if (minLength == maxLength)
                 {
-                    throw new DicomElementValidationException(name, valueContent, dicomVR, $"Length of value is not {minLength}");
+                    throw new DicomElementValidationException(
+                        name,
+                        valueContent,
+                        dicomVR,
+                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, minLength));
                 }
                 else
                 {
                     if (actualLength < minLength)
                     {
-                        throw new DicomElementValidationException(name, valueContent, dicomVR, $"Length of value is less than {minLength}");
+                        throw new DicomElementValidationException(
+                            name,
+                            valueContent,
+                            dicomVR,
+                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthBelowMinLength, minLength));
                     }
                     else
                     {
-                        throw new DicomElementValidationException(name, valueContent, dicomVR, $"Length of value is less than {maxLength}");
+                        throw new DicomElementValidationException(
+                            name,
+                            valueContent,
+                            dicomVR,
+                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthAboveMaxLength, maxLength));
                     }
                 }
             }
-        }
-
-        private static bool TryParseDT(string value, out DateTime dateTime)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(value);
-            string[] formats =
-                    {
-                        "yyyyMMddHHmmss",
-                        "yyyyMMddHHmmsszzz",
-                        "yyyyMMddHHmmsszz",
-                        "yyyyMMddHHmmssz",
-                        "yyyyMMddHHmmss.ffffff",
-                        "yyyyMMddHHmmss.fffff",
-                        "yyyyMMddHHmmss.ffff",
-                        "yyyyMMddHHmmss.fff",
-                        "yyyyMMddHHmmss.ff",
-                        "yyyyMMddHHmmss.f",
-                        "yyyyMMddHHmm",
-                        "yyyyMMddHH",
-                        "yyyyMMdd",
-                        "yyyyMM",
-                        "yyyy",
-                        "yyyyMMddHHmmss.ffffffzzz",
-                        "yyyyMMddHHmmss.fffffzzz",
-                        "yyyyMMddHHmmss.ffffzzz",
-                        "yyyyMMddHHmmss.fffzzz",
-                        "yyyyMMddHHmmss.ffzzz",
-                        "yyyyMMddHHmmss.fzzz",
-                        "yyyyMMddHHmmzzz",
-                        "yyyyMMddHHzzz",
-                        "yyyy.MM.dd",
-                        "yyyy/MM/dd",
-                    };
-            return DateTime.TryParseExact(value, formats, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out dateTime);
-        }
-
-        private static bool TryParseTM(string value, out DateTime dateTime)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(value);
-            string[] formats =
-                {
-                                    "HHmmss",
-                                    "HH",
-                                    "HHmm",
-                                    "HHmmssf",
-                                    "HHmmssff",
-                                    "HHmmssfff",
-                                    "HHmmssffff",
-                                    "HHmmssfffff",
-                                    "HHmmssffffff",
-                                    "HHmmss.f",
-                                    "HHmmss.ff",
-                                    "HHmmss.fff",
-                                    "HHmmss.ffff",
-                                    "HHmmss.fffff",
-                                    "HHmmss.ffffff",
-                                    "HH.mm",
-                                    "HH.mm.ss",
-                                    "HH.mm.ss.f",
-                                    "HH.mm.ss.ff",
-                                    "HH.mm.ss.fff",
-                                    "HH.mm.ss.ffff",
-                                    "HH.mm.ss.fffff",
-                                    "HH.mm.ss.ffffff",
-                                    "HH:mm",
-                                    "HH:mm:ss",
-                                    "HH:mm:ss:f",
-                                    "HH:mm:ss:ff",
-                                    "HH:mm:ss:fff",
-                                    "HH:mm:ss:ffff",
-                                    "HH:mm:ss:fffff",
-                                    "HH:mm:ss:ffffff",
-                                    "HH:mm:ss.f",
-                                    "HH:mm:ss.ff",
-                                    "HH:mm:ss.fff",
-                                    "HH:mm:ss.ffff",
-                                    "HH:mm:ss.fffff",
-                                    "HH:mm:ss.ffffff",
-                };
-            return DateTime.TryParseExact(value, formats, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out dateTime);
         }
 
         private static bool IsControlExceptESC(char c)
