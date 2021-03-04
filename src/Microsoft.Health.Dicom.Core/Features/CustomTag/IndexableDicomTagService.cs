@@ -39,8 +39,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 {
                     _allIndexableDicomTags = new List<IndexableDicomTag>(CoreIndexableDicomTags);
 
-                    IReadOnlyCollection<CustomTagEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(cancellationToken: cancellationToken);
-                    foreach (CustomTagEntry customTagEntry in customTagEntries)
+                    IReadOnlyList<CustomTagStoreEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(cancellationToken: cancellationToken);
+                    foreach (CustomTagStoreEntry customTagEntry in customTagEntries)
                     {
                         DicomTag tag = DicomTag.Parse(customTagEntry.Path);
                         DicomVR vr = DicomVR.Parse(customTagEntry.VR);

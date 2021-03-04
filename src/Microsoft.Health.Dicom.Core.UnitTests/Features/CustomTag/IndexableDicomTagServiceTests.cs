@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         public async Task GivenValidInput_WhenGetCustomTagsIsCalledMultipleTimes_ThenCustomTagStoreIsCalledOnce()
         {
             _customTagStore.GetCustomTagsAsync(null, Arg.Any<CancellationToken>())
-                  .Returns(Array.Empty<CustomTagEntry>());
+                  .Returns(Array.Empty<CustomTagStoreEntry>());
 
             await _indexableDicomTagService.GetIndexableDicomTagsAsync();
             await _indexableDicomTagService.GetIndexableDicomTagsAsync();

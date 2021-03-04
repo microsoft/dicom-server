@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 
-            CustomTagStore = new SqlCustomTagStore(SqlConnectionWrapperFactory, schemaInformation);
+            CustomTagStore = new SqlCustomTagStore(SqlConnectionWrapperFactory, schemaInformation, NullLogger<SqlCustomTagStore>.Instance);
 
             TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         }

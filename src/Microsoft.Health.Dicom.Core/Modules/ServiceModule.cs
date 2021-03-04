@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<DicomDatasetValidator>()
-                .Singleton()
+                .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 

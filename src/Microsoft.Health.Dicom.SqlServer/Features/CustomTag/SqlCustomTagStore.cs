@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -26,16 +27,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
         private readonly SchemaInformation _schemaInformation;
+        private readonly ILogger<SqlCustomTagStore> _logger;
 
         public SqlCustomTagStore(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           SchemaInformation schemaInformation)
+           SchemaInformation schemaInformation,
+           ILogger<SqlCustomTagStore> logger)
         {
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
+            EnsureArg.IsNotNull(logger, nameof(logger));
 
             _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
             _schemaInformation = schemaInformation;
+            _logger = logger;
         }
 
         public async Task AddCustomTagsAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken = default)
