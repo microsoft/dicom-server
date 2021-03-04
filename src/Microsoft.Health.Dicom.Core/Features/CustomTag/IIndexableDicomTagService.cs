@@ -12,13 +12,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// <summary>
     /// Cache current custom tag entries.
     /// </summary>
-    public interface ICustomTagCache
+    public interface IIndexableDicomTagService
     {
-        /// <summary>
-        /// Get All CustomTags.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>All custom tags.</returns>
-        Task<IReadOnlyCollection<CustomTagEntry>> GetCustomTagsAsync(CancellationToken cancellationToken = default);
+        Task<IReadOnlyCollection<IndexableDicomTag>> GetIndexableDicomTagsAsync(CancellationToken cancellationToken = default);
     }
 }

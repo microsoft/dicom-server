@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -14,7 +15,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
-using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
@@ -26,17 +26,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     {
         private readonly bool _enableFullDicomItemValidation;
         private readonly IDicomElementMinimumValidator _minimumValidator;
-        private readonly ICustomTagCache _customTagCache;
+        private readonly IIndexableDicomTagService _indexableDicomTagService;
 
-        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, ICustomTagCache customTagCache)
+        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, IIndexableDicomTagService indexableDicomTagService)
         {
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
             EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
-            EnsureArg.IsNotNull(customTagCache, nameof(customTagCache));
+            EnsureArg.IsNotNull(indexableDicomTagService, nameof(indexableDicomTagService));
 
             _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
             _minimumValidator = minimumValidator;
-            _customTagCache = customTagCache;
+            _indexableDicomTagService = indexableDicomTagService;
         }
 
         public async Task ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
@@ -103,24 +103,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
-            HashSet<DicomTag> indexableTags = QueryLimit.AllInstancesTags;
-            IReadOnlyCollection<CustomTagEntry> customTagEntries = await _customTagCache.GetCustomTagsAsync(cancellationToken);
-
-            IDictionary<DicomTag, CustomTagEntry> standardCustomTags, privateCustomTags;
-            customTagEntries.SplitStandardAndPrivateTags(out standardCustomTags, out privateCustomTags);
-            HashSet<DicomTag> standardTags = new HashSet<DicomTag>(QueryLimit.AllInstancesTags);
-            standardTags.UnionWith(standardCustomTags.Keys);
-
+            IReadOnlyCollection<IndexableDicomTag> indexableTags = await _indexableDicomTagService.GetIndexableDicomTagsAsync(cancellationToken);
+            HashSet<DicomTag> standardTags = indexableTags.Select(tag => tag.Tag).Where(tag => !tag.IsPrivate).ToHashSet();
+            IDictionary<DicomTag, DicomVR> privateTags = indexableTags.Where(tag => tag.Tag.IsPrivate).ToDictionary(tag => tag.Tag, tag => tag.VR);
             ValidateStandardTags(dicomDataset, standardTags);
-            ValidatePrivateTags(dicomDataset, privateCustomTags);
+            ValidatePrivateTags(dicomDataset, privateTags);
         }
 
         private void ValidateStandardTags(DicomDataset dicomDataset, HashSet<DicomTag> standardTags)
         {
-            HashSet<DicomTag> indexableTags = new HashSet<DicomTag>(QueryLimit.AllInstancesTags);
-            indexableTags.UnionWith(standardTags);
-
-            foreach (DicomTag indexableTag in indexableTags)
+            foreach (DicomTag indexableTag in standardTags)
             {
                 DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(indexableTag);
 
@@ -131,7 +123,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
         }
 
-        private void ValidatePrivateTags(DicomDataset dicomDataset, IDictionary<DicomTag, CustomTagEntry> privateTags)
+        private void ValidatePrivateTags(DicomDataset dicomDataset, IDictionary<DicomTag, DicomVR> privateTags)
         {
             // dicomDataset.GetDicomItem<DicomElement>() cannot get value for private tag, we need to loop and compare with path.
             foreach (DicomItem item in dicomDataset)
@@ -140,7 +132,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 {
                     // DicomTag from DicomDataset contains PrivateCreator, while the one from database doesn't have, need to remove private creator before comparision
                     DicomTag tag = item.Tag.RemovePrivateCreator();
-                    if (privateTags.ContainsKey(tag) && privateTags[tag].VR.Equals(item.ValueRepresentation.Code, StringComparison.Ordinal))
+                    if (privateTags.ContainsKey(tag) && privateTags[tag].Equals(item.ValueRepresentation))
                     {
                         DicomElement element = item as DicomElement;
                         if (element != null)

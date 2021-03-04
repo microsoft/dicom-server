@@ -31,7 +31,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private IDicomDatasetValidator _dicomDatasetValidator;
 
         private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset();
-        private readonly ICustomTagCache _customTagCache;
+        private readonly IIndexableDicomTagService _indexableDicomTagService;
+        private readonly List<IndexableDicomTag> _indexableDicomTags;
 
         public DicomDatasetValidatorTests()
         {
@@ -41,9 +42,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 EnableFullDicomItemValidation = false,
             });
             var minValidator = new DicomElementMinimumValidator();
-            _customTagCache = Substitute.For<ICustomTagCache>();
-            _customTagCache.GetCustomTagsAsync(Arg.Any<CancellationToken>()).Returns(new List<CustomTagEntry>());
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _customTagCache);
+            _indexableDicomTagService = Substitute.For<IIndexableDicomTagService>();
+            _indexableDicomTags = new List<IndexableDicomTag>(IndexableDicomTagService.CoreIndexableDicomTags);
+            _indexableDicomTagService.GetIndexableDicomTagsAsync(Arg.Any<CancellationToken>()).Returns(_indexableDicomTags);
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _indexableDicomTagService);
         }
 
         [Fact]
@@ -135,7 +137,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             });
             var minValidator = new DicomElementMinimumValidator();
 
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _customTagCache);
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _indexableDicomTagService);
 
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = false;
@@ -191,8 +193,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            _customTagCache.GetCustomTagsAsync(Arg.Any<CancellationToken>())
-                 .Returns(new List<CustomTagEntry>() { standardTag.BuildCustomTagEntry() });
+            _indexableDicomTags.Add(standardTag.BuildIndexableDicomTag());
             await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }
 

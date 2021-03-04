@@ -137,7 +137,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<CustomTagCache>()
+            services.Add<IndexableDicomTagService>()
                    .Scoped()
                    .AsSelf()
                    .AsImplementedInterfaces();
