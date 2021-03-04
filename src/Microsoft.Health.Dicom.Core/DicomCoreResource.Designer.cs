@@ -261,6 +261,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; custom tag with path &apos;{1}&apos; is not a valid double value..
+        /// </summary>
+        internal static string InvalidDoubleValue {
+            get {
+                return ResourceManager.GetString("InvalidDoubleValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0..
         /// </summary>
         internal static string InvalidFramesValue {
@@ -284,6 +293,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidLimitValue {
             get {
                 return ResourceManager.GetString("InvalidLimitValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; custom tag with path &apos;{1}&apos; is not a valid long value..
+        /// </summary>
+        internal static string InvalidLongValue {
+            get {
+                return ResourceManager.GetString("InvalidLongValue", resourceCulture);
             }
         }
         
@@ -495,7 +513,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} is not queryable. .
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} is not queryable at {1} resource level. .
         /// </summary>
         internal static string UnsupportedSearchParameter {
             get {

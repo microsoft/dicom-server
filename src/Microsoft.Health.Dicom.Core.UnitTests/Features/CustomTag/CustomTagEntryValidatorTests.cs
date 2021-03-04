@@ -123,7 +123,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
         private static CustomTagEntry CreateCustomTagEntry(string path, string vr, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Added)
         {
-            return new CustomTagEntry { Path = path, VR = vr, Level = level, Status = status };
+            return new CustomTagEntry(path, vr, level, status);
         }
     }
 }

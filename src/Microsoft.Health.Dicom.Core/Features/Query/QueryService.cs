@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Query;
@@ -22,18 +23,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private readonly IQueryParser _queryParser;
         private readonly IQueryStore _queryStore;
         private readonly IMetadataStore _metadataStore;
+        private readonly ICustomTagStore _customTagStore;
+        private readonly IDicomTagParser _dicomTagPathParser;
 
         public QueryService(
             IQueryParser queryParser,
             IQueryStore queryStore,
-            IMetadataStore metadataStore)
+            IMetadataStore metadataStore,
+            ICustomTagStore customTagStore,
+            IDicomTagParser dicomTagPathParser)
         {
             EnsureArg.IsNotNull(queryParser, nameof(queryParser));
             EnsureArg.IsNotNull(queryStore, nameof(queryStore));
+            EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
+            EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
 
             _queryParser = queryParser;
             _queryStore = queryStore;
             _metadataStore = metadataStore;
+            _customTagStore = customTagStore;
+            _dicomTagPathParser = dicomTagPathParser;
         }
 
         public async Task<QueryResourceResponse> QueryAsync(
@@ -44,7 +53,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             ValidateRequestIdentifiers(message);
 
-            QueryExpression queryExpression = _queryParser.Parse(message);
+            IReadOnlyList<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
+
+            IDictionary<DicomTag, CustomTagFilterDetails> supportedCustomTags = RetrieveSupportedCustomTagsForQueryResourceType(customTags, message.QueryResourceType);
+
+            QueryExpression queryExpression = _queryParser.Parse(message, supportedCustomTags);
 
             QueryResult queryResult = await _queryStore.QueryAsync(queryExpression, cancellationToken);
 
@@ -61,6 +74,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
 
             return new QueryResourceResponse(responseMetadata);
+        }
+
+        private IDictionary<DicomTag, CustomTagFilterDetails> RetrieveSupportedCustomTagsForQueryResourceType(IReadOnlyList<CustomTagStoreEntry> customTags, QueryResource queryResource)
+        {
+            var ret = new Dictionary<DicomTag, CustomTagFilterDetails>();
+
+            foreach (CustomTagStoreEntry customTag in customTags)
+            {
+                DicomTag[] result;
+                DicomTag dicomTag;
+                if (customTag.Status.Equals(CustomTagStatus.Added) && _dicomTagPathParser.TryParse(customTag.Path, out result))
+                {
+                    dicomTag = result[0];
+                    if (queryResource.Equals(QueryResource.AllInstances) || queryResource.Equals(QueryResource.StudyInstances) || queryResource.Equals(QueryResource.StudySeriesInstances)
+                        || ((queryResource.Equals(QueryResource.AllSeries) || queryResource.Equals(QueryResource.StudySeries)) && (customTag.Level.Equals(CustomTagLevel.Study) || customTag.Level.Equals(CustomTagLevel.Series)))
+                        || (queryResource.Equals(QueryResource.AllStudies) && customTag.Level.Equals(CustomTagLevel.Study)))
+                    {
+                        // When querying for instances, custom tags of all levels can be filtered on.
+                        // When querying for series, study and series custom tags can be filtered on.
+                        // When querying for studies, study custom tags can be filtered on.
+                        ret.Add(dicomTag, new CustomTagFilterDetails(customTag.Key, customTag.Level, DicomVR.Parse(customTag.VR), dicomTag));
+                    }
+                }
+            }
+
+            return ret;
         }
 
         private static void ValidateRequestIdentifiers(QueryResourceRequest message)

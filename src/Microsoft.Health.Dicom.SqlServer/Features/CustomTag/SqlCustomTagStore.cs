@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -48,7 +49,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 IEnumerable<AddCustomTagsInputTableTypeV1Row> rows = customTagEntries.Select(ToAddCustomTagsInputTableTypeV1Row);
-                V2.AddCustomTags.PopulateCommand(sqlCommandWrapper, new V2.AddCustomTagsTableValuedParameters(rows));
+
+                VLatest.AddCustomTags.PopulateCommand(sqlCommandWrapper, new VLatest.AddCustomTagsTableValuedParameters(rows));
 
                 try
                 {
@@ -68,32 +70,37 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             }
         }
 
-        public async Task<IReadOnlyCollection<CustomTagEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<CustomTagStoreEntry>> GetCustomTagsAsync(string path, CancellationToken cancellationToken = default)
         {
             if (_schemaInformation.Current < SchemaVersionConstants.SupportCustomTagSchemaVersion)
             {
                 throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
             }
 
-            List<CustomTagEntry> results = new List<CustomTagEntry>();
+            List<CustomTagStoreEntry> results = new List<CustomTagStoreEntry>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                V2.GetCustomTag.PopulateCommand(sqlCommandWrapper, path);
+                VLatest.GetCustomTag.PopulateCommand(sqlCommandWrapper, path);
 
+                var executionTimeWatch = Stopwatch.StartNew();
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (string tagPath, string tagVR, int tagLevel, int tagStatus) = reader.ReadRow(
-                           V2.CustomTag.TagPath,
-                           V2.CustomTag.TagVR,
-                           V2.CustomTag.TagLevel,
-                           V2.CustomTag.TagStatus);
+                        (long tagKey, string tagPath, string tagVR, int tagLevel, int tagStatus) = reader.ReadRow(
+                            VLatest.CustomTag.TagKey,
+                            VLatest.CustomTag.TagPath,
+                            VLatest.CustomTag.TagVR,
+                            VLatest.CustomTag.TagLevel,
+                            VLatest.CustomTag.TagStatus);
 
-                        results.Add(new CustomTagEntry { Path = tagPath, VR = tagVR, Level = (CustomTagLevel)tagLevel, Status = (CustomTagStatus)tagStatus });
+                        results.Add(new CustomTagStoreEntry(tagKey, tagPath, tagVR, (CustomTagLevel)tagLevel, (CustomTagStatus)tagStatus));
                     }
+
+                    executionTimeWatch.Stop();
+                    _logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
                 }
             }
 
