@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.DicomCast.TableStorage.Features.Health;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage;
-using Moq;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -21,7 +20,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.UnitTests.Features.Health
 {
     public class TableHealthCheckTests
     {
-        private readonly CloudTableClient _client = new Mock<CloudTableClient>(new Uri("https://www.microsoft.com/"), new StorageCredentials(), new TableClientConfiguration()).Object;
+        private readonly CloudTableClient _client = Substitute.For<CloudTableClient>(new Uri("https://www.microsoft.com/"), new StorageCredentials(), new TableClientConfiguration());
         private readonly ITableClientTestProvider _testProvider = Substitute.For<ITableClientTestProvider>();
         private readonly TableDataStoreConfiguration _configuration = new TableDataStoreConfiguration { };
 
