@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Fact]
         public async Task GivenNotExistingTagPath_WhenDeleteCustomTagIsInvoked_ThenShouldThrowException()
         {
-            _customTagStore.GetCustomTagsAsync(default, default).ReturnsForAnyArgs(new Func<NSubstitute.Core.CallInfo, IEnumerable<CustomTagEntry>>((x) => { throw new Exception(); }));
+            _customTagStore.GetCustomTagsAsync(default, default).ReturnsForAnyArgs(new Func<NSubstitute.Core.CallInfo, IReadOnlyCollection<CustomTagEntry>>((x) => { throw new Exception(); }));
             await Assert.ThrowsAsync<Exception>(() => _customTagService.DeleteCustomTagAsync(DicomTag.DeviceSerialNumber.GetPath()));
         }
 

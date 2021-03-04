@@ -75,6 +75,20 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             Assert.Equal(normalized.Path, expectedPath);
         }
 
+        [Fact]
+        public void GivenStandardAndPrivateTags_WhenSplit_ThenShouldSuceed()
+        {
+            DicomTag standardTag = DicomTag.DeviceSerialNumber;
+            DicomTag privateTag = new DicomTag(0x0407, 0x0001);
+            CustomTagEntry[] customTagEntries = new CustomTagEntry[] { standardTag.BuildCustomTagEntry(), privateTag.BuildCustomTagEntry() };
+            IDictionary<DicomTag, CustomTagEntry> standardTags, privateTags;
+            customTagEntries.SplitStandardAndPrivateTags(out standardTags, out privateTags);
+            Assert.Single(standardTags);
+            Assert.Single(privateTags);
+            Assert.Contains(standardTag, standardTags.Keys);
+            Assert.Contains(privateTag, privateTags.Keys);
+        }
+
         public static IEnumerable<object[]> GetValidCustomTagEntries()
         {
             yield return new object[] { DicomTag.DeviceSerialNumber.BuildCustomTagEntry() }; // standard custom tag with VR
