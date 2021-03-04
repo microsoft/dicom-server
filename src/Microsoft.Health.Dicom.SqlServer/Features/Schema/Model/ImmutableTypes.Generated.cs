@@ -44,4 +44,38 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.String TagVR { get; }
         internal System.Byte TagLevel { get; }
     }
+
+    internal class InsertStringCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertStringCustomTagTableTypeV1Row>
+    {
+        internal InsertStringCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertStringCustomTagTableType_1")
+        {
+        }
+
+        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+        internal readonly NVarCharColumn StringValue = new NVarCharColumn("StringValue", 64);
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagLevel, StringValue };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertStringCustomTagTableTypeV1Row rowData)
+        {
+            TagKey.Set(record, 0, rowData.TagKey);
+            TagLevel.Set(record, 1, rowData.TagLevel);
+            StringValue.Set(record, 2, rowData.StringValue);
+        }
+    }
+
+    internal struct InsertStringCustomTagTableTypeV1Row
+    {
+        internal InsertStringCustomTagTableTypeV1Row(System.Int64 TagKey, System.Byte TagLevel, System.String StringValue)
+        {
+            this.TagKey = TagKey;
+            this.TagLevel = TagLevel;
+            this.StringValue = StringValue;
+        }
+
+        internal System.Int64 TagKey { get; }
+        internal System.Byte TagLevel { get; }
+        internal System.String StringValue { get; }
+    }
 }

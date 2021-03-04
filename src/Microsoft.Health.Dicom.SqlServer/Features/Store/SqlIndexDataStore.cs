@@ -13,9 +13,11 @@ using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -39,9 +41,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
         }
 
-        public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, CancellationToken cancellationToken)
+        public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IDictionary<CustomTagEntry, DicomElement> customTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
+            EnsureArg.IsNotNull(customTags, nameof(customTags));
 
             await _sqlServerIndexSchema.EnsureInitialized();
 
@@ -61,11 +64,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
                     instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
                     instance.GetStringDateAsDateTime(DicomTag.PerformedProcedureStepStartDate),
-                    (byte)IndexStatus.Creating);
+                    (byte)IndexStatus.Creating,
+                    BuildAddInstaneParameters(customTags));
 
                 try
                 {
-                    return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+                    object x = await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                    return (long)x;
                 }
                 catch (SqlException ex)
                 {
@@ -85,6 +90,38 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     throw new DataStoreException(ex);
                 }
             }
+        }
+
+        private static VLatest.AddInstanceTableValuedParameters BuildAddInstaneParameters(IDictionary<CustomTagEntry, DicomElement> customTags)
+        {
+            Dictionary<CustomTagLevel, List<InsertStringCustomTagTableTypeV1Row>> stringRows = new Dictionary<CustomTagLevel, List<InsertStringCustomTagTableTypeV1Row>>();
+            foreach (var customTagEntry in customTags.Keys)
+            {
+                DicomElement element = customTags[customTagEntry];
+                CustomTagDataType dataType = CustomTagLimit.CustomTagVRAndDataTypeMapping[customTagEntry.VR];
+                switch (dataType)
+                {
+                    case CustomTagDataType.StringData:
+                        stringRows.TryAdd(customTagEntry.Level, new List<InsertStringCustomTagTableTypeV1Row>());
+                        stringRows[customTagEntry.Level].Add(new InsertStringCustomTagTableTypeV1Row(1, element.Get<string>()));
+                        break;
+                    case CustomTagDataType.LongData:
+                        break;
+                    case CustomTagDataType.DoubleData:
+                        break;
+                    case CustomTagDataType.DateTimeData:
+                        break;
+                    case CustomTagDataType.PersonNameData:
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return new VLatest.AddInstanceTableValuedParameters(
+                stringRows.GetValueOrDefault(CustomTagLevel.Study, new List<InsertStringCustomTagTableTypeV1Row>()),
+                stringRows.GetValueOrDefault(CustomTagLevel.Series, new List<InsertStringCustomTagTableTypeV1Row>()),
+                stringRows.GetValueOrDefault(CustomTagLevel.Instance, new List<InsertStringCustomTagTableTypeV1Row>()));
         }
 
         public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)

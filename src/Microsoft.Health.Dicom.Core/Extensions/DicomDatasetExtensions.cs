@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
@@ -156,6 +157,115 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             if (value != null)
             {
                 dicomDataset.Add(dicomTag, value);
+            }
+        }
+
+        public static IDictionary<CustomTagEntry, DicomElement> GetDicomElementsForCustomTags(this DicomDataset dicomDataset, IReadOnlyList<CustomTagEntry> customTagEntries)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(customTagEntries, nameof(customTagEntries));
+            Dictionary<CustomTagEntry, DicomElement> result = new Dictionary<CustomTagEntry, DicomElement>();
+            if (customTagEntries.Count != 0)
+            {
+                IDictionary<string, CustomTagEntry> standardTags, privateTags;
+                customTagEntries.SplitStandardAndPrivateTags(out standardTags, out privateTags);
+
+                // process standard tags
+                foreach (var path in standardTags.Keys)
+                {
+                    DicomItem item;
+                    if (dicomDataset.TryGetSingleValue(DicomTag.Parse(path), out item)
+                        && item.ValueRepresentation.Code == standardTags[path].VR
+                        && item is DicomElement)
+                    {
+                        result.Add(standardTags[path], item as DicomElement);
+                    }
+                }
+
+                // Process private tags
+                if (privateTags.Count != 0)
+                {
+                    // dicomDataset.Get<>(DicomTag) doesn't work for private tag, need to loop dataset to find matching private tag
+                    foreach (DicomItem item in dicomDataset)
+                    {
+                        if (!item.Tag.IsPrivate)
+                        {
+                            continue;
+                        }
+
+                        string path = item.Tag.GetPath();
+                        if (privateTags.ContainsKey(path)
+                            && item.ValueRepresentation.Code == privateTags[path].VR
+                            && item is DicomElement)
+                        {
+                            result.Add(privateTags[path], item as DicomElement);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public static IDictionary<CustomTagEntry, DicomElement> GetDicomElementsForCustomTags(this DicomDataset dicomDataset, IList<CustomTagEntry> customTagEntries)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(customTagEntries, nameof(customTagEntries));
+            Dictionary<CustomTagEntry, DicomElement> result = new Dictionary<CustomTagEntry, DicomElement>();
+            if (customTagEntries.Count != 0)
+            {
+                IDictionary<DicomTag, CustomTagEntry> standardTags, privateTags;
+                customTagEntries.SplitStandardAndPrivateTags(out standardTags, out privateTags);
+
+                AddDicomElementsForStandardTags(dicomDataset, result, standardTags);
+
+                AddDicomElementsForPrivateTags(dicomDataset, result, privateTags);
+            }
+
+            return result;
+        }
+
+        private static void AddDicomElementsForPrivateTags(DicomDataset dicomDataset, Dictionary<CustomTagEntry, DicomElement> result, IDictionary<DicomTag, CustomTagEntry> privateTags)
+        {
+            // Process private tags
+            if (privateTags.Count != 0)
+            {
+                // dicomDataset.Get<>(DicomTag) doesn't work for private tag, need to loop dataset to find matching private tag
+                foreach (DicomItem item in dicomDataset)
+                {
+                    if (!item.Tag.IsPrivate)
+                    {
+                        continue;
+                    }
+
+                    // Original tag contains private creator, so not equal to our path. so build DicomTag without creator.
+                    string path = item.Tag.GetPath();
+                    DicomTag tagFromPath = DicomTag.Parse(path);
+                    if (privateTags.ContainsKey(tagFromPath)
+                        && item.ValueRepresentation.Code == privateTags[tagFromPath].VR
+                        && item is DicomElement)
+                    {
+                        result.Add(privateTags[tagFromPath], item as DicomElement);
+                    }
+                }
+            }
+        }
+
+        private static void AddDicomElementsForStandardTags(DicomDataset dicomDataset, Dictionary<CustomTagEntry, DicomElement> result, IDictionary<DicomTag, CustomTagEntry> standardTags)
+        {
+            // process standard tags
+            foreach (var tag in standardTags.Keys)
+            {
+                if (dicomDataset.Contains(tag))
+                {
+#pragma warning disable CS0618 // Type or member is obsolete
+                    DicomItem item = dicomDataset.Get<DicomItem>(tag);
+#pragma warning restore CS0618 // Type or member is obsolete
+                    if (item.ValueRepresentation.Code == standardTags[tag].VR && item is DicomElement)
+                    {
+                        result.Add(standardTags[tag], item as DicomElement);
+                    }
+                }
             }
         }
     }

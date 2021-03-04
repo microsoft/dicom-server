@@ -4,12 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -40,6 +42,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private readonly IStoreResponseBuilder _storeResponseBuilder = Substitute.For<IStoreResponseBuilder>();
         private readonly IDicomDatasetValidator _dicomDatasetValidator = Substitute.For<IDicomDatasetValidator>();
         private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
+        private readonly ICustomTagStore _customTagStore = Substitute.For<ICustomTagStore>();
         private readonly StoreService _storeService;
 
         public DicomStoreServiceTests()
@@ -50,7 +53,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 _storeResponseBuilder,
                 _dicomDatasetValidator,
                 _storeOrchestrator,
+                _customTagStore,
                 NullLogger<StoreService>.Instance);
+
+            _customTagStore.GetCustomTagsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(new List<CustomTagEntry>());
         }
 
         [Fact]
@@ -116,7 +123,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             const ushort failureCode = 500;
 
             _dicomDatasetValidator
-                .When(validator => validator.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
+                .When(validator => validator.Validate(Arg.Any<DicomDataset>(), Arg.Any<IList<CustomTagEntry>>(), Arg.Any<string>()))
                 .Do(_ => throw new DatasetValidationException(failureCode, "test"));
 
             IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
@@ -137,7 +144,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _storeOrchestrator
-                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
+                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, Arg.Any<IList<CustomTagEntry>>(), DefaultCancellationToken))
                 .Do(_ => throw new InstanceAlreadyExistsException());
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
@@ -154,7 +161,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _storeOrchestrator
-                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
+                .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, Arg.Any<IList<CustomTagEntry>>(), DefaultCancellationToken))
                 .Do(_ => throw new DataStoreException("Simulated failure."));
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
@@ -173,7 +180,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntryToFail.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _dicomDatasetValidator
-                .When(dicomDatasetMinimumRequirementValidator => dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset2, null))
+                .When(dicomDatasetMinimumRequirementValidator => dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset2, Arg.Any<IList<CustomTagEntry>>(), null))
                 .Do(_ => throw new Exception());
 
             await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToFail);

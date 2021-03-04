@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 
@@ -22,9 +23,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// Asynchronously creates a new instance index.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to index.</param>
+        /// <param name="customTags">The custom tag entries.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous create operation.</returns>
-        Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, CancellationToken cancellationToken = default);
+        Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IDictionary<CustomTagEntry, DicomElement> customTags, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="studyInstanceUid"/>.
@@ -43,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter,  CancellationToken cancellationToken = default);
+        Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of the instance specified by the <paramref name="studyInstanceUid"/>, <paramref name="seriesInstanceUid"/>, and <paramref name="sopInstanceUid"/>.
@@ -54,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter,  CancellationToken cancellationToken = default);
+        Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously updates the status of an existing instance index.

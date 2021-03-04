@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
@@ -48,26 +50,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <inheritdoc />
         public async Task StoreDicomInstanceEntryAsync(
             IDicomInstanceEntry dicomInstanceEntry,
+            IList<CustomTagEntry> customTagEntries,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, cancellationToken);
+            IDictionary<CustomTagEntry, DicomElement> customTags = dicomDataset.GetDicomElementsForCustomTags(customTagEntries);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, customTags, cancellationToken);
 
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 
             try
             {
                 // We have successfully created the index, store the files.
-                Task[] tasks = new[]
-                {
-                    StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
-                    StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken),
-                };
-
-                await Task.WhenAll(tasks);
+                await StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken);
+                await StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
 
                 // Successfully uploaded the files. Update the status to be available.
                 await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created, cancellationToken);

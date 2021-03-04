@@ -5,8 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Dicom;
 using EnsureThat;
 
@@ -14,36 +12,31 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     public class DicomElementMinimumValidator : IDicomElementMinimumValidator
     {
-        private readonly Dictionary<DicomVR, Action<string, string>> _minValidators = new Dictionary<DicomVR, Action<string, string>>();
+        private readonly Dictionary<DicomVR, Action<DicomElement>> _minValidators = new Dictionary<DicomVR, Action<DicomElement>>();
 
         public DicomElementMinimumValidator()
         {
             _minValidators.Add(DicomVR.CS, DicomElementMinimumValidation.ValidateCS);
-            _minValidators.Add(DicomVR.LO, DicomElementMinimumValidation.ValidateLO);
-            _minValidators.Add(DicomVR.SH, DicomElementMinimumValidation.ValidateSH);
-            _minValidators.Add(DicomVR.PN, DicomElementMinimumValidation.ValidatePN);
             _minValidators.Add(DicomVR.DA, DicomElementMinimumValidation.ValidateDA);
+            _minValidators.Add(DicomVR.LO, DicomElementMinimumValidation.ValidateLO);
+            _minValidators.Add(DicomVR.PN, DicomElementMinimumValidation.ValidatePN);
+            _minValidators.Add(DicomVR.SH, DicomElementMinimumValidation.ValidateSH);
             _minValidators.Add(DicomVR.UI, DicomElementMinimumValidation.ValidateUI);
         }
 
         // only works for single value dicom element
-        public void Validate(DicomTag dicomTag, string value)
+        public void Validate(DicomElement element)
         {
-            EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
-            DicomVR dicomVR = dicomTag.DictionaryEntry.ValueRepresentations.FirstOrDefault();
+            EnsureArg.IsNotNull(element, nameof(element));
 
-            if (dicomVR == null)
+            if (_minValidators.TryGetValue(element.ValueRepresentation, out Action<DicomElement> validator))
             {
-                Debug.Fail("Dicom VR type should not be null");
-            }
-
-            if (_minValidators.TryGetValue(dicomVR, out Action<string, string> validator))
-            {
-                validator(value, dicomTag.DictionaryEntry.Keyword);
+                validator(element);
             }
             else
             {
-                Debug.Fail($"Missing validation action for for VR :{dicomVR.Code}, add a new validation and register in the constructor.");
+                // Use default validator provided by Fo-dicom, if we see problems in the feature, could create custom ones.
+                DicomElementMinimumValidation.DefaultValidate(element);
             }
         }
     }

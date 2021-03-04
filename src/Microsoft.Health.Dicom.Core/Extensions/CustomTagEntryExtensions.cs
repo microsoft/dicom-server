@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Globalization;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -48,6 +49,24 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             vr = vr.ToUpperInvariant();
 
             return new CustomTagEntry { Path = path, VR = vr, Level = customTagEntry.Level, Status = customTagEntry.Status };
+        }
+
+        public static void SplitStandardAndPrivateTags(this IEnumerable<CustomTagEntry> customTagEntries, out IDictionary<DicomTag, CustomTagEntry> standardTags, out IDictionary<DicomTag, CustomTagEntry> privateTags)
+        {
+            standardTags = new Dictionary<DicomTag, CustomTagEntry>();
+            privateTags = new Dictionary<DicomTag, CustomTagEntry>();
+            foreach (var customTagEntry in customTagEntries)
+            {
+                DicomTag dicomTag = DicomTag.Parse(customTagEntry.Path);
+                if (dicomTag.IsPrivate)
+                {
+                    privateTags.Add(dicomTag, customTagEntry);
+                }
+                else
+                {
+                    standardTags.Add(dicomTag, customTagEntry);
+                }
+            }
         }
     }
 }

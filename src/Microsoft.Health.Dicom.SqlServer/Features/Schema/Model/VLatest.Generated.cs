@@ -297,9 +297,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _accessionNumber = new ParameterDefinition<System.String>("@accessionNumber", global::System.Data.SqlDbType.NVarChar, true, 64);
             private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
             private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
+            private readonly InsertStringCustomTagTableTypeV1TableValuedParameterDefinition _stringCustomTags = new InsertStringCustomTagTableTypeV1TableValuedParameterDefinition("@stringCustomTags");
             private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus)
+            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, global::System.Collections.Generic.IEnumerable<InsertStringCustomTagTableTypeV1Row> stringCustomTags, System.Byte initialStatus)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddInstance";
@@ -314,8 +315,39 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _accessionNumber.AddParameter(command.Parameters, accessionNumber);
                 _modality.AddParameter(command.Parameters, modality);
                 _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
+                _stringCustomTags.AddParameter(command.Parameters, stringCustomTags);
                 _initialStatus.AddParameter(command.Parameters, initialStatus);
             }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus, AddInstanceTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid, sopInstanceUid: sopInstanceUid, patientId: patientId, patientName: patientName, referringPhysicianName: referringPhysicianName, studyDate: studyDate, studyDescription: studyDescription, accessionNumber: accessionNumber, modality: modality, performedProcedureStepStartDate: performedProcedureStepStartDate, initialStatus: initialStatus, stringCustomTags: tableValuedParameters.StringCustomTags);
+            }
+        }
+
+        internal class AddInstanceTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddInstanceTableValuedParameters>
+        {
+            public AddInstanceTvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringCustomTagTableTypeV1Row> InsertStringCustomTagTableTypeV1RowGenerator)
+            {
+                this.InsertStringCustomTagTableTypeV1RowGenerator = InsertStringCustomTagTableTypeV1RowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertStringCustomTagTableTypeV1Row> InsertStringCustomTagTableTypeV1RowGenerator;
+
+            public AddInstanceTableValuedParameters Generate(TInput input)
+            {
+                return new AddInstanceTableValuedParameters(InsertStringCustomTagTableTypeV1RowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct AddInstanceTableValuedParameters
+        {
+            internal AddInstanceTableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringCustomTagTableTypeV1Row> StringCustomTags)
+            {
+                this.StringCustomTags = StringCustomTags;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<InsertStringCustomTagTableTypeV1Row> StringCustomTags { get; }
         }
 
         internal class DeleteCustomTagProcedure : StoredProcedure

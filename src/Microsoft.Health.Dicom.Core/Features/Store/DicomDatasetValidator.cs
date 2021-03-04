@@ -10,6 +10,8 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -32,9 +34,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _minimumValidator = minimumValidator;
         }
 
-        public void Validate(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+        public void Validate(DicomDataset dicomDataset, IList<CustomTagEntry> customTagEntries, string requiredStudyInstanceUid)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(customTagEntries, nameof(customTagEntries));
 
             // Ensure required tags are present.
             EnsureRequiredTagIsPresent(DicomTag.PatientID);
@@ -90,13 +93,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
             else
             {
-                ValidateIndexedItems(dicomDataset);
+                ValidateIndexedItems(dicomDataset, customTagEntries);
             }
         }
 
-        private void ValidateIndexedItems(DicomDataset dicomDataset)
+        private void ValidateIndexedItems(DicomDataset dicomDataset, IList<CustomTagEntry> customTagEntries)
         {
+            IDictionary<DicomTag, CustomTagEntry> standardTags, privateTags;
+            customTagEntries.SplitStandardAndPrivateTags(out standardTags, out privateTags);
+
+            // Process Standard Tag
             HashSet<DicomTag> indexableTags = QueryLimit.AllInstancesTags;
+            indexableTags.UnionWith(standardTags.Keys);
 
             foreach (DicomTag indexableTag in indexableTags)
             {
@@ -104,8 +112,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                 if (dicomElement != null)
                 {
-                    string value = dicomDataset.GetSingleValueOrDefault<string>(indexableTag, default);
-                    _minimumValidator.Validate(indexableTag, value);
+                    _minimumValidator.Validate(dicomElement);
+                }
+            }
+
+            // Process Private Tag
+            // dicomDataset.GetDicomItem<DicomElement>() cannot get value for private tag, we need to loop and compare with path.
+            foreach (DicomItem item in dicomDataset)
+            {
+                if (item.Tag.IsPrivate)
+                {
+                    string path = item.Tag.GetPath();
+                    DicomTag dicomTag = DicomTag.Parse(path);
+                    if (privateTags.ContainsKey(dicomTag) && privateTags[dicomTag].VR.Equals(item.ValueRepresentation.Code, StringComparison.Ordinal))
+                    {
+                        DicomElement element = item as DicomElement;
+                        if (element != null)
+                        {
+                            _minimumValidator.Validate(element);
+                        }
+                    }
                 }
             }
         }

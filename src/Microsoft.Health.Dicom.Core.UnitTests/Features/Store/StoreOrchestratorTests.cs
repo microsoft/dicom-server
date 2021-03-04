@@ -4,16 +4,19 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -56,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset);
             _dicomInstanceEntry.GetStreamAsync(DefaultCancellationToken).Returns(_stream);
 
-            _indexDataStore.CreateInstanceIndexAsync(_dicomDataset, DefaultCancellationToken).Returns(DefaultVersion);
+            _indexDataStore.CreateInstanceIndexAsync(_dicomDataset, Arg.Any<IDictionary<CustomTagEntry, DicomElement>>(), DefaultCancellationToken).Returns(DefaultVersion);
 
             _storeOrchestrator = new StoreOrchestrator(_fileStore, _metadataStore, _indexDataStore, _deleteService);
         }
@@ -64,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenFilesAreSuccessfullyStored_WhenStoringFile_ThenStatusShouldBeUpdatedToCreated()
         {
-            await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
+            await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, new List<CustomTagEntry>(), DefaultCancellationToken);
 
             await ValidateStatusUpdateAsync();
         }
@@ -80,7 +83,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _indexDataStore.ClearReceivedCalls();
 
-            await Assert.ThrowsAsync<Exception>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
+            await Assert.ThrowsAsync<Exception>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, new List<CustomTagEntry>(), DefaultCancellationToken));
 
             await ValidateCleanupAsync();
 
@@ -98,7 +101,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _indexDataStore.ClearReceivedCalls();
 
-            await Assert.ThrowsAsync<Exception>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
+            await Assert.ThrowsAsync<Exception>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, new List<CustomTagEntry>(), DefaultCancellationToken));
 
             await ValidateCleanupAsync();
 
@@ -116,7 +119,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _indexDataStore.DeleteInstanceIndexAsync(default, default, default, default, default).ThrowsForAnyArgs(new InvalidOperationException());
 
-            await Assert.ThrowsAsync<ArgumentException>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
+            await Assert.ThrowsAsync<ArgumentException>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, new List<CustomTagEntry>(), DefaultCancellationToken));
         }
 
         private async Task ValidateStatusUpdateAsync()

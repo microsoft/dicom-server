@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -16,10 +18,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// Validates the <paramref name="dicomDataset"/>.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to validate.</param>
+        /// <param name="customTagEntries">The custom tag entries.</param>
         /// <param name="requiredStudyInstanceUid">
         /// If supplied, the StudyInstanceUID in the <paramref name="dicomDataset"/> must match to be considered valid.
         /// </param>
         /// <exception cref="DatasetValidationException">Thrown when the validation fails.</exception>
-        void Validate(DicomDataset dicomDataset, string requiredStudyInstanceUid);
+        void Validate(DicomDataset dicomDataset, IList<CustomTagEntry> customTagEntries, string requiredStudyInstanceUid);
     }
 }

@@ -23,7 +23,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         {
             if (obj is VersionedInstanceIdentifier identifier)
             {
-                return base.Equals(obj) && identifier.Version == Version;
+                bool result = base.Equals(obj) && identifier.Version == Version;
+                return result;
             }
 
             return false;

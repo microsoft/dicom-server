@@ -8,7 +8,9 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Dicom;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -17,8 +19,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*$", RegexOptions.Compiled);
         private const string DateFormat = "yyyyMMdd";
 
-        public static void ValidateCS(string value, string name)
+        public static void ValidateCS(DicomElement element)
         {
+            EnsureArg.IsNotNull(element, nameof(element));
+            string name = GetName(element.Tag);
+            string value = element.Get<string>();
             if (string.IsNullOrEmpty(value))
             {
                 return;
@@ -30,8 +35,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        public static void ValidateDA(string value, string name)
+        public static void ValidateDA(DicomElement element)
         {
+            EnsureArg.IsNotNull(element, nameof(element));
+            string name = GetName(element.Tag);
+            string value = element.Get<string>();
             if (string.IsNullOrEmpty(value))
             {
                 return;
@@ -43,8 +51,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        public static void ValidateLO(string value, string name)
+        public static void ValidateLO(DicomElement element)
         {
+            EnsureArg.IsNotNull(element, nameof(element));
+            string name = GetName(element.Tag);
+            string value = element.Get<string>();
             if (string.IsNullOrEmpty(value))
             {
                 return;
@@ -62,8 +73,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         }
 
         // probably can dial down the validation here
-        public static void ValidatePN(string value, string name)
+        public static void ValidatePN(DicomElement element)
         {
+            EnsureArg.IsNotNull(element, nameof(element));
+            string name = GetName(element.Tag);
+            string value = element.Get<string>();
             if (string.IsNullOrEmpty(value))
             {
                 // empty values allowed
@@ -96,8 +110,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        public static void ValidateSH(string value, string name)
+        public static void ValidateSH(DicomElement element)
         {
+            EnsureArg.IsNotNull(element, nameof(element));
+            string name = GetName(element.Tag);
+            string value = element.Get<string>();
             if (string.IsNullOrEmpty(value))
             {
                 return;
@@ -128,6 +145,42 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (!ValidIdentifierCharactersFormat.IsMatch(value))
             {
                 throw new InvalidIdentifierException(value, name);
+            }
+        }
+
+        public static void ValidateUI(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            string name = GetName(element.Tag);
+            string value = element.Get<string>();
+            ValidateUI(value, name);
+        }
+
+        public static void DefaultValidate(DicomElement element)
+        {
+            EnsureArg.IsNotNull(element, nameof(element));
+            try
+            {
+                element.Validate();
+            }
+            catch (DicomValidationException ex)
+            {
+                throw new DicomElementValidationException(GetName(element.Tag), GetValue(element), element.ValueRepresentation, ex.Message);
+            }
+        }
+
+        private static string GetName(DicomTag dicomTag) => dicomTag.IsPrivate ? dicomTag.GetPath() : dicomTag.DictionaryEntry.Keyword;
+
+        private static string GetValue(DicomElement element)
+        {
+            try
+            {
+                // some DicomElement cannot be converted to string. DicomSequence etc.
+                return element.Get<string>();
+            }
+            catch (InvalidCastException)
+            {
+                return string.Empty;
             }
         }
 

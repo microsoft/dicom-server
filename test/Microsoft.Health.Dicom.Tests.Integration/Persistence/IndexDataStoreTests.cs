@@ -12,10 +12,12 @@ using EnsureThat;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 using Xunit;
 
@@ -48,7 +50,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string accessionNumber = dataset.GetString(DicomTag.AccessionNumber);
             string modality = dataset.GetString(DicomTag.Modality);
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset, new Dictionary<CustomTagEntry, DicomElement>());
 
             IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
 
@@ -109,7 +111,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.AddOrUpdate(DicomTag.Modality, conflictModality);
             dataset.AddOrUpdate(DicomTag.SOPInstanceUID, newInstance);
 
-            await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, new Dictionary<CustomTagEntry, DicomElement>());
 
             IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
             IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
@@ -326,9 +328,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, new Dictionary<CustomTagEntry, DicomElement>());
 
-            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset));
+            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset, new Dictionary<CustomTagEntry, DicomElement>()));
         }
 
         [Fact]
@@ -340,12 +342,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset, new Dictionary<CustomTagEntry, DicomElement>());
             await _indexDataStore.UpdateInstanceIndexStatusAsync(
                 dataset.ToVersionedInstanceIdentifier(version),
                 IndexStatus.Created);
 
-            await Assert.ThrowsAsync<InstanceAlreadyExistsException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset));
+            await Assert.ThrowsAsync<InstanceAlreadyExistsException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset, new Dictionary<CustomTagEntry, DicomElement>()));
         }
 
         [Fact]
@@ -357,7 +359,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset, new Dictionary<CustomTagEntry, DicomElement>());
 
             Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
 
@@ -396,7 +398,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset, new Dictionary<CustomTagEntry, DicomElement>());
 
             VersionedInstanceIdentifier versionedInstanceIdentifier = new VersionedInstanceIdentifier(
                     studyInstanceUid,
@@ -509,7 +511,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private async Task<Instance> CreateIndexAndVerifyInstance(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             DicomDataset dataset = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset, new Dictionary<CustomTagEntry, DicomElement>());
             Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
             Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
             return instance;

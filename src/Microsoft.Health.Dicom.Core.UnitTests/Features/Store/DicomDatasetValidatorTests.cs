@@ -9,9 +9,11 @@ using Dicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using NSubstitute;
 using Xunit;
 
@@ -43,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public void GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
         {
-            _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null);
+            _dicomDatasetValidator.Validate(_dicomDataset, new List<CustomTagEntry>(), requiredStudyInstanceUid: null);
         }
 
         [Fact]
@@ -55,6 +57,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDatasetValidator.Validate(
                 _dicomDataset,
+                new List<CustomTagEntry>(),
                 studyInstanceUid);
         }
 
@@ -166,14 +169,40 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         public void GivenDatasetWithEmptyIndexedTagValue_WhenValidating_ThenValidationPasses()
         {
             _dicomDataset.AddOrUpdate(DicomTag.ReferringPhysicianName, string.Empty);
-            _dicomDatasetValidator.Validate(_dicomDataset, null);
+            _dicomDatasetValidator.Validate(_dicomDataset, new List<CustomTagEntry>(), null);
         }
 
-        private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
+        [Fact]
+        public void GivenAValidDicomDatasetWithCustomTag_WhenValidating_ThenValidationPasses()
+        {
+            DicomTag tag = DicomTag.PatientAge;
+            CustomTagEntry entry = tag.BuildCustomTagEntry();
+            _dicomDataset.Add(tag, "001W");
+            _dicomDatasetValidator.Validate(_dicomDataset, new List<CustomTagEntry>() { entry }, requiredStudyInstanceUid: null);
+        }
+
+        [Fact]
+        public void GivenInvalidDicomDatasetWithCustomTag_WhenValidating_ThenValidationExceptionShouldBeThrown()
+        {
+            DicomTag tag = DicomTag.PatientAge;
+            CustomTagEntry entry = tag.BuildCustomTagEntry();
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            _dicomDataset.Add(tag, "001w");
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+            ExecuteAndValidateException<DicomElementValidationException>(TestConstants.ValidationFailureReasonCode, customTagEntries: new List<CustomTagEntry>() { entry });
+        }
+
+        private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null, IList<CustomTagEntry> customTagEntries = null)
             where T : Exception
         {
             var exception = Assert.Throws<T>(
-                () => _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid));
+                () => _dicomDatasetValidator.Validate(_dicomDataset, customTagEntries ?? new List<CustomTagEntry>(), requiredStudyInstanceUid));
 
             if (exception is DatasetValidationException)
             {
