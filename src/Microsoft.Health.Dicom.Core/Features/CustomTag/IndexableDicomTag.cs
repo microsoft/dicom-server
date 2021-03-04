@@ -9,7 +9,7 @@ using EnsureThat;
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     /// <summary>
-    /// Cache current custom tag entries.
+    /// Indexable Dicom Tag.
     /// </summary>
     public class IndexableDicomTag
     {
@@ -24,12 +24,24 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             Level = level;
         }
 
+        /// <summary>
+        /// Gets Dicom Tag.
+        /// </summary>
         public DicomTag Tag { get; }
 
+        /// <summary>
+        /// Gets Dicom VR.
+        /// </summary>
         public DicomVR VR { get; }
 
+        /// <summary>
+        /// Gets Dicom Tag Level.
+        /// </summary>
         public CustomTagLevel Level { get; }
 
+        /// <summary>
+        /// Gets whether this is custom tag or not.
+        /// </summary>
         public bool IsCustomTag { get; }
     }
 }

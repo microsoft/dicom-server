@@ -104,8 +104,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
             IReadOnlyCollection<IndexableDicomTag> indexableTags = await _indexableDicomTagService.GetIndexableDicomTagsAsync(cancellationToken);
-            HashSet<DicomTag> standardTags = indexableTags.Select(tag => tag.Tag).Where(tag => !tag.IsPrivate).ToHashSet();
-            IDictionary<DicomTag, DicomVR> privateTags = indexableTags.Where(tag => tag.Tag.IsPrivate).ToDictionary(tag => tag.Tag, tag => tag.VR);
+
+            HashSet<DicomTag> standardTags = indexableTags.Select(indexableTag => indexableTag.Tag)
+                .Where(tag => !tag.IsPrivate)
+                .ToHashSet();
+
+            IDictionary<DicomTag, DicomVR> privateTags = indexableTags.Where(indexableTag => indexableTag.Tag.IsPrivate)
+                .ToDictionary(indexableTag => indexableTag.Tag, indexableTag => indexableTag.VR);
+
             ValidateStandardTags(dicomDataset, standardTags);
             ValidatePrivateTags(dicomDataset, privateTags);
         }

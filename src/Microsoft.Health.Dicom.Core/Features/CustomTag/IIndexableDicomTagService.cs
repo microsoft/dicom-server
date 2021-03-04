@@ -10,10 +10,15 @@ using System.Threading.Tasks;
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     /// <summary>
-    /// Cache current custom tag entries.
+    /// Service provides indexable dicom tags.
     /// </summary>
     public interface IIndexableDicomTagService
     {
+        /// <summary>
+        /// Get Indexable dicom tags.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>Indexable dicom tags.</returns>
         Task<IReadOnlyCollection<IndexableDicomTag>> GetIndexableDicomTagsAsync(CancellationToken cancellationToken = default);
     }
 }
