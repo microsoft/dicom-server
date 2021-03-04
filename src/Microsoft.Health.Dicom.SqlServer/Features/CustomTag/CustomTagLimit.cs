@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             { DicomVR.FD.Code, CustomTagDataType.DoubleData },
             { DicomVR.IS.Code, CustomTagDataType.StringData },
             { DicomVR.LO.Code, CustomTagDataType.StringData },
-            { DicomVR.PN.Code, CustomTagDataType.StringData },
+            { DicomVR.PN.Code, CustomTagDataType.PersonNameData },
             { DicomVR.SH.Code, CustomTagDataType.StringData },
             { DicomVR.SL.Code, CustomTagDataType.LongData },
             { DicomVR.SS.Code, CustomTagDataType.LongData },

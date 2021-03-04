@@ -3,20 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using Dicom;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public abstract class QueryFilterCondition
+    public class LongSingleValueMatchCondition : SingleValueMatchCondition<long>
     {
-        protected QueryFilterCondition(DicomTag tag)
+        internal LongSingleValueMatchCondition(DicomTag tag, long value)
+            : base(tag, value)
         {
-            DicomTag = tag;
         }
 
-        public DicomTag DicomTag { get; }
-
-        public CustomTagFilterDetails CustomTagFilterDetails { get; set; }
-
-        public abstract void Accept(QueryFilterConditionVisitor visitor);
+        public override void Accept(QueryFilterConditionVisitor visitor)
+        {
+            EnsureArg.IsNotNull(visitor, nameof(visitor));
+            visitor.Visit(this);
+        }
     }
 }

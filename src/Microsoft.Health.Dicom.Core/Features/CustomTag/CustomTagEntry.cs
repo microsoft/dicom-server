@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
@@ -12,27 +13,45 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class CustomTagEntry : IEquatable<CustomTagEntry>
     {
+        public CustomTagEntry(string path, string vR, CustomTagLevel level, CustomTagStatus status)
+        {
+            Path = path;
+            VR = vR;
+            Level = level;
+            Status = status;
+        }
+
+        public CustomTagEntry(CustomTagStoreEntry storedEntry)
+        {
+            EnsureArg.IsNotNull(storedEntry, nameof(storedEntry));
+
+            Path = storedEntry.Path;
+            VR = storedEntry.VR;
+            Level = storedEntry.Level;
+            Status = storedEntry.Status;
+        }
+
         /// <summary>
         /// Path of this tag. Normally it's composed of groupid and elementid.
         /// E.g: 00100020 is path of patient id.
         /// </summary>
-        public string Path { get; set; }
+        public string Path { get; private set; }
 
         /// <summary>
         /// VR of this tag.
         /// </summary>
-        public string VR { get; set; }
+        public string VR { get; private set; }
 
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public CustomTagLevel Level { get; set; }
+        public CustomTagLevel Level { get; private set; }
 
         /// <summary>
         /// Status of this tag. Represents the current state the tag is in.
         /// This value is null when the entry represents a tag to be created.
         /// </summary>
-        public CustomTagStatus Status { get; set; }
+        public CustomTagStatus Status { get; private set; }
 
         public override string ToString()
         {

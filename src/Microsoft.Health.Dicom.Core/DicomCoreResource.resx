@@ -242,8 +242,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} is the specified content type. E.g., application/dicom</comment>
   </data>
   <data name="UnsupportedSearchParameter" xml:space="preserve">
-    <value>Invalid QIDO-RS query. AttributeId {0} is not queryable. </value>
-    <comment>{0} AttributeId name</comment>
+    <value>Invalid QIDO-RS query. AttributeId {0} is not queryable at {1} resource level. </value>
+    <comment>{0} AttributeId name. {1} Query resource level.</comment>
   </data>
   <data name="UnsupportedTranscoding" xml:space="preserve">
     <value>The specified transcoding is not supported.</value>
@@ -314,5 +314,13 @@ The first part date {1} should be lesser than or equal to the second part date {
   </data>
   <data name="SequentialDicomTagsNotSupported" xml:space="preserve">
     <value>Sequential dicom tags are currently not supported.</value>
+  </data>
+  <data name="InvalidDoubleValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified value '{0}' custom tag with path '{1}' is not a valid double value.</value>
+    <comment>{0} double value. {1} custom tag path.</comment>
+  </data>
+  <data name="InvalidLongValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified value '{0}' custom tag with path '{1}' is not a valid long value.</value>
+    <comment>{0} long value. {1} custom tag path.</comment>
   </data>
 </root>

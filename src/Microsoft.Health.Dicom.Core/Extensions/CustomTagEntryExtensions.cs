@@ -20,8 +20,9 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// Normalize custom tag entry before saving to CustomTagStore.
         /// </summary>
         /// <param name="customTagEntry">The custom tag entry.</param>
+        /// <param name="status"> The status to set on the custom tag entry.</param>
         /// <returns>Normalize custom tag entry.</returns>
-        public static CustomTagEntry Normalize(this CustomTagEntry customTagEntry)
+        public static CustomTagEntry Normalize(this CustomTagEntry customTagEntry, CustomTagStatus status)
         {
             DicomTagParser dicomTagParser = new DicomTagParser();
             DicomTag[] tags;
@@ -47,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             vr = vr.ToUpperInvariant();
 
-            return new CustomTagEntry { Path = path, VR = vr, Level = customTagEntry.Level, Status = customTagEntry.Status };
+            return new CustomTagEntry(path, vr, customTagEntry.Level, status);
         }
     }
 }
