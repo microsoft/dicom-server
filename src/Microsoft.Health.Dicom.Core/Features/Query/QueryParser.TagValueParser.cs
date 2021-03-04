@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public partial class QueryParser
     {
-        private static QueryFilterCondition ParseDateTagValue(DicomTag dicomTag, string value, string vr = null)
+        private static QueryFilterCondition ParseDateTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
         {
             if (QueryLimit.IsValidRangeQueryTag(dicomTag, vr))
             {
@@ -43,12 +43,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new DateSingleValueMatchCondition(dicomTag, parsedDate);
         }
 
-        private static QueryFilterCondition ParseStringTagValue(DicomTag dicomTag, string value, string vr = null)
+        private static QueryFilterCondition ParseStringTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
         {
             return new StringSingleValueMatchCondition(dicomTag, value);
         }
 
-        private static QueryFilterCondition ParseDoubleTagValue(DicomTag dicomTag, string value, string vr = null)
+        private static QueryFilterCondition ParseDoubleTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
         {
             if (!double.TryParse(value, out double val))
             {
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new DoubleSingleValueMatchCondition(dicomTag, val);
         }
 
-        private static QueryFilterCondition ParseLongTagValue(DicomTag dicomTag, string value, string vr = null)
+        private static QueryFilterCondition ParseLongTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
         {
             if (!long.TryParse(value, out long val))
             {

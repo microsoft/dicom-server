@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             IReadOnlyList<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
 
-            HashSet<CustomTagFilterDetails> supportedCustomTags = RetrieveSuupportedCustomTagsForQueryResourceType(customTags, message.QueryResourceType);
+            IDictionary<DicomTag, CustomTagFilterDetails> supportedCustomTags = RetrieveSupportedCustomTagsForQueryResourceType(customTags, message.QueryResourceType);
 
             QueryExpression queryExpression = _queryParser.Parse(message, supportedCustomTags);
 
@@ -76,9 +76,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new QueryResourceResponse(responseMetadata);
         }
 
-        private HashSet<CustomTagFilterDetails> RetrieveSuupportedCustomTagsForQueryResourceType(IReadOnlyList<CustomTagStoreEntry> customTags, QueryResource queryResource)
+        private IDictionary<DicomTag, CustomTagFilterDetails> RetrieveSupportedCustomTagsForQueryResourceType(IReadOnlyList<CustomTagStoreEntry> customTags, QueryResource queryResource)
         {
-            HashSet<CustomTagFilterDetails> ret = new HashSet<CustomTagFilterDetails>();
+            var ret = new Dictionary<DicomTag, CustomTagFilterDetails>();
 
             foreach (CustomTagStoreEntry customTag in customTags)
             {
@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                         // When querying for instances, custom tags of all levels can be filtered on.
                         // When querying for series, study and series custom tags can be filtered on.
                         // When querying for studies, study custom tags can be filtered on.
-                        ret.Add(new CustomTagFilterDetails(customTag.Key, customTag.Level, customTag.VR, dicomTag));
+                        ret.Add(dicomTag, new CustomTagFilterDetails(customTag.Key, customTag.Level, DicomVR.Parse(customTag.VR), dicomTag));
                     }
                 }
             }

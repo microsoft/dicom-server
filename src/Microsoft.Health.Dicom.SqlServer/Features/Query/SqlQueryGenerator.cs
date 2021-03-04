@@ -134,7 +134,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         {
             foreach (CustomTagFilterDetails filterDetails in _queryExpression.QueriedCustomTagFilterDetails)
             {
-                CustomTagDataType dataType = CustomTagLimit.CustomTagVRAndDataTypeMapping[filterDetails.VR];
+                CustomTagDataType dataType = CustomTagLimit.CustomTagVRAndDataTypeMapping[filterDetails.VR.Code];
                 string customTagTableAlias = null;
                 _stringBuilder.Append("INNER JOIN ");
                 switch (dataType)
@@ -301,11 +301,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         public override void Visit(StringSingleValueMatchCondition stringSingleValueMatchCondition)
         {
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(stringSingleValueMatchCondition.DicomTag, stringSingleValueMatchCondition.CustomTagFilterDetails?.VR);
-            var tableAlias = GetTableAlias(dicomTagSqlEntry);
+            var tableAlias = GetTableAlias(dicomTagSqlEntry, stringSingleValueMatchCondition.CustomTagFilterDetails?.Key);
             _stringBuilder
                 .Append("AND ");
 
-            tableAlias = AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, stringSingleValueMatchCondition) ?? tableAlias;
+            AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, stringSingleValueMatchCondition);
 
             _stringBuilder
                 .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
@@ -317,11 +317,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         public override void Visit(DoubleSingleValueMatchCondition doubleSingleValueMatchCondition)
         {
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(doubleSingleValueMatchCondition.DicomTag, doubleSingleValueMatchCondition.CustomTagFilterDetails?.VR);
-            var tableAlias = GetTableAlias(dicomTagSqlEntry);
+            var tableAlias = GetTableAlias(dicomTagSqlEntry, doubleSingleValueMatchCondition.CustomTagFilterDetails?.Key);
             _stringBuilder
                 .Append("AND ");
 
-            tableAlias = AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, doubleSingleValueMatchCondition) ?? tableAlias;
+            AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, doubleSingleValueMatchCondition);
 
             _stringBuilder
                 .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
@@ -333,11 +333,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         public override void Visit(LongSingleValueMatchCondition longSingleValueMatchCondition)
         {
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(longSingleValueMatchCondition.DicomTag, longSingleValueMatchCondition.CustomTagFilterDetails?.VR);
-            var tableAlias = GetTableAlias(dicomTagSqlEntry);
+            var tableAlias = GetTableAlias(dicomTagSqlEntry, longSingleValueMatchCondition.CustomTagFilterDetails?.Key);
             _stringBuilder
                 .Append("AND ");
 
-            tableAlias = AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, longSingleValueMatchCondition) ?? tableAlias;
+            AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, longSingleValueMatchCondition);
 
             _stringBuilder
                 .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
@@ -349,11 +349,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         public override void Visit(DateRangeValueMatchCondition rangeValueMatchCondition)
         {
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(rangeValueMatchCondition.DicomTag, rangeValueMatchCondition.CustomTagFilterDetails?.VR);
-            var tableAlias = GetTableAlias(dicomTagSqlEntry);
+            var tableAlias = GetTableAlias(dicomTagSqlEntry, rangeValueMatchCondition.CustomTagFilterDetails?.Key);
             _stringBuilder
                 .Append("AND ");
 
-            tableAlias = AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, rangeValueMatchCondition) ?? tableAlias;
+            AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, rangeValueMatchCondition);
 
             _stringBuilder
                 .Append(dicomTagSqlEntry.SqlColumn, tableAlias).Append(" BETWEEN ")
@@ -366,11 +366,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         public override void Visit(DateSingleValueMatchCondition dateSingleValueMatchCondition)
         {
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(dateSingleValueMatchCondition.DicomTag, dateSingleValueMatchCondition.CustomTagFilterDetails?.VR);
-            var tableAlias = GetTableAlias(dicomTagSqlEntry);
+            var tableAlias = GetTableAlias(dicomTagSqlEntry, dateSingleValueMatchCondition.CustomTagFilterDetails?.Key);
             _stringBuilder
                 .Append("AND ");
 
-            tableAlias = AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, dateSingleValueMatchCondition) ?? tableAlias;
+            AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, dateSingleValueMatchCondition);
 
             _stringBuilder
                 .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
@@ -386,11 +386,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             string[] words = fuzzyMatchCondition.Value.Split(delimiterChars, System.StringSplitOptions.RemoveEmptyEntries);
 
             var fuzzyMatchString = string.Join(" AND ", words.Select(w => $"\"{w}*\""));
-            var tableAlias = GetTableAlias(dicomTagSqlEntry);
+            var tableAlias = GetTableAlias(dicomTagSqlEntry, fuzzyMatchCondition.CustomTagFilterDetails?.Key);
             _stringBuilder
                 .Append("AND ");
 
-            tableAlias = AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, fuzzyMatchCondition) ?? tableAlias;
+            AppendCustomTagKeyFilter(dicomTagSqlEntry, tableAlias, fuzzyMatchCondition);
             _stringBuilder
                 .Append("CONTAINS(")
                 .Append(tableAlias)
@@ -402,39 +402,57 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .AppendLine();
         }
 
-        private string AppendCustomTagKeyFilter(DicomTagSqlEntry dicomTagSqlEntry, string tableAlias, QueryFilterCondition filterCondition)
+        private void AppendCustomTagKeyFilter(DicomTagSqlEntry dicomTagSqlEntry, string tableAlias, QueryFilterCondition filterCondition)
         {
             if (dicomTagSqlEntry.IsCustomTag)
             {
-                tableAlias += filterCondition.CustomTagFilterDetails.Key;
                 _stringBuilder
                     .Append(dicomTagSqlEntry.SqlKeyColumn, tableAlias)
                     .Append("=")
                     .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlKeyColumn, filterCondition.CustomTagFilterDetails.Key))
                     .AppendLine()
                     .Append("AND ");
-                return tableAlias;
             }
-
-            return null;
         }
 
-        private static string GetTableAlias(DicomTagSqlEntry sqlEntry)
+        private static string GetTableAlias(DicomTagSqlEntry sqlEntry, long? customTagKey)
         {
+            string ret = null;
             switch (sqlEntry.SqlTableType)
             {
-                case SqlTableType.InstanceTable: return InstanceTableAlias;
-                case SqlTableType.StudyTable: return StudyTableAlias;
-                case SqlTableType.SeriesTable: return SeriesTableAlias;
-                case SqlTableType.CustomTagBigIntTable: return CustomTagBigIntTableAlias;
-                case SqlTableType.CustomTagDateTimeTable: return CustomTagDateTimeTableAlias;
-                case SqlTableType.CustomTagDoubleTable: return CustomTagDoubleTableAlias;
-                case SqlTableType.CustomTagPersonNameTable: return CustomTagPersonNameTableAlias;
-                case SqlTableType.CustomTagStringTable: return CustomTagStringTableAlias;
+                case SqlTableType.InstanceTable:
+                    ret = InstanceTableAlias;
+                    break;
+                case SqlTableType.StudyTable:
+                    ret = StudyTableAlias;
+                    break;
+                case SqlTableType.SeriesTable:
+                    ret = SeriesTableAlias;
+                    break;
+                case SqlTableType.CustomTagBigIntTable:
+                    ret = CustomTagBigIntTableAlias;
+                    break;
+                case SqlTableType.CustomTagDateTimeTable:
+                    ret = CustomTagDateTimeTableAlias;
+                    break;
+                case SqlTableType.CustomTagDoubleTable:
+                    ret = CustomTagDoubleTableAlias;
+                    break;
+                case SqlTableType.CustomTagPersonNameTable:
+                    ret = CustomTagPersonNameTableAlias;
+                    break;
+                case SqlTableType.CustomTagStringTable:
+                    ret = CustomTagStringTableAlias;
+                    break;
             }
 
-            Debug.Fail("Invalid table type");
-            return null;
+            if (string.IsNullOrEmpty(ret))
+            {
+                Debug.Fail("Invalid table type");
+                return null;
+            }
+
+            return ret + customTagKey;
         }
     }
 }

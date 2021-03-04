@@ -56,14 +56,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             { QueryResource.StudySeriesInstances, StudySeriesInstancesTags },
         };
 
-        public static bool IsValidRangeQueryTag(DicomTag tag, string vr = null)
+        public static bool IsValidRangeQueryTag(DicomTag tag, DicomVR vr = null)
         {
-            return tag == DicomTag.StudyDate || string.Equals(vr, DicomVR.DA.Code, StringComparison.OrdinalIgnoreCase);
+            return tag == DicomTag.StudyDate || string.Equals(vr?.Code, DicomVR.DA.Code, StringComparison.OrdinalIgnoreCase);
         }
 
-        public static bool IsValidFuzzyMatchingQueryTag(DicomTag tag, string vr = null)
+        public static bool IsValidFuzzyMatchingQueryTag(DicomTag tag, DicomVR vr = null)
         {
-            return tag == DicomTag.PatientName || string.Equals(vr, DicomVR.PN.Code, StringComparison.OrdinalIgnoreCase);
+            return tag == DicomTag.PatientName || string.Equals(vr?.Code, DicomVR.PN.Code, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

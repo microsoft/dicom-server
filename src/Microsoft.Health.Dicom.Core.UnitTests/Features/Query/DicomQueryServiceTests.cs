@@ -88,14 +88,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(request, CancellationToken.None);
 
-            HashSet<CustomTagFilterDetails> filterDetails = new HashSet<CustomTagFilterDetails>()
-            {
-                new CustomTagFilterDetails(1, CustomTagLevel.Instance, "CS", DicomTag.ProcedureStepState),
-                new CustomTagFilterDetails(2, CustomTagLevel.Series, "DA", DicomTag.Date),
-                new CustomTagFilterDetails(3, CustomTagLevel.Study, "PN", DicomTag.PatientBirthName),
-            };
+            Dictionary<DicomTag, CustomTagFilterDetails> filterDetails = new Dictionary<DicomTag, CustomTagFilterDetails>();
+            filterDetails.Add(DicomTag.ProcedureStepState, new CustomTagFilterDetails(1, CustomTagLevel.Instance, DicomVR.CS, DicomTag.ProcedureStepState));
+            filterDetails.Add(DicomTag.Date, new CustomTagFilterDetails(2, CustomTagLevel.Series, DicomVR.DA, DicomTag.Date));
+            filterDetails.Add(DicomTag.PatientBirthName, new CustomTagFilterDetails(3, CustomTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
 
-            _queryParser.Received().Parse(request, Arg.Is<HashSet<CustomTagFilterDetails>>(x => x.SetEquals(filterDetails)));
+            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, CustomTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
         }
 
         [Theory]
@@ -120,13 +118,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(request, CancellationToken.None);
 
-            HashSet<CustomTagFilterDetails> filterDetails = new HashSet<CustomTagFilterDetails>()
-            {
-                new CustomTagFilterDetails(2, CustomTagLevel.Series, "DA", DicomTag.Date),
-                new CustomTagFilterDetails(3, CustomTagLevel.Study, "PN", DicomTag.PatientBirthName),
-            };
+            Dictionary<DicomTag, CustomTagFilterDetails> filterDetails = new Dictionary<DicomTag, CustomTagFilterDetails>();
+            filterDetails.Add(DicomTag.Date, new CustomTagFilterDetails(2, CustomTagLevel.Series, DicomVR.DA, DicomTag.Date));
+            filterDetails.Add(DicomTag.PatientBirthName, new CustomTagFilterDetails(3, CustomTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
 
-            _queryParser.Received().Parse(request, Arg.Is<HashSet<CustomTagFilterDetails>>(x => x.SetEquals(filterDetails)));
+            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, CustomTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
         }
 
         [Theory]
@@ -150,12 +146,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(request, CancellationToken.None);
 
-            HashSet<CustomTagFilterDetails> filterDetails = new HashSet<CustomTagFilterDetails>()
-            {
-                new CustomTagFilterDetails(3, CustomTagLevel.Study, "PN", DicomTag.PatientBirthName),
-            };
+            Dictionary<DicomTag, CustomTagFilterDetails> filterDetails = new Dictionary<DicomTag, CustomTagFilterDetails>();
+            filterDetails.Add(DicomTag.PatientBirthName, new CustomTagFilterDetails(3, CustomTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
 
-            _queryParser.Received().Parse(request, Arg.Is<HashSet<CustomTagFilterDetails>>(x => x.SetEquals(filterDetails)));
+            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, CustomTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
         }
     }
 }

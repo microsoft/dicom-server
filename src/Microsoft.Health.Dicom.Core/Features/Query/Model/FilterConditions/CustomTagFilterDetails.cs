@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public class CustomTagFilterDetails : IEquatable<CustomTagFilterDetails>
     {
-        public CustomTagFilterDetails(long tagKey, CustomTagLevel tagLevel, string vr, DicomTag tag)
+        public CustomTagFilterDetails(long tagKey, CustomTagLevel tagLevel, DicomVR vr, DicomTag tag)
         {
             Key = tagKey;
             VR = vr;
@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public long Key { get; }
 
-        public string VR { get; }
+        public DicomVR VR { get; }
 
         public CustomTagLevel Level { get; }
 
@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public override string ToString()
         {
-            return $"Key: {Key}, VRL {VR} Level:{Level} Tag:{Tag}";
+            return $"Key: {Key}, VR {VR.Code} Level:{Level} Tag:{Tag.ToString()}";
         }
 
         public override int GetHashCode()

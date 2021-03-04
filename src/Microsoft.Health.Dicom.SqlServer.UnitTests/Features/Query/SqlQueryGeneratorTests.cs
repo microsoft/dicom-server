@@ -90,13 +90,13 @@ ON i.SeriesKey = se.SeriesKey";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var filter = new StringSingleValueMatchCondition(DicomTag.ModelGroupUID, "123");
-            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Study, DicomTag.ModelGroupUID.GetDefaultVR().Code, DicomTag.ModelGroupUID);
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Study, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
             filter.CustomTagFilterDetails = filterDetails;
             var filters = new List<QueryFilterCondition>()
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, new List<CustomTagFilterDetails>() { filterDetails });
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -122,13 +122,13 @@ AND cts1.TagValue=@p1";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var filter = new LongSingleValueMatchCondition(DicomTag.NumberOfAssessmentObservations, 123);
-            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Study, DicomTag.NumberOfAssessmentObservations.GetDefaultVR().Code, DicomTag.NumberOfAssessmentObservations);
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Study, DicomTag.NumberOfAssessmentObservations.GetDefaultVR(), DicomTag.NumberOfAssessmentObservations);
             filter.CustomTagFilterDetails = filterDetails;
             var filters = new List<QueryFilterCondition>()
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, new List<CustomTagFilterDetails>() { filterDetails });
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -154,13 +154,13 @@ AND ctbi1.TagValue=@p1";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var filter = new DoubleSingleValueMatchCondition(DicomTag.FloatingPointValue, 123D);
-            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Study, DicomTag.FloatingPointValue.GetDefaultVR().Code, DicomTag.FloatingPointValue);
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Study, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
             filter.CustomTagFilterDetails = filterDetails;
             var filters = new List<QueryFilterCondition>()
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, new List<CustomTagFilterDetails>() { filterDetails });
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -186,13 +186,13 @@ AND ctd1.TagValue=@p1";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var filter = new DateRangeValueMatchCondition(DicomTag.Date, DateTime.ParseExact("19510910", QueryParser.DateTagValueFormat, null), DateTime.ParseExact("19571110", QueryParser.DateTagValueFormat, null));
-            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Study, DicomTag.Date.GetDefaultVR().Code, DicomTag.Date);
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Study, DicomTag.Date.GetDefaultVR(), DicomTag.Date);
             filter.CustomTagFilterDetails = filterDetails;
             var filters = new List<QueryFilterCondition>()
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, new List<CustomTagFilterDetails>() { filterDetails });
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -219,7 +219,7 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var customTagFilter = new StringSingleValueMatchCondition(DicomTag.ModelGroupUID, "123");
-            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR().Code, DicomTag.ModelGroupUID);
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
             customTagFilter.CustomTagFilterDetails = filterDetails;
             var filter = new StringSingleValueMatchCondition(DicomTag.Modality, "abc");
             var filters = new List<QueryFilterCondition>()
@@ -227,7 +227,7 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
                 filter,
                 customTagFilter,
             };
-            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, new List<CustomTagFilterDetails>() { filterDetails });
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -256,17 +256,17 @@ AND cts1.TagValue=@p2";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var filter1 = new StringSingleValueMatchCondition(DicomTag.ModelGroupUID, "abc");
-            var filterDetails1 = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR().Code, DicomTag.ModelGroupUID);
+            var filterDetails1 = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
             filter1.CustomTagFilterDetails = filterDetails1;
             var filter2 = new StringSingleValueMatchCondition(DicomTag.ContainerDescription, "description");
-            var filterDetails2 = new CustomTagFilterDetails(2, CustomTagLevel.Series, DicomTag.ContainerDescription.GetDefaultVR().Code, DicomTag.ContainerDescription);
+            var filterDetails2 = new CustomTagFilterDetails(2, CustomTagLevel.Series, DicomTag.ContainerDescription.GetDefaultVR(), DicomTag.ContainerDescription);
             filter2.CustomTagFilterDetails = filterDetails2;
             var filters = new List<QueryFilterCondition>()
             {
                 filter1,
                 filter2,
             };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails1, filterDetails2 });
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, new List<CustomTagFilterDetails>() { filterDetails1, filterDetails2 });
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -303,13 +303,13 @@ AND cts2.TagValue=@p3";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var filter1 = new StringSingleValueMatchCondition(DicomTag.ModelGroupUID, "abc");
-            var filterDetails1 = new CustomTagFilterDetails(1, CustomTagLevel.Instance, DicomTag.ModelGroupUID.GetDefaultVR().Code, DicomTag.ModelGroupUID);
+            var filterDetails1 = new CustomTagFilterDetails(1, CustomTagLevel.Instance, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
             filter1.CustomTagFilterDetails = filterDetails1;
             var filter2 = new StringSingleValueMatchCondition(DicomTag.ContainerDescription, "description");
-            var filterDetails2 = new CustomTagFilterDetails(2, CustomTagLevel.Series, DicomTag.ContainerDescription.GetDefaultVR().Code, DicomTag.ContainerDescription);
+            var filterDetails2 = new CustomTagFilterDetails(2, CustomTagLevel.Series, DicomTag.ContainerDescription.GetDefaultVR(), DicomTag.ContainerDescription);
             filter2.CustomTagFilterDetails = filterDetails2;
             var filter3 = new LongSingleValueMatchCondition(DicomTag.NumberOfAssessmentObservations, 123);
-            var filterDetails3 = new CustomTagFilterDetails(4, CustomTagLevel.Study, DicomTag.NumberOfAssessmentObservations.GetDefaultVR().Code, DicomTag.NumberOfAssessmentObservations);
+            var filterDetails3 = new CustomTagFilterDetails(4, CustomTagLevel.Study, DicomTag.NumberOfAssessmentObservations.GetDefaultVR(), DicomTag.NumberOfAssessmentObservations);
             filter3.CustomTagFilterDetails = filterDetails3;
             var filters = new List<QueryFilterCondition>()
             {
@@ -317,7 +317,7 @@ AND cts2.TagValue=@p3";
                 filter2,
                 filter3,
             };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails1, filterDetails2, filterDetails3 });
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, new List<CustomTagFilterDetails>() { filterDetails1, filterDetails2, filterDetails3 });
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -383,13 +383,13 @@ AND ctbi4.TagValue=@p5";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var filter = new PersonNameFuzzyMatchCondition(DicomTag.ConsultingPhysicianName, "Fall 6");
-            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.ConsultingPhysicianName.GetDefaultVR().Code, DicomTag.ConsultingPhysicianName);
+            var filterDetails = new CustomTagFilterDetails(1, CustomTagLevel.Series, DicomTag.ConsultingPhysicianName.GetDefaultVR(), DicomTag.ConsultingPhysicianName);
             filter.CustomTagFilterDetails = filterDetails;
             var filters = new List<QueryFilterCondition>()
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, true, 10, 0, filters, new HashSet<CustomTagFilterDetails>() { filterDetails });
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, true, 10, 0, filters, new List<CustomTagFilterDetails>() { filterDetails });
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
             new SqlQueryGenerator(stringBuilder, query, parm);
