@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
             return new CustomTagEntry(tag.GetPath(), tag.GetDefaultVR()?.Code, level, status);
         }
 
-        public static CustomTagStoreEntry BuildCustomTagStoreEntry(this DicomTag tag, long key = 1, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Reindexing)
+        public static CustomTagStoreEntry BuildCustomTagStoreEntry(this DicomTag tag, int key = 1, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Reindexing)
         {
             return new CustomTagStoreEntry(key: key, path: tag.GetPath(), vr: tag.DictionaryEntry.ValueRepresentations[0].Code, level: level, status: status);
         }

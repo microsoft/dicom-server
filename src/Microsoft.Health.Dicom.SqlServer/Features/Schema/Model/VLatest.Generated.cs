@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly VarCharColumn TagPath = new VarCharColumn("TagPath", 64);
             internal readonly VarCharColumn TagVR = new VarCharColumn("TagVR", 2);
             internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
@@ -76,7 +76,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly FloatColumn TagValue = new FloatColumn("TagValue", 53);
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 200, "SQL_Latin1_General_CP1_CI_AI");
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
@@ -139,7 +139,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+            internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 64);
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
