@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class CustomTagStoreEntry
     {
-        public CustomTagStoreEntry(long key, string path, string vr, CustomTagLevel level, CustomTagStatus status)
+        public CustomTagStoreEntry(int key, string path, string vr, CustomTagLevel level, CustomTagStatus status)
         {
             Key = key;
             Path = path;
@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <summary>
         /// Key of this custom tag entry.
         /// </summary>
-        public long Key { get; set; }
+        public int Key { get; set; }
 
         /// <summary>
         /// Path of this tag. Normally it's composed of groupid and elementid.
