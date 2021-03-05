@@ -8,7 +8,10 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Xunit;
 
@@ -17,11 +20,64 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public class CustomTagStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     {
         private readonly ICustomTagStore _customTagStore;
+        private readonly IIndexDataStore _indexDataStore;
 
         public CustomTagStoreTests(SqlDataStoreTestsFixture fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             _customTagStore = fixture.CustomTagStore;
+            _indexDataStore = fixture.IndexDataStore;
+        }
+
+        private static DicomDataset CreateTestDicomDataset(string studyInstanceUid = null, string seriesInstanceUid = null, string sopInstanceUid = null)
+        {
+            if (string.IsNullOrEmpty(studyInstanceUid))
+            {
+                studyInstanceUid = TestUidGenerator.Generate();
+            }
+
+            if (string.IsNullOrEmpty(seriesInstanceUid))
+            {
+                seriesInstanceUid = TestUidGenerator.Generate();
+            }
+
+            if (string.IsNullOrEmpty(sopInstanceUid))
+            {
+                sopInstanceUid = TestUidGenerator.Generate();
+            }
+
+            DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
+
+            dataset.Remove(DicomTag.PatientID);
+
+            dataset.Add(DicomTag.PatientID, "pid");
+            dataset.Add(DicomTag.PatientName, "pname");
+            dataset.Add(DicomTag.ReferringPhysicianName, "rname");
+            dataset.Add(DicomTag.StudyDate, "20200301");
+            dataset.Add(DicomTag.StudyDescription, "sd");
+            dataset.Add(DicomTag.AccessionNumber, "an");
+            dataset.Add(DicomTag.Modality, "M");
+            dataset.Add(DicomTag.PerformedProcedureStepStartDate, "20200302");
+            return dataset;
+        }
+
+        [Fact]
+        public async Task GivenDicomInstanceWithCustomTag_WhenAdded_ThenCustomTagsNeedToBeAdded()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            DicomDataset dataset = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            DicomTag tag1 = DicomTag.ConversionType, tag2 = DicomTag.SpecificCharacterSet;
+            dataset.Add(tag1, "SYN");
+            dataset.Add(tag2, "ISO_IR 192");
+            CustomTagEntry entry1 = tag1.BuildCustomTagEntry(level: CustomTagLevel.Instance);
+            CustomTagEntry entry2 = tag2.BuildCustomTagEntry(level: CustomTagLevel.Study);
+            await _customTagStore.AddCustomTagsAsync(new CustomTagEntry[] { entry1, entry2 });
+
+            var customTags = await _customTagStore.GetCustomTagsAsync();
+            var tags = customTags.Select(x => x.Convert());
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, tags);
         }
 
         [Fact]

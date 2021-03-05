@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
@@ -157,6 +158,50 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             {
                 dicomDataset.Add(dicomTag, value);
             }
+        }
+
+        public static IReadOnlyDictionary<IndexTag, object> GetIndexableValues(this DicomDataset dicomDataset, IEnumerable<IndexTag> indexableDicomTags)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(indexableDicomTags, nameof(indexableDicomTags));
+            Dictionary<IndexTag, object> result = new Dictionary<IndexTag, object>();
+
+            Dictionary<string, IndexTag> privateTags = new Dictionary<string, IndexTag>();
+
+            // standard tags
+            foreach (var tag in indexableDicomTags)
+            {
+                if (!tag.Tag.IsPrivate)
+                {
+                    DicomElement element = dicomDataset.GetDicomItem<DicomElement>(tag.Tag);
+                    if (element != null)
+                    {
+                        result.Add(tag, element.GetValue());
+                    }
+                }
+                else
+                {
+                    privateTags.Add(tag.Tag.GetPath(), tag);
+                }
+            }
+
+            // private tag
+            if (privateTags.Count != 0)
+            {
+                foreach (var item in dicomDataset)
+                {
+                    if (item.Tag.IsPrivate)
+                    {
+                        string path = item.Tag.GetPath();
+                        if (privateTags.ContainsKey(path) && item.ValueRepresentation == privateTags[path].VR && item is DicomElement)
+                        {
+                            result.Add(privateTags[path], (item as DicomElement).GetValue());
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

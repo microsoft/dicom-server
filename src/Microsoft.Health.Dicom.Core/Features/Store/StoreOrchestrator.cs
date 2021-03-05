@@ -11,6 +11,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
@@ -27,22 +28,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
         private readonly IDeleteService _deleteService;
+        private readonly IIndexTagService _indexTagService;
 
         public StoreOrchestrator(
             IFileStore fileStore,
             IMetadataStore metadataStore,
             IIndexDataStore indexDataStore,
-            IDeleteService deleteService)
+            IDeleteService deleteService,
+            IIndexTagService indexTagService)
         {
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(deleteService, nameof(deleteService));
+            EnsureArg.IsNotNull(indexTagService, nameof(indexTagService));
 
             _fileStore = fileStore;
             _metadataStore = metadataStore;
             _indexDataStore = indexDataStore;
             _deleteService = deleteService;
+            _indexTagService = indexTagService;
         }
 
         /// <inheritdoc />
@@ -53,8 +58,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
-
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, cancellationToken);
+            var dicomTags = await _indexTagService.GetIndexTagsAsync(cancellationToken);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, dicomTags, cancellationToken);
 
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 

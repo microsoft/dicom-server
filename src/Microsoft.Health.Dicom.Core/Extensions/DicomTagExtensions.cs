@@ -56,12 +56,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// <param name="dicomTag">The dicomTag</param>
         /// <param name="level">The tag level.</param>
         /// <param name="dicomVR">The dicomVR. If use default one if not sepcified.</param>
-        /// <param name="isCustomTag">True if its customtag, false otherwise</param>
         /// <returns>The indexTag</returns>
-        public static IndexTag Convert(this DicomTag dicomTag, CustomTagLevel level, DicomVR dicomVR = null, bool isCustomTag = false)
+        public static IndexTag Convert(this DicomTag dicomTag, CustomTagLevel level, DicomVR dicomVR = null)
         {
             EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
-            return new IndexTag(dicomTag, dicomVR ?? dicomTag.GetDefaultVR(), level, isCustomTag: isCustomTag);
+            return new IndexTag(dicomTag, dicomVR ?? dicomTag.GetDefaultVR(), level, customTagStoreEntry: null);
         }
     }
 }

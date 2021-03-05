@@ -538,6 +538,50 @@ CREATE TYPE dbo.AddCustomTagsInputTableType_1 AS TABLE
 GO
 
 /*************************************************************
+    Table valued parameter to insert into Custom table for data type String
+*************************************************************/
+CREATE TYPE dbo.InsertStringCustomTagTableType_1 AS TABLE
+(
+    TagKey                     BIGINT,
+    TagValue                   NVARCHAR(64),
+    TagLevel                   TINYINT
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Big Int
+*************************************************************/
+CREATE TYPE dbo.InsertBigIntCustomTagTableType_1 AS TABLE
+(
+    TagKey                     BIGINT,
+    TagValue                BIGINT,
+    TagLevel                   TINYINT
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Date Time
+*************************************************************/
+CREATE TYPE dbo.InsertDateTimeCustomTagTableType_1 AS TABLE
+(
+    TagKey                     BIGINT,
+    TagValue              DATETIME2(7),
+    TagLevel                   TINYINT
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Person Name
+*************************************************************/
+CREATE TYPE dbo.InsertPersonNameCustomTagTableType_1 AS TABLE
+(
+    TagKey                     BIGINT,
+    TagValue            NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
+    TagLevel                   TINYINT
+)
+GO
+
+/*************************************************************
     Sequence for generating sequential unique ids
 **************************************************************/
 
@@ -632,6 +676,10 @@ CREATE PROCEDURE dbo.AddInstance
     @accessionNumber                    NVARCHAR(64) = NULL,
     @modality                           NVARCHAR(16) = NULL,
     @performedProcedureStepStartDate    DATE = NULL,
+    @stringCustomTags dbo.InsertStringCustomTagTableType_1 READONLY,
+    @bigIntCustomTags dbo.InsertBigIntCustomTagTableType_1 READONLY,
+    @dateTimeCustomTags dbo.InsertDateTimeCustomTagTableType_1 READONLY,
+    @personNameCustomTags dbo.InsertPersonNameCustomTagTableType_1 READONLY,
     @initialStatus                      TINYINT
 AS
     SET NOCOUNT ON
@@ -707,6 +755,42 @@ AS
         WHERE SeriesKey = @seriesKey
         AND StudyKey = @studyKey
     END
+
+    -- Insert Custom Tags
+       DECLARE @rowCount AS BIGINT
+       SET @rowCount = (SELECT COUNT(TagKey) FROM @stringCustomTags)
+
+    -- String tags
+	    IF @rowCount <> 0
+	    BEGIN
+	        -- Validate and lock custom tags
+	        SELECT * FROM dbo.CustomTag WITH (UPDLOCK)
+	        INNER JOIN @stringCustomTags input
+	        ON input.TagKey = dbo.CustomTag.TagKey 
+	        AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
+	
+	        IF @@ROWCOUNT<>@rowCOUNT
+	            THROW 50000, 'Custom Tags have been changed', 1
+	
+	        -- Merge into dbo.CustomTagString table        
+	        MERGE INTO dbo.CustomTagString AS T
+	        USING @stringCustomTags AS S
+	        ON T.TagKey=S.TagKey
+	        AND T.StudyKey=@studyKey AND
+	        ISNULL(T.SeriesKey,@seriesKey) = @seriesKey AND
+	        ISNULL(T.InstanceKey,@instanceKey) = @instanceKey
+	        WHEN MATCHED
+	        THEN UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+	        WHEN NOT MATCHED 
+	        THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+	        VALUES(
+	        S.TagKey,
+	        S.TagValue,
+	        @studyKey,
+	        (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
+	        (CASE WHEN S.TagLevel=1 THEN @instanceKey ELSE NULL END),
+	        @newWatermark);        
+	    END
 
     -- Insert Instance
     INSERT INTO dbo.Instance
