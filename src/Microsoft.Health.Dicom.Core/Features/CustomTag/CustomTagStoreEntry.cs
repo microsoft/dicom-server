@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         }
 
         /// <summary>
-        /// Key of this custom tag entry.
+        /// Key of this custom tag entry. 
         /// </summary>
         public int Key { get; set; }
 
