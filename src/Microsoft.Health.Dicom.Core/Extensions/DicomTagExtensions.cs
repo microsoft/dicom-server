@@ -26,18 +26,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         /// <summary>
-        /// Remove PrivateCreator for private dicom tag.
-        /// </summary>
-        /// <param name="dicomTag">The dicom tag.</param>
-        /// <returns>The dicom tag without privatecreator</returns>
-        public static DicomTag RemovePrivateCreator(this DicomTag dicomTag)
-        {
-            EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
-            EnsureArg.IsTrue(dicomTag.IsPrivate);
-            return DicomTag.Parse(dicomTag.GetPath());
-        }
-
-        /// <summary>
         /// Get default VR for dicom tag.
         /// </summary>
         /// <remarks>If the dicom tag is private or unknown tag, <see langword="null"/> is returned.</remarks>

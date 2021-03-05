@@ -103,14 +103,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
-            IReadOnlyCollection<IndexTag> indexableTags = await _indextagService.GetIndexTagsAsync(cancellationToken);
+            IReadOnlyCollection<IndexTag> indexTags = await _indextagService.GetIndexTagsAsync(cancellationToken);
 
-            HashSet<DicomTag> standardTags = indexableTags.Select(indexableTag => indexableTag.Tag)
+            HashSet<DicomTag> standardTags = indexTags.Select(indexTag => indexTag.Tag)
                 .Where(tag => !tag.IsPrivate)
                 .ToHashSet();
 
-            IDictionary<DicomTag, DicomVR> privateTags = indexableTags.Where(indexableTag => indexableTag.Tag.IsPrivate)
-                .ToDictionary(indexableTag => indexableTag.Tag, indexableTag => indexableTag.VR);
+            IDictionary<string, DicomVR> privateTags = indexTags.Where(indexTag => indexTag.Tag.IsPrivate)
+                .ToDictionary(indexTag => indexTag.Tag.GetPath(), indexTag => indexTag.VR);
 
             ValidateStandardTags(dicomDataset, standardTags);
             ValidatePrivateTags(dicomDataset, privateTags);
@@ -129,7 +129,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
         }
 
-        private void ValidatePrivateTags(DicomDataset dicomDataset, IDictionary<DicomTag, DicomVR> privateTags)
+        private void ValidatePrivateTags(DicomDataset dicomDataset, IDictionary<string, DicomVR> privateTags)
         {
             // dicomDataset.GetDicomItem<DicomElement>() cannot get value for private tag, we need to loop and compare with path.
             foreach (DicomItem item in dicomDataset)
@@ -137,8 +137,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 if (item.Tag.IsPrivate)
                 {
                     // DicomTag from DicomDataset contains PrivateCreator, while the one from database doesn't have, need to remove private creator before comparision
-                    DicomTag tag = item.Tag.RemovePrivateCreator();
-                    if (privateTags.ContainsKey(tag) && privateTags[tag].Equals(item.ValueRepresentation))
+                    string tagPath = item.Tag.GetPath();
+                    if (privateTags.ContainsKey(tagPath) && privateTags[tagPath].Equals(item.ValueRepresentation))
                     {
                         DicomElement element = item as DicomElement;
                         if (element != null)
