@@ -125,15 +125,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 }
             }
 
-            // IndexTag don't have privateCreator for private tag, need to fill that part from DicomDataset.
-            foreach (DicomItem item in dicomDataset)
+            if (privateTags.Count != 0)
             {
-                if (item.Tag.IsPrivate)
+                // IndexTag don't have privateCreator for private tag, need to fill that part from DicomDataset.
+                foreach (DicomItem item in dicomDataset)
                 {
-                    string tagPath = item.Tag.GetPath();
-                    if (privateTags.ContainsKey(tagPath) && privateTags[tagPath].Equals(item.ValueRepresentation))
+                    if (item.Tag.IsPrivate)
                     {
-                        result.Add(item.Tag);
+                        string tagPath = item.Tag.GetPath();
+                        if (privateTags.ContainsKey(tagPath) && privateTags[tagPath].Equals(item.ValueRepresentation))
+                        {
+                            result.Add(item.Tag);
+                        }
                     }
                 }
             }
