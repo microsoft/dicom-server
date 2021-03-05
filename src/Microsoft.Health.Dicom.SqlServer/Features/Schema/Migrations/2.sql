@@ -1219,7 +1219,8 @@ AS
     BEGIN TRANSACTION
         
         -- Lock the tag from external updates
-        SELECT TagKey FROM dbo.CustomTag WITH(HOLDLOCK)
+        SELECT @tagStatus = TagStatus
+        FROM dbo.CustomTag WITH(HOLDLOCK)
         WHERE dbo.CustomTag.TagKey = @tagKey
          
          -- Check existence
