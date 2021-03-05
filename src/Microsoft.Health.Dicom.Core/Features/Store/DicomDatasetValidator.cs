@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -105,47 +104,52 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         {
             IReadOnlyCollection<IndexTag> indexTags = await _indextagService.GetIndexTagsAsync(cancellationToken);
 
-            HashSet<DicomTag> standardTags = indexTags.Select(indexTag => indexTag.Tag)
-                .Where(tag => !tag.IsPrivate)
-                .ToHashSet();
+            var tags = GetDicomTags(dicomDataset, indexTags);
 
-            IDictionary<string, DicomVR> privateTags = indexTags.Where(indexTag => indexTag.Tag.IsPrivate)
-                .ToDictionary(indexTag => indexTag.Tag.GetPath(), indexTag => indexTag.VR);
-
-            ValidateStandardTags(dicomDataset, standardTags);
-            ValidatePrivateTags(dicomDataset, privateTags);
+            ValidateTags(dicomDataset, tags);
         }
 
-        private void ValidateStandardTags(DicomDataset dicomDataset, HashSet<DicomTag> standardTags)
+        private static IEnumerable<DicomTag> GetDicomTags(DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
         {
-            foreach (DicomTag indexableTag in standardTags)
+            HashSet<DicomTag> result = new HashSet<DicomTag>();
+            Dictionary<string, IndexTag> privateTags = new Dictionary<string, IndexTag>();
+            foreach (IndexTag indexTag in indexTags)
+            {
+                if (!indexTag.Tag.IsPrivate)
+                {
+                    result.Add(indexTag.Tag);
+                }
+                else
+                {
+                    privateTags.Add(indexTag.Tag.GetPath(), indexTag);
+                }
+            }
+
+            // IndexTag don't have privateCreator for private tag, need to fill that part from DicomDataset.
+            foreach (DicomItem item in dicomDataset)
+            {
+                if (item.Tag.IsPrivate)
+                {
+                    string tagPath = item.Tag.GetPath();
+                    if (privateTags.ContainsKey(tagPath) && privateTags[tagPath].Equals(item.ValueRepresentation))
+                    {
+                        result.Add(item.Tag);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private void ValidateTags(DicomDataset dicomDataset, IEnumerable<DicomTag> tags)
+        {
+            foreach (DicomTag indexableTag in tags)
             {
                 DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(indexableTag);
 
                 if (dicomElement != null)
                 {
                     _minimumValidator.Validate(dicomElement);
-                }
-            }
-        }
-
-        private void ValidatePrivateTags(DicomDataset dicomDataset, IDictionary<string, DicomVR> privateTags)
-        {
-            // dicomDataset.GetDicomItem<DicomElement>() cannot get value for private tag, we need to loop and compare with path.
-            foreach (DicomItem item in dicomDataset)
-            {
-                if (item.Tag.IsPrivate)
-                {
-                    // DicomTag from DicomDataset contains PrivateCreator, while the one from database doesn't have, need to remove private creator before comparision
-                    string tagPath = item.Tag.GetPath();
-                    if (privateTags.ContainsKey(tagPath) && privateTags[tagPath].Equals(item.ValueRepresentation))
-                    {
-                        DicomElement element = item as DicomElement;
-                        if (element != null)
-                        {
-                            _minimumValidator.Validate(element);
-                        }
-                    }
                 }
             }
         }

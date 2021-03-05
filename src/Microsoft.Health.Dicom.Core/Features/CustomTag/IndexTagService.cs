@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -42,12 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                     _allIndexTags = new List<IndexTag>(CoreIndexTags);
 
                     IReadOnlyList<CustomTagStoreEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(cancellationToken: cancellationToken);
-                    foreach (CustomTagStoreEntry customTagEntry in customTagEntries)
-                    {
-                        DicomTag tag = DicomTag.Parse(customTagEntry.Path);
-                        DicomVR vr = DicomVR.Parse(customTagEntry.VR);
-                        _allIndexTags.Add(new IndexTag(tag, vr, customTagEntry.Level, isCustomTag: true));
-                    }
+                    _allIndexTags.AddRange(customTagEntries.Select(entry => entry.Convert()));
 
                     _allIndexTagsCompletionSource.SetResult(true);
                 }
@@ -64,9 +58,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         private static IReadOnlyList<IndexTag> GetCoreIndexTags()
         {
             List<IndexTag> coreTags = new List<IndexTag>();
-            coreTags.AddRange(QueryLimit.AllStudiesTags.Select(tag => new IndexTag(tag, tag.GetDefaultVR(), CustomTagLevel.Study, isCustomTag: false)));
-            coreTags.AddRange(QueryLimit.StudySeriesTags.Select(tag => new IndexTag(tag, tag.GetDefaultVR(), CustomTagLevel.Series, isCustomTag: false)));
-            coreTags.AddRange(QueryLimit.StudySeriesInstancesTags.Select(tag => new IndexTag(tag, tag.GetDefaultVR(), CustomTagLevel.Instance, isCustomTag: false)));
+            coreTags.AddRange(QueryLimit.AllStudiesTags.Select(tag => tag.Convert(CustomTagLevel.Study)));
+            coreTags.AddRange(QueryLimit.StudySeriesTags.Select(tag => tag.Convert(CustomTagLevel.Series)));
+            coreTags.AddRange(QueryLimit.StudySeriesInstancesTags.Select(tag => tag.Convert(CustomTagLevel.Instance)));
             return coreTags;
         }
     }
