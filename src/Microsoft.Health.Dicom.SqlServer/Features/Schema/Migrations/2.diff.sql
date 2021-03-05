@@ -273,19 +273,31 @@ AS
 
     BEGIN TRANSACTION
         
-        -- Check if tag exsit
+        -- Lock the tag from external updates
         DECLARE @tagStatus TINYINT
         DECLARE @tagKey BIGINT
         SELECT @tagKey = TagKey, @tagStatus = TagStatus
         FROM dbo.CustomTag WITH(HOLDLOCK) 
         WHERE dbo.CustomTag.TagPath = @tagPath
 
+        -- Check existence
         IF @@ROWCOUNT = 0
             THROW 50404, 'custom tag not found', 1 
 
         -- check if status is Added
         IF @tagStatus <> 1 
             THROW 50412, 'custom tag is not in status Added', 1
+
+        -- Update status to Deindexing
+        UPDATE dbo.CustomTag SET TagStatus = 2 
+        WHERE dbo.CustomTag.TagKey = @tagKey
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+        -- Lock the tag from external updates
+        SELECT TagKey FROM dbo.CustomTag WITH(HOLDLOCK)
+        WHERE dbo.CustomTag.TagKey = @tagKey
 
         -- Delete index data
         IF @dataType = 0

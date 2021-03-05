@@ -77,8 +77,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             CustomTagEntry customTagEntry = tag.BuildCustomTagEntry();
-            await _customTagStore.AddCustomTagsAsync(new CustomTagEntry[] { customTagEntry });
-            await _customTagStore.DeleteCustomTagAsync(customTagEntry.Path, customTagEntry.VR);
+            await Assert.ThrowsAsync<CustomTagNotFoundException>(() => _customTagStore.DeleteCustomTagAsync(customTagEntry.Path, customTagEntry.VR));
             await VerifyTagNotExist(customTagEntry.Path);
         }
 
