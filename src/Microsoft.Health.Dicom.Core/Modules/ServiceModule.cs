@@ -137,7 +137,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<IndexableDicomTagService>()
+            services.Add<IndexTagService>()
                    .Scoped()
                    .AsSelf()
                    .AsImplementedInterfaces();

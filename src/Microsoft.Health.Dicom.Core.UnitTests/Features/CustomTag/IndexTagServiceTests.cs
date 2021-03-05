@@ -14,17 +14,17 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
 {
-    public class IndexableDicomTagServiceTests
+    public class IndexTagServiceTests
     {
         private readonly ICustomTagStore _customTagStore;
-        private readonly IIndexableDicomTagService _indexableDicomTagService;
+        private readonly IIndexTagService _indexTagService;
         private readonly FeatureConfiguration _featureConfiguration;
 
-        public IndexableDicomTagServiceTests()
+        public IndexTagServiceTests()
         {
             _customTagStore = Substitute.For<ICustomTagStore>();
             _featureConfiguration = new FeatureConfiguration() { EnableCustomQueryTags = true };
-            _indexableDicomTagService = new IndexableDicomTagService(_customTagStore, Options.Create(_featureConfiguration));
+            _indexTagService = new IndexTagService(_customTagStore, Options.Create(_featureConfiguration));
         }
 
         [Fact]
@@ -33,8 +33,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             _customTagStore.GetCustomTagsAsync(null, Arg.Any<CancellationToken>())
                   .Returns(Array.Empty<CustomTagStoreEntry>());
 
-            await _indexableDicomTagService.GetIndexableDicomTagsAsync();
-            await _indexableDicomTagService.GetIndexableDicomTagsAsync();
+            await _indexTagService.GetIndexTagsAsync();
+            await _indexTagService.GetIndexTagsAsync();
             await _customTagStore.Received(1).GetCustomTagsAsync(null, Arg.Any<CancellationToken>());
         }
 
@@ -42,8 +42,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         public async Task GivenEnableCustomQueryTagsIsDisabled_WhenGetCustomTagsIsCalledMultipleTimes_ThenCustomTagStoreShouldNotBeCalled()
         {
             FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableCustomQueryTags = false };
-            IIndexableDicomTagService indexableDicomTagService = new IndexableDicomTagService(_customTagStore, Options.Create(featureConfiguration));
-            await indexableDicomTagService.GetIndexableDicomTagsAsync();
+            IIndexTagService indexableDicomTagService = new IndexTagService(_customTagStore, Options.Create(featureConfiguration));
+            await indexableDicomTagService.GetIndexTagsAsync();
             await _customTagStore.DidNotReceive().GetCustomTagsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         }
     }

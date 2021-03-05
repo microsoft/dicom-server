@@ -11,9 +11,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// <summary>
     /// Indexable Dicom Tag.
     /// </summary>
-    public class IndexableDicomTag
+    public class IndexTag
     {
-        public IndexableDicomTag(DicomTag tag, DicomVR vr, CustomTagLevel level, bool isCustomTag)
+        public IndexTag(DicomTag tag, DicomVR vr, CustomTagLevel level, bool isCustomTag)
         {
             EnsureArg.IsNotNull(tag, nameof(tag));
             EnsureArg.IsNotNull(vr, nameof(vr));

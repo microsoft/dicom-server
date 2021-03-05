@@ -16,14 +16,16 @@ using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
-    public class IndexableDicomTagService : IIndexableDicomTagService
+    public class IndexTagService : IIndexTagService
     {
         private readonly ICustomTagStore _customTagStore;
         private readonly bool _enableCustomQueryTags;
-        public static readonly IReadOnlyList<IndexableDicomTag> CoreIndexableDicomTags = GetCoreIndexableDicomTags();
-        private List<IndexableDicomTag> _allIndexableDicomTags;
+        public static readonly IReadOnlyList<IndexTag> CoreIndexTags = GetCoreIndexTags();
+        private List<IndexTag> _allIndexTags;
+        private int _allIndexTagsStatus;
+        private TaskCompletionSource<bool> _allIndexTagsCompletionSource = new TaskCompletionSource<bool>();
 
-        public IndexableDicomTagService(ICustomTagStore customTagStore, IOptions<FeatureConfiguration> featureConfiguration)
+        public IndexTagService(ICustomTagStore customTagStore, IOptions<FeatureConfiguration> featureConfiguration)
         {
             EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
@@ -31,37 +33,40 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             _enableCustomQueryTags = featureConfiguration.Value.EnableCustomQueryTags;
         }
 
-        public async Task<IReadOnlyCollection<IndexableDicomTag>> GetIndexableDicomTagsAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyCollection<IndexTag>> GetIndexTagsAsync(CancellationToken cancellationToken = default)
         {
             if (_enableCustomQueryTags)
             {
-                if (_allIndexableDicomTags == null)
+                if (Interlocked.CompareExchange(ref _allIndexTagsStatus, 1, 0) == 0)
                 {
-                    _allIndexableDicomTags = new List<IndexableDicomTag>(CoreIndexableDicomTags);
+                    _allIndexTags = new List<IndexTag>(CoreIndexTags);
 
                     IReadOnlyList<CustomTagStoreEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(cancellationToken: cancellationToken);
                     foreach (CustomTagStoreEntry customTagEntry in customTagEntries)
                     {
                         DicomTag tag = DicomTag.Parse(customTagEntry.Path);
                         DicomVR vr = DicomVR.Parse(customTagEntry.VR);
-                        _allIndexableDicomTags.Add(new IndexableDicomTag(tag, vr, customTagEntry.Level, isCustomTag: true));
+                        _allIndexTags.Add(new IndexTag(tag, vr, customTagEntry.Level, isCustomTag: true));
                     }
+
+                    _allIndexTagsCompletionSource.SetResult(true);
                 }
 
-                return _allIndexableDicomTags;
+                await _allIndexTagsCompletionSource.Task;
+                return _allIndexTags;
             }
             else
             {
-                return CoreIndexableDicomTags;
+                return CoreIndexTags;
             }
         }
 
-        private static IReadOnlyList<IndexableDicomTag> GetCoreIndexableDicomTags()
+        private static IReadOnlyList<IndexTag> GetCoreIndexTags()
         {
-            List<IndexableDicomTag> coreTags = new List<IndexableDicomTag>();
-            coreTags.AddRange(QueryLimit.AllStudiesTags.Select(tag => new IndexableDicomTag(tag, tag.GetDefaultVR(), CustomTagLevel.Study, isCustomTag: false)));
-            coreTags.AddRange(QueryLimit.StudySeriesTags.Select(tag => new IndexableDicomTag(tag, tag.GetDefaultVR(), CustomTagLevel.Series, isCustomTag: false)));
-            coreTags.AddRange(QueryLimit.StudySeriesInstancesTags.Select(tag => new IndexableDicomTag(tag, tag.GetDefaultVR(), CustomTagLevel.Instance, isCustomTag: false)));
+            List<IndexTag> coreTags = new List<IndexTag>();
+            coreTags.AddRange(QueryLimit.AllStudiesTags.Select(tag => new IndexTag(tag, tag.GetDefaultVR(), CustomTagLevel.Study, isCustomTag: false)));
+            coreTags.AddRange(QueryLimit.StudySeriesTags.Select(tag => new IndexTag(tag, tag.GetDefaultVR(), CustomTagLevel.Series, isCustomTag: false)));
+            coreTags.AddRange(QueryLimit.StudySeriesInstancesTags.Select(tag => new IndexTag(tag, tag.GetDefaultVR(), CustomTagLevel.Instance, isCustomTag: false)));
             return coreTags;
         }
     }

@@ -12,13 +12,13 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// <summary>
     /// Service provides indexable dicom tags.
     /// </summary>
-    public interface IIndexableDicomTagService
+    public interface IIndexTagService
     {
         /// <summary>
         /// Get Indexable dicom tags.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Indexable dicom tags.</returns>
-        Task<IReadOnlyCollection<IndexableDicomTag>> GetIndexableDicomTagsAsync(CancellationToken cancellationToken = default);
+        Task<IReadOnlyCollection<IndexTag>> GetIndexTagsAsync(CancellationToken cancellationToken = default);
     }
 }
