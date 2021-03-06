@@ -116,7 +116,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             const ushort failureCode = 500;
 
             _dicomDatasetValidator
-                .When(validator => validator.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
+                .When(validator => validator.ValidateAsync(Arg.Any<DicomDataset>(), Arg.Any<string>(), Arg.Any<CancellationToken>()))
                 .Do(_ => throw new DatasetValidationException(failureCode, "test"));
 
             IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
@@ -173,7 +173,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             dicomInstanceEntryToFail.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
             _dicomDatasetValidator
-                .When(dicomDatasetMinimumRequirementValidator => dicomDatasetMinimumRequirementValidator.Validate(_dicomDataset2, null))
+                .When(dicomDatasetMinimumRequirementValidator => dicomDatasetMinimumRequirementValidator.ValidateAsync(_dicomDataset2, null, Arg.Any<CancellationToken>()))
                 .Do(_ => throw new Exception());
 
             await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToFail);
