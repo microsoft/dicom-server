@@ -84,6 +84,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     break;
                 case InstanceAlreadyExistsException _:
                 case CustomTagsAlreadyExistsException _:
+                case CustomTagsAlreadyChangedException _:
                     statusCode = HttpStatusCode.Conflict;
                     break;
                 case UnsupportedMediaTypeException _:

@@ -5,8 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
@@ -15,6 +17,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
     {
         private readonly string _connectionString;
+
+        private static readonly IReadOnlyDictionary<CustomTagDataType, string> TableNames = new Dictionary<CustomTagDataType, string>()
+            {
+                { CustomTagDataType.StringData, VLatest.CustomTagString.TableName },
+                { CustomTagDataType.LongData, VLatest.CustomTagBigInt.TableName },
+                { CustomTagDataType.DoubleData, VLatest.CustomTagDouble.TableName },
+                { CustomTagDataType.DateTimeData, VLatest.CustomTagDateTime.TableName },
+                { CustomTagDataType.PersonNameData, VLatest.CustomTagPersonName.TableName },
+            };
 
         public SqlIndexDataStoreTestHelper(string connectionString)
         {
@@ -217,6 +228,93 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
                 return result;
             }
+        }
+
+        internal async Task<IReadOnlyList<CustomTagDataRow>> GetCustomTagDataAsync(
+            CustomTagDataType dataType,
+            int tagKey,
+            long studyKey,
+            long? seriesKey = null,
+            long? instanceKey = null,
+            CancellationToken cancellationToken = default)
+        {
+            var results = new List<CustomTagDataRow>();
+            string tagKeyParam = "@tagKey";
+            string studyKeyParam = "@studyKey";
+            string seriesKeyParam = "@seriesKey";
+            string instanceKeyParam = "@instanceKey";
+
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                await sqlConnection.OpenAsync(cancellationToken);
+
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                {
+                    string seriesFilter = seriesKey.HasValue ? $"SeriesKey = {seriesKeyParam}" : "SeriesKey IS NULL";
+                    string instanceFilter = instanceKey.HasValue ? $"InstanceKey = {instanceKeyParam}" : $"InstanceKey IS NULL";
+                    sqlCommand.CommandText = @$"
+                        SELECT *
+                        FROM {TableNames[dataType]}
+                        WHERE 
+                            TagKey = {tagKeyParam}
+                            AND StudyKey = {studyKeyParam}
+                            AND {seriesFilter}
+                            AND {instanceFilter}
+                    ";
+
+                    sqlCommand.Parameters.AddWithValue(tagKeyParam, tagKey);
+                    sqlCommand.Parameters.AddWithValue(studyKeyParam, studyKey);
+                    sqlCommand.Parameters.AddWithValue(seriesKeyParam, seriesKey.HasValue ? seriesKey.Value : DBNull.Value);
+                    sqlCommand.Parameters.AddWithValue(instanceKeyParam, instanceKey.HasValue ? instanceKey.Value : DBNull.Value);
+
+                    using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken))
+                    {
+                        if (await sqlDataReader.ReadAsync(cancellationToken))
+                        {
+                            CustomTagDataRow row = new CustomTagDataRow();
+                            row.Read(sqlDataReader, dataType);
+                            results.Add(row);
+                        }
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        internal async Task<IReadOnlyList<CustomTagDataRow>> GetCustomTagDataAsync(CustomTagDataType dataType, int tagKey, CancellationToken cancellationToken = default)
+        {
+            var results = new List<CustomTagDataRow>();
+            string tagKeyParam = "@tagKey";
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                await sqlConnection.OpenAsync(cancellationToken);
+
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = @$"
+                        SELECT *
+                        FROM {TableNames[dataType]}
+                        WHERE 
+                            {VLatest.CustomTagString.TagKey} = {tagKeyParam}
+                            
+                    ";
+
+                    sqlCommand.Parameters.AddWithValue(tagKeyParam, tagKey);
+
+                    using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken))
+                    {
+                        if (await sqlDataReader.ReadAsync(cancellationToken))
+                        {
+                            CustomTagDataRow row = new CustomTagDataRow();
+                            row.Read(sqlDataReader, dataType);
+                            results.Add(row);
+                        }
+                    }
+                }
+            }
+
+            return results;
         }
     }
 }

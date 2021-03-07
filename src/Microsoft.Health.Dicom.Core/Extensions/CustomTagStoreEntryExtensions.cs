@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     /// <summary>
     /// Extension methods for <see cref="CustomTagStoreEntry"/>.
     /// </summary>
-    internal static class CustomTagStoreEntryExtensions
+    public static class CustomTagStoreEntryExtensions
     {
         /// <summary>
         /// Convert to Index Tag.
@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             EnsureArg.IsNotNull(customTagStoreEntry, nameof(customTagStoreEntry));
             DicomTag tag = DicomTag.Parse(customTagStoreEntry.Path);
             DicomVR vr = DicomVR.Parse(customTagStoreEntry.VR);
-            return new IndexTag(tag, vr, customTagStoreEntry.Level, isCustomTag: true);
+            return new IndexTag(tag, vr, customTagStoreEntry.Level, customTagStoreEntry);
         }
     }
 }

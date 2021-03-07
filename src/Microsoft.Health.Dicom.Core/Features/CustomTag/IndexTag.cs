@@ -13,15 +13,15 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class IndexTag
     {
-        public IndexTag(DicomTag tag, DicomVR vr, CustomTagLevel level, bool isCustomTag)
+        public IndexTag(DicomTag tag, DicomVR vr, CustomTagLevel level, CustomTagStoreEntry customTagStoreEntry)
         {
             EnsureArg.IsNotNull(tag, nameof(tag));
             EnsureArg.IsNotNull(vr, nameof(vr));
 
             Tag = tag;
             VR = vr;
-            IsCustomTag = isCustomTag;
             Level = level;
+            CustomTagStoreEntry = customTagStoreEntry;
         }
 
         /// <summary>
@@ -42,6 +42,11 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <summary>
         /// Gets whether this is custom tag or not.
         /// </summary>
-        public bool IsCustomTag { get; }
+        public bool IsCustomTag { get => CustomTagStoreEntry != null; }
+
+        /// <summary>
+        /// Gets the underlying customTagStoreEntry for custom tag.
+        /// </summary>
+        public CustomTagStoreEntry CustomTagStoreEntry { get; }
     }
 }

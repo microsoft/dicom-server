@@ -5,10 +5,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
@@ -18,8 +18,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     /// </summary>
     public static class DicomDatasetExtensions
     {
-        private const string DateFormat = "yyyyMMdd";
-
         private static readonly HashSet<DicomVR> DicomBulkDataVr = new HashSet<DicomVR>
         {
             DicomVR.OB,
@@ -55,15 +53,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
-
-            if (stringDate == null ||
-                !DateTime.TryParseExact(stringDate, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime result))
-            {
-                return null;
-            }
-
-            return result;
+            DicomElement element = dicomDataset.GetDicomItem<DicomElement>(dicomTag);
+            return (DateTime?)element?.GetSingleValue();
         }
 
         /// <summary>
@@ -157,6 +148,72 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             {
                 dicomDataset.Add(dicomTag, value);
             }
+        }
+
+        public static IDictionary<IndexTag, DicomTag> GetDicomTags(this DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(indexTags, nameof(indexTags));
+            IDictionary<IndexTag, DicomTag> result = new Dictionary<IndexTag, DicomTag>();
+            Dictionary<string, IndexTag> privateTags = new Dictionary<string, IndexTag>();
+            foreach (IndexTag indexTag in indexTags)
+            {
+                if (!indexTag.Tag.IsPrivate)
+                {
+                    result.Add(indexTag, indexTag.Tag);
+                }
+                else
+                {
+                    privateTags.Add(indexTag.Tag.GetPath(), indexTag);
+                }
+            }
+
+            if (privateTags.Count != 0)
+            {
+                // IndexTag don't have privateCreator for private tag, need to fill that part from DicomDataset.
+                foreach (DicomItem item in dicomDataset)
+                {
+                    if (item.Tag.IsPrivate)
+                    {
+                        string tagPath = item.Tag.GetPath();
+                        if (privateTags.ContainsKey(tagPath))
+                        {
+                            IndexTag indexTag = privateTags[tagPath];
+                            if (indexTag.VR == item.ValueRepresentation)
+                            {
+                                result.Add(indexTag, item.Tag);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public static IReadOnlyDictionary<IndexTag, object> GetIndexTagValues(this DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(indexTags, nameof(indexTags));
+            var dicomTags = dicomDataset.GetDicomTags(indexTags);
+            Dictionary<IndexTag, object> result = new Dictionary<IndexTag, object>();
+
+            foreach (var pair in dicomTags)
+            {
+                DicomElement element = dicomDataset.GetDicomItem<DicomElement>(pair.Value);
+
+                // we only support single value
+                if (element != null && element.Count == 1)
+                {
+                    object value = element.GetSingleValue();
+                    if (value != null)
+                    {
+                        result.Add(pair.Key, value);
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

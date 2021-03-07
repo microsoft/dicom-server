@@ -44,4 +44,174 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.String TagVR { get; }
         internal System.Byte TagLevel { get; }
     }
+
+    internal class InsertBigIntCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertBigIntCustomTagTableTypeV1Row>
+    {
+        internal InsertBigIntCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertBigIntCustomTagTableType_1")
+        {
+        }
+
+        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
+        internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertBigIntCustomTagTableTypeV1Row rowData)
+        {
+            TagKey.Set(record, 0, rowData.TagKey);
+            TagValue.Set(record, 1, rowData.TagValue);
+            TagLevel.Set(record, 2, rowData.TagLevel);
+        }
+    }
+
+    internal struct InsertBigIntCustomTagTableTypeV1Row
+    {
+        internal InsertBigIntCustomTagTableTypeV1Row(System.Int64 TagKey, System.Int64 TagValue, System.Byte TagLevel)
+        {
+            this.TagKey = TagKey;
+            this.TagValue = TagValue;
+            this.TagLevel = TagLevel;
+        }
+
+        internal System.Int64 TagKey { get; }
+        internal System.Int64 TagValue { get; }
+        internal System.Byte TagLevel { get; }
+    }
+
+    internal class InsertDateTimeCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDateTimeCustomTagTableTypeV1Row>
+    {
+        internal InsertDateTimeCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDateTimeCustomTagTableType_1")
+        {
+        }
+
+        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
+        internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertDateTimeCustomTagTableTypeV1Row rowData)
+        {
+            TagKey.Set(record, 0, rowData.TagKey);
+            TagValue.Set(record, 1, rowData.TagValue);
+            TagLevel.Set(record, 2, rowData.TagLevel);
+        }
+    }
+
+    internal struct InsertDateTimeCustomTagTableTypeV1Row
+    {
+        internal InsertDateTimeCustomTagTableTypeV1Row(System.Int64 TagKey, System.DateTime TagValue, System.Byte TagLevel)
+        {
+            this.TagKey = TagKey;
+            this.TagValue = TagValue;
+            this.TagLevel = TagLevel;
+        }
+
+        internal System.Int64 TagKey { get; }
+        internal System.DateTime TagValue { get; }
+        internal System.Byte TagLevel { get; }
+    }
+
+    internal class InsertDoubleCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDoubleCustomTagTableTypeV1Row>
+    {
+        internal InsertDoubleCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDoubleCustomTagTableType_1")
+        {
+        }
+
+        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly FloatColumn TagValue = new FloatColumn("TagValue", 53);
+        internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertDoubleCustomTagTableTypeV1Row rowData)
+        {
+            TagKey.Set(record, 0, rowData.TagKey);
+            TagValue.Set(record, 1, rowData.TagValue);
+            TagLevel.Set(record, 2, rowData.TagLevel);
+        }
+    }
+
+    internal struct InsertDoubleCustomTagTableTypeV1Row
+    {
+        internal InsertDoubleCustomTagTableTypeV1Row(System.Int64 TagKey, System.Double TagValue, System.Byte TagLevel)
+        {
+            this.TagKey = TagKey;
+            this.TagValue = TagValue;
+            this.TagLevel = TagLevel;
+        }
+
+        internal System.Int64 TagKey { get; }
+        internal System.Double TagValue { get; }
+        internal System.Byte TagLevel { get; }
+    }
+
+    internal class InsertPersonNameCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertPersonNameCustomTagTableTypeV1Row>
+    {
+        internal InsertPersonNameCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertPersonNameCustomTagTableType_1")
+        {
+        }
+
+        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 200, "SQL_Latin1_General_CP1_CI_AI");
+        internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertPersonNameCustomTagTableTypeV1Row rowData)
+        {
+            TagKey.Set(record, 0, rowData.TagKey);
+            TagValue.Set(record, 1, rowData.TagValue);
+            TagLevel.Set(record, 2, rowData.TagLevel);
+        }
+    }
+
+    internal struct InsertPersonNameCustomTagTableTypeV1Row
+    {
+        internal InsertPersonNameCustomTagTableTypeV1Row(System.Int64 TagKey, System.String TagValue, System.Byte TagLevel)
+        {
+            this.TagKey = TagKey;
+            this.TagValue = TagValue;
+            this.TagLevel = TagLevel;
+        }
+
+        internal System.Int64 TagKey { get; }
+        internal System.String TagValue { get; }
+        internal System.Byte TagLevel { get; }
+    }
+
+    internal class InsertStringCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertStringCustomTagTableTypeV1Row>
+    {
+        internal InsertStringCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertStringCustomTagTableType_1")
+        {
+        }
+
+        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 64);
+        internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertStringCustomTagTableTypeV1Row rowData)
+        {
+            TagKey.Set(record, 0, rowData.TagKey);
+            TagValue.Set(record, 1, rowData.TagValue);
+            TagLevel.Set(record, 2, rowData.TagLevel);
+        }
+    }
+
+    internal struct InsertStringCustomTagTableTypeV1Row
+    {
+        internal InsertStringCustomTagTableTypeV1Row(System.Int64 TagKey, System.String TagValue, System.Byte TagLevel)
+        {
+            this.TagKey = TagKey;
+            this.TagValue = TagValue;
+            this.TagLevel = TagLevel;
+        }
+
+        internal System.Int64 TagKey { get; }
+        internal System.String TagValue { get; }
+        internal System.Byte TagLevel { get; }
+    }
 }

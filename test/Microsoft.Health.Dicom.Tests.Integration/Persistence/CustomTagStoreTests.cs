@@ -9,19 +9,30 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class CustomTagStoreTests : IClassFixture<SqlDataStoreTestsFixture>
+    /// <summary>
+    /// Tests for CustomTagStore
+    /// </summary>
+    public partial class CustomTagStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     {
         private readonly ICustomTagStore _customTagStore;
+        private readonly IIndexDataStore _indexDataStore;
+        private readonly SqlIndexDataStoreTestHelper _testHelper;
 
         public CustomTagStoreTests(SqlDataStoreTestsFixture fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
+            EnsureArg.IsNotNull(fixture.CustomTagStore, nameof(fixture.CustomTagStore));
+            EnsureArg.IsNotNull(fixture.IndexDataStore, nameof(fixture.IndexDataStore));
+            EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.TestHelper));
             _customTagStore = fixture.CustomTagStore;
+            _indexDataStore = fixture.IndexDataStore;
+            _testHelper = fixture.TestHelper;
         }
 
         [Fact]

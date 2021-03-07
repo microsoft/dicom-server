@@ -123,10 +123,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return;
             }
 
-            if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
+            if (!TryParseDA(value, out _))
             {
                 throw new DicomElementValidationException(name, value, DicomVR.DA, DicomCoreResource.ValueIsInvalidDate);
             }
+        }
+
+        internal static bool TryParseDA(string value, out DateTime dateTime)
+        {
+            return DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out dateTime);
         }
 
         internal static void ValidateDS(string value, string name)
@@ -136,10 +141,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         internal static void ValidateDT(string value, string name)
         {
-            if (!DateTime.TryParseExact(value, DateFormatDT, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out _))
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            if (!TryParseDT(value, out _))
             {
                 throw new DicomElementValidationException(name, value, DicomVR.DT, DicomCoreResource.ValueIsInvalidDate);
             }
+        }
+
+        internal static bool TryParseDT(string value, out DateTime dateTime)
+        {
+            return DateTime.TryParseExact(value, DateFormatDT, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out dateTime);
         }
 
         internal static void ValidateFL(IByteBuffer value, string name)
@@ -235,10 +250,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         internal static void ValidateTM(string value, string name)
         {
-            if (!DateTime.TryParseExact(value, DataFromatTM, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out _))
+            if (!TryParseTM(value, out _))
             {
                 throw new DicomElementValidationException(name, value, DicomVR.DT, DicomCoreResource.ValueIsInvalidDate);
             }
+        }
+
+        internal static bool TryParseTM(string value, out DateTime dateTime)
+        {
+            return DateTime.TryParseExact(value, DataFromatTM, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out dateTime);
         }
 
         public static void ValidateUI(string value, string name)

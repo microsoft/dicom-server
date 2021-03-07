@@ -97,6 +97,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to One or more custom tags have been changed..
+        /// </summary>
+        internal static string CustomTagsAlreadyChanged {
+            get {
+                return ResourceManager.GetString("CustomTagsAlreadyChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to One or more custom tags already exist..
         /// </summary>
         internal static string CustomTagsAlreadyExists {
