@@ -8,8 +8,11 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Xunit;
 
@@ -91,6 +94,31 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _customTagStore.AddCustomTagsAsync(new CustomTagEntry[] { customTagEntry });
             await _customTagStore.DeleteCustomTagAsync(customTagEntry.Path, customTagEntry.VR);
             await VerifyTagNotExist(customTagEntry.Path);
+        }
+
+        [Fact]
+        public async Task GivenExistingCustomTagIndexData_WhenDeleteCustomTag_ThenShouldDeleteIndexData()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+
+            // Prepare index data
+            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+            dataset.Add(tag, "123");
+
+            await _customTagStore.AddCustomTagsAsync(new CustomTagEntry[] { tag.BuildCustomTagEntry() });
+            CustomTagStoreEntry storeEntry = (await _customTagStore.GetCustomTagsAsync(path: tag.GetPath()))[0];
+            IndexTag indexTag = storeEntry.Convert();
+            await _indexDataStore.CreateInstanceIndexAsync(dataset, new IndexTag[] { indexTag });
+            var customTagIndexData = await _testHelper.GetCustomTagDataAsync(CustomTagDataType.StringData, storeEntry.Key);
+            Assert.NotEmpty(customTagIndexData);
+
+            // Delete tag
+            await _customTagStore.DeleteCustomTagAsync(storeEntry.Path, storeEntry.VR);
+            await VerifyTagNotExist(storeEntry.Path);
+
+            // Verify index data is removed
+            customTagIndexData = await _testHelper.GetCustomTagDataAsync(CustomTagDataType.StringData, storeEntry.Key);
+            Assert.Empty(customTagIndexData);
         }
 
         private async Task VerifyTagIsAdded(CustomTagEntry customTagEntry)
