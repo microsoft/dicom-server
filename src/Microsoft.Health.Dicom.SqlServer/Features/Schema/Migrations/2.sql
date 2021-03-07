@@ -637,6 +637,7 @@ CREATE SEQUENCE dbo.TagKeySequence
     CACHE 10000
 
 GO
+
 /*************************************************************
     Stored procedures for adding an instance.
 **************************************************************/
@@ -670,11 +671,19 @@ GO
 --         * The modality associated for the series.
 --     @performedProcedureStepStartDate
 --         * The date when the procedure for the series was performed.
---
+--     @stringCustomTags
+--         * String custom tag data
+--     @bigIntCustomTags
+--         * BigInt custom tag data
+--     @doubleCustomTags
+--         * Double custom tag data
+--     @dateTimeCustomTags
+--         * DateTime custom tag data
+--     @personNameCustomTags
+--         * PersonName custom tag data
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
-
 CREATE PROCEDURE dbo.AddInstance
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
