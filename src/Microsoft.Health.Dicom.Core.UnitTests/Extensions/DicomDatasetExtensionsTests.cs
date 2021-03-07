@@ -11,6 +11,8 @@ using System.Text;
 using Dicom;
 using Dicom.Serialization;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -222,6 +224,84 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
                 return result.ToString();
             }
+        }
+
+        [Fact]
+        public void GivenADicomDataset_WhenGetIndexTagValuesIsCalled_ThenValueShouldBeRetrieved()
+        {
+            DicomTag dicomTag = DicomTag.DestinationAE;
+            string value = "012";
+            _dicomDataset.AddValueIfNotNull(dicomTag, value);
+            IndexTag indexTag = dicomTag.BuildCustomTagStoreEntry().Convert();
+            var result = _dicomDataset.GetIndexTagValues(new IndexTag[] { indexTag });
+
+            Assert.Single(result);
+            Assert.Equal(result[indexTag], value);
+        }
+
+        [Fact]
+        public void GivenADicomDatasetWithInvalidData_WhenGetIndexTagValuesIsCalled_ThenValueShouldNotBeRetrieved()
+        {
+            DicomTag dicomTag = DicomTag.AnchorPoint;
+            float[] values = { 100.0f, 200.0f };
+            DicomElement element = new DicomFloatingPointSingle(dicomTag, values);
+            _dicomDataset.Add(element);
+            IndexTag indexTag = dicomTag.BuildCustomTagStoreEntry().Convert();
+            var result = _dicomDataset.GetIndexTagValues(new IndexTag[] { indexTag });
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void GivenADicomDatasetWithStandardTag_WhenGetDicomTagsIsCalled_ThenShouldReturnCorrectValue()
+        {
+            DicomTag dicomTag = DicomTag.DestinationAE;
+            _dicomDataset.AddOrUpdate(dicomTag, "123");
+            IndexTag indexTag = dicomTag.BuildCustomTagStoreEntry().Convert();
+            var result = _dicomDataset.GetDicomTags(new IndexTag[] { indexTag });
+            Assert.Single(result);
+            Assert.Equal(dicomTag, result[indexTag]);
+        }
+
+        [Fact]
+        public void GivenADicomDatasetWithPrivateTag_WhenGetDicomTagsIsCalled_ThenShouldReturnCorrectValue()
+        {
+            DicomTag dicomTag = new DicomTag(0x0405, 0x1001, "PrivateCreator");
+            DicomElement element = new DicomCodeString(dicomTag, "123");
+            _dicomDataset.Add(element);
+            IndexTag indexTag = dicomTag.BuildCustomTagStoreEntry(vr: element.ValueRepresentation.Code).Convert();
+            var result = _dicomDataset.GetDicomTags(new IndexTag[] { indexTag });
+            Assert.Single(result);
+            Assert.Equal(dicomTag, result[indexTag]);
+        }
+
+        [Fact]
+        public void GivenADicomDataSetWithoutTheStandardTag_WhenGetDicomTagsIsCalled_ThenShouldNotReturn()
+        {
+            DicomTag dicomTag = DicomTag.DestinationAE;
+            IndexTag indexTag = dicomTag.BuildCustomTagStoreEntry().Convert();
+            var result = _dicomDataset.GetDicomTags(new IndexTag[] { indexTag });
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void GivenADicomDataSetWithoutThePrivateTag_WhenGetDicomTagsIsCalled_ThenShouldNotReturn()
+        {
+            DicomTag dicomTag = new DicomTag(0x0405, 0x1001, "PrivateCreator");
+            IndexTag indexTag = dicomTag.BuildCustomTagStoreEntry(vr: DicomVRCode.CS).Convert();
+            var result = _dicomDataset.GetDicomTags(new IndexTag[] { indexTag });
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void GivenADicomDataSetWithThePrivateTagButDifferentVR_WhenGetDicomTagsIsCalled_ThenShouldNotReturn()
+        {
+            DicomTag dicomTag = new DicomTag(0x0405, 0x1001, "PrivateCreator");
+            DicomElement element = new DicomIntegerString(dicomTag, "123");
+            _dicomDataset.Add(element);
+            IndexTag indexTag = dicomTag.BuildCustomTagStoreEntry(vr: DicomVRCode.CS).Convert();
+            var result = _dicomDataset.GetDicomTags(new IndexTag[] { indexTag });
+            Assert.Empty(result);
         }
     }
 }

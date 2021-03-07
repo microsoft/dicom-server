@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         {
         }
 
-        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly IntColumn TagKey = new IntColumn("TagKey");
         internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
         internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
 
@@ -67,14 +67,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
     internal struct InsertBigIntCustomTagTableTypeV1Row
     {
-        internal InsertBigIntCustomTagTableTypeV1Row(System.Int64 TagKey, System.Int64 TagValue, System.Byte TagLevel)
+        internal InsertBigIntCustomTagTableTypeV1Row(System.Int32 TagKey, System.Int64 TagValue, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
             this.TagLevel = TagLevel;
         }
 
-        internal System.Int64 TagKey { get; }
+        internal System.Int32 TagKey { get; }
         internal System.Int64 TagValue { get; }
         internal System.Byte TagLevel { get; }
     }
@@ -85,7 +85,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         {
         }
 
-        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly IntColumn TagKey = new IntColumn("TagKey");
         internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
         internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
 
@@ -101,14 +101,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
     internal struct InsertDateTimeCustomTagTableTypeV1Row
     {
-        internal InsertDateTimeCustomTagTableTypeV1Row(System.Int64 TagKey, System.DateTime TagValue, System.Byte TagLevel)
+        internal InsertDateTimeCustomTagTableTypeV1Row(System.Int32 TagKey, System.DateTime TagValue, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
             this.TagLevel = TagLevel;
         }
 
-        internal System.Int64 TagKey { get; }
+        internal System.Int32 TagKey { get; }
         internal System.DateTime TagValue { get; }
         internal System.Byte TagLevel { get; }
     }
@@ -119,7 +119,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         {
         }
 
-        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly IntColumn TagKey = new IntColumn("TagKey");
         internal readonly FloatColumn TagValue = new FloatColumn("TagValue", 53);
         internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
 
@@ -135,14 +135,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
     internal struct InsertDoubleCustomTagTableTypeV1Row
     {
-        internal InsertDoubleCustomTagTableTypeV1Row(System.Int64 TagKey, System.Double TagValue, System.Byte TagLevel)
+        internal InsertDoubleCustomTagTableTypeV1Row(System.Int32 TagKey, System.Double TagValue, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
             this.TagLevel = TagLevel;
         }
 
-        internal System.Int64 TagKey { get; }
+        internal System.Int32 TagKey { get; }
         internal System.Double TagValue { get; }
         internal System.Byte TagLevel { get; }
     }
@@ -153,7 +153,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         {
         }
 
-        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly IntColumn TagKey = new IntColumn("TagKey");
         internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 200, "SQL_Latin1_General_CP1_CI_AI");
         internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
 
@@ -169,14 +169,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
     internal struct InsertPersonNameCustomTagTableTypeV1Row
     {
-        internal InsertPersonNameCustomTagTableTypeV1Row(System.Int64 TagKey, System.String TagValue, System.Byte TagLevel)
+        internal InsertPersonNameCustomTagTableTypeV1Row(System.Int32 TagKey, System.String TagValue, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
             this.TagLevel = TagLevel;
         }
 
-        internal System.Int64 TagKey { get; }
+        internal System.Int32 TagKey { get; }
         internal System.String TagValue { get; }
         internal System.Byte TagLevel { get; }
     }
@@ -187,7 +187,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         {
         }
 
-        internal readonly BigIntColumn TagKey = new BigIntColumn("TagKey");
+        internal readonly IntColumn TagKey = new IntColumn("TagKey");
         internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 64);
         internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
 
@@ -203,14 +203,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
     internal struct InsertStringCustomTagTableTypeV1Row
     {
-        internal InsertStringCustomTagTableTypeV1Row(System.Int64 TagKey, System.String TagValue, System.Byte TagLevel)
+        internal InsertStringCustomTagTableTypeV1Row(System.Int32 TagKey, System.String TagValue, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
             this.TagLevel = TagLevel;
         }
 
-        internal System.Int64 TagKey { get; }
+        internal System.Int32 TagKey { get; }
         internal System.String TagValue { get; }
         internal System.Byte TagLevel { get; }
     }

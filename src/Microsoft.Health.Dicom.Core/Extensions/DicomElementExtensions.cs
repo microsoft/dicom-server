@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
     /// <summary>
-    /// Extension methods for <see cref="DicomTag"/>.
+    /// Extension methods for <see cref="DicomElement"/>.
     /// </summary>
     public static class DicomElementExtensions
     {
@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             { DicomVR.AE, GetStringValue },
             { DicomVR.AS, GetStringValue },
-            { DicomVR.AT, GetUIntValue },
+            { DicomVR.AT, GetDicomTagAsULongValue },
             { DicomVR.CS, GetStringValue },
             { DicomVR.DA, GetDAValue },
             { DicomVR.DS, GetStringValue },
@@ -40,6 +40,12 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             { DicomVR.US, GetUShortValue },
         };
 
+        /// <summary>
+        /// Get value of DicomElement.
+        /// </summary>
+        /// <remarks>VM of the DicomElement must be 1. Value rather than 1 will return null.</remarks>
+        /// <param name="element">The DicomElement</param>
+        /// <returns>The value.</returns>
         public static object GetSingleValue(this DicomElement element)
         {
             EnsureArg.IsNotNull(element, nameof(element));
@@ -76,8 +82,9 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             {
                 return element.Get<T>();
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return null;
             }
         }
@@ -136,6 +143,17 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         private static object GetUIntValue(DicomElement element)
         {
             return SafeGetValue<uint>(element);
+        }
+
+        private static object GetDicomTagAsULongValue(DicomElement element)
+        {
+            DicomTag tag = (DicomTag)SafeGetValue<DicomTag>(element);
+            if (tag != null)
+            {
+                return (ulong)(tag.Group << 16) + tag.Element;
+            }
+
+            return null;
         }
 
         private static object GetUShortValue(DicomElement element)

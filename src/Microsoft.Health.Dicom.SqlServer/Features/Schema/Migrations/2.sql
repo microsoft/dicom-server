@@ -542,7 +542,7 @@ GO
 *************************************************************/
 CREATE TYPE dbo.InsertStringCustomTagTableType_1 AS TABLE
 (
-    TagKey                     BIGINT,
+    TagKey                     INT,
     TagValue                   NVARCHAR(64),
     TagLevel                   TINYINT
 )
@@ -553,7 +553,7 @@ GO
 *************************************************************/
 CREATE TYPE dbo.InsertDoubleCustomTagTableType_1 AS TABLE
 (
-    TagKey                     BIGINT,
+    TagKey                     INT,
     TagValue                   FLOAT(53),
     TagLevel                   TINYINT
 )
@@ -564,8 +564,8 @@ GO
 *************************************************************/
 CREATE TYPE dbo.InsertBigIntCustomTagTableType_1 AS TABLE
 (
-    TagKey                     BIGINT,
-    TagValue                BIGINT,
+    TagKey                     INT,
+    TagValue                   BIGINT,
     TagLevel                   TINYINT
 )
 GO
@@ -575,8 +575,8 @@ GO
 *************************************************************/
 CREATE TYPE dbo.InsertDateTimeCustomTagTableType_1 AS TABLE
 (
-    TagKey                     BIGINT,
-    TagValue              DATETIME2(7),
+    TagKey                     INT,
+    TagValue                   DATETIME2(7),
     TagLevel                   TINYINT
 )
 GO
@@ -586,8 +586,8 @@ GO
 *************************************************************/
 CREATE TYPE dbo.InsertPersonNameCustomTagTableType_1 AS TABLE
 (
-    TagKey                     BIGINT,
-    TagValue            NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
+    TagKey                     INT,
+    TagValue                   NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
     TagLevel                   TINYINT
 )
 GO
@@ -629,7 +629,7 @@ CREATE SEQUENCE dbo.InstanceKeySequence
     CACHE 1000000
 
 CREATE SEQUENCE dbo.TagKeySequence
-    AS BIGINT
+    AS INT
     START WITH 1
     INCREMENT BY 1
     MINVALUE 1
@@ -777,178 +777,178 @@ AS
 
     -- Insert Custom Tags
     DECLARE @rowCount AS BIGINT
+    -- This variable is used for not returning value from SELECT.
     DECLARE @temp AS INT
 
-    -- String tags
+    -- String Key tags
     SET @rowCount = (SELECT COUNT(TagKey) FROM @stringCustomTags)
-	IF @rowCount <> 0
-	BEGIN
+    IF @rowCount <> 0
+    BEGIN
         -- Validate and lock custom tags
-	    SELECT @temp = dbo.CustomTag.TagKey
+        SELECT @temp = dbo.CustomTag.TagKey
         FROM dbo.CustomTag WITH (UPDLOCK)
-	    INNER JOIN @stringCustomTags input
-	    ON input.TagKey = dbo.CustomTag.TagKey 
-	    AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
-	
-	    IF @@ROWCOUNT<>@rowCOUNT
-	        THROW 50409, 'Custom Tags have been changed', 10
-	
-	    -- Merge into dbo.CustomTagString table        
-	    MERGE INTO dbo.CustomTagString AS T
-	    USING @stringCustomTags AS S
-	    ON T.TagKey=S.TagKey
-	    AND T.StudyKey=@studyKey AND
-	    ISNULL(T.SeriesKey,@seriesKey) = @seriesKey AND
-	    ISNULL(T.InstanceKey,@instanceKey) = @instanceKey
+        INNER JOIN @stringCustomTags input
+        ON input.TagKey = dbo.CustomTag.TagKey 
+        AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
+    
+        IF @@ROWCOUNT<>@rowCOUNT
+            THROW 50409, 'Custom Tags have been changed', 10
+    
+        -- Merge into dbo.CustomTagString table        
+        MERGE INTO dbo.CustomTagString AS T
+        USING @stringCustomTags AS S
+        ON T.TagKey = S.TagKey
+        AND T.StudyKey = @studyKey
+        AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey 
+        AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN 
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
-	    WHEN NOT MATCHED THEN 
+        WHEN NOT MATCHED THEN 
             INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-	        VALUES(
-	        S.TagKey,
-	        S.TagValue,
-	        @studyKey,
-	        (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
-	        (CASE WHEN S.TagLevel=0 THEN @instanceKey ELSE NULL END),
-	        @newWatermark);        
-	END
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
+            (CASE WHEN S.TagLevel=0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
 
-    -- BigInt tags
+    -- BigInt Key tags
     SET @rowCount = (SELECT COUNT(TagKey) FROM @bigintCustomTags)
-	IF @rowCount <> 0
-	BEGIN
+    IF @rowCount <> 0
+    BEGIN
         -- Validate and lock custom tags
-	    SELECT @temp = dbo.CustomTag.TagKey
+        SELECT @temp = dbo.CustomTag.TagKey
         FROM dbo.CustomTag WITH (UPDLOCK)
-	    INNER JOIN @bigintCustomTags input
-	    ON input.TagKey = dbo.CustomTag.TagKey 
-	    AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
-	
-	    IF @@ROWCOUNT<>@rowCOUNT
-	        THROW 50409, 'Custom Tags have been changed', 10
-	
-	    -- Merge into dbo.CustomTagBigInt table        
-	    MERGE INTO dbo.CustomTagBigInt AS T
-	    USING @bigintCustomTags AS S
-	    ON T.TagKey=S.TagKey
-	    AND T.StudyKey=@studyKey AND
-	    ISNULL(T.SeriesKey,@seriesKey) = @seriesKey AND
-	    ISNULL(T.InstanceKey,@instanceKey) = @instanceKey
+        INNER JOIN @bigintCustomTags input
+        ON input.TagKey = dbo.CustomTag.TagKey 
+        AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
+    
+        IF @@ROWCOUNT<>@rowCOUNT
+            THROW 50409, 'Custom Tags have been changed', 10
+    
+        -- Merge into dbo.CustomTagBigInt table        
+        MERGE INTO dbo.CustomTagBigInt AS T
+        USING @bigintCustomTags AS S
+        ON T.TagKey = S.TagKey
+        AND T.StudyKey = @studyKey
+        AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey 
+        AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN 
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
-	    WHEN NOT MATCHED THEN 
+        WHEN NOT MATCHED THEN 
             INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-	        VALUES(
-	        S.TagKey,
-	        S.TagValue,
-	        @studyKey,
-	        (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
-	        (CASE WHEN S.TagLevel=0 THEN @instanceKey ELSE NULL END),
-	        @newWatermark);        
-	END
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
+            (CASE WHEN S.TagLevel=0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
 
-    -- Double tags
+    -- Double Key tags
     SET @rowCount = (SELECT COUNT(TagKey) FROM @doubleCustomTags)
-	IF @rowCount <> 0
-	BEGIN
+    IF @rowCount <> 0
+    BEGIN
         -- Validate and lock custom tags
-	    SELECT @temp = dbo.CustomTag.TagKey
+        SELECT @temp = dbo.CustomTag.TagKey
         FROM dbo.CustomTag WITH (UPDLOCK)
-	    INNER JOIN @doubleCustomTags input
-	    ON input.TagKey = dbo.CustomTag.TagKey 
-	    AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
-	
-	    IF @@ROWCOUNT<>@rowCOUNT
-	        THROW 50409, 'Custom Tags have been changed', 10
-	
-	    -- Merge into dbo.CustomTagDouble table        
-	    MERGE INTO dbo.CustomTagDouble AS T
-	    USING @doubleCustomTags AS S
-	    ON T.TagKey=S.TagKey
-	    AND T.StudyKey=@studyKey AND
-	    ISNULL(T.SeriesKey,@seriesKey) = @seriesKey AND
-	    ISNULL(T.InstanceKey,@instanceKey) = @instanceKey
+        INNER JOIN @doubleCustomTags input
+        ON input.TagKey = dbo.CustomTag.TagKey 
+        AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
+    
+        IF @@ROWCOUNT<>@rowCOUNT
+            THROW 50409, 'Custom Tags have been changed', 10
+    
+        -- Merge into dbo.CustomTagDouble table        
+        MERGE INTO dbo.CustomTagDouble AS T
+        USING @doubleCustomTags AS S
+        ON T.TagKey = S.TagKey
+        AND T.StudyKey = @studyKey
+        AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey 
+        AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN 
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
-	    WHEN NOT MATCHED THEN 
+        WHEN NOT MATCHED THEN 
             INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-	        VALUES(
-	        S.TagKey,
-	        S.TagValue,
-	        @studyKey,
-	        (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
-	        (CASE WHEN S.TagLevel=0 THEN @instanceKey ELSE NULL END),
-	        @newWatermark);        
-	END
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
+            (CASE WHEN S.TagLevel=0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
 
-    -- DateTime tags
+    -- DateTime Key tags
     SET @rowCount = (SELECT COUNT(TagKey) FROM @dateTimeCustomTags)
-	IF @rowCount <> 0
-	BEGIN
+    IF @rowCount <> 0
+    BEGIN
         -- Validate and lock custom tags
-	    SELECT @temp = dbo.CustomTag.TagKey
+        SELECT @temp = dbo.CustomTag.TagKey
         FROM dbo.CustomTag WITH (UPDLOCK)
-	    INNER JOIN @dateTimeCustomTags input
-	    ON input.TagKey = dbo.CustomTag.TagKey 
-	    AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
-	
-	    IF @@ROWCOUNT<>@rowCOUNT
-	        THROW 50409, 'Custom Tags have been changed', 10
-	
-	    -- Merge into dbo.CustomTagDateTime table        
-	    MERGE INTO dbo.CustomTagDateTime AS T
-	    USING @dateTimeCustomTags AS S
-	    ON T.TagKey=S.TagKey
-	    AND T.StudyKey=@studyKey AND
-	    ISNULL(T.SeriesKey,@seriesKey) = @seriesKey AND
-	    ISNULL(T.InstanceKey,@instanceKey) = @instanceKey
+        INNER JOIN @dateTimeCustomTags input
+        ON input.TagKey = dbo.CustomTag.TagKey 
+        AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
+    
+        IF @@ROWCOUNT<>@rowCOUNT
+            THROW 50409, 'Custom Tags have been changed', 10
+    
+        -- Merge into dbo.CustomTagDateTime table        
+        MERGE INTO dbo.CustomTagDateTime AS T
+        USING @dateTimeCustomTags AS S
+        ON T.TagKey = S.TagKey
+        AND T.StudyKey = @studyKey
+        AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey 
+        AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN 
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
-	    WHEN NOT MATCHED THEN 
+        WHEN NOT MATCHED THEN 
             INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-	        VALUES(
-	        S.TagKey,
-	        S.TagValue,
-	        @studyKey,
-	        (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
-	        (CASE WHEN S.TagLevel=0 THEN @instanceKey ELSE NULL END),
-	        @newWatermark);        
-	END
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
+            (CASE WHEN S.TagLevel=0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
 
-    -- PersonName tags
+    -- PersonName Key tags
     SET @rowCount = (SELECT COUNT(TagKey) FROM @personNameCustomTags)
-	IF @rowCount <> 0
-	BEGIN
+    IF @rowCount <> 0
+    BEGIN
         -- Validate and lock custom tags
-	    SELECT @temp = dbo.CustomTag.TagKey
+        SELECT @temp = dbo.CustomTag.TagKey
         FROM dbo.CustomTag WITH (UPDLOCK)
-	    INNER JOIN @personNameCustomTags input
-	    ON input.TagKey = dbo.CustomTag.TagKey 
-	    AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
-	
-	    IF @@ROWCOUNT<>@rowCOUNT
-	        THROW 50409, 'Custom Tags have been changed', 10
-	
-	    -- Merge into dbo.CustomTagPersonName table        
-	    MERGE INTO dbo.CustomTagPersonName AS T
-	    USING @personNameCustomTags AS S
-	    ON T.TagKey=S.TagKey
-	    AND T.StudyKey=@studyKey AND
-	    ISNULL(T.SeriesKey,@seriesKey) = @seriesKey AND
-	    ISNULL(T.InstanceKey,@instanceKey) = @instanceKey
+        INNER JOIN @personNameCustomTags input
+        ON input.TagKey = dbo.CustomTag.TagKey 
+        AND ( dbo.CustomTag.TagStatus = 0 OR  dbo.CustomTag.TagStatus = 1)
+    
+        IF @@ROWCOUNT<>@rowCOUNT
+            THROW 50409, 'Custom Tags have been changed', 10
+    
+        -- Merge into dbo.CustomTagPersonName table        
+        MERGE INTO dbo.CustomTagPersonName AS T
+        USING @personNameCustomTags AS S
+        ON T.TagKey = S.TagKey
+        AND T.StudyKey = @studyKey
+        AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey 
+        AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN 
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
-	    WHEN NOT MATCHED THEN 
+        WHEN NOT MATCHED THEN 
             INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-	        VALUES(
-	        S.TagKey,
-	        S.TagValue,
-	        @studyKey,
-	        (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
-	        (CASE WHEN S.TagLevel=0 THEN @instanceKey ELSE NULL END),
-	        @newWatermark);        
-	END
-
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            (CASE WHEN S.TagLevel<>2 THEN @seriesKey ELSE NULL END),
+            (CASE WHEN S.TagLevel=0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
 
     -- Insert Instance
     INSERT INTO dbo.Instance

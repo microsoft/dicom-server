@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
             var customTagValues = instance.GetIndexTagValues(customTags);
 
-            VLatest.AddInstanceTableValuedParameters parameters = BuildParameters(customTagValues);
+            VLatest.AddInstanceTableValuedParameters parameters = BuildAddInstanceTableValuedParameters(customTagValues);
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -78,8 +78,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 try
                 {
-                    object result = await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-                    return (long)result;
+                    return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
                 }
                 catch (SqlException ex)
                 {
@@ -105,17 +104,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        private static VLatest.AddInstanceTableValuedParameters BuildParameters(IReadOnlyDictionary<IndexTag, object> customTagValues)
+        private static VLatest.AddInstanceTableValuedParameters BuildAddInstanceTableValuedParameters(IReadOnlyDictionary<IndexTag, object> indexTagDictionary)
         {
             List<InsertStringCustomTagTableTypeV1Row> stringRows = new List<InsertStringCustomTagTableTypeV1Row>();
             List<InsertDoubleCustomTagTableTypeV1Row> doubleRows = new List<InsertDoubleCustomTagTableTypeV1Row>();
             List<InsertBigIntCustomTagTableTypeV1Row> bigIntRows = new List<InsertBigIntCustomTagTableTypeV1Row>();
             List<InsertDateTimeCustomTagTableTypeV1Row> dateTimeRows = new List<InsertDateTimeCustomTagTableTypeV1Row>();
             List<InsertPersonNameCustomTagTableTypeV1Row> personNameRows = new List<InsertPersonNameCustomTagTableTypeV1Row>();
-            foreach (var item in customTagValues.Keys)
+            foreach (var indexTag in indexTagDictionary.Keys)
             {
-                CustomTagStoreEntry entry = item.CustomTagStoreEntry;
-                object value = customTagValues[item];
+                CustomTagStoreEntry entry = indexTag.CustomTagStoreEntry;
+                object value = indexTagDictionary[indexTag];
                 CustomTagDataType dataType = CustomTagLimit.CustomTagVRAndDataTypeMapping[entry.VR];
                 switch (dataType)
                 {
@@ -140,8 +139,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
             }
 
-            VLatest.AddInstanceTableValuedParameters parameters = new VLatest.AddInstanceTableValuedParameters(stringRows, bigIntRows, doubleRows, dateTimeRows, personNameRows);
-            return parameters;
+            return new VLatest.AddInstanceTableValuedParameters(stringRows, bigIntRows, doubleRows, dateTimeRows, personNameRows);
         }
 
         public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)

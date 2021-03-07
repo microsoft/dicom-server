@@ -150,6 +150,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             }
         }
 
+        /// <summary>
+        /// Get DicomTags for index Tag from Dicom Dataset.
+        /// </summary>
+        /// <remarks>If indextag not exist in dataset, should not return.</remarks>
+        /// <param name="dicomDataset">The dicom dataset.</param>
+        /// <param name="indexTags">The index Tags.</param>
+        /// <returns>Mapping between IndexTag and DicomTag.</returns>
         public static IDictionary<IndexTag, DicomTag> GetDicomTags(this DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -158,7 +165,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             Dictionary<string, IndexTag> privateTags = new Dictionary<string, IndexTag>();
             foreach (IndexTag indexTag in indexTags)
             {
-                if (!indexTag.Tag.IsPrivate)
+                if (!indexTag.Tag.IsPrivate && dicomDataset.Contains(indexTag.Tag))
                 {
                     result.Add(indexTag, indexTag.Tag);
                 }
@@ -168,6 +175,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 }
             }
 
+            // Process Private tags
             if (privateTags.Count != 0)
             {
                 // IndexTag don't have privateCreator for private tag, need to fill that part from DicomDataset.
@@ -191,6 +199,12 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return result;
         }
 
+        /// <summary>
+        /// Get Index Tag values from DicomDataset.
+        /// </summary>
+        /// <param name="dicomDataset">The dicom dataset.</param>
+        /// <param name="indexTags">The index tags.</param>
+        /// <returns>The values.</returns>
         public static IReadOnlyDictionary<IndexTag, object> GetIndexTagValues(this DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
