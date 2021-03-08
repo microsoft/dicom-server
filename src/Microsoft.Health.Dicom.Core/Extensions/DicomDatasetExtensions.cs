@@ -220,13 +220,10 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 DicomElement element = dicomDataset.GetDicomItem<DicomElement>(pair.Value);
 
                 // we only support single value
-                if (element != null && element.Count == 1)
+                object value = element?.GetSingleValue();
+                if (value != null)
                 {
-                    object value = element.GetSingleValue();
-                    if (value != null)
-                    {
-                        result.Add(pair.Key, value);
-                    }
+                    result.Add(pair.Key, value);
                 }
             }
 
