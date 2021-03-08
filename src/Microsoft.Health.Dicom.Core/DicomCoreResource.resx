@@ -334,15 +334,5 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="ValueLengthIsNotRequiredLength" xml:space="preserve">
     <value>Value length is not {0}.</value>
     <comment>{0} required length.</comment>
-  </data>
-  <data name="Forbidden" xml:space="preserve">
-    <value>Authorization failed.</value>
-  </data>
-  <data name="ErrorValidatingRoles" xml:space="preserve">
-    <value>Error validating roles:
-{0}</value>
-  </data>
-  <data name="DuplicateRoleNames" xml:space="preserve">
-    <value>There are {0} roles with the name '{1}'</value>
-  </data>
+  </data>  
 </root>
