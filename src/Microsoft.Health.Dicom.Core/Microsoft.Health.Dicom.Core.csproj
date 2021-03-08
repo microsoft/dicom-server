@@ -1,32 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
+    <Description>Common primitives and utilities used by Microsoft's DICOMweb APIs.</Description>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
-  <ItemGroup>
-    <None Remove="Features\Security\roles.schema.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Features\Security\roles.schema.json" />
-  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Efferent.Native" Version="4.0.0" />
     <PackageReference Include="Ensure.That" Version="9.2.0" />
     <PackageReference Include="fo-dicom" Version="4.0.7" />
-    <PackageReference Include="fo-dicom.json" Version="4.0.7" NoWarn="NU1701" />
     <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Abstractions" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Core" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Polly" Version="7.2.1" />
+    <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
-    <PackageReference Include="System.Linq.Async" Version="4.1.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Features\Security\roles.schema.json" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Update="DicomCoreResource.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -34,10 +37,12 @@
       <DependentUpon>DicomCoreResource.resx</DependentUpon>
     </Compile>
   </ItemGroup>
+
   <ItemGroup>
     <EmbeddedResource Update="DicomCoreResource.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DicomCoreResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
 </Project>
