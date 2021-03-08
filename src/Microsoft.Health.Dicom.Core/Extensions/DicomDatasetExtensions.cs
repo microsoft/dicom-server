@@ -165,13 +165,16 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             Dictionary<string, IndexTag> privateTags = new Dictionary<string, IndexTag>();
             foreach (IndexTag indexTag in indexTags)
             {
-                if (!indexTag.Tag.IsPrivate && dicomDataset.Contains(indexTag.Tag))
+                if (indexTag.Tag.IsPrivate)
                 {
-                    result.Add(indexTag, indexTag.Tag);
+                    privateTags.Add(indexTag.Tag.GetPath(), indexTag);
                 }
                 else
                 {
-                    privateTags.Add(indexTag.Tag.GetPath(), indexTag);
+                    if (dicomDataset.Contains(indexTag.Tag))
+                    {
+                        result.Add(indexTag, indexTag.Tag);
+                    }
                 }
             }
 
