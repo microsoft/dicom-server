@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Health.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Security;
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
@@ -16,6 +18,6 @@ namespace Microsoft.Health.Dicom.Core.Configs
 
         public virtual HashSet<string> PrincipalClaims { get; } = new HashSet<string>(StringComparer.Ordinal);
 
-        public AuthorizationConfiguration Authorization { get; set; } = new AuthorizationConfiguration();
+        public AuthorizationConfiguration<DataActions> Authorization { get; set; } = new AuthorizationConfiguration<DataActions>();
     }
 }

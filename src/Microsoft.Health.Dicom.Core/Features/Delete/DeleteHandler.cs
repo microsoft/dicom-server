@@ -8,10 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
@@ -22,8 +22,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
     {
         private readonly IDeleteService _deleteService;
 
-        public DeleteHandler(IDicomAuthorizationService dicomAuthorizationService, IDeleteService deleteService)
-            : base(dicomAuthorizationService)
+        public DeleteHandler(IAuthorizationService<DataActions> authorizationService, IDeleteService deleteService)
+            : base(authorizationService)
         {
             _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
         }

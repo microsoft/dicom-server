@@ -4,14 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading;
+using Microsoft.Health.Core.Features.Context;
 
 namespace Microsoft.Health.Dicom.Core.Features.Context
 {
-    public class DicomRequestContextAccessor : IDicomRequestContextAccessor
+    public class DicomRequestContextAccessor : GenericRequestContextAccessor<IDicomRequestContext>, IDicomRequestContextAccessor
     {
         private readonly AsyncLocal<IDicomRequestContext> _dicomRequestContextCurrent = new AsyncLocal<IDicomRequestContext>();
 
-        public IDicomRequestContext DicomRequestContext
+        public override IDicomRequestContext RequestContext
         {
             get => _dicomRequestContextCurrent.Value;
 

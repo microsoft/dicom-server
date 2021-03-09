@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Security
         public PrincipalClaimsExtractorTests()
         {
             _securityOptions.Value.Returns(_securityConfiguration);
-            _dicomRequestContextAccessor.DicomRequestContext.Principal.Returns(_claimsPrincipal);
+            _dicomRequestContextAccessor.RequestContext.Principal.Returns(_claimsPrincipal);
             _claimsIndexer = new PrincipalClaimsExtractor(_dicomRequestContextAccessor, _securityOptions);
         }
 

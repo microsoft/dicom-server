@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
                 requestHeaders: context.Request.Headers,
                 responseHeaders: context.Response.Headers);
 
-            dicomRequestContextAccessor.DicomRequestContext = dicomRequestContext;
+            dicomRequestContextAccessor.RequestContext = dicomRequestContext;
 
             // Call the next delegate/middleware in the pipeline
             await _next(context);

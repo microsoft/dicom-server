@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             EnsureArg.IsNotNull(context, nameof(context));
-            IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.DicomRequestContext;
+            IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
             dicomRequestContext.RouteName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
 
             // Set StudyInstanceUid, SeriesInstanceUid, and SopInstanceUid based on the route data

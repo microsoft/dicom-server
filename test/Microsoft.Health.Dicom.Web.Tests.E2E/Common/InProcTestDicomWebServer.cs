@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Development.IdentityProvider;
+using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E

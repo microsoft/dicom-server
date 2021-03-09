@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
                 new Dictionary<string, object>(),
                 FilterTestsHelper.CreateMockRetrieveController());
 
-            _dicomRequestContextAccessor.DicomRequestContext.Returns(_dicomRequestContext);
+            _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
 
             _filterAttribute = new DicomRequestContextRouteDataPopulatingFilterAttribute(_dicomRequestContextAccessor, _auditEventTypeMapping);
         }
@@ -111,26 +111,26 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
 
             _filterAttribute.OnActionExecuting(_actionExecutingContext);
 
-            Assert.NotNull(_dicomRequestContextAccessor.DicomRequestContext.AuditEventType);
-            Assert.Equal(expectedAuditEventType, _dicomRequestContextAccessor.DicomRequestContext.AuditEventType);
-            Assert.Equal(RouteName, _dicomRequestContextAccessor.DicomRequestContext.RouteName);
+            Assert.NotNull(_dicomRequestContextAccessor.RequestContext.AuditEventType);
+            Assert.Equal(expectedAuditEventType, _dicomRequestContextAccessor.RequestContext.AuditEventType);
+            Assert.Equal(RouteName, _dicomRequestContextAccessor.RequestContext.RouteName);
 
             if (resourceType != null)
             {
                 switch (resourceType)
                 {
                     case ResourceType.Study:
-                        Assert.Equal(_dicomRequestContextAccessor.DicomRequestContext.StudyInstanceUid, StudyInstanceUid);
+                        Assert.Equal(_dicomRequestContextAccessor.RequestContext.StudyInstanceUid, StudyInstanceUid);
                         break;
                     case ResourceType.Series:
-                        Assert.Equal(_dicomRequestContextAccessor.DicomRequestContext.StudyInstanceUid, StudyInstanceUid);
-                        Assert.Equal(_dicomRequestContextAccessor.DicomRequestContext.SeriesInstanceUid, SeriesInstanceUid);
+                        Assert.Equal(_dicomRequestContextAccessor.RequestContext.StudyInstanceUid, StudyInstanceUid);
+                        Assert.Equal(_dicomRequestContextAccessor.RequestContext.SeriesInstanceUid, SeriesInstanceUid);
                         break;
                     case ResourceType.Instance:
                     case ResourceType.Frames:
-                        Assert.Equal(_dicomRequestContextAccessor.DicomRequestContext.StudyInstanceUid, StudyInstanceUid);
-                        Assert.Equal(_dicomRequestContextAccessor.DicomRequestContext.SeriesInstanceUid, SeriesInstanceUid);
-                        Assert.Equal(_dicomRequestContextAccessor.DicomRequestContext.SopInstanceUid, SopInstanceUid);
+                        Assert.Equal(_dicomRequestContextAccessor.RequestContext.StudyInstanceUid, StudyInstanceUid);
+                        Assert.Equal(_dicomRequestContextAccessor.RequestContext.SeriesInstanceUid, SeriesInstanceUid);
+                        Assert.Equal(_dicomRequestContextAccessor.RequestContext.SopInstanceUid, SopInstanceUid);
                         break;
                     default:
                         break;
