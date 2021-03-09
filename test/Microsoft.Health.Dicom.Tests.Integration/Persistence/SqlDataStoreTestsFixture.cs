@@ -83,7 +83,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             IndexDataStore = new SqlIndexDataStore(
                 dicomSqlIndexSchema,
-                SqlConnectionWrapperFactory);
+                SqlConnectionWrapperFactory,
+                schemaInformation);
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 

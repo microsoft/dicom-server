@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -26,19 +25,19 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenDicomInstanceWithStudyLevelCustomTag_WhenStore_ThenCustomTagsNeedToBeAdded()
         {
-            await ValidateAddDicomInstance(CustomTagLevel.Study);
+            await ValidateAddNewCustomTagIndexData(CustomTagLevel.Study);
         }
 
         [Fact]
         public async Task GivenDicomInstanceWithSeriesLevelCustomTag_WhenStore_ThenCustomTagsNeedToBeAdded()
         {
-            await ValidateAddDicomInstance(CustomTagLevel.Series);
+            await ValidateAddNewCustomTagIndexData(CustomTagLevel.Series);
         }
 
         [Fact]
         public async Task GivenDicomInstanceWithInstanceLevelCustomTag_WhenStore_ThenCustomTagsNeedToBeAdded()
         {
-            await ValidateAddDicomInstance(CustomTagLevel.Instance);
+            await ValidateAddNewCustomTagIndexData(CustomTagLevel.Instance);
         }
 
         [Fact]
