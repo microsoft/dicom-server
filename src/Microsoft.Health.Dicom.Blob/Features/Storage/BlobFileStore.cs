@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
     /// </summary>
     public class BlobFileStore : IFileStore
     {
-        private static readonly string GetFileStreamTagName = $"{nameof(BlobFileStore)}.{nameof(GetFileAsync)}";
+        private const string GetFileStreamTagName = nameof(BlobFileStore) + "." + nameof(GetFileAsync);
         private readonly BlobContainerClient _container;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly BlobDataStoreConfiguration _blobDataStoreConfiguration;
