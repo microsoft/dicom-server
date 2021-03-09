@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 return null;
             }
 
-            return (long)(((ulong)tag.Group << 16) + tag.Element);
+            return ((long)tag.Group << 16) + tag.Element;
         }
 
         /// <summary>

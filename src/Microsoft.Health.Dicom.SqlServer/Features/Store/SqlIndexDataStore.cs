@@ -53,11 +53,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
             indexableDicomTags = indexableDicomTags.Where(tag => tag.IsCustomTag);
 
-            IDictionary<IndexTag, string> stringValues = new Dictionary<IndexTag, string>();
-            IDictionary<IndexTag, long> longValues = new Dictionary<IndexTag, long>();
-            IDictionary<IndexTag, double> doubleValues = new Dictionary<IndexTag, double>();
-            IDictionary<IndexTag, DateTime> datetimeValues = new Dictionary<IndexTag, DateTime>();
-            IDictionary<IndexTag, string> personNameValues = new Dictionary<IndexTag, string>();
+            IDictionary<IndexTag, string> stringValues;
+            IDictionary<IndexTag, long> longValues;
+            IDictionary<IndexTag, double> doubleValues;
+            IDictionary<IndexTag, DateTime> datetimeValues;
+            IDictionary<IndexTag, string> personNameValues;
             IndexTagValueReader.Read(
                instance,
                indexableDicomTags,
@@ -68,11 +68,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                out personNameValues);
 
             VLatest.AddInstanceTableValuedParameters parameters = new VLatest.AddInstanceTableValuedParameters(
-                stringValues.Select(x => new InsertStringCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
-                longValues.Select(x => new InsertBigIntCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
-                doubleValues.Select(x => new InsertDoubleCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
-                datetimeValues.Select(x => new InsertDateTimeCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
-                personNameValues.Select(x => new InsertPersonNameCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)));
+                stringValues.Select(
+                    x => new InsertStringCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
+                longValues.Select(
+                    x => new InsertBigIntCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
+                doubleValues.Select(
+                    x => new InsertDoubleCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
+                datetimeValues.Select(
+                    x => new InsertDateTimeCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
+                personNameValues.Select(
+                    x => new InsertPersonNameCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
