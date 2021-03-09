@@ -49,10 +49,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
             yield return new object[] { new DicomSignedLong(DicomTag.DisplayedAreaBottomRightHandCorner, int.MaxValue) };
             yield return new object[] { new DicomSignedShort(DicomTag.LargestImagePixelValue, short.MaxValue) };
 
-            yield return new object[] { new DicomTime(DicomTag.AcquisitionTime, "131405.000020") };
             yield return new object[] { new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, "13.14.520") };
             yield return new object[] { new DicomUnsignedLong(DicomTag.DopplerSampleVolumeXPositionRetiredRETIRED, uint.MaxValue) };
-
             yield return new object[] { new DicomUnsignedShort(DicomTag.AcquisitionMatrix, ushort.MaxValue) };
         }
     }

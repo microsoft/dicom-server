@@ -32,7 +32,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             { DicomVR.SH.Code, CustomTagDataType.StringData },
             { DicomVR.SL.Code, CustomTagDataType.LongData },
             { DicomVR.SS.Code, CustomTagDataType.LongData },
-            { DicomVR.TM.Code, CustomTagDataType.DateTimeData },
             { DicomVR.UI.Code, CustomTagDataType.StringData },
             { DicomVR.UL.Code, CustomTagDataType.LongData },
             { DicomVR.US.Code, CustomTagDataType.LongData },

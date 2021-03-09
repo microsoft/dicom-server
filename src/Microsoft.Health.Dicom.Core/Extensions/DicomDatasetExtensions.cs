@@ -84,19 +84,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         /// <summary>
-        /// Gets the TM VR value as <see cref="DateTime"/>.
-        /// </summary>
-        /// <param name="dicomDataset">The dataset to get the VR value from.</param>
-        /// <param name="dicomTag">The DICOM tag.</param>
-        /// <returns>An instance of <see cref="DateTime"/> if the value exists and comforms to the DA format; otherwise <c>null</c>.</returns>
-        public static DateTime? GetStringDateAsTime(this DicomDataset dicomDataset, DicomTag dicomTag)
-        {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-            string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
-            return DicomElementMinimumValidation.TryParseTM(stringDate, out DateTime result) ? result : null;
-        }
-
-        /// <summary>
         /// Creates a new copy of DICOM dataset with items of VR types considered to be bulk data removed.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset.</param>
@@ -190,13 +177,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         /// <summary>
-        /// Get DicomTags for index Tag from Dicom Dataset.
+        /// Get matching DicomTags for index Tag from Dicom Dataset.
         /// </summary>
         /// <remarks>If indextag not exist in dataset, should not return.</remarks>
         /// <param name="dicomDataset">The dicom dataset.</param>
         /// <param name="indexTags">The index Tags.</param>
         /// <returns>Mapping between IndexTag and DicomTag.</returns>
-        public static IDictionary<IndexTag, DicomTag> GetDicomTags(this DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
+        public static IDictionary<IndexTag, DicomTag> GetMatchingDicomTags(this DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(indexTags, nameof(indexTags));

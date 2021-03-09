@@ -5,6 +5,7 @@
 
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
@@ -48,5 +49,28 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// Gets the underlying customTagStoreEntry for custom tag.
         /// </summary>
         public CustomTagStoreEntry CustomTagStoreEntry { get; }
+
+        /// <summary>
+        /// Build IndexTag for core dicom tag.
+        /// </summary>
+        /// <param name="tag">the core dicom tag.</param>
+        /// <param name="level">The level</param>
+        /// <returns>The index tag</returns>
+        public static IndexTag FromCoreDicomTag(DicomTag tag, CustomTagLevel level)
+        {
+            EnsureArg.IsNotNull(tag, nameof(tag));
+            return new IndexTag(tag, tag.GetDefaultVR(), level, null);
+        }
+
+        /// <summary>
+        /// Build IndexTag from customtag store entry..
+        /// </summary>
+        /// <param name="entry">the custom tag store entry.</param>
+        /// <returns>The index tag</returns>
+        public static IndexTag FromCustomTagStoreEntry(CustomTagStoreEntry entry)
+        {
+            EnsureArg.IsNotNull(entry, nameof(entry));
+            return new IndexTag(DicomTag.Parse(entry.Path), DicomVR.Parse(entry.VR), entry.Level, entry);
+        }
     }
 }

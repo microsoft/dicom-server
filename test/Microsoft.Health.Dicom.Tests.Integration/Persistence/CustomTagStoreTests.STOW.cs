@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -27,52 +26,31 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenDicomInstanceWithStudyLevelCustomTag_WhenStore_ThenCustomTagsNeedToBeAdded()
         {
-            await ValidateAdd(CustomTagLevel.Study);
+            await ValidateAddDicomInstance(CustomTagLevel.Study);
         }
 
         [Fact]
         public async Task GivenDicomInstanceWithSeriesLevelCustomTag_WhenStore_ThenCustomTagsNeedToBeAdded()
         {
-            await ValidateAdd(CustomTagLevel.Series);
+            await ValidateAddDicomInstance(CustomTagLevel.Series);
         }
 
         [Fact]
         public async Task GivenDicomInstanceWithInstanceLevelCustomTag_WhenStore_ThenCustomTagsNeedToBeAdded()
         {
-            await ValidateAdd(CustomTagLevel.Instance);
+            await ValidateAddDicomInstance(CustomTagLevel.Instance);
         }
 
         [Fact]
         public async Task GivenDicomInstanceWithStudyLevelCustomTag_WhenStoreWithNewValue_ThenCustomTagsNeedToBeUpdated()
         {
-            await ValidateUpdate(CustomTagLevel.Study);
+            await ValidateUpdateExistingCustomTagIndexData(CustomTagLevel.Study);
         }
 
         [Fact]
         public async Task GivenDicomInstanceWithSeriesLevelCustomTag_WhenStoreWithNewValue_ThenCustomTagsNeedToBeUpdated()
         {
-            await ValidateUpdate(CustomTagLevel.Series);
-        }
-
-        [Fact]
-        public async Task GivenDicomInstanceWithCustomTags_WhenCustomTagNotExist_ThenStoreShouldFail()
-        {
-            string studyInstanceUid = TestUidGenerator.Generate();
-            string seriesInstanceUid = TestUidGenerator.Generate();
-            string sopInstanceUid = TestUidGenerator.Generate();
-            DicomTag tag = DicomTag.ConversionType;
-
-            DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            dataset.Add(tag, "SYN");
-            CustomTagLevel level = CustomTagLevel.Instance;
-            IndexTag indexTag = await AddCustomTag(tag.BuildCustomTagEntry(level: level));
-
-            // remove it
-            await _customTagStore.DeleteCustomTagAsync(indexTag.CustomTagStoreEntry.Path, indexTag.CustomTagStoreEntry.VR);
-
-            // index should fail
-            await Assert.ThrowsAsync<CustomTagsAlreadyChangedException>(() =>
-            _indexDataStore.CreateInstanceIndexAsync(dataset, new IndexTag[] { indexTag }));
+            await ValidateUpdateExistingCustomTagIndexData(CustomTagLevel.Series);
         }
 
         [Theory]
@@ -112,7 +90,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             yield return new object[] { CustomTagDataType.PersonNameData, new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc"), "abc^abc" };
         }
 
-        private async Task ValidateAdd(CustomTagLevel level)
+        private async Task ValidateAddNewCustomTagIndexData(CustomTagLevel level)
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
@@ -150,10 +128,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             await _customTagStore.AddCustomTagsAsync(customTags);
             var customTagEntries = await _customTagStore.GetCustomTagsAsync();
-            return customTagEntries.Select(entry => entry.Convert()).ToList();
+            return customTagEntries.Select(entry => IndexTag.FromCustomTagStoreEntry(entry)).ToList();
         }
 
-        private async Task ValidateUpdate(CustomTagLevel level)
+        private async Task ValidateUpdateExistingCustomTagIndexData(CustomTagLevel level)
         {
             if (level == CustomTagLevel.Instance)
             {

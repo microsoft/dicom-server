@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -28,7 +27,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             IDictionary<IndexTag, DateTime> datetimeValues;
             IDictionary<IndexTag, string> personNameValues;
 
-            IndexTag tag = element.Tag.BuildCustomTagStoreEntry().Convert();
+            IndexTag tag = IndexTag.FromCustomTagStoreEntry(element.Tag.BuildCustomTagStoreEntry());
             IndexTagValueReader.Read(
                 dataset,
                 new IndexTag[] { tag },
@@ -81,7 +80,6 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             yield return BuildParam(DicomTag.ReferencePixelX0, (long)int.MaxValue, (tag, value) => new DicomSignedLong(tag, (int)value));
             yield return BuildParam(DicomTag.LargestImagePixelValue, (long)short.MaxValue, (tag, value) => new DicomSignedShort(tag, (short)value));
 
-            yield return BuildParam(DicomTag.AcquisitionTime, DateTime.Parse("0001/1/1 1:30"), (tag, value) => new DicomTime(tag, value));
             yield return BuildParam(DicomTag.DigitalSignatureUID, "13.14.520", (tag, value) => new DicomUniqueIdentifier(tag, value));
             yield return BuildParam(DicomTag.DopplerSampleVolumeXPositionRetiredRETIRED, (long)uint.MaxValue, (tag, value) => new DicomUnsignedLong(tag, (uint)value));
             yield return BuildParam(DicomTag.AngularViewVector, (long)ushort.MaxValue, (tag, value) => new DicomUnsignedShort(tag, (ushort)value));

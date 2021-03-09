@@ -18,46 +18,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*$", RegexOptions.Compiled);
         private const string DateFormatDA = "yyyyMMdd";
         private const string BinaryDataPlaceHolder = "<BinaryData>";
-        private static readonly string[] DataFromatTM =
-        {
-            "HHmmss",
-            "HH",
-            "HHmm",
-            "HHmmssf",
-            "HHmmssff",
-            "HHmmssfff",
-            "HHmmssffff",
-            "HHmmssfffff",
-            "HHmmssffffff",
-            "HHmmss.f",
-            "HHmmss.ff",
-            "HHmmss.fff",
-            "HHmmss.ffff",
-            "HHmmss.fffff",
-            "HHmmss.ffffff",
-            "HH.mm",
-            "HH.mm.ss",
-            "HH.mm.ss.f",
-            "HH.mm.ss.ff",
-            "HH.mm.ss.fff",
-            "HH.mm.ss.ffff",
-            "HH.mm.ss.fffff",
-            "HH.mm.ss.ffffff",
-            "HH:mm",
-            "HH:mm:ss",
-            "HH:mm:ss:f",
-            "HH:mm:ss:ff",
-            "HH:mm:ss:fff",
-            "HH:mm:ss:ffff",
-            "HH:mm:ss:fffff",
-            "HH:mm:ss:ffffff",
-            "HH:mm:ss.f",
-            "HH:mm:ss.ff",
-            "HH:mm:ss.fff",
-            "HH:mm:ss.ffff",
-            "HH:mm:ss.fffff",
-            "HH:mm:ss.ffffff",
-        };
 
         private static readonly string[] DateFormatDT =
         {
@@ -246,19 +206,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         internal static void ValidateSS(IByteBuffer value, string name)
         {
             ValidateLength(value.Size, 2, 2, DicomVR.SS, name, BinaryDataPlaceHolder);
-        }
-
-        internal static void ValidateTM(string value, string name)
-        {
-            if (!TryParseTM(value, out _))
-            {
-                throw new DicomElementValidationException(name, value, DicomVR.DT, DicomCoreResource.ValueIsInvalidDate);
-            }
-        }
-
-        internal static bool TryParseTM(string value, out DateTime dateTime)
-        {
-            return DateTime.TryParseExact(value, DataFromatTM, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out dateTime);
         }
 
         public static void ValidateUI(string value, string name)

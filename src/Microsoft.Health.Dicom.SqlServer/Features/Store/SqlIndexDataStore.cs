@@ -20,28 +20,33 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.SqlServer.Features.Client;
+using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
     internal class SqlIndexDataStore : IIndexDataStore
     {
-        private const byte CustomTagChangedStateCode = 10;
         private readonly SqlIndexSchema _sqlServerIndexSchema;
         private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
+        private readonly SchemaInformation _schemaInformation;
 
         public SqlIndexDataStore(
             SqlIndexSchema indexSchema,
-            SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
+            SchemaInformation schemaInformation)
         {
             EnsureArg.IsNotNull(indexSchema, nameof(indexSchema));
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
+            EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
 
             _sqlServerIndexSchema = indexSchema;
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
+            _schemaInformation = schemaInformation;
         }
 
         public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<IndexTag> indexableDicomTags, CancellationToken cancellationToken)
@@ -50,7 +55,37 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNull(indexableDicomTags, nameof(indexableDicomTags));
 
             await _sqlServerIndexSchema.EnsureInitialized();
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                PopulateAddInstanceCommand(sqlCommandWrapper, instance, indexableDicomTags);
 
+                try
+                {
+                    return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+                }
+                catch (SqlException ex)
+                {
+                    switch (ex.Number)
+                    {
+                        case SqlErrorCodes.Conflict:
+                            {
+                                if (ex.State == (byte)IndexStatus.Creating)
+                                {
+                                    throw new PendingInstanceException();
+                                }
+
+                                throw new InstanceAlreadyExistsException();
+                            }
+                    }
+
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
+
+        private static VLatest.AddInstanceTableValuedParameters BuildAddInstanceTableValuedParameters(DicomDataset instance, IEnumerable<IndexTag> indexableDicomTags)
+        {
             indexableDicomTags = indexableDicomTags.Where(tag => tag.IsCustomTag);
 
             IDictionary<IndexTag, string> stringValues;
@@ -78,90 +113,47 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     x => new InsertDateTimeCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
                 personNameValues.Select(
                     x => new InsertPersonNameCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)));
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.AddInstance.PopulateCommand(
-                    sqlCommandWrapper,
-                    instance.GetString(DicomTag.StudyInstanceUID),
-                    instance.GetString(DicomTag.SeriesInstanceUID),
-                    instance.GetString(DicomTag.SOPInstanceUID),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                    instance.GetStringDateAsDate(DicomTag.StudyDate),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                    instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
-                    (byte)IndexStatus.Creating,
-                    parameters);
-
-                try
-                {
-                    return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
-                }
-                catch (SqlException ex)
-                {
-                    switch (ex.Number)
-                    {
-                        case SqlErrorCodes.Conflict:
-                            {
-                                if (ex.State == (byte)IndexStatus.Creating)
-                                {
-                                    throw new PendingInstanceException();
-                                }
-                                else if (ex.State == CustomTagChangedStateCode)
-                                {
-                                    throw new CustomTagsAlreadyChangedException();
-                                }
-
-                                throw new InstanceAlreadyExistsException();
-                            }
-                    }
-
-                    throw new DataStoreException(ex);
-                }
-            }
+            return parameters;
         }
 
-        private static VLatest.AddInstanceTableValuedParameters BuildAddInstanceTableValuedParameters(IReadOnlyDictionary<IndexTag, object> indexTagDictionary)
+        private void PopulateAddInstanceCommand(SqlCommandWrapper wrapper, DicomDataset instance, IEnumerable<IndexTag> indexTags)
         {
-            List<InsertStringCustomTagTableTypeV1Row> stringRows = new List<InsertStringCustomTagTableTypeV1Row>();
-            List<InsertDoubleCustomTagTableTypeV1Row> doubleRows = new List<InsertDoubleCustomTagTableTypeV1Row>();
-            List<InsertBigIntCustomTagTableTypeV1Row> bigIntRows = new List<InsertBigIntCustomTagTableTypeV1Row>();
-            List<InsertDateTimeCustomTagTableTypeV1Row> dateTimeRows = new List<InsertDateTimeCustomTagTableTypeV1Row>();
-            List<InsertPersonNameCustomTagTableTypeV1Row> personNameRows = new List<InsertPersonNameCustomTagTableTypeV1Row>();
-            foreach (var indexTag in indexTagDictionary.Keys)
+            if (_schemaInformation.Current >= SchemaVersionConstants.SupportCustomTagSchemaVersion)
             {
-                CustomTagStoreEntry entry = indexTag.CustomTagStoreEntry;
-                object value = indexTagDictionary[indexTag];
-                CustomTagDataType dataType = CustomTagLimit.CustomTagVRAndDataTypeMapping[entry.VR];
-                switch (dataType)
-                {
-                    case CustomTagDataType.StringData:
-                        stringRows.Add(new InsertStringCustomTagTableTypeV1Row(entry.Key, (string)value, (byte)entry.Level));
-                        break;
-                    case CustomTagDataType.LongData:
-                        bigIntRows.Add(new InsertBigIntCustomTagTableTypeV1Row(entry.Key, Convert.ToInt64(value), (byte)entry.Level));
-                        break;
-                    case CustomTagDataType.DoubleData:
-                        doubleRows.Add(new InsertDoubleCustomTagTableTypeV1Row(entry.Key, Convert.ToDouble(value), (byte)entry.Level));
-                        break;
-                    case CustomTagDataType.DateTimeData:
-                        dateTimeRows.Add(new InsertDateTimeCustomTagTableTypeV1Row(entry.Key, (DateTime)value, (byte)entry.Level));
-                        break;
-                    case CustomTagDataType.PersonNameData:
-                        personNameRows.Add(new InsertPersonNameCustomTagTableTypeV1Row(entry.Key, (string)value, (byte)entry.Level));
-                        break;
-                    default:
-                        Debug.Fail($"{dataType} cannot be processed");
-                        break;
-                }
+                VLatest.AddInstanceTableValuedParameters parameters = BuildAddInstanceTableValuedParameters(instance, indexTags);
+                VLatest.AddInstance.PopulateCommand(
+                wrapper,
+                instance.GetString(DicomTag.StudyInstanceUID),
+                instance.GetString(DicomTag.SeriesInstanceUID),
+                instance.GetString(DicomTag.SOPInstanceUID),
+                instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
+                instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
+                instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
+                instance.GetStringDateAsDate(DicomTag.StudyDate),
+                instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
+                instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
+                instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
+                instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                (byte)IndexStatus.Creating,
+                parameters);
             }
-
-            return new VLatest.AddInstanceTableValuedParameters(stringRows, bigIntRows, doubleRows, dateTimeRows, personNameRows);
+            else
+            {
+                V1.AddInstance.PopulateCommand(
+                     wrapper,
+                     instance.GetString(DicomTag.StudyInstanceUID),
+                     instance.GetString(DicomTag.SeriesInstanceUID),
+                     instance.GetString(DicomTag.SOPInstanceUID),
+                     instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
+                     instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
+                     instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
+                     instance.GetStringDateAsDateTime(DicomTag.StudyDate),
+                     instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
+                     instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
+                     instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
+                     instance.GetStringDateAsDateTime(DicomTag.PerformedProcedureStepStartDate),
+                     (byte)IndexStatus.Creating);
+            }
         }
 
         public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)

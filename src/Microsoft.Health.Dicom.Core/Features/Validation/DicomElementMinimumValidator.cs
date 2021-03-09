@@ -30,7 +30,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             _stringValidators.Add(DicomVR.LO, DicomElementMinimumValidation.ValidateLO);
             _stringValidators.Add(DicomVR.PN, DicomElementMinimumValidation.ValidatePN);
             _stringValidators.Add(DicomVR.SH, DicomElementMinimumValidation.ValidateSH);
-            _stringValidators.Add(DicomVR.TM, DicomElementMinimumValidation.ValidateTM);
             _stringValidators.Add(DicomVR.UI, DicomElementMinimumValidation.ValidateUI);
 
             _byteBufferValidators.Add(DicomVR.AT, DicomElementMinimumValidation.ValidateAT);

@@ -86,12 +86,5 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateIS(value, nameof(value)));
         }
-
-        [Theory]
-        [InlineData("021")] // not full minute
-        public void GivenTMInvalidValue_WhenValidating_Throws(string value)
-        {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateTM(value, nameof(value)));
-        }
     }
 }

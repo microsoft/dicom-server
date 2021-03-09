@@ -5,7 +5,6 @@
 
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
@@ -48,19 +47,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             }
 
             return dicomTag.DictionaryEntry.ValueRepresentations.Length > 0 ? dicomTag.DictionaryEntry.ValueRepresentations[0] : null;
-        }
-
-        /// <summary>
-        /// Convert a dicom tag to indexTag
-        /// </summary>
-        /// <param name="dicomTag">The dicomTag</param>
-        /// <param name="level">The tag level.</param>
-        /// <param name="dicomVR">The dicomVR. If use default one if not sepcified.</param>
-        /// <returns>The indexTag</returns>
-        public static IndexTag Convert(this DicomTag dicomTag, CustomTagLevel level, DicomVR dicomVR = null)
-        {
-            EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
-            return new IndexTag(dicomTag, dicomVR ?? dicomTag.GetDefaultVR(), level, customTagStoreEntry: null);
         }
     }
 }

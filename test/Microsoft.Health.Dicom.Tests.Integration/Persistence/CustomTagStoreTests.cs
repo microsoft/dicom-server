@@ -107,7 +107,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _customTagStore.AddCustomTagsAsync(new CustomTagEntry[] { tag.BuildCustomTagEntry() });
             CustomTagStoreEntry storeEntry = (await _customTagStore.GetCustomTagsAsync(path: tag.GetPath()))[0];
-            IndexTag indexTag = storeEntry.Convert();
+            IndexTag indexTag = IndexTag.FromCustomTagStoreEntry(storeEntry);
             await _indexDataStore.CreateInstanceIndexAsync(dataset, new IndexTag[] { indexTag });
             var customTagIndexData = await _testHelper.GetCustomTagDataAsync(CustomTagDataType.StringData, storeEntry.Key);
             Assert.NotEmpty(customTagIndexData);

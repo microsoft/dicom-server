@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
             IReadOnlyCollection<IndexTag> indexTags = await _indextagService.GetIndexTagsAsync(cancellationToken);
-            var tags = dicomDataset.GetDicomTags(indexTags);
+            var tags = dicomDataset.GetMatchingDicomTags(indexTags);
             ValidateTags(dicomDataset, tags.Values);
         }
 

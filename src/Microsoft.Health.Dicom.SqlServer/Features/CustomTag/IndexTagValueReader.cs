@@ -22,7 +22,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
         {
             { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate },
             { DicomVR.DT, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDateTime },
-            { DicomVR.TM, Core.Extensions.DicomDatasetExtensions.GetStringDateAsTime },
         };
 
         /// <summary>
@@ -53,7 +52,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             datetimeValues = new Dictionary<IndexTag, DateTime>();
             personNameValues = new Dictionary<IndexTag, string>();
 
-            var tags = instance.GetDicomTags(indexTags);
+            var tags = instance.GetMatchingDicomTags(indexTags);
 
             foreach (var pair in tags)
             {
