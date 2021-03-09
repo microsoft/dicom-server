@@ -415,7 +415,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             }
         }
 
-        private static string GetTableAlias(DicomTagSqlEntry sqlEntry, long? customTagKey)
+        private static string GetTableAlias(DicomTagSqlEntry sqlEntry, int? customTagKey)
         {
             string ret = null;
             switch (sqlEntry.SqlTableType)

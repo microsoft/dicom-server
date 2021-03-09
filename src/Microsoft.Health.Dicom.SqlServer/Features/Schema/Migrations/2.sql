@@ -372,7 +372,7 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     TagStatus can be 0, 1 or 2 to represent Reindexing, Added or Deindexing
 **************************************************************/
 CREATE TABLE dbo.CustomTag (
-    TagKey                  BIGINT               NOT NULL, --PK
+    TagKey                  INT                  NOT NULL, --PK
     TagPath                 VARCHAR(64)          NOT NULL,
     TagVR                   VARCHAR(2)           NOT NULL,
     TagLevel                TINYINT              NOT NULL,
@@ -397,7 +397,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
           the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagString (
-    TagKey                  BIGINT               NOT NULL, --PK
+    TagKey                  INT                  NOT NULL, --PK
     TagValue                NVARCHAR(64)         NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
     SeriesKey               BIGINT               NULL,     --FK
@@ -422,7 +422,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagString ON dbo.CustomTagString
           the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagBigInt (
-    TagKey                  BIGINT               NOT NULL, --PK
+    TagKey                  INT                  NOT NULL, --PK
     TagValue                BIGINT               NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
     SeriesKey               BIGINT               NULL,     --FK
@@ -447,7 +447,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagBigInt ON dbo.CustomTagBigInt
           the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagDouble (
-    TagKey                  BIGINT               NOT NULL, --PK
+    TagKey                  INT                  NOT NULL, --PK
     TagValue                FLOAT(53)            NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
     SeriesKey               BIGINT               NULL,     --FK
@@ -472,7 +472,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDouble ON dbo.CustomTagDouble
           the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagDateTime (
-    TagKey                  BIGINT               NOT NULL, --PK
+    TagKey                  INT                  NOT NULL, --PK
     TagValue                DATETIME2(7)         NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
     SeriesKey               BIGINT               NULL,     --FK
@@ -498,7 +498,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDateTime ON dbo.CustomTagDateTime
 	Note: The primary key is designed on the assumption that tags only occur once in an instance.
 **************************************************************/
 CREATE TABLE dbo.CustomTagPersonName (
-    TagKey                  BIGINT               NOT NULL, --FK
+    TagKey                  INT                  NOT NULL, --FK
     TagValue                NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
     SeriesKey               BIGINT               NULL,     --FK
@@ -1194,7 +1194,7 @@ AS
     BEGIN TRANSACTION
         
         DECLARE @tagStatus TINYINT
-        DECLARE @tagKey BIGINT
+        DECLARE @tagKey INT        
 
         -- Lock the tag from external updates       
         SELECT @tagKey = TagKey, @tagStatus = TagStatus

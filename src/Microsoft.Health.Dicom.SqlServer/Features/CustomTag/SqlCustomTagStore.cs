@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (long tagKey, string tagPath, string tagVR, int tagLevel, int tagStatus) = reader.ReadRow(
+                        (int tagKey, string tagPath, string tagVR, int tagLevel, int tagStatus) = reader.ReadRow(
                             VLatest.CustomTag.TagKey,
                             VLatest.CustomTag.TagPath,
                             VLatest.CustomTag.TagVR,

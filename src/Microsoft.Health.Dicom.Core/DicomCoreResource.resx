@@ -323,4 +323,16 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Invalid QIDO-RS query. Specified value '{0}' custom tag with path '{1}' is not a valid long value.</value>
     <comment>{0} long value. {1} custom tag path.</comment>
   </data>
+  <data name="ValueLengthAboveMaxLength" xml:space="preserve">
+    <value>Value length is above {0}.</value>
+    <comment>{0} max length.</comment>
+  </data>
+  <data name="ValueLengthBelowMinLength" xml:space="preserve">
+    <value>Value length is below {0}.</value>
+    <comment>{0} min length.</comment>
+  </data>
+  <data name="ValueLengthIsNotRequiredLength" xml:space="preserve">
+    <value>Value length is not {0}.</value>
+    <comment>{0} required length.</comment>
+  </data>  
 </root>

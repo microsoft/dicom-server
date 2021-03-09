@@ -6,11 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
@@ -22,17 +25,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     {
         private readonly bool _enableFullDicomItemValidation;
         private readonly IDicomElementMinimumValidator _minimumValidator;
+        private readonly IIndexTagService _indextagService;
 
-        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator)
+        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, IIndexTagService indexableDicomTagService)
         {
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
             EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
+            EnsureArg.IsNotNull(indexableDicomTagService, nameof(indexableDicomTagService));
 
             _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
             _minimumValidator = minimumValidator;
+            _indextagService = indexableDicomTagService;
         }
 
-        public void Validate(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+        public async Task ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -90,22 +96,63 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
             else
             {
-                ValidateIndexedItems(dicomDataset);
+                await ValidateIndexedItems(dicomDataset, cancellationToken);
             }
         }
 
-        private void ValidateIndexedItems(DicomDataset dicomDataset)
+        private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
-            HashSet<DicomTag> indexableTags = QueryLimit.AllInstancesTags;
+            IReadOnlyCollection<IndexTag> indexTags = await _indextagService.GetIndexTagsAsync(cancellationToken);
 
-            foreach (DicomTag indexableTag in indexableTags)
+            var tags = GetDicomTags(dicomDataset, indexTags);
+
+            ValidateTags(dicomDataset, tags);
+        }
+
+        private static IEnumerable<DicomTag> GetDicomTags(DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
+        {
+            HashSet<DicomTag> result = new HashSet<DicomTag>();
+            Dictionary<string, IndexTag> privateTags = new Dictionary<string, IndexTag>();
+            foreach (IndexTag indexTag in indexTags)
+            {
+                if (!indexTag.Tag.IsPrivate)
+                {
+                    result.Add(indexTag.Tag);
+                }
+                else
+                {
+                    privateTags.Add(indexTag.Tag.GetPath(), indexTag);
+                }
+            }
+
+            if (privateTags.Count != 0)
+            {
+                // IndexTag don't have privateCreator for private tag, need to fill that part from DicomDataset.
+                foreach (DicomItem item in dicomDataset)
+                {
+                    if (item.Tag.IsPrivate)
+                    {
+                        string tagPath = item.Tag.GetPath();
+                        if (privateTags.ContainsKey(tagPath) && privateTags[tagPath].Equals(item.ValueRepresentation))
+                        {
+                            result.Add(item.Tag);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private void ValidateTags(DicomDataset dicomDataset, IEnumerable<DicomTag> tags)
+        {
+            foreach (DicomTag indexableTag in tags)
             {
                 DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(indexableTag);
 
                 if (dicomElement != null)
                 {
-                    string value = dicomDataset.GetSingleValueOrDefault<string>(indexableTag, default);
-                    _minimumValidator.Validate(indexableTag, value);
+                    _minimumValidator.Validate(dicomElement);
                 }
             }
         }

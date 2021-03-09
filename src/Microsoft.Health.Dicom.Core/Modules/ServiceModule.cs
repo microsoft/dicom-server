@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<DicomDatasetValidator>()
-                .Singleton()
+                .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
@@ -136,6 +136,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            services.Add<IndexTagService>()
+                   .Scoped()
+                   .AsSelf()
+                   .AsImplementedInterfaces();
 
             if (_featureConfiguration.EnableCustomQueryTags)
             {
