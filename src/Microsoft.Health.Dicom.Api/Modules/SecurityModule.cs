@@ -90,7 +90,7 @@ namespace Microsoft.Health.Dicom.Api.Modules
             services.Add<DicomRequestContextAccessor>()
                 .Singleton()
                 .AsSelf()
-                .AsService<GenericRequestContextAccessor<IDicomRequestContext>>()
+                .AsService<RequestContextAccessor<IDicomRequestContext>>()
                 .AsService<IDicomRequestContextAccessor>();
 
             services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();

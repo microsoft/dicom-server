@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Web
                 // When hosted on IIS, the max request body size can not over 2GB, according to Asp.net Core bug https://github.com/dotnet/aspnetcore/issues/2711
                 options.MaxRequestBodySize = int.MaxValue;
             });
-            services.AddDevelopmentIdentityProvider<DataActions>(Configuration);
+            services.AddDevelopmentIdentityProvider<DataActions>(Configuration, "DicomServer");
 
             services.AddDicomServer(Configuration)
                 .AddBlobStorageDataStore(Configuration)

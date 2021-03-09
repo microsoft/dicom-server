@@ -8,7 +8,7 @@ using Microsoft.Health.Core.Features.Context;
 
 namespace Microsoft.Health.Dicom.Core.Features.Context
 {
-    public class DicomRequestContextAccessor : GenericRequestContextAccessor<IDicomRequestContext>, IDicomRequestContextAccessor
+    public class DicomRequestContextAccessor : RequestContextAccessor<IDicomRequestContext>, IDicomRequestContextAccessor
     {
         private readonly AsyncLocal<IDicomRequestContext> _dicomRequestContextCurrent = new AsyncLocal<IDicomRequestContext>();
 
