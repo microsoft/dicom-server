@@ -49,7 +49,12 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
             DicomTag tag = dicomDataset.GetSingleValueOrDefault<DicomTag>(dicomTag, default);
-            return (long)(((ulong)tag?.Group << 16) + tag.Element);
+            if (tag == null)
+            {
+                return null;
+            }
+
+            return (long)(((ulong)tag.Group << 16) + tag.Element);
         }
 
         /// <summary>
