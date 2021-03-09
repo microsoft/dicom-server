@@ -10,6 +10,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
@@ -43,8 +44,29 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return dicomDataset.GetSingleValueOrDefault<T>(dicomTag, default);
         }
 
+        public static long? GetDicomTagValueAsLong(this DicomDataset dicomDataset, DicomTag dicomTag)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+            DicomTag tag = dicomDataset.GetSingleValueOrDefault<DicomTag>(dicomTag, default);
+            return (long)(((ulong)tag?.Group << 16) + tag.Element);
+        }
+
         /// <summary>
         /// Gets the DA VR value as <see cref="DateTime"/>.
+        /// </summary>
+        /// <param name="dicomDataset">The dataset to get the VR value from.</param>
+        /// <param name="dicomTag">The DICOM tag.</param>
+        /// <returns>An instance of <see cref="DateTime"/> if the value exists and comforms to the DA format; otherwise <c>null</c>.</returns>
+        public static DateTime? GetStringDateAsDate(this DicomDataset dicomDataset, DicomTag dicomTag)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
+            return DicomElementMinimumValidation.TryParseDA(stringDate, out DateTime result) ? result : null;
+        }
+
+        /// <summary>
+        /// Gets the DT VR value as <see cref="DateTime"/>.
         /// </summary>
         /// <param name="dicomDataset">The dataset to get the VR value from.</param>
         /// <param name="dicomTag">The DICOM tag.</param>
@@ -52,9 +74,21 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static DateTime? GetStringDateAsDateTime(this DicomDataset dicomDataset, DicomTag dicomTag)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
+            return DicomElementMinimumValidation.TryParseDT(stringDate, out DateTime result) ? result : null;
+        }
 
-            DicomElement element = dicomDataset.GetDicomItem<DicomElement>(dicomTag);
-            return (DateTime?)element?.GetSingleValue();
+        /// <summary>
+        /// Gets the TM VR value as <see cref="DateTime"/>.
+        /// </summary>
+        /// <param name="dicomDataset">The dataset to get the VR value from.</param>
+        /// <param name="dicomTag">The DICOM tag.</param>
+        /// <returns>An instance of <see cref="DateTime"/> if the value exists and comforms to the DA format; otherwise <c>null</c>.</returns>
+        public static DateTime? GetStringDateAsTime(this DicomDataset dicomDataset, DicomTag dicomTag)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
+            return DicomElementMinimumValidation.TryParseTM(stringDate, out DateTime result) ? result : null;
         }
 
         /// <summary>
@@ -196,34 +230,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                             }
                         }
                     }
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Get Index Tag values from DicomDataset.
-        /// </summary>
-        /// <param name="dicomDataset">The dicom dataset.</param>
-        /// <param name="indexTags">The index tags.</param>
-        /// <returns>The values.</returns>
-        public static IReadOnlyDictionary<IndexTag, object> GetIndexTagValues(this DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
-        {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-            EnsureArg.IsNotNull(indexTags, nameof(indexTags));
-            var dicomTags = dicomDataset.GetDicomTags(indexTags);
-            Dictionary<IndexTag, object> result = new Dictionary<IndexTag, object>();
-
-            foreach (var pair in dicomTags)
-            {
-                DicomElement element = dicomDataset.GetDicomItem<DicomElement>(pair.Value);
-
-                // we only support single value
-                object value = element?.GetSingleValue();
-                if (value != null)
-                {
-                    result.Add(pair.Key, value);
                 }
             }
 

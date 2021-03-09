@@ -51,11 +51,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
             await _sqlServerIndexSchema.EnsureInitialized();
 
-            var customTags = indexableDicomTags.Where(tag => tag.IsCustomTag);
+            indexableDicomTags = indexableDicomTags.Where(tag => tag.IsCustomTag);
 
-            var customTagValues = instance.GetIndexTagValues(customTags);
+            IDictionary<IndexTag, string> stringValues = new Dictionary<IndexTag, string>();
+            IDictionary<IndexTag, long> longValues = new Dictionary<IndexTag, long>();
+            IDictionary<IndexTag, double> doubleValues = new Dictionary<IndexTag, double>();
+            IDictionary<IndexTag, DateTime> datetimeValues = new Dictionary<IndexTag, DateTime>();
+            IDictionary<IndexTag, string> personNameValues = new Dictionary<IndexTag, string>();
+            IndexTagValueReader.Read(
+               instance,
+               indexableDicomTags,
+               out stringValues,
+               out longValues,
+               out doubleValues,
+               out datetimeValues,
+               out personNameValues);
 
-            VLatest.AddInstanceTableValuedParameters parameters = BuildAddInstanceTableValuedParameters(customTagValues);
+            VLatest.AddInstanceTableValuedParameters parameters = new VLatest.AddInstanceTableValuedParameters(
+                stringValues.Select(x => new InsertStringCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
+                longValues.Select(x => new InsertBigIntCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
+                doubleValues.Select(x => new InsertDoubleCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
+                datetimeValues.Select(x => new InsertDateTimeCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
+                personNameValues.Select(x => new InsertPersonNameCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -68,11 +85,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
                     instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
                     instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                    instance.GetStringDateAsDateTime(DicomTag.StudyDate),
+                    instance.GetStringDateAsDate(DicomTag.StudyDate),
                     instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
                     instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
                     instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                    instance.GetStringDateAsDateTime(DicomTag.PerformedProcedureStepStartDate),
+                    instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
                     (byte)IndexStatus.Creating,
                     parameters);
 

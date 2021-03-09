@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <summary>
         /// Gets whether this is custom tag or not.
         /// </summary>
-        public bool IsCustomTag { get => CustomTagStoreEntry != null; }
+        public bool IsCustomTag => CustomTagStoreEntry != null;
 
         /// <summary>
         /// Gets the underlying customTagStoreEntry for custom tag.

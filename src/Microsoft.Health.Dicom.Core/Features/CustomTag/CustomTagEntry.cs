@@ -15,10 +15,10 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="CustomTagEntry"/> class.
-        /// As used as customer input, constructor without parameters is required.
         /// </summary>
         public CustomTagEntry()
         {
+            // As used as customer input, constructor without parameters is required.
         }
 
         public CustomTagEntry(string path, string vR, CustomTagLevel level, CustomTagStatus status)

@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         [Fact]
         public void GivenNoDicomDateValue_WhenGetStringDateAsDateTimeIsCalled_ThenNullShouldBeReturned()
         {
-            Assert.Null(_dicomDataset.GetStringDateAsDateTime(DicomTag.StudyDate));
+            Assert.Null(_dicomDataset.GetStringDateAsDate(DicomTag.StudyDate));
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
             Assert.Equal(
                 new DateTime(2020, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                _dicomDataset.GetStringDateAsDateTime(DicomTag.StudyDate));
+                _dicomDataset.GetStringDateAsDate(DicomTag.StudyDate));
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            Assert.Null(_dicomDataset.GetStringDateAsDateTime(DicomTag.StudyDate));
+            Assert.Null(_dicomDataset.GetStringDateAsDate(DicomTag.StudyDate));
         }
 
         [Fact]
@@ -224,32 +224,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
                 return result.ToString();
             }
-        }
-
-        [Fact]
-        public void GivenADicomDataset_WhenGetIndexTagValuesIsCalled_ThenValueShouldBeRetrieved()
-        {
-            DicomTag dicomTag = DicomTag.DestinationAE;
-            string value = "012";
-            _dicomDataset.AddValueIfNotNull(dicomTag, value);
-            IndexTag indexTag = dicomTag.BuildCustomTagStoreEntry().Convert();
-            var result = _dicomDataset.GetIndexTagValues(new IndexTag[] { indexTag });
-
-            Assert.Single(result);
-            Assert.Equal(result[indexTag], value);
-        }
-
-        [Fact]
-        public void GivenADicomDatasetWithInvalidData_WhenGetIndexTagValuesIsCalled_ThenValueShouldNotBeRetrieved()
-        {
-            DicomTag dicomTag = DicomTag.AnchorPoint;
-            float[] values = { 100.0f, 200.0f };
-            DicomElement element = new DicomFloatingPointSingle(dicomTag, values);
-            _dicomDataset.Add(element);
-            IndexTag indexTag = dicomTag.BuildCustomTagStoreEntry().Convert();
-            var result = _dicomDataset.GetIndexTagValues(new IndexTag[] { indexTag });
-
-            Assert.Empty(result);
         }
 
         [Fact]
