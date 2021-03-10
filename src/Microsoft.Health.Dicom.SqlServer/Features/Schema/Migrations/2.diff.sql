@@ -278,7 +278,7 @@ AS
 
         -- Lock the tag from external updates       
         SELECT @tagKey = TagKey, @tagStatus = TagStatus
-        FROM dbo.CustomTag WITH(HOLDLOCK) 
+        FROM dbo.CustomTag WITH(XLOCK) 
         WHERE dbo.CustomTag.TagPath = @tagPath
 
         -- Check existence
@@ -286,7 +286,7 @@ AS
             THROW 50404, 'custom tag not found', 1 
 
         -- check if status is Added
-        IF @tagStatus <> 1 
+        IF @tagStatus <> 1
             THROW 50412, 'custom tag is not in status Added', 1
 
         -- Update status to Deindexing
@@ -300,12 +300,12 @@ AS
         
         -- Lock the tag from external updates
         SELECT @tagStatus = TagStatus
-        FROM dbo.CustomTag WITH(HOLDLOCK)
+        FROM dbo.CustomTag WITH(UPDLOCK)
         WHERE dbo.CustomTag.TagKey = @tagKey
          
          -- Check existence
         IF @@ROWCOUNT = 0
-            THROW 50404, 'custom tag not found', 1 
+            THROW 50404, 'custom tag not found', 1
 
         -- check if status is Reindexing
         IF @tagStatus <> 2 
