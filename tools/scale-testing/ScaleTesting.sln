@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WadoMetadataFunctionApp", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{400F6200-8F9E-43A5-85AE-669B4E89D2FA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StowWebApp", "StowWebApp\StowWebApp.csproj", "{7861366D-1E68-4A0F-9706-DCA2953E4176}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +76,10 @@ Global
 		{400F6200-8F9E-43A5-85AE-669B4E89D2FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{400F6200-8F9E-43A5-85AE-669B4E89D2FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{400F6200-8F9E-43A5-85AE-669B4E89D2FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7861366D-1E68-4A0F-9706-DCA2953E4176}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7861366D-1E68-4A0F-9706-DCA2953E4176}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7861366D-1E68-4A0F-9706-DCA2953E4176}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7861366D-1E68-4A0F-9706-DCA2953E4176}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
