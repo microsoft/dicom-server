@@ -55,9 +55,7 @@
   <Choose>
     <When Condition="$(MSBuildProjectName)!='Microsoft.Health.Extensions.BuildTimeCodeGenerator' AND !$(MSBuildProjectName.Contains('Test'))">
       <PropertyGroup>
-        <AnalysisLevel>5.0</AnalysisLevel>
         <AnalysisMode>AllEnabledByDefault</AnalysisMode>
-        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
       </PropertyGroup>
     </When>
   </Choose>

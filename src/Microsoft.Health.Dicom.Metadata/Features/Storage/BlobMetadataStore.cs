@@ -31,8 +31,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
     /// </summary>
     public class BlobMetadataStore : IMetadataStore
     {
-        private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
-        private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
+        private static readonly string GetInstanceMetadataStreamTagName = $"{nameof(BlobMetadataStore)}.{nameof(GetInstanceMetadataAsync)}";
+        private static readonly string StoreInstanceMetadataStreamTagName = $"{nameof(BlobMetadataStore)}.{nameof(StoreInstanceMetadataAsync)}";
         private static readonly Encoding _metadataEncoding = Encoding.UTF8;
 
         private readonly BlobContainerClient _container;

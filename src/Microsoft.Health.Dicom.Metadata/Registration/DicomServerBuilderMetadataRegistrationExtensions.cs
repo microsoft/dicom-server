@@ -20,7 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomServerBuilderMetadataRegistrationExtensions
     {
-        private const string DicomServerBlobConfigurationSectionName = "DicomWeb:MetadataStore";
+        private static readonly string DicomServerBlobConfigurationSectionName = $"DicomWeb:MetadataStore";
 
         /// <summary>
         /// Adds the metadata store for the DICOM server.
