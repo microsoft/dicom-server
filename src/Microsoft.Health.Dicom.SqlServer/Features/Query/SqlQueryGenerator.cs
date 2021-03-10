@@ -178,7 +178,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     {
                         _stringBuilder
                             .Append("AND ")
-                            .Append("ON ")
                             .Append($"{customTagTableAlias}.SeriesKey")
                             .Append(" = ")
                             .AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
@@ -188,7 +187,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     {
                         _stringBuilder
                             .Append("AND ")
-                            .Append("ON ")
                             .Append($"{customTagTableAlias}.InstanceKey")
                             .Append(" = ")
                             .AppendLine(VLatest.Instance.InstanceKey, InstanceTableAlias);
