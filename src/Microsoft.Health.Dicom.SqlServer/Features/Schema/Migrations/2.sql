@@ -871,10 +871,12 @@ AS
          Watermark BIGINT)
 
     DECLARE @studyKey BIGINT
+    DECLARE @seriesKey BIGINT
+    DECLARE @instanceKey BIGINT
     DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
 
-    -- Get the study PK
-    SELECT  @studyKey = StudyKey
+    -- Get the study, series and instance PK
+    SELECT  @studyKey = StudyKey, @seriesKey = SeriesKey, @instanceKey = InstanceKey
     FROM    dbo.Instance
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
@@ -892,6 +894,37 @@ AS
     BEGIN
         THROW 50404, 'Instance not found', 1;
     END
+
+    -- Deleting indexed instance tags
+    DELETE
+    FROM    dbo.CustomTagString
+    WHERE   StudyKey = @studyKey
+    AND     SeriesKey = @seriesKey
+    AND     InstanceKey = @instanceKey
+
+    DELETE
+    FROM    dbo.CustomTagBigInt
+    WHERE   StudyKey = @studyKey
+    AND     SeriesKey = @seriesKey
+    AND     InstanceKey = @instanceKey
+
+    DELETE
+    FROM    dbo.CustomTagDouble
+    WHERE   StudyKey = @studyKey
+    AND     SeriesKey = @seriesKey
+    AND     InstanceKey = @instanceKey
+
+    DELETE
+    FROM    dbo.CustomTagDateTime
+    WHERE   StudyKey = @studyKey
+    AND     SeriesKey = @seriesKey
+    AND     InstanceKey = @instanceKey
+
+    DELETE
+    FROM    dbo.CustomTagPersonName
+    WHERE   StudyKey = @studyKey
+    AND     SeriesKey = @seriesKey
+    AND     InstanceKey = @instanceKey
 
     INSERT INTO dbo.DeletedInstance
     (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
@@ -922,6 +955,32 @@ AS
         FROM    dbo.Series
         WHERE   Studykey = @studyKey
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+
+        -- Deleting indexed series tags
+        DELETE
+        FROM    dbo.CustomTagString
+        WHERE   StudyKey = @studyKey
+        AND     SeriesKey = @seriesKey
+
+        DELETE
+        FROM    dbo.CustomTagBigInt
+        WHERE   StudyKey = @studyKey
+        AND     SeriesKey = @seriesKey
+
+        DELETE
+        FROM    dbo.CustomTagDouble
+        WHERE   StudyKey = @studyKey
+        AND     SeriesKey = @seriesKey
+
+        DELETE
+        FROM    dbo.CustomTagDateTime
+        WHERE   StudyKey = @studyKey
+        AND     SeriesKey = @seriesKey
+
+        DELETE
+        FROM    dbo.CustomTagPersonName
+        WHERE   StudyKey = @studyKey
+        AND     SeriesKey = @seriesKey
     END
 
     -- If we've removing the series, see if it's the last for a study and if so, remove the study
@@ -932,6 +991,27 @@ AS
         DELETE
         FROM    dbo.Study
         WHERE   Studykey = @studyKey
+
+        -- Deleting indexed study tags
+        DELETE
+        FROM    dbo.CustomTagString
+        WHERE   StudyKey = @studyKey
+
+        DELETE
+        FROM    dbo.CustomTagBigInt
+        WHERE   StudyKey = @studyKey
+
+        DELETE
+        FROM    dbo.CustomTagDouble
+        WHERE   StudyKey = @studyKey
+
+        DELETE
+        FROM    dbo.CustomTagDateTime
+        WHERE   StudyKey = @studyKey
+
+        DELETE
+        FROM    dbo.CustomTagPersonName
+        WHERE   StudyKey = @studyKey
     END
 
     COMMIT TRANSACTION
