@@ -109,7 +109,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             CustomTagStoreEntry storeEntry = (await _customTagStore.GetCustomTagsAsync(path: tag.GetPath()))[0];
             IndexTag indexTag = IndexTag.FromCustomTagStoreEntry(storeEntry);
             await _indexDataStore.CreateInstanceIndexAsync(dataset, new IndexTag[] { indexTag });
-            var customTagIndexData = await _testHelper.GetCustomTagDataAsync(CustomTagDataType.StringData, storeEntry.Key);
+            var customTagIndexData = await _testHelper.GetCustomTagDataForTagKeyAsync(CustomTagDataType.StringData, storeEntry.Key);
             Assert.NotEmpty(customTagIndexData);
 
             // Delete tag
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await VerifyTagNotExist(storeEntry.Path);
 
             // Verify index data is removed
-            customTagIndexData = await _testHelper.GetCustomTagDataAsync(CustomTagDataType.StringData, storeEntry.Key);
+            customTagIndexData = await _testHelper.GetCustomTagDataForTagKeyAsync(CustomTagDataType.StringData, storeEntry.Key);
             Assert.Empty(customTagIndexData);
         }
 

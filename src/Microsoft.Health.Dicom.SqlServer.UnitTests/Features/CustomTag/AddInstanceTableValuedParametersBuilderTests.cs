@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
@@ -13,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
 {
-    public class IndexTagValueReaderTests
+    public class AddInstanceTableValuedParametersBuilderTests
     {
         [Theory]
         [MemberData(nameof(GetSupportedDicomElement))]
@@ -21,39 +22,26 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
         {
             DicomDataset dataset = new DicomDataset();
             dataset.Add(element);
-            IDictionary<IndexTag, string> stringValues;
-            IDictionary<IndexTag, long> longValues;
-            IDictionary<IndexTag, double> doubleValues;
-            IDictionary<IndexTag, DateTime> datetimeValues;
-            IDictionary<IndexTag, string> personNameValues;
-
             IndexTag tag = IndexTag.FromCustomTagStoreEntry(element.Tag.BuildCustomTagStoreEntry());
-            IndexTagValueReader.Read(
-                dataset,
-                new IndexTag[] { tag },
-                out stringValues,
-                out longValues,
-                out doubleValues,
-                out datetimeValues,
-                out personNameValues);
+            var parameters = AddInstanceTableValuedParametersBuilder.Build(dataset, new IndexTag[] { tag });
 
             CustomTagDataType dataType = CustomTagLimit.CustomTagVRAndDataTypeMapping[element.ValueRepresentation.Code];
             switch (dataType)
             {
                 case CustomTagDataType.StringData:
-                    Assert.Equal(expectedValue, stringValues[tag]);
+                    Assert.Equal(expectedValue, parameters.StringCustomTags.First().TagValue);
                     break;
                 case CustomTagDataType.LongData:
-                    Assert.Equal(expectedValue, longValues[tag]);
+                    Assert.Equal(expectedValue, parameters.BigIntCustomTags.First().TagValue);
                     break;
                 case CustomTagDataType.DoubleData:
-                    Assert.Equal(expectedValue, doubleValues[tag]);
+                    Assert.Equal(expectedValue, parameters.DoubleCustomTags.First().TagValue);
                     break;
                 case CustomTagDataType.DateTimeData:
-                    Assert.Equal(expectedValue, datetimeValues[tag]);
+                    Assert.Equal(expectedValue, parameters.DateTimeCustomTags.First().TagValue);
                     break;
                 case CustomTagDataType.PersonNameData:
-                    Assert.Equal(expectedValue, personNameValues[tag]);
+                    Assert.Equal(expectedValue, parameters.PersonNameCustomTags.First().TagValue);
                     break;
             }
         }

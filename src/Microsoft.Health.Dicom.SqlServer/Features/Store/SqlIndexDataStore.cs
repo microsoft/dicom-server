@@ -83,43 +83,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        private static VLatest.AddInstanceTableValuedParameters BuildAddInstanceTableValuedParameters(DicomDataset instance, IEnumerable<IndexTag> indexableDicomTags)
-        {
-            indexableDicomTags = indexableDicomTags.Where(tag => tag.IsCustomTag);
-
-            IDictionary<IndexTag, string> stringValues;
-            IDictionary<IndexTag, long> longValues;
-            IDictionary<IndexTag, double> doubleValues;
-            IDictionary<IndexTag, DateTime> datetimeValues;
-            IDictionary<IndexTag, string> personNameValues;
-            IndexTagValueReader.Read(
-               instance,
-               indexableDicomTags,
-               out stringValues,
-               out longValues,
-               out doubleValues,
-               out datetimeValues,
-               out personNameValues);
-
-            VLatest.AddInstanceTableValuedParameters parameters = new VLatest.AddInstanceTableValuedParameters(
-                stringValues.Select(
-                    x => new InsertStringCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
-                longValues.Select(
-                    x => new InsertBigIntCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
-                doubleValues.Select(
-                    x => new InsertDoubleCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
-                datetimeValues.Select(
-                    x => new InsertDateTimeCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)),
-                personNameValues.Select(
-                    x => new InsertPersonNameCustomTagTableTypeV1Row(x.Key.CustomTagStoreEntry.Key, x.Value, (byte)x.Key.CustomTagStoreEntry.Level)));
-            return parameters;
-        }
-
         private void PopulateAddInstanceCommand(SqlCommandWrapper wrapper, DicomDataset instance, IEnumerable<IndexTag> indexTags)
         {
             if (_schemaInformation.Current >= SchemaVersionConstants.SupportCustomTagSchemaVersion)
             {
-                VLatest.AddInstanceTableValuedParameters parameters = BuildAddInstanceTableValuedParameters(instance, indexTags);
+                // Build parameter for custom tag.
+                VLatest.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.Build(
+                    instance,
+                    indexTags.Where(tag => tag.IsCustomTag));
+
                 VLatest.AddInstance.PopulateCommand(
                 wrapper,
                 instance.GetString(DicomTag.StudyInstanceUID),
