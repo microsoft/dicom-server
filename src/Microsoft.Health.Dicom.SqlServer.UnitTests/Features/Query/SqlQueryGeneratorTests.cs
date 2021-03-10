@@ -235,7 +235,7 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
 
             string expectedCustomTagTableFilter = @"INNER JOIN dbo.CustomTagString cts1
 ON cts1.StudyKey = st.StudyKey
-AND ON cts1.SeriesKey = se.SeriesKey
+AND cts1.SeriesKey = se.SeriesKey
 WHERE";
 
             string expectedFilter = @"AND se.Modality=@p0";
@@ -277,10 +277,10 @@ AND cts1.TagValue=@p2";
             // ctbi4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
             string expectedCustomTagTableFilter = @"INNER JOIN dbo.CustomTagString cts1
 ON cts1.StudyKey = st.StudyKey
-AND ON cts1.SeriesKey = se.SeriesKey
+AND cts1.SeriesKey = se.SeriesKey
 INNER JOIN dbo.CustomTagString cts2
 ON cts2.StudyKey = st.StudyKey
-AND ON cts2.SeriesKey = se.SeriesKey
+AND cts2.SeriesKey = se.SeriesKey
 WHERE";
 
             string expectedFilters = @"AND cts1.TagKey=@p0
@@ -328,11 +328,11 @@ AND cts2.TagValue=@p3";
             // ctbi4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
             string expectedCustomTagTableFilter = @"INNER JOIN dbo.CustomTagString cts1
 ON cts1.StudyKey = st.StudyKey
-AND ON cts1.SeriesKey = se.SeriesKey
-AND ON cts1.InstanceKey = i.InstanceKey
+AND cts1.SeriesKey = se.SeriesKey
+AND cts1.InstanceKey = i.InstanceKey
 INNER JOIN dbo.CustomTagString cts2
 ON cts2.StudyKey = st.StudyKey
-AND ON cts2.SeriesKey = se.SeriesKey
+AND cts2.SeriesKey = se.SeriesKey
 INNER JOIN dbo.CustomTagBigInt ctbi4
 ON ctbi4.StudyKey = st.StudyKey
 WHERE";
