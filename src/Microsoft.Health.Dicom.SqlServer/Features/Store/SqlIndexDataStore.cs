@@ -16,9 +16,11 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.SqlServer.Features.Client;
+using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
@@ -27,16 +29,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
     {
         private readonly SqlIndexSchema _sqlServerIndexSchema;
         private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
+        private readonly SchemaInformation _schemaInformation;
 
         public SqlIndexDataStore(
             SqlIndexSchema indexSchema,
-            SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
+            SchemaInformation schemaInformation)
         {
             EnsureArg.IsNotNull(indexSchema, nameof(indexSchema));
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
+            EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
 
             _sqlServerIndexSchema = indexSchema;
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
+            _schemaInformation = schemaInformation;
         }
 
         public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, CancellationToken cancellationToken)
@@ -250,13 +256,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteInstance.PopulateCommand(
+                if (_schemaInformation.Current >= SchemaVersionConstants.SupportCustomTagSchemaVersion)
+                {
+                    VLatest.DeleteInstance.PopulateCommand(
                     sqlCommandWrapper,
                     cleanupAfter,
                     (byte)IndexStatus.Created,
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid);
+                }
+                else
+                {
+                    V1.DeleteInstance.PopulateCommand(
+                    sqlCommandWrapper,
+                    cleanupAfter,
+                    (byte)IndexStatus.Created,
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid);
+                }
 
                 try
                 {
