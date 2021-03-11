@@ -96,7 +96,7 @@ ON i.SeriesKey = se.SeriesKey";
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
             new SqlQueryGenerator(stringBuilder, query, parm);
 
-            string expectedParam = $"\"Fall*\" AND \"6*\"";
+            string expectedParam = $"\"Fall 6*\"";
 
             string expectedFilters = @"AND CONTAINS(PatientNameWords, @p0)";
 
