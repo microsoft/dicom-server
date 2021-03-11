@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         /// <summary>
-        /// Get value of Dicom AttributeTag to long?.
+        /// Get the AT VR value as <see cref="long"/>.
         /// </summary>
         /// <param name="dicomDataset">The dicom dataset.</param>
         /// <param name="dicomTag">The dicom tag.</param>

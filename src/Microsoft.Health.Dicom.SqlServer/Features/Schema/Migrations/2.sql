@@ -782,6 +782,7 @@ AS
         (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
     -- Insert Custom Tags
+
     -- String Key tags
     IF EXISTS (SELECT 1 FROM @stringCustomTags)
     BEGIN      
@@ -792,11 +793,14 @@ AS
             FROM @stringCustomTags input
             INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
             ON dbo.CustomTag.TagKey = input.TagKey
-            AND dbo.CustomTag.TagStatus <> 2
+            -- Not merge on custom tag which is being deleted.
+            AND dbo.CustomTag.TagStatus <> 2     
         ) AS S
         ON T.TagKey = S.TagKey        
             AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey 
+            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey      
+            -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
             AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN 
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
@@ -806,26 +810,28 @@ AS
             S.TagKey,
             S.TagValue,
             @studyKey,
+            -- When TagLevel is not Study, we should fill SeriesKey
             (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            -- When TagLevel is Instance, we should fill InstanceKey
             (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
             @newWatermark);        
     END
 
     -- BigInt Key tags
-    IF EXISTS (SELECT 1 FROM @bigintCustomTags)
+    IF EXISTS (SELECT 1 FROM @bigIntCustomTags)
     BEGIN      
         MERGE INTO dbo.CustomTagBigInt AS T
         USING 
         (
             SELECT input.TagKey, input.TagValue, input.TagLevel 
-            FROM @bigintCustomTags input
+            FROM @bigIntCustomTags input
             INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
-            ON dbo.CustomTag.TagKey = input.TagKey
-            AND dbo.CustomTag.TagStatus <> 2
+            ON dbo.CustomTag.TagKey = input.TagKey            
+            AND dbo.CustomTag.TagStatus <> 2     
         ) AS S
         ON T.TagKey = S.TagKey        
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey 
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
             AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN 
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
@@ -834,8 +840,8 @@ AS
             VALUES(
             S.TagKey,
             S.TagValue,
-            @studyKey,
-            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
             (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
             @newWatermark);        
     END
@@ -849,12 +855,12 @@ AS
             SELECT input.TagKey, input.TagValue, input.TagLevel 
             FROM @doubleCustomTags input
             INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
-            ON dbo.CustomTag.TagKey = input.TagKey
-            AND dbo.CustomTag.TagStatus <> 2
+            ON dbo.CustomTag.TagKey = input.TagKey            
+            AND dbo.CustomTag.TagStatus <> 2     
         ) AS S
         ON T.TagKey = S.TagKey        
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey 
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
             AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN 
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
@@ -863,8 +869,8 @@ AS
             VALUES(
             S.TagKey,
             S.TagValue,
-            @studyKey,
-            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
             (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
             @newWatermark);        
     END
@@ -878,12 +884,12 @@ AS
             SELECT input.TagKey, input.TagValue, input.TagLevel 
             FROM @dateTimeCustomTags input
             INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
-            ON dbo.CustomTag.TagKey = input.TagKey
-            AND dbo.CustomTag.TagStatus <> 2
+            ON dbo.CustomTag.TagKey = input.TagKey            
+            AND dbo.CustomTag.TagStatus <> 2     
         ) AS S
         ON T.TagKey = S.TagKey        
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey 
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
             AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN 
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
@@ -892,8 +898,8 @@ AS
             VALUES(
             S.TagKey,
             S.TagValue,
-            @studyKey,
-            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
             (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
             @newWatermark);        
     END
@@ -907,12 +913,12 @@ AS
             SELECT input.TagKey, input.TagValue, input.TagLevel 
             FROM @personNameCustomTags input
             INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
-            ON dbo.CustomTag.TagKey = input.TagKey
-            AND dbo.CustomTag.TagStatus <> 2
+            ON dbo.CustomTag.TagKey = input.TagKey            
+            AND dbo.CustomTag.TagStatus <> 2     
         ) AS S
         ON T.TagKey = S.TagKey        
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey 
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
             AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN 
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
@@ -921,8 +927,8 @@ AS
             VALUES(
             S.TagKey,
             S.TagValue,
-            @studyKey,
-            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
             (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
             @newWatermark);        
     END
