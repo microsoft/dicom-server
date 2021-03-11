@@ -18,9 +18,9 @@ using Xunit;
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
     /// <summary>
-    /// Tests for CustomTagStore
+    /// Tests for IndexDataStore
     /// </summary>
-    public partial class CustomTagStoreTests : IClassFixture<SqlDataStoreTestsFixture>
+    public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     {
         [Fact]
         public async Task GivenDicomInstanceWithStudyLevelCustomTag_WhenStore_ThenCustomTagsNeedToBeAdded()

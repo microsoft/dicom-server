@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -22,5 +24,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid);
 
         Task<IReadOnlyList<ChangeFeedRow>> GetChangeFeedRowsAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid);
+
+        internal Task<IReadOnlyList<CustomTagDataRow>> GetCustomTagDataAsync(
+          CustomTagDataType dataType,
+          int tagKey,
+          long studyKey,
+          long? seriesKey = null,
+          long? instanceKey = null,
+          CancellationToken cancellationToken = default);
+
+        internal Task<IReadOnlyList<CustomTagDataRow>> GetCustomTagDataForTagKeyAsync(CustomTagDataType dataType, int tagKey, CancellationToken cancellationToken = default);
     }
 }

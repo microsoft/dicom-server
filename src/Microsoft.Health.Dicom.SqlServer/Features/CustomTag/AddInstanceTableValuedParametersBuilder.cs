@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             long? longVal;
             if (indexTag.VR == DicomVR.AT)
             {
-                longVal = instance.GetDicomTagValueAsLong(matchingTag);
+                longVal = instance.GetAttributeTagValueAsLong(matchingTag);
             }
             else
             {

@@ -21,11 +21,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     /// <summary>
     /// Tests for CustomTagStore
     /// </summary>
-    public partial class CustomTagStoreTests : IClassFixture<SqlDataStoreTestsFixture>
+    public class CustomTagStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     {
         private readonly ICustomTagStore _customTagStore;
         private readonly IIndexDataStore _indexDataStore;
-        private readonly SqlIndexDataStoreTestHelper _testHelper;
+        private readonly IIndexDataStoreTestHelper _testHelper;
 
         public CustomTagStoreTests(SqlDataStoreTestsFixture fixture)
         {

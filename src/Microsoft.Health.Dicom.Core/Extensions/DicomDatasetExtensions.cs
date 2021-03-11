@@ -44,7 +44,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return dicomDataset.GetSingleValueOrDefault<T>(dicomTag, default);
         }
 
-        public static long? GetDicomTagValueAsLong(this DicomDataset dicomDataset, DicomTag dicomTag)
+        /// <summary>
+        /// Get value of Dicom AttributeTag to long?.
+        /// </summary>
+        /// <param name="dicomDataset">The dicom dataset.</param>
+        /// <param name="dicomTag">The dicom tag.</param>
+        /// <returns>The value.</returns>
+        public static long? GetAttributeTagValueAsLong(this DicomDataset dicomDataset, DicomTag dicomTag)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 

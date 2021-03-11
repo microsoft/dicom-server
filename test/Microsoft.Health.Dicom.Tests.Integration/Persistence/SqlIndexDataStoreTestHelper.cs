@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     {
         private readonly string _connectionString;
 
-        private static readonly IReadOnlyDictionary<CustomTagDataType, string> TableNames = new Dictionary<CustomTagDataType, string>()
+        private static readonly IReadOnlyDictionary<CustomTagDataType, string> DateTypeAndTableNameMapping = new Dictionary<CustomTagDataType, string>()
             {
                 { CustomTagDataType.StringData, VLatest.CustomTagString.TableName },
                 { CustomTagDataType.LongData, VLatest.CustomTagBigInt.TableName },
@@ -230,13 +230,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        internal async Task<IReadOnlyList<CustomTagDataRow>> GetCustomTagDataAsync(
-            CustomTagDataType dataType,
-            int tagKey,
-            long studyKey,
-            long? seriesKey = null,
-            long? instanceKey = null,
-            CancellationToken cancellationToken = default)
+        async Task<IReadOnlyList<CustomTagDataRow>> IIndexDataStoreTestHelper.GetCustomTagDataAsync(
+           CustomTagDataType dataType,
+           int tagKey,
+           long studyKey,
+           long? seriesKey,
+           long? instanceKey,
+           CancellationToken cancellationToken)
         {
             var results = new List<CustomTagDataRow>();
             string tagKeyParam = "@tagKey";
@@ -258,7 +258,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     sqlCommand.CommandText = @$"
                         SELECT *
-                        FROM {TableNames[dataType]}
+                        FROM {DateTypeAndTableNameMapping[dataType]}
                         WHERE 
                             {tagKeyName} = {tagKeyParam}
                             AND {studyKeyColName} = {studyKeyParam}
@@ -274,7 +274,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 cancellationToken);
         }
 
-        internal async Task<IReadOnlyList<CustomTagDataRow>> GetCustomTagDataForTagKeyAsync(CustomTagDataType dataType, int tagKey, CancellationToken cancellationToken = default)
+        async Task<IReadOnlyList<CustomTagDataRow>> IIndexDataStoreTestHelper.GetCustomTagDataForTagKeyAsync(CustomTagDataType dataType, int tagKey, CancellationToken cancellationToken)
         {
             string tagKeyParam = "@tagKey";
 
@@ -284,7 +284,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     sqlCommand.CommandText = @$"
                             SELECT *
-                            FROM {TableNames[dataType]}
+                            FROM {DateTypeAndTableNameMapping[dataType]}
                             WHERE 
                                 {VLatest.CustomTagString.TagKey} = {tagKeyParam}
                             
