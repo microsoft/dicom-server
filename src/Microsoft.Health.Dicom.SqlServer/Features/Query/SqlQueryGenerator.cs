@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Models;
@@ -262,10 +261,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         public override void Visit(PersonNameFuzzyMatchCondition fuzzyMatchCondition)
         {
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(fuzzyMatchCondition.DicomTag);
-            char[] delimiterChars = { ' ' };
-            string[] words = fuzzyMatchCondition.Value.Split(delimiterChars, System.StringSplitOptions.RemoveEmptyEntries);
 
-            var fuzzyMatchString = string.Join(" AND ", words.Select(w => $"\"{w}*\""));
+            var fuzzyMatchString = $"\"{fuzzyMatchCondition.Value}*\"";
             var tableAlias = GetTableAlias(dicomTagSqlEntry);
             _stringBuilder
                 .Append("AND CONTAINS(")
