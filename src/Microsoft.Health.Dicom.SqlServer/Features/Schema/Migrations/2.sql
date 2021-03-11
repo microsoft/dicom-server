@@ -1195,8 +1195,7 @@ AS
         
         DECLARE @tagStatus TINYINT
         DECLARE @tagKey INT        
-
-        -- Lock the tag from external updates       
+ 
         SELECT @tagKey = TagKey, @tagStatus = TagStatus
         FROM dbo.CustomTag WITH(XLOCK) 
         WHERE dbo.CustomTag.TagPath = @tagPath
@@ -1218,7 +1217,6 @@ AS
 
     BEGIN TRANSACTION
         
-        -- Lock the tag from external updates
         SELECT @tagStatus = TagStatus
         FROM dbo.CustomTag WITH(UPDLOCK)
         WHERE dbo.CustomTag.TagKey = @tagKey
@@ -1227,9 +1225,9 @@ AS
         IF @@ROWCOUNT = 0
             THROW 50404, 'custom tag not found', 1
 
-        -- check if status is Reindexing
+        -- check if status is Deindexing
         IF @tagStatus <> 2 
-            THROW 50412, 'custom tag is not in status reindxing', 1
+            THROW 50412, 'custom tag is not in status Deindxing', 1
 
         -- Delete index data
         IF @dataType = 0
