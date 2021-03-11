@@ -18,7 +18,6 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
