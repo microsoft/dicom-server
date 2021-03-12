@@ -34,8 +34,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
         {
             EnsureArg.IsNotNull(roleContract, nameof(roleContract));
 
-            DataActions dataActions = roleContract.DataActions.Aggregate(default(DataActions), (acc, a) => acc | ToEnum(a));
-            DataActions notDataActions = roleContract.NotDataActions.Aggregate(default(DataActions), (acc, a) => acc | ToEnum(a));
+            DataActions dataActions = roleContract.DataActions.Aggregate(DataActions.None, (acc, a) => acc | ToEnum(a));
+            DataActions notDataActions = roleContract.NotDataActions.Aggregate(DataActions.None, (acc, a) => acc | ToEnum(a));
 
             return new Role<DataActions>(roleContract.Name, dataActions & ~notDataActions, roleContract.Scopes.Single());
         }
