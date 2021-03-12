@@ -4,11 +4,7 @@
     <RootNamespace>Microsoft.Health.Dicom.SqlServer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>1</MutableClassVersion>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\1.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\2.diff.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
       <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
@@ -41,9 +37,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DicomSqlServerResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Features\Schema\Model\" />
   </ItemGroup>
 
   <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
