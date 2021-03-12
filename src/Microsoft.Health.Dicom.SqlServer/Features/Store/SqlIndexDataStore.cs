@@ -5,26 +5,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
-using Microsoft.Data.SqlClient;
-using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
-using Microsoft.Health.Dicom.SqlServer.Features.Schema;
-using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
-using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
@@ -33,6 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         private readonly SqlIndexSchema _sqlServerIndexSchema;
         private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
         private readonly SchemaInformation _schemaInformation;
+        private IIndexDataStore _innerDataStore;
 
         public SqlIndexDataStore(
             SqlIndexSchema indexSchema,
@@ -42,287 +34,70 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNull(indexSchema, nameof(indexSchema));
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
-
             _sqlServerIndexSchema = indexSchema;
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
             _schemaInformation = schemaInformation;
         }
 
-        public async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<IndexTag> indexableDicomTags, CancellationToken cancellationToken)
+        public async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-            EnsureArg.IsNotNull(indexableDicomTags, nameof(indexableDicomTags));
-
-            await _sqlServerIndexSchema.EnsureInitialized();
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                PopulateAddInstanceCommand(sqlCommandWrapper, instance, indexableDicomTags);
-
-                try
-                {
-                    return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
-                }
-                catch (SqlException ex)
-                {
-                    switch (ex.Number)
-                    {
-                        case SqlErrorCodes.Conflict:
-                            {
-                                if (ex.State == (byte)IndexStatus.Creating)
-                                {
-                                    throw new PendingInstanceException();
-                                }
-
-                                throw new InstanceAlreadyExistsException();
-                            }
-                    }
-
-                    throw new DataStoreException(ex);
-                }
-            }
+            await InitInnerDataStoreAsync();
+            return await _innerDataStore.CreateInstanceIndexAsync(dicomDataset, indexTags, cancellationToken);
         }
 
-        private void PopulateAddInstanceCommand(SqlCommandWrapper wrapper, DicomDataset instance, IEnumerable<IndexTag> indexTags)
+        public async Task DeleteDeletedInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
-            if (_schemaInformation.Current >= SchemaVersionConstants.SupportCustomTagSchemaVersion)
-            {
-                // Build parameter for custom tag.
-                VLatest.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.Build(
-                    instance,
-                    indexTags.Where(tag => tag.IsCustomTag));
-
-                VLatest.AddInstance.PopulateCommand(
-                wrapper,
-                instance.GetString(DicomTag.StudyInstanceUID),
-                instance.GetString(DicomTag.SeriesInstanceUID),
-                instance.GetString(DicomTag.SOPInstanceUID),
-                instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
-                instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
-                instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                instance.GetStringDateAsDate(DicomTag.StudyDate),
-                instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
-                instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
-                instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
-                (byte)IndexStatus.Creating,
-                parameters);
-            }
-            else
-            {
-                V1.AddInstance.PopulateCommand(
-                     wrapper,
-                     instance.GetString(DicomTag.StudyInstanceUID),
-                     instance.GetString(DicomTag.SeriesInstanceUID),
-                     instance.GetString(DicomTag.SOPInstanceUID),
-                     instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
-                     instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
-                     instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                     instance.GetStringDateAsDateTime(DicomTag.StudyDate),
-                     instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
-                     instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
-                     instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                     instance.GetStringDateAsDateTime(DicomTag.PerformedProcedureStepStartDate),
-                     (byte)IndexStatus.Creating);
-            }
+            await InitInnerDataStoreAsync();
+            await _innerDataStore.DeleteDeletedInstanceAsync(versionedInstanceIdentifier, cancellationToken);
         }
 
         public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
-            EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
-            EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
-
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            await InitInnerDataStoreAsync();
+            await _innerDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
-            EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
-
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
+            await InitInnerDataStoreAsync();
+            await _innerDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
-
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
+            await InitInnerDataStoreAsync();
+            await _innerDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public async Task UpdateInstanceIndexStatusAsync(
-            VersionedInstanceIdentifier versionedInstanceIdentifier,
-            IndexStatus status,
-            CancellationToken cancellationToken)
+        public async Task<int> IncrementDeletedInstanceRetryAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-            EnsureArg.IsTrue(Enum.IsDefined(typeof(IndexStatus), status));
-            EnsureArg.IsTrue((int)status < byte.MaxValue);
-
-            await _sqlServerIndexSchema.EnsureInitialized();
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.UpdateInstanceStatus.PopulateCommand(
-                    sqlCommandWrapper,
-                    versionedInstanceIdentifier.StudyInstanceUid,
-                    versionedInstanceIdentifier.SeriesInstanceUid,
-                    versionedInstanceIdentifier.SopInstanceUid,
-                    versionedInstanceIdentifier.Version,
-                    (byte)status);
-
-                try
-                {
-                    await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    switch (ex.Number)
-                    {
-                        case SqlErrorCodes.NotFound:
-                            throw new InstanceNotFoundException();
-
-                        default:
-                            throw new DataStoreException(ex);
-                    }
-                }
-            }
+            await InitInnerDataStoreAsync();
+            return await _innerDataStore.IncrementDeletedInstanceRetryAsync(versionedInstanceIdentifier, cleanupAfter, cancellationToken);
         }
 
-        public async Task<IEnumerable<VersionedInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<VersionedInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken)
         {
-            var results = new List<VersionedInstanceIdentifier>();
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.RetrieveDeletedInstance.PopulateCommand(
-                    sqlCommandWrapper,
-                    batchSize,
-                    maxRetries);
-
-                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-                {
-                    try
-                    {
-                        while (await reader.ReadAsync(cancellationToken))
-                        {
-                            (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
-                                VLatest.DeletedInstance.StudyInstanceUid,
-                                VLatest.DeletedInstance.SeriesInstanceUid,
-                                VLatest.DeletedInstance.SopInstanceUid,
-                                VLatest.DeletedInstance.Watermark);
-
-                            results.Add(new VersionedInstanceIdentifier(
-                                studyInstanceUid,
-                                seriesInstanceUid,
-                                sopInstanceUid,
-                                watermark));
-                        }
-                    }
-                    catch (SqlException ex)
-                    {
-                        throw new DataStoreException(ex);
-                    }
-                }
-            }
-
-            return results;
+            await InitInnerDataStoreAsync();
+            return await _innerDataStore.RetrieveDeletedInstancesAsync(batchSize, maxRetries, cancellationToken);
         }
 
-        public async Task DeleteDeletedInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task UpdateInstanceIndexStatusAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, IndexStatus status, CancellationToken cancellationToken)
+        {
+            await InitInnerDataStoreAsync();
+            await _innerDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, status, cancellationToken);
+        }
+
+        private async Task InitInnerDataStoreAsync()
         {
             await _sqlServerIndexSchema.EnsureInitialized();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            if (_schemaInformation.Current == 1)
             {
-                VLatest.DeleteDeletedInstance.PopulateCommand(
-                    sqlCommandWrapper,
-                    versionedInstanceIdentifier.StudyInstanceUid,
-                    versionedInstanceIdentifier.SeriesInstanceUid,
-                    versionedInstanceIdentifier.SopInstanceUid,
-                    versionedInstanceIdentifier.Version);
-
-                try
-                {
-                    await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    throw new DataStoreException(ex);
-                }
+                _innerDataStore = new SqlIndexDataStoreV1(_sqlConnectionFactoryWrapper);
             }
-        }
-
-        public async Task<int> IncrementDeletedInstanceRetryAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
-        {
-            await _sqlServerIndexSchema.EnsureInitialized();
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            else
             {
-                VLatest.IncrementDeletedInstanceRetry.PopulateCommand(
-                    sqlCommandWrapper,
-                    versionedInstanceIdentifier.StudyInstanceUid,
-                    versionedInstanceIdentifier.SeriesInstanceUid,
-                    versionedInstanceIdentifier.SopInstanceUid,
-                    versionedInstanceIdentifier.Version,
-                    cleanupAfter);
-
-                try
-                {
-                    return (int)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
-                }
-                catch (SqlException ex)
-                {
-                    throw new DataStoreException(ex);
-                }
-            }
-        }
-
-        private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
-        {
-            await _sqlServerIndexSchema.EnsureInitialized();
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.DeleteInstance.PopulateCommand(
-                    sqlCommandWrapper,
-                    cleanupAfter,
-                    (byte)IndexStatus.Created,
-                    studyInstanceUid,
-                    seriesInstanceUid,
-                    sopInstanceUid);
-
-                try
-                {
-                    await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    switch (ex.Number)
-                    {
-                        case SqlErrorCodes.NotFound:
-                            if (!string.IsNullOrEmpty(sopInstanceUid))
-                            {
-                                throw new InstanceNotFoundException();
-                            }
-
-                            if (!string.IsNullOrEmpty(seriesInstanceUid))
-                            {
-                                throw new SeriesNotFoundException();
-                            }
-
-                            throw new StudyNotFoundException();
-
-                        default:
-                            throw new DataStoreException(ex);
-                    }
-                }
+                _innerDataStore = new SqlIndexDataStoreV2(_sqlConnectionFactoryWrapper);
             }
         }
     }
