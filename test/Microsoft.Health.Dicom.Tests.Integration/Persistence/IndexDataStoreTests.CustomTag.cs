@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             await _customTagStore.AddCustomTagsAsync(customTags);
             var customTagEntries = await _customTagStore.GetCustomTagsAsync();
-            return customTagEntries.Select(entry => IndexTag.FromCustomTagStoreEntry(entry)).ToList();
+            return customTagEntries.Select(entry => new IndexTag(entry)).ToList();
         }
 
         private async Task ValidateUpdateExistingCustomTagIndexData(CustomTagLevel level)

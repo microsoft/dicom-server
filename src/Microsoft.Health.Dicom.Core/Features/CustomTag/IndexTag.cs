@@ -14,15 +14,35 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class IndexTag
     {
-        private IndexTag(DicomTag tag, DicomVR vr, CustomTagLevel level, CustomTagStoreEntry customTagStoreEntry)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IndexTag"/> class.
+        /// </summary>
+        /// <remarks>Used for constuctoring from core dicom tag.PatientName e.g. </remarks>
+        /// <param name="tag">The core dicom Tag.</param>
+        /// <param name="level">The tag level.</param>
+        public IndexTag(DicomTag tag, CustomTagLevel level)
         {
             EnsureArg.IsNotNull(tag, nameof(tag));
-            EnsureArg.IsNotNull(vr, nameof(vr));
 
             Tag = tag;
-            VR = vr;
+            VR = tag.GetDefaultVR();
             Level = level;
-            CustomTagStoreEntry = customTagStoreEntry;
+            CustomTagStoreEntry = null;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IndexTag"/> class.
+        /// </summary>
+        /// <remarks>Used for constuctoring from custom tags.</remarks>
+        /// <param name="entry">The custom tag store entry.</param>
+        public IndexTag(CustomTagStoreEntry entry)
+        {
+            EnsureArg.IsNotNull(entry, nameof(entry));
+
+            Tag = DicomTag.Parse(entry.Path);
+            VR = DicomVR.Parse(entry.VR);
+            Level = entry.Level;
+            CustomTagStoreEntry = entry;
         }
 
         /// <summary>
@@ -49,28 +69,5 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// Gets the underlying customTagStoreEntry for custom tag.
         /// </summary>
         public CustomTagStoreEntry CustomTagStoreEntry { get; }
-
-        /// <summary>
-        /// Build IndexTag for core dicom tag.
-        /// </summary>
-        /// <param name="tag">the core dicom tag.</param>
-        /// <param name="level">The level</param>
-        /// <returns>The index tag</returns>
-        public static IndexTag FromCoreDicomTag(DicomTag tag, CustomTagLevel level)
-        {
-            EnsureArg.IsNotNull(tag, nameof(tag));
-            return new IndexTag(tag, tag.GetDefaultVR(), level, null);
-        }
-
-        /// <summary>
-        /// Build IndexTag from customtag store entry..
-        /// </summary>
-        /// <param name="entry">the custom tag store entry.</param>
-        /// <returns>The index tag</returns>
-        public static IndexTag FromCustomTagStoreEntry(CustomTagStoreEntry entry)
-        {
-            EnsureArg.IsNotNull(entry, nameof(entry));
-            return new IndexTag(DicomTag.Parse(entry.Path), DicomVR.Parse(entry.VR), entry.Level, entry);
-        }
     }
 }

@@ -193,7 +193,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            IndexTag indextag = IndexTag.FromCustomTagStoreEntry(standardTag.BuildCustomTagStoreEntry());
+            IndexTag indextag = new IndexTag(standardTag.BuildCustomTagStoreEntry());
             _indexTags.Add(indextag);
             await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }
@@ -216,7 +216,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            IndexTag indextag = IndexTag.FromCustomTagStoreEntry(tag.BuildCustomTagStoreEntry(vr: element.ValueRepresentation.Code));
+            IndexTag indextag = new IndexTag(tag.BuildCustomTagStoreEntry(vr: element.ValueRepresentation.Code));
             _indexTags.Clear();
             _indexTags.Add(indextag);
 

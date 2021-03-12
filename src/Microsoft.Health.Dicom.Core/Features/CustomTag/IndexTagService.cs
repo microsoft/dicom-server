@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                     _allIndexTags = new List<IndexTag>(CoreIndexTags);
 
                     IReadOnlyList<CustomTagStoreEntry> customTagEntries = await _customTagStore.GetCustomTagsAsync(cancellationToken: cancellationToken);
-                    _allIndexTags.AddRange(customTagEntries.Select(entry => IndexTag.FromCustomTagStoreEntry(entry)));
+                    _allIndexTags.AddRange(customTagEntries.Select(entry => new IndexTag(entry)));
 
                     _allIndexTagsCompletionSource.SetResult(true);
                 }
@@ -57,9 +57,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         private static IReadOnlyList<IndexTag> GetCoreIndexTags()
         {
             List<IndexTag> coreTags = new List<IndexTag>();
-            coreTags.AddRange(QueryLimit.AllStudiesTags.Select(tag => IndexTag.FromCoreDicomTag(tag, CustomTagLevel.Study)));
-            coreTags.AddRange(QueryLimit.StudySeriesTags.Select(tag => IndexTag.FromCoreDicomTag(tag, CustomTagLevel.Series)));
-            coreTags.AddRange(QueryLimit.StudySeriesInstancesTags.Select(tag => IndexTag.FromCoreDicomTag(tag, CustomTagLevel.Instance)));
+            coreTags.AddRange(QueryLimit.AllStudiesTags.Select(tag => new IndexTag(tag, CustomTagLevel.Study)));
+            coreTags.AddRange(QueryLimit.StudySeriesTags.Select(tag => new IndexTag(tag, CustomTagLevel.Series)));
+            coreTags.AddRange(QueryLimit.StudySeriesInstancesTags.Select(tag => new IndexTag(tag, CustomTagLevel.Instance)));
             return coreTags;
         }
     }

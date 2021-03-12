@@ -231,7 +231,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         {
             DicomTag dicomTag = DicomTag.DestinationAE;
             _dicomDataset.AddOrUpdate(dicomTag, "123");
-            IndexTag indexTag = IndexTag.FromCustomTagStoreEntry(dicomTag.BuildCustomTagStoreEntry());
+            IndexTag indexTag = new IndexTag(dicomTag.BuildCustomTagStoreEntry());
             var result = _dicomDataset.GetMatchingDicomTags(new IndexTag[] { indexTag });
             Assert.Single(result);
             Assert.Equal(dicomTag, result[indexTag]);
@@ -243,7 +243,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             DicomTag dicomTag = new DicomTag(0x0405, 0x1001, "PrivateCreator");
             DicomElement element = new DicomCodeString(dicomTag, "123");
             _dicomDataset.Add(element);
-            IndexTag indexTag = IndexTag.FromCustomTagStoreEntry(dicomTag.BuildCustomTagStoreEntry(vr: element.ValueRepresentation.Code));
+            IndexTag indexTag = new IndexTag(dicomTag.BuildCustomTagStoreEntry(vr: element.ValueRepresentation.Code));
             var result = _dicomDataset.GetMatchingDicomTags(new IndexTag[] { indexTag });
             Assert.Single(result);
             Assert.Equal(dicomTag, result[indexTag]);
@@ -253,7 +253,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         public void GivenADicomDataSetWithoutTheStandardTag_WhenGetDicomTagsIsCalled_ThenShouldNotReturn()
         {
             DicomTag dicomTag = DicomTag.DestinationAE;
-            IndexTag indexTag = IndexTag.FromCustomTagStoreEntry(dicomTag.BuildCustomTagStoreEntry());
+            IndexTag indexTag = new IndexTag(dicomTag.BuildCustomTagStoreEntry());
             var result = _dicomDataset.GetMatchingDicomTags(new IndexTag[] { indexTag });
             Assert.Empty(result);
         }
@@ -262,7 +262,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         public void GivenADicomDataSetWithoutThePrivateTag_WhenGetDicomTagsIsCalled_ThenShouldNotReturn()
         {
             DicomTag dicomTag = new DicomTag(0x0405, 0x1001, "PrivateCreator");
-            IndexTag indexTag = IndexTag.FromCustomTagStoreEntry(dicomTag.BuildCustomTagStoreEntry(vr: DicomVRCode.CS));
+            IndexTag indexTag = new IndexTag(dicomTag.BuildCustomTagStoreEntry(vr: DicomVRCode.CS));
             var result = _dicomDataset.GetMatchingDicomTags(new IndexTag[] { indexTag });
             Assert.Empty(result);
         }
@@ -273,7 +273,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             DicomTag dicomTag = new DicomTag(0x0405, 0x1001, "PrivateCreator");
             DicomElement element = new DicomIntegerString(dicomTag, "123");
             _dicomDataset.Add(element);
-            IndexTag indexTag = IndexTag.FromCustomTagStoreEntry(dicomTag.BuildCustomTagStoreEntry(vr: DicomVRCode.CS));
+            IndexTag indexTag = new IndexTag(dicomTag.BuildCustomTagStoreEntry(vr: DicomVRCode.CS));
             var result = _dicomDataset.GetMatchingDicomTags(new IndexTag[] { indexTag });
             Assert.Empty(result);
         }

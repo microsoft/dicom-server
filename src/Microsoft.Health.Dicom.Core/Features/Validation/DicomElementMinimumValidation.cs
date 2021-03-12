@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             ValidateLength(value.Size, 4, 4, DicomVR.AE, name, BinaryDataPlaceHolder);
         }
 
-        public static void ValidateCS(string value, string name)
+        internal static void ValidateCS(string value, string name)
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -76,20 +76,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        public static void ValidateDA(string value, string name)
+        internal static void ValidateDA(string value, string name)
         {
             if (string.IsNullOrEmpty(value))
             {
                 return;
             }
 
-            if (!TryParseDA(value, out _))
+            if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
             {
                 throw new DicomElementValidationException(name, value, DicomVR.DA, DicomCoreResource.ValueIsInvalidDate);
             }
         }
 
-        internal static bool TryParseDA(string value, out DateTime dateTime)
+        private static bool TryParseDA(string value, out DateTime dateTime)
         {
             return DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out dateTime);
         }
@@ -106,15 +106,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return;
             }
 
-            if (!TryParseDT(value, out _))
+            if (!DateTime.TryParseExact(value, DateFormatDT, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
             {
                 throw new DicomElementValidationException(name, value, DicomVR.DT, DicomCoreResource.ValueIsInvalidDate);
             }
-        }
-
-        internal static bool TryParseDT(string value, out DateTime dateTime)
-        {
-            return DateTime.TryParseExact(value, DateFormatDT, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out dateTime);
         }
 
         internal static void ValidateFL(IByteBuffer value, string name)
@@ -132,7 +127,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             ValidateLength(value.Length, 0, 12, DicomVR.IS, name, value);
         }
 
-        public static void ValidateLO(string value, string name)
+        internal static void ValidateLO(string value, string name)
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -151,7 +146,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         }
 
         // probably can dial down the validation here
-        public static void ValidatePN(string value, string name)
+        internal static void ValidatePN(string value, string name)
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -185,7 +180,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        public static void ValidateSH(string value, string name)
+        internal static void ValidateSH(string value, string name)
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -208,7 +203,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             ValidateLength(value.Size, 2, 2, DicomVR.SS, name, BinaryDataPlaceHolder);
         }
 
-        public static void ValidateUI(string value, string name)
+        internal static void ValidateUI(string value, string name)
         {
             if (string.IsNullOrEmpty(value))
             {

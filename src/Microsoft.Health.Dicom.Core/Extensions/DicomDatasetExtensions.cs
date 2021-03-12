@@ -5,12 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
@@ -29,6 +29,37 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             DicomVR.OW,
             DicomVR.UN,
         };
+
+        private static readonly string[] DateFormatDT =
+        {
+            "yyyyMMddHHmmss",
+            "yyyyMMddHHmmsszzz",
+            "yyyyMMddHHmmsszz",
+            "yyyyMMddHHmmssz",
+            "yyyyMMddHHmmss.ffffff",
+            "yyyyMMddHHmmss.fffff",
+            "yyyyMMddHHmmss.ffff",
+            "yyyyMMddHHmmss.fff",
+            "yyyyMMddHHmmss.ff",
+            "yyyyMMddHHmmss.f",
+            "yyyyMMddHHmm",
+            "yyyyMMddHH",
+            "yyyyMMdd",
+            "yyyyMM",
+            "yyyy",
+            "yyyyMMddHHmmss.ffffffzzz",
+            "yyyyMMddHHmmss.fffffzzz",
+            "yyyyMMddHHmmss.ffffzzz",
+            "yyyyMMddHHmmss.fffzzz",
+            "yyyyMMddHHmmss.ffzzz",
+            "yyyyMMddHHmmss.fzzz",
+            "yyyyMMddHHmmzzz",
+            "yyyyMMddHHzzz",
+            "yyyy.MM.dd",
+            "yyyy/MM/dd",
+        };
+
+        private const string DateFormatDA = "yyyyMMdd";
 
         /// <summary>
         /// Gets a single value if the value exists; otherwise the default value for the type <typeparamref name="T"/>.
@@ -73,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
-            return DicomElementMinimumValidation.TryParseDA(stringDate, out DateTime result) ? result : null;
+            return DateTime.TryParseExact(stringDate, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime result) ? result : null;
         }
 
         /// <summary>
@@ -86,7 +117,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
-            return DicomElementMinimumValidation.TryParseDT(stringDate, out DateTime result) ? result : null;
+            return DateTime.TryParseExact(stringDate, DateFormatDT, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime result) ? result : null;
         }
 
         /// <summary>

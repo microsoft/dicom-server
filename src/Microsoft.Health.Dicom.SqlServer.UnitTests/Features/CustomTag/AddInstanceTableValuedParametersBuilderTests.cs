@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
         {
             DicomDataset dataset = new DicomDataset();
             dataset.Add(element);
-            IndexTag tag = IndexTag.FromCustomTagStoreEntry(element.Tag.BuildCustomTagStoreEntry());
+            IndexTag tag = new IndexTag(element.Tag.BuildCustomTagStoreEntry());
             var parameters = AddInstanceTableValuedParametersBuilder.Build(dataset, new IndexTag[] { tag });
 
             CustomTagDataType dataType = CustomTagLimit.CustomTagVRAndDataTypeMapping[element.ValueRepresentation.Code];
