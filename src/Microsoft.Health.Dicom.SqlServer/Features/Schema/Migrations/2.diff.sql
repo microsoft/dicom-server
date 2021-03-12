@@ -325,168 +325,177 @@ GO
 --         * The SOP instance UID.
 /***************************************************************************************/
 ALTER PROCEDURE dbo.DeleteInstance (
-    @cleanupAfter       DATETIMEOFFSET(0),
-    @createdStatus      TINYINT,
-    @studyInstanceUid   VARCHAR(64),
-    @seriesInstanceUid  VARCHAR(64) = null,
-    @sopInstanceUid     VARCHAR(64) = null
-)
-AS
-    SET NOCOUNT ON
-    SET XACT_ABORT ON
+        @cleanupAfter       DATETIMEOFFSET(0),
+        @createdStatus      TINYINT,
+        @studyInstanceUid   VARCHAR(64),
+        @seriesInstanceUid  VARCHAR(64) = null,
+        @sopInstanceUid     VARCHAR(64) = null
+    )
+    AS
+        SET NOCOUNT ON
+        SET XACT_ABORT ON
 
-    BEGIN TRANSACTION
+        BEGIN TRANSACTION
 
-    DECLARE @deletedInstances AS TABLE
-        (StudyInstanceUid VARCHAR(64),
-         SeriesInstanceUid VARCHAR(64),
-         SopInstanceUid VARCHAR(64),
-         Status TINYINT,
-         Watermark BIGINT)
+        DECLARE @deletedInstances AS TABLE
+            (StudyInstanceUid VARCHAR(64),
+             SeriesInstanceUid VARCHAR(64),
+             SopInstanceUid VARCHAR(64),
+             Status TINYINT,
+             Watermark BIGINT)
 
-    DECLARE @studyKey BIGINT
-    DECLARE @seriesKey BIGINT
-    DECLARE @instanceKey BIGINT
-    DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
+        DECLARE @studyKey BIGINT
+        DECLARE @seriesKey BIGINT
+        DECLARE @instanceKey BIGINT
+        DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
 
-    -- Get the study, series and instance PK
-    SELECT  @studyKey = StudyKey, @seriesKey = SeriesKey, @instanceKey = InstanceKey
-    FROM    dbo.Instance
-    WHERE   StudyInstanceUid = @studyInstanceUid
-    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-    AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
-
-    -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
-    DELETE  dbo.Instance
-        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
-        INTO @deletedInstances
-    WHERE   StudyInstanceUid = @studyInstanceUid
-    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-    AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
-
-    IF (@@ROWCOUNT = 0)
-    BEGIN
-        THROW 50404, 'Instance not found', 1;
-    END
-
-    -- Deleting indexed instance tags
-    DELETE
-    FROM    dbo.CustomTagString
-    WHERE   StudyKey = @studyKey
-    AND     SeriesKey = @seriesKey
-    AND     InstanceKey = @instanceKey
-
-    DELETE
-    FROM    dbo.CustomTagBigInt
-    WHERE   StudyKey = @studyKey
-    AND     SeriesKey = @seriesKey
-    AND     InstanceKey = @instanceKey
-
-    DELETE
-    FROM    dbo.CustomTagDouble
-    WHERE   StudyKey = @studyKey
-    AND     SeriesKey = @seriesKey
-    AND     InstanceKey = @instanceKey
-
-    DELETE
-    FROM    dbo.CustomTagDateTime
-    WHERE   StudyKey = @studyKey
-    AND     SeriesKey = @seriesKey
-    AND     InstanceKey = @instanceKey
-
-    DELETE
-    FROM    dbo.CustomTagPersonName
-    WHERE   StudyKey = @studyKey
-    AND     SeriesKey = @seriesKey
-    AND     InstanceKey = @instanceKey
-
-    INSERT INTO dbo.DeletedInstance
-    (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
-    SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
-    FROM @deletedInstances
-
-    INSERT INTO dbo.ChangeFeed
-    (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
-    FROM @deletedInstances
-    WHERE Status = @createdStatus
-
-    UPDATE cf
-    SET cf.CurrentWatermark = NULL
-    FROM dbo.ChangeFeed cf
-    JOIN @deletedInstances d
-    ON cf.StudyInstanceUid = d.StudyInstanceUid
-        AND cf.SeriesInstanceUid = d.SeriesInstanceUid
-        AND cf.SopInstanceUid = d.SopInstanceUid
-
-    -- If this is the last instance for a series, remove the series
-    IF NOT EXISTS ( SELECT  *
-                    FROM    dbo.Instance WITH(HOLDLOCK, UPDLOCK)
-                    WHERE   StudyKey = @studyKey
-                    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid))
-    BEGIN
-        DELETE
-        FROM    dbo.Series
-        WHERE   Studykey = @studyKey
+        -- Get the study, series and instance PK
+        SELECT  @studyKey = StudyKey, @seriesKey =
+            CASE @seriesInstanceUid
+                WHEN null THEN null
+                ELSE SeriesKey
+            END,
+            @instanceKey = 
+            CASE @sopInstanceUid
+                WHEN null THEN null
+                ELSE InstanceKey
+            END
+        FROM    dbo.Instance
+        WHERE   StudyInstanceUid = @studyInstanceUid
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+        AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
-        -- Deleting indexed series tags
+        -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
+        DELETE  dbo.Instance
+            OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
+            INTO @deletedInstances
+        WHERE   StudyInstanceUid = @studyInstanceUid
+        AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+        AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
+
+        IF (@@ROWCOUNT = 0)
+        BEGIN
+            THROW 50404, 'Instance not found', 1;
+        END
+
+        -- Deleting indexed instance tags
         DELETE
         FROM    dbo.CustomTagString
         WHERE   StudyKey = @studyKey
-        AND     SeriesKey = @seriesKey
+        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
         DELETE
         FROM    dbo.CustomTagBigInt
         WHERE   StudyKey = @studyKey
-        AND     SeriesKey = @seriesKey
+        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
         DELETE
         FROM    dbo.CustomTagDouble
         WHERE   StudyKey = @studyKey
-        AND     SeriesKey = @seriesKey
+        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
         DELETE
         FROM    dbo.CustomTagDateTime
         WHERE   StudyKey = @studyKey
-        AND     SeriesKey = @seriesKey
+        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
         DELETE
         FROM    dbo.CustomTagPersonName
         WHERE   StudyKey = @studyKey
-        AND     SeriesKey = @seriesKey
-    END
+        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
-    -- If we've removing the series, see if it's the last for a study and if so, remove the study
-    IF NOT EXISTS ( SELECT  *
-                    FROM    dbo.Series WITH(HOLDLOCK, UPDLOCK)
-                    WHERE   Studykey = @studyKey)
-    BEGIN
-        DELETE
-        FROM    dbo.Study
-        WHERE   Studykey = @studyKey
+        INSERT INTO dbo.DeletedInstance
+        (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
+        SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
+        FROM @deletedInstances
 
-        -- Deleting indexed study tags
-        DELETE
-        FROM    dbo.CustomTagString
-        WHERE   StudyKey = @studyKey
+        INSERT INTO dbo.ChangeFeed
+        (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+        SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+        FROM @deletedInstances
+        WHERE Status = @createdStatus
 
-        DELETE
-        FROM    dbo.CustomTagBigInt
-        WHERE   StudyKey = @studyKey
+        UPDATE cf
+        SET cf.CurrentWatermark = NULL
+        FROM dbo.ChangeFeed cf
+        JOIN @deletedInstances d
+        ON cf.StudyInstanceUid = d.StudyInstanceUid
+            AND cf.SeriesInstanceUid = d.SeriesInstanceUid
+            AND cf.SopInstanceUid = d.SopInstanceUid
 
-        DELETE
-        FROM    dbo.CustomTagDouble
-        WHERE   StudyKey = @studyKey
+        -- If this is the last instance for a series, remove the series
+        IF NOT EXISTS ( SELECT  *
+                        FROM    dbo.Instance WITH(HOLDLOCK, UPDLOCK)
+                        WHERE   StudyKey = @studyKey
+                        AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid))
+        BEGIN
+            DELETE
+            FROM    dbo.Series
+            WHERE   Studykey = @studyKey
+            AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
 
-        DELETE
-        FROM    dbo.CustomTagDateTime
-        WHERE   StudyKey = @studyKey
+            -- Deleting indexed series tags
+            DELETE
+            FROM    dbo.CustomTagString
+            WHERE   StudyKey = @studyKey
+            AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
 
-        DELETE
-        FROM    dbo.CustomTagPersonName
-        WHERE   StudyKey = @studyKey
-    END
+            DELETE
+            FROM    dbo.CustomTagBigInt
+            WHERE   StudyKey = @studyKey
+            AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
 
-    COMMIT TRANSACTION
-GO
+            DELETE
+            FROM    dbo.CustomTagDouble
+            WHERE   StudyKey = @studyKey
+            AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+
+            DELETE
+            FROM    dbo.CustomTagDateTime
+            WHERE   StudyKey = @studyKey
+            AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+
+            DELETE
+            FROM    dbo.CustomTagPersonName
+            WHERE   StudyKey = @studyKey
+            AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        END
+
+        -- If we've removing the series, see if it's the last for a study and if so, remove the study
+        IF NOT EXISTS ( SELECT  *
+                        FROM    dbo.Series WITH(HOLDLOCK, UPDLOCK)
+                        WHERE   Studykey = @studyKey)
+        BEGIN
+            DELETE
+            FROM    dbo.Study
+            WHERE   Studykey = @studyKey
+
+            -- Deleting indexed study tags
+            DELETE
+            FROM    dbo.CustomTagString
+            WHERE   StudyKey = @studyKey
+
+            DELETE
+            FROM    dbo.CustomTagBigInt
+            WHERE   StudyKey = @studyKey
+
+            DELETE
+            FROM    dbo.CustomTagDouble
+            WHERE   StudyKey = @studyKey
+
+            DELETE
+            FROM    dbo.CustomTagDateTime
+            WHERE   StudyKey = @studyKey
+
+            DELETE
+            FROM    dbo.CustomTagPersonName
+            WHERE   StudyKey = @studyKey
+        END
+
+        COMMIT TRANSACTION
+    GO
