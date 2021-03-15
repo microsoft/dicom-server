@@ -876,16 +876,9 @@ AS
     DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
 
     -- Get the study, series and instance PK
-    SELECT  @studyKey = StudyKey, @seriesKey =
-        CASE @seriesInstanceUid
-            WHEN null THEN null
-            ELSE SeriesKey
-        END,
-        @instanceKey = 
-        CASE @sopInstanceUid
-            WHEN null THEN null
-            ELSE InstanceKey
-        END
+    SELECT  @studyKey = StudyKey,
+    @seriesKey = CASE @seriesInstanceUid WHEN NULL THEN NULL ELSE SeriesKey END,
+    @instanceKey = CASE @sopInstanceUid WHEN NULL THEN NULL ELSE InstanceKey END
     FROM    dbo.Instance
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
