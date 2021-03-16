@@ -10,11 +10,12 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class CustomTagStoreEntry
     {
-        public CustomTagStoreEntry(int key, string path, string vr, CustomTagLevel level, CustomTagStatus status)
+        public CustomTagStoreEntry(int key, string path, string vr, string privateCreator, CustomTagLevel level, CustomTagStatus status)
         {
             Key = key;
             Path = path;
             VR = vr;
+            PrivateCreator = privateCreator;
             Level = level;
             Status = status;
         }
@@ -34,6 +35,11 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// VR of this tag.
         /// </summary>
         public string VR { get; set; }
+
+        /// <summary>
+        /// Private Creator of this tag. Only apply to private tag.
+        /// </summary>
+        public string PrivateCreator { get; set; }
 
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
