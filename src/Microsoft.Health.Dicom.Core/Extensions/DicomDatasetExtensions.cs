@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
-            return DateTime.TryParseExact(stringDate, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime result) ? result : null;
+            return DateTime.TryParseExact(stringDate, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result) ? result : null;
         }
 
         /// <summary>

@@ -15,7 +15,6 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -23,7 +22,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
-    internal class SqlIndexDataStoreV1 : IIndexDataStore
+    internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
 
@@ -33,6 +32,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
         }
+
+        public virtual int Version => 1;
 
         public virtual async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<IndexTag> indexableDicomTags, CancellationToken cancellationToken)
         {

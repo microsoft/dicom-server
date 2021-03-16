@@ -14,7 +14,6 @@ using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
-using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.SqlServer.Api.Registration;
@@ -52,11 +51,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsSelf();
 
-            services.Add<SqlIndexSchema>()
-                .Singleton()
-                .AsSelf();
-
-            services.Add<SqlIndexDataStore>()
+            services.AddScoped<ISqlIndexDataStore, SqlIndexDataStoreV1>();
+            services.AddScoped<ISqlIndexDataStore, SqlIndexDataStoreV2>();
+            services.AddScoped<IIndexDataStore>(
+               x => x.GetService<ISqlIndexDataStore>());
+            services.Add<SqlIndexDataStoreFactory>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

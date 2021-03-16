@@ -34,6 +34,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
         }
 
+        public override int Version => 2;
+
         public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<IndexTag> indexableDicomTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));

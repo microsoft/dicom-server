@@ -33,21 +33,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         public StoreOrchestrator(
             IFileStore fileStore,
             IMetadataStore metadataStore,
-            IIndexDataStore indexDataStore,
+            IIndexDataStoreFactory indexDataStoreFactory,
             IDeleteService deleteService,
             IIndexTagService indexTagService)
         {
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-            EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
+            EnsureArg.IsNotNull(indexDataStoreFactory, nameof(indexDataStoreFactory));
             EnsureArg.IsNotNull(deleteService, nameof(deleteService));
             EnsureArg.IsNotNull(indexTagService, nameof(indexTagService));
 
             _fileStore = fileStore;
             _metadataStore = metadataStore;
-            _indexDataStore = indexDataStore;
             _deleteService = deleteService;
             _indexTagService = indexTagService;
+            _indexDataStore = indexDataStoreFactory.GetInstance();
         }
 
         /// <inheritdoc />
