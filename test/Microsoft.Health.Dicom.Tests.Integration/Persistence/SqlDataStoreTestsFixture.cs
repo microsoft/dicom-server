@@ -16,7 +16,6 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
-using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Configs;
@@ -75,15 +74,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, NullLogger<SchemaInitializer>.Instance);
 
-            var dicomSqlIndexSchema = new SqlIndexSchema(schemaInformation, NullLogger<SqlIndexSchema>.Instance);
-
             SqlTransactionHandler = new SqlTransactionHandler();
 
             SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
 
-            IndexDataStore = new SqlIndexDataStore(
-                dicomSqlIndexSchema,
-                SqlConnectionWrapperFactory);
+            SqlIndexDataStoreFactory = new SqlIndexDataStoreFactory(
+                schemaInformation,
+                new[] { new SqlIndexDataStoreV1(SqlConnectionWrapperFactory), new SqlIndexDataStoreV2(SqlConnectionWrapperFactory) });
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 
@@ -101,9 +98,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
+        public IIndexDataStoreFactory SqlIndexDataStoreFactory { get; }
+
         public string TestConnectionString { get; }
 
-        public IIndexDataStore IndexDataStore { get; }
+        public IIndexDataStore IndexDataStore { get => SqlIndexDataStoreFactory.GetInstance(); }
 
         public IInstanceStore InstanceStore { get; }
 

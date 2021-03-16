@@ -29,21 +29,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
         private readonly ILogger<DeleteService> _logger;
 
         public DeleteService(
-            IIndexDataStore indexDataStore,
+            IIndexDataStoreFactory indexDataStoreFactory,
             IMetadataStore metadataStore,
             IFileStore fileStore,
             IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
             ITransactionHandler transactionHandler,
             ILogger<DeleteService> logger)
         {
-            EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
+            EnsureArg.IsNotNull(indexDataStoreFactory, nameof(indexDataStoreFactory));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
             EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _indexDataStore = indexDataStore;
+            _indexDataStore = indexDataStoreFactory.GetInstance();
             _metadataStore = metadataStore;
             _fileStore = fileStore;
             _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;

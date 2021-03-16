@@ -20,6 +20,7 @@ using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
+using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
@@ -35,6 +36,16 @@ namespace Microsoft.AspNetCore.Builder
     public static class DicomServerServiceCollectionExtensions
     {
         private const string DicomServerConfigurationSectionName = "DicomServer";
+
+        /// <summary>
+        /// Add services for DICOM background workers.
+        /// </summary>
+        /// <param name="services">The services collection.</param>
+        public static void AddDicomBackgroundWorkers(this IServiceCollection services)
+        {
+            services.AddScoped<DeletedInstanceCleanupWorker>();
+            services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
+        }
 
         /// <summary>
         /// Adds services for enabling a DICOM server.

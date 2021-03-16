@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
@@ -18,8 +19,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     /// </summary>
     public static class DicomDatasetExtensions
     {
-        private const string DateFormat = "yyyyMMdd";
-
         private static readonly HashSet<DicomVR> DicomBulkDataVr = new HashSet<DicomVR>
         {
             DicomVR.OB,
@@ -30,6 +29,37 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             DicomVR.OW,
             DicomVR.UN,
         };
+
+        private static readonly string[] DateFormatDT =
+        {
+            "yyyyMMddHHmmss",
+            "yyyyMMddHHmmsszzz",
+            "yyyyMMddHHmmsszz",
+            "yyyyMMddHHmmssz",
+            "yyyyMMddHHmmss.ffffff",
+            "yyyyMMddHHmmss.fffff",
+            "yyyyMMddHHmmss.ffff",
+            "yyyyMMddHHmmss.fff",
+            "yyyyMMddHHmmss.ff",
+            "yyyyMMddHHmmss.f",
+            "yyyyMMddHHmm",
+            "yyyyMMddHH",
+            "yyyyMMdd",
+            "yyyyMM",
+            "yyyy",
+            "yyyyMMddHHmmss.ffffffzzz",
+            "yyyyMMddHHmmss.fffffzzz",
+            "yyyyMMddHHmmss.ffffzzz",
+            "yyyyMMddHHmmss.fffzzz",
+            "yyyyMMddHHmmss.ffzzz",
+            "yyyyMMddHHmmss.fzzz",
+            "yyyyMMddHHmmzzz",
+            "yyyyMMddHHzzz",
+            "yyyy.MM.dd",
+            "yyyy/MM/dd",
+        };
+
+        private const string DateFormatDA = "yyyyMMdd";
 
         /// <summary>
         /// Gets a single value if the value exists; otherwise the default value for the type <typeparamref name="T"/>.
@@ -51,19 +81,24 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// <param name="dicomDataset">The dataset to get the VR value from.</param>
         /// <param name="dicomTag">The DICOM tag.</param>
         /// <returns>An instance of <see cref="DateTime"/> if the value exists and comforms to the DA format; otherwise <c>null</c>.</returns>
+        public static DateTime? GetStringDateAsDate(this DicomDataset dicomDataset, DicomTag dicomTag)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
+            return DateTime.TryParseExact(stringDate, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result) ? result : null;
+        }
+
+        /// <summary>
+        /// Gets the DT VR value as <see cref="DateTime"/>.
+        /// </summary>
+        /// <param name="dicomDataset">The dataset to get the VR value from.</param>
+        /// <param name="dicomTag">The DICOM tag.</param>
+        /// <returns>An instance of <see cref="DateTime"/> if the value exists and comforms to the DA format; otherwise <c>null</c>.</returns>
         public static DateTime? GetStringDateAsDateTime(this DicomDataset dicomDataset, DicomTag dicomTag)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-
             string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
-
-            if (stringDate == null ||
-                !DateTime.TryParseExact(stringDate, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime result))
-            {
-                return null;
-            }
-
-            return result;
+            return DateTime.TryParseExact(stringDate, DateFormatDT, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime result) ? result : null;
         }
 
         /// <summary>
@@ -157,6 +192,58 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             {
                 dicomDataset.Add(dicomTag, value);
             }
+        }
+
+        /// <summary>
+        /// Get matching DicomTags for index Tag from Dicom Dataset.
+        /// </summary>
+        /// <remarks>If indextag not exist in dataset, should not return.</remarks>
+        /// <param name="dicomDataset">The dicom dataset.</param>
+        /// <param name="indexTags">The index Tags.</param>
+        /// <returns>Mapping between IndexTag and DicomTag.</returns>
+        public static IDictionary<IndexTag, DicomTag> GetMatchingDicomTags(this DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(indexTags, nameof(indexTags));
+            IDictionary<IndexTag, DicomTag> result = new Dictionary<IndexTag, DicomTag>();
+            Dictionary<string, IndexTag> privateTags = new Dictionary<string, IndexTag>();
+            foreach (IndexTag indexTag in indexTags)
+            {
+                if (indexTag.Tag.IsPrivate)
+                {
+                    privateTags.Add(indexTag.Tag.GetPath(), indexTag);
+                }
+                else
+                {
+                    if (dicomDataset.Contains(indexTag.Tag))
+                    {
+                        result.Add(indexTag, indexTag.Tag);
+                    }
+                }
+            }
+
+            // Process Private tags
+            if (privateTags.Count != 0)
+            {
+                // IndexTag don't have privateCreator for private tag, need to fill that part from DicomDataset.
+                foreach (DicomItem item in dicomDataset)
+                {
+                    if (item.Tag.IsPrivate)
+                    {
+                        string tagPath = item.Tag.GetPath();
+                        if (privateTags.ContainsKey(tagPath))
+                        {
+                            IndexTag indexTag = privateTags[tagPath];
+                            if (indexTag.VR == item.ValueRepresentation)
+                            {
+                                result.Add(indexTag, item.Tag);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

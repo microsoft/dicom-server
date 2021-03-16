@@ -129,7 +129,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDateTime ON dbo.CustomTagDateTime
           For example, with multiple instances in a series, while indexing a series level tag,
           the Watermark is used to ensure that if there are different values between instances,
           the value on the instance with the highest watermark wins.
-	Note: The primary key is designed on the assumption that tags only occur once in an instance.
+    Note: The primary key is designed on the assumption that tags only occur once in an instance.
 **************************************************************/
 CREATE TABLE dbo.CustomTagPersonName (
     TagKey                  INT                  NOT NULL, --FK
@@ -172,10 +172,65 @@ CREATE TYPE dbo.AddCustomTagsInputTableType_1 AS TABLE
 GO
 
 /*************************************************************
+    Table valued parameter to insert into Custom table for data type String
+*************************************************************/
+CREATE TYPE dbo.InsertStringCustomTagTableType_1 AS TABLE
+(
+    TagKey                     INT,
+    TagValue                   NVARCHAR(64),
+    TagLevel                   TINYINT
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Double
+*************************************************************/
+CREATE TYPE dbo.InsertDoubleCustomTagTableType_1 AS TABLE
+(
+    TagKey                     INT,
+    TagValue                   FLOAT(53),
+    TagLevel                   TINYINT
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Big Int
+*************************************************************/
+CREATE TYPE dbo.InsertBigIntCustomTagTableType_1 AS TABLE
+(
+    TagKey                     INT,
+    TagValue                   BIGINT,
+    TagLevel                   TINYINT
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Date Time
+*************************************************************/
+CREATE TYPE dbo.InsertDateTimeCustomTagTableType_1 AS TABLE
+(
+    TagKey                     INT,
+    TagValue                   DATETIME2(7),
+    TagLevel                   TINYINT
+)
+GO
+
+/*************************************************************
+    Table valued parameter to insert into Custom table for data type Person Name
+*************************************************************/
+CREATE TYPE dbo.InsertPersonNameCustomTagTableType_1 AS TABLE
+(
+    TagKey                     INT,
+    TagValue                   NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
+    TagLevel                   TINYINT
+)
+GO
+
+/*************************************************************
     Sequence for generating sequential unique ids
 **************************************************************/
 CREATE SEQUENCE dbo.TagKeySequence
-    AS BIGINT
+    AS INT
     START WITH 1
     INCREMENT BY 1
     MINVALUE 1
@@ -398,7 +453,7 @@ AS
         FROM dbo.CustomTag WITH(HOLDLOCK) 
         INNER JOIN @customTags input 
         ON input.TagPath = dbo.CustomTag.TagPath 
-	    
+        
         IF @@ROWCOUNT <> 0
             THROW 50409, 'custom tag(s) already exist', 1 
 
@@ -493,5 +548,305 @@ AS
         DELETE FROM dbo.CustomTag 
         WHERE TagKey = @tagKey
         
+    COMMIT TRANSACTION
+GO
+
+/*************************************************************
+    Stored procedures for adding an instance.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     AddInstance
+--
+-- DESCRIPTION
+--     Adds a DICOM instance.
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @patientId
+--         * The Id of the patient.
+--     @patientName
+--         * The name of the patient.
+--     @referringPhysicianName
+--         * The referring physician name.
+--     @studyDate
+--         * The study date.
+--     @studyDescription
+--         * The study description.
+--     @accessionNumber
+--         * The accession number associated for the study.
+--     @modality
+--         * The modality associated for the series.
+--     @performedProcedureStepStartDate
+--         * The date when the procedure for the series was performed.
+--     @stringCustomTags
+--         * String custom tag data
+--     @bigIntCustomTags
+--         * BigInt custom tag data
+--     @doubleCustomTags
+--         * Double custom tag data
+--     @dateTimeCustomTags
+--         * DateTime custom tag data
+--     @personNameCustomTags
+--         * PersonName custom tag data
+-- RETURN VALUE
+--     The watermark (version).
+------------------------------------------------------------------------
+ALTER PROCEDURE dbo.AddInstance
+    @studyInstanceUid                   VARCHAR(64),
+    @seriesInstanceUid                  VARCHAR(64),
+    @sopInstanceUid                     VARCHAR(64),
+    @patientId                          NVARCHAR(64),
+    @patientName                        NVARCHAR(325) = NULL,
+    @referringPhysicianName             NVARCHAR(325) = NULL,
+    @studyDate                          DATE = NULL,
+    @studyDescription                   NVARCHAR(64) = NULL,
+    @accessionNumber                    NVARCHAR(64) = NULL,
+    @modality                           NVARCHAR(16) = NULL,
+    @performedProcedureStepStartDate    DATE = NULL,                
+    @stringCustomTags dbo.InsertStringCustomTagTableType_1 READONLY,    
+    @bigIntCustomTags dbo.InsertBigIntCustomTagTableType_1 READONLY,
+    @doubleCustomTags dbo.InsertDoubleCustomTagTableType_1 READONLY,
+    @dateTimeCustomTags dbo.InsertDateTimeCustomTagTableType_1 READONLY,
+    @personNameCustomTags dbo.InsertPersonNameCustomTagTableType_1 READONLY,
+    @initialStatus                      TINYINT
+AS
+    SET NOCOUNT ON
+
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+    DECLARE @existingStatus TINYINT
+    DECLARE @newWatermark BIGINT
+    DECLARE @studyKey BIGINT
+    DECLARE @seriesKey BIGINT
+    DECLARE @instanceKey BIGINT
+
+    SELECT @existingStatus = Status
+    FROM dbo.Instance
+    WHERE StudyInstanceUid = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid = @sopInstanceUid
+
+    IF @@ROWCOUNT <> 0    
+        -- The instance already exists. Set the state = @existingStatus to indicate what state it is in.
+        THROW 50409, 'Instance already exists', @existingStatus;    
+
+    -- The instance does not exist, insert it.
+    SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
+    SET @instanceKey = NEXT VALUE FOR dbo.InstanceKeySequence
+
+    -- Insert Study
+    SELECT @studyKey = StudyKey
+    FROM dbo.Study WITH(UPDLOCK)
+    WHERE StudyInstanceUid = @studyInstanceUid
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @studyKey = NEXT VALUE FOR dbo.StudyKeySequence
+
+        INSERT INTO dbo.Study
+            (StudyKey, StudyInstanceUid, PatientId, PatientName, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+        VALUES
+            (@studyKey, @studyInstanceUid, @patientId, @patientName, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+    END
+    ELSE
+    BEGIN
+        -- Latest wins
+        UPDATE dbo.Study
+        SET PatientId = @patientId, PatientName = @patientName, ReferringPhysicianName = @referringPhysicianName, StudyDate = @studyDate, StudyDescription = @studyDescription, AccessionNumber = @accessionNumber
+        WHERE StudyKey = @studyKey
+    END
+
+    -- Insert Series
+    SELECT @seriesKey = SeriesKey
+    FROM dbo.Series WITH(UPDLOCK)
+    WHERE StudyKey = @studyKey
+    AND SeriesInstanceUid = @seriesInstanceUid
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @seriesKey = NEXT VALUE FOR dbo.SeriesKeySequence
+
+        INSERT INTO dbo.Series
+            (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate)
+        VALUES
+            (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate)
+    END
+    ELSE
+    BEGIN
+        -- Latest wins
+        UPDATE dbo.Series
+        SET Modality = @modality, PerformedProcedureStepStartDate = @performedProcedureStepStartDate
+        WHERE SeriesKey = @seriesKey
+        AND StudyKey = @studyKey
+    END
+
+    -- Insert Instance
+    INSERT INTO dbo.Instance
+        (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+    VALUES
+        (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
+
+    -- Insert Custom Tags
+
+    -- String Key tags
+    IF EXISTS (SELECT 1 FROM @stringCustomTags)
+    BEGIN      
+        MERGE INTO dbo.CustomTagString AS T
+        USING 
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel 
+            FROM @stringCustomTags input
+            INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
+            ON dbo.CustomTag.TagKey = input.TagKey
+            -- Not merge on custom tag which is being deleted.
+            AND dbo.CustomTag.TagStatus <> 2     
+        ) AS S
+        ON T.TagKey = S.TagKey        
+            AND T.StudyKey = @studyKey
+            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey      
+            -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN 
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            -- When TagLevel is not Study, we should fill SeriesKey
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            -- When TagLevel is Instance, we should fill InstanceKey
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
+
+    -- BigInt Key tags
+    IF EXISTS (SELECT 1 FROM @bigIntCustomTags)
+    BEGIN      
+        MERGE INTO dbo.CustomTagBigInt AS T
+        USING 
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel 
+            FROM @bigIntCustomTags input
+            INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
+            ON dbo.CustomTag.TagKey = input.TagKey            
+            AND dbo.CustomTag.TagStatus <> 2     
+        ) AS S
+        ON T.TagKey = S.TagKey        
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN 
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
+
+    -- Double Key tags
+    IF EXISTS (SELECT 1 FROM @doubleCustomTags)
+    BEGIN      
+        MERGE INTO dbo.CustomTagDouble AS T
+        USING 
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel 
+            FROM @doubleCustomTags input
+            INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
+            ON dbo.CustomTag.TagKey = input.TagKey            
+            AND dbo.CustomTag.TagStatus <> 2     
+        ) AS S
+        ON T.TagKey = S.TagKey        
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN 
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
+
+    -- DateTime Key tags
+    IF EXISTS (SELECT 1 FROM @dateTimeCustomTags)
+    BEGIN      
+        MERGE INTO dbo.CustomTagDateTime AS T
+        USING 
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel 
+            FROM @dateTimeCustomTags input
+            INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
+            ON dbo.CustomTag.TagKey = input.TagKey            
+            AND dbo.CustomTag.TagStatus <> 2     
+        ) AS S
+        ON T.TagKey = S.TagKey        
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN 
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
+
+    -- PersonName Key tags
+    IF EXISTS (SELECT 1 FROM @personNameCustomTags)
+    BEGIN      
+        MERGE INTO dbo.CustomTagPersonName AS T
+        USING 
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel 
+            FROM @personNameCustomTags input
+            INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
+            ON dbo.CustomTag.TagKey = input.TagKey            
+            AND dbo.CustomTag.TagStatus <> 2     
+        ) AS S
+        ON T.TagKey = S.TagKey        
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN 
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
+
+    SELECT @newWatermark
+
     COMMIT TRANSACTION
 GO

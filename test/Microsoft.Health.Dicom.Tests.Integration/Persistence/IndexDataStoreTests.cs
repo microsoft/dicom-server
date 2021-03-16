@@ -12,26 +12,36 @@ using EnsureThat;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixture>
+    /// <summary>
+    ///  Tests for IndexDataStore.
+    /// </summary>
+    public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     {
         private readonly IIndexDataStore _indexDataStore;
         private readonly IIndexDataStoreTestHelper _testHelper;
         private readonly DateTimeOffset _startDateTime = Clock.UtcNow;
+        private readonly ICustomTagStore _customTagStore;
 
         public IndexDataStoreTests(SqlDataStoreTestsFixture fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
+            EnsureArg.IsNotNull(fixture.IndexDataStore, nameof(fixture.IndexDataStore));
+            EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.IndexDataStore));
+            EnsureArg.IsNotNull(fixture.CustomTagStore, nameof(fixture.CustomTagStore));
             _indexDataStore = fixture.IndexDataStore;
             _testHelper = fixture.TestHelper;
+            _customTagStore = fixture.CustomTagStore;
         }
 
         [Fact]

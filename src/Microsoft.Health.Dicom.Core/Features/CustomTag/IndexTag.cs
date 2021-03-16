@@ -5,6 +5,7 @@
 
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
@@ -13,15 +14,35 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class IndexTag
     {
-        public IndexTag(DicomTag tag, DicomVR vr, CustomTagLevel level, bool isCustomTag)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IndexTag"/> class.
+        /// </summary>
+        /// <remarks>Used for constuctoring from core dicom tag.PatientName e.g. </remarks>
+        /// <param name="tag">The core dicom Tag.</param>
+        /// <param name="level">The tag level.</param>
+        public IndexTag(DicomTag tag, CustomTagLevel level)
         {
             EnsureArg.IsNotNull(tag, nameof(tag));
-            EnsureArg.IsNotNull(vr, nameof(vr));
 
             Tag = tag;
-            VR = vr;
-            IsCustomTag = isCustomTag;
+            VR = tag.GetDefaultVR();
             Level = level;
+            CustomTagStoreEntry = null;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IndexTag"/> class.
+        /// </summary>
+        /// <remarks>Used for constuctoring from custom tags.</remarks>
+        /// <param name="entry">The custom tag store entry.</param>
+        public IndexTag(CustomTagStoreEntry entry)
+        {
+            EnsureArg.IsNotNull(entry, nameof(entry));
+
+            Tag = DicomTag.Parse(entry.Path);
+            VR = DicomVR.Parse(entry.VR);
+            Level = entry.Level;
+            CustomTagStoreEntry = entry;
         }
 
         /// <summary>
@@ -42,6 +63,11 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <summary>
         /// Gets whether this is custom tag or not.
         /// </summary>
-        public bool IsCustomTag { get; }
+        public bool IsCustomTag => CustomTagStoreEntry != null;
+
+        /// <summary>
+        /// Gets the underlying customTagStoreEntry for custom tag.
+        /// </summary>
+        public CustomTagStoreEntry CustomTagStoreEntry { get; }
     }
 }

@@ -193,7 +193,33 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            _indexTags.Add(standardTag.BuildIndexTag());
+            IndexTag indextag = new IndexTag(standardTag.BuildCustomTagStoreEntry());
+            _indexTags.Add(indextag);
+            await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
+        }
+
+        [Fact]
+        public async Task GivenPrivateCustomTags_WhenValidating_ThenCustomTagsShouldBeValidated()
+        {
+            DicomTag tag = DicomTag.Parse("04050001");
+
+            DicomIntegerString element = new DicomIntegerString(tag, "0123456789123"); // exceed max length 12
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            // AE > 16 characters is not allowed
+            _dicomDataset.Add(element);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            IndexTag indextag = new IndexTag(tag.BuildCustomTagStoreEntry(vr: element.ValueRepresentation.Code));
+            _indexTags.Clear();
+            _indexTags.Add(indextag);
+
             await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }
 

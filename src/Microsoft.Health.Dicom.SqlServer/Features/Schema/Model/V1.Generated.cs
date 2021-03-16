@@ -11,27 +11,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V1
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
-        internal readonly static CustomTagTable CustomTag = new CustomTagTable();
-        internal readonly static CustomTagBigIntTable CustomTagBigInt = new CustomTagBigIntTable();
-        internal readonly static CustomTagDateTimeTable CustomTagDateTime = new CustomTagDateTimeTable();
-        internal readonly static CustomTagDoubleTable CustomTagDouble = new CustomTagDoubleTable();
-        internal readonly static CustomTagPersonNameTable CustomTagPersonName = new CustomTagPersonNameTable();
-        internal readonly static CustomTagStringTable CustomTagString = new CustomTagStringTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
-        internal readonly static AddCustomTagsProcedure AddCustomTags = new AddCustomTagsProcedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
-        internal readonly static DeleteCustomTagProcedure DeleteCustomTag = new DeleteCustomTagProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
-        internal readonly static GetCustomTagProcedure GetCustomTag = new GetCustomTagProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
@@ -53,99 +44,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
             internal readonly Index IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
-        }
-
-        internal class CustomTagTable : Table
-        {
-            internal CustomTagTable() : base("dbo.CustomTag")
-            {
-            }
-
-            internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly VarCharColumn TagPath = new VarCharColumn("TagPath", 64);
-            internal readonly VarCharColumn TagVR = new VarCharColumn("TagVR", 2);
-            internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
-            internal readonly TinyIntColumn TagStatus = new TinyIntColumn("TagStatus");
-            internal readonly Index IXC_CustomTag = new Index("IXC_CustomTag");
-            internal readonly Index IX_CustomTag_TagPath = new Index("IX_CustomTag_TagPath");
-        }
-
-        internal class CustomTagBigIntTable : Table
-        {
-            internal CustomTagBigIntTable() : base("dbo.CustomTagBigInt")
-            {
-            }
-
-            internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
-            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
-            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
-            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
-            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly Index IXC_CustomTagBigInt = new Index("IXC_CustomTagBigInt");
-        }
-
-        internal class CustomTagDateTimeTable : Table
-        {
-            internal CustomTagDateTimeTable() : base("dbo.CustomTagDateTime")
-            {
-            }
-
-            internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
-            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
-            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
-            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
-            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly Index IXC_CustomTagDateTime = new Index("IXC_CustomTagDateTime");
-        }
-
-        internal class CustomTagDoubleTable : Table
-        {
-            internal CustomTagDoubleTable() : base("dbo.CustomTagDouble")
-            {
-            }
-
-            internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly FloatColumn TagValue = new FloatColumn("TagValue", 53);
-            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
-            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
-            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
-            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly Index IXC_CustomTagDouble = new Index("IXC_CustomTagDouble");
-        }
-
-        internal class CustomTagPersonNameTable : Table
-        {
-            internal CustomTagPersonNameTable() : base("dbo.CustomTagPersonName")
-            {
-            }
-
-            internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 200, "SQL_Latin1_General_CP1_CI_AI");
-            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
-            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
-            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
-            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal const string WatermarkAndTagKey = "WatermarkAndTagKey";
-            internal const string TagValueWords = "TagValueWords";
-            internal readonly Index IXC_CustomTagPersonName = new Index("IXC_CustomTagPersonName");
-            internal readonly Index IXC_CustomTagPersonName_WatermarkAndTagKey = new Index("IXC_CustomTagPersonName_WatermarkAndTagKey");
-        }
-
-        internal class CustomTagStringTable : Table
-        {
-            internal CustomTagStringTable() : base("dbo.CustomTagString")
-            {
-            }
-
-            internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 64);
-            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
-            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
-            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
-            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly Index IXC_CustomTagString = new Index("IXC_CustomTagString");
         }
 
         internal class DeletedInstanceTable : Table
@@ -234,52 +132,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Study_AccessionNumber = new Index("IX_Study_AccessionNumber");
         }
 
-        internal class AddCustomTagsProcedure : StoredProcedure
-        {
-            internal AddCustomTagsProcedure() : base("dbo.AddCustomTags")
-            {
-            }
-
-            private readonly AddCustomTagsInputTableTypeV1TableValuedParameterDefinition _customTags = new AddCustomTagsInputTableTypeV1TableValuedParameterDefinition("@customTags");
-
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<AddCustomTagsInputTableTypeV1Row> customTags)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.AddCustomTags";
-                _customTags.AddParameter(command.Parameters, customTags);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, AddCustomTagsTableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, customTags: tableValuedParameters.CustomTags);
-            }
-        }
-
-        internal class AddCustomTagsTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddCustomTagsTableValuedParameters>
-        {
-            public AddCustomTagsTvpGenerator(ITableValuedParameterRowGenerator<TInput, AddCustomTagsInputTableTypeV1Row> AddCustomTagsInputTableTypeV1RowGenerator)
-            {
-                this.AddCustomTagsInputTableTypeV1RowGenerator = AddCustomTagsInputTableTypeV1RowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, AddCustomTagsInputTableTypeV1Row> AddCustomTagsInputTableTypeV1RowGenerator;
-
-            public AddCustomTagsTableValuedParameters Generate(TInput input)
-            {
-                return new AddCustomTagsTableValuedParameters(AddCustomTagsInputTableTypeV1RowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct AddCustomTagsTableValuedParameters
-        {
-            internal AddCustomTagsTableValuedParameters(global::System.Collections.Generic.IEnumerable<AddCustomTagsInputTableTypeV1Row> CustomTags)
-            {
-                this.CustomTags = CustomTags;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<AddCustomTagsInputTableTypeV1Row> CustomTags { get; }
-        }
-
         internal class AddInstanceProcedure : StoredProcedure
         {
             internal AddInstanceProcedure() : base("dbo.AddInstance")
@@ -297,14 +149,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _accessionNumber = new ParameterDefinition<System.String>("@accessionNumber", global::System.Data.SqlDbType.NVarChar, true, 64);
             private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
             private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
-            private readonly InsertStringCustomTagTableTypeV1TableValuedParameterDefinition _stringCustomTags = new InsertStringCustomTagTableTypeV1TableValuedParameterDefinition("@stringCustomTags");
-            private readonly InsertBigIntCustomTagTableTypeV1TableValuedParameterDefinition _bigIntCustomTags = new InsertBigIntCustomTagTableTypeV1TableValuedParameterDefinition("@bigIntCustomTags");
-            private readonly InsertDoubleCustomTagTableTypeV1TableValuedParameterDefinition _doubleCustomTags = new InsertDoubleCustomTagTableTypeV1TableValuedParameterDefinition("@doubleCustomTags");
-            private readonly InsertDateTimeCustomTagTableTypeV1TableValuedParameterDefinition _dateTimeCustomTags = new InsertDateTimeCustomTagTableTypeV1TableValuedParameterDefinition("@dateTimeCustomTags");
-            private readonly InsertPersonNameCustomTagTableTypeV1TableValuedParameterDefinition _personNameCustomTags = new InsertPersonNameCustomTagTableTypeV1TableValuedParameterDefinition("@personNameCustomTags");
             private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, global::System.Collections.Generic.IEnumerable<InsertStringCustomTagTableTypeV1Row> stringCustomTags, global::System.Collections.Generic.IEnumerable<InsertBigIntCustomTagTableTypeV1Row> bigIntCustomTags, global::System.Collections.Generic.IEnumerable<InsertDoubleCustomTagTableTypeV1Row> doubleCustomTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeCustomTagTableTypeV1Row> dateTimeCustomTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameCustomTagTableTypeV1Row> personNameCustomTags, System.Byte initialStatus)
+            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddInstance";
@@ -319,76 +166,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _accessionNumber.AddParameter(command.Parameters, accessionNumber);
                 _modality.AddParameter(command.Parameters, modality);
                 _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
-                _stringCustomTags.AddParameter(command.Parameters, stringCustomTags);
-                _bigIntCustomTags.AddParameter(command.Parameters, bigIntCustomTags);
-                _doubleCustomTags.AddParameter(command.Parameters, doubleCustomTags);
-                _dateTimeCustomTags.AddParameter(command.Parameters, dateTimeCustomTags);
-                _personNameCustomTags.AddParameter(command.Parameters, personNameCustomTags);
                 _initialStatus.AddParameter(command.Parameters, initialStatus);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus, AddInstanceTableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid, sopInstanceUid: sopInstanceUid, patientId: patientId, patientName: patientName, referringPhysicianName: referringPhysicianName, studyDate: studyDate, studyDescription: studyDescription, accessionNumber: accessionNumber, modality: modality, performedProcedureStepStartDate: performedProcedureStepStartDate, initialStatus: initialStatus, stringCustomTags: tableValuedParameters.StringCustomTags, bigIntCustomTags: tableValuedParameters.BigIntCustomTags, doubleCustomTags: tableValuedParameters.DoubleCustomTags, dateTimeCustomTags: tableValuedParameters.DateTimeCustomTags, personNameCustomTags: tableValuedParameters.PersonNameCustomTags);
-            }
-        }
-
-        internal class AddInstanceTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddInstanceTableValuedParameters>
-        {
-            public AddInstanceTvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringCustomTagTableTypeV1Row> InsertStringCustomTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertBigIntCustomTagTableTypeV1Row> InsertBigIntCustomTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDoubleCustomTagTableTypeV1Row> InsertDoubleCustomTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeCustomTagTableTypeV1Row> InsertDateTimeCustomTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameCustomTagTableTypeV1Row> InsertPersonNameCustomTagTableTypeV1RowGenerator)
-            {
-                this.InsertStringCustomTagTableTypeV1RowGenerator = InsertStringCustomTagTableTypeV1RowGenerator;
-                this.InsertBigIntCustomTagTableTypeV1RowGenerator = InsertBigIntCustomTagTableTypeV1RowGenerator;
-                this.InsertDoubleCustomTagTableTypeV1RowGenerator = InsertDoubleCustomTagTableTypeV1RowGenerator;
-                this.InsertDateTimeCustomTagTableTypeV1RowGenerator = InsertDateTimeCustomTagTableTypeV1RowGenerator;
-                this.InsertPersonNameCustomTagTableTypeV1RowGenerator = InsertPersonNameCustomTagTableTypeV1RowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertStringCustomTagTableTypeV1Row> InsertStringCustomTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertBigIntCustomTagTableTypeV1Row> InsertBigIntCustomTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertDoubleCustomTagTableTypeV1Row> InsertDoubleCustomTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertDateTimeCustomTagTableTypeV1Row> InsertDateTimeCustomTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertPersonNameCustomTagTableTypeV1Row> InsertPersonNameCustomTagTableTypeV1RowGenerator;
-
-            public AddInstanceTableValuedParameters Generate(TInput input)
-            {
-                return new AddInstanceTableValuedParameters(InsertStringCustomTagTableTypeV1RowGenerator.GenerateRows(input), InsertBigIntCustomTagTableTypeV1RowGenerator.GenerateRows(input), InsertDoubleCustomTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeCustomTagTableTypeV1RowGenerator.GenerateRows(input), InsertPersonNameCustomTagTableTypeV1RowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct AddInstanceTableValuedParameters
-        {
-            internal AddInstanceTableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringCustomTagTableTypeV1Row> StringCustomTags, global::System.Collections.Generic.IEnumerable<InsertBigIntCustomTagTableTypeV1Row> BigIntCustomTags, global::System.Collections.Generic.IEnumerable<InsertDoubleCustomTagTableTypeV1Row> DoubleCustomTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeCustomTagTableTypeV1Row> DateTimeCustomTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameCustomTagTableTypeV1Row> PersonNameCustomTags)
-            {
-                this.StringCustomTags = StringCustomTags;
-                this.BigIntCustomTags = BigIntCustomTags;
-                this.DoubleCustomTags = DoubleCustomTags;
-                this.DateTimeCustomTags = DateTimeCustomTags;
-                this.PersonNameCustomTags = PersonNameCustomTags;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<InsertStringCustomTagTableTypeV1Row> StringCustomTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertBigIntCustomTagTableTypeV1Row> BigIntCustomTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertDoubleCustomTagTableTypeV1Row> DoubleCustomTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertDateTimeCustomTagTableTypeV1Row> DateTimeCustomTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertPersonNameCustomTagTableTypeV1Row> PersonNameCustomTags { get; }
-        }
-
-        internal class DeleteCustomTagProcedure : StoredProcedure
-        {
-            internal DeleteCustomTagProcedure() : base("dbo.DeleteCustomTag")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Byte> _dataType = new ParameterDefinition<System.Byte>("@dataType", global::System.Data.SqlDbType.TinyInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte dataType)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.DeleteCustomTag";
-                _tagPath.AddParameter(command.Parameters, tagPath);
-                _dataType.AddParameter(command.Parameters, dataType);
             }
         }
 
@@ -466,22 +244,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetChangeFeedLatest";
-            }
-        }
-
-        internal class GetCustomTagProcedure : StoredProcedure
-        {
-            internal GetCustomTagProcedure() : base("dbo.GetCustomTag")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, true, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetCustomTag";
-                _tagPath.AddParameter(command.Parameters, tagPath);
             }
         }
 

@@ -5,8 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
@@ -15,6 +17,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
     {
         private readonly string _connectionString;
+
+        private static readonly IReadOnlyDictionary<CustomTagDataType, string> DateTypeAndTableNameMapping = new Dictionary<CustomTagDataType, string>()
+            {
+                { CustomTagDataType.StringData, VLatest.CustomTagString.TableName },
+                { CustomTagDataType.LongData, VLatest.CustomTagBigInt.TableName },
+                { CustomTagDataType.DoubleData, VLatest.CustomTagDouble.TableName },
+                { CustomTagDataType.DateTimeData, VLatest.CustomTagDateTime.TableName },
+                { CustomTagDataType.PersonNameData, VLatest.CustomTagPersonName.TableName },
+            };
 
         public SqlIndexDataStoreTestHelper(string connectionString)
         {
@@ -217,6 +228,97 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
                 return result;
             }
+        }
+
+        async Task<IReadOnlyList<CustomTagDataRow>> IIndexDataStoreTestHelper.GetCustomTagDataAsync(
+           CustomTagDataType dataType,
+           int tagKey,
+           long studyKey,
+           long? seriesKey,
+           long? instanceKey,
+           CancellationToken cancellationToken)
+        {
+            var results = new List<CustomTagDataRow>();
+            string tagKeyParam = "@tagKey";
+            string studyKeyParam = "@studyKey";
+            string seriesKeyParam = "@seriesKey";
+            string instanceKeyParam = "@instanceKey";
+
+            // Columns on all custom tag index data tables are of same names
+            string studyKeyColName = VLatest.CustomTagString.StudyKey.Metadata.Name;
+            string seriesKeyColName = VLatest.CustomTagString.SeriesKey.Metadata.Name;
+            string instanceKeyColName = VLatest.CustomTagString.InstanceKey.Metadata.Name;
+            string tagKeyName = VLatest.CustomTagString.TagKey.Metadata.Name;
+            string seriesFilter = seriesKey.HasValue ? $"{seriesKeyColName} = {seriesKeyParam}" : $"{seriesKeyColName} IS NULL";
+            string instanceFilter = instanceKey.HasValue ? $"{instanceKeyColName} = {instanceKeyParam}" : $"{instanceKeyColName} IS NULL";
+
+            return await GetCustomTagRowsAsync(
+                dataType,
+                sqlCommand =>
+                {
+                    sqlCommand.CommandText = @$"
+                        SELECT *
+                        FROM {DateTypeAndTableNameMapping[dataType]}
+                        WHERE 
+                            {tagKeyName} = {tagKeyParam}
+                            AND {studyKeyColName} = {studyKeyParam}
+                            AND {seriesFilter}
+                            AND {instanceFilter}
+                    ";
+
+                    sqlCommand.Parameters.AddWithValue(tagKeyParam, tagKey);
+                    sqlCommand.Parameters.AddWithValue(studyKeyParam, studyKey);
+                    sqlCommand.Parameters.AddWithValue(seriesKeyParam, seriesKey.HasValue ? seriesKey.Value : DBNull.Value);
+                    sqlCommand.Parameters.AddWithValue(instanceKeyParam, instanceKey.HasValue ? instanceKey.Value : DBNull.Value);
+                },
+                cancellationToken);
+        }
+
+        async Task<IReadOnlyList<CustomTagDataRow>> IIndexDataStoreTestHelper.GetCustomTagDataForTagKeyAsync(CustomTagDataType dataType, int tagKey, CancellationToken cancellationToken)
+        {
+            string tagKeyParam = "@tagKey";
+
+            return await GetCustomTagRowsAsync(
+                dataType,
+                sqlCommand =>
+                {
+                    sqlCommand.CommandText = @$"
+                            SELECT *
+                            FROM {DateTypeAndTableNameMapping[dataType]}
+                            WHERE 
+                                {VLatest.CustomTagString.TagKey} = {tagKeyParam}
+                            
+                        ";
+
+                    sqlCommand.Parameters.AddWithValue(tagKeyParam, tagKey);
+                },
+                cancellationToken);
+        }
+
+        private async Task<IReadOnlyList<CustomTagDataRow>> GetCustomTagRowsAsync(CustomTagDataType dataType, Action<SqlCommand> filler, CancellationToken cancellationToken)
+        {
+            var results = new List<CustomTagDataRow>();
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                await sqlConnection.OpenAsync(cancellationToken);
+
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                {
+                    filler(sqlCommand);
+
+                    using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken))
+                    {
+                        if (await sqlDataReader.ReadAsync(cancellationToken))
+                        {
+                            CustomTagDataRow row = new CustomTagDataRow();
+                            row.Read(sqlDataReader, dataType);
+                            results.Add(row);
+                        }
+                    }
+                }
+            }
+
+            return results;
         }
     }
 }

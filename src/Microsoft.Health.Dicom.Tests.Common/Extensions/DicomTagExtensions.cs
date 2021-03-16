@@ -11,19 +11,14 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
 {
     public static class DicomTagExtensions
     {
-        public static CustomTagEntry BuildCustomTagEntry(this DicomTag tag, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Added)
+        public static CustomTagEntry BuildCustomTagEntry(this DicomTag tag, string vr = null, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Added)
         {
-            return new CustomTagEntry(tag.GetPath(), tag.GetDefaultVR()?.Code, level, status);
+            return new CustomTagEntry(tag.GetPath(), vr ?? tag.GetDefaultVR()?.Code, level, status);
         }
 
-        public static IndexTag BuildIndexTag(this DicomTag tag, DicomVR vr = null, CustomTagLevel level = CustomTagLevel.Series, bool isCustomTag = true)
+        public static CustomTagStoreEntry BuildCustomTagStoreEntry(this DicomTag tag, int key = 1, string vr = null, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Reindexing)
         {
-            return new IndexTag(tag, vr ?? tag.GetDefaultVR(), level, isCustomTag: isCustomTag);
-        }
-
-        public static CustomTagStoreEntry BuildCustomTagStoreEntry(this DicomTag tag, int key = 1, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Reindexing)
-        {
-            return new CustomTagStoreEntry(key: key, path: tag.GetPath(), vr: tag.DictionaryEntry.ValueRepresentations[0].Code, level: level, status: status);
+            return new CustomTagStoreEntry(key: key, path: tag.GetPath(), vr: vr ?? tag.GetDefaultVR().Code, level: level, status: status);
         }
     }
 }

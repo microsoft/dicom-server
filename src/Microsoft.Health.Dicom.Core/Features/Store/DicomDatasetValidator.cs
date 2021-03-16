@@ -103,45 +103,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
             IReadOnlyCollection<IndexTag> indexTags = await _indextagService.GetIndexTagsAsync(cancellationToken);
-
-            var tags = GetDicomTags(dicomDataset, indexTags);
-
-            ValidateTags(dicomDataset, tags);
-        }
-
-        private static IEnumerable<DicomTag> GetDicomTags(DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags)
-        {
-            HashSet<DicomTag> result = new HashSet<DicomTag>();
-            Dictionary<string, IndexTag> privateTags = new Dictionary<string, IndexTag>();
-            foreach (IndexTag indexTag in indexTags)
-            {
-                if (!indexTag.Tag.IsPrivate)
-                {
-                    result.Add(indexTag.Tag);
-                }
-                else
-                {
-                    privateTags.Add(indexTag.Tag.GetPath(), indexTag);
-                }
-            }
-
-            if (privateTags.Count != 0)
-            {
-                // IndexTag don't have privateCreator for private tag, need to fill that part from DicomDataset.
-                foreach (DicomItem item in dicomDataset)
-                {
-                    if (item.Tag.IsPrivate)
-                    {
-                        string tagPath = item.Tag.GetPath();
-                        if (privateTags.ContainsKey(tagPath) && privateTags[tagPath].Equals(item.ValueRepresentation))
-                        {
-                            result.Add(item.Tag);
-                        }
-                    }
-                }
-            }
-
-            return result;
+            var tags = dicomDataset.GetMatchingDicomTags(indexTags);
+            ValidateTags(dicomDataset, tags.Values);
         }
 
         private void ValidateTags(DicomDataset dicomDataset, IEnumerable<DicomTag> tags)

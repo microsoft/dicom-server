@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             EnsureArg.IsNotNull(sqlDataReader, nameof(sqlDataReader));
             InstanceKey = sqlDataReader.GetInt64(0);
             SeriesKey = sqlDataReader.GetInt64(1);
-            InstanceKey = sqlDataReader.GetInt64(2);
+            StudyKey = sqlDataReader.GetInt64(2);
             StudyInstanceUid = sqlDataReader.GetString(3);
             SeriesInstanceUid = sqlDataReader.GetString(4);
             SopInstanceUid = sqlDataReader.GetString(5);

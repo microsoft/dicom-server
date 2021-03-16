@@ -7,14 +7,12 @@ using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
-using Microsoft.Health.Dicom.SqlServer.Features.Storage;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.SqlServer.Api.Registration;
@@ -52,11 +50,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsSelf();
 
-            services.Add<SqlIndexSchema>()
-                .Singleton()
-                .AsSelf();
+            services.Add<SqlIndexDataStoreV1>()
+                .Scoped()
+                .AsImplementedInterfaces();
+            services.Add<SqlIndexDataStoreV2>()
+                .Scoped()
+                .AsImplementedInterfaces();
 
-            services.Add<SqlIndexDataStore>()
+            services.Add<SqlIndexDataStoreFactory>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -64,7 +65,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
             // However, the current implementation of the decorate method requires the concrete type to be already registered,
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
-            services.Decorate<IIndexDataStore, LoggingIndexDataStore>();
+            services.Decorate<ISqlIndexDataStore, SqlLoggingIndexDataStore>();
 
             services.Add<SqlQueryStore>()
                 .Scoped()
