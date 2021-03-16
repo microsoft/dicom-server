@@ -392,9 +392,9 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to String
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
-          For example, with multiple instances in a series, while indexing a series level tag,
-          the Watermark is used to ensure that if there are different values between instances,
-          the value on the instance with the highest watermark wins.
+            For example, with multiple instances in a series, while indexing a series level tag,
+            the Watermark is used to ensure that if there are different values between instances,
+            the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagString (
     TagKey                  INT                  NOT NULL, --PK
@@ -417,9 +417,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagString ON dbo.CustomTagString
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to BigInt
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
-          For example, with multiple instances in a series, while indexing a series level tag,
-          the Watermark is used to ensure that if there are different values between instances,
-          the value on the instance with the highest watermark wins.
+            For example, with multiple instances in a series, while indexing a series level tag,
+            the Watermark is used to ensure that if there are different values between instances,
+            the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagBigInt (
     TagKey                  INT                  NOT NULL, --PK
@@ -442,9 +442,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagBigInt ON dbo.CustomTagBigInt
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to Double
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
-          For example, with multiple instances in a series, while indexing a series level tag,
-          the Watermark is used to ensure that if there are different values between instances,
-          the value on the instance with the highest watermark wins.
+            For example, with multiple instances in a series, while indexing a series level tag,
+            the Watermark is used to ensure that if there are different values between instances,
+            the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagDouble (
     TagKey                  INT                  NOT NULL, --PK
@@ -467,9 +467,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDouble ON dbo.CustomTagDouble
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to DateTime
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
-          For example, with multiple instances in a series, while indexing a series level tag,
-          the Watermark is used to ensure that if there are different values between instances,
-          the value on the instance with the highest watermark wins.
+            For example, with multiple instances in a series, while indexing a series level tag,
+            the Watermark is used to ensure that if there are different values between instances,
+            the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.CustomTagDateTime (
     TagKey                  INT                  NOT NULL, --PK
@@ -492,9 +492,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDateTime ON dbo.CustomTagDateTime
 /*************************************************************
     Custom Tag Data Table for VR Types mapping to PersonName
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
-          For example, with multiple instances in a series, while indexing a series level tag,
-          the Watermark is used to ensure that if there are different values between instances,
-          the value on the instance with the highest watermark wins.
+            For example, with multiple instances in a series, while indexing a series level tag,
+            the Watermark is used to ensure that if there are different values between instances,
+            the value on the instance with the highest watermark wins.
 	Note: The primary key is designed on the assumption that tags only occur once in an instance.
 **************************************************************/
 CREATE TABLE dbo.CustomTagPersonName (
@@ -865,16 +865,20 @@ AS
 
     DECLARE @deletedInstances AS TABLE
         (StudyInstanceUid VARCHAR(64),
-         SeriesInstanceUid VARCHAR(64),
-         SopInstanceUid VARCHAR(64),
-         Status TINYINT,
-         Watermark BIGINT)
+            SeriesInstanceUid VARCHAR(64),
+            SopInstanceUid VARCHAR(64),
+            Status TINYINT,
+            Watermark BIGINT)
 
     DECLARE @studyKey BIGINT
+    DECLARE @seriesKey BIGINT
+    DECLARE @instanceKey BIGINT
     DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
 
-    -- Get the study PK
-    SELECT  @studyKey = StudyKey
+    -- Get the study, series and instance PK
+    SELECT  @studyKey = StudyKey,
+    @seriesKey = CASE @seriesInstanceUid WHEN NULL THEN NULL ELSE SeriesKey END,
+    @instanceKey = CASE @sopInstanceUid WHEN NULL THEN NULL ELSE InstanceKey END
     FROM    dbo.Instance
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
@@ -892,6 +896,37 @@ AS
     BEGIN
         THROW 50404, 'Instance not found', 1;
     END
+
+    -- Deleting indexed instance tags
+    DELETE
+    FROM    dbo.CustomTagString
+    WHERE   StudyKey = @studyKey
+    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+    AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+
+    DELETE
+    FROM    dbo.CustomTagBigInt
+    WHERE   StudyKey = @studyKey
+    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+    AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+
+    DELETE
+    FROM    dbo.CustomTagDouble
+    WHERE   StudyKey = @studyKey
+    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+    AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+
+    DELETE
+    FROM    dbo.CustomTagDateTime
+    WHERE   StudyKey = @studyKey
+    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+    AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+
+    DELETE
+    FROM    dbo.CustomTagPersonName
+    WHERE   StudyKey = @studyKey
+    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+    AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
     INSERT INTO dbo.DeletedInstance
     (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
@@ -922,6 +957,32 @@ AS
         FROM    dbo.Series
         WHERE   Studykey = @studyKey
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+
+        -- Deleting indexed series tags
+        DELETE
+        FROM    dbo.CustomTagString
+        WHERE   StudyKey = @studyKey
+        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+
+        DELETE
+        FROM    dbo.CustomTagBigInt
+        WHERE   StudyKey = @studyKey
+        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+
+        DELETE
+        FROM    dbo.CustomTagDouble
+        WHERE   StudyKey = @studyKey
+        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+
+        DELETE
+        FROM    dbo.CustomTagDateTime
+        WHERE   StudyKey = @studyKey
+        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+
+        DELETE
+        FROM    dbo.CustomTagPersonName
+        WHERE   StudyKey = @studyKey
+        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     END
 
     -- If we've removing the series, see if it's the last for a study and if so, remove the study
@@ -932,6 +993,27 @@ AS
         DELETE
         FROM    dbo.Study
         WHERE   Studykey = @studyKey
+
+        -- Deleting indexed study tags
+        DELETE
+        FROM    dbo.CustomTagString
+        WHERE   StudyKey = @studyKey
+
+        DELETE
+        FROM    dbo.CustomTagBigInt
+        WHERE   StudyKey = @studyKey
+
+        DELETE
+        FROM    dbo.CustomTagDouble
+        WHERE   StudyKey = @studyKey
+
+        DELETE
+        FROM    dbo.CustomTagDateTime
+        WHERE   StudyKey = @studyKey
+
+        DELETE
+        FROM    dbo.CustomTagPersonName
+        WHERE   StudyKey = @studyKey
     END
 
     COMMIT TRANSACTION
@@ -1145,7 +1227,8 @@ GO
 --         * The custom tag list
 /***************************************************************************************/
 CREATE PROCEDURE dbo.AddCustomTags (
-    @customTags dbo.AddCustomTagsInputTableType_1 READONLY)
+    @customTags dbo.AddCustomTagsInputTableType_1 READONLY
+)
 AS
 
     SET NOCOUNT     ON
@@ -1185,7 +1268,8 @@ GO
 /***************************************************************************************/
 CREATE PROCEDURE dbo.DeleteCustomTag (
     @tagPath VARCHAR(64),
-    @dataType TINYINT)
+    @dataType TINYINT
+)
 AS
 
     SET NOCOUNT     ON
