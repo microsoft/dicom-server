@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.SqlServer.Features.Schema;
 
@@ -13,17 +14,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
     internal class SqlIndexDataStoreFactory : IIndexDataStoreFactory
     {
         private readonly SchemaInformation _schemaInformation;
-        private readonly IEnumerable<ISqlIndexDataStore> _sqlIndexDataStores;
+        private readonly IEnumerable<ISqlIndexDataStore> _indexDataStores;
 
         public SqlIndexDataStoreFactory(SchemaInformation schemaInformation, IEnumerable<ISqlIndexDataStore> sqlIndexDataStores)
         {
+            EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
+            EnsureArg.IsNotNull(sqlIndexDataStores, nameof(sqlIndexDataStores));
             _schemaInformation = schemaInformation;
-            _sqlIndexDataStores = sqlIndexDataStores;
+            _indexDataStores = sqlIndexDataStores;
         }
 
         public IIndexDataStore GetInstance()
         {
-            return _sqlIndexDataStores.First(item => item.Version == _schemaInformation.Current.Value);
+            return _indexDataStores.First(store => (int)store.Version == _schemaInformation.Current.Value);
         }
     }
 }

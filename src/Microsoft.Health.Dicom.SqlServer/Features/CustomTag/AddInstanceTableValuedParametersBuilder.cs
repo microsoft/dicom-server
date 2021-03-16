@@ -118,15 +118,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
 
         private static void AddBigIntRow(DicomDataset instance, List<InsertBigIntCustomTagTableTypeV1Row> bigIntRows, DicomTag matchingTag, IndexTag indexTag)
         {
-            long? longVal;
-            if (indexTag.VR == DicomVR.AT)
-            {
-                longVal = instance.GetAttributeTagValueAsLong(matchingTag);
-            }
-            else
-            {
-                longVal = instance.GetSingleValueOrDefault<long>(matchingTag);
-            }
+            long? longVal = instance.GetSingleValueOrDefault<long>(matchingTag);
 
             if (longVal.HasValue)
             {

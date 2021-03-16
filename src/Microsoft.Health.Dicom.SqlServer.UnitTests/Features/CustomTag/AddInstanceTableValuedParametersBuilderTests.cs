@@ -50,13 +50,11 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
         {
             yield return BuildParam(DicomTag.DestinationAE, "012", (tag, value) => new DicomApplicationEntity(tag, value));
             yield return BuildParam(DicomTag.PatientAge, "012W", (tag, value) => new DicomAgeString(tag, value));
-            yield return BuildParam(DicomTag.DataElementsSigned, DicomTagToLong(DicomTag.PatientName), (tag, value) => new DicomAttributeTag(tag, LongToDicomTag(value)));
 
             yield return BuildParam(DicomTag.AcquisitionStartCondition, "0123456789", (tag, value) => new DicomCodeString(tag, value));
             yield return BuildParam(DicomTag.AcquisitionDate, DateTime.Parse("2021/5/20"), (tag, value) => new DicomDate(tag, value));
             yield return BuildParam(DicomTag.ActiveSourceLength, "1e1", (tag, value) => new DicomDecimalString(tag, value));
 
-            yield return BuildParam(DicomTag.AcquisitionDateTime, DateTime.Parse("2021/05/20 10:13"), (tag, value) => new DicomDateTime(tag, value));
             yield return BuildParam(DicomTag.TableOfParameterValues, 100.0, (tag, value) => new DicomFloatingPointSingle(tag, (float)value));
             yield return BuildParam(DicomTag.DopplerCorrectionAngle, 100.0, (tag, value) => new DicomFloatingPointDouble(tag, value));
 

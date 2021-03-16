@@ -25,14 +25,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             _stringValidators.Add(DicomVR.CS, DicomElementMinimumValidation.ValidateCS);
             _stringValidators.Add(DicomVR.DA, DicomElementMinimumValidation.ValidateDA);
             _stringValidators.Add(DicomVR.DS, DicomElementMinimumValidation.ValidateDS);
-            _stringValidators.Add(DicomVR.DT, DicomElementMinimumValidation.ValidateDT);
             _stringValidators.Add(DicomVR.IS, DicomElementMinimumValidation.ValidateIS);
             _stringValidators.Add(DicomVR.LO, DicomElementMinimumValidation.ValidateLO);
             _stringValidators.Add(DicomVR.PN, DicomElementMinimumValidation.ValidatePN);
             _stringValidators.Add(DicomVR.SH, DicomElementMinimumValidation.ValidateSH);
             _stringValidators.Add(DicomVR.UI, DicomElementMinimumValidation.ValidateUI);
 
-            _byteBufferValidators.Add(DicomVR.AT, DicomElementMinimumValidation.ValidateAT);
             _byteBufferValidators.Add(DicomVR.FL, DicomElementMinimumValidation.ValidateFL);
             _byteBufferValidators.Add(DicomVR.FD, DicomElementMinimumValidation.ValidateFD);
             _byteBufferValidators.Add(DicomVR.SL, DicomElementMinimumValidation.ValidateSL);

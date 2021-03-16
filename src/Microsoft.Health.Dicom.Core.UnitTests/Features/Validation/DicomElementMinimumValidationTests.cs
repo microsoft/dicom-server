@@ -74,13 +74,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         }
 
         [Theory]
-        [InlineData("202")] // not a full year
-        public void GivenDTInvalidValue_WhenValidating_Throws(string value)
-        {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateDT(value, nameof(value)));
-        }
-
-        [Theory]
         [InlineData("0123456789123")] // exceed max length
         public void GivenISInvalidValue_WhenValidating_Throws(string value)
         {

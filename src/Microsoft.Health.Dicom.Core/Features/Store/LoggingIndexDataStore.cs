@@ -100,6 +100,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _logger = logger;
         }
 
+        protected IIndexDataStore IndexDataStore => _indexDataStore;
+
         /// <inheritdoc />
         public async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags, CancellationToken cancellationToken)
         {

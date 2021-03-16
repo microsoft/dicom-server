@@ -31,13 +31,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             yield return new object[] { new DicomApplicationEntity(DicomTag.DestinationAE, "012") };
             yield return new object[] { new DicomAgeString(DicomTag.PatientAge, "012W") };
-            yield return new object[] { new DicomAttributeTag(DicomTag.DataElementsSigned, ByteConverter.ToByteBuffer<uint>(new uint[] { uint.MaxValue })) };
 
             yield return new object[] { new DicomCodeString(DicomTag.AcquisitionStartCondition, "0123456789 ") };
             yield return new object[] { new DicomDate(DicomTag.AcquisitionDate, "20210313") };
             yield return new object[] { new DicomDecimalString(DicomTag.ActiveSourceLength, "1e1") };
 
-            yield return new object[] { new DicomDateTime(DicomTag.AcquisitionDateTime, "20210520131401.111111+0630") };
             yield return new object[] { new DicomFloatingPointSingle(DicomTag.AnchorPoint, ByteConverter.ToByteBuffer(new float[] { float.MaxValue })) };
             yield return new object[] { new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, ByteConverter.ToByteBuffer(new double[] { double.MaxValue })) };
 

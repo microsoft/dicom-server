@@ -3,16 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
-    /// <summary>
-    ///  Sql version of IIndexDataStore.
-    /// </summary>
-    internal interface ISqlIndexDataStore : IIndexDataStore
+    internal class SqlLoggingIndexDataStore : LoggingIndexDataStore, ISqlIndexDataStore
     {
-        SchemaVersion Version { get; }
+        public SqlLoggingIndexDataStore(ISqlIndexDataStore indexDataStore, ILogger<SqlLoggingIndexDataStore> logger)
+            : base(indexDataStore, logger)
+        {
+        }
+
+        public SchemaVersion Version => ((ISqlIndexDataStore)IndexDataStore).Version;
     }
 }

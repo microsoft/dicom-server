@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenValidCustomTags_WhenAddCustomTag_ThenTagShouldBeAdded()
         {
             DicomTag tag1 = DicomTag.DeviceSerialNumber;
-            DicomTag tag2 = DicomTag.ApprovalStatusDateTime;
+            DicomTag tag2 = DicomTag.DateOfSecondaryCapture;
             CustomTagEntry customTagEntry1 = tag1.BuildCustomTagEntry();
             CustomTagEntry customTagEntry2 = tag2.BuildCustomTagEntry();
             await _customTagStore.AddCustomTagsAsync(new CustomTagEntry[] { customTagEntry1, customTagEntry2 });

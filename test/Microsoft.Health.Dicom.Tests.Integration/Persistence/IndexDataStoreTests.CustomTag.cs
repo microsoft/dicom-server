@@ -82,8 +82,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public static IEnumerable<object[]> SupportedTypes()
         {
+            yield return new object[] { CustomTagDataType.DateTimeData, new DicomDate(DicomTag.AcquisitionDate, DateTime.Parse("2020/2/21")), DateTime.Parse("2020/2/21") };
             yield return new object[] { CustomTagDataType.StringData, new DicomCodeString(DicomTag.ConversionType, "STRING"), "STRING" };
-            yield return new object[] { CustomTagDataType.DateTimeData, new DicomDateTime(DicomTag.AcquisitionDateTime, DateTime.Parse("2020/2/21")), DateTime.Parse("2020/2/21") };
             yield return new object[] { CustomTagDataType.DoubleData, new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, 1.0), 1.0 };
             yield return new object[] { CustomTagDataType.LongData, new DicomSignedLong(DicomTag.ReferencePixelX0, 1), 1L };
             yield return new object[] { CustomTagDataType.PersonNameData, new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc"), "abc^abc" };

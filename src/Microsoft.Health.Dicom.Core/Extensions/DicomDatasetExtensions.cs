@@ -76,25 +76,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         /// <summary>
-        /// Get the AT VR value as <see cref="long"/>.
-        /// </summary>
-        /// <param name="dicomDataset">The dicom dataset.</param>
-        /// <param name="dicomTag">The dicom tag.</param>
-        /// <returns>The value.</returns>
-        public static long? GetAttributeTagValueAsLong(this DicomDataset dicomDataset, DicomTag dicomTag)
-        {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-
-            DicomTag tag = dicomDataset.GetSingleValueOrDefault<DicomTag>(dicomTag, default);
-            if (tag == null)
-            {
-                return null;
-            }
-
-            return ((long)tag.Group << 16) + tag.Element;
-        }
-
-        /// <summary>
         /// Gets the DA VR value as <see cref="DateTime"/>.
         /// </summary>
         /// <param name="dicomDataset">The dataset to get the VR value from.</param>
