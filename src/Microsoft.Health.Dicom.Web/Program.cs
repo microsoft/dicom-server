@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -17,28 +18,24 @@ namespace Microsoft.Health.Dicom.Web
     {
         public static void Main(string[] args)
         {
-            IHost host = Host.CreateDefaultBuilder(args)
-                 .ConfigureAppConfiguration((hostContext, builder) =>
-                 {
-                     IConfigurationRoot builtConfig = builder.Build();
+            IWebHost host = WebHost.CreateDefaultBuilder(args)
+             .ConfigureAppConfiguration((hostContext, builder) =>
+             {
+                 IConfigurationRoot builtConfig = builder.Build();
 
-                     var keyVaultEndpoint = builtConfig["KeyVault:Endpoint"];
-                     if (!string.IsNullOrEmpty(keyVaultEndpoint))
-                     {
-                         var azureServiceTokenProvider = new AzureServiceTokenProvider();
-                         var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-                         builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
-                     }
-
-                     builder.AddDevelopmentAuthEnvironmentIfConfigured(builtConfig);
-                 })
-                 .ConfigureWebHostDefaults(webBuilder =>
+                 var keyVaultEndpoint = builtConfig["KeyVault:Endpoint"];
+                 if (!string.IsNullOrEmpty(keyVaultEndpoint))
                  {
-                     webBuilder.ConfigureKestrel(option => option.Limits.MaxRequestBodySize = int.MaxValue) // When hosted on Kestrel, it's allowed to upload >2GB file, set to 2GB by default
-                     .UseStartup<Startup>();
-                 })
-                .ConfigureServices(services => services.AddDicomBackgroundWorkers())
-                .Build();
+                     var azureServiceTokenProvider = new AzureServiceTokenProvider();
+                     var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+                     builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+                 }
+
+                 builder.AddDevelopmentAuthEnvironmentIfConfigured(builtConfig);
+             })
+             .ConfigureKestrel(option => option.Limits.MaxRequestBodySize = int.MaxValue) // When hosted on Kestrel, it's allowed to upload >2GB file, set to 2GB by default
+             .UseStartup<Startup>()
+             .Build();
 
             host.Run();
         }
