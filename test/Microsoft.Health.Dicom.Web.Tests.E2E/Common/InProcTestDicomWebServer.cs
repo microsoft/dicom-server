@@ -37,6 +37,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 { "DicomServer:Security:Authentication:Authority", "https://inprochost" },
                 { "DicomServer:Security:Authorization:Enabled", "true" },
                 { "DicomServer:Security:Enabled", "true" },
+                { "DicomServer:Features:EnableCustomQueryTags", "true" },
             };
 
             IWebHostBuilder builder = WebHost.CreateDefaultBuilder()

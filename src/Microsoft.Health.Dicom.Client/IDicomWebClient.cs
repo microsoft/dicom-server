@@ -44,8 +44,12 @@ namespace Microsoft.Health.Dicom.Client
 
         Task<DicomWebResponse<DicomDataset>> StoreAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse> AddCustomTagAsync(IEnumerable<CustomTagEntry> customTagEntries, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTagEntry> tagEntries, CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse> DeleteCustomTagAsync(string customTagPath, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
+
+        Task<DicomWebResponse<IEnumerable<ExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(CancellationToken cancellationToken = default);
+
+        Task<DicomWebResponse<ExtendedQueryTagEntry>> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
     }
 }
