@@ -2,6 +2,7 @@
     Custom Tag Table
     Stores added custom tags
     TagPath is represented without any delimiters and each level takes 8 bytes
+    TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
     TagStatus can be 0, 1 or 2 to represent Reindexing, Added or Deindexing
 **************************************************************/
@@ -9,6 +10,7 @@ CREATE TABLE dbo.CustomTag (
     TagKey                  INT                  NOT NULL, --PK
     TagPath                 VARCHAR(64)          NOT NULL,
     TagVR                   VARCHAR(2)           NOT NULL,
+    TagPrivateCreator       NVARCHAR(64)         NULL, 
     TagLevel                TINYINT              NOT NULL,
     TagStatus               TINYINT              NOT NULL
 )
@@ -487,6 +489,7 @@ BEGIN
     SELECT  TagKey,
             TagPath,
             TagVR,
+            TagPrivateCreator,
             TagLevel,
             TagStatus
     FROM    dbo.CustomTag

@@ -94,14 +94,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (int tagKey, string tagPath, string tagVR, int tagLevel, int tagStatus) = reader.ReadRow(
+                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus) = reader.ReadRow(
                             VLatest.CustomTag.TagKey,
                             VLatest.CustomTag.TagPath,
                             VLatest.CustomTag.TagVR,
+                            VLatest.CustomTag.TagPrivateCreator,
                             VLatest.CustomTag.TagLevel,
                             VLatest.CustomTag.TagStatus);
 
-                        results.Add(new CustomTagStoreEntry(tagKey, tagPath, tagVR, (CustomTagLevel)tagLevel, (CustomTagStatus)tagStatus));
+                        results.Add(new CustomTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (CustomTagLevel)tagLevel, (CustomTagStatus)tagStatus));
                     }
 
                     executionTimeWatch.Stop();
