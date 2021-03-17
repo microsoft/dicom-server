@@ -55,14 +55,14 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                 throw new CustomTagNotFoundException(string.Format(DicomCoreResource.CustomTagNotFound, tagPath));
             }
 
-            return new GetCustomTagResponse(new CustomTagEntry(customTags[0]));
+            return new GetCustomTagResponse(customTags[0].ToCustomTagEntry());
         }
 
         public async Task<GetAllCustomTagsResponse> GetAllCustomTagsAsync(CancellationToken cancellationToken)
         {
             IReadOnlyList<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
 
-            return new GetAllCustomTagsResponse(customTags.Select(x => new CustomTagEntry(x)));
+            return new GetAllCustomTagsResponse(customTags.Select(x => x.ToCustomTagEntry()));
         }
     }
 }

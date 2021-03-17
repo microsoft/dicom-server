@@ -21,13 +21,14 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 
             return x.Path.Equals(y.Path, StringComparison.OrdinalIgnoreCase)
                 && string.Equals(x.VR, y.VR, StringComparison.OrdinalIgnoreCase)
+                && x.PrivateCreator == y.PrivateCreator
                 && x.Level == y.Level
                 && x.Status == y.Status;
         }
 
         public int GetHashCode([DisallowNull] CustomTagEntry obj)
         {
-            return HashCode.Combine(obj.Path, obj.VR, obj.Level.GetHashCode(), obj.Status.GetHashCode());
+            return HashCode.Combine(obj.Path, obj.VR, obj.PrivateCreator, obj.Level.GetHashCode(), obj.Status.GetHashCode());
         }
     }
 }

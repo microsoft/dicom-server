@@ -123,7 +123,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private async Task VerifyTagIsAdded(CustomTagEntry customTagEntry)
         {
             var actualCustomTagEntries = await _customTagStore.GetCustomTagsAsync(customTagEntry.Path);
-            CustomTagEntry actualCustomTagEntry = new CustomTagEntry(actualCustomTagEntries.First());
+            CustomTagEntry actualCustomTagEntry = actualCustomTagEntries.First().ToCustomTagEntry();
             Assert.Equal(customTagEntry.Path, actualCustomTagEntry.Path);
             Assert.Equal(customTagEntry.PrivateCreator, actualCustomTagEntry.PrivateCreator);
             Assert.Equal(customTagEntry.VR, actualCustomTagEntry.VR);

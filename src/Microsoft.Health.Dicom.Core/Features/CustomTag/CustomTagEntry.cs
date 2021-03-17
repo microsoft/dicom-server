@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
-
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     /// <summary>
@@ -12,29 +10,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     /// </summary>
     public class CustomTagEntry
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CustomTagEntry"/> class.
-        /// </summary>
-        public CustomTagEntry()
-        {
-            // used as customer input, constructor without parameters is required.
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CustomTagEntry"/> class from <see cref="CustomTagStoreEntry"/>.
-        /// </summary>
-        /// <param name="storedEntry">The custom tag store entry.</param>
-        public CustomTagEntry(CustomTagStoreEntry storedEntry)
-        {
-            EnsureArg.IsNotNull(storedEntry, nameof(storedEntry));
-
-            Path = storedEntry.Path;
-            VR = storedEntry.VR;
-            PrivateCreator = storedEntry.PrivateCreator;
-            Level = storedEntry.Level;
-            Status = storedEntry.Status;
-        }
-
         /// <summary>
         /// Path of this tag. Normally it's composed of groupid and elementid.
         /// E.g: 00100020 is path of patient id.
@@ -47,7 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         public string VR { get; set; }
 
         /// <summary>
-        /// Private Creator of this Tag.
+        /// Identification code of private tag implementer.
         /// </summary>
         public string PrivateCreator { get; set; }
 
@@ -64,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         public override string ToString()
         {
-            return $"Path: {Path}, VR:{VR}, Level:{Level} Status:{Status}";
+            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level} Status:{Status}";
         }
     }
 }
