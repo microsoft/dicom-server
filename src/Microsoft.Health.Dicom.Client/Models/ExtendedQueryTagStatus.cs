@@ -6,23 +6,23 @@
 namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
-    /// Level of a queryable tag.
+    /// Status of extended query tag.
     /// </summary>
-    public enum QueryTagLevel
+    public enum ExtendedQueryTagStatus
     {
         /// <summary>
-        /// The tag is on instance level.
+        /// The query tag is being reindexed.
         /// </summary>
-        Instance = 0,
+        Reindexing = 0,
 
         /// <summary>
-        /// The tag is on series level.
+        /// The query tag has been added to system.
         /// </summary>
-        Series = 1,
+        Added = 1,
 
         /// <summary>
-        /// The tag is on study level.
+        /// The query tag is being deindexed.
         /// </summary>
-        Study = 2,
+        Deindexing = 2,
     }
 }

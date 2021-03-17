@@ -6,24 +6,23 @@
 namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
-    /// External representation of a extended query tag entry.
+    /// Level of a queryable tag.
     /// </summary>
-    public class ExtendedQueryTagEntry
+    public enum ExtendedQueryTagLevel
     {
         /// <summary>
-        /// Path of this tag. Normally it's composed of groupid and elementid.
-        /// E.g: 00100020 is path of patient id.
+        /// The tag is on instance level.
         /// </summary>
-        public string Path { get; set; }
+        Instance = 0,
 
         /// <summary>
-        /// VR of this tag.
+        /// The tag is on series level.
         /// </summary>
-        public string VR { get; set; }
+        Series = 1,
 
         /// <summary>
-        /// Level of this tag. Could be Study, Series or Instance.
+        /// The tag is on study level.
         /// </summary>
-        public QueryTagLevel Level { get; set; }
+        Study = 2,
     }
 }

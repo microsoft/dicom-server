@@ -12,6 +12,7 @@ using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Comparers;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -33,17 +34,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Prepare 3 extended query tags.
             // One is private tag on Instance level
             DicomTag privateTag = new DicomTag(0x0407, 0x1001, "PrivateCreator1");
-            ExtendedQueryTagEntry privateTagEntry = new ExtendedQueryTagEntry { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance };
+            ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = ExtendedQueryTagLevel.Instance };
 
             // One is standard tag on Series level
             DicomTag standardTagSeries = DicomTag.ManufacturerModelName;
-            ExtendedQueryTagEntry standardTagSeriesEntry = new ExtendedQueryTagEntry { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = QueryTagLevel.Series };
+            ExtendedQueryTag standardTagSeriesQueryTag = new ExtendedQueryTag { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = ExtendedQueryTagLevel.Series };
 
             // One is standard tag on Study level
             DicomTag standardTagStudy = DicomTag.PatientSex;
-            ExtendedQueryTagEntry standardTagStudyEntry = new ExtendedQueryTagEntry { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, Level = QueryTagLevel.Study };
+            ExtendedQueryTag standardTagStudyQueryTag = new ExtendedQueryTag { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, Level = ExtendedQueryTagLevel.Study };
 
-            ExtendedQueryTagEntry[] entries = new ExtendedQueryTagEntry[] { privateTagEntry, standardTagSeriesEntry, standardTagStudyEntry };
+            ExtendedQueryTag[] queryTags = new ExtendedQueryTag[] { privateQueryTag, standardTagSeriesQueryTag, standardTagStudyQueryTag };
 
             // Create 3 test files on same studyUid.
             string studyUid = TestUidGenerator.Generate();
@@ -74,12 +75,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 // Add extended query tags
 
-                await _client.AddExtendedQueryTagAsync(entries);
-
-                // Upload test files
-                IEnumerable<DicomFile> dicomFiles = new DicomDataset[] { dataset1, dataset2, dataset3 }.Select(dataset => new DicomFile(dataset));
+                await _client.AddExtendedQueryTagAsync(queryTags);
                 try
                 {
+                    foreach (var queryTag in queryTags)
+                    {
+                        ExtendedQueryTag returnTag = await (await _client.GetExtendedQueryTagAsync(queryTag.Path)).GetValueAsync();
+                        Assert.Equal(queryTag, returnTag, new ExtendedQueryTagEqualityComparer(true));
+                    }
+
+                    // Upload test files
+                    IEnumerable<DicomFile> dicomFiles = new DicomDataset[] { dataset1, dataset2, dataset3 }.Select(dataset => new DicomFile(dataset));
+
                     await _client.StoreAsync(dicomFiles, studyInstanceUid: string.Empty, cancellationToken: default);
 
                     // Query on instance for private tag
@@ -99,21 +106,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     DicomDataset[] studyResult = await queryStudyResponse.ToArrayAsync();
                     Assert.Single(studyResult);
                     Assert.Equal(studyUid, seriesResult[0].GetSingleValue<string>(DicomTag.StudyInstanceUID));
-
-                    // Delete private tag
-                    await _client.DeleteExtendedQueryTagAsync(privateTag.GetPath());
-                    await Assert.ThrowsAsync<DicomWebException>(() => _client.QueryAsync($"/instances?{privateTag.GetPath()}=3", cancellationToken: default));
-                    await Assert.ThrowsAsync<DicomWebException>(() => _client.GetExtendedQueryTagAsync(privateTag.GetPath(), cancellationToken: default));
-
-                    // Delete standardTagSeries
-                    await _client.DeleteExtendedQueryTagAsync(standardTagSeries.GetPath());
-                    await Assert.ThrowsAsync<DicomWebException>(() => _client.QueryAsync($"/series?{standardTagSeries.GetPath()}=ManufacturerModelName2", cancellationToken: default));
-                    await Assert.ThrowsAsync<DicomWebException>(() => _client.GetExtendedQueryTagAsync(standardTagSeries.GetPath(), cancellationToken: default));
-
-                    // Delete standardTagStudy
-                    await _client.DeleteExtendedQueryTagAsync(standardTagStudy.GetPath());
-                    await Assert.ThrowsAsync<DicomWebException>(() => _client.QueryAsync($"/studies?{standardTagStudy.GetPath()}=1", cancellationToken: default));
-                    await Assert.ThrowsAsync<DicomWebException>(() => _client.GetExtendedQueryTagAsync(standardTagStudy.GetPath(), cancellationToken: default));
                 }
                 finally
                 {
@@ -123,12 +115,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             finally
             {
                 // Cleanup extended query tags, also verify GetCustomTagsAsync.
-                var responseTagEntries = await (await _client.GetExtendedQueryTagsAsync()).GetValueAsync();
-                foreach (var rEntry in responseTagEntries)
+                var responseQueryTags = await (await _client.GetExtendedQueryTagsAsync()).GetValueAsync();
+                foreach (var rTag in responseQueryTags)
                 {
-                    if (entries.Any(entry => entry.Path == rEntry.Path))
+                    if (queryTags.Any(tag => tag.Path == rTag.Path))
                     {
-                        await _client.DeleteExtendedQueryTagAsync(rEntry.Path);
+                        await _client.DeleteExtendedQueryTagAsync(rTag.Path);
                     }
                 }
             }

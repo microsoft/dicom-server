@@ -357,7 +357,7 @@ namespace Microsoft.Health.Dicom.Client
                 });
         }
 
-        public async Task<DicomWebResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTagEntry> tagEntries, CancellationToken cancellationToken)
+        public async Task<DicomWebResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTag> tagEntries, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(tagEntries, nameof(tagEntries));
             using var request = new HttpRequestMessage(HttpMethod.Post, BaseExtendedQueryTagUri);
@@ -387,33 +387,33 @@ namespace Microsoft.Health.Dicom.Client
             return new DicomWebResponse(response);
         }
 
-        public async Task<DicomWebResponse<IEnumerable<ExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(CancellationToken cancellationToken)
+        public async Task<DicomWebResponse<IEnumerable<ExtendedQueryTag>>> GetExtendedQueryTagsAsync(CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(BaseExtendedQueryTagUri, UriKind.Relative));
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-            return new DicomWebResponse<IEnumerable<ExtendedQueryTagEntry>>(
+            return new DicomWebResponse<IEnumerable<ExtendedQueryTag>>(
                  response,
                  async content =>
                  {
                      string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                     return JsonConvert.DeserializeObject<IEnumerable<ExtendedQueryTagEntry>>(contentText, _jsonSerializerSettings);
+                     return JsonConvert.DeserializeObject<IEnumerable<ExtendedQueryTag>>(contentText, _jsonSerializerSettings);
                  });
         }
 
-        public async Task<DicomWebResponse<ExtendedQueryTagEntry>> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
+        public async Task<DicomWebResponse<ExtendedQueryTag>> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri($"{BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative));
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-            return new DicomWebResponse<ExtendedQueryTagEntry>(
+            return new DicomWebResponse<ExtendedQueryTag>(
                  response,
                  async content =>
                  {
                      string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                     return JsonConvert.DeserializeObject<ExtendedQueryTagEntry>(contentText, _jsonSerializerSettings);
+                     return JsonConvert.DeserializeObject<ExtendedQueryTag>(contentText, _jsonSerializerSettings);
                  });
         }
 
