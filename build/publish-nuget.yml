@@ -25,7 +25,7 @@ steps:
     displayName: 'E2E test push'
     inputs:
       command: 'publish'
-      publishDirectory: '$(Build.ArtifactStagingDirectory)/IntegrationTests'
+      publishDirectory: '$(System.DefaultWorkingDirectory)/IntegrationTests'
       feedsToUsePublish: 'internal'
       vstsFeedPublish: 'DicomServer/Dicom-Public'
       vstsFeedPackagePublish: 'DicomWebE2ETests'
