@@ -38,9 +38,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         /// <summary>
         /// Private Creator of this tag.
-        /// It's identification code of private tag implementer, only apply to private tag.
-        /// Please refer to http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html for more details.
         /// </summary>
+        /// <remarks>It's the identification code of private tag implementer, only apply to private tag.
+        /// Please refer to http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html for more details.</remarks>
         public string PrivateCreator { get; set; }
 
         /// <summary>
