@@ -315,6 +315,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Private creator is not valid for standard tag &apos;{0}&apos;..
+        /// </summary>
+        internal static string InvalidPrivateCreator {
+            get {
+                return ResourceManager.GetString("InvalidPrivateCreator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The following query parameter is invalid: {0}..
         /// </summary>
         internal static string InvalidQueryStringValue {
@@ -365,6 +374,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MissingCustomTag {
             get {
                 return ResourceManager.GetString("MissingCustomTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The private creator for private tag &apos;{0}&apos; is missing..
+        /// </summary>
+        internal static string MissingPrivateCreator {
+            get {
+                return ResourceManager.GetString("MissingPrivateCreator", resourceCulture);
             }
         }
         

@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -12,6 +11,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
+using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using NSubstitute;
 using Xunit;
 
@@ -50,9 +50,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             _customTagStore.GetCustomTagsAsync(default).Returns(storedEntries);
             GetAllCustomTagsResponse response = await _getCustomTagsService.GetAllCustomTagsAsync();
 
-            List<CustomTagEntry> result = storedEntries.Select(x => new CustomTagEntry(x)).Except(response.CustomTags).ToList();
+            var expected = new CustomTagEntry[] { new CustomTagEntry(tag1), new CustomTagEntry(tag2) };
 
-            Assert.Empty(result);
+            Assert.Equal(expected, response.CustomTags, new CustomTagEntryEqualityComparer());
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagStoreEntry> { stored });
             GetCustomTagResponse response = await _getCustomTagsService.GetCustomTagAsync(tagPath);
 
-            Assert.Equal(new CustomTagEntry(stored), response.CustomTag);
+            Assert.Equal(new CustomTagEntry(stored), response.CustomTag, new CustomTagEntryEqualityComparer());
         }
 
         private static CustomTagStoreEntry CreateCustomTagEntry(int key, string path, string vr, string privateCreator = null, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Added)

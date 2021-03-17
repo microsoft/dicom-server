@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         public void GivenStandardTagWithoutVR_WhenFormalizing_ThenVRShouldBeFilled(string vr)
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
-            CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath(), vr, CustomTagLevel.Instance, CustomTagStatus.Added);
+            CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath(), vr, null, CustomTagLevel.Instance, CustomTagStatus.Added);
             CustomTagEntry normalized = entry.Normalize(CustomTagStatus.Reindexing);
             Assert.Equal(tag.GetDefaultVR().Code, normalized.VR);
         }
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             string vr = DicomVR.CS.Code;
-            CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath(), vr, CustomTagLevel.Instance, CustomTagStatus.Added);
+            CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath(), vr, null, CustomTagLevel.Instance, CustomTagStatus.Added);
             CustomTagEntry normalized = entry.Normalize(CustomTagStatus.Reindexing);
             Assert.Equal(vr, normalized.VR);
         }
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         public void GivenTagOfLowerCase_WhenFormalizing_ThenTagShouldBeUpperCase()
         {
             DicomTag tag = DicomTag.DeviceLabel;
-            CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath().ToLowerInvariant(), tag.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added);
+            CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath().ToLowerInvariant(), tag.GetDefaultVR().Code, null, CustomTagLevel.Instance, CustomTagStatus.Added);
             CustomTagEntry normalized = entry.Normalize(CustomTagStatus.Reindexing);
             Assert.Equal(entry.Path.ToUpperInvariant(), normalized.Path);
         }
@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         public void GivenVROfLowerCase_WhenFormalizing_ThenVRShouldBeUpperCase()
         {
             DicomTag tag = DicomTag.DeviceLabel;
-            CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath(), tag.GetDefaultVR().Code.ToLowerInvariant(), CustomTagLevel.Instance, CustomTagStatus.Added);
+            CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath(), tag.GetDefaultVR().Code.ToLowerInvariant(), null, CustomTagLevel.Instance, CustomTagStatus.Added);
             CustomTagEntry normalized = entry.Normalize(CustomTagStatus.Reindexing);
             Assert.Equal(entry.VR.ToUpperInvariant(), normalized.VR);
         }
@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         public void GivenStandardTagAsKeyword_WhenFormalizing_ThenVRShouldBeFilled()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
-            CustomTagEntry entry = CreateCustomTagEntry(path: tag.DictionaryEntry.Keyword, tag.GetDefaultVR().Code, CustomTagLevel.Instance, CustomTagStatus.Added);
+            CustomTagEntry entry = CreateCustomTagEntry(path: tag.DictionaryEntry.Keyword, tag.GetDefaultVR().Code, null, CustomTagLevel.Instance, CustomTagStatus.Added);
             string expectedPath = tag.GetPath();
             CustomTagEntry normalized = entry.Normalize(CustomTagStatus.Reindexing);
             Assert.Equal(normalized.Path, expectedPath);
@@ -79,12 +79,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         public static IEnumerable<object[]> GetValidCustomTagEntries()
         {
             yield return new object[] { DicomTag.DeviceSerialNumber.BuildCustomTagEntry() }; // standard custom tag with VR
-            yield return new object[] { CreateCustomTagEntry("12051003", DicomVRCode.OB, CustomTagLevel.Instance, CustomTagStatus.Added) }; // private tag with VR
+            yield return new object[] { CreateCustomTagEntry("12051003", DicomVRCode.OB, "PrivateCreator1", CustomTagLevel.Instance, CustomTagStatus.Added) }; // private tag with VR
         }
 
-        private static CustomTagEntry CreateCustomTagEntry(string path, string vr, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Added)
+        private static CustomTagEntry CreateCustomTagEntry(string path, string vr, string privateCreator, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Added)
         {
-            return new CustomTagEntry(path, vr, level, status);
+            return new CustomTagEntry(path, vr, privateCreator, level, status);
         }
     }
 }

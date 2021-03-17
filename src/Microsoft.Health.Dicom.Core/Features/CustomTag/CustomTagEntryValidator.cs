@@ -36,11 +36,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         public static IImmutableSet<string> SupportedVRCodes { get; } = ImmutableHashSet.Create(
             DicomVRCode.AE,
             DicomVRCode.AS,
-            DicomVRCode.AT,
             DicomVRCode.CS,
             DicomVRCode.DA,
             DicomVRCode.DS,
-            DicomVRCode.DT,
             DicomVRCode.FD,
             DicomVRCode.FL,
             DicomVRCode.IS,
@@ -90,23 +88,35 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             if (QueryLimit.AllInstancesTags.Contains(tag))
             {
                 throw new CustomTagEntryValidationException(
-                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, tag.DictionaryEntry.Name));
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, tagEntry.Path));
             }
 
             if (tag.IsPrivate)
             {
+                if (string.IsNullOrWhiteSpace(tagEntry.PrivateCreator))
+                {
+                    throw new CustomTagEntryValidationException(
+                      string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingPrivateCreator, tagEntry.Path));
+                }
+
                 // this is private tag, VR is required
                 ParseVRCode(tagEntry.VR);
                 EnsureVRIsSupported(tagEntry.VR);
             }
             else
             {
+                if (!string.IsNullOrWhiteSpace(tagEntry.PrivateCreator))
+                {
+                    throw new CustomTagEntryValidationException(
+                      string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidPrivateCreator, tagEntry.Path));
+                }
+
                 // stardard tag must have name - should not be "Unknown".
                 if (tag.DictionaryEntry.Equals(DicomDictionary.UnknownTag))
                 {
                     // not a valid dicom tag
                     throw new CustomTagEntryValidationException(
-                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, tag));
+                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, tagEntry.Path));
                 }
 
                 if (string.IsNullOrWhiteSpace(tagEntry.VR))

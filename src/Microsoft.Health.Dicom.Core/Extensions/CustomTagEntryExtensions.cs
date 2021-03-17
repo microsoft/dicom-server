@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             vr = vr.ToUpperInvariant();
 
-            return new CustomTagEntry(path, vr, customTagEntry.Level, status);
+            return new CustomTagEntry() { Path = path, VR = vr, PrivateCreator = customTagEntry.PrivateCreator, Level = customTagEntry.Level, Status = status };
         }
     }
 }

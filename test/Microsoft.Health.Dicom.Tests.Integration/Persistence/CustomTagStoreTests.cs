@@ -125,6 +125,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var actualCustomTagEntries = await _customTagStore.GetCustomTagsAsync(customTagEntry.Path);
             CustomTagEntry actualCustomTagEntry = new CustomTagEntry(actualCustomTagEntries.First());
             Assert.Equal(customTagEntry.Path, actualCustomTagEntry.Path);
+            Assert.Equal(customTagEntry.PrivateCreator, actualCustomTagEntry.PrivateCreator);
             Assert.Equal(customTagEntry.VR, actualCustomTagEntry.VR);
             Assert.Equal(customTagEntry.Level, actualCustomTagEntry.Level);
             Assert.Equal(CustomTagStatus.Added, actualCustomTagEntry.Status);
