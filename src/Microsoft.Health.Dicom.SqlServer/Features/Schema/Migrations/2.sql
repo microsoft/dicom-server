@@ -369,7 +369,7 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     Stores added custom tags
     TagPath is represented without any delimiters and each level takes 8 bytes
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
-    TagPrivateCreator is private creator, only apply to private tag.
+    TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagStatus can be 0, 1 or 2 to represent Reindexing, Added or Deindexing
 **************************************************************/
 CREATE TABLE dbo.CustomTag (
