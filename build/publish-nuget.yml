@@ -11,21 +11,18 @@ steps:
       downloadPath: '$(System.ArtifactsDirectory)'
       artifactName: 'nuget'
 
-  - task: NuGetAuthenticate@0
-    displayName: 'NuGet Authenticate'
-
-  - task: NuGetCommand@2
-    displayName: 'NuGet push'
+  - task: DownloadBuildArtifacts@0
     inputs:
-      command: push
-      publishVstsFeed: 'InternalBuilds'
-      allowPackageConflicts: true
+      buildType: 'current'
+      downloadType: 'single'
+      downloadPath: '$(System.ArtifactsDirectory)'
+      artifactName: 'IntegrationTests'
 
   - task: UniversalPackages@0
     displayName: 'E2E test push'
     inputs:
       command: 'publish'
-      publishDirectory: '$(System.DefaultWorkingDirectory)/IntegrationTests'
+      publishDirectory: '$(System.ArtifactsDirectory)/IntegrationTests'
       feedsToUsePublish: 'internal'
       vstsFeedPublish: 'DicomServer/Dicom-Public'
       vstsFeedPackagePublish: 'DicomWebE2ETests'
