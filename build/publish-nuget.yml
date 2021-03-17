@@ -20,3 +20,13 @@ steps:
       command: push
       publishVstsFeed: 'InternalBuilds'
       allowPackageConflicts: true
+
+  - task: UniversalPackages@0
+    displayName: 'E2E test push'
+    inputs:
+      command: 'publish'
+      publishDirectory: '$(Build.ArtifactStagingDirectory)/IntegrationTests'
+      feedsToUsePublish: 'internal'
+      vstsFeedPublish: 'DicomServer/Dicom-Public'
+      vstsFeedPackagePublish: 'DicomWebE2ETests'
+      versionOption: 'patch'
