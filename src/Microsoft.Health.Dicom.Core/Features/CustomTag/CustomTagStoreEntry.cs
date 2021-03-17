@@ -37,10 +37,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         public string VR { get; set; }
 
         /// <summary>
-        /// Private Creator of this tag.
+        /// Identification code of private tag implementer of this Tag.
         /// </summary>
-        /// <remarks>It's the identification code of private tag implementer, only apply to private tag.
-        /// Please refer to http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html for more details.</remarks>
+        /// <remarks>It's only apply to private tag. Please refer to http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html for more details.</remarks>
         public string PrivateCreator { get; set; }
 
         /// <summary>
