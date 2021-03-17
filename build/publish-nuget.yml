@@ -11,6 +11,16 @@ steps:
       downloadPath: '$(System.ArtifactsDirectory)'
       artifactName: 'nuget'
 
+  - task: NuGetAuthenticate@0
+    displayName: 'NuGet Authenticate'
+
+  - task: NuGetCommand@2
+    displayName: 'NuGet push'
+    inputs:
+      command: push
+      publishVstsFeed: 'InternalBuilds'
+      allowPackageConflicts: true
+      
   - task: DownloadBuildArtifacts@0
     inputs:
       buildType: 'current'
