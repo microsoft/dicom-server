@@ -25,5 +25,5 @@ steps:
       publishDirectory: '$(System.ArtifactsDirectory)/IntegrationTests'
       feedsToUsePublish: 'internal'
       vstsFeedPublish: 'DicomServer/Dicom-Public'
-      vstsFeedPackagePublish: 'DicomWebE2ETests'
+      vstsFeedPackagePublish: 'dicom-e2e-tests'
       versionOption: 'patch'
