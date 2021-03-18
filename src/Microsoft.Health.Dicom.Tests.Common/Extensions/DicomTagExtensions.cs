@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
 {
     public static class DicomTagExtensions
     {
-        public static CustomTagEntry BuildCustomTagEntry(this DicomTag tag, string vr = null, string privateCreator = null, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Added)
+        public static CustomTagEntry BuildCustomTagEntry(this DicomTag tag, string vr = null, string privateCreator = null, CustomTagLevel level = CustomTagLevel.Series, CustomTagStatus status = CustomTagStatus.Ready)
         {
             return new CustomTagEntry() { Path = tag.GetPath(), VR = vr ?? tag.GetDefaultVR()?.Code, PrivateCreator = privateCreator, Level = level, Status = status };
         }

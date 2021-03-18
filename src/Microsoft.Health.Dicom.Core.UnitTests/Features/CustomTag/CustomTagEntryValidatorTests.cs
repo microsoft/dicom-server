@@ -146,7 +146,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             Assert.Throws<CustomTagEntryValidationException>(() => _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry, entry }));
         }
 
-        private static CustomTagEntry CreateCustomTagEntry(string path, string vr, string privateCreator = null, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Added)
+        private static CustomTagEntry CreateCustomTagEntry(string path, string vr, string privateCreator = null, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Ready)
         {
             return new CustomTagEntry() { Path = path, VR = vr, PrivateCreator = privateCreator, Level = level, Status = status };
         }
