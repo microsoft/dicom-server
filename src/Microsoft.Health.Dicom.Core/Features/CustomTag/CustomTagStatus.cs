@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <summary>
         /// The custom tag has been added to system.
         /// </summary>
-        Added = 1,
+        Ready = 1,
 
         /// <summary>
         /// The custom tag is being deleted.

@@ -92,7 +92,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             Assert.Equal(new CustomTagEntry(stored), response.CustomTag);
         }
 
-        private static CustomTagStoreEntry CreateCustomTagEntry(int key, string path, string vr, string privateCreator = null, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Added)
+        private static CustomTagStoreEntry CreateCustomTagEntry(int key, string path, string vr, string privateCreator = null, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Ready)
         {
             return new CustomTagStoreEntry(key, path, vr, privateCreator, level, status);
         }

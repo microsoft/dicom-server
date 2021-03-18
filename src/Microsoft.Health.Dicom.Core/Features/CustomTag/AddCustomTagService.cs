@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         {
             _customTagEntryValidator.ValidateCustomTags(customTags);
 
-            IEnumerable<CustomTagEntry> result = customTags.Select(item => item.Normalize(CustomTagStatus.Added));
+            IEnumerable<CustomTagEntry> result = customTags.Select(item => item.Normalize(CustomTagStatus.Ready));
 
             await _customTagStore.AddCustomTagsAsync(result, cancellationToken);
 
