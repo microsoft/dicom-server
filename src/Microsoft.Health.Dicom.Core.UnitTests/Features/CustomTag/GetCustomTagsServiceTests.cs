@@ -42,8 +42,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         [Fact]
         public async Task GivenRequestForAllTags_WhenMultipleTagsAreStored_ThenCustomTagEntryListShouldBeReturned()
         {
-            CustomTagStoreEntry tag1 = CreateCustomTagEntry(1, "45456767", DicomVRCode.AE.ToString(), CustomTagLevel.Instance, CustomTagStatus.Added);
-            CustomTagStoreEntry tag2 = CreateCustomTagEntry(2, "01012323", DicomVRCode.FL.ToString(), CustomTagLevel.Series, CustomTagStatus.Adding);
+            CustomTagStoreEntry tag1 = CreateCustomTagEntry(1, "45456767", DicomVRCode.AE.ToString(), null, CustomTagLevel.Instance, CustomTagStatus.Ready);
+            CustomTagStoreEntry tag2 = CreateCustomTagEntry(2, "01012323", DicomVRCode.FL.ToString(), null, CustomTagLevel.Series, CustomTagStatus.Deleting);
 
             List<CustomTagStoreEntry> storedEntries = new List<CustomTagStoreEntry>() { tag1, tag2 };
 
@@ -92,9 +92,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             Assert.Equal(new CustomTagEntry(stored), response.CustomTag);
         }
 
-        private static CustomTagStoreEntry CreateCustomTagEntry(int key, string path, string vr, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Added)
+        private static CustomTagStoreEntry CreateCustomTagEntry(int key, string path, string vr, string privateCreator = null, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Added)
         {
-            return new CustomTagStoreEntry(key, path, vr, level, status);
+            return new CustomTagStoreEntry(key, path, vr, privateCreator, level, status);
         }
     }
 }

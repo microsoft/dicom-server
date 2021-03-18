@@ -79,9 +79,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
             List<CustomTagStoreEntry> storeEntries = new List<CustomTagStoreEntry>()
             {
-                new CustomTagStoreEntry(1, "00741000", "CS", CustomTagLevel.Instance, CustomTagStatus.Added),
-                new CustomTagStoreEntry(2, "0040A121", "DA", CustomTagLevel.Series, CustomTagStatus.Added),
-                new CustomTagStoreEntry(3, "00101005", "PN", CustomTagLevel.Study, CustomTagStatus.Added),
+                new CustomTagStoreEntry(1, "00741000", "CS", null, CustomTagLevel.Instance, CustomTagStatus.Added),
+                new CustomTagStoreEntry(2, "0040A121", "DA", null, CustomTagLevel.Series, CustomTagStatus.Added),
+                new CustomTagStoreEntry(3, "00101005", "PN", null, CustomTagLevel.Study, CustomTagStatus.Added),
             };
 
             _customTagStore.GetCustomTagsAsync().ReturnsForAnyArgs(storeEntries);
@@ -109,9 +109,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
             List<CustomTagStoreEntry> storeEntries = new List<CustomTagStoreEntry>()
             {
-                new CustomTagStoreEntry(1, "00741000", "CS", CustomTagLevel.Instance, CustomTagStatus.Added),
-                new CustomTagStoreEntry(2, "0040A121", "DA", CustomTagLevel.Series, CustomTagStatus.Added),
-                new CustomTagStoreEntry(3, "00101005", "PN", CustomTagLevel.Study, CustomTagStatus.Added),
+                new CustomTagStoreEntry(1, "00741000", "CS", null, CustomTagLevel.Instance, CustomTagStatus.Added),
+                new CustomTagStoreEntry(2, "0040A121", "DA", null, CustomTagLevel.Series, CustomTagStatus.Added),
+                new CustomTagStoreEntry(3, "00101005", "PN", null, CustomTagLevel.Study, CustomTagStatus.Added),
             };
 
             _customTagStore.GetCustomTagsAsync().ReturnsForAnyArgs(storeEntries);
@@ -137,9 +137,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
             List<CustomTagStoreEntry> storeEntries = new List<CustomTagStoreEntry>()
             {
-                new CustomTagStoreEntry(1, "00741000", "CS", CustomTagLevel.Instance, CustomTagStatus.Added),
-                new CustomTagStoreEntry(2, "0040A121", "DA", CustomTagLevel.Series, CustomTagStatus.Added),
-                new CustomTagStoreEntry(3, "00101005", "PN", CustomTagLevel.Study, CustomTagStatus.Added),
+                new CustomTagStoreEntry(1, "00741000", "CS", null, CustomTagLevel.Instance, CustomTagStatus.Added),
+                new CustomTagStoreEntry(2, "0040A121", "DA", null, CustomTagLevel.Series, CustomTagStatus.Added),
+                new CustomTagStoreEntry(3, "00101005", "PN", null, CustomTagLevel.Study, CustomTagStatus.Added),
             };
 
             _customTagStore.GetCustomTagsAsync().ReturnsForAnyArgs(storeEntries);
