@@ -34,15 +34,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Prepare 3 extended query tags.
             // One is private tag on Instance level
             DicomTag privateTag = new DicomTag(0x0407, 0x1001, "PrivateCreator1");
-            ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = ExtendedQueryTagLevel.Instance };
+            ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance };
 
             // One is standard tag on Series level
             DicomTag standardTagSeries = DicomTag.ManufacturerModelName;
-            ExtendedQueryTag standardTagSeriesQueryTag = new ExtendedQueryTag { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = ExtendedQueryTagLevel.Series };
+            ExtendedQueryTag standardTagSeriesQueryTag = new ExtendedQueryTag { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = QueryTagLevel.Series };
 
             // One is standard tag on Study level
             DicomTag standardTagStudy = DicomTag.PatientSex;
-            ExtendedQueryTag standardTagStudyQueryTag = new ExtendedQueryTag { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, Level = ExtendedQueryTagLevel.Study };
+            ExtendedQueryTag standardTagStudyQueryTag = new ExtendedQueryTag { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, Level = QueryTagLevel.Study };
 
             ExtendedQueryTag[] queryTags = new ExtendedQueryTag[] { privateQueryTag, standardTagSeriesQueryTag, standardTagStudyQueryTag };
 

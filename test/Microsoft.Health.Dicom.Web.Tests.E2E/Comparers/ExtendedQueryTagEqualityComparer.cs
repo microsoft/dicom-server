@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Comparers
             return x.Path.Equals(y.Path, StringComparison.OrdinalIgnoreCase)
                 && string.Equals(x.VR, y.VR, StringComparison.OrdinalIgnoreCase)
                 && x.Level == y.Level
-                && (IgnoreStatus ? true : x.Status == y.Status);
+                && (IgnoreStatus || x.Status == y.Status);
         }
 
         public int GetHashCode([DisallowNull] ExtendedQueryTag obj)

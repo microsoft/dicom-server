@@ -11,18 +11,18 @@ namespace Microsoft.Health.Dicom.Client.Models
     public enum ExtendedQueryTagStatus
     {
         /// <summary>
-        /// The query tag is being reindexed.
+        /// The query tag is being added.
         /// </summary>
-        Reindexing = 0,
+        Adding = 0,
 
         /// <summary>
         /// The query tag has been added to system.
         /// </summary>
-        Added = 1,
+        Ready = 1,
 
         /// <summary>
-        /// The query tag is being deindexed.
+        /// The query tag is being deleting.
         /// </summary>
-        Deindexing = 2,
+        Deleting = 2,
     }
 }
