@@ -11,18 +11,18 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     public enum CustomTagStatus
     {
         /// <summary>
-        /// The custom tag is being reindexed.
+        /// The custom tag is being added.
         /// </summary>
-        Reindexing = 0,
+        Adding = 0,
 
         /// <summary>
         /// The custom tag has been added to system.
         /// </summary>
-        Added = 1,
+        Ready = 1,
 
         /// <summary>
-        /// The custom tag is being deindexed.
+        /// The custom tag is being deleted.
         /// </summary>
-        Deindexing = 2,
+        Deleting = 2,
     }
 }

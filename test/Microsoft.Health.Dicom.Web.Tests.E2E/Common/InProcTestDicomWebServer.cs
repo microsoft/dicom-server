@@ -38,6 +38,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 { "DicomServer:Security:Authorization:Enabled", "true" },
                 { "DicomServer:Security:Enabled", "true" },
             };
+            var featureSettings = new Dictionary<string, string>
+            {
+                { "DicomServer:Features:EnableCustomQueryTags", "true" },
+            };
 
             IWebHostBuilder builder = WebHost.CreateDefaultBuilder()
                 .UseContentRoot(contentRoot)
@@ -45,6 +49,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     config.AddInMemoryCollection(authSettings);
+                    config.AddInMemoryCollection(featureSettings);
                     var existingConfig = config.Build();
                     config.AddDevelopmentAuthEnvironmentIfConfigured(existingConfig);
                     if (string.Equals(existingConfig["DicomServer:Security:Enabled"], bool.TrueString, StringComparison.OrdinalIgnoreCase))
