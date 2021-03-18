@@ -4,7 +4,7 @@
     TagPath is represented without any delimiters and each level takes 8 bytes
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
-    TagStatus can be 0, 1 or 2 to represent Reindexing, Added or Deindexing
+    TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting
 **************************************************************/
 CREATE TABLE dbo.CustomTag (
     TagKey                  INT                  NOT NULL, --PK
@@ -459,7 +459,7 @@ AS
         IF @@ROWCOUNT <> 0
             THROW 50409, 'custom tag(s) already exist', 1 
 
-        -- add to custom tag table with status 1(Added)
+        -- add to custom tag table with status 1(Ready)
         INSERT INTO dbo.CustomTag 
             (TagKey, TagPath, TagVR, TagLevel, TagStatus)
         SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagVR, TagLevel, 1 FROM @customTags
@@ -532,11 +532,11 @@ AS
         IF @@ROWCOUNT = 0
             THROW 50404, 'custom tag not found', 1 
 
-        -- check if status is Added
+        -- check if status is Ready
         IF @tagStatus <> 1
-            THROW 50412, 'custom tag is not in status Added', 1
+            THROW 50412, 'custom tag is not in Ready status', 1
 
-        -- Update status to Deindexing
+        -- Update status to Deleting
         UPDATE dbo.CustomTag
         SET TagStatus = 2 
         WHERE dbo.CustomTag.TagKey = @tagKey

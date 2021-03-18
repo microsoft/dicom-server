@@ -6,22 +6,22 @@
 namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
-    /// Level of a custom tag.
+    /// Level of a queryable tag.
     /// </summary>
-    public enum CustomTagLevel
+    public enum QueryTagLevel
     {
         /// <summary>
-        /// The custom tag is on instance level.
+        /// The tag is queriable on instance level.
         /// </summary>
         Instance = 0,
 
         /// <summary>
-        /// The custom tag is on series level.
+        /// The tag is queriable on series level.
         /// </summary>
         Series = 1,
 
         /// <summary>
-        /// The custom tag is on study level.
+        /// The tag is queriable on study level.
         /// </summary>
         Study = 2,
     }

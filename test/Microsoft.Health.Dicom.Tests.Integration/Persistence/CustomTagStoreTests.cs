@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(customTagEntry.Path, actualCustomTagEntry.Path);
             Assert.Equal(customTagEntry.VR, actualCustomTagEntry.VR);
             Assert.Equal(customTagEntry.Level, actualCustomTagEntry.Level);
-            Assert.Equal(CustomTagStatus.Added, actualCustomTagEntry.Status);
+            Assert.Equal(CustomTagStatus.Ready, actualCustomTagEntry.Status);
         }
 
         private async Task VerifyTagNotExist(string tagPath)

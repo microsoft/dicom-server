@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 DicomTag[] result;
                 DicomTag dicomTag;
-                if (customTag.Status.Equals(CustomTagStatus.Added) && _dicomTagPathParser.TryParse(customTag.Path, out result))
+                if (customTag.Status.Equals(CustomTagStatus.Ready) && _dicomTagPathParser.TryParse(customTag.Path, out result))
                 {
                     dicomTag = result[0];
                     if (queryResource.Equals(QueryResource.AllInstances) || queryResource.Equals(QueryResource.StudyInstances) || queryResource.Equals(QueryResource.StudySeriesInstances)

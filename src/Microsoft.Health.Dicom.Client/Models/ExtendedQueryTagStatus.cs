@@ -6,24 +6,23 @@
 namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
-    /// External representation of a custom tag entry.
+    /// Status of extended query tag.
     /// </summary>
-    public class CustomTagEntry
+    public enum ExtendedQueryTagStatus
     {
         /// <summary>
-        /// Path of this tag. Normally it's composed of groupid and elementid.
-        /// E.g: 00100020 is path of patient id.
+        /// The query tag is being added.
         /// </summary>
-        public string Path { get; set; }
+        Adding = 0,
 
         /// <summary>
-        /// VR of this tag.
+        /// The query tag has been added to system.
         /// </summary>
-        public string VR { get; set; }
+        Ready = 1,
 
         /// <summary>
-        /// Level of this tag. Could be Study, Series or Instance.
+        /// The query tag is being deleting.
         /// </summary>
-        public CustomTagLevel Level { get; set; }
+        Deleting = 2,
     }
 }
