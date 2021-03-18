@@ -91,26 +91,16 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidCustomTag, tagEntry.Path));
             }
 
+            ValidatePrivateCreator(tag, tagEntry.PrivateCreator, tagEntry.Path);
+
             if (tag.IsPrivate)
             {
-                if (string.IsNullOrWhiteSpace(tagEntry.PrivateCreator))
-                {
-                    throw new CustomTagEntryValidationException(
-                      string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingPrivateCreator, tagEntry.Path));
-                }
-
                 // this is private tag, VR is required
                 ParseVRCode(tagEntry.VR);
                 EnsureVRIsSupported(tagEntry.VR);
             }
             else
             {
-                if (!string.IsNullOrWhiteSpace(tagEntry.PrivateCreator))
-                {
-                    throw new CustomTagEntryValidationException(
-                      string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidPrivateCreator, tagEntry.Path));
-                }
-
                 // stardard tag must have name - should not be "Unknown".
                 if (tag.DictionaryEntry.Equals(DicomDictionary.UnknownTag))
                 {
@@ -140,6 +130,32 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                         throw new CustomTagEntryValidationException(
                             string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCodeOnTag, vr.Code, tag));
                     }
+                }
+            }
+        }
+
+        private static void ValidatePrivateCreator(DicomTag tag, string privateCreator, string originalTagPath)
+        {
+            if (tag.IsPrivate)
+            {
+                if (string.IsNullOrWhiteSpace(privateCreator))
+                {
+                    throw new CustomTagEntryValidationException(
+                      string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingPrivateCreator, originalTagPath));
+                }
+
+                if (privateCreator.Length > 64)
+                {
+                    throw new CustomTagEntryValidationException(
+                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorExceeds64Characters, originalTagPath));
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(privateCreator))
+                {
+                    throw new CustomTagEntryValidationException(
+                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotEmpty, originalTagPath));
                 }
             }
         }

@@ -315,15 +315,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Private creator is not valid for standard tag &apos;{0}&apos;..
-        /// </summary>
-        internal static string InvalidPrivateCreator {
-            get {
-                return ResourceManager.GetString("InvalidPrivateCreator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The following query parameter is invalid: {0}..
         /// </summary>
         internal static string InvalidQueryStringValue {
@@ -428,6 +419,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string NotSupportMultipleAcceptHeaders {
             get {
                 return ResourceManager.GetString("NotSupportMultipleAcceptHeaders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PrivateCreator for tag &apos;{0}&apos; exceeds maximum length of 64 characters..
+        /// </summary>
+        internal static string PrivateCreatorExceeds64Characters {
+            get {
+                return ResourceManager.GetString("PrivateCreatorExceeds64Characters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private creator is not empty for standard tag &apos;{0}&apos;..
+        /// </summary>
+        internal static string PrivateCreatorNotEmpty {
+            get {
+                return ResourceManager.GetString("PrivateCreatorNotEmpty", resourceCulture);
             }
         }
         

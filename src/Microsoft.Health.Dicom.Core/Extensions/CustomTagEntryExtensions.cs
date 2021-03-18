@@ -36,6 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             DicomTag tag = tags[0];
             string path = tag.GetPath();
             string vr = customTagEntry.VR;
+            string privateCreator = string.IsNullOrWhiteSpace(customTagEntry.PrivateCreator) ? null : customTagEntry.PrivateCreator;
 
             // when VR is not specified for standard tag,
             if (!tag.IsPrivate && tag.DictionaryEntry != DicomDictionary.UnknownTag)
@@ -48,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             vr = vr.ToUpperInvariant();
 
-            return new CustomTagEntry() { Path = path, VR = vr, PrivateCreator = customTagEntry.PrivateCreator, Level = customTagEntry.Level, Status = status };
+            return new CustomTagEntry() { Path = path, VR = vr, PrivateCreator = privateCreator, Level = customTagEntry.Level, Status = status };
         }
     }
 }

@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
         public async Task GivenRequestForAllTags_WhenMultipleTagsAreStored_ThenCustomTagEntryListShouldBeReturned()
         {
             CustomTagStoreEntry tag1 = CreateCustomTagEntry(1, "45456767", DicomVRCode.AE.ToString(), null, CustomTagLevel.Instance, CustomTagStatus.Added);
-            CustomTagStoreEntry tag2 = CreateCustomTagEntry(2, "01012323", DicomVRCode.FL.ToString(), null, CustomTagLevel.Series, CustomTagStatus.Reindexing);
+            CustomTagStoreEntry tag2 = CreateCustomTagEntry(2, "04051001", DicomVRCode.FL.ToString(), "PrivateCreator1", CustomTagLevel.Series, CustomTagStatus.Reindexing);
 
             List<CustomTagStoreEntry> storedEntries = new List<CustomTagStoreEntry>() { tag1, tag2 };
 

@@ -110,6 +110,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         }
 
         [Fact]
+        public void GivenPrivateTagWithTooLongPrivateCreator_WhenValidating_ThenShouldThrowException()
+        {
+            // max length of PrivateCreator is 64
+            CustomTagEntry entry = CreateCustomTagEntry("12051003", DicomVRCode.CS, new string('c', 65));
+            Assert.Throws<CustomTagEntryValidationException>(() => _customTagEntryValidator.ValidateCustomTags(new CustomTagEntry[] { entry }));
+        }
+
+        [Fact]
         public void GivenPrivateTagWithVR_WhenValidating_ThenShouldSucceed()
         {
             CustomTagEntry entry = CreateCustomTagEntry("12051003", DicomVRCode.AE, "PrivateCreator1");

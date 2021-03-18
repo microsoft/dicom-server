@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
     {
         [Theory]
         [MemberData(nameof(GetValidCustomTagEntries))]
-        public void GivenValidCustomTagEntry_WhenFormalizing_ThenShouldReturnSameEntry(CustomTagEntry entry)
+        public void GivenValidCustomTagEntry_WhenNormalizing_ThenShouldReturnSameEntry(CustomTagEntry entry)
         {
             CustomTagEntry normalized = entry.Normalize(CustomTagStatus.Reindexing);
             Assert.Equal(entry.Path, normalized.Path);
@@ -26,10 +26,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         }
 
         [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        [InlineData("   ")]
+        public void GivenPrivateTagWithNonEmptyPrivateCreator_WhenNormalizing_ThenPrivateCreatorShouldBeNull(string privateCreator)
+        {
+            DicomTag tag1 = new DicomTag(0x0405, 0x1001, "PrivateCreator1");
+            CustomTagEntry normalized = tag1.BuildCustomTagEntry(vr: DicomVRCode.CS, privateCreator: privateCreator).Normalize(CustomTagStatus.Added);
+            Assert.Null(normalized.PrivateCreator);
+        }
+
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
 
-        public void GivenStandardTagWithoutVR_WhenFormalizing_ThenVRShouldBeFilled(string vr)
+        public void GivenStandardTagWithoutVR_WhenNormalizing_ThenVRShouldBeFilled(string vr)
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath(), vr, null, CustomTagLevel.Instance, CustomTagStatus.Added);
@@ -38,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         }
 
         [Fact]
-        public void GivenStandardTagWithVR_WhenFormalizing_ThenVRShouldNotBeUpdated()
+        public void GivenStandardTagWithVR_WhenNormalizing_ThenVRShouldNotBeUpdated()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             string vr = DicomVR.CS.Code;
@@ -48,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         }
 
         [Fact]
-        public void GivenTagOfLowerCase_WhenFormalizing_ThenTagShouldBeUpperCase()
+        public void GivenTagOfLowerCase_WhenNormalizing_ThenTagShouldBeUpperCase()
         {
             DicomTag tag = DicomTag.DeviceLabel;
             CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath().ToLowerInvariant(), tag.GetDefaultVR().Code, null, CustomTagLevel.Instance, CustomTagStatus.Added);
@@ -57,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         }
 
         [Fact]
-        public void GivenVROfLowerCase_WhenFormalizing_ThenVRShouldBeUpperCase()
+        public void GivenVROfLowerCase_WhenNormalizing_ThenVRShouldBeUpperCase()
         {
             DicomTag tag = DicomTag.DeviceLabel;
             CustomTagEntry entry = CreateCustomTagEntry(tag.GetPath(), tag.GetDefaultVR().Code.ToLowerInvariant(), null, CustomTagLevel.Instance, CustomTagStatus.Added);
@@ -67,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
         [Fact]
 
-        public void GivenStandardTagAsKeyword_WhenFormalizing_ThenVRShouldBeFilled()
+        public void GivenStandardTagAsKeyword_WhenNormalizing_ThenVRShouldBeFilled()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             CustomTagEntry entry = CreateCustomTagEntry(path: tag.DictionaryEntry.Keyword, tag.GetDefaultVR().Code, null, CustomTagLevel.Instance, CustomTagStatus.Added);

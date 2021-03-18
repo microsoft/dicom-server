@@ -42,9 +42,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenValidCustomTags_WhenAddCustomTag_ThenTagShouldBeAdded()
         {
             DicomTag tag1 = DicomTag.DeviceSerialNumber;
-            DicomTag tag2 = DicomTag.DateOfSecondaryCapture;
+            DicomTag tag2 = new DicomTag(0x0405, 0x1001, "PrivateCreator1");
             CustomTagEntry customTagEntry1 = tag1.BuildCustomTagEntry();
-            CustomTagEntry customTagEntry2 = tag2.BuildCustomTagEntry();
+            CustomTagEntry customTagEntry2 = tag2.BuildCustomTagEntry(vr: DicomVRCode.CS, privateCreator: tag2.PrivateCreator.Creator);
             await _customTagStore.AddCustomTagsAsync(new CustomTagEntry[] { customTagEntry1, customTagEntry2 });
 
             try
