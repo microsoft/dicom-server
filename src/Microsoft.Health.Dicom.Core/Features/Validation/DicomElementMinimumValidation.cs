@@ -82,20 +82,37 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         internal static void ValidateLO(string value, string name)
         {
+            ValidationError error = ValidateLO(value);
+            switch (error)
+            {
+                case ValidationError.ExceedMaxLength:
+                    throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
+                case ValidationError.ContainsInvalidChar:
+                    throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
+                case ValidationError.NoError:
+                default:
+                    break;
+            }
+        }
+
+        internal static ValidationError ValidateLO(string value)
+        {
             if (string.IsNullOrEmpty(value))
             {
-                return;
+                return ValidationError.NoError;
             }
 
             if (value.Length > 64)
             {
-                throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
+                return ValidationError.ExceedMaxLength;
             }
 
-            if (value.Contains("\\", System.StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
+            if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
             {
-                throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
+                return ValidationError.ContainsInvalidChar;
             }
+
+            return ValidationError.NoError;
         }
 
         // probably can dial down the validation here

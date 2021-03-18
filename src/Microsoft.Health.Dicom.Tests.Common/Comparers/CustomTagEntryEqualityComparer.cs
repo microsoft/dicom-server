@@ -5,13 +5,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class CustomTagEntryEqualityComparer : IEqualityComparer<CustomTagEntry>
     {
+        public static readonly CustomTagEntryEqualityComparer Default = new CustomTagEntryEqualityComparer();
+
         public bool Equals(CustomTagEntry x, CustomTagEntry y)
         {
             if (x == null || y == null)
@@ -26,9 +28,15 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
                 && x.Status == y.Status;
         }
 
-        public int GetHashCode([DisallowNull] CustomTagEntry obj)
+        public int GetHashCode(CustomTagEntry customTagEntry)
         {
-            return HashCode.Combine(obj.Path, obj.VR, obj.PrivateCreator, obj.Level.GetHashCode(), obj.Status.GetHashCode());
+            EnsureArg.IsNotNull(customTagEntry, nameof(customTagEntry));
+            return HashCode.Combine(
+                customTagEntry.Path,
+                customTagEntry.VR,
+                customTagEntry.PrivateCreator,
+                customTagEntry.Level.GetHashCode(),
+                customTagEntry.Status.GetHashCode());
         }
     }
 }

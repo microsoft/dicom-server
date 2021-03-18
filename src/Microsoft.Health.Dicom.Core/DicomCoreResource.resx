@@ -336,7 +336,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} required length.</comment>
   </data>
   <data name="PrivateCreatorNotEmpty" xml:space="preserve">
-    <value>Private creator is not empty for standard tag '{0}'.</value>
+    <value>The private creator is not empty for standard tag '{0}'.</value>
     <comment>{0} Dicom Tag</comment>
   </data>
   <data name="MissingPrivateCreator" xml:space="preserve">
@@ -344,7 +344,11 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} is the DICOM tag path.</comment>
   </data>
   <data name="PrivateCreatorExceeds64Characters" xml:space="preserve">
-    <value>PrivateCreator for tag '{0}' exceeds maximum length of 64 characters.</value>
+    <value>The private creator for tag '{0}' exceeds maximum length of 64 characters.</value>
     <comment>{0} Dicom tag.</comment>
+  </data>
+  <data name="PrivateCreatorContainsInvalidCharacter" xml:space="preserve">
+    <value>The private creator of tag '{0}' contains invalid character.</value>
+    <comment>{0} dicom tag.</comment>
   </data>
 </root>

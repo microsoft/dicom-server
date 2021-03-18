@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
 
             var expected = new CustomTagEntry[] { tag1.ToCustomTagEntry(), tag2.ToCustomTagEntry() };
 
-            Assert.Equal(expected, response.CustomTags, new CustomTagEntryEqualityComparer());
+            Assert.Equal(expected, response.CustomTags, CustomTagEntryEqualityComparer.Default);
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.CustomTag
             _customTagStore.GetCustomTagsAsync(tagPath, default).Returns(new List<CustomTagStoreEntry> { stored });
             GetCustomTagResponse response = await _getCustomTagsService.GetCustomTagAsync(tagPath);
 
-            Assert.Equal(stored.ToCustomTagEntry(), response.CustomTag, new CustomTagEntryEqualityComparer());
+            Assert.Equal(stored.ToCustomTagEntry(), response.CustomTag, CustomTagEntryEqualityComparer.Default);
         }
 
         private static CustomTagStoreEntry CreateCustomTagEntry(int key, string path, string vr, string privateCreator = null, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Ready)

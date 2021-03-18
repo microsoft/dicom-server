@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
@@ -144,10 +145,21 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
                       string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingPrivateCreator, originalTagPath));
                 }
 
-                if (privateCreator.Length > 64)
+                ValidationError error = DicomElementMinimumValidation.ValidateLO(privateCreator);
+
+                switch (error)
                 {
-                    throw new CustomTagEntryValidationException(
-                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorExceeds64Characters, originalTagPath));
+                    case ValidationError.ExceedMaxLength:
+                        throw new CustomTagEntryValidationException(
+                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorExceeds64Characters, originalTagPath));
+
+                    case ValidationError.ContainsInvalidChar:
+                        throw new CustomTagEntryValidationException(
+                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorContainsInvalidCharacter, originalTagPath));
+
+                    case ValidationError.NoError:
+                    default:
+                        break;
                 }
             }
             else

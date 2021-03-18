@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// <returns>The custom tag entry.</returns>
         public CustomTagEntry ToCustomTagEntry()
         {
-            return new CustomTagEntry() { Path = Path, VR = VR, PrivateCreator = PrivateCreator, Level = Level, Status = Status };
+            return new CustomTagEntry { Path = Path, VR = VR, PrivateCreator = PrivateCreator, Level = Level, Status = Status };
         }
 
         public override string ToString()

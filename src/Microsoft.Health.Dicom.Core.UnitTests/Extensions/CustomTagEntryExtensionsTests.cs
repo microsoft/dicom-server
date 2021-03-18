@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
         private static CustomTagEntry CreateCustomTagEntry(string path, string vr, string privateCreator, CustomTagLevel level = CustomTagLevel.Instance, CustomTagStatus status = CustomTagStatus.Ready)
         {
-            return new CustomTagEntry() { Path = path, VR = vr, PrivateCreator = privateCreator, Level = level, Status = status };
+            return new CustomTagEntry { Path = path, VR = vr, PrivateCreator = privateCreator, Level = level, Status = status };
         }
     }
 }
