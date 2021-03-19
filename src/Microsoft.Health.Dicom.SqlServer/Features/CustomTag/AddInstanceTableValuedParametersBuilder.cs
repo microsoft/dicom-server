@@ -22,7 +22,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
         private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DateTime?>> DataTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DateTime?>>()
         {
             { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate },
-            { DicomVR.DT, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDateTime },
         };
 
         /// <summary>

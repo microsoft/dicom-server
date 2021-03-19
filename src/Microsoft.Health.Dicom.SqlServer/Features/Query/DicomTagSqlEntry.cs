@@ -30,8 +30,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private static Dictionary<DicomVR, DicomTagSqlEntry> _customTagToSqlMappingCache = new Dictionary<DicomVR, DicomTagSqlEntry>()
         {
                 { DicomVR.DA, new DicomTagSqlEntry(SqlTableType.CustomTagDateTimeTable, VLatest.CustomTagDateTime.TagValue, null, VLatest.CustomTagDateTime.TagKey, true) },
-                { DicomVR.DT, new DicomTagSqlEntry(SqlTableType.CustomTagDateTimeTable, VLatest.CustomTagDateTime.TagValue, null, VLatest.CustomTagDateTime.TagKey, true) },
-                { DicomVR.TM, new DicomTagSqlEntry(SqlTableType.CustomTagDateTimeTable, VLatest.CustomTagDateTime.TagValue, null, VLatest.CustomTagDateTime.TagKey, true) },
                 { DicomVR.AE, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
                 { DicomVR.AS, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
                 { DicomVR.CS, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
@@ -40,7 +38,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 { DicomVR.LO, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
                 { DicomVR.SH, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
                 { DicomVR.UI, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
-                { DicomVR.AT, new DicomTagSqlEntry(SqlTableType.CustomTagBigIntTable, VLatest.CustomTagBigInt.TagValue, null, VLatest.CustomTagBigInt.TagKey, true) },
                 { DicomVR.SL, new DicomTagSqlEntry(SqlTableType.CustomTagBigIntTable, VLatest.CustomTagBigInt.TagValue, null, VLatest.CustomTagBigInt.TagKey, true) },
                 { DicomVR.SS, new DicomTagSqlEntry(SqlTableType.CustomTagBigIntTable, VLatest.CustomTagBigInt.TagValue, null, VLatest.CustomTagBigInt.TagKey, true) },
                 { DicomVR.UL, new DicomTagSqlEntry(SqlTableType.CustomTagBigIntTable, VLatest.CustomTagBigInt.TagValue, null, VLatest.CustomTagBigInt.TagKey, true) },
