@@ -47,7 +47,7 @@ stages:
     - template: build.yml
       parameters:
         packageArtifacts: false
-        securityAnalysis: false
+        analyzeSecurity: false
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'
