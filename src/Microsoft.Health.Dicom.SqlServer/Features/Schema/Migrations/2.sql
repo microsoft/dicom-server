@@ -535,6 +535,7 @@ CREATE TYPE dbo.AddCustomTagsInputTableType_1 AS TABLE
 (
     TagPath                    VARCHAR(64),  -- Custom Tag Path. Each custom tag take 8 bytes, support upto 8 levels, no delimeter between each level.
     TagVR                      VARCHAR(2),  -- Custom Tag VR.
+    TagPrivateCreator          NVARCHAR(64),  -- Custom Tag Private Creator, only valid for private tag.
     TagLevel                   TINYINT  -- Custom Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
 )
 GO
@@ -1469,8 +1470,8 @@ AS
 
         -- add to custom tag table with status 1(Ready)
         INSERT INTO dbo.CustomTag 
-            (TagKey, TagPath, TagVR, TagLevel, TagStatus)
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagVR, TagLevel, 1 FROM @customTags
+            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, 1 FROM @customTags
         
     COMMIT TRANSACTION
 GO

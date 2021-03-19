@@ -52,9 +52,18 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// </summary>
         public CustomTagStatus Status { get; set; }
 
+        /// <summary>
+        /// Convert to  <see cref="CustomTagEntry"/>.
+        /// </summary>
+        /// <returns>The custom tag entry.</returns>
+        public CustomTagEntry ToCustomTagEntry()
+        {
+            return new CustomTagEntry { Path = Path, VR = VR, PrivateCreator = PrivateCreator, Level = Level, Status = Status };
+        }
+
         public override string ToString()
         {
-            return $"Key: {Key}, Path: {Path}, VR:{VR}, Level:{Level}, Status:{Status}";
+            return $"Key: {Key}, Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}";
         }
     }
 }

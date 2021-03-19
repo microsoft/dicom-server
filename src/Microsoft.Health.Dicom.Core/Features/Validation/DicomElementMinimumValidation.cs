@@ -55,11 +55,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        private static bool TryParseDA(string value, out DateTime dateTime)
-        {
-            return DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out dateTime);
-        }
-
         internal static void ValidateDS(string value, string name)
         {
             ValidateLength(value.Length, 0, 16, DicomVR.DS, name, value);
@@ -92,7 +87,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
             }
 
-            if (value.Contains("\\", System.StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
+            if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
             {
                 throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
             }

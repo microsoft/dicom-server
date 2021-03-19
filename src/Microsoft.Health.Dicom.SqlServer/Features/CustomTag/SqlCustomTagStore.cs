@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
 
         private static AddCustomTagsInputTableTypeV1Row ToAddCustomTagsInputTableTypeV1Row(CustomTagEntry entry)
         {
-            return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, (byte)entry.Level);
+            return new AddCustomTagsInputTableTypeV1Row(entry.Path, entry.VR, entry.PrivateCreator, (byte)entry.Level);
         }
 
         public async Task DeleteCustomTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)

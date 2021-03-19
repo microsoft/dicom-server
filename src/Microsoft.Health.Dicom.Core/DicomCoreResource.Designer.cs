@@ -369,6 +369,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The private creator for private tag &apos;{0}&apos; is missing..
+        /// </summary>
+        internal static string MissingPrivateCreator {
+            get {
+                return ResourceManager.GetString("MissingPrivateCreator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The request body is missing..
         /// </summary>
         internal static string MissingRequestBody {
@@ -410,6 +419,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string NotSupportMultipleAcceptHeaders {
             get {
                 return ResourceManager.GetString("NotSupportMultipleAcceptHeaders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The private creator is not empty for standard tag &apos;{0}&apos;..
+        /// </summary>
+        internal static string PrivateCreatorNotEmpty {
+            get {
+                return ResourceManager.GetString("PrivateCreatorNotEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The private creator for tag &apos;{0}&apos; is not a valid LO attribute..
+        /// </summary>
+        internal static string PrivateCreatorNotValidLO {
+            get {
+                return ResourceManager.GetString("PrivateCreatorNotValidLO", resourceCulture);
             }
         }
         

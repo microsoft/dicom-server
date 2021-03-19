@@ -3,42 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using EnsureThat;
-
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 {
     /// <summary>
     /// External representation of a custom tag entry.
     /// </summary>
-    public class CustomTagEntry : IEquatable<CustomTagEntry>
+    public class CustomTagEntry
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CustomTagEntry"/> class.
-        /// </summary>
-        public CustomTagEntry()
-        {
-            // used as customer input, constructor without parameters is required.
-        }
-
-        public CustomTagEntry(string path, string vR, CustomTagLevel level, CustomTagStatus status)
-        {
-            Path = path;
-            VR = vR;
-            Level = level;
-            Status = status;
-        }
-
-        public CustomTagEntry(CustomTagStoreEntry storedEntry)
-        {
-            EnsureArg.IsNotNull(storedEntry, nameof(storedEntry));
-
-            Path = storedEntry.Path;
-            VR = storedEntry.VR;
-            Level = storedEntry.Level;
-            Status = storedEntry.Status;
-        }
-
         /// <summary>
         /// Path of this tag. Normally it's composed of groupid and elementid.
         /// E.g: 00100020 is path of patient id.
@@ -49,6 +20,11 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         /// VR of this tag.
         /// </summary>
         public string VR { get; set; }
+
+        /// <summary>
+        /// Identification code of private tag implementer.
+        /// </summary>
+        public string PrivateCreator { get; set; }
 
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
@@ -63,33 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
 
         public override string ToString()
         {
-            return $"Path: {Path}, VR:{VR}, Level:{Level} Status:{Status}";
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Path, VR, Level.GetHashCode(), Status.GetHashCode());
-        }
-
-        public override bool Equals(object obj)
-        {
-            CustomTagEntry other = obj as CustomTagEntry;
-            if (other == null)
-            {
-                return false;
-            }
-
-            return Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase) && string.Equals(VR, other.VR, StringComparison.OrdinalIgnoreCase) && Level == other.Level && Status == other.Status;
-        }
-
-        public bool Equals(CustomTagEntry other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-
-            return Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase) && string.Equals(VR, other.VR, StringComparison.OrdinalIgnoreCase) && Level == other.Level && Status == other.Status;
+            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level} Status:{Status}";
         }
     }
 }
