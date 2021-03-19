@@ -423,29 +423,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The private creator of tag &apos;{0}&apos; contains invalid character..
-        /// </summary>
-        internal static string PrivateCreatorContainsInvalidCharacter {
-            get {
-                return ResourceManager.GetString("PrivateCreatorContainsInvalidCharacter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The private creator for tag &apos;{0}&apos; exceeds maximum length of 64 characters..
-        /// </summary>
-        internal static string PrivateCreatorExceeds64Characters {
-            get {
-                return ResourceManager.GetString("PrivateCreatorExceeds64Characters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The private creator is not empty for standard tag &apos;{0}&apos;..
         /// </summary>
         internal static string PrivateCreatorNotEmpty {
             get {
                 return ResourceManager.GetString("PrivateCreatorNotEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The private creator for tag &apos;{0}&apos; is not a valid LO attribute..
+        /// </summary>
+        internal static string PrivateCreatorNotValidLO {
+            get {
+                return ResourceManager.GetString("PrivateCreatorNotValidLO", resourceCulture);
             }
         }
         

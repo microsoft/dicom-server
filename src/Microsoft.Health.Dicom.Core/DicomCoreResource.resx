@@ -343,12 +343,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The private creator for private tag '{0}' is missing.</value>
     <comment>{0} is the DICOM tag path.</comment>
   </data>
-  <data name="PrivateCreatorExceeds64Characters" xml:space="preserve">
-    <value>The private creator for tag '{0}' exceeds maximum length of 64 characters.</value>
-    <comment>{0} Dicom tag.</comment>
-  </data>
-  <data name="PrivateCreatorContainsInvalidCharacter" xml:space="preserve">
-    <value>The private creator of tag '{0}' contains invalid character.</value>
-    <comment>{0} dicom tag.</comment>
+  <data name="PrivateCreatorNotValidLO" xml:space="preserve">
+    <value>The private creator for tag '{0}' is not a valid LO attribute.</value>
+    <comment>{0} Dicom Tag.</comment>
   </data>
 </root>

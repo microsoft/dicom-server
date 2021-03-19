@@ -55,11 +55,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        private static bool TryParseDA(string value, out DateTime dateTime)
-        {
-            return DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out dateTime);
-        }
-
         internal static void ValidateDS(string value, string name)
         {
             ValidateLength(value.Length, 0, 16, DicomVR.DS, name, value);
@@ -82,37 +77,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         internal static void ValidateLO(string value, string name)
         {
-            ValidationError error = ValidateLO(value);
-            switch (error)
-            {
-                case ValidationError.ExceedMaxLength:
-                    throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
-                case ValidationError.ContainsInvalidChar:
-                    throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
-                case ValidationError.NoError:
-                default:
-                    break;
-            }
-        }
-
-        internal static ValidationError ValidateLO(string value)
-        {
             if (string.IsNullOrEmpty(value))
             {
-                return ValidationError.NoError;
+                return;
             }
 
             if (value.Length > 64)
             {
-                return ValidationError.ExceedMaxLength;
+                throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
             }
 
             if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
             {
-                return ValidationError.ContainsInvalidChar;
+                throw new DicomElementValidationException(name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
             }
-
-            return ValidationError.NoError;
         }
 
         // probably can dial down the validation here
