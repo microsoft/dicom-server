@@ -42,37 +42,33 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             List<InsertDateTimeCustomTagTableTypeV1Row> dateTimeRows = new List<InsertDateTimeCustomTagTableTypeV1Row>();
             List<InsertPersonNameCustomTagTableTypeV1Row> personNamRows = new List<InsertPersonNameCustomTagTableTypeV1Row>();
 
-            var tags = instance.GetMatchingDicomTags(indexTags);
-
-            foreach (var pair in tags)
+            foreach (var indexTag in indexTags)
             {
-                DicomTag matchingTag = pair.Value;
-                IndexTag indexTag = pair.Key;
                 CustomTagDataType dataType = CustomTagLimit.CustomTagVRAndDataTypeMapping[indexTag.VR.Code];
                 switch (dataType)
                 {
                     case CustomTagDataType.StringData:
-                        AddStringRow(instance, stringRows, matchingTag, indexTag);
+                        AddStringRow(instance, stringRows, indexTag);
 
                         break;
 
                     case CustomTagDataType.LongData:
-                        AddBigIntRow(instance, bigIntRows, matchingTag, indexTag);
+                        AddBigIntRow(instance, bigIntRows, indexTag);
 
                         break;
 
                     case CustomTagDataType.DoubleData:
-                        AddDoubleRow(instance, doubleRows, matchingTag, indexTag);
+                        AddDoubleRow(instance, doubleRows, indexTag);
 
                         break;
 
                     case CustomTagDataType.DateTimeData:
-                        AddDateTimeRow(instance, dateTimeRows, matchingTag, indexTag);
+                        AddDateTimeRow(instance, dateTimeRows, indexTag);
 
                         break;
 
                     case CustomTagDataType.PersonNameData:
-                        AddPersonNameRow(instance, personNamRows, matchingTag, indexTag);
+                        AddPersonNameRow(instance, personNamRows, indexTag);
 
                         break;
 
@@ -85,20 +81,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             return new VLatest.AddInstanceTableValuedParameters(stringRows, bigIntRows, doubleRows, dateTimeRows, personNamRows);
         }
 
-        private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameCustomTagTableTypeV1Row> personNamRows, DicomTag matchingTag, IndexTag indexTag)
+        private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameCustomTagTableTypeV1Row> personNamRows, IndexTag indexTag)
         {
-            string personNameVal = instance.GetSingleValueOrDefault<string>(matchingTag);
+            string personNameVal = instance.GetSingleValueOrDefault<string>(indexTag.Tag);
             if (personNameVal != null)
             {
                 personNamRows.Add(new InsertPersonNameCustomTagTableTypeV1Row(indexTag.CustomTagStoreEntry.Key, personNameVal, (byte)indexTag.Level));
             }
         }
 
-        private static void AddDateTimeRow(DicomDataset instance, List<InsertDateTimeCustomTagTableTypeV1Row> dateTimeRows, DicomTag matchingTag, IndexTag indexTag)
+        private static void AddDateTimeRow(DicomDataset instance, List<InsertDateTimeCustomTagTableTypeV1Row> dateTimeRows, IndexTag indexTag)
         {
             DateTime? dateVal = DataTimeReaders.TryGetValue(
                              indexTag.VR,
-                             out Func<DicomDataset, DicomTag, DateTime?> reader) ? reader.Invoke(instance, matchingTag) : null;
+                             out Func<DicomDataset, DicomTag, DateTime?> reader) ? reader.Invoke(instance, indexTag.Tag) : null;
 
             if (dateVal.HasValue)
             {
@@ -106,18 +102,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             }
         }
 
-        private static void AddDoubleRow(DicomDataset instance, List<InsertDoubleCustomTagTableTypeV1Row> doubleRows, DicomTag matchingTag, IndexTag indexTag)
+        private static void AddDoubleRow(DicomDataset instance, List<InsertDoubleCustomTagTableTypeV1Row> doubleRows, IndexTag indexTag)
         {
-            double? doubleVal = instance.GetSingleValueOrDefault<double>(matchingTag);
+            double? doubleVal = instance.GetSingleValueOrDefault<double>(indexTag.Tag);
             if (doubleVal.HasValue)
             {
                 doubleRows.Add(new InsertDoubleCustomTagTableTypeV1Row(indexTag.CustomTagStoreEntry.Key, doubleVal.Value, (byte)indexTag.Level));
             }
         }
 
-        private static void AddBigIntRow(DicomDataset instance, List<InsertBigIntCustomTagTableTypeV1Row> bigIntRows, DicomTag matchingTag, IndexTag indexTag)
+        private static void AddBigIntRow(DicomDataset instance, List<InsertBigIntCustomTagTableTypeV1Row> bigIntRows, IndexTag indexTag)
         {
-            long? longVal = instance.GetSingleValueOrDefault<long>(matchingTag);
+            long? longVal = instance.GetSingleValueOrDefault<long>(indexTag.Tag);
 
             if (longVal.HasValue)
             {
@@ -125,9 +121,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.CustomTag
             }
         }
 
-        private static void AddStringRow(DicomDataset instance, List<InsertStringCustomTagTableTypeV1Row> stringRows, DicomTag matchingTag, IndexTag indexTag)
+        private static void AddStringRow(DicomDataset instance, List<InsertStringCustomTagTableTypeV1Row> stringRows, IndexTag indexTag)
         {
-            string stringVal = instance.GetSingleValueOrDefault<string>(matchingTag);
+            string stringVal = instance.GetSingleValueOrDefault<string>(indexTag.Tag);
             if (stringVal != null)
             {
                 stringRows.Add(new InsertStringCustomTagTableTypeV1Row(indexTag.CustomTagStoreEntry.Key, stringVal, (byte)indexTag.Level));
