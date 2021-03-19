@@ -30,35 +30,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             DicomVR.UN,
         };
 
-        private static readonly string[] DateFormatDT =
-        {
-            "yyyyMMddHHmmss",
-            "yyyyMMddHHmmsszzz",
-            "yyyyMMddHHmmsszz",
-            "yyyyMMddHHmmssz",
-            "yyyyMMddHHmmss.ffffff",
-            "yyyyMMddHHmmss.fffff",
-            "yyyyMMddHHmmss.ffff",
-            "yyyyMMddHHmmss.fff",
-            "yyyyMMddHHmmss.ff",
-            "yyyyMMddHHmmss.f",
-            "yyyyMMddHHmm",
-            "yyyyMMddHH",
-            "yyyyMMdd",
-            "yyyyMM",
-            "yyyy",
-            "yyyyMMddHHmmss.ffffffzzz",
-            "yyyyMMddHHmmss.fffffzzz",
-            "yyyyMMddHHmmss.ffffzzz",
-            "yyyyMMddHHmmss.fffzzz",
-            "yyyyMMddHHmmss.ffzzz",
-            "yyyyMMddHHmmss.fzzz",
-            "yyyyMMddHHmmzzz",
-            "yyyyMMddHHzzz",
-            "yyyy.MM.dd",
-            "yyyy/MM/dd",
-        };
-
         private const string DateFormatDA = "yyyyMMdd";
 
         /// <summary>
@@ -71,7 +42,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static T GetSingleValueOrDefault<T>(this DicomDataset dicomDataset, DicomTag dicomTag)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-
             return dicomDataset.GetSingleValueOrDefault<T>(dicomTag, default);
         }
 
@@ -86,19 +56,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
             return DateTime.TryParseExact(stringDate, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result) ? result : null;
-        }
-
-        /// <summary>
-        /// Gets the DT VR value as <see cref="DateTime"/>.
-        /// </summary>
-        /// <param name="dicomDataset">The dataset to get the VR value from.</param>
-        /// <param name="dicomTag">The DICOM tag.</param>
-        /// <returns>An instance of <see cref="DateTime"/> if the value exists and comforms to the DA format; otherwise <c>null</c>.</returns>
-        public static DateTime? GetStringDateAsDateTime(this DicomDataset dicomDataset, DicomTag dicomTag)
-        {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-            string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
-            return DateTime.TryParseExact(stringDate, DateFormatDT, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime result) ? result : null;
         }
 
         /// <summary>

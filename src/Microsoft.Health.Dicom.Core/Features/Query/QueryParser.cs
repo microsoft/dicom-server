@@ -52,15 +52,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _valueParsers.Add(DicomVR.PN, ParseStringTagValue);
             _valueParsers.Add(DicomVR.CS, ParseStringTagValue);
 
-            _valueParsers.Add(DicomVR.DT, ParseDateTagValue);
-            _valueParsers.Add(DicomVR.TM, ParseDateTagValue);
-
             _valueParsers.Add(DicomVR.AE, ParseStringTagValue);
             _valueParsers.Add(DicomVR.AS, ParseStringTagValue);
             _valueParsers.Add(DicomVR.DS, ParseStringTagValue);
             _valueParsers.Add(DicomVR.IS, ParseStringTagValue);
 
-            _valueParsers.Add(DicomVR.AT, ParseLongTagValue);
             _valueParsers.Add(DicomVR.SL, ParseLongTagValue);
             _valueParsers.Add(DicomVR.SS, ParseLongTagValue);
             _valueParsers.Add(DicomVR.UL, ParseLongTagValue);

@@ -36,11 +36,9 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         public static IImmutableSet<string> SupportedVRCodes { get; } = ImmutableHashSet.Create(
             DicomVRCode.AE,
             DicomVRCode.AS,
-            DicomVRCode.AT,
             DicomVRCode.CS,
             DicomVRCode.DA,
             DicomVRCode.DS,
-            DicomVRCode.DT,
             DicomVRCode.FD,
             DicomVRCode.FL,
             DicomVRCode.IS,
@@ -49,7 +47,6 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
             DicomVRCode.SH,
             DicomVRCode.SL,
             DicomVRCode.SS,
-            DicomVRCode.TM,
             DicomVRCode.UI,
             DicomVRCode.UL,
             DicomVRCode.US);
