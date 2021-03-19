@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class CustomTagEntryEqualityComparer : IEqualityComparer<CustomTagEntry>
     {
-        public static readonly CustomTagEntryEqualityComparer Default = new CustomTagEntryEqualityComparer();
+        public static CustomTagEntryEqualityComparer Default => new CustomTagEntryEqualityComparer();
 
         public bool Equals(CustomTagEntry x, CustomTagEntry y)
         {

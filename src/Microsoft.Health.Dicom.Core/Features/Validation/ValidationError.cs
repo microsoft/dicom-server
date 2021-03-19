@@ -8,7 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     /// <summary>
     /// Different type of  Validation Errors.
     /// </summary>
-    public enum ValidationError
+    internal enum ValidationError
     {
         /// <summary>
         /// No error.
