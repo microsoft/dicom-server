@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
             _dicomRequestContext.Uri.Returns(Uri);
             _dicomRequestContext.CorrelationId.Returns(CorrelationId);
 
-            _dicomRequestContextAccessor.DicomRequestContext = _dicomRequestContext;
+            _dicomRequestContextAccessor.RequestContext = _dicomRequestContext;
 
             _httpContext.Connection.RemoteIpAddress = CallerIpAddress;
 

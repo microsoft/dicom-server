@@ -4,17 +4,18 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
+using Microsoft.Health.Core.Features.Security.Authorization;
+using Microsoft.Health.Dicom.Core.Features.Security;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
 {
     public abstract class BaseHandler
     {
-        protected BaseHandler(IDicomAuthorizationService dicomAuthorizationService)
+        protected BaseHandler(IAuthorizationService<DataActions> authorizationService)
         {
-            AuthorizationService = EnsureArg.IsNotNull(dicomAuthorizationService, nameof(dicomAuthorizationService));
+            AuthorizationService = EnsureArg.IsNotNull(authorizationService, nameof(authorizationService));
         }
 
-        public IDicomAuthorizationService AuthorizationService { get; }
+        public IAuthorizationService<DataActions> AuthorizationService { get; }
     }
 }

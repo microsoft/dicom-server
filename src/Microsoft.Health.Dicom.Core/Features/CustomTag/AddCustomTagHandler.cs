@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.CustomTag
@@ -19,8 +19,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
     {
         private readonly IAddCustomTagService _addCustomTagService;
 
-        public AddCustomTagHandler(IDicomAuthorizationService dicomAuthorizationService, IAddCustomTagService addCustomTagService)
-            : base(dicomAuthorizationService)
+        public AddCustomTagHandler(IAuthorizationService<DataActions> authorizationService, IAddCustomTagService addCustomTagService)
+            : base(authorizationService)
         {
             EnsureArg.IsNotNull(addCustomTagService, nameof(addCustomTagService));
             _addCustomTagService = addCustomTagService;
