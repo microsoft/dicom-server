@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Blob" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.4.1" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
   </ItemGroup>
