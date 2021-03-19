@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     /// </summary>
     public partial class RetrieveTransactionResourceTests
     {
-        [Theory]
+        [Theory(Skip = "Flaky Test, disable for now while fixing. Tracked by https://microsofthealth.visualstudio.com/Health/_workitems/edit/80262.")]
         [InlineData(RequestOriginalContentTestFolder, "*")]
         [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null)]
         [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1")]
