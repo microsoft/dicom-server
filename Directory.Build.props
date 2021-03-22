@@ -37,6 +37,8 @@
     </When>
     <Otherwise>
       <PropertyGroup>
+        <AnalysisLevel>5.0</AnalysisLevel>
+        <AnalysisMode>AllEnabledByDefault</AnalysisMode>
         <IsPackable>true</IsPackable>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
       </PropertyGroup>
@@ -46,15 +48,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
-
-  <Choose>
-    <When Condition="$(MSBuildProjectName)!='Microsoft.Health.Extensions.BuildTimeCodeGenerator' AND !$(MSBuildProjectName.Contains('Test'))">
-      <PropertyGroup>
-        <AnalysisLevel>5.0</AnalysisLevel>
-        <AnalysisMode>AllEnabledByDefault</AnalysisMode>
-        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-      </PropertyGroup>
-    </When>
-  </Choose>
 
 </Project>
