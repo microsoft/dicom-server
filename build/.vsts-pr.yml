@@ -20,7 +20,7 @@ stages:
     - powershell: |
         $buildNumber = "$(GitVersion.SemVer)" -replace "\.", ""
         Write-Host "##vso[build.updatebuildnumber]$buildNumber"
-        Write-Host "Updated  build number to '$buildNumber"
+        Write-Host "Updated build number to '$buildNumber'"
       name: SetBuildVersion
 
 - stage: BuildRunUnitTests
