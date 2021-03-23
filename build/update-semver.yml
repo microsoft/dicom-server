@@ -5,9 +5,10 @@ steps:
     packageType: sdk
     version: 2.1.x
     
-- task: GitVersion@5
-  displayName: 'GitVersion'
+- task: gitversion/execute@0
+  displayName: 'Gitversion-Execute'
   inputs:
+    useConfigFile: true
     configFilePath: '$(Build.SourcesDirectory)/GitVersion.yml'
 
 # Can set these: https://github.com/GitTools/actions/blob/master/gitversion/execute/action.yml
