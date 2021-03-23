@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public ExtendedQueryTagLevel Level { get; set; }
+        public QueryTagLevel Level { get; set; }
 
         /// <summary>
         /// Status of this tag. Represents the current state the tag is in.

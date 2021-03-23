@@ -24,9 +24,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     {
         private readonly bool _enableFullDicomItemValidation;
         private readonly IDicomElementMinimumValidator _minimumValidator;
-        private readonly IIndexTagService _indextagService;
+        private readonly IQueryTagService _indextagService;
 
-        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, IIndexTagService indexableDicomTagService)
+        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, IQueryTagService indexableDicomTagService)
         {
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
             EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
@@ -101,13 +101,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
-            IReadOnlyCollection<IndexTag> indexTags = await _indextagService.GetIndexTagsAsync(cancellationToken);
+            IReadOnlyCollection<QueryTag> indexTags = await _indextagService.GetIndexTagsAsync(cancellationToken);
             ValidateTags(dicomDataset, indexTags);
         }
 
-        private void ValidateTags(DicomDataset dicomDataset, IEnumerable<IndexTag> tags)
+        private void ValidateTags(DicomDataset dicomDataset, IEnumerable<QueryTag> tags)
         {
-            foreach (IndexTag indexableTag in tags)
+            foreach (QueryTag indexableTag in tags)
             {
                 DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(indexableTag.Tag);
 

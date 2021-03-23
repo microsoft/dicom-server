@@ -14,16 +14,16 @@ using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
-    public class IndexTagService : IIndexTagService
+    public class QueryTagService : IQueryTagService
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly bool _enableExtendedQueryTags;
-        public static readonly IReadOnlyList<IndexTag> CoreIndexTags = GetCoreIndexTags();
-        private List<IndexTag> _allIndexTags;
+        public static readonly IReadOnlyList<QueryTag> CoreIndexTags = GetCoreIndexTags();
+        private List<QueryTag> _allIndexTags;
         private int _allIndexTagsStatus;
         private TaskCompletionSource<bool> _allIndexTagsCompletionSource = new TaskCompletionSource<bool>();
 
-        public IndexTagService(IExtendedQueryTagStore extendedQueryTagStore, IOptions<FeatureConfiguration> featureConfiguration)
+        public QueryTagService(IExtendedQueryTagStore extendedQueryTagStore, IOptions<FeatureConfiguration> featureConfiguration)
         {
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
@@ -31,16 +31,16 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             _enableExtendedQueryTags = featureConfiguration.Value.EnableExtendedQueryTags;
         }
 
-        public async Task<IReadOnlyCollection<IndexTag>> GetIndexTagsAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default)
         {
             if (_enableExtendedQueryTags)
             {
                 if (Interlocked.CompareExchange(ref _allIndexTagsStatus, 1, 0) == 0)
                 {
-                    _allIndexTags = new List<IndexTag>(CoreIndexTags);
+                    _allIndexTags = new List<QueryTag>(CoreIndexTags);
 
                     IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(cancellationToken: cancellationToken);
-                    _allIndexTags.AddRange(extendedQueryTagEntries.Select(entry => new IndexTag(entry)));
+                    _allIndexTags.AddRange(extendedQueryTagEntries.Select(entry => new QueryTag(entry)));
 
                     _allIndexTagsCompletionSource.SetResult(true);
                 }
@@ -54,12 +54,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             }
         }
 
-        private static IReadOnlyList<IndexTag> GetCoreIndexTags()
+        private static IReadOnlyList<QueryTag> GetCoreIndexTags()
         {
-            List<IndexTag> coreTags = new List<IndexTag>();
-            coreTags.AddRange(QueryLimit.AllStudiesTags.Select(tag => new IndexTag(tag, ExtendedQueryTagLevel.Study)));
-            coreTags.AddRange(QueryLimit.StudySeriesTags.Select(tag => new IndexTag(tag, ExtendedQueryTagLevel.Series)));
-            coreTags.AddRange(QueryLimit.StudySeriesInstancesTags.Select(tag => new IndexTag(tag, ExtendedQueryTagLevel.Instance)));
+            List<QueryTag> coreTags = new List<QueryTag>();
+            coreTags.AddRange(QueryLimit.AllStudiesTags.Select(tag => new QueryTag(tag, QueryTagLevel.Study)));
+            coreTags.AddRange(QueryLimit.StudySeriesTags.Select(tag => new QueryTag(tag, QueryTagLevel.Series)));
+            coreTags.AddRange(QueryLimit.StudySeriesInstancesTags.Select(tag => new QueryTag(tag, QueryTagLevel.Instance)));
             return coreTags;
         }
     }

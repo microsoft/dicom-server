@@ -10,15 +10,15 @@ using System.Threading.Tasks;
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Service provides indexable dicom tags.
+    /// Service provides queryable dicom tags.
     /// </summary>
-    public interface IIndexTagService
+    public interface IQueryTagService
     {
         /// <summary>
-        /// Get Indexable dicom tags.
+        /// Get queryable dicom tags.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Indexable dicom tags.</returns>
-        Task<IReadOnlyCollection<IndexTag>> GetIndexTagsAsync(CancellationToken cancellationToken = default);
+        /// <returns>Queryable dicom tags.</returns>
+        Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default);
     }
 }

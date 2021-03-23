@@ -12,15 +12,15 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// <summary>
     /// Indexable Dicom Tag.
     /// </summary>
-    public class IndexTag
+    public class QueryTag
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="IndexTag"/> class.
+        /// Initializes a new instance of the <see cref="QueryTag"/> class.
         /// </summary>
         /// <remarks>Used for constuctoring from core dicom tag.PatientName e.g. </remarks>
         /// <param name="tag">The core dicom Tag.</param>
         /// <param name="level">The tag level.</param>
-        public IndexTag(DicomTag tag, ExtendedQueryTagLevel level)
+        public QueryTag(DicomTag tag, QueryTagLevel level)
         {
             EnsureArg.IsNotNull(tag, nameof(tag));
 
@@ -31,11 +31,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IndexTag"/> class.
+        /// Initializes a new instance of the <see cref="QueryTag"/> class.
         /// </summary>
         /// <remarks>Used for constuctoring from extended query tags.</remarks>
         /// <param name="entry">The extended query tag store entry.</param>
-        public IndexTag(ExtendedQueryTagStoreEntry entry)
+        public QueryTag(ExtendedQueryTagStoreEntry entry)
         {
             EnsureArg.IsNotNull(entry, nameof(entry));
             string fullPath = string.IsNullOrEmpty(entry.PrivateCreator) ? entry.Path : $"{entry.Path}:{entry.PrivateCreator}";
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Gets Dicom Tag Level.
         /// </summary>
-        public ExtendedQueryTagLevel Level { get; }
+        public QueryTagLevel Level { get; }
 
         /// <summary>
         /// Gets whether this is extended query tag or not.

@@ -79,9 +79,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
             List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
             {
-                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, ExtendedQueryTagLevel.Instance, ExtendedQueryTagStatus.Ready),
-                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, ExtendedQueryTagLevel.Series, ExtendedQueryTagStatus.Ready),
-                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, ExtendedQueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
             };
 
             _extendedQueryTagStore.GetExtendedQueryTagsAsync().ReturnsForAnyArgs(storeEntries);
@@ -89,9 +89,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             await _queryService.QueryAsync(request, CancellationToken.None);
 
             Dictionary<DicomTag, ExtendedQueryTagFilterDetails> filterDetails = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            filterDetails.Add(DicomTag.ProcedureStepState, new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Instance, DicomVR.CS, DicomTag.ProcedureStepState));
-            filterDetails.Add(DicomTag.Date, new ExtendedQueryTagFilterDetails(2, ExtendedQueryTagLevel.Series, DicomVR.DA, DicomTag.Date));
-            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, ExtendedQueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
+            filterDetails.Add(DicomTag.ProcedureStepState, new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Instance, DicomVR.CS, DicomTag.ProcedureStepState));
+            filterDetails.Add(DicomTag.Date, new ExtendedQueryTagFilterDetails(2, QueryTagLevel.Series, DicomVR.DA, DicomTag.Date));
+            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, QueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
 
             _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, ExtendedQueryTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
         }
@@ -109,9 +109,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
             List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
             {
-                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, ExtendedQueryTagLevel.Instance, ExtendedQueryTagStatus.Ready),
-                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, ExtendedQueryTagLevel.Series, ExtendedQueryTagStatus.Ready),
-                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, ExtendedQueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
             };
 
             _extendedQueryTagStore.GetExtendedQueryTagsAsync().ReturnsForAnyArgs(storeEntries);
@@ -119,8 +119,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             await _queryService.QueryAsync(request, CancellationToken.None);
 
             Dictionary<DicomTag, ExtendedQueryTagFilterDetails> filterDetails = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            filterDetails.Add(DicomTag.Date, new ExtendedQueryTagFilterDetails(2, ExtendedQueryTagLevel.Series, DicomVR.DA, DicomTag.Date));
-            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, ExtendedQueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
+            filterDetails.Add(DicomTag.Date, new ExtendedQueryTagFilterDetails(2, QueryTagLevel.Series, DicomVR.DA, DicomTag.Date));
+            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, QueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
 
             _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, ExtendedQueryTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
         }
@@ -137,9 +137,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
             List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
             {
-                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, ExtendedQueryTagLevel.Instance, ExtendedQueryTagStatus.Ready),
-                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, ExtendedQueryTagLevel.Series, ExtendedQueryTagStatus.Ready),
-                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, ExtendedQueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
             };
 
             _extendedQueryTagStore.GetExtendedQueryTagsAsync().ReturnsForAnyArgs(storeEntries);
@@ -147,7 +147,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             await _queryService.QueryAsync(request, CancellationToken.None);
 
             Dictionary<DicomTag, ExtendedQueryTagFilterDetails> filterDetails = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, ExtendedQueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
+            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, QueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
 
             _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, ExtendedQueryTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
         }

@@ -174,7 +174,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
                 using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedOnClause())
                 {
-                    if ((_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel()) && filterDetails.Level < ExtendedQueryTagLevel.Study)
+                    if ((_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel()) && filterDetails.Level < QueryTagLevel.Study)
                     {
                         _stringBuilder
                             .Append("AND ")
@@ -183,7 +183,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                             .AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
                     }
 
-                    if (_queryExpression.IsInstanceIELevel() && filterDetails.Level < ExtendedQueryTagLevel.Series)
+                    if (_queryExpression.IsInstanceIELevel() && filterDetails.Level < QueryTagLevel.Series)
                     {
                         _stringBuilder
                             .Append("AND ")

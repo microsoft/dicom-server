@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         private const string SeriesRouteSegment = "series";
         private const string InstancesRouteSegment = "instances";
         private const string MetadataSegment = "metadata";
-        private const string ExtendedQueryTagsRouteSegment = "extendedQueryTags";
+        private const string ExtendedQueryTagsRouteSegment = "extendedquerytags";
 
         private const string StudiesInstanceUidRouteSegment = "{" + KnownActionParameterNames.StudyInstanceUid + "}";
         private const string SeriesInstanceUidRouteSegment = "{" + KnownActionParameterNames.SeriesInstanceUid + "}";

@@ -17,14 +17,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
     public class IndexTagServiceTests
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IIndexTagService _indexTagService;
+        private readonly IQueryTagService _indexTagService;
         private readonly FeatureConfiguration _featureConfiguration;
 
         public IndexTagServiceTests()
         {
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = true };
-            _indexTagService = new IndexTagService(_extendedQueryTagStore, Options.Create(_featureConfiguration));
+            _indexTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(_featureConfiguration));
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public async Task GivenEnableExtendedQueryTagsIsDisabled_WhenGetExtendedQueryTagsIsCalledMultipleTimes_ThenExtendedQueryTagStoreShouldNotBeCalled()
         {
             FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = false };
-            IIndexTagService indexableDicomTagService = new IndexTagService(_extendedQueryTagStore, Options.Create(featureConfiguration));
+            IQueryTagService indexableDicomTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(featureConfiguration));
             await indexableDicomTagService.GetIndexTagsAsync();
             await _extendedQueryTagStore.DidNotReceive().GetExtendedQueryTagsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         }

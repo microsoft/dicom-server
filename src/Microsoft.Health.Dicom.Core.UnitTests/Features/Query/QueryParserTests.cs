@@ -135,7 +135,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var queryString = "Date=19510910-20200220";
             var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Instance, DicomTag.Date.GetDefaultVR(), DicomTag.Date);
+            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Instance, DicomTag.Date.GetDefaultVR(), DicomTag.Date);
             extendedQueryTags.Add(DicomTag.Date, filterDetails);
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), extendedQueryTags);
@@ -148,7 +148,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var queryString = "PatientBirthName=Joe&fuzzyMatching=true&limit=50";
             var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Series, DicomTag.PatientBirthName.GetDefaultVR(), DicomTag.PatientBirthName);
+            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.PatientBirthName.GetDefaultVR(), DicomTag.PatientBirthName);
             extendedQueryTags.Add(DicomTag.PatientBirthName, filterDetails);
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
@@ -160,7 +160,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var queryString = "ModelGroupUID=abc";
             var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
+            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
             extendedQueryTags.Add(DicomTag.ModelGroupUID, filterDetails);
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
@@ -173,7 +173,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var queryString = "00687004=abc";
             var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
+            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
             extendedQueryTags.Add(DicomTag.ModelGroupUID, filterDetails);
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
@@ -186,7 +186,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var queryString = "NumberOfAssessmentObservations=50";
             var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Series, DicomTag.NumberOfAssessmentObservations.GetDefaultVR(), DicomTag.NumberOfAssessmentObservations);
+            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.NumberOfAssessmentObservations.GetDefaultVR(), DicomTag.NumberOfAssessmentObservations);
             extendedQueryTags.Add(DicomTag.NumberOfAssessmentObservations, filterDetails);
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
@@ -199,7 +199,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var queryString = "FloatingPointValue=1.1";
             var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
+            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
             extendedQueryTags.Add(DicomTag.FloatingPointValue, filterDetails);
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
@@ -212,7 +212,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var queryString = "FloatingPointValue=abc";
             var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
+            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
             extendedQueryTags.Add(DicomTag.FloatingPointValue, filterDetails);
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             Assert.Throws<QueryParseException>(() => _queryParser
@@ -224,7 +224,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var queryString = "ModelGroupUID=abc";
             var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
+            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
             extendedQueryTags.Add(DicomTag.FloatingPointValue, filterDetails);
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             Assert.Throws<QueryParseException>(() => _queryParser
@@ -236,9 +236,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var queryString = "PatientName=Joe&FloatingPointValue=1.1&StudyDate=19510910-20200220&00687004=abc";
             var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails1 = new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
+            var filterDetails1 = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
             extendedQueryTags.Add(DicomTag.FloatingPointValue, filterDetails1);
-            var filterDetails2 = new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
+            var filterDetails2 = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
             extendedQueryTags.Add(DicomTag.ModelGroupUID, filterDetails2);
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);

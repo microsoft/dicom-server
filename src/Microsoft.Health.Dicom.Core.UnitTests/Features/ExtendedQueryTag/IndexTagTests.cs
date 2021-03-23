@@ -16,8 +16,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public void GivenCoreDicomTag_WhenInitialize_ThenShouldCreatedSuccessfully()
         {
             DicomTag tag = DicomTag.PatientName;
-            ExtendedQueryTagLevel level = ExtendedQueryTagLevel.Instance;
-            IndexTag indexTag = new IndexTag(tag, ExtendedQueryTagLevel.Instance);
+            QueryTagLevel level = QueryTagLevel.Instance;
+            QueryTag indexTag = new QueryTag(tag, QueryTagLevel.Instance);
             Assert.Equal(tag, indexTag.Tag);
             Assert.Equal(DicomVR.PN, indexTag.VR);
             Assert.Null(indexTag.ExtendedQueryTagStoreEntry);
@@ -29,9 +29,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public void GivenStandardExtendedQueryTag_WhenInitialize_ThenShouldCreatedSuccessfully()
         {
             DicomTag tag = DicomTag.AcquisitionDate;
-            ExtendedQueryTagLevel level = ExtendedQueryTagLevel.Series;
+            QueryTagLevel level = QueryTagLevel.Series;
             var storeEntry = tag.BuildExtendedQueryTagStoreEntry(level: level);
-            IndexTag indexTag = new IndexTag(storeEntry);
+            QueryTag indexTag = new QueryTag(storeEntry);
             Assert.Equal(tag, indexTag.Tag);
             Assert.Equal(DicomVR.DA, indexTag.VR);
             Assert.Equal(storeEntry, indexTag.ExtendedQueryTagStoreEntry);
@@ -44,9 +44,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         {
             DicomTag tag = new DicomTag(0x1205, 0x1003, "PrivateCreator1");
             DicomVR vr = DicomVR.CS;
-            ExtendedQueryTagLevel level = ExtendedQueryTagLevel.Study;
+            QueryTagLevel level = QueryTagLevel.Study;
             var storeEntry = tag.BuildExtendedQueryTagStoreEntry(vr: vr.ToString(), privateCreator: tag.PrivateCreator.Creator, level: level);
-            IndexTag indexTag = new IndexTag(storeEntry);
+            QueryTag indexTag = new QueryTag(storeEntry);
             Assert.Equal(tag, indexTag.Tag);
             Assert.Equal(vr, indexTag.VR);
             Assert.Equal(storeEntry, indexTag.ExtendedQueryTagStoreEntry);

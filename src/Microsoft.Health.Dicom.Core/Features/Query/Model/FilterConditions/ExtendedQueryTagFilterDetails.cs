@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public class ExtendedQueryTagFilterDetails : IEquatable<ExtendedQueryTagFilterDetails>
     {
-        public ExtendedQueryTagFilterDetails(int tagKey, ExtendedQueryTagLevel tagLevel, DicomVR vr, DicomTag tag)
+        public ExtendedQueryTagFilterDetails(int tagKey, QueryTagLevel tagLevel, DicomVR vr, DicomTag tag)
         {
             Key = tagKey;
             VR = vr;
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public DicomVR VR { get; }
 
-        public ExtendedQueryTagLevel Level { get; }
+        public QueryTagLevel Level { get; }
 
         public DicomTag Tag { get; }
 

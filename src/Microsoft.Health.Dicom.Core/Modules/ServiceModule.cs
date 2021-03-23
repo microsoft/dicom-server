@@ -137,7 +137,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<IndexTagService>()
+            services.Add<QueryTagService>()
                    .Scoped()
                    .AsSelf()
                    .AsImplementedInterfaces();

@@ -28,14 +28,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
         private readonly IDeleteService _deleteService;
-        private readonly IIndexTagService _indexTagService;
+        private readonly IQueryTagService _indexTagService;
 
         public StoreOrchestrator(
             IFileStore fileStore,
             IMetadataStore metadataStore,
             IIndexDataStoreFactory indexDataStoreFactory,
             IDeleteService deleteService,
-            IIndexTagService indexTagService)
+            IQueryTagService indexTagService)
         {
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));

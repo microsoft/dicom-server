@@ -88,8 +88,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 {
                     dicomTag = result[0];
                     if (queryResource.Equals(QueryResource.AllInstances) || queryResource.Equals(QueryResource.StudyInstances) || queryResource.Equals(QueryResource.StudySeriesInstances)
-                        || ((queryResource.Equals(QueryResource.AllSeries) || queryResource.Equals(QueryResource.StudySeries)) && (extendedQueryTag.Level.Equals(ExtendedQueryTagLevel.Study) || extendedQueryTag.Level.Equals(ExtendedQueryTagLevel.Series)))
-                        || (queryResource.Equals(QueryResource.AllStudies) && extendedQueryTag.Level.Equals(ExtendedQueryTagLevel.Study)))
+                        || ((queryResource.Equals(QueryResource.AllSeries) || queryResource.Equals(QueryResource.StudySeries)) && (extendedQueryTag.Level.Equals(QueryTagLevel.Study) || extendedQueryTag.Level.Equals(QueryTagLevel.Series)))
+                        || (queryResource.Equals(QueryResource.AllStudies) && extendedQueryTag.Level.Equals(QueryTagLevel.Study)))
                     {
                         // When querying for instances, extended query tags of all levels can be filtered on.
                         // When querying for series, study and series extended query tags can be filtered on.

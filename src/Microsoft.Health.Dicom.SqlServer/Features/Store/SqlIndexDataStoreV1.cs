@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
-        public virtual async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<IndexTag> indexableDicomTags, CancellationToken cancellationToken)
+        public virtual async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> indexableDicomTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(indexableDicomTags, nameof(indexableDicomTags));

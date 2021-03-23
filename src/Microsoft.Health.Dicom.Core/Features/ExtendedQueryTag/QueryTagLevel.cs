@@ -6,22 +6,22 @@
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Level of a extended query tag.
+    /// Level of a query tag.
     /// </summary>
-    public enum ExtendedQueryTagLevel
+    public enum QueryTagLevel
     {
         /// <summary>
-        /// The extended query tag is on instance level.
+        /// The query tag is on instance level.
         /// </summary>
         Instance = 0,
 
         /// <summary>
-        /// The extended query tag is on series level.
+        /// The query tag is on series level.
         /// </summary>
         Series = 1,
 
         /// <summary>
-        /// The extended query tag is on study level.
+        /// The query tag is on study level.
         /// </summary>
         Study = 2,
     }

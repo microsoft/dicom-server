@@ -22,8 +22,8 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
         {
             DicomDataset dataset = new DicomDataset();
             dataset.Add(element);
-            IndexTag tag = new IndexTag(element.Tag.BuildExtendedQueryTagStoreEntry());
-            var parameters = AddInstanceTableValuedParametersBuilder.Build(dataset, new IndexTag[] { tag });
+            QueryTag tag = new QueryTag(element.Tag.BuildExtendedQueryTagStoreEntry());
+            var parameters = AddInstanceTableValuedParametersBuilder.Build(dataset, new QueryTag[] { tag });
 
             ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[element.ValueRepresentation.Code];
             switch (dataType)

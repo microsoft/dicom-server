@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public class ExtendedQueryTagStoreEntry
     {
-        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, ExtendedQueryTagLevel level, ExtendedQueryTagStatus status)
+        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status)
         {
             Key = key;
             Path = path;
@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public ExtendedQueryTagLevel Level { get; set; }
+        public QueryTagLevel Level { get; set; }
 
         /// <summary>
         /// Status of this tag.

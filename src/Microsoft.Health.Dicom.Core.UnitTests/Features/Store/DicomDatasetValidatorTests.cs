@@ -31,8 +31,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private IDicomDatasetValidator _dicomDatasetValidator;
 
         private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset();
-        private readonly IIndexTagService _indexTagService;
-        private readonly List<IndexTag> _indexTags;
+        private readonly IQueryTagService _indexTagService;
+        private readonly List<QueryTag> _indexTags;
 
         public DicomDatasetValidatorTests()
         {
@@ -42,8 +42,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 EnableFullDicomItemValidation = false,
             });
             var minValidator = new DicomElementMinimumValidator();
-            _indexTagService = Substitute.For<IIndexTagService>();
-            _indexTags = new List<IndexTag>(IndexTagService.CoreIndexTags);
+            _indexTagService = Substitute.For<IQueryTagService>();
+            _indexTags = new List<QueryTag>(QueryTagService.CoreIndexTags);
             _indexTagService.GetIndexTagsAsync(Arg.Any<CancellationToken>()).Returns(_indexTags);
             _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _indexTagService);
         }
@@ -193,7 +193,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            IndexTag indextag = new IndexTag(standardTag.BuildExtendedQueryTagStoreEntry());
+            QueryTag indextag = new QueryTag(standardTag.BuildExtendedQueryTagStoreEntry());
             _indexTags.Add(indextag);
             await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }
@@ -216,7 +216,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            IndexTag indextag = new IndexTag(tag.BuildExtendedQueryTagStoreEntry(vr: element.ValueRepresentation.Code));
+            QueryTag indextag = new QueryTag(tag.BuildExtendedQueryTagStoreEntry(vr: element.ValueRepresentation.Code));
             _indexTags.Clear();
             _indexTags.Add(indextag);
 
