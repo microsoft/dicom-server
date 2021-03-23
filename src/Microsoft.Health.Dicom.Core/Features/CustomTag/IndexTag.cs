@@ -38,8 +38,8 @@ namespace Microsoft.Health.Dicom.Core.Features.CustomTag
         public IndexTag(CustomTagStoreEntry entry)
         {
             EnsureArg.IsNotNull(entry, nameof(entry));
-
-            Tag = DicomTag.Parse(entry.Path);
+            string fullPath = string.IsNullOrEmpty(entry.PrivateCreator) ? entry.Path : $"{entry.Path}:{entry.PrivateCreator}";
+            Tag = DicomTag.Parse(fullPath);
             VR = DicomVR.Parse(entry.VR);
             Level = entry.Level;
             CustomTagStoreEntry = entry;

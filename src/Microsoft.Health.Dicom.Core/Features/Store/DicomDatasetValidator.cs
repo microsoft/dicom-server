@@ -12,7 +12,6 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -103,15 +102,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
             IReadOnlyCollection<IndexTag> indexTags = await _indextagService.GetIndexTagsAsync(cancellationToken);
-            var tags = dicomDataset.GetMatchingDicomTags(indexTags);
-            ValidateTags(dicomDataset, tags.Values);
+            ValidateTags(dicomDataset, indexTags);
         }
 
-        private void ValidateTags(DicomDataset dicomDataset, IEnumerable<DicomTag> tags)
+        private void ValidateTags(DicomDataset dicomDataset, IEnumerable<IndexTag> tags)
         {
-            foreach (DicomTag indexableTag in tags)
+            foreach (IndexTag indexableTag in tags)
             {
-                DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(indexableTag);
+                DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(indexableTag.Tag);
 
                 if (dicomElement != null)
                 {
