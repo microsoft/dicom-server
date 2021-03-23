@@ -24,17 +24,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     {
         private readonly bool _enableFullDicomItemValidation;
         private readonly IDicomElementMinimumValidator _minimumValidator;
-        private readonly IQueryTagService _indextagService;
+        private readonly IQueryTagService _queryTagService;
 
-        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, IQueryTagService indexableDicomTagService)
+        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
         {
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
             EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
-            EnsureArg.IsNotNull(indexableDicomTagService, nameof(indexableDicomTagService));
+            EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
 
             _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
             _minimumValidator = minimumValidator;
-            _indextagService = indexableDicomTagService;
+            _queryTagService = queryTagService;
         }
 
         public async Task ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
@@ -101,13 +101,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
-            IReadOnlyCollection<QueryTag> queryTags = await _indextagService.GetQueryTagsAsync(cancellationToken);
+            IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
             ValidateTags(dicomDataset, queryTags);
         }
 
-        private void ValidateTags(DicomDataset dicomDataset, IEnumerable<QueryTag> tags)
+        private void ValidateTags(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags)
         {
-            foreach (QueryTag queryTag in tags)
+            foreach (QueryTag queryTag in queryTags)
             {
                 DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(queryTag.Tag);
 

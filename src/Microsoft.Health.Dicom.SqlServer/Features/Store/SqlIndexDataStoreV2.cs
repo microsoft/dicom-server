@@ -40,10 +40,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public override SchemaVersion Version => SchemaVersion.V2;
 
-        public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> indexableDicomTags, CancellationToken cancellationToken)
+        public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
-            EnsureArg.IsNotNull(indexableDicomTags, nameof(indexableDicomTags));
+            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 // Build parameter for extended query tag.
                 VLatest.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.Build(
                     instance,
-                    indexableDicomTags.Where(tag => tag.IsExtendedQueryTag));
+                    queryTags.Where(tag => tag.IsExtendedQueryTag));
 
                 VLatest.AddInstance.PopulateCommand(
                 sqlCommandWrapper,

@@ -39,10 +39,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
-        public virtual async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> indexableDicomTags, CancellationToken cancellationToken)
+        public virtual async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
-            EnsureArg.IsNotNull(indexableDicomTags, nameof(indexableDicomTags));
+            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
