@@ -5,13 +5,19 @@ steps:
     packageType: sdk
     version: 5.x
 
-- script: |
-    pushd '$(Build.SourcesDirectory)'
-    dotnet tool install GitVersion.Tool --version 5.6.6 --configfile nuget.config --tool-path dotnet-tools
-    dotnet-tools\dotnet-gitversion.exe /config GitVersion.yml /output buildserver /nofetch
-    popd
+- task: PowerShell@2
   name: 'GitVersion'
   displayName: 'Run GitVersion'
+  inputs:
+    targetType: 'inline'
+    script: |
+      dotnet new tool-manifest
+      dotnet tool install GitVersion.Tool --version 5.6.6 --configfile nuget.config
+      dotnet tool run dotnet-gitversion /config GitVersion.yml /output buildserver /nofetch
+    failOnStderr: true
+    showWarnings: true
+    pwsh: true
+    workingDirectory: '$(Build.SourcesDirectory)'
 
 # Can set these: https://github.com/GitTools/actions/blob/master/gitversion/execute/action.yml
 - powershell: |
