@@ -12,7 +12,7 @@ using EnsureThat;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
@@ -31,17 +31,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly IIndexDataStore _indexDataStore;
         private readonly IIndexDataStoreTestHelper _testHelper;
         private readonly DateTimeOffset _startDateTime = Clock.UtcNow;
-        private readonly ICustomTagStore _customTagStore;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
 
         public IndexDataStoreTests(SqlDataStoreTestsFixture fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             EnsureArg.IsNotNull(fixture.IndexDataStore, nameof(fixture.IndexDataStore));
             EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.IndexDataStore));
-            EnsureArg.IsNotNull(fixture.CustomTagStore, nameof(fixture.CustomTagStore));
+            EnsureArg.IsNotNull(fixture.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
             _indexDataStore = fixture.IndexDataStore;
             _testHelper = fixture.TestHelper;
-            _customTagStore = fixture.CustomTagStore;
+            _extendedQueryTagStore = fixture.ExtendedQueryTagStore;
         }
 
         [Fact]

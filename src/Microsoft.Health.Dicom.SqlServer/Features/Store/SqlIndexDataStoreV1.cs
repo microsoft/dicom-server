@@ -13,7 +13,7 @@ using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;

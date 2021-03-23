@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             int limit,
             int offset,
             IReadOnlyCollection<QueryFilterCondition> filterConditions,
-            IReadOnlyCollection<CustomTagFilterDetails> queriedCustomTagFilterDetails = null)
+            IReadOnlyCollection<ExtendedQueryTagFilterDetails> queriedExtendedQueryTagFilterDetails = null)
         {
             QueryResource = resourceType;
             IncludeFields = includeFields;
@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             Limit = limit;
             Offset = offset;
             FilterConditions = filterConditions;
-            QueriedCustomTagFilterDetails = queriedCustomTagFilterDetails ?? Array.Empty<CustomTagFilterDetails>();
+            QueriedExtendedQueryTagFilterDetails = queriedExtendedQueryTagFilterDetails ?? Array.Empty<ExtendedQueryTagFilterDetails>();
 
             SetIELevel();
          }
@@ -51,9 +51,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
         public QueryIncludeField IncludeFields { get; }
 
         /// <summary>
-        /// Filter details associated with the custom tags being queried.
+        /// Filter details associated with the extended query tags being queried.
         /// </summary>
-        public IReadOnlyCollection<CustomTagFilterDetails> QueriedCustomTagFilterDetails { get; }
+        public IReadOnlyCollection<ExtendedQueryTagFilterDetails> QueriedExtendedQueryTagFilterDetails { get; }
 
         /// <summary>
         /// If true do Fuzzy matching of PN tag types

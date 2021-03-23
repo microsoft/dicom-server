@@ -11,7 +11,7 @@ using Dicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -178,7 +178,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public async Task GivenCustomTags_WhenValidating_ThenCustomTagsShouldBeValidated()
+        public async Task GivenExtendedQueryTags_WhenValidating_ThenExtendedQueryTagsShouldBeValidated()
         {
             DicomTag standardTag = DicomTag.DestinationAE;
 
@@ -193,13 +193,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            IndexTag indextag = new IndexTag(standardTag.BuildCustomTagStoreEntry());
+            IndexTag indextag = new IndexTag(standardTag.BuildExtendedQueryTagStoreEntry());
             _indexTags.Add(indextag);
             await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }
 
         [Fact]
-        public async Task GivenPrivateCustomTags_WhenValidating_ThenCustomTagsShouldBeValidated()
+        public async Task GivenPrivateExtendedQueryTags_WhenValidating_ThenExtendedQueryTagsShouldBeValidated()
         {
             DicomTag tag = DicomTag.Parse("04050001");
 
@@ -216,7 +216,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            IndexTag indextag = new IndexTag(tag.BuildCustomTagStoreEntry(vr: element.ValueRepresentation.Code));
+            IndexTag indextag = new IndexTag(tag.BuildExtendedQueryTagStoreEntry(vr: element.ValueRepresentation.Code));
             _indexTags.Clear();
             _indexTags.Add(indextag);
 

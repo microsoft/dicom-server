@@ -27,33 +27,33 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 { DicomTag.SOPInstanceUID, new DicomTagSqlEntry(SqlTableType.InstanceTable, VLatest.Instance.SopInstanceUid) },
         };
 
-        private static Dictionary<DicomVR, DicomTagSqlEntry> _customTagToSqlMappingCache = new Dictionary<DicomVR, DicomTagSqlEntry>()
+        private static Dictionary<DicomVR, DicomTagSqlEntry> _extendedQueryTagToSqlMappingCache = new Dictionary<DicomVR, DicomTagSqlEntry>()
         {
-                { DicomVR.DA, new DicomTagSqlEntry(SqlTableType.CustomTagDateTimeTable, VLatest.CustomTagDateTime.TagValue, null, VLatest.CustomTagDateTime.TagKey, true) },
-                { DicomVR.AE, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
-                { DicomVR.AS, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
-                { DicomVR.CS, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
-                { DicomVR.DS, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
-                { DicomVR.IS, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
-                { DicomVR.LO, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
-                { DicomVR.SH, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
-                { DicomVR.UI, new DicomTagSqlEntry(SqlTableType.CustomTagStringTable, VLatest.CustomTagString.TagValue, null, VLatest.CustomTagString.TagKey, true) },
-                { DicomVR.SL, new DicomTagSqlEntry(SqlTableType.CustomTagBigIntTable, VLatest.CustomTagBigInt.TagValue, null, VLatest.CustomTagBigInt.TagKey, true) },
-                { DicomVR.SS, new DicomTagSqlEntry(SqlTableType.CustomTagBigIntTable, VLatest.CustomTagBigInt.TagValue, null, VLatest.CustomTagBigInt.TagKey, true) },
-                { DicomVR.UL, new DicomTagSqlEntry(SqlTableType.CustomTagBigIntTable, VLatest.CustomTagBigInt.TagValue, null, VLatest.CustomTagBigInt.TagKey, true) },
-                { DicomVR.US, new DicomTagSqlEntry(SqlTableType.CustomTagBigIntTable, VLatest.CustomTagBigInt.TagValue, null, VLatest.CustomTagBigInt.TagKey, true) },
-                { DicomVR.FL, new DicomTagSqlEntry(SqlTableType.CustomTagDoubleTable, VLatest.CustomTagDouble.TagValue, null, VLatest.CustomTagDouble.TagKey, true) },
-                { DicomVR.FD, new DicomTagSqlEntry(SqlTableType.CustomTagDoubleTable, VLatest.CustomTagDouble.TagValue, null, VLatest.CustomTagDouble.TagKey, true) },
-                { DicomVR.PN, new DicomTagSqlEntry(SqlTableType.CustomTagPersonNameTable, VLatest.CustomTagPersonName.TagValue, VLatest.CustomTagPersonNameTable.TagValueWords, VLatest.CustomTagPersonName.TagKey, true) },
+                { DicomVR.DA, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagDateTimeTable, VLatest.ExtendedQueryTagDateTime.TagValue, null, VLatest.ExtendedQueryTagDateTime.TagKey, true) },
+                { DicomVR.AE, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
+                { DicomVR.AS, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
+                { DicomVR.CS, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
+                { DicomVR.DS, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
+                { DicomVR.IS, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
+                { DicomVR.LO, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
+                { DicomVR.SH, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
+                { DicomVR.UI, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
+                { DicomVR.SL, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagBigIntTable, VLatest.ExtendedQueryTagBigInt.TagValue, null, VLatest.ExtendedQueryTagBigInt.TagKey, true) },
+                { DicomVR.SS, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagBigIntTable, VLatest.ExtendedQueryTagBigInt.TagValue, null, VLatest.ExtendedQueryTagBigInt.TagKey, true) },
+                { DicomVR.UL, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagBigIntTable, VLatest.ExtendedQueryTagBigInt.TagValue, null, VLatest.ExtendedQueryTagBigInt.TagKey, true) },
+                { DicomVR.US, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagBigIntTable, VLatest.ExtendedQueryTagBigInt.TagValue, null, VLatest.ExtendedQueryTagBigInt.TagKey, true) },
+                { DicomVR.FL, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagDoubleTable, VLatest.ExtendedQueryTagDouble.TagValue, null, VLatest.ExtendedQueryTagDouble.TagKey, true) },
+                { DicomVR.FD, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagDoubleTable, VLatest.ExtendedQueryTagDouble.TagValue, null, VLatest.ExtendedQueryTagDouble.TagKey, true) },
+                { DicomVR.PN, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagPersonNameTable, VLatest.ExtendedQueryTagPersonName.TagValue, VLatest.ExtendedQueryTagPersonNameTable.TagValueWords, VLatest.ExtendedQueryTagPersonName.TagKey, true) },
         };
 
-        private DicomTagSqlEntry(SqlTableType sqlTableType, Column sqlColumn, string fullTextIndexColumnName = null, Column sqlKeyColumn = null, bool isCustomTag = false)
+        private DicomTagSqlEntry(SqlTableType sqlTableType, Column sqlColumn, string fullTextIndexColumnName = null, Column sqlKeyColumn = null, bool isExtendedQueryTag = false)
         {
             SqlTableType = sqlTableType;
             SqlColumn = sqlColumn;
             FullTextIndexColumnName = fullTextIndexColumnName;
             SqlKeyColumn = sqlKeyColumn;
-            IsCustomTag = isCustomTag;
+            IsExtendedQueryTag = isExtendedQueryTag;
         }
 
         public SqlTableType SqlTableType { get; }
@@ -64,16 +64,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public Column SqlKeyColumn { get; }
 
-        public bool IsCustomTag { get; }
+        public bool IsExtendedQueryTag { get; }
 
-        public static DicomTagSqlEntry GetDicomTagSqlEntry(DicomTag dicomTag, DicomVR customTagVR = null)
+        public static DicomTagSqlEntry GetDicomTagSqlEntry(DicomTag dicomTag, DicomVR extendedQueryTagVR = null)
         {
             if (_tagToSqlMappingCache.ContainsKey(dicomTag))
             {
                 return _tagToSqlMappingCache[dicomTag];
             }
 
-            return _customTagToSqlMappingCache[customTagVR];
+            return _extendedQueryTagToSqlMappingCache[extendedQueryTagVR];
         }
     }
 }

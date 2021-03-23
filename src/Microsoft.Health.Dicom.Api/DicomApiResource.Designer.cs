@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The maximum length of a custom audit header value is {0}. The supplied custom audit header &apos;{1}&apos; has length of {2}..
+        ///   Looks up a localized string similar to The maximum length of a extended query audit header value is {0}. The supplied extended query audit header &apos;{1}&apos; has length of {2}..
         /// </summary>
         internal static string CustomAuditHeaderTooLarge {
             get {
@@ -124,7 +124,7 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The maximum number of custom audit headers allowed is {0}. The number of custom audit headers supplied is {1}..
+        ///   Looks up a localized string similar to The maximum number of extended query audit headers allowed is {0}. The number of extended query audit headers supplied is {1}..
         /// </summary>
         internal static string TooManyCustomAuditHeaders {
             get {

@@ -13,9 +13,9 @@ using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -48,10 +48,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                // Build parameter for custom tag.
+                // Build parameter for extended query tag.
                 VLatest.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.Build(
                     instance,
-                    indexableDicomTags.Where(tag => tag.IsCustomTag));
+                    indexableDicomTags.Where(tag => tag.IsExtendedQueryTag));
 
                 VLatest.AddInstance.PopulateCommand(
                 sqlCommandWrapper,

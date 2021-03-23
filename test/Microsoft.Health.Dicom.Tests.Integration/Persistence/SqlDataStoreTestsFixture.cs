@@ -10,10 +10,10 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 
-            CustomTagStore = new SqlCustomTagStore(SqlConnectionWrapperFactory, schemaInformation, NullLogger<SqlCustomTagStore>.Instance);
+            ExtendedQueryTagStore = new SqlExtendedQueryTagStore(SqlConnectionWrapperFactory, schemaInformation, NullLogger<SqlExtendedQueryTagStore>.Instance);
 
             TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         }
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IInstanceStore InstanceStore { get; }
 
-        public ICustomTagStore CustomTagStore { get; }
+        public IExtendedQueryTagStore ExtendedQueryTagStore { get; }
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
 

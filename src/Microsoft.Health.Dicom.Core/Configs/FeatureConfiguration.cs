@@ -18,8 +18,8 @@ namespace Microsoft.Health.Dicom.Core.Configs
         public bool EnableFullDicomItemValidation { get; set; }
 
         /// <summary>
-        /// Enables CustomTagQueryTags feature.
+        /// Enables ExtendedQueryTags feature.
         /// </summary>
-        public bool EnableCustomQueryTags { get; set; }
+        public bool EnableExtendedQueryTags { get; set; }
     }
 }

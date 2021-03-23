@@ -12,7 +12,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store

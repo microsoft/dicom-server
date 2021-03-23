@@ -66,11 +66,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             _valueParsers.Add(DicomVR.FD, ParseDoubleTagValue);
         }
 
-        public QueryExpression Parse(QueryResourceRequest request, IDictionary<DicomTag, CustomTagFilterDetails> supportedCustomTags)
+        public QueryExpression Parse(QueryResourceRequest request, IDictionary<DicomTag, ExtendedQueryTagFilterDetails> supportedExtendedQueryTags)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
-            var queriedCustomTags = new HashSet<CustomTagFilterDetails>();
+            var queriedExtendedQueryTags = new HashSet<ExtendedQueryTagFilterDetails>();
 
             _parsedQuery = new QueryExpressionImp();
 
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 }
 
                 // filter conditions with attributeId as key
-                if (ParseFilterCondition(queryParam, request.QueryResourceType, supportedCustomTags, out QueryFilterCondition condition))
+                if (ParseFilterCondition(queryParam, request.QueryResourceType, supportedExtendedQueryTags, out QueryFilterCondition condition))
                 {
                     if (_parsedQuery.FilterConditionTags.Contains(condition.DicomTag))
                     {
@@ -96,9 +96,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     _parsedQuery.FilterConditionTags.Add(condition.DicomTag);
                     _parsedQuery.FilterConditions.Add(condition);
 
-                    if (condition.CustomTagFilterDetails != null)
+                    if (condition.ExtendedQueryTagFilterDetails != null)
                     {
-                        queriedCustomTags.Add(condition.CustomTagFilterDetails);
+                        queriedExtendedQueryTags.Add(condition.ExtendedQueryTagFilterDetails);
                     }
 
                     continue;
@@ -129,7 +129,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 _parsedQuery.Limit,
                 _parsedQuery.Offset,
                 _parsedQuery.FilterConditions,
-                queriedCustomTags);
+                queriedExtendedQueryTags);
         }
 
         private static void PostProcessFilterConditions(QueryExpressionImp parsedQuery)
@@ -140,7 +140,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 for (int i = 0; i < parsedQuery.FilterConditions.Count; i++)
                 {
                     QueryFilterCondition cond = parsedQuery.FilterConditions[i];
-                    if (QueryLimit.IsValidFuzzyMatchingQueryTag(cond.DicomTag, cond.CustomTagFilterDetails?.VR))
+                    if (QueryLimit.IsValidFuzzyMatchingQueryTag(cond.DicomTag, cond.ExtendedQueryTagFilterDetails?.VR))
                     {
                         var s = cond as StringSingleValueMatchCondition;
                         parsedQuery.FilterConditions[i] = new PersonNameFuzzyMatchCondition(s.DicomTag, s.Value);
@@ -152,7 +152,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private bool ParseFilterCondition(
             KeyValuePair<string, StringValues> queryParameter,
             QueryResource resourceType,
-            IDictionary<DicomTag, CustomTagFilterDetails> supportedCustomTags,
+            IDictionary<DicomTag, ExtendedQueryTagFilterDetails> supportedExtendedQueryTags,
             out QueryFilterCondition condition)
         {
             condition = null;
@@ -164,8 +164,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 return false;
             }
 
-            CustomTagFilterDetails customTagFilterDetails;
-            ValidateIfTagSupported(dicomTag, attributeId, resourceType, supportedCustomTags, out customTagFilterDetails);
+            ExtendedQueryTagFilterDetails extendedQueryTagFilterDetails;
+            ValidateIfTagSupported(dicomTag, attributeId, resourceType, supportedExtendedQueryTags, out extendedQueryTagFilterDetails);
 
             // parse tag value
             if (queryParameter.Value.Count != 1)
@@ -179,13 +179,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 throw new QueryParseException(string.Format(DicomCoreResource.QueryEmptyAttributeValue, attributeId));
             }
 
-            var tagTypeCode = customTagFilterDetails == null ? dicomTag.DictionaryEntry.ValueRepresentations.FirstOrDefault() : customTagFilterDetails.VR;
+            var tagTypeCode = extendedQueryTagFilterDetails == null ? dicomTag.DictionaryEntry.ValueRepresentations.FirstOrDefault() : extendedQueryTagFilterDetails.VR;
             if (_valueParsers.TryGetValue(tagTypeCode, out Func<DicomTag, string, DicomVR, QueryFilterCondition> valueParser))
             {
                 condition = valueParser(dicomTag, trimmedValue, tagTypeCode);
             }
 
-            condition.CustomTagFilterDetails = customTagFilterDetails;
+            condition.ExtendedQueryTagFilterDetails = extendedQueryTagFilterDetails;
 
             return condition != null;
         }
@@ -202,14 +202,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return false;
         }
 
-        private static void ValidateIfTagSupported(DicomTag dicomTag, string attributeId, QueryResource resourceType, IDictionary<DicomTag, CustomTagFilterDetails> supportedCustomTags, out CustomTagFilterDetails customTagFilterDetails)
+        private static void ValidateIfTagSupported(DicomTag dicomTag, string attributeId, QueryResource resourceType, IDictionary<DicomTag, ExtendedQueryTagFilterDetails> supportedExtendedQueryTags, out ExtendedQueryTagFilterDetails extendedQueryTagFilterDetails)
         {
-            customTagFilterDetails = null;
+            extendedQueryTagFilterDetails = null;
             HashSet<DicomTag> supportedQueryTags = QueryLimit.QueryResourceTypeToTagsMapping[resourceType];
 
             if (!supportedQueryTags.Contains(dicomTag))
             {
-                if (supportedCustomTags != null && supportedCustomTags.TryGetValue(dicomTag, out customTagFilterDetails))
+                if (supportedExtendedQueryTags != null && supportedExtendedQueryTags.TryGetValue(dicomTag, out extendedQueryTagFilterDetails))
                 {
                     return;
                 }

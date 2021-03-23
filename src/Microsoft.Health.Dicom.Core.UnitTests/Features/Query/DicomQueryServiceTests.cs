@@ -9,7 +9,7 @@ using Dicom;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -25,18 +25,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         private readonly QueryService _queryService;
         private readonly IQueryParser _queryParser;
         private readonly IQueryStore _queryStore;
-        private readonly ICustomTagStore _customTagStore;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
 
         public DicomQueryServiceTests()
         {
             _queryParser = Substitute.For<IQueryParser>();
             _queryStore = Substitute.For<IQueryStore>();
-            _customTagStore = Substitute.For<ICustomTagStore>();
+            _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _queryService = new QueryService(
                 _queryParser,
                 _queryStore,
                 Substitute.For<IMetadataStore>(),
-                _customTagStore,
+                _extendedQueryTagStore,
                 new DicomTagParser());
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData(QueryResource.AllInstances)]
         [InlineData(QueryResource.StudyInstances)]
         [InlineData(QueryResource.StudySeriesInstances)]
-        public async void GivenRequestForInstances_WhenRetrievingQueriableCustomTags_ReturnsAllTags(QueryResource resourceType)
+        public async void GivenRequestForInstances_WhenRetrievingQueriableExtendedQueryTags_ReturnsAllTags(QueryResource resourceType)
         {
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
@@ -77,29 +77,29 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
 
-            List<CustomTagStoreEntry> storeEntries = new List<CustomTagStoreEntry>()
+            List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
             {
-                new CustomTagStoreEntry(1, "00741000", "CS", null, CustomTagLevel.Instance, CustomTagStatus.Ready),
-                new CustomTagStoreEntry(2, "0040A121", "DA", null, CustomTagLevel.Series, CustomTagStatus.Ready),
-                new CustomTagStoreEntry(3, "00101005", "PN", null, CustomTagLevel.Study, CustomTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, ExtendedQueryTagLevel.Instance, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, ExtendedQueryTagLevel.Series, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, ExtendedQueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
             };
 
-            _customTagStore.GetCustomTagsAsync().ReturnsForAnyArgs(storeEntries);
+            _extendedQueryTagStore.GetExtendedQueryTagsAsync().ReturnsForAnyArgs(storeEntries);
             _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(request, CancellationToken.None);
 
-            Dictionary<DicomTag, CustomTagFilterDetails> filterDetails = new Dictionary<DicomTag, CustomTagFilterDetails>();
-            filterDetails.Add(DicomTag.ProcedureStepState, new CustomTagFilterDetails(1, CustomTagLevel.Instance, DicomVR.CS, DicomTag.ProcedureStepState));
-            filterDetails.Add(DicomTag.Date, new CustomTagFilterDetails(2, CustomTagLevel.Series, DicomVR.DA, DicomTag.Date));
-            filterDetails.Add(DicomTag.PatientBirthName, new CustomTagFilterDetails(3, CustomTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
+            Dictionary<DicomTag, ExtendedQueryTagFilterDetails> filterDetails = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
+            filterDetails.Add(DicomTag.ProcedureStepState, new ExtendedQueryTagFilterDetails(1, ExtendedQueryTagLevel.Instance, DicomVR.CS, DicomTag.ProcedureStepState));
+            filterDetails.Add(DicomTag.Date, new ExtendedQueryTagFilterDetails(2, ExtendedQueryTagLevel.Series, DicomVR.DA, DicomTag.Date));
+            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, ExtendedQueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
 
-            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, CustomTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
+            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, ExtendedQueryTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
         }
 
         [Theory]
         [InlineData(QueryResource.AllSeries)]
         [InlineData(QueryResource.StudySeries)]
-        public async void GivenRequestForSeries_WhenRetrievingQueriableCustomTags_ReturnsSeriesAndStudyTags(QueryResource resourceType)
+        public async void GivenRequestForSeries_WhenRetrievingQueriableExtendedQueryTags_ReturnsSeriesAndStudyTags(QueryResource resourceType)
         {
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
@@ -107,27 +107,27 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
 
-            List<CustomTagStoreEntry> storeEntries = new List<CustomTagStoreEntry>()
+            List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
             {
-                new CustomTagStoreEntry(1, "00741000", "CS", null, CustomTagLevel.Instance, CustomTagStatus.Ready),
-                new CustomTagStoreEntry(2, "0040A121", "DA", null, CustomTagLevel.Series, CustomTagStatus.Ready),
-                new CustomTagStoreEntry(3, "00101005", "PN", null, CustomTagLevel.Study, CustomTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, ExtendedQueryTagLevel.Instance, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, ExtendedQueryTagLevel.Series, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, ExtendedQueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
             };
 
-            _customTagStore.GetCustomTagsAsync().ReturnsForAnyArgs(storeEntries);
+            _extendedQueryTagStore.GetExtendedQueryTagsAsync().ReturnsForAnyArgs(storeEntries);
             _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(request, CancellationToken.None);
 
-            Dictionary<DicomTag, CustomTagFilterDetails> filterDetails = new Dictionary<DicomTag, CustomTagFilterDetails>();
-            filterDetails.Add(DicomTag.Date, new CustomTagFilterDetails(2, CustomTagLevel.Series, DicomVR.DA, DicomTag.Date));
-            filterDetails.Add(DicomTag.PatientBirthName, new CustomTagFilterDetails(3, CustomTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
+            Dictionary<DicomTag, ExtendedQueryTagFilterDetails> filterDetails = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
+            filterDetails.Add(DicomTag.Date, new ExtendedQueryTagFilterDetails(2, ExtendedQueryTagLevel.Series, DicomVR.DA, DicomTag.Date));
+            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, ExtendedQueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
 
-            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, CustomTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
+            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, ExtendedQueryTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
         }
 
         [Theory]
         [InlineData(QueryResource.AllStudies)]
-        public async void GivenRequestForStudies_WhenRetrievingQueriableCustomTags_ReturnsStudyTags(QueryResource resourceType)
+        public async void GivenRequestForStudies_WhenRetrievingQueriableExtendedQueryTags_ReturnsStudyTags(QueryResource resourceType)
         {
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
@@ -135,21 +135,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
 
-            List<CustomTagStoreEntry> storeEntries = new List<CustomTagStoreEntry>()
+            List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
             {
-                new CustomTagStoreEntry(1, "00741000", "CS", null, CustomTagLevel.Instance, CustomTagStatus.Ready),
-                new CustomTagStoreEntry(2, "0040A121", "DA", null, CustomTagLevel.Series, CustomTagStatus.Ready),
-                new CustomTagStoreEntry(3, "00101005", "PN", null, CustomTagLevel.Study, CustomTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, ExtendedQueryTagLevel.Instance, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, ExtendedQueryTagLevel.Series, ExtendedQueryTagStatus.Ready),
+                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, ExtendedQueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
             };
 
-            _customTagStore.GetCustomTagsAsync().ReturnsForAnyArgs(storeEntries);
+            _extendedQueryTagStore.GetExtendedQueryTagsAsync().ReturnsForAnyArgs(storeEntries);
             _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(request, CancellationToken.None);
 
-            Dictionary<DicomTag, CustomTagFilterDetails> filterDetails = new Dictionary<DicomTag, CustomTagFilterDetails>();
-            filterDetails.Add(DicomTag.PatientBirthName, new CustomTagFilterDetails(3, CustomTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
+            Dictionary<DicomTag, ExtendedQueryTagFilterDetails> filterDetails = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
+            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, ExtendedQueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
 
-            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, CustomTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
+            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, ExtendedQueryTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
         }
     }
 }
