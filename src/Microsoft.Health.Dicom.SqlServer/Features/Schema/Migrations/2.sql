@@ -365,14 +365,14 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
 )
 
 /*************************************************************
-    Custom Tag Table
-    Stores added custom tags
+    Extended Query Tag Table
+    Stores added extended query tags
     TagPath is represented without any delimiters and each level takes 8 bytes
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting    
 **************************************************************/
-CREATE TABLE dbo.CustomTag (
+CREATE TABLE dbo.ExtendedQueryTag (
     TagKey                  INT                  NOT NULL, --PK
     TagPath                 VARCHAR(64)          NOT NULL,
     TagVR                   VARCHAR(2)           NOT NULL,
@@ -381,24 +381,24 @@ CREATE TABLE dbo.CustomTag (
     TagStatus               TINYINT              NOT NULL
 )
 
-CREATE UNIQUE CLUSTERED INDEX IXC_CustomTag ON dbo.CustomTag
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
 (
     TagKey
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_CustomTag_TagPath ON dbo.CustomTag
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
 (
     TagPath
 )
 
 /*************************************************************
-    Custom Tag Data Table for VR Types mapping to String
+    Extended Query Tag Data Table for VR Types mapping to String
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
             For example, with multiple instances in a series, while indexing a series level tag,
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.CustomTagString (
+CREATE TABLE dbo.ExtendedQueryTagString (
     TagKey                  INT                  NOT NULL, --PK
     TagValue                NVARCHAR(64)         NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
@@ -407,7 +407,7 @@ CREATE TABLE dbo.CustomTagString (
     Watermark               BIGINT               NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagString ON dbo.CustomTagString
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
 (
     TagKey,
     TagValue,
@@ -417,13 +417,13 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagString ON dbo.CustomTagString
 )
 
 /*************************************************************
-    Custom Tag Data Table for VR Types mapping to BigInt
+    Extended Query Tag Data Table for VR Types mapping to BigInt
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
             For example, with multiple instances in a series, while indexing a series level tag,
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.CustomTagBigInt (
+CREATE TABLE dbo.ExtendedQueryTagBigInt (
     TagKey                  INT                  NOT NULL, --PK
     TagValue                BIGINT               NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
@@ -432,7 +432,7 @@ CREATE TABLE dbo.CustomTagBigInt (
     Watermark               BIGINT               NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagBigInt ON dbo.CustomTagBigInt
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagBigInt ON dbo.ExtendedQueryTagBigInt
 (
     TagKey,
     TagValue,
@@ -442,13 +442,13 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagBigInt ON dbo.CustomTagBigInt
 )
 
 /*************************************************************
-    Custom Tag Data Table for VR Types mapping to Double
+    Extended Query Tag Data Table for VR Types mapping to Double
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
             For example, with multiple instances in a series, while indexing a series level tag,
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.CustomTagDouble (
+CREATE TABLE dbo.ExtendedQueryTagDouble (
     TagKey                  INT                  NOT NULL, --PK
     TagValue                FLOAT(53)            NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
@@ -457,7 +457,7 @@ CREATE TABLE dbo.CustomTagDouble (
     Watermark               BIGINT               NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDouble ON dbo.CustomTagDouble
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
 (
     TagKey,
     TagValue,
@@ -467,13 +467,13 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDouble ON dbo.CustomTagDouble
 )
 
 /*************************************************************
-    Custom Tag Data Table for VR Types mapping to DateTime
+    Extended Query Tag Data Table for VR Types mapping to DateTime
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
             For example, with multiple instances in a series, while indexing a series level tag,
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.CustomTagDateTime (
+CREATE TABLE dbo.ExtendedQueryTagDateTime (
     TagKey                  INT                  NOT NULL, --PK
     TagValue                DATETIME2(7)         NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
@@ -482,7 +482,7 @@ CREATE TABLE dbo.CustomTagDateTime (
     Watermark               BIGINT               NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDateTime ON dbo.CustomTagDateTime
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
 (
     TagKey,
     TagValue,
@@ -492,14 +492,14 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagDateTime ON dbo.CustomTagDateTime
 )
 
 /*************************************************************
-    Custom Tag Data Table for VR Types mapping to PersonName
+    Extended Query Tag Data Table for VR Types mapping to PersonName
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
             For example, with multiple instances in a series, while indexing a series level tag,
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
 	Note: The primary key is designed on the assumption that tags only occur once in an instance.
 **************************************************************/
-CREATE TABLE dbo.CustomTagPersonName (
+CREATE TABLE dbo.ExtendedQueryTagPersonName (
     TagKey                  INT                  NOT NULL, --FK
     TagValue                NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
@@ -510,7 +510,7 @@ CREATE TABLE dbo.CustomTagPersonName (
     TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagPersonName ON dbo.CustomTagPersonName
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
 (
     TagKey,
     TagValue,
@@ -519,31 +519,31 @@ CREATE UNIQUE CLUSTERED INDEX IXC_CustomTagPersonName ON dbo.CustomTagPersonName
     InstanceKey
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IXC_CustomTagPersonName_WatermarkAndTagKey ON dbo.CustomTagPersonName
+CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey ON dbo.ExtendedQueryTagPersonName
 (
     WatermarkAndTagKey
 )
 
-CREATE FULLTEXT INDEX ON CustomTagPersonName(TagValueWords LANGUAGE 1033)
-KEY INDEX IXC_CustomTagPersonName_WatermarkAndTagKey
+CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
+KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
 WITH STOPLIST = OFF;
 
 /*************************************************************
-    The user defined type for AddCustomTagsInput
+    The user defined type for AddExtendedQueryTagsInput
 *************************************************************/
-CREATE TYPE dbo.AddCustomTagsInputTableType_1 AS TABLE
+CREATE TYPE dbo.AddExtendedQueryTagsInputTableType_1 AS TABLE
 (
-    TagPath                    VARCHAR(64),  -- Custom Tag Path. Each custom tag take 8 bytes, support upto 8 levels, no delimeter between each level.
-    TagVR                      VARCHAR(2),  -- Custom Tag VR.
-    TagPrivateCreator          NVARCHAR(64),  -- Custom Tag Private Creator, only valid for private tag.
-    TagLevel                   TINYINT  -- Custom Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
+    TagPath                    VARCHAR(64),  -- Extended Query Tag Path. Each extended query tag take 8 bytes, support upto 8 levels, no delimeter between each level.
+    TagVR                      VARCHAR(2),  -- Extended Query Tag VR.
+    TagPrivateCreator          NVARCHAR(64),  -- Extended Query Tag Private Creator, only valid for private tag.
+    TagLevel                   TINYINT  -- Extended Query Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
 )
 GO
 
 /*************************************************************
-    Table valued parameter to insert into Custom table for data type String
+    Table valued parameter to insert into Extended Query Tag table for data type String
 *************************************************************/
-CREATE TYPE dbo.InsertStringCustomTagTableType_1 AS TABLE
+CREATE TYPE dbo.InsertStringExtendedQueryTagTableType_1 AS TABLE
 (
     TagKey                     INT,
     TagValue                   NVARCHAR(64),
@@ -552,9 +552,9 @@ CREATE TYPE dbo.InsertStringCustomTagTableType_1 AS TABLE
 GO
 
 /*************************************************************
-    Table valued parameter to insert into Custom table for data type Double
+    Table valued parameter to insert into Extended Query Tag table for data type Double
 *************************************************************/
-CREATE TYPE dbo.InsertDoubleCustomTagTableType_1 AS TABLE
+CREATE TYPE dbo.InsertDoubleExtendedQueryTagTableType_1 AS TABLE
 (
     TagKey                     INT,
     TagValue                   FLOAT(53),
@@ -563,9 +563,9 @@ CREATE TYPE dbo.InsertDoubleCustomTagTableType_1 AS TABLE
 GO
 
 /*************************************************************
-    Table valued parameter to insert into Custom table for data type Big Int
+    Table valued parameter to insert into Extended Query Tag table for data type Big Int
 *************************************************************/
-CREATE TYPE dbo.InsertBigIntCustomTagTableType_1 AS TABLE
+CREATE TYPE dbo.InsertBigIntExtendedQueryTagTableType_1 AS TABLE
 (
     TagKey                     INT,
     TagValue                   BIGINT,
@@ -574,9 +574,9 @@ CREATE TYPE dbo.InsertBigIntCustomTagTableType_1 AS TABLE
 GO
 
 /*************************************************************
-    Table valued parameter to insert into Custom table for data type Date Time
+    Table valued parameter to insert into Extended Query Tag table for data type Date Time
 *************************************************************/
-CREATE TYPE dbo.InsertDateTimeCustomTagTableType_1 AS TABLE
+CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_1 AS TABLE
 (
     TagKey                     INT,
     TagValue                   DATETIME2(7),
@@ -585,9 +585,9 @@ CREATE TYPE dbo.InsertDateTimeCustomTagTableType_1 AS TABLE
 GO
 
 /*************************************************************
-    Table valued parameter to insert into Custom table for data type Person Name
+    Table valued parameter to insert into Extended Query Tag table for data type Person Name
 *************************************************************/
-CREATE TYPE dbo.InsertPersonNameCustomTagTableType_1 AS TABLE
+CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE
 (
     TagKey                     INT,
     TagValue                   NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
@@ -674,16 +674,16 @@ GO
 --         * The modality associated for the series.
 --     @performedProcedureStepStartDate
 --         * The date when the procedure for the series was performed.
---     @stringCustomTags
---         * String custom tag data
---     @bigIntCustomTags
---         * BigInt custom tag data
---     @doubleCustomTags
---         * Double custom tag data
---     @dateTimeCustomTags
---         * DateTime custom tag data
---     @personNameCustomTags
---         * PersonName custom tag data
+--     @stringExtendedQueryTags
+--         * String extended query tag data
+--     @bigIntExtendedQueryTags
+--         * BigInt extended query tag data
+--     @doubleExtendedQueryTags
+--         * Double extended query tag data
+--     @dateTimeExtendedQueryTags
+--         * DateTime extended query tag data
+--     @personNameExtendedQueryTags
+--         * PersonName extended query tag data
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
@@ -699,11 +699,11 @@ CREATE PROCEDURE dbo.AddInstance
     @accessionNumber                    NVARCHAR(64) = NULL,
     @modality                           NVARCHAR(16) = NULL,
     @performedProcedureStepStartDate    DATE = NULL,                
-    @stringCustomTags dbo.InsertStringCustomTagTableType_1 READONLY,    
-    @bigIntCustomTags dbo.InsertBigIntCustomTagTableType_1 READONLY,
-    @doubleCustomTags dbo.InsertDoubleCustomTagTableType_1 READONLY,
-    @dateTimeCustomTags dbo.InsertDateTimeCustomTagTableType_1 READONLY,
-    @personNameCustomTags dbo.InsertPersonNameCustomTagTableType_1 READONLY,
+    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,    
+    @bigIntExtendedQueryTags dbo.InsertBigIntExtendedQueryTagTableType_1 READONLY,
+    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
     @initialStatus                      TINYINT
 AS
     SET NOCOUNT ON
@@ -784,20 +784,20 @@ AS
     VALUES
         (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
-    -- Insert Custom Tags
+    -- Insert Extended Query Tags
 
     -- String Key tags
-    IF EXISTS (SELECT 1 FROM @stringCustomTags)
+    IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
     BEGIN      
-        MERGE INTO dbo.CustomTagString AS T
+        MERGE INTO dbo.ExtendedQueryTagString AS T
         USING 
         (
             SELECT input.TagKey, input.TagValue, input.TagLevel 
-            FROM @stringCustomTags input
-            INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
-            ON dbo.CustomTag.TagKey = input.TagKey
-            -- Not merge on custom tag which is being deleted.
-            AND dbo.CustomTag.TagStatus <> 2     
+            FROM @stringExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            -- Not merge on extended query tag which is being deleted.
+            AND dbo.ExtendedQueryTag.TagStatus <> 2     
         ) AS S
         ON T.TagKey = S.TagKey        
             AND T.StudyKey = @studyKey
@@ -821,16 +821,16 @@ AS
     END
 
     -- BigInt Key tags
-    IF EXISTS (SELECT 1 FROM @bigIntCustomTags)
+    IF EXISTS (SELECT 1 FROM @bigIntExtendedQueryTags)
     BEGIN      
-        MERGE INTO dbo.CustomTagBigInt AS T
+        MERGE INTO dbo.ExtendedQueryTagBigInt AS T
         USING 
         (
             SELECT input.TagKey, input.TagValue, input.TagLevel 
-            FROM @bigIntCustomTags input
-            INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
-            ON dbo.CustomTag.TagKey = input.TagKey            
-            AND dbo.CustomTag.TagStatus <> 2     
+            FROM @bigIntExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
+            AND dbo.ExtendedQueryTag.TagStatus <> 2     
         ) AS S
         ON T.TagKey = S.TagKey        
             AND T.StudyKey = @studyKey            
@@ -850,16 +850,16 @@ AS
     END
 
     -- Double Key tags
-    IF EXISTS (SELECT 1 FROM @doubleCustomTags)
+    IF EXISTS (SELECT 1 FROM @doubleExtendedQueryTags)
     BEGIN      
-        MERGE INTO dbo.CustomTagDouble AS T
+        MERGE INTO dbo.ExtendedQueryTagDouble AS T
         USING 
         (
             SELECT input.TagKey, input.TagValue, input.TagLevel 
-            FROM @doubleCustomTags input
-            INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
-            ON dbo.CustomTag.TagKey = input.TagKey            
-            AND dbo.CustomTag.TagStatus <> 2     
+            FROM @doubleExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
+            AND dbo.ExtendedQueryTag.TagStatus <> 2     
         ) AS S
         ON T.TagKey = S.TagKey        
             AND T.StudyKey = @studyKey            
@@ -879,16 +879,16 @@ AS
     END
 
     -- DateTime Key tags
-    IF EXISTS (SELECT 1 FROM @dateTimeCustomTags)
+    IF EXISTS (SELECT 1 FROM @dateTimeExtendedQueryTags)
     BEGIN      
-        MERGE INTO dbo.CustomTagDateTime AS T
+        MERGE INTO dbo.ExtendedQueryTagDateTime AS T
         USING 
         (
             SELECT input.TagKey, input.TagValue, input.TagLevel 
-            FROM @dateTimeCustomTags input
-            INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
-            ON dbo.CustomTag.TagKey = input.TagKey            
-            AND dbo.CustomTag.TagStatus <> 2     
+            FROM @dateTimeExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
+            AND dbo.ExtendedQueryTag.TagStatus <> 2     
         ) AS S
         ON T.TagKey = S.TagKey        
             AND T.StudyKey = @studyKey            
@@ -908,16 +908,16 @@ AS
     END
 
     -- PersonName Key tags
-    IF EXISTS (SELECT 1 FROM @personNameCustomTags)
+    IF EXISTS (SELECT 1 FROM @personNameExtendedQueryTags)
     BEGIN      
-        MERGE INTO dbo.CustomTagPersonName AS T
+        MERGE INTO dbo.ExtendedQueryTagPersonName AS T
         USING 
         (
             SELECT input.TagKey, input.TagValue, input.TagLevel 
-            FROM @personNameCustomTags input
-            INNER JOIN dbo.CustomTag WITH (REPEATABLEREAD) 
-            ON dbo.CustomTag.TagKey = input.TagKey            
-            AND dbo.CustomTag.TagStatus <> 2     
+            FROM @personNameExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
+            AND dbo.ExtendedQueryTag.TagStatus <> 2     
         ) AS S
         ON T.TagKey = S.TagKey        
             AND T.StudyKey = @studyKey            
@@ -1121,31 +1121,31 @@ AS
 
     -- Deleting indexed instance tags
     DELETE
-    FROM    dbo.CustomTagString
+    FROM    dbo.ExtendedQueryTagString
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
     DELETE
-    FROM    dbo.CustomTagBigInt
+    FROM    dbo.ExtendedQueryTagBigInt
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
     DELETE
-    FROM    dbo.CustomTagDouble
+    FROM    dbo.ExtendedQueryTagDouble
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
     DELETE
-    FROM    dbo.CustomTagDateTime
+    FROM    dbo.ExtendedQueryTagDateTime
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
     DELETE
-    FROM    dbo.CustomTagPersonName
+    FROM    dbo.ExtendedQueryTagPersonName
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
@@ -1182,27 +1182,27 @@ AS
 
         -- Deleting indexed series tags
         DELETE
-        FROM    dbo.CustomTagString
+        FROM    dbo.ExtendedQueryTagString
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
 
         DELETE
-        FROM    dbo.CustomTagBigInt
+        FROM    dbo.ExtendedQueryTagBigInt
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
 
         DELETE
-        FROM    dbo.CustomTagDouble
+        FROM    dbo.ExtendedQueryTagDouble
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
 
         DELETE
-        FROM    dbo.CustomTagDateTime
+        FROM    dbo.ExtendedQueryTagDateTime
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
 
         DELETE
-        FROM    dbo.CustomTagPersonName
+        FROM    dbo.ExtendedQueryTagPersonName
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     END
@@ -1218,23 +1218,23 @@ AS
 
         -- Deleting indexed study tags
         DELETE
-        FROM    dbo.CustomTagString
+        FROM    dbo.ExtendedQueryTagString
         WHERE   StudyKey = @studyKey
 
         DELETE
-        FROM    dbo.CustomTagBigInt
+        FROM    dbo.ExtendedQueryTagBigInt
         WHERE   StudyKey = @studyKey
 
         DELETE
-        FROM    dbo.CustomTagDouble
+        FROM    dbo.ExtendedQueryTagDouble
         WHERE   StudyKey = @studyKey
 
         DELETE
-        FROM    dbo.CustomTagDateTime
+        FROM    dbo.ExtendedQueryTagDateTime
         WHERE   StudyKey = @studyKey
 
         DELETE
-        FROM    dbo.CustomTagPersonName
+        FROM    dbo.ExtendedQueryTagPersonName
         WHERE   StudyKey = @studyKey
     END
 
@@ -1410,16 +1410,16 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetCustomTag(s)
+--     GetExtendedQueryTag(s)
 --
 -- DESCRIPTION
---     Gets all custom tags or given custom tag by tag path
+--     Gets all extended query tags or given extended query tag by tag path
 --
 -- PARAMETERS
 --     @tagPath
---         * The TagPath for the custom tag to retrieve.
+--         * The TagPath for the extended query tag to retrieve.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetCustomTag (
+CREATE PROCEDURE dbo.GetExtendedQueryTag (
     @tagPath  VARCHAR(64) = NULL
 )
 AS
@@ -1433,24 +1433,24 @@ BEGIN
             TagPrivateCreator,
             TagLevel,
             TagStatus
-    FROM    dbo.CustomTag
+    FROM    dbo.ExtendedQueryTag
     WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
 END
 GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     AddCustomTags
+--     AddExtendedQueryTags
 --
 -- DESCRIPTION
---    Add a list of custom tags.
+--    Add a list of extended query tags.
 --
 -- PARAMETERS
---     @customTags
---         * The custom tag list
+--     @extendedQueryTags
+--         * The extended query tag list
 /***************************************************************************************/
-CREATE PROCEDURE dbo.AddCustomTags (
-    @customTags dbo.AddCustomTagsInputTableType_1 READONLY
+CREATE PROCEDURE dbo.AddExtendedQueryTags (
+    @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY
 )
 AS
 
@@ -1461,35 +1461,35 @@ AS
         
         -- Check if tag with same path already exist
         SELECT TagKey 
-        FROM dbo.CustomTag WITH(HOLDLOCK) 
-        INNER JOIN @customTags input 
-        ON input.TagPath = dbo.CustomTag.TagPath 
+        FROM dbo.ExtendedQueryTag WITH(HOLDLOCK) 
+        INNER JOIN @extendedQueryTags input 
+        ON input.TagPath = dbo.ExtendedQueryTag.TagPath 
 	    
         IF @@ROWCOUNT <> 0
-            THROW 50409, 'custom tag(s) already exist', 1 
+            THROW 50409, 'extended query tag(s) already exist', 1 
 
-        -- add to custom tag table with status 1(Ready)
-        INSERT INTO dbo.CustomTag 
+        -- add to extended query tag table with status 1(Ready)
+        INSERT INTO dbo.ExtendedQueryTag 
             (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, 1 FROM @customTags
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, 1 FROM @extendedQueryTags
         
     COMMIT TRANSACTION
 GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---    DeleteCustomTag
+--    DeleteExtendedQueryTag
 --
 -- DESCRIPTION
---    Delete specific custom tag
+--    Delete specific extended query tag
 --
 -- PARAMETERS
 --     @tagPath
---         * The custom tag path
+--         * The extended query tag path
 --     @dataType
---         * the data type of custom tag. 0 -- String, 1 -- BigInt, 2 -- Double, 3 -- DateTime, 4 -- PersonName
+--         * the data type of extended query tag. 0 -- String, 1 -- BigInt, 2 -- Double, 3 -- DateTime, 4 -- PersonName
 /***************************************************************************************/
-CREATE PROCEDURE dbo.DeleteCustomTag (
+CREATE PROCEDURE dbo.DeleteExtendedQueryTag (
     @tagPath VARCHAR(64),
     @dataType TINYINT
 )
@@ -1504,21 +1504,21 @@ AS
         DECLARE @tagKey INT        
  
         SELECT @tagKey = TagKey, @tagStatus = TagStatus
-        FROM dbo.CustomTag WITH(XLOCK) 
-        WHERE dbo.CustomTag.TagPath = @tagPath
+        FROM dbo.ExtendedQueryTag WITH(XLOCK) 
+        WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
 
         -- Check existence
         IF @@ROWCOUNT = 0
-            THROW 50404, 'custom tag not found', 1 
+            THROW 50404, 'extended query tag not found', 1 
 
         -- check if status is Ready
         IF @tagStatus <> 1
-            THROW 50412, 'custom tag is not in Ready status', 1
+            THROW 50412, 'extended query tag is not in Ready status', 1
 
         -- Update status to Deleting
-        UPDATE dbo.CustomTag
+        UPDATE dbo.ExtendedQueryTag
         SET TagStatus = 2 
-        WHERE dbo.CustomTag.TagKey = @tagKey
+        WHERE dbo.ExtendedQueryTag.TagKey = @tagKey
 
     COMMIT TRANSACTION
 
@@ -1526,18 +1526,18 @@ AS
         
         -- Delete index data
         IF @dataType = 0
-            DELETE FROM dbo.CustomTagString WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey
         ELSE IF @dataType = 1
-            DELETE FROM dbo.CustomTagBigInt WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagBigInt WHERE TagKey = @tagKey
         ELSE IF @dataType = 2
-            DELETE FROM dbo.CustomTagDouble WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey
         ELSE IF @dataType = 3
-            DELETE FROM dbo.CustomTagDateTime WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagDateTime WHERE TagKey = @tagKey
         ELSE
-            DELETE FROM dbo.CustomTagPersonName WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey
 
         -- Delete tag
-        DELETE FROM dbo.CustomTag 
+        DELETE FROM dbo.ExtendedQueryTag 
         WHERE TagKey = @tagKey
         
     COMMIT TRANSACTION

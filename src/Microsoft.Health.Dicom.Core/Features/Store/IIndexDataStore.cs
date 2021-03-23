@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 
@@ -23,10 +23,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// Asynchronously creates a new instance index.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to index.</param>
-        /// <param name="indexTags">Indexable dicom tags</param>
+        /// <param name="queryTags">Queryable dicom tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous create operation.</returns>
-        Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<IndexTag> indexTags, CancellationToken cancellationToken = default);
+        Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="studyInstanceUid"/>.

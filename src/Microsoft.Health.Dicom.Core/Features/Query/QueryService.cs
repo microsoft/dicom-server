@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Query;
@@ -23,25 +23,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private readonly IQueryParser _queryParser;
         private readonly IQueryStore _queryStore;
         private readonly IMetadataStore _metadataStore;
-        private readonly ICustomTagStore _customTagStore;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IDicomTagParser _dicomTagPathParser;
 
         public QueryService(
             IQueryParser queryParser,
             IQueryStore queryStore,
             IMetadataStore metadataStore,
-            ICustomTagStore customTagStore,
+            IExtendedQueryTagStore extendedQueryTagStore,
             IDicomTagParser dicomTagPathParser)
         {
             EnsureArg.IsNotNull(queryParser, nameof(queryParser));
             EnsureArg.IsNotNull(queryStore, nameof(queryStore));
-            EnsureArg.IsNotNull(customTagStore, nameof(customTagStore));
+            EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
 
             _queryParser = queryParser;
             _queryStore = queryStore;
             _metadataStore = metadataStore;
-            _customTagStore = customTagStore;
+            _extendedQueryTagStore = extendedQueryTagStore;
             _dicomTagPathParser = dicomTagPathParser;
         }
 
@@ -53,11 +53,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             ValidateRequestIdentifiers(message);
 
-            IReadOnlyList<CustomTagStoreEntry> customTags = await _customTagStore.GetCustomTagsAsync(null, cancellationToken);
+            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(null, cancellationToken);
 
-            IDictionary<DicomTag, CustomTagFilterDetails> supportedCustomTags = RetrieveSupportedCustomTagsForQueryResourceType(customTags, message.QueryResourceType);
+            IDictionary<DicomTag, ExtendedQueryTagFilterDetails> supportedExtendedQueryTags = RetrieveSupportedExtendedQueryTagsForQueryResourceType(extendedQueryTags, message.QueryResourceType);
 
-            QueryExpression queryExpression = _queryParser.Parse(message, supportedCustomTags);
+            QueryExpression queryExpression = _queryParser.Parse(message, supportedExtendedQueryTags);
 
             QueryResult queryResult = await _queryStore.QueryAsync(queryExpression, cancellationToken);
 
@@ -76,25 +76,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new QueryResourceResponse(responseMetadata);
         }
 
-        private IDictionary<DicomTag, CustomTagFilterDetails> RetrieveSupportedCustomTagsForQueryResourceType(IReadOnlyList<CustomTagStoreEntry> customTags, QueryResource queryResource)
+        private IDictionary<DicomTag, ExtendedQueryTagFilterDetails> RetrieveSupportedExtendedQueryTagsForQueryResourceType(IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags, QueryResource queryResource)
         {
-            var ret = new Dictionary<DicomTag, CustomTagFilterDetails>();
+            var ret = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
 
-            foreach (CustomTagStoreEntry customTag in customTags)
+            foreach (ExtendedQueryTagStoreEntry extendedQueryTag in extendedQueryTags)
             {
                 DicomTag[] result;
                 DicomTag dicomTag;
-                if (customTag.Status.Equals(CustomTagStatus.Ready) && _dicomTagPathParser.TryParse(customTag.Path, out result))
+                if (extendedQueryTag.Status.Equals(ExtendedQueryTagStatus.Ready) && _dicomTagPathParser.TryParse(extendedQueryTag.Path, out result))
                 {
                     dicomTag = result[0];
                     if (queryResource.Equals(QueryResource.AllInstances) || queryResource.Equals(QueryResource.StudyInstances) || queryResource.Equals(QueryResource.StudySeriesInstances)
-                        || ((queryResource.Equals(QueryResource.AllSeries) || queryResource.Equals(QueryResource.StudySeries)) && (customTag.Level.Equals(CustomTagLevel.Study) || customTag.Level.Equals(CustomTagLevel.Series)))
-                        || (queryResource.Equals(QueryResource.AllStudies) && customTag.Level.Equals(CustomTagLevel.Study)))
+                        || ((queryResource.Equals(QueryResource.AllSeries) || queryResource.Equals(QueryResource.StudySeries)) && (extendedQueryTag.Level.Equals(QueryTagLevel.Study) || extendedQueryTag.Level.Equals(QueryTagLevel.Series)))
+                        || (queryResource.Equals(QueryResource.AllStudies) && extendedQueryTag.Level.Equals(QueryTagLevel.Study)))
                     {
-                        // When querying for instances, custom tags of all levels can be filtered on.
-                        // When querying for series, study and series custom tags can be filtered on.
-                        // When querying for studies, study custom tags can be filtered on.
-                        ret.Add(dicomTag, new CustomTagFilterDetails(customTag.Key, customTag.Level, DicomVR.Parse(customTag.VR), dicomTag));
+                        // When querying for instances, extended query tags of all levels can be filtered on.
+                        // When querying for series, study and series extended query tags can be filtered on.
+                        // When querying for studies, study extended query tags can be filtered on.
+                        ret.Add(dicomTag, new ExtendedQueryTagFilterDetails(extendedQueryTag.Key, extendedQueryTag.Level, DicomVR.Parse(extendedQueryTag.VR), dicomTag));
                     }
                 }
             }

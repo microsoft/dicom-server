@@ -88,24 +88,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified custom tag with tag path {0} cannot be found..
-        /// </summary>
-        internal static string CustomTagNotFound {
-            get {
-                return ResourceManager.GetString("CustomTagNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to One or more custom tags already exist..
-        /// </summary>
-        internal static string CustomTagsAlreadyExists {
-            get {
-                return ResourceManager.GetString("CustomTagsAlreadyExists", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
         internal static string DataStoreOperationFailed {
@@ -124,20 +106,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; has been specified before..
-        /// </summary>
-        internal static string DuplicateCustomTag {
-            get {
-                return ResourceManager.GetString("DuplicateCustomTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
         /// </summary>
         internal static string DuplicatedUidsNotAllowed {
             get {
                 return ResourceManager.GetString("DuplicatedUidsNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; has been specified before..
+        /// </summary>
+        internal static string DuplicateExtendedQueryTag {
+            get {
+                return ResourceManager.GetString("DuplicateExtendedQueryTag", resourceCulture);
             }
         }
         
@@ -166,6 +148,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ErrorValidatingRoles {
             get {
                 return ResourceManager.GetString("ErrorValidatingRoles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified extended query tag with tag path {0} cannot be found..
+        /// </summary>
+        internal static string ExtendedQueryTagNotFound {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One or more extended query tags already exist..
+        /// </summary>
+        internal static string ExtendedQueryTagsAlreadyExists {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagsAlreadyExists", resourceCulture);
             }
         }
         
@@ -215,15 +215,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; is invalid..
-        /// </summary>
-        internal static string InvalidCustomTag {
-            get {
-                return ResourceManager.GetString("InvalidCustomTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
         ///The first part date {1} should be lesser than or equal to the second part date {2}..
         /// </summary>
@@ -261,11 +252,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; custom tag with path &apos;{1}&apos; is not a valid double value..
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; extended query tag with path &apos;{1}&apos; is not a valid double value..
         /// </summary>
         internal static string InvalidDoubleValue {
             get {
                 return ResourceManager.GetString("InvalidDoubleValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is invalid..
+        /// </summary>
+        internal static string InvalidExtendedQueryTag {
+            get {
+                return ResourceManager.GetString("InvalidExtendedQueryTag", resourceCulture);
             }
         }
         
@@ -297,7 +297,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; custom tag with path &apos;{1}&apos; is not a valid long value..
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; extended query tag with path &apos;{1}&apos; is not a valid long value..
         /// </summary>
         internal static string InvalidLongValue {
             get {
@@ -360,11 +360,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag(s) is missing..
+        ///   Looks up a localized string similar to The extended query tag(s) is missing..
         /// </summary>
-        internal static string MissingCustomTag {
+        internal static string MissingExtendedQueryTag {
             get {
-                return ResourceManager.GetString("MissingCustomTag", resourceCulture);
+                return ResourceManager.GetString("MissingExtendedQueryTag", resourceCulture);
             }
         }
         

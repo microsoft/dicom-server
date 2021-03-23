@@ -269,20 +269,20 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
     <value>The request contains multiple accept headers, which is not supported.</value>
   </data>
-  <data name="DuplicateCustomTag" xml:space="preserve">
-    <value>The custom tag '{0}' has been specified before.</value>
+  <data name="DuplicateExtendedQueryTag" xml:space="preserve">
+    <value>The extended query tag '{0}' has been specified before.</value>
     <comment>{0} Dicom Tag.</comment>
   </data>
-  <data name="InvalidCustomTag" xml:space="preserve">
-    <value>The custom tag '{0}' is invalid.</value>
+  <data name="InvalidExtendedQueryTag" xml:space="preserve">
+    <value>The extended query tag '{0}' is invalid.</value>
     <comment>{0} Dicom Tag</comment>
   </data>
   <data name="InvalidVRCode" xml:space="preserve">
     <value>The VR code '{0}' is invalid.</value>
     <comment>{0} VR code.</comment>
   </data>
-  <data name="MissingCustomTag" xml:space="preserve">
-    <value>The custom tag(s) is missing.</value>
+  <data name="MissingExtendedQueryTag" xml:space="preserve">
+    <value>The extended query tag(s) is missing.</value>
   </data>
   <data name="MissingVRCode" xml:space="preserve">
     <value>The VR code is missing.</value>
@@ -305,23 +305,23 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="DuplicateRoleNames" xml:space="preserve">
     <value>There are {0} roles with the name '{1}'</value>
   </data>
-  <data name="CustomTagsAlreadyExists" xml:space="preserve">
-    <value>One or more custom tags already exist.</value>
+  <data name="ExtendedQueryTagsAlreadyExists" xml:space="preserve">
+    <value>One or more extended query tags already exist.</value>
   </data>
-  <data name="CustomTagNotFound" xml:space="preserve">
-    <value>The specified custom tag with tag path {0} cannot be found.</value>
+  <data name="ExtendedQueryTagNotFound" xml:space="preserve">
+    <value>The specified extended query tag with tag path {0} cannot be found.</value>
     <comment>{0} tagPath on request</comment>
   </data>
   <data name="SequentialDicomTagsNotSupported" xml:space="preserve">
     <value>Sequential dicom tags are currently not supported.</value>
   </data>
   <data name="InvalidDoubleValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified value '{0}' custom tag with path '{1}' is not a valid double value.</value>
-    <comment>{0} double value. {1} custom tag path.</comment>
+    <value>Invalid QIDO-RS query. Specified value '{0}' extended query tag with path '{1}' is not a valid double value.</value>
+    <comment>{0} double value. {1} extended query tag path.</comment>
   </data>
   <data name="InvalidLongValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified value '{0}' custom tag with path '{1}' is not a valid long value.</value>
-    <comment>{0} long value. {1} custom tag path.</comment>
+    <value>Invalid QIDO-RS query. Specified value '{0}' extended query tag with path '{1}' is not a valid long value.</value>
+    <comment>{0} long value. {1} extended query tag path.</comment>
   </data>
   <data name="ValueLengthAboveMaxLength" xml:space="preserve">
     <value>Value length is above {0}.</value>

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
-using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
@@ -18,13 +18,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     {
         private readonly string _connectionString;
 
-        private static readonly IReadOnlyDictionary<CustomTagDataType, string> DateTypeAndTableNameMapping = new Dictionary<CustomTagDataType, string>()
+        private static readonly IReadOnlyDictionary<ExtendedQueryTagDataType, string> DateTypeAndTableNameMapping = new Dictionary<ExtendedQueryTagDataType, string>()
             {
-                { CustomTagDataType.StringData, VLatest.CustomTagString.TableName },
-                { CustomTagDataType.LongData, VLatest.CustomTagBigInt.TableName },
-                { CustomTagDataType.DoubleData, VLatest.CustomTagDouble.TableName },
-                { CustomTagDataType.DateTimeData, VLatest.CustomTagDateTime.TableName },
-                { CustomTagDataType.PersonNameData, VLatest.CustomTagPersonName.TableName },
+                { ExtendedQueryTagDataType.StringData, VLatest.ExtendedQueryTagString.TableName },
+                { ExtendedQueryTagDataType.LongData, VLatest.ExtendedQueryTagBigInt.TableName },
+                { ExtendedQueryTagDataType.DoubleData, VLatest.ExtendedQueryTagDouble.TableName },
+                { ExtendedQueryTagDataType.DateTimeData, VLatest.ExtendedQueryTagDateTime.TableName },
+                { ExtendedQueryTagDataType.PersonNameData, VLatest.ExtendedQueryTagPersonName.TableName },
             };
 
         public SqlIndexDataStoreTestHelper(string connectionString)
@@ -230,29 +230,29 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        async Task<IReadOnlyList<CustomTagDataRow>> IIndexDataStoreTestHelper.GetCustomTagDataAsync(
-           CustomTagDataType dataType,
+        async Task<IReadOnlyList<ExtendedQueryTagDataRow>> IIndexDataStoreTestHelper.GetExtendedQueryTagDataAsync(
+           ExtendedQueryTagDataType dataType,
            int tagKey,
            long studyKey,
            long? seriesKey,
            long? instanceKey,
            CancellationToken cancellationToken)
         {
-            var results = new List<CustomTagDataRow>();
+            var results = new List<ExtendedQueryTagDataRow>();
             string tagKeyParam = "@tagKey";
             string studyKeyParam = "@studyKey";
             string seriesKeyParam = "@seriesKey";
             string instanceKeyParam = "@instanceKey";
 
-            // Columns on all custom tag index data tables are of same names
-            string studyKeyColName = VLatest.CustomTagString.StudyKey.Metadata.Name;
-            string seriesKeyColName = VLatest.CustomTagString.SeriesKey.Metadata.Name;
-            string instanceKeyColName = VLatest.CustomTagString.InstanceKey.Metadata.Name;
-            string tagKeyName = VLatest.CustomTagString.TagKey.Metadata.Name;
+            // Columns on all extended query tag index data tables are of same names
+            string studyKeyColName = VLatest.ExtendedQueryTagString.StudyKey.Metadata.Name;
+            string seriesKeyColName = VLatest.ExtendedQueryTagString.SeriesKey.Metadata.Name;
+            string instanceKeyColName = VLatest.ExtendedQueryTagString.InstanceKey.Metadata.Name;
+            string tagKeyName = VLatest.ExtendedQueryTagString.TagKey.Metadata.Name;
             string seriesFilter = seriesKey.HasValue ? $"{seriesKeyColName} = {seriesKeyParam}" : $"{seriesKeyColName} IS NULL";
             string instanceFilter = instanceKey.HasValue ? $"{instanceKeyColName} = {instanceKeyParam}" : $"{instanceKeyColName} IS NULL";
 
-            return await GetCustomTagRowsAsync(
+            return await GetExtendedQueryTagRowsAsync(
                 dataType,
                 sqlCommand =>
                 {
@@ -274,11 +274,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 cancellationToken);
         }
 
-        async Task<IReadOnlyList<CustomTagDataRow>> IIndexDataStoreTestHelper.GetCustomTagDataForTagKeyAsync(CustomTagDataType dataType, int tagKey, CancellationToken cancellationToken)
+        async Task<IReadOnlyList<ExtendedQueryTagDataRow>> IIndexDataStoreTestHelper.GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType dataType, int tagKey, CancellationToken cancellationToken)
         {
             string tagKeyParam = "@tagKey";
 
-            return await GetCustomTagRowsAsync(
+            return await GetExtendedQueryTagRowsAsync(
                 dataType,
                 sqlCommand =>
                 {
@@ -286,7 +286,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                             SELECT *
                             FROM {DateTypeAndTableNameMapping[dataType]}
                             WHERE 
-                                {VLatest.CustomTagString.TagKey} = {tagKeyParam}
+                                {VLatest.ExtendedQueryTagString.TagKey} = {tagKeyParam}
                             
                         ";
 
@@ -295,9 +295,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 cancellationToken);
         }
 
-        private async Task<IReadOnlyList<CustomTagDataRow>> GetCustomTagRowsAsync(CustomTagDataType dataType, Action<SqlCommand> filler, CancellationToken cancellationToken)
+        private async Task<IReadOnlyList<ExtendedQueryTagDataRow>> GetExtendedQueryTagRowsAsync(ExtendedQueryTagDataType dataType, Action<SqlCommand> filler, CancellationToken cancellationToken)
         {
-            var results = new List<CustomTagDataRow>();
+            var results = new List<ExtendedQueryTagDataRow>();
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 await sqlConnection.OpenAsync(cancellationToken);
@@ -310,7 +310,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     {
                         if (await sqlDataReader.ReadAsync(cancellationToken))
                         {
-                            CustomTagDataRow row = new CustomTagDataRow();
+                            ExtendedQueryTagDataRow row = new ExtendedQueryTagDataRow();
                             row.Read(sqlDataReader, dataType);
                             results.Add(row);
                         }

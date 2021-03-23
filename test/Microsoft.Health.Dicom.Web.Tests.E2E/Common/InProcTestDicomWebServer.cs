@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
             };
             var featureSettings = new Dictionary<string, string>
             {
-                { "DicomServer:Features:EnableCustomQueryTags", "true" },
+                { "DicomServer:Features:EnableExtendedQueryTags", "true" },
             };
 
             IWebHostBuilder builder = WebHost.CreateDefaultBuilder()

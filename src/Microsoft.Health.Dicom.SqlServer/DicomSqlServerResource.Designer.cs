@@ -61,20 +61,20 @@ namespace Microsoft.Health.Dicom.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; is being processed..
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is being processed..
         /// </summary>
-        internal static string CustomTagIsBusy {
+        internal static string ExtendedQueryTagIsBusy {
             get {
-                return ResourceManager.GetString("CustomTagIsBusy", resourceCulture);
+                return ResourceManager.GetString("ExtendedQueryTagIsBusy", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified custom tag with tag path {0} cannot be found..
+        ///   Looks up a localized string similar to The specified extended query tag with tag path {0} cannot be found..
         /// </summary>
-        internal static string CustomTagNotFound {
+        internal static string ExtendedQueryTagNotFound {
             get {
-                return ResourceManager.GetString("CustomTagNotFound", resourceCulture);
+                return ResourceManager.GetString("ExtendedQueryTagNotFound", resourceCulture);
             }
         }
         

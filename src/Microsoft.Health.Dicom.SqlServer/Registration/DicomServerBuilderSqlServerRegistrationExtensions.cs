@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
-using Microsoft.Health.Dicom.SqlServer.Features.CustomTag;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -82,7 +82,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<SqlCustomTagStore>()
+            services.Add<SqlExtendedQueryTagStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

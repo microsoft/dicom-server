@@ -114,7 +114,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
             finally
             {
-                // Cleanup extended query tags, also verify GetCustomTagsAsync.
+                // Cleanup extended query tags, also verify GetExtendedQueryTagsAsync.
                 var responseQueryTags = await (await _client.GetExtendedQueryTagsAsync()).GetValueAsync();
                 foreach (var rTag in responseQueryTags)
                 {

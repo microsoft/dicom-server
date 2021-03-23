@@ -11,9 +11,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class AddCustomTagsInputTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<AddCustomTagsInputTableTypeV1Row>
+    internal class AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<AddExtendedQueryTagsInputTableTypeV1Row>
     {
-        internal AddCustomTagsInputTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.AddCustomTagsInputTableType_1")
+        internal AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.AddExtendedQueryTagsInputTableType_1")
         {
         }
 
@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagPath, TagVR, TagPrivateCreator, TagLevel };
 
-        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, AddCustomTagsInputTableTypeV1Row rowData)
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, AddExtendedQueryTagsInputTableTypeV1Row rowData)
         {
             TagPath.Set(record, 0, rowData.TagPath);
             TagVR.Set(record, 1, rowData.TagVR);
@@ -33,9 +33,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         }
     }
 
-    internal struct AddCustomTagsInputTableTypeV1Row
+    internal struct AddExtendedQueryTagsInputTableTypeV1Row
     {
-        internal AddCustomTagsInputTableTypeV1Row(System.String TagPath, System.String TagVR, System.String TagPrivateCreator, System.Byte TagLevel)
+        internal AddExtendedQueryTagsInputTableTypeV1Row(System.String TagPath, System.String TagVR, System.String TagPrivateCreator, System.Byte TagLevel)
         {
             this.TagPath = TagPath;
             this.TagVR = TagVR;
@@ -49,9 +49,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.Byte TagLevel { get; }
     }
 
-    internal class InsertBigIntCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertBigIntCustomTagTableTypeV1Row>
+    internal class InsertBigIntExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertBigIntExtendedQueryTagTableTypeV1Row>
     {
-        internal InsertBigIntCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertBigIntCustomTagTableType_1")
+        internal InsertBigIntExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertBigIntExtendedQueryTagTableType_1")
         {
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
 
-        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertBigIntCustomTagTableTypeV1Row rowData)
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertBigIntExtendedQueryTagTableTypeV1Row rowData)
         {
             TagKey.Set(record, 0, rowData.TagKey);
             TagValue.Set(record, 1, rowData.TagValue);
@@ -69,9 +69,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         }
     }
 
-    internal struct InsertBigIntCustomTagTableTypeV1Row
+    internal struct InsertBigIntExtendedQueryTagTableTypeV1Row
     {
-        internal InsertBigIntCustomTagTableTypeV1Row(System.Int32 TagKey, System.Int64 TagValue, System.Byte TagLevel)
+        internal InsertBigIntExtendedQueryTagTableTypeV1Row(System.Int32 TagKey, System.Int64 TagValue, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
@@ -83,9 +83,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.Byte TagLevel { get; }
     }
 
-    internal class InsertDateTimeCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDateTimeCustomTagTableTypeV1Row>
+    internal class InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDateTimeExtendedQueryTagTableTypeV1Row>
     {
-        internal InsertDateTimeCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDateTimeCustomTagTableType_1")
+        internal InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDateTimeExtendedQueryTagTableType_1")
         {
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
 
-        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertDateTimeCustomTagTableTypeV1Row rowData)
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertDateTimeExtendedQueryTagTableTypeV1Row rowData)
         {
             TagKey.Set(record, 0, rowData.TagKey);
             TagValue.Set(record, 1, rowData.TagValue);
@@ -103,9 +103,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         }
     }
 
-    internal struct InsertDateTimeCustomTagTableTypeV1Row
+    internal struct InsertDateTimeExtendedQueryTagTableTypeV1Row
     {
-        internal InsertDateTimeCustomTagTableTypeV1Row(System.Int32 TagKey, System.DateTime TagValue, System.Byte TagLevel)
+        internal InsertDateTimeExtendedQueryTagTableTypeV1Row(System.Int32 TagKey, System.DateTime TagValue, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
@@ -117,9 +117,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.Byte TagLevel { get; }
     }
 
-    internal class InsertDoubleCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDoubleCustomTagTableTypeV1Row>
+    internal class InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDoubleExtendedQueryTagTableTypeV1Row>
     {
-        internal InsertDoubleCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDoubleCustomTagTableType_1")
+        internal InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDoubleExtendedQueryTagTableType_1")
         {
         }
 
@@ -129,7 +129,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
 
-        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertDoubleCustomTagTableTypeV1Row rowData)
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertDoubleExtendedQueryTagTableTypeV1Row rowData)
         {
             TagKey.Set(record, 0, rowData.TagKey);
             TagValue.Set(record, 1, rowData.TagValue);
@@ -137,9 +137,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         }
     }
 
-    internal struct InsertDoubleCustomTagTableTypeV1Row
+    internal struct InsertDoubleExtendedQueryTagTableTypeV1Row
     {
-        internal InsertDoubleCustomTagTableTypeV1Row(System.Int32 TagKey, System.Double TagValue, System.Byte TagLevel)
+        internal InsertDoubleExtendedQueryTagTableTypeV1Row(System.Int32 TagKey, System.Double TagValue, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
@@ -151,9 +151,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.Byte TagLevel { get; }
     }
 
-    internal class InsertPersonNameCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertPersonNameCustomTagTableTypeV1Row>
+    internal class InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertPersonNameExtendedQueryTagTableTypeV1Row>
     {
-        internal InsertPersonNameCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertPersonNameCustomTagTableType_1")
+        internal InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertPersonNameExtendedQueryTagTableType_1")
         {
         }
 
@@ -163,7 +163,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
 
-        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertPersonNameCustomTagTableTypeV1Row rowData)
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertPersonNameExtendedQueryTagTableTypeV1Row rowData)
         {
             TagKey.Set(record, 0, rowData.TagKey);
             TagValue.Set(record, 1, rowData.TagValue);
@@ -171,9 +171,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         }
     }
 
-    internal struct InsertPersonNameCustomTagTableTypeV1Row
+    internal struct InsertPersonNameExtendedQueryTagTableTypeV1Row
     {
-        internal InsertPersonNameCustomTagTableTypeV1Row(System.Int32 TagKey, System.String TagValue, System.Byte TagLevel)
+        internal InsertPersonNameExtendedQueryTagTableTypeV1Row(System.Int32 TagKey, System.String TagValue, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
@@ -185,9 +185,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.Byte TagLevel { get; }
     }
 
-    internal class InsertStringCustomTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertStringCustomTagTableTypeV1Row>
+    internal class InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertStringExtendedQueryTagTableTypeV1Row>
     {
-        internal InsertStringCustomTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertStringCustomTagTableType_1")
+        internal InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertStringExtendedQueryTagTableType_1")
         {
         }
 
@@ -197,7 +197,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
 
-        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertStringCustomTagTableTypeV1Row rowData)
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertStringExtendedQueryTagTableTypeV1Row rowData)
         {
             TagKey.Set(record, 0, rowData.TagKey);
             TagValue.Set(record, 1, rowData.TagValue);
@@ -205,9 +205,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         }
     }
 
-    internal struct InsertStringCustomTagTableTypeV1Row
+    internal struct InsertStringExtendedQueryTagTableTypeV1Row
     {
-        internal InsertStringCustomTagTableTypeV1Row(System.Int32 TagKey, System.String TagValue, System.Byte TagLevel)
+        internal InsertStringExtendedQueryTagTableTypeV1Row(System.Int32 TagKey, System.String TagValue, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;

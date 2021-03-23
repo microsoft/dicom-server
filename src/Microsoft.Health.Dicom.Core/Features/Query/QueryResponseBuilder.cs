@@ -145,7 +145,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             foreach (DicomTag tag in queryExpression.IncludeFields.DicomTags)
             {
-                // we will allow any valid include tag. This will allow customers to get any custom tags in resposne.
+                // we will allow any valid include tag. This will allow customers to get any extended query tags in resposne.
                 _tagsToReturn.Add(tag);
             }
 

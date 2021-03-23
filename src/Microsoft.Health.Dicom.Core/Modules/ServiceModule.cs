@@ -8,8 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -137,29 +137,29 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<IndexTagService>()
+            services.Add<QueryTagService>()
                    .Scoped()
                    .AsSelf()
                    .AsImplementedInterfaces();
 
-            if (_featureConfiguration.EnableCustomQueryTags)
+            if (_featureConfiguration.EnableExtendedQueryTags)
             {
-                services.Add<CustomTagEntryValidator>()
+                services.Add<ExtendedQueryTagEntryValidator>()
                     .Singleton()
                     .AsSelf()
                     .AsImplementedInterfaces();
 
-                services.Add<GetCustomTagsService>()
+                services.Add<GetExtendedQueryTagsService>()
                    .Scoped()
                    .AsSelf()
                    .AsImplementedInterfaces();
 
-                services.Add<AddCustomTagService>()
+                services.Add<AddExtendedQueryTagService>()
                     .Scoped()
                     .AsSelf()
                     .AsImplementedInterfaces();
 
-                services.Add<DeleteCustomTagService>()
+                services.Add<DeleteExtendedQueryTagService>()
                      .Scoped()
                      .AsSelf()
                      .AsImplementedInterfaces();

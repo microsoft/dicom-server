@@ -7,7 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Extensions
@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
     {
         public static Task<long> CreateInstanceIndexAsync(this IIndexDataStore indexDataStore, DicomDataset dicomDataset, CancellationToken cancellationToken = default)
         {
-            return indexDataStore.CreateInstanceIndexAsync(dicomDataset, Array.Empty<IndexTag>(), cancellationToken);
+            return indexDataStore.CreateInstanceIndexAsync(dicomDataset, Array.Empty<QueryTag>(), cancellationToken);
         }
     }
 }

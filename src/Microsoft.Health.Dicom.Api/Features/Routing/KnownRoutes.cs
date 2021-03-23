@@ -11,14 +11,14 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         private const string SeriesRouteSegment = "series";
         private const string InstancesRouteSegment = "instances";
         private const string MetadataSegment = "metadata";
-        private const string CustomTagsRouteSegment = "tags";
+        private const string ExtendedQueryTagsRouteSegment = "extendedquerytags";
 
         private const string StudiesInstanceUidRouteSegment = "{" + KnownActionParameterNames.StudyInstanceUid + "}";
         private const string SeriesInstanceUidRouteSegment = "{" + KnownActionParameterNames.SeriesInstanceUid + "}";
         private const string SopInstanceUidRouteSegment = "{" + KnownActionParameterNames.SopInstanceUid + "}";
         private const string FrameIdsRouteSegment = "{" + KnownActionParameterNames.Frames + "}";
 
-        private const string CustomTagPathRouteSegment = "{" + KnownActionParameterNames.TagPath + "}";
+        private const string ExtendedQueryTagPathRouteSegment = "{" + KnownActionParameterNames.TagPath + "}";
 
         public const string StoreRoute = StudiesRouteSegment + "/{" + KnownActionParameterNames.StudyInstanceUid + "?}";
 
@@ -41,9 +41,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public const string ChangeFeed = "changefeed";
         public const string ChangeFeedLatest = ChangeFeed + "/" + "latest";
 
-        public const string CustomTagRoute = CustomTagsRouteSegment;
-        public const string DeleteCustomTagRoute = CustomTagsRouteSegment + "/" + CustomTagPathRouteSegment;
-        public const string GetCustomTagRoute = CustomTagsRouteSegment + "/" + CustomTagPathRouteSegment;
+        public const string ExtendedQueryTagRoute = ExtendedQueryTagsRouteSegment;
+        public const string DeleteExtendedQueryTagRoute = ExtendedQueryTagsRouteSegment + "/" + ExtendedQueryTagPathRouteSegment;
+        public const string GetExtendedQueryTagRoute = ExtendedQueryTagsRouteSegment + "/" + ExtendedQueryTagPathRouteSegment;
 
         public const string HealthCheck = "/health/check";
     }
