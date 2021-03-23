@@ -14,17 +14,17 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 {
-    public class IndexTagServiceTests
+    public class QueryTagServiceTests
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IQueryTagService _indexTagService;
+        private readonly IQueryTagService _queryTagService;
         private readonly FeatureConfiguration _featureConfiguration;
 
-        public IndexTagServiceTests()
+        public QueryTagServiceTests()
         {
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = true };
-            _indexTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(_featureConfiguration));
+            _queryTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(_featureConfiguration));
         }
 
         [Fact]
@@ -33,8 +33,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             _extendedQueryTagStore.GetExtendedQueryTagsAsync(null, Arg.Any<CancellationToken>())
                   .Returns(Array.Empty<ExtendedQueryTagStoreEntry>());
 
-            await _indexTagService.GetIndexTagsAsync();
-            await _indexTagService.GetIndexTagsAsync();
+            await _queryTagService.GetQueryTagsAsync();
+            await _queryTagService.GetQueryTagsAsync();
             await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(null, Arg.Any<CancellationToken>());
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         {
             FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = false };
             IQueryTagService indexableDicomTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(featureConfiguration));
-            await indexableDicomTagService.GetIndexTagsAsync();
+            await indexableDicomTagService.GetQueryTagsAsync();
             await _extendedQueryTagStore.DidNotReceive().GetExtendedQueryTagsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         }
     }

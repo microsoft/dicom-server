@@ -31,8 +31,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private IDicomDatasetValidator _dicomDatasetValidator;
 
         private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset();
-        private readonly IQueryTagService _indexTagService;
-        private readonly List<QueryTag> _indexTags;
+        private readonly IQueryTagService _queryTagService;
+        private readonly List<QueryTag> _queryTags;
 
         public DicomDatasetValidatorTests()
         {
@@ -42,10 +42,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 EnableFullDicomItemValidation = false,
             });
             var minValidator = new DicomElementMinimumValidator();
-            _indexTagService = Substitute.For<IQueryTagService>();
-            _indexTags = new List<QueryTag>(QueryTagService.CoreIndexTags);
-            _indexTagService.GetIndexTagsAsync(Arg.Any<CancellationToken>()).Returns(_indexTags);
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _indexTagService);
+            _queryTagService = Substitute.For<IQueryTagService>();
+            _queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
+            _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>()).Returns(_queryTags);
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _queryTagService);
         }
 
         [Fact]
@@ -137,7 +137,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             });
             var minValidator = new DicomElementMinimumValidator();
 
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _indexTagService);
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _queryTagService);
 
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = false;
@@ -194,7 +194,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 #pragma warning restore CS0618 // Type or member is obsolete
 
             QueryTag indextag = new QueryTag(standardTag.BuildExtendedQueryTagStoreEntry());
-            _indexTags.Add(indextag);
+            _queryTags.Add(indextag);
             await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }
 
@@ -217,8 +217,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 #pragma warning restore CS0618 // Type or member is obsolete
 
             QueryTag indextag = new QueryTag(tag.BuildExtendedQueryTagStoreEntry(vr: element.ValueRepresentation.Code));
-            _indexTags.Clear();
-            _indexTags.Add(indextag);
+            _queryTags.Clear();
+            _queryTags.Add(indextag);
 
             await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }

@@ -10,19 +10,19 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 {
-    public class IndexTagTests
+    public class QueryTagTests
     {
         [Fact]
         public void GivenCoreDicomTag_WhenInitialize_ThenShouldCreatedSuccessfully()
         {
             DicomTag tag = DicomTag.PatientName;
             QueryTagLevel level = QueryTagLevel.Instance;
-            QueryTag indexTag = new QueryTag(tag, QueryTagLevel.Instance);
-            Assert.Equal(tag, indexTag.Tag);
-            Assert.Equal(DicomVR.PN, indexTag.VR);
-            Assert.Null(indexTag.ExtendedQueryTagStoreEntry);
-            Assert.False(indexTag.IsExtendedQueryTag);
-            Assert.Equal(level, indexTag.Level);
+            QueryTag queryTag = new QueryTag(tag, QueryTagLevel.Instance);
+            Assert.Equal(tag, queryTag.Tag);
+            Assert.Equal(DicomVR.PN, queryTag.VR);
+            Assert.Null(queryTag.ExtendedQueryTagStoreEntry);
+            Assert.False(queryTag.IsExtendedQueryTag);
+            Assert.Equal(level, queryTag.Level);
         }
 
         [Fact]
@@ -31,12 +31,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             DicomTag tag = DicomTag.AcquisitionDate;
             QueryTagLevel level = QueryTagLevel.Series;
             var storeEntry = tag.BuildExtendedQueryTagStoreEntry(level: level);
-            QueryTag indexTag = new QueryTag(storeEntry);
-            Assert.Equal(tag, indexTag.Tag);
-            Assert.Equal(DicomVR.DA, indexTag.VR);
-            Assert.Equal(storeEntry, indexTag.ExtendedQueryTagStoreEntry);
-            Assert.True(indexTag.IsExtendedQueryTag);
-            Assert.Equal(level, indexTag.Level);
+            QueryTag queryTag = new QueryTag(storeEntry);
+            Assert.Equal(tag, queryTag.Tag);
+            Assert.Equal(DicomVR.DA, queryTag.VR);
+            Assert.Equal(storeEntry, queryTag.ExtendedQueryTagStoreEntry);
+            Assert.True(queryTag.IsExtendedQueryTag);
+            Assert.Equal(level, queryTag.Level);
         }
 
         [Fact]
@@ -46,12 +46,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             DicomVR vr = DicomVR.CS;
             QueryTagLevel level = QueryTagLevel.Study;
             var storeEntry = tag.BuildExtendedQueryTagStoreEntry(vr: vr.ToString(), privateCreator: tag.PrivateCreator.Creator, level: level);
-            QueryTag indexTag = new QueryTag(storeEntry);
-            Assert.Equal(tag, indexTag.Tag);
-            Assert.Equal(vr, indexTag.VR);
-            Assert.Equal(storeEntry, indexTag.ExtendedQueryTagStoreEntry);
-            Assert.True(indexTag.IsExtendedQueryTag);
-            Assert.Equal(level, indexTag.Level);
+            QueryTag queryTag = new QueryTag(storeEntry);
+            Assert.Equal(tag, queryTag.Tag);
+            Assert.Equal(vr, queryTag.VR);
+            Assert.Equal(storeEntry, queryTag.ExtendedQueryTagStoreEntry);
+            Assert.True(queryTag.IsExtendedQueryTag);
+            Assert.Equal(level, queryTag.Level);
         }
     }
 }

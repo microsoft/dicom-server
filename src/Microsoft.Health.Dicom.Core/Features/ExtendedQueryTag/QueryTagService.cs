@@ -18,10 +18,10 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly bool _enableExtendedQueryTags;
-        public static readonly IReadOnlyList<QueryTag> CoreIndexTags = GetCoreIndexTags();
-        private List<QueryTag> _allIndexTags;
-        private int _allIndexTagsStatus;
-        private TaskCompletionSource<bool> _allIndexTagsCompletionSource = new TaskCompletionSource<bool>();
+        public static readonly IReadOnlyList<QueryTag> CoreQueryTags = GetCoreQueryTags();
+        private List<QueryTag> _allQueryTags;
+        private int _allQueryTagsStatus;
+        private TaskCompletionSource<bool> _allQueryTagsCompletionSource = new TaskCompletionSource<bool>();
 
         public QueryTagService(IExtendedQueryTagStore extendedQueryTagStore, IOptions<FeatureConfiguration> featureConfiguration)
         {
@@ -35,26 +35,26 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         {
             if (_enableExtendedQueryTags)
             {
-                if (Interlocked.CompareExchange(ref _allIndexTagsStatus, 1, 0) == 0)
+                if (Interlocked.CompareExchange(ref _allQueryTagsStatus, 1, 0) == 0)
                 {
-                    _allIndexTags = new List<QueryTag>(CoreIndexTags);
+                    _allQueryTags = new List<QueryTag>(CoreQueryTags);
 
                     IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(cancellationToken: cancellationToken);
-                    _allIndexTags.AddRange(extendedQueryTagEntries.Select(entry => new QueryTag(entry)));
+                    _allQueryTags.AddRange(extendedQueryTagEntries.Select(entry => new QueryTag(entry)));
 
-                    _allIndexTagsCompletionSource.SetResult(true);
+                    _allQueryTagsCompletionSource.SetResult(true);
                 }
 
-                await _allIndexTagsCompletionSource.Task;
-                return _allIndexTags;
+                await _allQueryTagsCompletionSource.Task;
+                return _allQueryTags;
             }
             else
             {
-                return CoreIndexTags;
+                return CoreQueryTags;
             }
         }
 
-        private static IReadOnlyList<QueryTag> GetCoreIndexTags()
+        private static IReadOnlyList<QueryTag> GetCoreQueryTags()
         {
             List<QueryTag> coreTags = new List<QueryTag>();
             coreTags.AddRange(QueryLimit.AllStudiesTags.Select(tag => new QueryTag(tag, QueryTagLevel.Study)));

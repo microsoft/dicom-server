@@ -101,15 +101,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
-            IReadOnlyCollection<QueryTag> indexTags = await _indextagService.GetIndexTagsAsync(cancellationToken);
-            ValidateTags(dicomDataset, indexTags);
+            IReadOnlyCollection<QueryTag> queryTags = await _indextagService.GetQueryTagsAsync(cancellationToken);
+            ValidateTags(dicomDataset, queryTags);
         }
 
         private void ValidateTags(DicomDataset dicomDataset, IEnumerable<QueryTag> tags)
         {
-            foreach (QueryTag indexableTag in tags)
+            foreach (QueryTag queryTag in tags)
             {
-                DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(indexableTag.Tag);
+                DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(queryTag.Tag);
 
                 if (dicomElement != null)
                 {

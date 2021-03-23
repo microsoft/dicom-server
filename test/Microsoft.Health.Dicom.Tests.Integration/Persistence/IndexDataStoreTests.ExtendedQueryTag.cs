@@ -64,12 +64,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             QueryTagLevel level = QueryTagLevel.Study;
             var extendedQueryTagEntry = element.Tag.BuildExtendedQueryTagEntry(level: level);
 
-            QueryTag indexTag = await AddExtendedQueryTag(extendedQueryTagEntry);
+            QueryTag queryTag = await AddExtendedQueryTag(extendedQueryTagEntry);
             try
             {
-                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { indexTag });
+                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
-                IReadOnlyList<ExtendedQueryTagDataRow> rows = await _testHelper.GetExtendedQueryTagDataAsync(dataType, indexTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey);
+                IReadOnlyList<ExtendedQueryTagDataRow> rows = await _testHelper.GetExtendedQueryTagDataAsync(dataType, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey);
                 Assert.Single(rows);
                 Assert.Equal(watermark, rows[0].Watermark);
                 Assert.Equal(expectedValue, rows[0].TagValue);
@@ -99,14 +99,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string value = "SYN";
             dataset.Add(tag, value);
 
-            QueryTag indexTag = await AddExtendedQueryTag(tag.BuildExtendedQueryTagEntry(level: level));
+            QueryTag queryTag = await AddExtendedQueryTag(tag.BuildExtendedQueryTagEntry(level: level));
             try
             {
-                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { indexTag });
+                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 long? seriesKey = level != QueryTagLevel.Study ? instance.SeriesKey : null;
                 long? instanceKey = level == QueryTagLevel.Instance ? instance.InstanceKey : null;
-                var stringRows = await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, indexTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey, instanceKey);
+                var stringRows = await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey, instanceKey);
 
                 Assert.Single(stringRows);
                 Assert.Equal(stringRows[0].TagValue, value);
@@ -114,7 +114,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
             finally
             {
-                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(indexTag.ExtendedQueryTagStoreEntry.Path, indexTag.ExtendedQueryTagStoreEntry.VR);
+                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(queryTag.ExtendedQueryTagStoreEntry.Path, queryTag.ExtendedQueryTagStoreEntry.VR);
             }
         }
 
@@ -144,11 +144,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag = DicomTag.ConversionType;
             string value = "SYN";
             dataset.Add(tag, value);
-            QueryTag indexTag = await AddExtendedQueryTag(tag.BuildExtendedQueryTagEntry(level: level));
+            QueryTag queryTag = await AddExtendedQueryTag(tag.BuildExtendedQueryTagEntry(level: level));
             try
             {
                 // index extended query tags
-                await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { indexTag });
+                await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
 
                 // update
                 value = "NEWSYN";
@@ -162,10 +162,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 }
 
                 // index new instance
-                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { indexTag });
+                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 long? seriesKey = level != QueryTagLevel.Study ? instance.SeriesKey : null;
-                var stringRows = await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, indexTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey);
+                var stringRows = await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey);
 
                 Assert.Single(stringRows);
                 Assert.Equal(stringRows[0].TagValue, value);
@@ -173,7 +173,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
             finally
             {
-                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(indexTag.ExtendedQueryTagStoreEntry.Path, indexTag.ExtendedQueryTagStoreEntry.VR);
+                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(queryTag.ExtendedQueryTagStoreEntry.Path, queryTag.ExtendedQueryTagStoreEntry.VR);
             }
         }
     }
