@@ -1,40 +1,15 @@
 steps:
-- task: UseDotNet@2
-  displayName: 'Use .NET Core 5.x'
+- task: gitversion/setup@0
+  displayName: 'Setup GitVersion'
   inputs:
-    packageType: sdk
-    version: 5.x
+    versionSpec: '5.x'
 
-- task: PowerShell@2
-  name: 'GitVersion'
+# All variables from the GitVersion task are prefixed by "GitVersion." (eg. GitVersion.SemVer)
+- task: gitversion/execute@0
+  name: 'DicomVersion'
   displayName: 'Run GitVersion'
   inputs:
-    targetType: 'inline'
-    script: |
-      # Derive version using the tool GitVersion
-      dotnet new tool-manifest
-      dotnet tool install GitVersion.Tool --version 5.6.6 --configfile nuget.config
-      $GitVersion = dotnet tool run dotnet-gitversion /config GitVersion.yml /output json /nofetch | ConvertFrom-Json
+    configFilePath: 'GitVersion.yml'
+    targetPath: '$(Build.SourcesDirectory)'
+    useConfigFile: true
 
-      # Print
-      $GitVersion
-
-      # Create variables
-      # (Avoid using variable syntax for Azure Pipelines)
-      $semVer = $GitVersion.semVer
-      $informationalVersion = $GitVersion.informationalVersion
-      $majorMinorPatch = $GitVersion.majorMinorPatch
-      $assemblySemVer = $GitVersion.assemblySemVer
-      $assemblySemFileVer = $GitVersion.assemblySemFileVer
-
-      # Define output variables
-      Write-Host "##vso[task.setvariable variable=semVer]$semVer"
-      Write-Host "##vso[task.setvariable variable=informationalVersion;isOutput=true]$informationalVersion"
-      Write-Host "##vso[task.setvariable variable=majorMinorPatch;isOutput=true]$majorMinorPatch"
-      Write-Host "##vso[task.setvariable variable=nuGetVersion;isOutput=true]$semVer"
-      Write-Host "##vso[task.setvariable variable=assemblySemVer;isOutput=true]$assemblySemVer"
-      Write-Host "##vso[task.setvariable variable=assemblySemFileVer;isOutput=true]$assemblySemFileVer"
-    failOnStderr: true
-    showWarnings: true
-    pwsh: true
-    workingDirectory: '$(Build.SourcesDirectory)'
