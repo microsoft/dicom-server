@@ -3,7 +3,7 @@ steps:
   displayName: 'Use .NET Core sdk (for GitVersion)'
   inputs:
     packageType: sdk
-    version: 2.1.x
+    version: 5.0.x
 
 - task: gitversion/setup@0
   displayName: 'Install GitVersion'
