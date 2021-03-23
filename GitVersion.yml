@@ -5,36 +5,14 @@ assembly-file-versioning-scheme: MajorMinorPatch
 ignore:
   sha: []
 branches:
-  master:
-    regex: ^master$|^main$
+  main:
+    regex: ^(main|master)$
+    is-mainline: true
     tag: ''
     increment: Patch
     prevent-increment-of-merged-branch-version: true
-    track-merge-target: false
-    tracks-release-branches: false
     is-release-branch: true
-  pull-request:
-    regex: ^(pull|pull\-requests|pr)[/-]
-    tag: pr
-    increment: Inherit
-    prevent-increment-of-merged-branch-version: false
-    tag-number-pattern: '[/-](?<number>\d+)[-/]'
-    track-merge-target: false
-    tracks-release-branches: false
-    is-release-branch: false
-  hotfix:
-    regex: ^hotfix(es)?[/-]
-    tag: useBranchName
-    increment: Patch
-    prevent-increment-of-merged-branch-version: false
-    track-merge-target: false
-    tracks-release-branches: false
-    is-release-branch: false
   feature:
-    regex: ^(personal|dev|feature|dependabot|auto\-nuget\-update)[/-]
+    regex: ^(dev|dependabot|feature|personal|revert|users)[/-]
     tag: useBranchName
-    increment: Patch
-    prevent-increment-of-merged-branch-version: false
-    track-merge-target: false
-    tracks-release-branches: false
-    is-release-branch: false
+    increment: Inherit

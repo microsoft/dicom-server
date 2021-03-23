@@ -1,14 +1,13 @@
 steps:
 - task: UseDotNet@2
-  displayName: 'Use .NET Core sdk (for GitVersion)'
+  displayName: 'Use .NET Core Runtime'
   inputs:
-    packageType: sdk
-    version: 2.1.x
-    
-- task: GitVersion@5
-  displayName: 'GitVersion'
-  inputs:
-    configFilePath: '$(Build.SourcesDirectory)/GitVersion.yml'
+    packageType: runtime
+    version: 5.x
+
+- script: |
+    dotnet tool install GitVersion.Tool --version 5.6.6 --configfile '$(Build.SourcesDirectory)/nuget.config'
+    dotnet tool run GitVersion.Tool '$(Build.SourcesDirectory)' /config '$(Build.SourcesDirectory)/GitVersion.yml' /output buildserver /nofetch
 
 # Can set these: https://github.com/GitTools/actions/blob/master/gitversion/execute/action.yml
 - powershell: |
