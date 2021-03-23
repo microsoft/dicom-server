@@ -34,6 +34,4 @@ steps:
     Write-Host 'assemblySemVer: $(assemblySemVer)'
     Write-Host 'assemblySemFileVer: $(assemblySemFileVer)'
     Write-Host 'nuGetVersion: $(nuGetVersion)'
-    Write-Host 'nuGetVersionr: $(GitVersion.NuGetVersion)'
-    Write-Host 'nuGetVersionr2: $(GitVersion.NuGetVersionV2)'
   name: PrintVariablesFromGitVersion
