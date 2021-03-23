@@ -8,8 +8,8 @@ steps:
 - script: |
     pushd '$(Build.SourcesDirectory)'
     dotnet new tool-manifest
-    dotnet tool install GitVersion.Tool --version 5.6.6 --configfile 'nuget.config'
-    dotnet tool run GitVersion.Tool /config 'GitVersion.yml' /output buildserver /nofetch
+    dotnet tool install GitVersion.Tool --version 5.6.6 --configfile nuget.config
+    dotnet tool run GitVersion.Tool /config GitVersion.yml /output buildserver /nofetch
     popd
   name: 'GitVersion'
   displayName: 'Run GitVersion'
