@@ -4,3 +4,10 @@ assembly-versioning-scheme: Major
 assembly-file-versioning-scheme: MajorMinorPatch
 ignore:
   sha: []
+branches:
+  main:
+    is-release-branch: true
+  feature:
+    regex: ^(dependabot|dev|feature(s)?|personal|user(s)?)[/-]
+  hotfix:
+    tag: useBranchName
