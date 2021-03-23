@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
@@ -19,8 +19,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     {
         private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
 
-        public AddExtendedQueryTagHandler(IDicomAuthorizationService dicomAuthorizationService, IAddExtendedQueryTagService addExtendedQueryTagService)
-            : base(dicomAuthorizationService)
+        public AddExtendedQueryTagHandler(IAuthorizationService<DataActions> authorizationService, IAddExtendedQueryTagService addExtendedQueryTagService)
+            : base(authorizationService)
         {
             EnsureArg.IsNotNull(addExtendedQueryTagService, nameof(addExtendedQueryTagService));
             _addExtendedQueryTagService = addExtendedQueryTagService;

@@ -17,7 +17,6 @@ using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 

@@ -6,12 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Features\Security\roles.schema.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Features\Security\roles.schema.json" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Efferent.Native" Version="4.0.0" />
     <PackageReference Include="Ensure.That" Version="10.0.0" />
     <PackageReference Include="fo-dicom" Version="4.0.7" />
