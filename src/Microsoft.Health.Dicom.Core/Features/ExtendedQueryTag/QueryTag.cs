@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Indexable Dicom Tag.
+    /// Queryable Dicom Tag.
     /// </summary>
     public class QueryTag
     {
