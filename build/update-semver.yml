@@ -4,6 +4,11 @@ steps:
   inputs:
     packageType: sdk
     version: 2.1.x
+
+- task: gitversion/setup@0
+  displayName: 'Install GitVersion'
+  inputs:
+    versionSpec: '5.x'
     
 - task: gitversion/execute@0
   displayName: 'Gitversion-Execute'
@@ -13,12 +18,12 @@ steps:
 
 # Can set these: https://github.com/GitTools/actions/blob/master/gitversion/execute/action.yml
 - powershell: |
-    Write-Host "##vso[task.setvariable variable=semVer]$(GitVersion.semVer)"
-    Write-Host "##vso[task.setvariable variable=informationalVersion;isOutput=true]$(GitVersion.informationalVersion)"
-    Write-Host "##vso[task.setvariable variable=majorMinorPatch;isOutput=true]$(GitVersion.majorMinorPatch)"
-    Write-Host "##vso[task.setvariable variable=nuGetVersion;isOutput=true]$(GitVersion.semVer)"
-    Write-Host "##vso[task.setvariable variable=assemblySemVer;isOutput=true]$(GitVersion.assemblySemVer)"
-    Write-Host "##vso[task.setvariable variable=assemblySemFileVer;isOutput=true]$(GitVersion.assemblySemFileVer)"
+    Write-Host "##vso[task.setvariable variable=semVer]$(GitVersion.SemVer)"
+    Write-Host "##vso[task.setvariable variable=informationalVersion;isOutput=true]$(GitVersion.InformationalVersion)"
+    Write-Host "##vso[task.setvariable variable=majorMinorPatch;isOutput=true]$(GitVersion.MajorMinorPatch)"
+    Write-Host "##vso[task.setvariable variable=nuGetVersion;isOutput=true]$(GitVersion.NuGetVersion)"
+    Write-Host "##vso[task.setvariable variable=assemblySemVer;isOutput=true]$(GitVersion.AssemblySemVer)"
+    Write-Host "##vso[task.setvariable variable=assemblySemFileVer;isOutput=true]$(GitVersion.AssemblySemFileVer)"
   name: SetVariablesFromGitVersion
 
 - powershell: |
@@ -29,4 +34,6 @@ steps:
     Write-Host 'assemblySemVer: $(assemblySemVer)'
     Write-Host 'assemblySemFileVer: $(assemblySemFileVer)'
     Write-Host 'nuGetVersion: $(nuGetVersion)'
+    Write-Host 'nuGetVersionr: $(GitVersion.NuGetVersion)'
+    Write-Host 'nuGetVersionr2: $(GitVersion.NuGetVersionV2)'
   name: PrintVariablesFromGitVersion
