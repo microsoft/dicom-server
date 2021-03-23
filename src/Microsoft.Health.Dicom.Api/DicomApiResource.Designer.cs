@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The maximum length of a custom audit header value is {0}. The supplied custom audit header &apos;{1}&apos; has length of {2}..
+        ///   Looks up a localized string similar to The maximum length of a custom audit header value is {0}. The supplied cutom audit header &apos;{1}&apos; has length of {2}..
         /// </summary>
         internal static string CustomAuditHeaderTooLarge {
             get {
