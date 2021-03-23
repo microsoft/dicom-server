@@ -369,7 +369,7 @@ AND ctbi4.TagValue=@p5";
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
             new SqlQueryGenerator(stringBuilder, query, parm);
 
-            string expectedParam = $"\"Fall*\" AND \"6*\"";
+            string expectedParam = $"\"Fall 6*\"";
 
             string expectedFilters = @"AND CONTAINS(st.PatientNameWords, @p0)";
 

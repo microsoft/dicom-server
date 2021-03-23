@@ -27,7 +27,7 @@ steps:
   inputs:
     InputType: 'Basic'
     Function: 'analyze'
-    AnalyzeTargetGlob: '+:file|$(Build.SourcesDirectory)\**\bin\**\Microsoft.Health.Dicom*.dll;+:file|$(Build.SourcesDirectory)\**\bin\**\Microsoft.Health.Dicom*.exe'
+    AnalyzeTargetGlob: '+:file|$(Build.SourcesDirectory)\**\bin\$(buildConfiguration)\**\Microsoft.Health.Dicom*.dll;+:file|$(Build.SourcesDirectory)\**\bin\$(buildConfiguration)\**\Microsoft.Health.Dicom*.exe'
     AnalyzeVerbose: true
 
 - task: CredScan@3

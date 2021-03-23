@@ -12,6 +12,10 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
+using Microsoft.Health.Core.Features.Security.Authorization;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
@@ -21,8 +25,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     {
         private readonly IRetrieveMetadataService _retrieveMetadataService;
 
-        public RetrieveMetadataHandler(IDicomAuthorizationService dicomAuthorizationService, IRetrieveMetadataService retrieveMetadataService)
-            : base(dicomAuthorizationService)
+        public RetrieveMetadataHandler(IAuthorizationService<DataActions> authorizationService, IRetrieveMetadataService retrieveMetadataService)
+            : base(authorizationService)
         {
             _retrieveMetadataService = EnsureArg.IsNotNull(retrieveMetadataService, nameof(retrieveMetadataService));
         }

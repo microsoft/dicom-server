@@ -5,7 +5,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Ensure.That" Version="10.0.0" />
+    <PackageReference Include="fo-dicom" Version="4.0.7" />
+    <PackageReference Include="fo-dicom.Json" Version="4.0.7" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Abstractions" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Core" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.4.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />

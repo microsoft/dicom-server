@@ -18,7 +18,6 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
@@ -28,7 +27,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
     /// </summary>
     public class BlobFileStore : IFileStore
     {
-        private static readonly string GetFileStreamTagName = $"{nameof(BlobFileStore)}.{nameof(GetFileAsync)}";
+        private const string GetFileStreamTagName = nameof(BlobFileStore) + "." + nameof(GetFileAsync);
         private readonly BlobContainerClient _container;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly BlobDataStoreConfiguration _blobDataStoreConfiguration;
@@ -63,18 +62,19 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
             stream.Seek(0, SeekOrigin.Begin);
 
+            var blobUploadOptions = new BlobUploadOptions()
+            {
+                TransferOptions = new StorageTransferOptions
+                {
+                    MaximumConcurrency = _blobDataStoreConfiguration.RequestOptions.UploadMaximumConcurrency,
+                },
+            };
+
             try
             {
                 await blob.UploadAsync(
                     stream,
-                    new BlobHttpHeaders()
-                    {
-                        ContentType = KnownContentTypes.ApplicationDicom,
-                    },
-                    metadata: null,
-                    conditions: null,
-                    accessTier: null,
-                    progressHandler: null,
+                    blobUploadOptions,
                     cancellationToken);
 
                 return blob.Uri;

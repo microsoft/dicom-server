@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
 
         private void Log(AuditAction auditAction, HttpStatusCode? statusCode, HttpContext httpContext, IClaimsExtractor claimsExtractor)
         {
-            IRequestContext dicomRequestContext = _dicomRequestContextAccessor.DicomRequestContext;
+            IRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
 
             string auditEventType = dicomRequestContext.AuditEventType;
 

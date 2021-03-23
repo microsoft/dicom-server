@@ -10,7 +10,7 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Health.Development.IdentityProvider.Registration;
 
 namespace Microsoft.Health.Dicom.Web
 {

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Development.IdentityProvider.Registration;
+using Microsoft.Health.Dicom.Core.Features.Security;
 
 namespace Microsoft.Health.Dicom.Web
 {
@@ -26,7 +28,7 @@ namespace Microsoft.Health.Dicom.Web
                 // When hosted on IIS, the max request body size can not over 2GB, according to Asp.net Core bug https://github.com/dotnet/aspnetcore/issues/2711
                 options.MaxRequestBodySize = int.MaxValue;
             });
-            services.AddDevelopmentIdentityProvider(Configuration);
+            services.AddDevelopmentIdentityProvider<DataActions>(Configuration, "DicomServer");
 
             services.AddDicomServer(Configuration)
                 .AddBlobStorageDataStore(Configuration)

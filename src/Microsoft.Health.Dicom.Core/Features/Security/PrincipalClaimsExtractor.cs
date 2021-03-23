@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
 
         public IReadOnlyCollection<KeyValuePair<string, string>> Extract()
         {
-            return _dicomRequestContextAccessor.DicomRequestContext.Principal?.Claims?
+            return _dicomRequestContextAccessor.RequestContext.Principal?.Claims?
                 .Where(c => _securityConfiguration.PrincipalClaims?.Contains(c.Type) ?? false)
                 .Select(c => new KeyValuePair<string, string>(c.Type, c.Value))
                 .ToList();

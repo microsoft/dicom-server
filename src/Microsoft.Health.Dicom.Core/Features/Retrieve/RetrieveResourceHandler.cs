@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
@@ -20,8 +20,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     {
         private readonly IRetrieveResourceService _retrieveResourceService;
 
-        public RetrieveResourceHandler(IDicomAuthorizationService dicomAuthorizationService, IRetrieveResourceService retrieveResourceService)
-            : base(dicomAuthorizationService)
+        public RetrieveResourceHandler(IAuthorizationService<DataActions> authorizationService, IRetrieveResourceService retrieveResourceService)
+            : base(authorizationService)
         {
             _retrieveResourceService = EnsureArg.IsNotNull(retrieveResourceService, nameof(retrieveResourceService));
         }

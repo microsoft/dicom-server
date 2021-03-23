@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -19,8 +19,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private readonly IQueryService _queryService;
 
-        public QueryHandler(IDicomAuthorizationService dicomAuthorizationService, IQueryService queryService)
-            : base(dicomAuthorizationService)
+        public QueryHandler(IAuthorizationService<DataActions> authorizationService, IQueryService queryService)
+            : base(authorizationService)
         {
             _queryService = EnsureArg.IsNotNull(queryService, nameof(queryService));
         }
