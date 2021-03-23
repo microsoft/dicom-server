@@ -20,6 +20,7 @@ steps:
       $GitVersion
 
       # Create variables
+      # (Avoid using variable syntax for Azure Pipelines)
       $semVer = $GitVersion.semVer
       $informationalVersion = $GitVersion.informationalVersion
       $majorMinorPatch = $GitVersion.majorMinorPatch
@@ -27,7 +28,7 @@ steps:
       $assemblySemFileVer = $GitVersion.assemblySemFileVer
 
       # Define output variables
-      Write-Host "##vso[task.setvariable variable=semVer;isOutput=true]$semVer"
+      Write-Host "##vso[task.setvariable variable=semVer]$semVer"
       Write-Host "##vso[task.setvariable variable=informationalVersion;isOutput=true]$informationalVersion"
       Write-Host "##vso[task.setvariable variable=majorMinorPatch;isOutput=true]$majorMinorPatch"
       Write-Host "##vso[task.setvariable variable=nuGetVersion;isOutput=true]$semVer"
@@ -37,13 +38,3 @@ steps:
     showWarnings: true
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
-
-- powershell: |
-    Write-Host '----------Variables to use for build----------'
-    Write-Host 'semVer: $(semVer)'
-    Write-Host 'informationalVersion: $(informationalVersion)'
-    Write-Host 'majorMinorPatch: $(majorMinorPatch)'
-    Write-Host 'assemblySemVer: $(assemblySemVer)'
-    Write-Host 'assemblySemFileVer: $(assemblySemFileVer)'
-    Write-Host 'nuGetVersion: $(nuGetVersion)'
-  name: PrintVariablesFromGitVersion
