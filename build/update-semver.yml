@@ -15,12 +15,12 @@ steps:
       dotnet tool install GitVersion.Tool --version 5.6.6 --configfile nuget.config
       $GitVersion = dotnet tool run dotnet-gitversion /config GitVersion.yml /output json /nofetch | ConvertFrom-Json
 
-      Write-Host "##vso[task.setvariable variable=semVer]$(GitVersion.semVer)"
-      Write-Host "##vso[task.setvariable variable=informationalVersion;isOutput=true]$(GitVersion.informationalVersion)"
-      Write-Host "##vso[task.setvariable variable=majorMinorPatch;isOutput=true]$(GitVersion.majorMinorPatch)"
-      Write-Host "##vso[task.setvariable variable=nuGetVersion;isOutput=true]$(GitVersion.semVer)"
-      Write-Host "##vso[task.setvariable variable=assemblySemVer;isOutput=true]$(GitVersion.assemblySemVer)"
-      Write-Host "##vso[task.setvariable variable=assemblySemFileVer;isOutput=true]$(GitVersion.assemblySemFileVer)"
+      Write-Host "##vso[task.setvariable variable=semVer]$($GitVersion.semVer)"
+      Write-Host "##vso[task.setvariable variable=informationalVersion;isOutput=true]$($GitVersion.informationalVersion)"
+      Write-Host "##vso[task.setvariable variable=majorMinorPatch;isOutput=true]$($GitVersion.majorMinorPatch)"
+      Write-Host "##vso[task.setvariable variable=nuGetVersion;isOutput=true]$($GitVersion.semVer)"
+      Write-Host "##vso[task.setvariable variable=assemblySemVer;isOutput=true]$($GitVersion.assemblySemVer)"
+      Write-Host "##vso[task.setvariable variable=assemblySemFileVer;isOutput=true]$($GitVersion.assemblySemFileVer)"
     failOnStderr: true
     showWarnings: true
     pwsh: true
