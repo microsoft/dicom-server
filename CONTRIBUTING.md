@@ -16,10 +16,10 @@ This document describes guidelines for contributing to the Medical Imaging Serve
 
 ## Coding Style
 
-The coding style is enforced through [StyleCop.Analyzers](https://github.com/DotNetAnalyzers/StyleCopAnalyzers), [.editorconfig](.editorconfig), and [stylecop.json](stylecop.json). Contributors should ensure these guidelines are followed when making submissions.
+The coding style is enforced through [.NET analyzers](https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/overview) and an [.editorconfig](.editorconfig) file. Contributors should ensure these guidelines are followed when making submissions.
 
-- **DO** address the StyleCop.Analyzers errors.
-- **DO** follow the [.editorconfig](.editorconfig) and [stylecop.json](stylecop.json) settings.
+- **DO** address the .NET analyzer errors.
+- **DO** follow the [.editorconfig](.editorconfig) settings.
 
 ## Creating Issues
 
