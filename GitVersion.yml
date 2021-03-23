@@ -4,15 +4,3 @@ assembly-versioning-scheme: Major
 assembly-file-versioning-scheme: MajorMinorPatch
 ignore:
   sha: []
-branches:
-  main:
-    regex: ^(main|master)$
-    is-mainline: true
-    tag: ''
-    increment: Patch
-    prevent-increment-of-merged-branch-version: true
-    is-release-branch: true
-  feature:
-    regex: ^(dev|dependabot|feature|personal|revert|users)[/-]
-    tag: useBranchName
-    increment: Inherit
