@@ -88,24 +88,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified extended query tag with tag path {0} cannot be found..
-        /// </summary>
-        internal static string ExtendedQueryTagNotFound {
-            get {
-                return ResourceManager.GetString("ExtendedQueryTagNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to One or more extended query tags already exist..
-        /// </summary>
-        internal static string ExtendedQueryTagsAlreadyExists {
-            get {
-                return ResourceManager.GetString("ExtendedQueryTagsAlreadyExists", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
         internal static string DataStoreOperationFailed {
@@ -124,20 +106,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; has been specified before..
-        /// </summary>
-        internal static string DuplicateExtendedQueryTag {
-            get {
-                return ResourceManager.GetString("DuplicateExtendedQueryTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
         /// </summary>
         internal static string DuplicatedUidsNotAllowed {
             get {
                 return ResourceManager.GetString("DuplicatedUidsNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; has been specified before..
+        /// </summary>
+        internal static string DuplicateExtendedQueryTag {
+            get {
+                return ResourceManager.GetString("DuplicateExtendedQueryTag", resourceCulture);
             }
         }
         
@@ -166,6 +148,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ErrorValidatingRoles {
             get {
                 return ResourceManager.GetString("ErrorValidatingRoles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified extended query tag with tag path {0} cannot be found..
+        /// </summary>
+        internal static string ExtendedQueryTagNotFound {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One or more extended query tags already exist..
+        /// </summary>
+        internal static string ExtendedQueryTagsAlreadyExists {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagsAlreadyExists", resourceCulture);
             }
         }
         
@@ -215,15 +215,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is invalid..
-        /// </summary>
-        internal static string InvalidExtendedQueryTag {
-            get {
-                return ResourceManager.GetString("InvalidExtendedQueryTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
         ///The first part date {1} should be lesser than or equal to the second part date {2}..
         /// </summary>
@@ -266,6 +257,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidDoubleValue {
             get {
                 return ResourceManager.GetString("InvalidDoubleValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is invalid..
+        /// </summary>
+        internal static string InvalidExtendedQueryTag {
+            get {
+                return ResourceManager.GetString("InvalidExtendedQueryTag", resourceCulture);
             }
         }
         
