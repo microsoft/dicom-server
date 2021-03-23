@@ -18,9 +18,9 @@ stages:
     steps:
     - template: ./update-semver.yml
     - powershell: |
-        $buildNumber = "$(GitVersion.semVer)" -replace "\.", ""
+        $buildNumber = "$(GitVersion.SemVer)" -replace "\.", ""
         Write-Host "##vso[build.updatebuildnumber]$buildNumber"
-        Write-Host "Updated  build number to '$buildNumber"
+        Write-Host "Updated build number to '$buildNumber'"
       name: SetBuildVersion
 
 - stage: BuildRunUnitTests
@@ -28,11 +28,11 @@ stages:
   dependsOn:
   - UpdateVersion
   variables:
-    assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.assemblySemVer']]
-    assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.assemblySemFileVer']]
-    informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.informationalVersion']]
-    majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.majorMinorPatch']]
-    nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['SetVariablesFromGitVersion.nuGetVersion']]
+    assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemVer']]
+    assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
+    informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.InformationalVersion']]
+    majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
+    nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
   jobs:
   - job: Windows
     pool:
