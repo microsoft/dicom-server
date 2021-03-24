@@ -85,7 +85,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenDicomInstanceWithDifferentTypesOfExtendedQueryTags_WhenDeletedBySopInstanceId_ThenTagValuesShouldBeRemoved()
         {
-            // 2 instances
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
@@ -126,7 +125,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenDicomInstancesWithDifferentTypesOfExtendedQueryTags_WhenDeletedBySeriesId_ThenTagValuesShouldBeRemoved()
         {
-            // 2 in 1 series, 1 in diff series under same study
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid2 = TestUidGenerator.Generate();
