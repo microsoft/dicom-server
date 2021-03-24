@@ -83,6 +83,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "paas")]
         public async Task GivenStoredDicomFile_WhenRetrievingMetadataForStudy_ThenMetadataIsRetrievedCorrectly()
         {
             string studyInstanceUid = TestUidGenerator.Generate();

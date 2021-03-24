@@ -27,6 +27,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _client = fixture.Client;
         }
 
+        [Trait("Category", "paas")]
         [Fact]
         public async Task GivenASetOfDicomInstances_WhenRetrievingChangeFeed_ThenTheExpectedInstanceAreReturned()
         {

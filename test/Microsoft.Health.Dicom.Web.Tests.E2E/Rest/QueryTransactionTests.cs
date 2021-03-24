@@ -49,6 +49,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
+        [Trait("Category", "paas")]
         [Fact]
         public async Task GivenSearchRequest_AllStudyLevel_MatchResult()
         {
