@@ -18,8 +18,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     /// </summary>
     public static class DicomDatasetExtensions
     {
-        private const string DateFormat = "yyyyMMdd";
-
         private static readonly HashSet<DicomVR> DicomBulkDataVr = new HashSet<DicomVR>
         {
             DicomVR.OB,
@@ -31,6 +29,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             DicomVR.UN,
         };
 
+        private const string DateFormatDA = "yyyyMMdd";
+
         /// <summary>
         /// Gets a single value if the value exists; otherwise the default value for the type <typeparamref name="T"/>.
         /// </summary>
@@ -41,7 +41,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static T GetSingleValueOrDefault<T>(this DicomDataset dicomDataset, DicomTag dicomTag)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-
             return dicomDataset.GetSingleValueOrDefault<T>(dicomTag, default);
         }
 
@@ -51,19 +50,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// <param name="dicomDataset">The dataset to get the VR value from.</param>
         /// <param name="dicomTag">The DICOM tag.</param>
         /// <returns>An instance of <see cref="DateTime"/> if the value exists and comforms to the DA format; otherwise <c>null</c>.</returns>
-        public static DateTime? GetStringDateAsDateTime(this DicomDataset dicomDataset, DicomTag dicomTag)
+        public static DateTime? GetStringDateAsDate(this DicomDataset dicomDataset, DicomTag dicomTag)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-
             string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, default);
-
-            if (stringDate == null ||
-                !DateTime.TryParseExact(stringDate, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime result))
-            {
-                return null;
-            }
-
-            return result;
+            return DateTime.TryParseExact(stringDate, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result) ? result : null;
         }
 
         /// <summary>

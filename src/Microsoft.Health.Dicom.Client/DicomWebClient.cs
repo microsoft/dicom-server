@@ -29,6 +29,8 @@ namespace Microsoft.Health.Dicom.Client
     {
         private const string TransferSyntaxHeaderName = "transfer-syntax";
 
+        private const string BaseExtendedQueryTagUri = "/tags";
+
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         public DicomWebClient(HttpClient httpClient)
@@ -353,6 +355,66 @@ namespace Microsoft.Health.Dicom.Client
                     string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     return JsonConvert.DeserializeObject<ChangeFeedEntry>(contentText, _jsonSerializerSettings);
                 });
+        }
+
+        public async Task<DicomWebResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTag> tagEntries, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(tagEntries, nameof(tagEntries));
+            using var request = new HttpRequestMessage(HttpMethod.Post, BaseExtendedQueryTagUri);
+            {
+                string jsonString = JsonConvert.SerializeObject(tagEntries);
+                request.Content = new StringContent(jsonString);
+                request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
+            }
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+            return new DicomWebResponse(response);
+        }
+
+        public async Task<DicomWebResponse> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
+
+            using var request = new HttpRequestMessage(HttpMethod.Delete, new Uri($"{BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative));
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
+            return new DicomWebResponse(response);
+        }
+
+        public async Task<DicomWebResponse<IEnumerable<ExtendedQueryTag>>> GetExtendedQueryTagsAsync(CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(BaseExtendedQueryTagUri, UriKind.Relative));
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+            return new DicomWebResponse<IEnumerable<ExtendedQueryTag>>(
+                 response,
+                 async content =>
+                 {
+                     string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                     return JsonConvert.DeserializeObject<IEnumerable<ExtendedQueryTag>>(contentText, _jsonSerializerSettings);
+                 });
+        }
+
+        public async Task<DicomWebResponse<ExtendedQueryTag>> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, new Uri($"{BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative));
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+            return new DicomWebResponse<ExtendedQueryTag>(
+                 response,
+                 async content =>
+                 {
+                     string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                     return JsonConvert.DeserializeObject<ExtendedQueryTag>(contentText, _jsonSerializerSettings);
+                 });
         }
 
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers will dispose of the StreamContent")]

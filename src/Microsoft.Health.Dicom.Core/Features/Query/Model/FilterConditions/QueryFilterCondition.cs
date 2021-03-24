@@ -15,6 +15,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public DicomTag DicomTag { get; }
 
+        public ExtendedQueryTagFilterDetails ExtendedQueryTagFilterDetails { get; set; }
+
         public abstract void Accept(QueryFilterConditionVisitor visitor);
     }
 }

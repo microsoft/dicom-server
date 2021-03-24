@@ -83,6 +83,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
                 case InstanceAlreadyExistsException _:
+                case ExtendedQueryTagsAlreadyExistsException _:
                     statusCode = HttpStatusCode.Conflict;
                     break;
                 case UnsupportedMediaTypeException _:

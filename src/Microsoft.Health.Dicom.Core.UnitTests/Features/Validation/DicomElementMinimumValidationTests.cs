@@ -58,5 +58,26 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidatePN(value, nameof(value)));
         }
+
+        [Theory]
+        [InlineData("01234567891234567")] // exceed max length
+        public void GivenAEInvalidValue_WhenValidating_Throws(string value)
+        {
+            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateAE(value, nameof(value)));
+        }
+
+        [Theory]
+        [InlineData("12345")] // exceed max length
+        public void GivenASInvalidValue_WhenValidating_Throws(string value)
+        {
+            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateAS(value, nameof(value)));
+        }
+
+        [Theory]
+        [InlineData("0123456789123")] // exceed max length
+        public void GivenISInvalidValue_WhenValidating_Throws(string value)
+        {
+            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateIS(value, nameof(value)));
+        }
     }
 }

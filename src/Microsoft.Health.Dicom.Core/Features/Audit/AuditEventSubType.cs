@@ -24,10 +24,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Audit
 
         public const string Store = "store";
 
-        public const string AddCustomTag = "add-custom-tag";
+        public const string AddExtendedQueryTag = "add-extended-query-tag";
 
-        public const string GetAllCustomTags = "get-all-custom-tag";
+        public const string RemoveExtendedQueryTag = "remove-extended-query-tag";
 
-        public const string GetCustomTag = "get-custom-tag";
+        public const string GetAllExtendedQueryTags = "get-all-extended-query-tag";
+
+        public const string GetExtendedQueryTag = "get-extended-query-tag";
     }
 }

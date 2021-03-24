@@ -88,15 +88,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; already exists..
-        /// </summary>
-        internal static string CustomTagAlreadyExists {
-            get {
-                return ResourceManager.GetString("CustomTagAlreadyExists", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
         internal static string DataStoreOperationFailed {
@@ -115,20 +106,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; has been specified before..
-        /// </summary>
-        internal static string DuplicateCustomTag {
-            get {
-                return ResourceManager.GetString("DuplicateCustomTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
         /// </summary>
         internal static string DuplicatedUidsNotAllowed {
             get {
                 return ResourceManager.GetString("DuplicatedUidsNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; has been specified before..
+        /// </summary>
+        internal static string DuplicateExtendedQueryTag {
+            get {
+                return ResourceManager.GetString("DuplicateExtendedQueryTag", resourceCulture);
             }
         }
         
@@ -157,6 +148,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ErrorValidatingRoles {
             get {
                 return ResourceManager.GetString("ErrorValidatingRoles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified extended query tag with tag path {0} cannot be found..
+        /// </summary>
+        internal static string ExtendedQueryTagNotFound {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One or more extended query tags already exist..
+        /// </summary>
+        internal static string ExtendedQueryTagsAlreadyExists {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagsAlreadyExists", resourceCulture);
             }
         }
         
@@ -206,15 +215,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag &apos;{0}&apos; is invalid..
-        /// </summary>
-        internal static string InvalidCustomTag {
-            get {
-                return ResourceManager.GetString("InvalidCustomTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
         ///The first part date {1} should be lesser than or equal to the second part date {2}..
         /// </summary>
@@ -252,6 +252,24 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; extended query tag with path &apos;{1}&apos; is not a valid double value..
+        /// </summary>
+        internal static string InvalidDoubleValue {
+            get {
+                return ResourceManager.GetString("InvalidDoubleValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is invalid..
+        /// </summary>
+        internal static string InvalidExtendedQueryTag {
+            get {
+                return ResourceManager.GetString("InvalidExtendedQueryTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0..
         /// </summary>
         internal static string InvalidFramesValue {
@@ -275,6 +293,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidLimitValue {
             get {
                 return ResourceManager.GetString("InvalidLimitValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; extended query tag with path &apos;{1}&apos; is not a valid long value..
+        /// </summary>
+        internal static string InvalidLongValue {
+            get {
+                return ResourceManager.GetString("InvalidLongValue", resourceCulture);
             }
         }
         
@@ -333,11 +360,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom tag(s) is missing..
+        ///   Looks up a localized string similar to The extended query tag(s) is missing..
         /// </summary>
-        internal static string MissingCustomTag {
+        internal static string MissingExtendedQueryTag {
             get {
-                return ResourceManager.GetString("MissingCustomTag", resourceCulture);
+                return ResourceManager.GetString("MissingExtendedQueryTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The private creator for private tag &apos;{0}&apos; is missing..
+        /// </summary>
+        internal static string MissingPrivateCreator {
+            get {
+                return ResourceManager.GetString("MissingPrivateCreator", resourceCulture);
             }
         }
         
@@ -387,6 +423,24 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The private creator is not empty for standard tag &apos;{0}&apos;..
+        /// </summary>
+        internal static string PrivateCreatorNotEmpty {
+            get {
+                return ResourceManager.GetString("PrivateCreatorNotEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The private creator for tag &apos;{0}&apos; is not a valid LO attribute..
+        /// </summary>
+        internal static string PrivateCreatorNotValidLO {
+            get {
+                return ResourceManager.GetString("PrivateCreatorNotValidLO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId &apos;{0}&apos; has empty string value that is not supported..
         /// </summary>
         internal static string QueryEmptyAttributeValue {
@@ -410,6 +464,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string QueryResultCountMaxExceeded {
             get {
                 return ResourceManager.GetString("QueryResultCountMaxExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sequential dicom tags are currently not supported..
+        /// </summary>
+        internal static string SequentialDicomTagsNotSupported {
+            get {
+                return ResourceManager.GetString("SequentialDicomTagsNotSupported", resourceCulture);
             }
         }
         
@@ -459,15 +522,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TagPathValidation.
-        /// </summary>
-        internal static string TagPathValidation {
-            get {
-                return ResourceManager.GetString("TagPathValidation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Unknown query parameter &apos;{0}&apos;. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and queryable attributes..
         /// </summary>
         internal static string UnknownQueryParameter {
@@ -486,7 +540,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} is not queryable. .
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} is not queryable at {1} resource level. .
         /// </summary>
         internal static string UnsupportedSearchParameter {
             get {
@@ -558,6 +612,24 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value length is above {0}..
+        /// </summary>
+        internal static string ValueLengthAboveMaxLength {
+            get {
+                return ResourceManager.GetString("ValueLengthAboveMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value length is below {0}..
+        /// </summary>
+        internal static string ValueLengthBelowMinLength {
+            get {
+                return ResourceManager.GetString("ValueLengthBelowMinLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value exceeds maximum length of 16 characters..
         /// </summary>
         internal static string ValueLengthExceeds16Characters {
@@ -572,6 +644,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ValueLengthExceeds64Characters {
             get {
                 return ResourceManager.GetString("ValueLengthExceeds64Characters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value length is not {0}..
+        /// </summary>
+        internal static string ValueLengthIsNotRequiredLength {
+            get {
+                return ResourceManager.GetString("ValueLengthIsNotRequiredLength", resourceCulture);
             }
         }
     }
