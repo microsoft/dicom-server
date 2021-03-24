@@ -56,12 +56,6 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-    </EmbeddedResource>
-  </ItemGroup>
-
   <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
     <ItemGroup>
       <MutableSqlGeneratorInputs Include="@(EmbeddedResource)" Condition="'%(EmbeddedResource.InputToMutableSqlGenerator)' == 'true'" />
