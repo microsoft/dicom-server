@@ -50,6 +50,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
         public async Task GivenSearchRequest_AllStudyLevel_MatchResult()
         {
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()

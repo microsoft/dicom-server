@@ -25,6 +25,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
         public async Task GivenAnExistingInstance_WhenDeletingInstance_TheServerShouldReturnNoContentAndAllLevelsShouldBeRemoved()
         {
             var studyInstanceUid = TestUidGenerator.Generate();
