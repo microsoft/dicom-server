@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        [Trait("Category", "paas")]
+        [Trait("Category", "bvt")]
         public async Task GivenUnsupportedInternalTransferSyntax_WhenRetrieveInstanceWithOriginalTransferSyntax_ThenServerShouldReturnOriginalContent()
         {
             var studyInstanceUid = TestUidGenerator.Generate();

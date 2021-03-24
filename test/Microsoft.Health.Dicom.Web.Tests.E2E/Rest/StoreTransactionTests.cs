@@ -210,7 +210,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        [Trait("Category", "paas")]
+        [Trait("Category", "bvt")]
         public async Task GivenOneDifferentStudyInstanceUID_WhenStoringWithProvidedStudyInstanceUID_TheServerShouldReturnAccepted()
         {
             var studyInstanceUID1 = TestUidGenerator.Generate();
@@ -345,8 +345,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        [Trait("Category", "paas")]
-
+        [Trait("Category", "bvt")]
         public async Task StoreSinglepart_ServerShouldReturnOK()
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFile();
