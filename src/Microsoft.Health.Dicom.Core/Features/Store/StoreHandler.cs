@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.Health.Abstractions.Exceptions;
+using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
@@ -25,10 +25,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IStoreService _storeService;
 
         public StoreHandler(
-            IDicomAuthorizationService dicomAuthorizationService,
+            IAuthorizationService<DataActions> authorizationService,
             IDicomInstanceEntryReaderManager dicomInstanceEntryReaderManager,
             IStoreService storeService)
-            : base(dicomAuthorizationService)
+            : base(authorizationService)
         {
             _dicomInstanceEntryReaderManager = EnsureArg.IsNotNull(dicomInstanceEntryReaderManager, nameof(dicomInstanceEntryReaderManager));
             _storeService = EnsureArg.IsNotNull(storeService, nameof(storeService));

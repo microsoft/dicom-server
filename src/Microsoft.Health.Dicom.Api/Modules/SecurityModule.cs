@@ -10,12 +10,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Core.Features.Context;
 using Microsoft.Health.Core.Features.Security;
+using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
@@ -71,24 +72,25 @@ namespace Microsoft.Health.Dicom.Api.Modules
 
                 if (_securityConfiguration.Authorization.Enabled)
                 {
-                    services.Add<RoleLoader>().Transient().AsImplementedInterfaces();
+                    services.Add<DicomRoleLoader>().Transient().AsImplementedInterfaces();
                     services.AddSingleton(_securityConfiguration.Authorization);
 
-                    services.AddSingleton<IDicomAuthorizationService, RoleBasedDicomAuthorizationService>();
+                    services.AddSingleton<IAuthorizationService<DataActions>, RoleBasedAuthorizationService<DataActions, IDicomRequestContext>>();
                 }
                 else
                 {
-                    services.AddSingleton<IDicomAuthorizationService, DisabledDicomAuthorizationService>();
+                    services.AddSingleton<IAuthorizationService<DataActions>, DisabledAuthorizationService<DataActions>>();
                 }
             }
             else
             {
-                services.AddSingleton<IDicomAuthorizationService, DisabledDicomAuthorizationService>();
+                services.AddSingleton<IAuthorizationService<DataActions>, DisabledAuthorizationService<DataActions>>();
             }
 
             services.Add<DicomRequestContextAccessor>()
                 .Singleton()
                 .AsSelf()
+                .AsService<RequestContextAccessor<IDicomRequestContext>>()
                 .AsService<IDicomRequestContextAccessor>();
 
             services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();

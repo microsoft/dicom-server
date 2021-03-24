@@ -1,31 +1,15 @@
 steps:
-- task: UseDotNet@2
-  displayName: 'Use .NET Core sdk (for GitVersion)'
+- task: gitversion/setup@0
+  displayName: 'Setup GitVersion'
   inputs:
-    packageType: sdk
-    version: 2.1.x
-    
-- task: GitVersion@5
-  displayName: 'GitVersion'
+    versionSpec: '5.x'
+
+# All variables from the GitVersion task are prefixed by "GitVersion." (eg. GitVersion.SemVer)
+- task: gitversion/execute@0
+  name: 'DicomVersion'
+  displayName: 'Run GitVersion'
   inputs:
-    configFilePath: '$(Build.SourcesDirectory)/GitVersion.yml'
+    configFilePath: 'GitVersion.yml'
+    targetPath: '$(Build.SourcesDirectory)'
+    useConfigFile: true
 
-# Can set these: https://github.com/GitTools/actions/blob/master/gitversion/execute/action.yml
-- powershell: |
-    Write-Host "##vso[task.setvariable variable=semVer]$(GitVersion.semVer)"
-    Write-Host "##vso[task.setvariable variable=informationalVersion;isOutput=true]$(GitVersion.informationalVersion)"
-    Write-Host "##vso[task.setvariable variable=majorMinorPatch;isOutput=true]$(GitVersion.majorMinorPatch)"
-    Write-Host "##vso[task.setvariable variable=nuGetVersion;isOutput=true]$(GitVersion.semVer)"
-    Write-Host "##vso[task.setvariable variable=assemblySemVer;isOutput=true]$(GitVersion.assemblySemVer)"
-    Write-Host "##vso[task.setvariable variable=assemblySemFileVer;isOutput=true]$(GitVersion.assemblySemFileVer)"
-  name: SetVariablesFromGitVersion
-
-- powershell: |
-    Write-Host '----------Variables to use for build----------'
-    Write-Host 'semVer: $(semVer)'
-    Write-Host 'informationalVersion: $(informationalVersion)'
-    Write-Host 'majorMinorPatch: $(majorMinorPatch)'
-    Write-Host 'assemblySemVer: $(assemblySemVer)'
-    Write-Host 'assemblySemFileVer: $(assemblySemFileVer)'
-    Write-Host 'nuGetVersion: $(nuGetVersion)'
-  name: PrintVariablesFromGitVersion

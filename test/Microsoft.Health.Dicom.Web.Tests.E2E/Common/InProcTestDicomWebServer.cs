@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E
@@ -51,7 +52,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                     config.AddInMemoryCollection(authSettings);
                     config.AddInMemoryCollection(featureSettings);
                     var existingConfig = config.Build();
-                    config.AddDevelopmentAuthEnvironmentIfConfigured(existingConfig);
+                    config.AddDevelopmentAuthEnvironmentIfConfigured(existingConfig, "DicomServer");
                     if (string.Equals(existingConfig["DicomServer:Security:Enabled"], bool.TrueString, StringComparison.OrdinalIgnoreCase))
                     {
                         Environment.SetEnvironmentVariable("security_enabled", "true");

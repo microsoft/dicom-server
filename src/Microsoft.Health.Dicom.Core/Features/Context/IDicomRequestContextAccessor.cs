@@ -7,6 +7,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
 {
     public interface IDicomRequestContextAccessor
     {
-        IDicomRequestContext DicomRequestContext { get; set; }
+        IDicomRequestContext RequestContext { get; set; }
     }
 }

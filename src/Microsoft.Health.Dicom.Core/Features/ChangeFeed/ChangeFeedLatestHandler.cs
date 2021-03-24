@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
@@ -19,8 +19,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
     {
         private readonly IChangeFeedService _changeFeedService;
 
-        public ChangeFeedLatestHandler(IDicomAuthorizationService dicomAuthorizationService, IChangeFeedService changeFeedService)
-            : base(dicomAuthorizationService)
+        public ChangeFeedLatestHandler(IAuthorizationService<DataActions> authorizationService, IChangeFeedService changeFeedService)
+            : base(authorizationService)
         {
             _changeFeedService = EnsureArg.IsNotNull(changeFeedService, nameof(changeFeedService));
         }

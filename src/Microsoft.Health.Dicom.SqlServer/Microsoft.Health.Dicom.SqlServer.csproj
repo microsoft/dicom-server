@@ -1,31 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
+    <Description>SQL Server extensions and utilities used by Microsoft's DICOMweb APIs.</Description>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Microsoft.Health.Dicom.SqlServer</RootNamespace>
   </PropertyGroup>
+
   <ItemGroup>
-    <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>1</MutableClassVersion>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Features\Schema\Migrations\2.diff.sql" />
-    <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>Latest</MutableClassVersion>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Ensure.That" Version="9.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="5.0.3" />
+    <PackageReference Include="Ensure.That" Version="10.0.0" />
+    <PackageReference Include="fo-dicom" Version="4.0.7" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Abstractions" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="$(HealthcareSharedPackageVersion)" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+    <PackageReference Include="Scrutor" Version="3.3.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" PrivateAssets="All" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
@@ -44,6 +40,20 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Features\Schema\Model\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>1</MutableClassVersion>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\2.diff.sql" />
+    <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>Latest</MutableClassVersion>
+    </EmbeddedResource>
   </ItemGroup>
 
   <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
@@ -66,4 +76,5 @@
       </Generated>
     </ItemGroup>
   </Target>
+
 </Project>

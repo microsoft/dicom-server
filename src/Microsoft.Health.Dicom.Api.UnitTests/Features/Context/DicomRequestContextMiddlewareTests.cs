@@ -39,9 +39,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context
 
             await dicomContextMiddlware.Invoke(httpContext, dicomRequestContextAccessor);
 
-            Assert.NotNull(dicomRequestContextAccessor.DicomRequestContext);
+            Assert.NotNull(dicomRequestContextAccessor.RequestContext);
 
-            return dicomRequestContextAccessor.DicomRequestContext;
+            return dicomRequestContextAccessor.RequestContext;
         }
 
         private HttpContext CreateHttpContext()
