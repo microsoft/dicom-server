@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
                     Assert.Equal(expectedValue, parameters.StringExtendedQueryTags.First().TagValue);
                     break;
                 case ExtendedQueryTagDataType.LongData:
-                    Assert.Equal(expectedValue, parameters.BigIntExtendedQueryTags.First().TagValue);
+                    Assert.Equal(expectedValue, parameters.LongExtendedQueryTags.First().TagValue);
                     break;
                 case ExtendedQueryTagDataType.DoubleData:
                     Assert.Equal(expectedValue, parameters.DoubleExtendedQueryTags.First().TagValue);

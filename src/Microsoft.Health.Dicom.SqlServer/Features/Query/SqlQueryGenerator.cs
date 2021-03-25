@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private const string InstanceTableAlias = "i";
         private const string StudyTableAlias = "st";
         private const string SeriesTableAlias = "se";
-        private const string ExtendedQueryTagBigIntTableAlias = "ctbi";
+        private const string ExtendedQueryTagLongTableAlias = "ctl";
         private const string ExtendedQueryTagDateTimeTableAlias = "ctdt";
         private const string ExtendedQueryTagDoubleTableAlias = "ctd";
         private const string ExtendedQueryTagPersonNameTableAlias = "ctpn";
@@ -145,8 +145,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
                         break;
                     case ExtendedQueryTagDataType.LongData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagBigIntTableAlias + filterDetails.Key;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagBigInt.TableName} {extendedQueryTagTableAlias}");
+                        extendedQueryTagTableAlias = ExtendedQueryTagLongTableAlias + filterDetails.Key;
+                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagLong.TableName} {extendedQueryTagTableAlias}");
 
                         break;
                     case ExtendedQueryTagDataType.DoubleData:
@@ -427,8 +427,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 case SqlTableType.SeriesTable:
                     ret = SeriesTableAlias;
                     break;
-                case SqlTableType.ExtendedQueryTagBigIntTable:
-                    ret = ExtendedQueryTagBigIntTableAlias;
+                case SqlTableType.ExtendedQueryTagLongTable:
+                    ret = ExtendedQueryTagLongTableAlias;
                     break;
                 case SqlTableType.ExtendedQueryTagDateTimeTable:
                     ret = ExtendedQueryTagDateTimeTableAlias;

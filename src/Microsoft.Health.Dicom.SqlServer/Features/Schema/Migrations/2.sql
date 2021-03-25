@@ -417,13 +417,13 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTag
 )
 
 /*************************************************************
-    Extended Query Tag Data Table for VR Types mapping to BigInt
+    Extended Query Tag Data Table for VR Types mapping to Long
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.
             For example, with multiple instances in a series, while indexing a series level tag,
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagBigInt (
+CREATE TABLE dbo.ExtendedQueryTagLong (
     TagKey                  INT                  NOT NULL, --PK
     TagValue                BIGINT               NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
@@ -432,7 +432,7 @@ CREATE TABLE dbo.ExtendedQueryTagBigInt (
     Watermark               BIGINT               NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagBigInt ON dbo.ExtendedQueryTagBigInt
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
 (
     TagKey,
     TagValue,
@@ -563,9 +563,9 @@ CREATE TYPE dbo.InsertDoubleExtendedQueryTagTableType_1 AS TABLE
 GO
 
 /*************************************************************
-    Table valued parameter to insert into Extended Query Tag table for data type Big Int
+    Table valued parameter to insert into Extended Query Tag table for data type Long
 *************************************************************/
-CREATE TYPE dbo.InsertBigIntExtendedQueryTagTableType_1 AS TABLE
+CREATE TYPE dbo.InsertLongExtendedQueryTagTableType_1 AS TABLE
 (
     TagKey                     INT,
     TagValue                   BIGINT,
@@ -676,8 +676,8 @@ GO
 --         * The date when the procedure for the series was performed.
 --     @stringExtendedQueryTags
 --         * String extended query tag data
---     @bigIntExtendedQueryTags
---         * BigInt extended query tag data
+--     @longExtendedQueryTags
+--         * Long extended query tag data
 --     @doubleExtendedQueryTags
 --         * Double extended query tag data
 --     @dateTimeExtendedQueryTags
@@ -700,7 +700,7 @@ CREATE PROCEDURE dbo.AddInstance
     @modality                           NVARCHAR(16) = NULL,
     @performedProcedureStepStartDate    DATE = NULL,                
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,    
-    @bigIntExtendedQueryTags dbo.InsertBigIntExtendedQueryTagTableType_1 READONLY,
+    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY,
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
@@ -820,14 +820,14 @@ AS
             @newWatermark);        
     END
 
-    -- BigInt Key tags
-    IF EXISTS (SELECT 1 FROM @bigIntExtendedQueryTags)
+    -- Long Key tags
+    IF EXISTS (SELECT 1 FROM @longExtendedQueryTags)
     BEGIN      
-        MERGE INTO dbo.ExtendedQueryTagBigInt AS T
+        MERGE INTO dbo.ExtendedQueryTagLong AS T
         USING 
         (
             SELECT input.TagKey, input.TagValue, input.TagLevel 
-            FROM @bigIntExtendedQueryTags input
+            FROM @longExtendedQueryTags input
             INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
             ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
             AND dbo.ExtendedQueryTag.TagStatus <> 2     
@@ -1127,7 +1127,7 @@ AS
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
     DELETE
-    FROM    dbo.ExtendedQueryTagBigInt
+    FROM    dbo.ExtendedQueryTagLong
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
@@ -1187,7 +1187,7 @@ AS
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
 
         DELETE
-        FROM    dbo.ExtendedQueryTagBigInt
+        FROM    dbo.ExtendedQueryTagLong
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
 
@@ -1222,7 +1222,7 @@ AS
         WHERE   StudyKey = @studyKey
 
         DELETE
-        FROM    dbo.ExtendedQueryTagBigInt
+        FROM    dbo.ExtendedQueryTagLong
         WHERE   StudyKey = @studyKey
 
         DELETE
@@ -1487,7 +1487,7 @@ GO
 --     @tagPath
 --         * The extended query tag path
 --     @dataType
---         * the data type of extended query tag. 0 -- String, 1 -- BigInt, 2 -- Double, 3 -- DateTime, 4 -- PersonName
+--         * the data type of extended query tag. 0 -- String, 1 -- Long, 2 -- Double, 3 -- DateTime, 4 -- PersonName
 /***************************************************************************************/
 CREATE PROCEDURE dbo.DeleteExtendedQueryTag (
     @tagPath VARCHAR(64),
@@ -1528,7 +1528,7 @@ AS
         IF @dataType = 0
             DELETE FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey
         ELSE IF @dataType = 1
-            DELETE FROM dbo.ExtendedQueryTagBigInt WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagLong WHERE TagKey = @tagKey
         ELSE IF @dataType = 2
             DELETE FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey
         ELSE IF @dataType = 3

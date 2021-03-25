@@ -134,12 +134,12 @@ AND cts1.TagValue=@p1";
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
             new SqlQueryGenerator(stringBuilder, query, parm);
 
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagBigInt ctbi1
-ON ctbi1.StudyKey = st.StudyKey
+            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctl1
+ON ctl1.StudyKey = st.StudyKey
 WHERE";
 
-            string expectedFilters = @"AND ctbi1.TagKey=@p0
-AND ctbi1.TagValue=@p1";
+            string expectedFilters = @"AND ctl1.TagKey=@p0
+AND ctl1.TagValue=@p1";
 
             string builtString = stringBuilder.ToString();
             Assert.Equal(filterDetails.Key.ToString(), sqlParameterCollection[0].Value.ToString());
@@ -274,7 +274,7 @@ AND cts1.TagValue=@p2";
 
             // cts1 is associated with filter1 which is at the instance level. This means the join should be on all three keys.
             // cts2 is associated with filter2 which is at the series level. This means the join should be on only study and series keys.
-            // ctbi4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
+            // ctl4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
             string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.StudyKey = st.StudyKey
 AND cts1.SeriesKey = se.SeriesKey
@@ -325,7 +325,7 @@ AND cts2.TagValue=@p3";
 
             // cts1 is associated with filter1 which is at the instance level. This means the join should be on all three keys.
             // cts2 is associated with filter2 which is at the series level. This means the join should be on only study and series keys.
-            // ctbi4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
+            // ctl4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
             string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.StudyKey = st.StudyKey
 AND cts1.SeriesKey = se.SeriesKey
@@ -333,16 +333,16 @@ AND cts1.InstanceKey = i.InstanceKey
 INNER JOIN dbo.ExtendedQueryTagString cts2
 ON cts2.StudyKey = st.StudyKey
 AND cts2.SeriesKey = se.SeriesKey
-INNER JOIN dbo.ExtendedQueryTagBigInt ctbi4
-ON ctbi4.StudyKey = st.StudyKey
+INNER JOIN dbo.ExtendedQueryTagLong ctl4
+ON ctl4.StudyKey = st.StudyKey
 WHERE";
 
             string expectedFilters = @"AND cts1.TagKey=@p0
 AND cts1.TagValue=@p1
 AND cts2.TagKey=@p2
 AND cts2.TagValue=@p3
-AND ctbi4.TagKey=@p4
-AND ctbi4.TagValue=@p5";
+AND ctl4.TagKey=@p4
+AND ctl4.TagValue=@p5";
 
             string builtString = stringBuilder.ToString();
             Assert.Equal(filterDetails1.Key.ToString(), sqlParameterCollection[0].Value.ToString());
