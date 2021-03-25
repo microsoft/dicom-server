@@ -49,40 +49,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.Byte TagLevel { get; }
     }
 
-    internal class InsertBigIntExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertBigIntExtendedQueryTagTableTypeV1Row>
-    {
-        internal InsertBigIntExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertBigIntExtendedQueryTagTableType_1")
-        {
-        }
-
-        internal readonly IntColumn TagKey = new IntColumn("TagKey");
-        internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
-        internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
-
-        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
-
-        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertBigIntExtendedQueryTagTableTypeV1Row rowData)
-        {
-            TagKey.Set(record, 0, rowData.TagKey);
-            TagValue.Set(record, 1, rowData.TagValue);
-            TagLevel.Set(record, 2, rowData.TagLevel);
-        }
-    }
-
-    internal struct InsertBigIntExtendedQueryTagTableTypeV1Row
-    {
-        internal InsertBigIntExtendedQueryTagTableTypeV1Row(System.Int32 TagKey, System.Int64 TagValue, System.Byte TagLevel)
-        {
-            this.TagKey = TagKey;
-            this.TagValue = TagValue;
-            this.TagLevel = TagLevel;
-        }
-
-        internal System.Int32 TagKey { get; }
-        internal System.Int64 TagValue { get; }
-        internal System.Byte TagLevel { get; }
-    }
-
     internal class InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDateTimeExtendedQueryTagTableTypeV1Row>
     {
         internal InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDateTimeExtendedQueryTagTableType_1")
@@ -148,6 +114,40 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal System.Int32 TagKey { get; }
         internal System.Double TagValue { get; }
+        internal System.Byte TagLevel { get; }
+    }
+
+    internal class InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertLongExtendedQueryTagTableTypeV1Row>
+    {
+        internal InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertLongExtendedQueryTagTableType_1")
+        {
+        }
+
+        internal readonly IntColumn TagKey = new IntColumn("TagKey");
+        internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
+        internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertLongExtendedQueryTagTableTypeV1Row rowData)
+        {
+            TagKey.Set(record, 0, rowData.TagKey);
+            TagValue.Set(record, 1, rowData.TagValue);
+            TagLevel.Set(record, 2, rowData.TagLevel);
+        }
+    }
+
+    internal struct InsertLongExtendedQueryTagTableTypeV1Row
+    {
+        internal InsertLongExtendedQueryTagTableTypeV1Row(System.Int32 TagKey, System.Int64 TagValue, System.Byte TagLevel)
+        {
+            this.TagKey = TagKey;
+            this.TagValue = TagValue;
+            this.TagLevel = TagLevel;
+        }
+
+        internal System.Int32 TagKey { get; }
+        internal System.Int64 TagValue { get; }
         internal System.Byte TagLevel { get; }
     }
 

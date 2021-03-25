@@ -134,7 +134,7 @@ AND cts1.TagValue=@p1";
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
             new SqlQueryGenerator(stringBuilder, query, parm);
 
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagBigInt ctbi1
+            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctbi1
 ON ctbi1.StudyKey = st.StudyKey
 WHERE";
 
@@ -333,7 +333,7 @@ AND cts1.InstanceKey = i.InstanceKey
 INNER JOIN dbo.ExtendedQueryTagString cts2
 ON cts2.StudyKey = st.StudyKey
 AND cts2.SeriesKey = se.SeriesKey
-INNER JOIN dbo.ExtendedQueryTagBigInt ctbi4
+INNER JOIN dbo.ExtendedQueryTagLong ctbi4
 ON ctbi4.StudyKey = st.StudyKey
 WHERE";
 

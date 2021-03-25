@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private static readonly IReadOnlyDictionary<ExtendedQueryTagDataType, string> DateTypeAndTableNameMapping = new Dictionary<ExtendedQueryTagDataType, string>()
             {
                 { ExtendedQueryTagDataType.StringData, VLatest.ExtendedQueryTagString.TableName },
-                { ExtendedQueryTagDataType.LongData, VLatest.ExtendedQueryTagBigInt.TableName },
+                { ExtendedQueryTagDataType.LongData, VLatest.ExtendedQueryTagLong.TableName },
                 { ExtendedQueryTagDataType.DoubleData, VLatest.ExtendedQueryTagDouble.TableName },
                 { ExtendedQueryTagDataType.DateTimeData, VLatest.ExtendedQueryTagDateTime.TableName },
                 { ExtendedQueryTagDataType.PersonNameData, VLatest.ExtendedQueryTagPersonName.TableName },
