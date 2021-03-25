@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private const string InstanceTableAlias = "i";
         private const string StudyTableAlias = "st";
         private const string SeriesTableAlias = "se";
-        private const string ExtendedQueryTagLongTableAlias = "ctbi";
+        private const string ExtendedQueryTagLongTableAlias = "ctl";
         private const string ExtendedQueryTagDateTimeTableAlias = "ctdt";
         private const string ExtendedQueryTagDoubleTableAlias = "ctd";
         private const string ExtendedQueryTagPersonNameTableAlias = "ctpn";

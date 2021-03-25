@@ -563,7 +563,7 @@ CREATE TYPE dbo.InsertDoubleExtendedQueryTagTableType_1 AS TABLE
 GO
 
 /*************************************************************
-    Table valued parameter to insert into Extended Query Tag table for data type Big Int
+    Table valued parameter to insert into Extended Query Tag table for data type Long
 *************************************************************/
 CREATE TYPE dbo.InsertLongExtendedQueryTagTableType_1 AS TABLE
 (
