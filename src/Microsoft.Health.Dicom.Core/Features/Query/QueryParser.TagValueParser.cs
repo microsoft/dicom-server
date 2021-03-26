@@ -5,6 +5,7 @@
 
 using System;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -13,9 +14,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public partial class QueryParser
     {
-        private static QueryFilterCondition ParseDateTagValue(DicomTag dicomTag, string value)
+        private static QueryFilterCondition ParseDateTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
         {
-            if (QueryLimit.IsValidRangeQueryTag(dicomTag))
+            if (QueryLimit.IsValidRangeQueryTag(dicomTag, vr))
             {
                 var splitString = value.Split('-');
                 if (splitString.Length == 2)
@@ -42,9 +43,29 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new DateSingleValueMatchCondition(dicomTag, parsedDate);
         }
 
-        private static QueryFilterCondition ParseStringTagValue(DicomTag dicomTag, string value)
+        private static QueryFilterCondition ParseStringTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
         {
             return new StringSingleValueMatchCondition(dicomTag, value);
+        }
+
+        private static QueryFilterCondition ParseDoubleTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
+        {
+            if (!double.TryParse(value, out double val))
+            {
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidDoubleValue, value, dicomTag.GetPath()));
+            }
+
+            return new DoubleSingleValueMatchCondition(dicomTag, val);
+        }
+
+        private static QueryFilterCondition ParseLongTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
+        {
+            if (!long.TryParse(value, out long val))
+            {
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidLongValue, value, dicomTag.GetPath()));
+            }
+
+            return new LongSingleValueMatchCondition(dicomTag, val);
         }
 
         private static DateTime ParseDate(string date, string tagKeyword)

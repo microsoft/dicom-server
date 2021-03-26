@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Models;
@@ -27,22 +28,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
         private readonly IDeleteService _deleteService;
+        private readonly IQueryTagService _queryTagService;
 
         public StoreOrchestrator(
             IFileStore fileStore,
             IMetadataStore metadataStore,
-            IIndexDataStore indexDataStore,
-            IDeleteService deleteService)
+            IIndexDataStoreFactory indexDataStoreFactory,
+            IDeleteService deleteService,
+            IQueryTagService queryTagService)
         {
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-            EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
+            EnsureArg.IsNotNull(indexDataStoreFactory, nameof(indexDataStoreFactory));
             EnsureArg.IsNotNull(deleteService, nameof(deleteService));
+            EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
 
             _fileStore = fileStore;
             _metadataStore = metadataStore;
-            _indexDataStore = indexDataStore;
             _deleteService = deleteService;
+            _queryTagService = queryTagService;
+            _indexDataStore = indexDataStoreFactory.GetInstance();
         }
 
         /// <inheritdoc />
@@ -53,8 +58,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
-
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, cancellationToken);
+            var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
 
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 

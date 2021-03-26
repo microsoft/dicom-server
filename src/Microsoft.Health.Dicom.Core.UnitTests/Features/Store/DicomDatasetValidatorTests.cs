@@ -5,13 +5,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using NSubstitute;
 using Xunit;
 
@@ -24,9 +28,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private const ushort ValidationFailedFailureCode = 43264;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
 
-        private DicomDatasetValidator _dicomDatasetValidator;
+        private IDicomDatasetValidator _dicomDatasetValidator;
 
         private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset();
+        private readonly IQueryTagService _queryTagService;
+        private readonly List<QueryTag> _queryTags;
 
         public DicomDatasetValidatorTests()
         {
@@ -36,26 +42,28 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 EnableFullDicomItemValidation = false,
             });
             var minValidator = new DicomElementMinimumValidator();
-
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator);
+            _queryTagService = Substitute.For<IQueryTagService>();
+            _queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
+            _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>()).Returns(_queryTags);
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _queryTagService);
         }
 
         [Fact]
-        public void GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
+        public async Task GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
         {
-            _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid: null);
+            await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
         }
 
         [Fact]
-        public void GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUid_WhenValidated_ThenItShouldSucceed()
+        public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUid_WhenValidated_ThenItShouldSucceed()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
 
             _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid);
 
-            _dicomDatasetValidator.Validate(
-                _dicomDataset,
-                studyInstanceUid);
+            await _dicomDatasetValidator.ValidateAsync(
+                 _dicomDataset,
+                 studyInstanceUid);
         }
 
         public static IEnumerable<object[]> GetDicomTagsToRemove()
@@ -72,13 +80,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         [Theory]
         [MemberData(nameof(GetDicomTagsToRemove))]
-        public void GivenAMissingTag_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown(string dicomTagInString)
+        public async Task GivenAMissingTag_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown(string dicomTagInString)
         {
             DicomTag dicomTag = DicomTag.Parse(dicomTagInString);
 
             _dicomDataset.Remove(dicomTag);
 
-            ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
+            await ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
         }
 
         public static IEnumerable<object[]> GetDuplicatedDicomIdentifierValues()
@@ -93,7 +101,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         [Theory]
         [MemberData(nameof(GetDuplicatedDicomIdentifierValues))]
-        public void GivenDuplicatedIdentifiers_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown(string firstDicomTagInString, string secondDicomTagInString)
+        public async Task GivenDuplicatedIdentifiers_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown(string firstDicomTagInString, string secondDicomTagInString)
         {
             DicomTag firstDicomTag = DicomTag.Parse(firstDicomTagInString);
             DicomTag secondDicomTag = DicomTag.Parse(secondDicomTagInString);
@@ -101,11 +109,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             string value = _dicomDataset.GetSingleValue<string>(firstDicomTag);
             _dicomDataset.AddOrUpdate(secondDicomTag, value);
 
-            ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
+            await ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
         }
 
         [Fact]
-        public void GivenStudyInstanceUidDoesNotMatchWithRequiredStudyInstanceUid_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown()
+        public async Task GivenStudyInstanceUidDoesNotMatchWithRequiredStudyInstanceUid_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown()
         {
             string requiredStudyInstanceUid = null;
             string studyInstanceUid = _dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
@@ -116,11 +124,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             }
             while (string.Equals(requiredStudyInstanceUid, studyInstanceUid, System.StringComparison.InvariantCultureIgnoreCase));
 
-            ExecuteAndValidateException<DatasetValidationException>(MismatchStudyInstanceUidFailureCode, requiredStudyInstanceUid);
+            await ExecuteAndValidateException<DatasetValidationException>(MismatchStudyInstanceUidFailureCode, requiredStudyInstanceUid);
         }
 
         [Fact]
-        public void GivenDatasetWithInvalidVrValue_WhenValidatingWithFullValidation_ThenDatasetValidationExceptionShouldBeThrown()
+        public async Task GivenDatasetWithInvalidVrValue_WhenValidatingWithFullValidation_ThenDatasetValidationExceptionShouldBeThrown()
         {
             var featureConfiguration = Substitute.For<IOptions<FeatureConfiguration>>();
             featureConfiguration.Value.Returns(new FeatureConfiguration
@@ -129,7 +137,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             });
             var minValidator = new DicomElementMinimumValidator();
 
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator);
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _queryTagService);
 
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = false;
@@ -142,11 +150,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
+            await ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
         }
 
         [Fact]
-        public void GivenDatasetWithInvalidIndexedTagValue_WhenValidating_ThenValidationExceptionShouldBeThrown()
+        public async Task GivenDatasetWithInvalidIndexedTagValue_WhenValidating_ThenValidationExceptionShouldBeThrown()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             DicomValidation.AutoValidation = false;
@@ -159,21 +167,67 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
+            await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }
 
         [Fact]
-        public void GivenDatasetWithEmptyIndexedTagValue_WhenValidating_ThenValidationPasses()
+        public async Task GivenDatasetWithEmptyIndexedTagValue_WhenValidating_ThenValidationPasses()
         {
             _dicomDataset.AddOrUpdate(DicomTag.ReferringPhysicianName, string.Empty);
-            _dicomDatasetValidator.Validate(_dicomDataset, null);
+            await _dicomDatasetValidator.ValidateAsync(_dicomDataset, null);
         }
 
-        private void ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
+        [Fact]
+        public async Task GivenExtendedQueryTags_WhenValidating_ThenExtendedQueryTagsShouldBeValidated()
+        {
+            DicomTag standardTag = DicomTag.DestinationAE;
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            // AE > 16 characters is not allowed
+            _dicomDataset.Add(standardTag, "01234567890123456");
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            QueryTag indextag = new QueryTag(standardTag.BuildExtendedQueryTagStoreEntry());
+            _queryTags.Add(indextag);
+            await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
+        }
+
+        [Fact]
+        public async Task GivenPrivateExtendedQueryTags_WhenValidating_ThenExtendedQueryTagsShouldBeValidated()
+        {
+            DicomTag tag = DicomTag.Parse("04050001");
+
+            DicomIntegerString element = new DicomIntegerString(tag, "0123456789123"); // exceed max length 12
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            // AE > 16 characters is not allowed
+            _dicomDataset.Add(element);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            DicomValidation.AutoValidation = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            QueryTag indextag = new QueryTag(tag.BuildExtendedQueryTagStoreEntry(vr: element.ValueRepresentation.Code));
+            _queryTags.Clear();
+            _queryTags.Add(indextag);
+
+            await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
+        }
+
+        private async Task ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
             where T : Exception
         {
-            var exception = Assert.Throws<T>(
-                () => _dicomDatasetValidator.Validate(_dicomDataset, requiredStudyInstanceUid));
+            var exception = await Assert.ThrowsAsync<T>(
+                () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid));
 
             if (exception is DatasetValidationException)
             {

@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -41,20 +40,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
             Assert.False(succeed);
         }
 
-        [Fact]
-        public void GivenDicomTagPath_WhenParsingFormattedTagPath_ThenShouldRemoveUnnecessaryCharacters()
-        {
-            string tag = "00001111";
-            string parsedString = _dicomTagParser.ParseFormattedTagPath(tag);
-            Assert.Equal(tag, parsedString);
-        }
-
-        [Fact]
-        public void GivenSequentialDicomTagPath_WhenParsingFormattedTagPath_ThenShouldThrow()
-        {
-            Assert.Throws<NotImplementedException>(() => { _dicomTagParser.ParseFormattedTagPath("00001111.23234545"); });
-        }
-
         public static IEnumerable<object[]> GetValidTags()
         {
             yield return new object[] { DicomTag.AcquisitionDateTime.GetPath(), DicomTag.AcquisitionDateTime }; // attribute id
@@ -69,6 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
             yield return new object[] { null }; // attribute id on lower case
             yield return new object[] { DicomTag.AcquisitionDateTime.DictionaryEntry.Keyword.ToLowerInvariant() }; // keyword in lower case
             yield return new object[] { "0018B001" }; // unknown tag
+            yield return new object[] { "0018B001A1" }; // longer than 8
         }
     }
 }

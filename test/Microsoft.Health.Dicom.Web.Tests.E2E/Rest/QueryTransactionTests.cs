@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 () => _client.QueryAsync("/studies?Modality=CT"));
 
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
-            Assert.Equal(exception.ResponseMessage, string.Format(DicomCoreResource.UnsupportedSearchParameter, "Modality"));
+            Assert.Equal(exception.ResponseMessage, string.Format(DicomCoreResource.UnsupportedSearchParameter, "Modality", "study"));
         }
 
         [Fact]

@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         [Fact]
         public void GivenNoDicomDateValue_WhenGetStringDateAsDateTimeIsCalled_ThenNullShouldBeReturned()
         {
-            Assert.Null(_dicomDataset.GetStringDateAsDateTime(DicomTag.StudyDate));
+            Assert.Null(_dicomDataset.GetStringDateAsDate(DicomTag.StudyDate));
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
             Assert.Equal(
                 new DateTime(2020, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                _dicomDataset.GetStringDateAsDateTime(DicomTag.StudyDate));
+                _dicomDataset.GetStringDateAsDate(DicomTag.StudyDate));
         }
 
         [Fact]
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             DicomValidation.AutoValidation = true;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            Assert.Null(_dicomDataset.GetStringDateAsDateTime(DicomTag.StudyDate));
+            Assert.Null(_dicomDataset.GetStringDateAsDate(DicomTag.StudyDate));
         }
 
         [Fact]

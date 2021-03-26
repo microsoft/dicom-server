@@ -5,9 +5,11 @@
 
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -19,6 +21,14 @@ namespace Microsoft.Health.Dicom.Core.Modules
 {
     public class ServiceModule : IStartupModule
     {
+        private readonly FeatureConfiguration _featureConfiguration;
+
+        public ServiceModule(FeatureConfiguration featureConfiguration)
+        {
+            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+            _featureConfiguration = featureConfiguration;
+        }
+
         public void Load(IServiceCollection services)
         {
             EnsureArg.IsNotNull(services, nameof(services));
@@ -29,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<DicomDatasetValidator>()
-                .Singleton()
+                .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
@@ -101,9 +111,9 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<DicomTagParser>()
-                         .Scoped()
-                         .AsSelf()
-                         .AsImplementedInterfaces();
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             services.AddTransient<IQueryParser, QueryParser>();
 
@@ -126,6 +136,34 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            services.Add<QueryTagService>()
+                   .Scoped()
+                   .AsSelf()
+                   .AsImplementedInterfaces();
+
+            if (_featureConfiguration.EnableExtendedQueryTags)
+            {
+                services.Add<ExtendedQueryTagEntryValidator>()
+                    .Singleton()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+
+                services.Add<GetExtendedQueryTagsService>()
+                   .Scoped()
+                   .AsSelf()
+                   .AsImplementedInterfaces();
+
+                services.Add<AddExtendedQueryTagService>()
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+
+                services.Add<DeleteExtendedQueryTagService>()
+                     .Scoped()
+                     .AsSelf()
+                     .AsImplementedInterfaces();
+            }
         }
     }
 }

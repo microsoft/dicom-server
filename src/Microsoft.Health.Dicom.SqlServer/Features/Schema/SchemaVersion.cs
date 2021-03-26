@@ -12,5 +12,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
     {
         Unknown = 0,
         V1 = 1,
+        V2 = 2,
     }
 }

@@ -10,5 +10,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         StudyTable,
         SeriesTable,
         InstanceTable,
+        ExtendedQueryTagLongTable,
+        ExtendedQueryTagDateTimeTable,
+        ExtendedQueryTagDoubleTable,
+        ExtendedQueryTagPersonNameTable,
+        ExtendedQueryTagStringTable,
     }
 }

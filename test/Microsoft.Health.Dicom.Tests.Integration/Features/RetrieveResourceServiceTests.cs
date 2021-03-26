@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence;
 using Microsoft.IO;
 using NSubstitute;

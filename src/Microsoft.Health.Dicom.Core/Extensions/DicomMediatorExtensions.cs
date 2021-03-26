@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Health.Dicom.Core.Features.CustomTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
-using Microsoft.Health.Dicom.Core.Messages.CustomTag;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
+using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -140,25 +140,32 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new ChangeFeedLatestRequest(includeMetadata), cancellationToken);
         }
 
-        public static Task<AddCustomTagResponse> AddCustomTagsAsync(
-            this IMediator mediator, IEnumerable<CustomTagEntry> customTags, CancellationToken cancellationToken)
+        public static Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(
+            this IMediator mediator, IEnumerable<ExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new AddCustomTagRequest(customTags), cancellationToken);
+            return mediator.Send(new AddExtendedQueryTagRequest(extendedQueryTags), cancellationToken);
         }
 
-        public static Task<GetAllCustomTagsResponse> GetAllCustomTagsAsync(
+        public static Task<DeleteExtendedQueryTagResponse> DeleteExtendedQueryTagAsync(
+           this IMediator mediator, string tagPath, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new DeleteExtendedQueryTagRequest(tagPath), cancellationToken);
+        }
+
+        public static Task<GetAllExtendedQueryTagsResponse> GetAllExtendedQueryTagsAsync(
             this IMediator mediator, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new GetAllCustomTagsRequest(), cancellationToken);
+            return mediator.Send(new GetAllExtendedQueryTagsRequest(), cancellationToken);
         }
 
-        public static Task<GetCustomTagResponse> GetCustomTagAsync(
-            this IMediator mediator, string customTagPath, CancellationToken cancellationToken)
+        public static Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(
+            this IMediator mediator, string extendedQueryTagPath, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new GetCustomTagRequest(customTagPath), cancellationToken);
+            return mediator.Send(new GetExtendedQueryTagRequest(extendedQueryTagPath), cancellationToken);
         }
     }
 }

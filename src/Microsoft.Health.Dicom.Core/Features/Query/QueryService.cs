@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Query;
@@ -22,18 +23,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private readonly IQueryParser _queryParser;
         private readonly IQueryStore _queryStore;
         private readonly IMetadataStore _metadataStore;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IDicomTagParser _dicomTagPathParser;
 
         public QueryService(
             IQueryParser queryParser,
             IQueryStore queryStore,
-            IMetadataStore metadataStore)
+            IMetadataStore metadataStore,
+            IExtendedQueryTagStore extendedQueryTagStore,
+            IDicomTagParser dicomTagPathParser)
         {
             EnsureArg.IsNotNull(queryParser, nameof(queryParser));
             EnsureArg.IsNotNull(queryStore, nameof(queryStore));
+            EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
+            EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
 
             _queryParser = queryParser;
             _queryStore = queryStore;
             _metadataStore = metadataStore;
+            _extendedQueryTagStore = extendedQueryTagStore;
+            _dicomTagPathParser = dicomTagPathParser;
         }
 
         public async Task<QueryResourceResponse> QueryAsync(
@@ -44,7 +53,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             ValidateRequestIdentifiers(message);
 
-            QueryExpression queryExpression = _queryParser.Parse(message);
+            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(null, cancellationToken);
+
+            IDictionary<DicomTag, ExtendedQueryTagFilterDetails> supportedExtendedQueryTags = RetrieveSupportedExtendedQueryTagsForQueryResourceType(extendedQueryTags, message.QueryResourceType);
+
+            QueryExpression queryExpression = _queryParser.Parse(message, supportedExtendedQueryTags);
 
             QueryResult queryResult = await _queryStore.QueryAsync(queryExpression, cancellationToken);
 
@@ -61,6 +74,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
 
             return new QueryResourceResponse(responseMetadata);
+        }
+
+        private IDictionary<DicomTag, ExtendedQueryTagFilterDetails> RetrieveSupportedExtendedQueryTagsForQueryResourceType(IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags, QueryResource queryResource)
+        {
+            var ret = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
+
+            foreach (ExtendedQueryTagStoreEntry extendedQueryTag in extendedQueryTags)
+            {
+                DicomTag[] result;
+                DicomTag dicomTag;
+                if (extendedQueryTag.Status.Equals(ExtendedQueryTagStatus.Ready) && _dicomTagPathParser.TryParse(extendedQueryTag.Path, out result))
+                {
+                    dicomTag = result[0];
+                    if (queryResource.Equals(QueryResource.AllInstances) || queryResource.Equals(QueryResource.StudyInstances) || queryResource.Equals(QueryResource.StudySeriesInstances)
+                        || ((queryResource.Equals(QueryResource.AllSeries) || queryResource.Equals(QueryResource.StudySeries)) && (extendedQueryTag.Level.Equals(QueryTagLevel.Study) || extendedQueryTag.Level.Equals(QueryTagLevel.Series)))
+                        || (queryResource.Equals(QueryResource.AllStudies) && extendedQueryTag.Level.Equals(QueryTagLevel.Study)))
+                    {
+                        // When querying for instances, extended query tags of all levels can be filtered on.
+                        // When querying for series, study and series extended query tags can be filtered on.
+                        // When querying for studies, study extended query tags can be filtered on.
+                        ret.Add(dicomTag, new ExtendedQueryTagFilterDetails(extendedQueryTag.Key, extendedQueryTag.Level, DicomVR.Parse(extendedQueryTag.VR), dicomTag));
+                    }
+                }
+            }
+
+            return ret;
         }
 
         private static void ValidateRequestIdentifiers(QueryResourceRequest message)
