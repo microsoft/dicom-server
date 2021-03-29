@@ -1,6 +1,12 @@
 # Extended Query Tags
 
-Extended query tags allows querying over DICOM tags that are not supported by the DICOM Web standard for [QIDO-RS](). By enabling this feature, it is possible to query against both publicly defined or "standard" DICOM tags as well as private ones.
+## Overview
+
+Extended query tags allows querying over DICOM tags that are not supported by the DICOMweb™ standard for [QIDO-RS](conformance-statement.md##search-qido-rs). By enabling this feature, it is possible to query against tags supported by QIDO-RS, publicly defined or "standard" DICOM tags that are not natively supported and private tags.
+
+## Prerequisites
+
+To use this feature, a [Medical Imaging Server for DICOM is required](../quickstarts/deploy-via-azure.md).
 
 ## Management APIs
 
@@ -8,7 +14,7 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 
 | Verb   | Route                        | Returns     | Description                                                  |
 | ------ | ---------------------------- | ----------- | ------------------------------------------------------------ |
-| POST   | /extendedquerytags           | Json Obkect | [Add extended query tag(s) to supported set](#add-extended-query-tags) |
+| POST   | /extendedquerytags           | Json Object | [Add extended query tag(s) to supported set](#add-extended-query-tags) |
 | GET    | /extendedquerytags           | Json Array  | [List all supported extended query tags](#list-all-supported-extended-query-tags) |
 | GET    | /extendedquerytags/{tagPath} | Json Object | [Detail an extended query tag's metadata](#get-an-extended-query-tag) |
 | DELETE | /extendedquerytags/{tagPath} |             | [Remove support for specified extended query tag](#remove-an-extended-query-tag) |
@@ -41,9 +47,9 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 
 ### Add extended query tags 
 
-### **Route**: /extendedquerytags
+Add extended query tags to supported set with route:  /extendedquerytags
 
-**Request Body:**
+#### Request Body
 
 ```
 [
@@ -54,7 +60,7 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 		"Level":"Instance"
 	},
 	{
-		"Path":"00081090", //Standard tag
+		"Path":"Manufacturer Model Name", //Standard tag by name
 		"VR":"LO",
 		"Level":"Series"
 	},
@@ -66,24 +72,25 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 ]
 ```
 
-**Response:**
+#### Response
 
 ```
 {}
 ```
 
-### **Response status codes:**
+#### Response status codes
 
-| Code              | Description                                          |
-| ----------------- | ---------------------------------------------------- |
-| 202 (Accepted)    | Extended query tag(s) have been successfully stored. |
-| 400 (Bad Request) | Requested extended query path has invalid data.      |
+| Code              | Description                                            |
+| ----------------- | ------------------------------------------------------ |
+| 202 (Accepted)    | Extended query tag(s) have been successfully stored.   |
+| 400 (Bad Request) | Requested extended query path has invalid data.        |
+| 409 (Conflict)    | One or more requested query tags already is supported. |
 
 ### List all supported extended query tags
 
-**Route:** /extendedquerytags
+List all supported extended query tags with route: /extendedquerytags
 
-**Response:**
+#### Response
 
 ```
 [
@@ -92,7 +99,7 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 		"VR":"SS",
 		"PrivateCreator":"MicrosoftPC",
 		"Level":"Instance",
-		"Status":"Added"
+		"Status":"Adding"
 	},
 	{
 		"Path":"00081090", //Standard tag
@@ -109,7 +116,7 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 ]
 ```
 
-### **Response status codes:**
+### Response status codes
 
 | Code     | Description                                          |
 | -------- | ---------------------------------------------------- |
@@ -117,11 +124,13 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 
 ### Get an extended query tag
 
-**Route:** /extendedquerytags/{tagPath}
+Detail an extended query tag's metadata using the route: /extendedquerytags/{tagPath}
 
-**Parameter:** tagPath is the path for the tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020.
+#### Parameter
 
-**Response:**
+tagPath is the path for the tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020.
+
+#### Response
 
 ```
 {
@@ -129,11 +138,11 @@ To help manage the supported tags in a given DICOM server instance, a few manage
     "VR":"SS",
     "PrivateCreator":"MicrosoftPC",
     "Level":"Instance",
-    "Status":"Added"
+    "Status":"Adding"
 }
 ```
 
-### **Response status codes:**
+#### Response status codes
 
 | Code              | Description                                                  |
 | ----------------- | ------------------------------------------------------------ |
@@ -143,11 +152,13 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 
 ### Remove an extended query tag
 
-**Route:** /extendedquerytags/{tagPath}
+Remove support for a particular extended query tag using route: /extendedquerytags/{tagPath}
 
-**Parameter:** tagPath is the path for the tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020.
+#### Parameter
 
-### **Response status codes:**
+tagPath is the path for the tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020.
+
+#### Response status codes
 
 | Code              | Description                                                  |
 | ----------------- | ------------------------------------------------------------ |
@@ -155,9 +166,11 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 | 400 (Bad Request) | Requested tag path is invalid.                               |
 | 404 (Not Found)   | Extended query tag with requested tagPath is not found       |
 
-## Querying against extended query tags
+## Integration with DICOMweb™
 
-All new DICOM instances that are stored after an extended query tag is in the "Added" state, are queryable with that tag in [QIDO](conformance-statement.md##search-qido-rs). For example, if the tag Manufacturer Model Name (0008,1090) is added to the set of supported extended query tags, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name:
+### Querying against extended query tags
+
+All new DICOM instances that are stored after an extended query tag is in the "Ready" state, are queryable with that tag in [QIDO](conformance-statement.md##search-qido-rs). For example, if the tag Manufacturer Model Name (0008,1090) is added to the set of supported extended query tags, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name (when tag has value on instance):
 
 ```
 ../instances?ManufacturerModelName=Microsoft
@@ -173,7 +186,7 @@ They can also be used in conjunction with existing tags. E.g:
 ../instances?00081090=Microsoft&PatientName=Jo&fuzzyMatching=true
 ```
 
-### Search Matching
+#### Search Matching
 
 The matching types stated below are valid for extended query tags.
 
@@ -212,3 +225,8 @@ Querying against instances that were stored prior to an extended query tag being
 
 For optimal performance, it is not recommended to store more than 100 extended query tags.
 
+## Summary
+
+In this resource, we reviewed extended query tags, how to use them and how they can enable searching on a wider pool of DICOM tags. 
+
+- To get started with the Medical Imaging Server for DICOM, [Deploy to Azure](../quickstarts/deploy-via-azure.md).
