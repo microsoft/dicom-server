@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class ExtendedQueryTagTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private readonly IDicomWebClient _client;
-
+        private const string PrivateCreatorName = "PrivateCreator1";
         public ExtendedQueryTagTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
@@ -35,10 +35,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // One is private tag on Instance level
             // To add private tag, need to add identification code element at first.
             DicomTag identificationCodeTag = new DicomTag(0x0407, 0x0010);
-            string privateCreatorName = "PrivateCreator1";
-            DicomElement identificationCodeElement = new DicomLongString(identificationCodeTag, privateCreatorName);
 
-            DicomTag privateTag = new DicomTag(0x0407, 0x1001, privateCreatorName);
+            DicomElement identificationCodeElement = new DicomLongString(identificationCodeTag, PrivateCreatorName);
+
+            DicomTag privateTag = new DicomTag(0x0407, 0x1001, PrivateCreatorName);
             ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance, PrivateCreator = privateTag.PrivateCreator.Creator };
 
             // One is standard tag on Series level
