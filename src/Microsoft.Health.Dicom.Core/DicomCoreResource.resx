@@ -285,7 +285,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The extended query tag(s) is missing.</value>
   </data>
   <data name="MissingVRCode" xml:space="preserve">
-    <value>The VR code is missing.</value>
+    <value>The vr for tag '{0}' is missing.</value>
+    <comment>{0} is the DICOM tag path.</comment>
   </data>
   <data name="UnsupportedVRCodeOnTag" xml:space="preserve">
     <value>The VR code '{0}' is not supported for tag '{1}'.</value>
@@ -345,6 +346,10 @@ The first part date {1} should be lesser than or equal to the second part date {
   </data>
   <data name="PrivateCreatorNotValidLO" xml:space="preserve">
     <value>The private creator for tag '{0}' is not a valid LO attribute.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="PrivateCreatorNotEmptyForPrivateIdentificationCode" xml:space="preserve">
+    <value>The private creator is not empty for private identification code '{0}'.</value>
     <comment>{0} Dicom Tag.</comment>
   </data>
 </root>

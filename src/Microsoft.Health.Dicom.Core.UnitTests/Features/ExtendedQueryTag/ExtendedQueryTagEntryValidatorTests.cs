@@ -146,6 +146,23 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new ExtendedQueryTagEntry[] { entry, entry }));
         }
 
+        [Fact]
+        public void GivenPrivateIdentificationCodeWithoutVR_WhenValidating_ThenShouldSucceed()
+        {
+            DicomTag dicomTag = new DicomTag(0x2201, 0x0010);
+            ExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(dicomTag.GetPath(), null);
+            _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new ExtendedQueryTagEntry[] { entry });
+        }
+
+        [Fact]
+        public void GivenPrivateIdentificationCodeWrongVR_WhenValidating_ThenShouldSucceed()
+        {
+            DicomTag dicomTag = new DicomTag(0x2201, 0x0010);
+            ExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(dicomTag.GetPath(), DicomVR.AE.Code);
+            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new ExtendedQueryTagEntry[] { entry }));
+        }
+
+
         private static ExtendedQueryTagEntry CreateExtendedQueryTagEntry(string path, string vr, string privateCreator = null, QueryTagLevel level = QueryTagLevel.Instance, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
         {
             return new ExtendedQueryTagEntry { Path = path, VR = vr, PrivateCreator = privateCreator, Level = level, Status = status };

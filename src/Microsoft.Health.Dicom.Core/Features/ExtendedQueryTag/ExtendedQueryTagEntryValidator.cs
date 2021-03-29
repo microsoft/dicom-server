@@ -93,65 +93,74 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
             ValidatePrivateCreator(tag, tagEntry.PrivateCreator, tagEntry.Path);
 
-            if (tag.IsPrivate)
+            ValidateVRCode(tag, tagEntry.VR, tagEntry.Path);
+        }
+
+        private static void ValidateVRCode(DicomTag tag, string vrCode, string tagPath)
+        {
+            DicomVR dicomVR = string.IsNullOrWhiteSpace(vrCode) ? null : ParseVRCode(vrCode);
+
+            if (tag.DictionaryEntry != DicomDictionary.UnknownTag)
             {
-                // this is private tag, VR is required
-                ParseVRCode(tagEntry.VR);
-                EnsureVRIsSupported(tagEntry.VR);
-            }
-            else
-            {
-                // stardard tag must have name - should not be "Unknown".
-                if (tag.DictionaryEntry.Equals(DicomDictionary.UnknownTag))
+                // if specified for knownTag, validate 
+                if (dicomVR != null)
                 {
-                    // not a valid dicom tag
-                    throw new ExtendedQueryTagEntryValidationException(
-                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagEntry.Path));
-                }
-
-                if (string.IsNullOrWhiteSpace(tagEntry.VR))
-                {
-                    // When VR is missing for standard tag, still need to verify VRCode
-                    string vrCode = tag.GetDefaultVR()?.Code;
-
-                    EnsureVRIsSupported(vrCode);
-                }
-                else
-                {
-                    // when VR is specified, verify it's correct
-                    // parse VR
-                    DicomVR vr = ParseVRCode(tagEntry.VR);
-
-                    EnsureVRIsSupported(vr.Code);
-
-                    if (!tag.DictionaryEntry.ValueRepresentations.Contains(vr))
+                    if (!tag.DictionaryEntry.ValueRepresentations.Contains(dicomVR))
                     {
                         // not a valid VR
                         throw new ExtendedQueryTagEntryValidationException(
-                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCodeOnTag, vr.Code, tag));
+                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCodeOnTag, vrCode, tagPath));
                     }
                 }
+                else
+                {
+                    // otherwise, get default one
+                    dicomVR = tag.GetDefaultVR();
+                }
             }
+            else
+            {
+                // for unknown tag, vrCode is required
+                if (dicomVR == null)
+                {
+                    throw new ExtendedQueryTagEntryValidationException(
+                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingVRCode, tagPath));
+                }
+            }
+
+            EnsureVRIsSupported(dicomVR);
         }
 
-        private static void ValidatePrivateCreator(DicomTag tag, string privateCreator, string originalTagPath)
+        private static void ValidatePrivateCreator(DicomTag tag, string privateCreator, string tagPath)
         {
+
             if (tag.IsPrivate)
             {
-                if (string.IsNullOrWhiteSpace(privateCreator))
+                if (tag.DictionaryEntry == DicomDictionary.PrivateCreatorTag)
                 {
-                    throw new ExtendedQueryTagEntryValidationException(
-                      string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingPrivateCreator, originalTagPath));
+                    if (!string.IsNullOrWhiteSpace(privateCreator))
+                    {
+                        throw new ExtendedQueryTagEntryValidationException(
+                           string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotEmptyForPrivateIdentificationCode, tagPath));
+                    }
                 }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(privateCreator))
+                    {
+                        throw new ExtendedQueryTagEntryValidationException(
+                          string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingPrivateCreator, tagPath));
+                    }
 
-                try
-                {
-                    DicomElementMinimumValidation.ValidateLO(privateCreator, nameof(privateCreator));
-                }
-                catch (DicomElementValidationException ex)
-                {
-                    throw new ExtendedQueryTagEntryValidationException(
-                       string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotValidLO, originalTagPath), ex);
+                    try
+                    {
+                        DicomElementMinimumValidation.ValidateLO(privateCreator, nameof(privateCreator));
+                    }
+                    catch (DicomElementValidationException ex)
+                    {
+                        throw new ExtendedQueryTagEntryValidationException(
+                           string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotValidLO, tagPath), ex);
+                    }
                 }
             }
             else
@@ -159,18 +168,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 if (!string.IsNullOrWhiteSpace(privateCreator))
                 {
                     throw new ExtendedQueryTagEntryValidationException(
-                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotEmpty, originalTagPath));
+                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotEmpty, tagPath));
                 }
             }
+
         }
 
         private static DicomVR ParseVRCode(string vrCode)
         {
-            if (string.IsNullOrWhiteSpace(vrCode))
-            {
-                throw new ExtendedQueryTagEntryValidationException(DicomCoreResource.MissingVRCode);
-            }
-
             try
             {
                 // DicomVR.Parse only accept upper case  VR code.
@@ -194,12 +199,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             return result[0];
         }
 
-        private static void EnsureVRIsSupported(string vrCode)
+        private static void EnsureVRIsSupported(DicomVR vr)
         {
-            if (!SupportedVRCodes.Contains(vrCode))
+            if (!SupportedVRCodes.Contains(vr.Code))
             {
                 throw new ExtendedQueryTagEntryValidationException(
-                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCode, vrCode));
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCode, vr.Code));
             }
         }
     }

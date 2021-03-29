@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class DicomCoreResource {
@@ -396,7 +396,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The VR code is missing..
+        ///   Looks up a localized string similar to The vr for tag &apos;{0}&apos; is missing..
         /// </summary>
         internal static string MissingVRCode {
             get {
@@ -428,6 +428,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string PrivateCreatorNotEmpty {
             get {
                 return ResourceManager.GetString("PrivateCreatorNotEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The private creator is not empty for private identification code &apos;{0}&apos;..
+        /// </summary>
+        internal static string PrivateCreatorNotEmptyForPrivateIdentificationCode {
+            get {
+                return ResourceManager.GetString("PrivateCreatorNotEmptyForPrivateIdentificationCode", resourceCulture);
             }
         }
         

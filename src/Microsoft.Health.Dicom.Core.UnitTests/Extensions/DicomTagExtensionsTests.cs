@@ -29,6 +29,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         {
             yield return new object[] { DicomTag.StudyInstanceUID, DicomVR.UI }; // standard DicomTag
             yield return new object[] { DicomTag.Parse("12051003"), null }; // private DicomTag
+            yield return new object[] { DicomTag.Parse("22010010"), DicomVR.LO }; // private identification code
             yield return new object[] { DicomTag.Parse("0018B001"), null }; // invalid DicomTag
         }
     }
