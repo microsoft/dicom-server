@@ -28,13 +28,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _client = fixture.Client;
         }
 
-        [Fact(Skip = "Feature Not Enabled")]
+        [Fact]
         public async Task GivenValidExtendedQueryTags_WhenGoThroughEndToEndScenario_ThenShouldSucceed()
         {
             // Prepare 3 extended query tags.
             // One is private tag on Instance level
-            DicomTag privateTag = new DicomTag(0x0407, 0x1001, "PrivateCreator1");
-            ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance };
+            // To add private tag, need to add identification code element at first.
+            DicomTag identificationCodeTag = new DicomTag(0x0407, 0x0010);
+            string privateCreatorName = "PrivateCreator1";
+            DicomElement identificationCodeElement = new DicomLongString(identificationCodeTag, privateCreatorName);
+
+            DicomTag privateTag = new DicomTag(0x0407, 0x1001, privateCreatorName);
+            ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance, PrivateCreator = privateTag.PrivateCreator.Creator };
 
             // One is standard tag on Series level
             DicomTag standardTagSeries = DicomTag.ManufacturerModelName;
@@ -56,19 +61,22 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             // One is on seriesUid1 and instanceUid1
             DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid1, sopInstanceUid: instanceUid1);
-            dataset1.Add(new DicomSignedShort(privateTag, 1));
+            dataset1.Add(identificationCodeElement);
+            dataset1.AddOrUpdate(new DicomSignedShort(privateTag, 1));
             dataset1.Add(standardTagSeries, "ManufacturerModelName1");
             dataset1.Add(standardTagStudy, "0");
 
             // One is on seriesUid1 and instanceUid2
             DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid1, sopInstanceUid: instanceUid2);
-            dataset2.Add(new DicomSignedShort(privateTag, 2));
+            dataset2.Add(identificationCodeElement);
+            dataset2.AddOrUpdate(new DicomSignedShort(privateTag, 2));
             dataset2.Add(standardTagSeries, "ManufacturerModelName2");
             dataset2.Add(standardTagStudy, "0");
 
             // One is on seriesUid2 and instanceUid3
             DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid2, sopInstanceUid: instanceUid3);
-            dataset3.Add(new DicomSignedShort(privateTag, 3));
+            dataset3.Add(identificationCodeElement);
+            dataset3.AddOrUpdate(new DicomSignedShort(privateTag, 3));
             dataset3.Add(standardTagSeries, "ManufacturerModelName3");
             dataset3.Add(standardTagStudy, "1");
             try

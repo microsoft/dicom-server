@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Client
     {
         private const string TransferSyntaxHeaderName = "transfer-syntax";
 
-        private const string BaseExtendedQueryTagUri = "/tags";
+        private const string BaseExtendedQueryTagUri = "/extendedquerytags";
 
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
