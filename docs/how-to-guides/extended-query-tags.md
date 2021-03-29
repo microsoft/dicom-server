@@ -2,11 +2,26 @@
 
 ## Overview
 
-Extended query tags allows querying over DICOM tags that are not supported by the DICOMweb™ standard for [QIDO-RS](conformance-statement.md##search-qido-rs). By enabling this feature, it is possible to query against tags supported by QIDO-RS, publicly defined or "standard" DICOM tags that are not natively supported and private tags.
+Extended query tags allows querying over DICOM tags that are not supported by the DICOMweb™ standard for [QIDO-RS](../resources/conformance-statement.md#search-qido-rs). By enabling this feature, it is possible to query against tags supported by QIDO-RS, publicly defined or "standard" DICOM tags that are not natively supported and private tags.
 
 ## Prerequisites
 
 To use this feature, a [Medical Imaging Server for DICOM is required](../quickstarts/deploy-via-azure.md).
+
+### Settings
+
+The current support for the extended query tags feature is exposed in configuration in the following way:
+
+```
+{
+    "DicomServer": {
+        "Features": {
+            "EnableExtendedQueryTags": false
+        }
+}
+```
+
+The "EnableExtendedQueryTags" element can be set to true to enable use of this feature. Currently, it is false by default.
 
 ## Management APIs
 
@@ -170,7 +185,7 @@ tagPath is the path for the tag, normally composed of group id and element id. E
 
 ### Querying against extended query tags
 
-All new DICOM instances that are stored after an extended query tag is in the "Ready" state, are queryable with that tag in [QIDO](conformance-statement.md##search-qido-rs). For example, if the tag Manufacturer Model Name (0008,1090) is added to the set of supported extended query tags, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name (when tag has value on instance):
+All new DICOM instances that are stored after an extended query tag is in the "Ready" state, are queryable with that tag in [QIDO](../resources/conformance-statement.md#search-qido-rs). For example, if the tag Manufacturer Model Name (0008,1090) is added to the set of supported extended query tags, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name (when tag has value on instance):
 
 ```
 ../instances?ManufacturerModelName=Microsoft
