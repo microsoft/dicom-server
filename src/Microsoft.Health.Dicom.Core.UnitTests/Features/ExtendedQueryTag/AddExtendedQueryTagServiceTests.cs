@@ -5,6 +5,7 @@
 
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -23,7 +24,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             _extendedQueryTagEntryValidator = Substitute.For<IExtendedQueryTagEntryValidator>();
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
-            _extendedQueryTagService = new AddExtendedQueryTagService(_extendedQueryTagStore, _extendedQueryTagEntryValidator);
+            FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = true };
+            _extendedQueryTagService = new AddExtendedQueryTagService(_extendedQueryTagStore, _extendedQueryTagEntryValidator, featureConfiguration);
+        }
+
+        [Fact]
+        public async Task GivenFeatureDisabled_WhenAddExtendedQueryTagIsInvoked_ThenShouldThrowException()
+        {
+            FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = false };
+            IAddExtendedQueryTagService _extendedQueryTagService = new AddExtendedQueryTagService(_extendedQueryTagStore, _extendedQueryTagEntryValidator, featureConfiguration);
+
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            ExtendedQueryTagEntry entry = tag.BuildExtendedQueryTagEntry();
+            await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => _extendedQueryTagService.AddExtendedQueryTagAsync(new ExtendedQueryTagEntry[] { entry }, default));
         }
 
         [Fact]

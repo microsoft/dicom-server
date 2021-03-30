@@ -347,4 +347,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The private creator for tag '{0}' is not a valid LO attribute.</value>
     <comment>{0} Dicom Tag.</comment>
   </data>
+  <data name="ExtendedQueryTagFeatureDisabled" xml:space="preserve">
+    <value>Extended Query Tag feature is disabled.</value>
+  </data>
 </root>

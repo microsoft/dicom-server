@@ -5,7 +5,6 @@
 
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
@@ -21,14 +20,6 @@ namespace Microsoft.Health.Dicom.Core.Modules
 {
     public class ServiceModule : IStartupModule
     {
-        private readonly FeatureConfiguration _featureConfiguration;
-
-        public ServiceModule(FeatureConfiguration featureConfiguration)
-        {
-            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-            _featureConfiguration = featureConfiguration;
-        }
-
         public void Load(IServiceCollection services)
         {
             EnsureArg.IsNotNull(services, nameof(services));
@@ -142,28 +133,25 @@ namespace Microsoft.Health.Dicom.Core.Modules
                    .AsSelf()
                    .AsImplementedInterfaces();
 
-            if (_featureConfiguration.EnableExtendedQueryTags)
-            {
-                services.Add<ExtendedQueryTagEntryValidator>()
-                    .Singleton()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
+            services.Add<ExtendedQueryTagEntryValidator>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
-                services.Add<GetExtendedQueryTagsService>()
-                   .Scoped()
-                   .AsSelf()
-                   .AsImplementedInterfaces();
+            services.Add<GetExtendedQueryTagsService>()
+               .Scoped()
+               .AsSelf()
+               .AsImplementedInterfaces();
 
-                services.Add<AddExtendedQueryTagService>()
-                    .Scoped()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
+            services.Add<AddExtendedQueryTagService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
-                services.Add<DeleteExtendedQueryTagService>()
-                     .Scoped()
-                     .AsSelf()
-                     .AsImplementedInterfaces();
-            }
+            services.Add<DeleteExtendedQueryTagService>()
+                 .Scoped()
+                 .AsSelf()
+                 .AsImplementedInterfaces();
         }
     }
 }

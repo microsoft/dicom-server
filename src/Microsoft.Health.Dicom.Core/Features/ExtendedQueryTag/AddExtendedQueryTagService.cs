@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
@@ -16,18 +18,28 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
+        private readonly bool _enableExtendedQueryTags;
 
-        public AddExtendedQueryTagService(IExtendedQueryTagStore extendedQueryTagStore, IExtendedQueryTagEntryValidator extendedQueryTagEntryValidator)
+        public AddExtendedQueryTagService(IExtendedQueryTagStore extendedQueryTagStore,
+            IExtendedQueryTagEntryValidator extendedQueryTagEntryValidator,
+            FeatureConfiguration featureConfiguration)
         {
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(extendedQueryTagEntryValidator, nameof(extendedQueryTagEntryValidator));
+            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
 
             _extendedQueryTagStore = extendedQueryTagStore;
             _extendedQueryTagEntryValidator = extendedQueryTagEntryValidator;
+            _enableExtendedQueryTags = featureConfiguration.EnableExtendedQueryTags;
         }
 
         public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken)
         {
+            if (!_enableExtendedQueryTags)
+            {
+                throw new ExtendedQueryTagFeatureDisabledException();
+            }
+
             _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
 
             IEnumerable<ExtendedQueryTagEntry> result = extendedQueryTags.Select(item => item.Normalize(ExtendedQueryTagStatus.Ready));
