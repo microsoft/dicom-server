@@ -144,6 +144,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     {
                         var s = cond as StringSingleValueMatchCondition;
                         parsedQuery.FilterConditions[i] = new PersonNameFuzzyMatchCondition(s.DicomTag, s.Value);
+                        parsedQuery.FilterConditions[i].ExtendedQueryTagFilterDetails = s.ExtendedQueryTagFilterDetails;
                     }
                 }
             }
