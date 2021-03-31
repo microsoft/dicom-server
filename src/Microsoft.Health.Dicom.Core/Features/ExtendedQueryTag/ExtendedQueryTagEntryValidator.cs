@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
             if (tag.DictionaryEntry != DicomDictionary.UnknownTag)
             {
-                // if specified for knownTag, validate 
+                // if VS is specified for knownTag, validate 
                 if (dicomVR != null)
                 {
                     if (!tag.DictionaryEntry.ValueRepresentations.Contains(dicomVR))
@@ -133,43 +133,43 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         private static void ValidatePrivateCreator(DicomTag tag, string privateCreator, string tagPath)
         {
-
-            if (tag.IsPrivate)
+            if (!tag.IsPrivate)
             {
-                if (tag.DictionaryEntry == DicomDictionary.PrivateCreatorTag)
-                {
-                    if (!string.IsNullOrWhiteSpace(privateCreator))
-                    {
-                        throw new ExtendedQueryTagEntryValidationException(
-                           string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotEmptyForPrivateIdentificationCode, tagPath));
-                    }
-                }
-                else
-                {
-                    if (string.IsNullOrWhiteSpace(privateCreator))
-                    {
-                        throw new ExtendedQueryTagEntryValidationException(
-                          string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingPrivateCreator, tagPath));
-                    }
-
-                    try
-                    {
-                        DicomElementMinimumValidation.ValidateLO(privateCreator, nameof(privateCreator));
-                    }
-                    catch (DicomElementValidationException ex)
-                    {
-                        throw new ExtendedQueryTagEntryValidationException(
-                           string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotValidLO, tagPath), ex);
-                    }
-                }
-            }
-            else
-            {
+                // Standard tags should not have private creator.
                 if (!string.IsNullOrWhiteSpace(privateCreator))
                 {
                     throw new ExtendedQueryTagEntryValidationException(
                         string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotEmpty, tagPath));
                 }
+                return;
+            }
+
+            // PrivateCreator Tag should not have privateCreator.
+            if (tag.DictionaryEntry == DicomDictionary.PrivateCreatorTag)
+            {
+                if (!string.IsNullOrWhiteSpace(privateCreator))
+                {
+                    throw new ExtendedQueryTagEntryValidationException(
+                       string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotEmptyForPrivateIdentificationCode, tagPath));
+                }
+                return;
+            }
+
+            // Private tag except PrivateCreator requires privateCreator
+            if (string.IsNullOrWhiteSpace(privateCreator))
+            {
+                throw new ExtendedQueryTagEntryValidationException(
+                  string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingPrivateCreator, tagPath));
+            }
+
+            try
+            {
+                DicomElementMinimumValidation.ValidateLO(privateCreator, nameof(privateCreator));
+            }
+            catch (DicomElementValidationException ex)
+            {
+                throw new ExtendedQueryTagEntryValidationException(
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotValidLO, tagPath), ex);
             }
 
         }

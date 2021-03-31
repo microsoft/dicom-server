@@ -155,7 +155,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         }
 
         [Fact]
-        public void GivenPrivateIdentificationCodeWrongVR_WhenValidating_ThenShouldSucceed()
+        public void GivenPrivateIdentificationCodeWithWrongVR_WhenValidating_ThenShouldSucceed()
         {
             DicomTag dicomTag = new DicomTag(0x2201, 0x0010);
             ExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(dicomTag.GetPath(), DicomVR.AE.Code);
