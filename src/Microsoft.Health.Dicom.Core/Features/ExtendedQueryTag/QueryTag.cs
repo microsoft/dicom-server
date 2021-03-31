@@ -6,6 +6,7 @@
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
@@ -18,15 +19,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Initializes a new instance of the <see cref="QueryTag"/> class.
         /// </summary>
         /// <remarks>Used for constuctoring from core dicom tag.PatientName e.g. </remarks>
-        /// <param name="tag">The core dicom Tag.</param>
-        /// <param name="level">The tag level.</param>
-        public QueryTag(DicomTag tag, QueryTagLevel level)
+        /// <param name="tag">The core dicom Tag.</param>        
+        public QueryTag(DicomTag tag)
         {
             EnsureArg.IsNotNull(tag, nameof(tag));
 
             Tag = tag;
             VR = tag.GetDefaultVR();
-            Level = level;
+            Level = QueryLimit.GetQueryTagLevel(tag);
             ExtendedQueryTagStoreEntry = null;
         }
 
@@ -69,5 +69,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Gets the underlying extendedQueryTagStoreEntry for extended query tag.
         /// </summary>
         public ExtendedQueryTagStoreEntry ExtendedQueryTagStoreEntry { get; }
+
+        /// <summary>
+        /// Gets name of this query tag.
+        /// </summary>
+        /// <returns></returns>
+        public string GetName()
+        {
+            return Tag.DictionaryEntry == DicomDictionary.UnknownTag ? Tag.GetPath() : Tag.DictionaryEntry.Keyword;
+        }
     }
 }

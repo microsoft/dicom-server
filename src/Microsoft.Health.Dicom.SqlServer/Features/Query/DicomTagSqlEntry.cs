@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Schema.Model;
 
@@ -12,7 +13,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 {
     internal class DicomTagSqlEntry
     {
-        private static Dictionary<DicomTag, DicomTagSqlEntry> _tagToSqlMappingCache = new Dictionary<DicomTag, DicomTagSqlEntry>()
+        private static readonly IReadOnlyDictionary<DicomTag, DicomTagSqlEntry> CoreQueryTagToSqlMapping = new Dictionary<DicomTag, DicomTagSqlEntry>()
         {
                 { DicomTag.StudyInstanceUID, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.StudyInstanceUid) },
                 { DicomTag.StudyDate, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.StudyDate) },
@@ -27,7 +28,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 { DicomTag.SOPInstanceUID, new DicomTagSqlEntry(SqlTableType.InstanceTable, VLatest.Instance.SopInstanceUid) },
         };
 
-        private static Dictionary<DicomVR, DicomTagSqlEntry> _extendedQueryTagToSqlMappingCache = new Dictionary<DicomVR, DicomTagSqlEntry>()
+        private static readonly IReadOnlyDictionary<DicomVR, DicomTagSqlEntry> ExtendedQueryTagVRToSqlMapping = new Dictionary<DicomVR, DicomTagSqlEntry>()
         {
                 { DicomVR.DA, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagDateTimeTable, VLatest.ExtendedQueryTagDateTime.TagValue, null, VLatest.ExtendedQueryTagDateTime.TagKey, true) },
                 { DicomVR.AE, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
@@ -66,14 +67,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public bool IsExtendedQueryTag { get; }
 
-        public static DicomTagSqlEntry GetDicomTagSqlEntry(DicomTag dicomTag, DicomVR extendedQueryTagVR = null)
+        public static DicomTagSqlEntry GetDicomTagSqlEntry(QueryTag queryTag)
         {
-            if (_tagToSqlMappingCache.ContainsKey(dicomTag))
-            {
-                return _tagToSqlMappingCache[dicomTag];
-            }
-
-            return _extendedQueryTagToSqlMappingCache[extendedQueryTagVR];
+            return queryTag.IsExtendedQueryTag ? ExtendedQueryTagVRToSqlMapping[queryTag.VR] : CoreQueryTagToSqlMapping[queryTag.Tag];
         }
     }
 }

@@ -2,20 +2,22 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-using Dicom;
+using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public abstract class QueryFilterCondition
     {
-        protected QueryFilterCondition(DicomTag tag)
+        protected QueryFilterCondition(QueryTag queryTag)
         {
-            DicomTag = tag;
+            EnsureArg.IsNotNull(queryTag, nameof(queryTag));
+            QueryTag = queryTag;
         }
 
-        public DicomTag DicomTag { get; }
 
-        public ExtendedQueryTagFilterDetails ExtendedQueryTagFilterDetails { get; set; }
+
+        public QueryTag QueryTag { get; set; }
 
         public abstract void Accept(QueryFilterConditionVisitor visitor);
     }
