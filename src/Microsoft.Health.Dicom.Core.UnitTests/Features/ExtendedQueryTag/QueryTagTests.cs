@@ -16,13 +16,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public void GivenCoreDicomTag_WhenInitialize_ThenShouldCreatedSuccessfully()
         {
             DicomTag tag = DicomTag.PatientName;
-            QueryTagLevel level = QueryTagLevel.Instance;
-            QueryTag queryTag = new QueryTag(tag, QueryTagLevel.Instance);
+            QueryTag queryTag = new QueryTag(tag);
             Assert.Equal(tag, queryTag.Tag);
             Assert.Equal(DicomVR.PN, queryTag.VR);
             Assert.Null(queryTag.ExtendedQueryTagStoreEntry);
             Assert.False(queryTag.IsExtendedQueryTag);
-            Assert.Equal(level, queryTag.Level);
+            Assert.Equal(QueryTagLevel.Study, queryTag.Level);
         }
 
         [Fact]

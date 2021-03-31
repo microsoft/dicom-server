@@ -3,14 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using System;
-using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public class DateSingleValueMatchCondition : SingleValueMatchCondition<DateTime>
     {
-        internal DateSingleValueMatchCondition(DicomTag tag, DateTime value)
+        internal DateSingleValueMatchCondition(QueryTag tag, DateTime value)
             : base(tag, value)
         {
         }

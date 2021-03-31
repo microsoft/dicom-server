@@ -85,7 +85,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             DicomTag tag = ParseTag(tagEntry.Path);
 
             // cannot be any tag we already support
-            if (QueryLimit.AllInstancesTags.Contains(tag))
+            if (QueryLimit.CoreTags.Contains(tag))
             {
                 throw new ExtendedQueryTagEntryValidationException(
                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagEntry.Path));

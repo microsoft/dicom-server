@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -21,8 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             bool fuzzyMatching,
             int limit,
             int offset,
-            IReadOnlyCollection<QueryFilterCondition> filterConditions,
-            IReadOnlyCollection<ExtendedQueryTagFilterDetails> queriedExtendedQueryTagFilterDetails = null)
+            IReadOnlyCollection<QueryFilterCondition> filterConditions)
         {
             QueryResource = resourceType;
             IncludeFields = includeFields;
@@ -30,8 +28,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             Limit = limit;
             Offset = offset;
             FilterConditions = filterConditions;
-            QueriedExtendedQueryTagFilterDetails = queriedExtendedQueryTagFilterDetails ?? Array.Empty<ExtendedQueryTagFilterDetails>();
-
             SetIELevel();
          }
 
@@ -49,11 +45,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
         /// Dicom tags to include in query result
         /// </summary>
         public QueryIncludeField IncludeFields { get; }
-
-        /// <summary>
-        /// Filter details associated with the extended query tags being queried.
-        /// </summary>
-        public IReadOnlyCollection<ExtendedQueryTagFilterDetails> QueriedExtendedQueryTagFilterDetails { get; }
 
         /// <summary>
         /// If true do Fuzzy matching of PN tag types

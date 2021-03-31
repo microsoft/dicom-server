@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag1 = DicomTag.DeviceSerialNumber;
             DicomTag tag2 = new DicomTag(0x0405, 0x1001, "PrivateCreator1");
             ExtendedQueryTagEntry extendedQueryTagEntry1 = tag1.BuildExtendedQueryTagEntry();
-            ExtendedQueryTagEntry extendedQueryTagEntry2 = tag2.BuildExtendedQueryTagEntry(vr: DicomVRCode.CS, privateCreator: tag2.PrivateCreator.Creator);
+            ExtendedQueryTagEntry extendedQueryTagEntry2 = tag2.BuildExtendedQueryTagEntry(vr: DicomVRCode.CS);
             await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new ExtendedQueryTagEntry[] { extendedQueryTagEntry1, extendedQueryTagEntry2 });
 
             try
