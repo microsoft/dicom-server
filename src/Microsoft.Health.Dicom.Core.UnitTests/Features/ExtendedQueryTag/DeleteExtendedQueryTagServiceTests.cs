@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -27,14 +28,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = true };
-            _extendedQueryTagService = new DeleteExtendedQueryTagService(_extendedQueryTagStore, new DicomTagParser(), featureConfiguration);
+            _extendedQueryTagService = new DeleteExtendedQueryTagService(_extendedQueryTagStore, new DicomTagParser(), Options.Create(featureConfiguration));
         }
 
         [Fact]
         public async Task GivenFeatureDisabled_WhenDeleteExtendedQueryTagIsInvoked_ThenShouldThrowException()
         {
             FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = false };
-            IDeleteExtendedQueryTagService extendedQueryTagService = new DeleteExtendedQueryTagService(_extendedQueryTagStore, new DicomTagParser(), featureConfiguration);
+            IDeleteExtendedQueryTagService extendedQueryTagService = new DeleteExtendedQueryTagService(_extendedQueryTagStore, new DicomTagParser(), Options.Create(featureConfiguration));
 
             DicomTag tag = DicomTag.DeviceSerialNumber;
             ExtendedQueryTagEntry entry = tag.BuildExtendedQueryTagEntry();

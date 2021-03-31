@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -22,15 +23,15 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public AddExtendedQueryTagService(IExtendedQueryTagStore extendedQueryTagStore,
             IExtendedQueryTagEntryValidator extendedQueryTagEntryValidator,
-            FeatureConfiguration featureConfiguration)
+           IOptions<FeatureConfiguration> featureConfiguration)
         {
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(extendedQueryTagEntryValidator, nameof(extendedQueryTagEntryValidator));
-            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+            EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
 
             _extendedQueryTagStore = extendedQueryTagStore;
             _extendedQueryTagEntryValidator = extendedQueryTagEntryValidator;
-            _enableExtendedQueryTags = featureConfiguration.EnableExtendedQueryTags;
+            _enableExtendedQueryTags = featureConfiguration.Value.EnableExtendedQueryTags;
         }
 
         public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken)

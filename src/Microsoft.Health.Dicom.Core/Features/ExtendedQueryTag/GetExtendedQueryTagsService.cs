@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -24,16 +25,15 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         private readonly IDicomTagParser _dicomTagParser;
         private readonly bool _enableExtendedQueryTags;
 
-
-        public GetExtendedQueryTagsService(IExtendedQueryTagStore extendedQueryTagStore, IDicomTagParser dicomTagParser, FeatureConfiguration featureConfiguration)
+        public GetExtendedQueryTagsService(IExtendedQueryTagStore extendedQueryTagStore, IDicomTagParser dicomTagParser, IOptions<FeatureConfiguration> featureConfiguration)
         {
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
-            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+            EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
 
             _extendedQueryTagStore = extendedQueryTagStore;
             _dicomTagParser = dicomTagParser;
-            _enableExtendedQueryTags = featureConfiguration.EnableExtendedQueryTags;
+            _enableExtendedQueryTags = featureConfiguration.Value.EnableExtendedQueryTags;
         }
 
         public async Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
