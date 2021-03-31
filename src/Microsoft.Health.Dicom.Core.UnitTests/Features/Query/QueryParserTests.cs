@@ -157,7 +157,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var fuzzyCondition = queryExpression.FilterConditions.First() as PersonNameFuzzyMatchCondition;
             Assert.NotNull(fuzzyCondition);
             Assert.Equal("Joe", fuzzyCondition.Value);
-            Assert.Equal(filterDetails, fuzzyCondition.ExtendedQueryTagFilterDetails);
+            Assert.Same(filterDetails, fuzzyCondition.ExtendedQueryTagFilterDetails);
         }
 
         [Fact]
