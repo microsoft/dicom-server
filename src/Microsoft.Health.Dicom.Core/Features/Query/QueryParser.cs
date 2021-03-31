@@ -143,7 +143,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     if (QueryLimit.IsValidFuzzyMatchingQueryTag(cond.DicomTag, cond.ExtendedQueryTagFilterDetails?.VR))
                     {
                         var s = cond as StringSingleValueMatchCondition;
-                        parsedQuery.FilterConditions[i] = new PersonNameFuzzyMatchCondition(s.DicomTag, s.Value);
+                        parsedQuery.FilterConditions[i] = new PersonNameFuzzyMatchCondition(s.DicomTag, s.Value)
+                        {
+                            ExtendedQueryTagFilterDetails = s.ExtendedQueryTagFilterDetails,
+                        };
                     }
                 }
             }
