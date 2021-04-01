@@ -70,7 +70,7 @@ steps:
     SpotBugs: false
     TSLint: false
     WebScout: false
-    ToolLogsNotFoundAction: 'Error'
+    ToolLogsNotFoundAction: 'Standard'
 
 - task: PostAnalysis@2
   inputs:
