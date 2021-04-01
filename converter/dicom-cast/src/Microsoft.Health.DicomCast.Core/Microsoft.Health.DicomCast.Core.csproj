@@ -11,7 +11,7 @@
     <PackageReference Include="fo-dicom.Json" Version="4.0.7" NoWarn="NU1701" />
     <PackageReference Include="Hl7.Fhir.R4" Version="1.9.0" />
     <PackageReference Include="Hl7.Fhir.Support" Version="1.9.0" />
-    <PackageReference Include="Hl7.Fhir.Support.Poco" Version="1.9.0" />
+    <PackageReference Include="Hl7.Fhir.Support.Poco" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SdkPackageVersion)" />
