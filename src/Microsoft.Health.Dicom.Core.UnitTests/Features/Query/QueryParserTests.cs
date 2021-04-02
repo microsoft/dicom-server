@@ -160,7 +160,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             QueryTag queryTag = new QueryTag(DicomTag.PatientBirthName.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
 
             QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), new[] { queryTag });
-            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
+            var fuzzyCondition = queryExpression.FilterConditions.First() as PersonNameFuzzyMatchCondition;
+            Assert.NotNull(fuzzyCondition);
+            Assert.Equal("Joe", fuzzyCondition.Value);
+            Assert.Equal(queryTag, fuzzyCondition.QueryTag);
         }
 
         [Fact]
