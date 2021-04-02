@@ -19,9 +19,9 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
-    <PackageReference Include="Microsoft.Health.Client" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.Health.Core" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Client" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Health.Core" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="2.1.0" />
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="1.0.869" />
     <PackageReference Include="Polly" Version="7.2.1" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
