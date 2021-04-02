@@ -21,9 +21,10 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
         private readonly bool _enableExtendedQueryTags;
 
-        public AddExtendedQueryTagService(IExtendedQueryTagStore extendedQueryTagStore,
+        public AddExtendedQueryTagService(
+            IExtendedQueryTagStore extendedQueryTagStore,
             IExtendedQueryTagEntryValidator extendedQueryTagEntryValidator,
-           IOptions<FeatureConfiguration> featureConfiguration)
+            IOptions<FeatureConfiguration> featureConfiguration)
         {
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(extendedQueryTagEntryValidator, nameof(extendedQueryTagEntryValidator));
