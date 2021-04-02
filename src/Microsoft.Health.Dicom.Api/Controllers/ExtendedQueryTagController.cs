@@ -11,9 +11,12 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -28,14 +31,17 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     {
         private readonly IMediator _mediator;
         private readonly ILogger<ExtendedQueryTagController> _logger;
+        private readonly bool _featureEnabled;
 
-        public ExtendedQueryTagController(IMediator mediator, ILogger<ExtendedQueryTagController> logger)
+        public ExtendedQueryTagController(IMediator mediator, ILogger<ExtendedQueryTagController> logger, IOptions<FeatureConfiguration> featureConfiguration)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
 
             _mediator = mediator;
             _logger = logger;
+            _featureEnabled = featureConfiguration.Value.EnableExtendedQueryTags;
         }
 
         [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.Accepted)]
@@ -46,6 +52,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation("DICOM Web Add Extended Query Tag request received, with extendedQueryTags {extendedQueryTags}.", extendedQueryTags);
 
+            EnsureFeatureIsEnabled();
             AddExtendedQueryTagResponse response = await _mediator.AddExtendedQueryTagsAsync(extendedQueryTags, HttpContext.RequestAborted);
 
             return StatusCode(
@@ -60,6 +67,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation("DICOM Web Delete Extended Query Tag request received, with extended query tag path {tagPath}.", tagPath);
 
+            EnsureFeatureIsEnabled();
             DeleteExtendedQueryTagResponse response = await _mediator.DeleteExtendedQueryTagAsync(tagPath, HttpContext.RequestAborted);
 
             return StatusCode((int)HttpStatusCode.NoContent, response);
@@ -81,6 +89,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation("DICOM Web Get Extended Query Tag request received for all extended query tags");
 
+            EnsureFeatureIsEnabled();
             GetAllExtendedQueryTagsResponse response = await _mediator.GetAllExtendedQueryTagsAsync(HttpContext.RequestAborted);
 
             return StatusCode(
@@ -105,10 +114,19 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         {
             _logger.LogInformation("DICOM Web Get Extended Query Tag request received for extended query tag: {tagPath}");
 
+            EnsureFeatureIsEnabled();
             GetExtendedQueryTagResponse response = await _mediator.GetExtendedQueryTagAsync(tagPath, HttpContext.RequestAborted);
 
             return StatusCode(
                 (int)HttpStatusCode.OK, response.ExtendedQueryTag);
+        }
+
+        private void EnsureFeatureIsEnabled()
+        {
+            if (!_featureEnabled)
+            {
+                throw new ExtendedQueryTagFeatureDisabledException();
+            }
         }
     }
 }

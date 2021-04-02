@@ -352,4 +352,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The private creator is not empty for private identification code '{0}'.</value>
     <comment>{0} Dicom Tag.</comment>
   </data>
+  <data name="ExtendedQueryTagFeatureDisabled" xml:space="preserve">
+    <value>Extended Query Tag feature is disabled.</value>
+  </data>
 </root>
