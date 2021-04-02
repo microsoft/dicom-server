@@ -405,7 +405,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The VR code is missing..
+        ///   Looks up a localized string similar to The vr for tag &apos;{0}&apos; is missing..
         /// </summary>
         internal static string MissingVRCode {
             get {
@@ -437,6 +437,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string PrivateCreatorNotEmpty {
             get {
                 return ResourceManager.GetString("PrivateCreatorNotEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The private creator is not empty for private identification code &apos;{0}&apos;..
+        /// </summary>
+        internal static string PrivateCreatorNotEmptyForPrivateIdentificationCode {
+            get {
+                return ResourceManager.GetString("PrivateCreatorNotEmptyForPrivateIdentificationCode", resourceCulture);
             }
         }
         

@@ -153,6 +153,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             EnsureArg.IsNotNull(queryString, nameof(queryString));
             QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
             Assert.Contains(filterDetails, queryExpression.QueriedExtendedQueryTagFilterDetails);
+
+            var fuzzyCondition = queryExpression.FilterConditions.First() as PersonNameFuzzyMatchCondition;
+            Assert.NotNull(fuzzyCondition);
+            Assert.Equal("Joe", fuzzyCondition.Value);
+            Assert.Same(filterDetails, fuzzyCondition.ExtendedQueryTagFilterDetails);
         }
 
         [Fact]
