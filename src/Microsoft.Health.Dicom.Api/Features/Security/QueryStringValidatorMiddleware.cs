@@ -13,8 +13,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Security
 {
     internal class QueryStringValidatorMiddleware
     {
-        private const char UnencodedLessThan = '<';
-        private const string EnclodedLessThan = "%3c";
+        private const char UnEncodedLessThan = '<';
+        private const string EncodedLessThan = "%3c";
 
         private readonly RequestDelegate _next;
 
@@ -30,8 +30,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Security
             EnsureArg.IsNotNull(context, nameof(context));
 
             if (context.Request.QueryString.HasValue
-                && (context.Request.QueryString.Value.Contains(UnencodedLessThan, StringComparison.InvariantCulture)
-                || context.Request.QueryString.Value.Contains(EnclodedLessThan, StringComparison.InvariantCultureIgnoreCase)))
+                && (context.Request.QueryString.Value.Contains(UnEncodedLessThan, StringComparison.InvariantCulture)
+                || context.Request.QueryString.Value.Contains(EncodedLessThan, StringComparison.InvariantCultureIgnoreCase)))
             {
                 throw new InvalidQueryStringException();
             }
