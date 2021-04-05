@@ -9,7 +9,7 @@
     <PackageReference Include="Azure.Core" Version="1.12.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.8.1" />
     <PackageReference Include="Azure.Storage.Common" Version="12.7.2" />
-    <PackageReference Include="Ensure.That" Version="10.0.0" />
+    <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SdkPackageVersion)" />

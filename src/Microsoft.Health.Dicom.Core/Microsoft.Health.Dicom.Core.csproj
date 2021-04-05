@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Efferent.Native" Version="4.0.0" />
-    <PackageReference Include="Ensure.That" Version="10.0.0" />
+    <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="4.0.7" />
     <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
