@@ -6,11 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ensure.That" Version="10.0.0" />
+    <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="IdentityServer4" Version="4.1.2" />
     <PackageReference Include="IdentityServer4.Storage" Version="4.1.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.13" />
@@ -18,6 +17,7 @@
     <PackageReference Include="Microsoft.Health.Development.IdentityProvider" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>
