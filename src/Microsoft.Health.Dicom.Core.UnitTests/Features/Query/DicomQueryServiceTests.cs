@@ -28,7 +28,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         private readonly IQueryStore _queryStore;
         private readonly IQueryTagService _queryTagService;
 
-
         public DicomQueryServiceTests()
         {
             _queryParser = Substitute.For<IQueryParser>();

@@ -174,8 +174,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 return false;
             }
 
-            QueryTag queryTag;
-            ValidateIfTagSupported(dicomTag, attributeId, queryTags, out queryTag);
+            QueryTag queryTag = GetSupportedQueryTag(dicomTag, attributeId, queryTags);
 
             // parse tag value
             if (queryParameter.Value.Count != 1)
@@ -211,9 +210,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return false;
         }
 
-        private static void ValidateIfTagSupported(DicomTag dicomTag, string attributeId, IEnumerable<QueryTag> queryTags, out QueryTag queryTag)
+        private static QueryTag GetSupportedQueryTag(DicomTag dicomTag, string attributeId, IEnumerable<QueryTag> queryTags)
         {
-            queryTag = queryTags.FirstOrDefault(item =>
+            QueryTag queryTag = queryTags.FirstOrDefault(item =>
             {
                 // private tag from request doesn't have private creator, should do path comparison.
                 if (dicomTag.IsPrivate)
@@ -228,6 +227,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
             }
+
+            return queryTag;
         }
 
         private class QueryExpressionImp
