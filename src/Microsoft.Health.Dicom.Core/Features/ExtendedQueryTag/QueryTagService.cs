@@ -56,11 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         private static IReadOnlyList<QueryTag> GetCoreQueryTags()
         {
-            List<QueryTag> coreTags = new List<QueryTag>();
-            coreTags.AddRange(QueryLimit.AllStudiesTags.Select(tag => new QueryTag(tag, QueryTagLevel.Study)));
-            coreTags.AddRange(QueryLimit.StudySeriesTags.Select(tag => new QueryTag(tag, QueryTagLevel.Series)));
-            coreTags.AddRange(QueryLimit.StudySeriesInstancesTags.Select(tag => new QueryTag(tag, QueryTagLevel.Instance)));
-            return coreTags;
+            return QueryLimit.CoreTags.Select(tag => new QueryTag(tag)).ToList();
         }
     }
 }

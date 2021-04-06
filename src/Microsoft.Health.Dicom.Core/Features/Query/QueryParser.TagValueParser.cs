@@ -4,8 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Dicom;
-using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -14,17 +13,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public partial class QueryParser
     {
-        private static QueryFilterCondition ParseDateTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
+        private static QueryFilterCondition ParseDateTagValue(QueryTag queryTag, string value)
         {
-            if (QueryLimit.IsValidRangeQueryTag(dicomTag, vr))
+            if (QueryLimit.IsValidRangeQueryTag(queryTag))
             {
                 var splitString = value.Split('-');
                 if (splitString.Length == 2)
                 {
                     string minDate = splitString[0].Trim();
                     string maxDate = splitString[1].Trim();
-                    DateTime parsedMinDate = ParseDate(minDate, dicomTag.DictionaryEntry.Keyword);
-                    DateTime parsedMaxDate = ParseDate(maxDate, dicomTag.DictionaryEntry.Keyword);
+                    DateTime parsedMinDate = ParseDate(minDate, queryTag.GetName());
+                    DateTime parsedMaxDate = ParseDate(maxDate, queryTag.GetName());
 
                     if (parsedMinDate > parsedMaxDate)
                     {
@@ -35,44 +34,44 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                             maxDate));
                     }
 
-                    return new DateRangeValueMatchCondition(dicomTag, parsedMinDate, parsedMaxDate);
+                    return new DateRangeValueMatchCondition(queryTag, parsedMinDate, parsedMaxDate);
                 }
             }
 
-            DateTime parsedDate = ParseDate(value, dicomTag.DictionaryEntry.Keyword);
-            return new DateSingleValueMatchCondition(dicomTag, parsedDate);
+            DateTime parsedDate = ParseDate(value, queryTag.GetName());
+            return new DateSingleValueMatchCondition(queryTag, parsedDate);
         }
 
-        private static QueryFilterCondition ParseStringTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
+        private static QueryFilterCondition ParseStringTagValue(QueryTag queryTag, string value)
         {
-            return new StringSingleValueMatchCondition(dicomTag, value);
+            return new StringSingleValueMatchCondition(queryTag, value);
         }
 
-        private static QueryFilterCondition ParseDoubleTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
+        private static QueryFilterCondition ParseDoubleTagValue(QueryTag queryTag, string value)
         {
             if (!double.TryParse(value, out double val))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.InvalidDoubleValue, value, dicomTag.GetPath()));
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidDoubleValue, value, queryTag.GetName()));
             }
 
-            return new DoubleSingleValueMatchCondition(dicomTag, val);
+            return new DoubleSingleValueMatchCondition(queryTag, val);
         }
 
-        private static QueryFilterCondition ParseLongTagValue(DicomTag dicomTag, string value, DicomVR vr = null)
+        private static QueryFilterCondition ParseLongTagValue(QueryTag queryTag, string value)
         {
             if (!long.TryParse(value, out long val))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.InvalidLongValue, value, dicomTag.GetPath()));
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidLongValue, value, queryTag.GetName()));
             }
 
-            return new LongSingleValueMatchCondition(dicomTag, val);
+            return new LongSingleValueMatchCondition(queryTag, val);
         }
 
-        private static DateTime ParseDate(string date, string tagKeyword)
+        private static DateTime ParseDate(string date, string tagName)
         {
             if (!DateTime.TryParseExact(date, DateTagValueFormat, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.InvalidDateValue, date, tagKeyword));
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidDateValue, date, tagName));
             }
 
             return parsedDate;

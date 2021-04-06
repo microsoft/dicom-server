@@ -245,8 +245,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} is the specified content type. E.g., application/dicom</comment>
   </data>
   <data name="UnsupportedSearchParameter" xml:space="preserve">
-    <value>Invalid QIDO-RS query. AttributeId {0} is not queryable at {1} resource level. </value>
-    <comment>{0} AttributeId name. {1} Query resource level.</comment>
+    <value>Invalid QIDO-RS query. AttributeId {0} is not queryable. </value>
+    <comment>{0} AttributeId name.</comment>
   </data>
   <data name="UnsupportedTranscoding" xml:space="preserve">
     <value>The specified transcoding is not supported.</value>

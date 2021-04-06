@@ -10,11 +10,11 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
-    public class ExtendedQueryTagEntryEqualityComparer : IEqualityComparer<ExtendedQueryTagEntry>
+    public class ExtendedQueryTagStoreEntryEqualityComparer : IEqualityComparer<ExtendedQueryTagStoreEntry>
     {
-        public static ExtendedQueryTagEntryEqualityComparer Default => new ExtendedQueryTagEntryEqualityComparer();
+        public static ExtendedQueryTagStoreEntryEqualityComparer Default => new ExtendedQueryTagStoreEntryEqualityComparer();
 
-        public bool Equals(ExtendedQueryTagEntry x, ExtendedQueryTagEntry y)
+        public bool Equals(ExtendedQueryTagStoreEntry x, ExtendedQueryTagStoreEntry y)
         {
             if (x == null || y == null)
             {
@@ -25,18 +25,20 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
                 && string.Equals(x.VR, y.VR, StringComparison.OrdinalIgnoreCase)
                 && x.PrivateCreator == y.PrivateCreator
                 && x.Level == y.Level
-                && x.Status == y.Status;
+                && x.Status == y.Status
+                && x.Key == y.Key;
         }
 
-        public int GetHashCode(ExtendedQueryTagEntry extendedQueryTagEntry)
+        public int GetHashCode(ExtendedQueryTagStoreEntry extendedQueryTagStoreEntry)
         {
-            EnsureArg.IsNotNull(extendedQueryTagEntry, nameof(extendedQueryTagEntry));
+            EnsureArg.IsNotNull(extendedQueryTagStoreEntry, nameof(extendedQueryTagStoreEntry));
             return HashCode.Combine(
-                extendedQueryTagEntry.Path,
-                extendedQueryTagEntry.VR,
-                extendedQueryTagEntry.PrivateCreator,
-                extendedQueryTagEntry.Level,
-                extendedQueryTagEntry.Status);
+                extendedQueryTagStoreEntry.Path,
+                extendedQueryTagStoreEntry.VR,
+                extendedQueryTagStoreEntry.PrivateCreator,
+                extendedQueryTagStoreEntry.Level,
+                extendedQueryTagStoreEntry.Status,
+                extendedQueryTagStoreEntry.Key);
         }
     }
 }

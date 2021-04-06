@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             foreach (var cond in queryExpression.FilterConditions)
             {
-                _tagsToReturn.Add(cond.DicomTag);
+                _tagsToReturn.Add(cond.QueryTag.Tag);
             }
         }
     }

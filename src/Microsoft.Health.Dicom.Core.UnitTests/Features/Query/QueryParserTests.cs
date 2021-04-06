@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
@@ -45,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenIncludeField_WithValueAll_CheckAllValue(string key, string value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
             Assert.True(queryExpression.IncludeFields.All);
         }
 
@@ -54,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenIncludeField_WithInvalidAttributeId_Throws(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -71,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenIncludeField_WithUnknownAttributeId_Throws(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -80,11 +81,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_ValidTag_CheckProperties(string key, string value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
             Assert.True(queryExpression.HasFilters);
             var singleValueCond = queryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
             Assert.NotNull(singleValueCond);
-            Assert.True(singleValueCond.DicomTag == DicomTag.PatientName);
+            Assert.True(singleValueCond.QueryTag.Tag == DicomTag.PatientName);
             Assert.True(singleValueCond.Value == value);
         }
 
@@ -93,11 +94,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_ValidReferringPhysicianNameTag_CheckProperties(string key, string value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
             Assert.True(queryExpression.HasFilters);
             var singleValueCond = queryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
             Assert.NotNull(singleValueCond);
-            Assert.Equal(DicomTag.ReferringPhysicianName, singleValueCond.DicomTag);
+            Assert.Equal(DicomTag.ReferringPhysicianName, singleValueCond.QueryTag.Tag);
             Assert.Equal(value, singleValueCond.Value);
         }
 
@@ -106,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithNotSupportedTag_Throws(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -117,7 +118,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithKnownTagButNotSupportedAtLevel_Throws(string key, string value, QueryResource resourceType)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), resourceType), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value), resourceType), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -127,129 +128,108 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithValidQueryString_ParseSucceeds(string queryString, QueryResource resourceType)
         {
             EnsureArg.IsNotNull(queryString, nameof(queryString));
-            _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType), null);
+            _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType), QueryTagService.CoreQueryTags);
+        }
+
+        [Fact]
+        public void GivenExtendedQueryPrivateTag_WithUrl_ParseSucceeds()
+        {
+            DicomTag tag = new DicomTag(0x0405, 0x1001, "PrivateCreator1");
+            string value = "Test";
+            var queryString = $"{tag.GetPath()}={value}";
+            QueryTag queryTag = new QueryTag(tag.BuildExtendedQueryTagStoreEntry(vr: DicomVRCode.CS, level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), new[] { queryTag });
+            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
         }
 
         [Fact]
         public void GivenExtendedQueryDateTag_WithUrl_ParseSucceeds()
         {
             var queryString = "Date=19510910-20200220";
-            var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Instance, DicomTag.Date.GetDefaultVR(), DicomTag.Date);
-            extendedQueryTags.Add(DicomTag.Date, filterDetails);
-            EnsureArg.IsNotNull(queryString, nameof(queryString));
-            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), extendedQueryTags);
-            Assert.Contains(filterDetails, queryExpression.QueriedExtendedQueryTagFilterDetails);
-            Assert.Equal(filterDetails, queryExpression.FilterConditions.First().ExtendedQueryTagFilterDetails);
+            QueryTag queryTag = new QueryTag(DicomTag.Date.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), new[] { queryTag });
+            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
         }
 
         [Fact]
         public void GivenExtendedQueryPersonNameTag_WithUrl_ParseSucceeds()
         {
             var queryString = "PatientBirthName=Joe&fuzzyMatching=true&limit=50";
-            var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.PatientBirthName.GetDefaultVR(), DicomTag.PatientBirthName);
-            extendedQueryTags.Add(DicomTag.PatientBirthName, filterDetails);
-            EnsureArg.IsNotNull(queryString, nameof(queryString));
-            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
-            Assert.Contains(filterDetails, queryExpression.QueriedExtendedQueryTagFilterDetails);
+            QueryTag queryTag = new QueryTag(DicomTag.PatientBirthName.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
 
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), new[] { queryTag });
             var fuzzyCondition = queryExpression.FilterConditions.First() as PersonNameFuzzyMatchCondition;
             Assert.NotNull(fuzzyCondition);
             Assert.Equal("Joe", fuzzyCondition.Value);
-            Assert.Same(filterDetails, fuzzyCondition.ExtendedQueryTagFilterDetails);
+            Assert.Equal(queryTag, fuzzyCondition.QueryTag);
         }
 
         [Fact]
         public void GivenExtendedQueryStringTag_WithUrl_ParseSucceeds()
         {
             var queryString = "ModelGroupUID=abc";
-            var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
-            extendedQueryTags.Add(DicomTag.ModelGroupUID, filterDetails);
-            EnsureArg.IsNotNull(queryString, nameof(queryString));
-            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
-            Assert.Contains(filterDetails, queryExpression.QueriedExtendedQueryTagFilterDetails);
-            Assert.Equal(filterDetails, queryExpression.FilterConditions.First().ExtendedQueryTagFilterDetails);
+            QueryTag queryTag = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), new[] { queryTag });
+            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
         }
 
         [Fact]
         public void GivenExtendedQueryStringTag_WithTagPathUrl_ParseSucceeds()
         {
             var queryString = "00687004=abc";
-            var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
-            extendedQueryTags.Add(DicomTag.ModelGroupUID, filterDetails);
-            EnsureArg.IsNotNull(queryString, nameof(queryString));
-            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
-            Assert.Contains(filterDetails, queryExpression.QueriedExtendedQueryTagFilterDetails);
-            Assert.Equal(filterDetails, queryExpression.FilterConditions.First().ExtendedQueryTagFilterDetails);
+            QueryTag queryTag = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), new[] { queryTag });
+            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
         }
 
         [Fact]
         public void GivenExtendedQueryLongTag_WithUrl_ParseSucceeds()
         {
             var queryString = "NumberOfAssessmentObservations=50";
-            var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.NumberOfAssessmentObservations.GetDefaultVR(), DicomTag.NumberOfAssessmentObservations);
-            extendedQueryTags.Add(DicomTag.NumberOfAssessmentObservations, filterDetails);
-            EnsureArg.IsNotNull(queryString, nameof(queryString));
-            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
-            Assert.Contains(filterDetails, queryExpression.QueriedExtendedQueryTagFilterDetails);
-            Assert.Equal(filterDetails, queryExpression.FilterConditions.First().ExtendedQueryTagFilterDetails);
+            QueryTag queryTag = new QueryTag(DicomTag.NumberOfAssessmentObservations.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), new[] { queryTag });
+            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
         }
 
         [Fact]
         public void GivenExtendedQueryDoubleTag_WithUrl_ParseSucceeds()
         {
             var queryString = "FloatingPointValue=1.1";
-            var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
-            extendedQueryTags.Add(DicomTag.FloatingPointValue, filterDetails);
-            EnsureArg.IsNotNull(queryString, nameof(queryString));
-            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
-            Assert.Contains(filterDetails, queryExpression.QueriedExtendedQueryTagFilterDetails);
-            Assert.Equal(filterDetails, queryExpression.FilterConditions.First().ExtendedQueryTagFilterDetails);
+            QueryTag queryTag = new QueryTag(DicomTag.FloatingPointValue.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), new[] { queryTag });
+            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
         }
 
         [Fact]
         public void GivenExtendedQueryDoubleTagWithInvalidValue_WithUrl_ParseFails()
         {
             var queryString = "FloatingPointValue=abc";
-            var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
-            extendedQueryTags.Add(DicomTag.FloatingPointValue, filterDetails);
-            EnsureArg.IsNotNull(queryString, nameof(queryString));
+            QueryTag queryTag = new QueryTag(DicomTag.FloatingPointValue.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), extendedQueryTags));
+                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), new[] { queryTag }));
         }
 
         [Fact]
         public void GivenNonExistingExtendedQueryStringTag_WithUrl_ParseFails()
         {
             var queryString = "ModelGroupUID=abc";
-            var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
-            extendedQueryTags.Add(DicomTag.FloatingPointValue, filterDetails);
-            EnsureArg.IsNotNull(queryString, nameof(queryString));
+            QueryTag queryTag = new QueryTag(DicomTag.FloatingPointValue.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), extendedQueryTags));
+                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), new[] { queryTag }));
         }
 
         [Fact]
         public void GivenCombinationOfExtendedQueryAndStandardTags_WithUrl_ParseSucceeds()
         {
             var queryString = "PatientName=Joe&FloatingPointValue=1.1&StudyDate=19510910-20200220&00687004=abc";
-            var extendedQueryTags = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            var filterDetails1 = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.FloatingPointValue.GetDefaultVR(), DicomTag.FloatingPointValue);
-            extendedQueryTags.Add(DicomTag.FloatingPointValue, filterDetails1);
-            var filterDetails2 = new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Series, DicomTag.ModelGroupUID.GetDefaultVR(), DicomTag.ModelGroupUID);
-            extendedQueryTags.Add(DicomTag.ModelGroupUID, filterDetails2);
-            EnsureArg.IsNotNull(queryString, nameof(queryString));
-            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), extendedQueryTags);
+            QueryTag queryTag1 = new QueryTag(DicomTag.FloatingPointValue.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
+            QueryTag queryTag2 = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), QueryTagService.CoreQueryTags.Concat(new[] { queryTag1, queryTag2 }).ToList());
             Assert.Equal(4, queryExpression.FilterConditions.Count);
-            Assert.Contains(filterDetails1, queryExpression.QueriedExtendedQueryTagFilterDetails);
-            Assert.Contains(filterDetails2, queryExpression.QueriedExtendedQueryTagFilterDetails);
+            Assert.Contains(queryTag1, queryExpression.FilterConditions.Select(x => x.QueryTag));
+            Assert.Contains(queryTag2, queryExpression.FilterConditions.Select(x => x.QueryTag));
         }
 
         [Theory]
@@ -258,7 +238,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithDuplicateQueryParam_Throws(string queryString)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -268,7 +248,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithInvalidAttributeIdStringValue_Throws(string queryString)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -277,7 +257,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenOffset_WithNotIntValue_Throws(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -285,7 +265,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenOffset_WithIntValue_CheckOffset(string key, int value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies), null);
+                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
             Assert.True(queryExpression.Offset == value);
         }
 
@@ -295,7 +275,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenLimit_WithInvalidValue_Throws(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -303,7 +283,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenLimit_WithMaxValueExceeded_Throws(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -311,7 +291,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenLimit_WithValidValue_CheckLimit(string key, int value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies), null);
+                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
             Assert.True(queryExpression.Limit == value);
         }
 
@@ -320,7 +300,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenLimit_WithZero_ThrowsException(string key, int value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -329,7 +309,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFilterCondition_WithInvalidAttributeId_Throws(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -337,7 +317,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFuzzyMatch_WithValidValue_Check(string key, string value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
             Assert.True(queryExpression.FuzzyMatching);
         }
 
@@ -346,7 +326,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenFuzzyMatch_InvalidValue_Throws(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
         }
 
         [Theory]
@@ -355,10 +335,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             EnsureArg.IsNotNull(value, nameof(value));
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
             var cond = queryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
             Assert.NotNull(cond);
-            Assert.True(cond.DicomTag == DicomTag.StudyDate);
+            Assert.True(cond.QueryTag.Tag == DicomTag.StudyDate);
             Assert.True(cond.Minimum == DateTime.ParseExact(value.Split('-')[0], QueryParser.DateTagValueFormat, null));
             Assert.True(cond.Maximum == DateTime.ParseExact(value.Split('-')[1], QueryParser.DateTagValueFormat, null));
         }
@@ -372,7 +352,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenDateTag_WithInvalidDate_Throw(string key, string value)
         {
             Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllSeries), null));
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllSeries), QueryTagService.CoreQueryTags));
         }
 
         [Fact]
@@ -380,7 +360,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var testStudyInstanceUid = TestUidGenerator.Generate();
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllSeries, testStudyInstanceUid), null);
+                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllSeries, testStudyInstanceUid), QueryTagService.CoreQueryTags);
             Assert.Equal(1, queryExpression.FilterConditions.Count);
             var cond = queryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
             Assert.NotNull(cond);
@@ -392,14 +372,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         public void GivenPatientNameFilterCondition_WithFuzzyMatchingTrue_FuzzyMatchConditionAdded(string queryString, QueryResource resourceType)
         {
             EnsureArg.IsNotNull(queryString, nameof(queryString));
-            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType), null);
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType), QueryTagService.CoreQueryTags);
 
             Assert.Equal(2, queryExpression.FilterConditions.Count);
 
-            var studyDateFilterCondition = queryExpression.FilterConditions.FirstOrDefault(c => c.DicomTag == DicomTag.StudyDate) as DateSingleValueMatchCondition;
+            var studyDateFilterCondition = queryExpression.FilterConditions.FirstOrDefault(c => c.QueryTag.Tag == DicomTag.StudyDate) as DateSingleValueMatchCondition;
             Assert.NotNull(studyDateFilterCondition);
 
-            QueryFilterCondition patientNameCondition = queryExpression.FilterConditions.FirstOrDefault(c => c.DicomTag == DicomTag.PatientName);
+            QueryFilterCondition patientNameCondition = queryExpression.FilterConditions.FirstOrDefault(c => c.QueryTag.Tag == DicomTag.PatientName);
             Assert.NotNull(patientNameCondition);
 
             var fuzzyCondition = patientNameCondition as PersonNameFuzzyMatchCondition;
@@ -410,7 +390,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         private void VerifyIncludeFieldsForValidAttributeIds(string key, string value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), null);
+                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
             Assert.False(queryExpression.HasFilters);
             Assert.False(queryExpression.IncludeFields.All);
             Assert.True(queryExpression.IncludeFields.DicomTags.Count == value.Split(',').Length);

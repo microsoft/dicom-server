@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
-using Dicom;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using NSubstitute;
 using Xunit;
 
@@ -25,19 +26,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         private readonly QueryService _queryService;
         private readonly IQueryParser _queryParser;
         private readonly IQueryStore _queryStore;
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IQueryTagService _queryTagService;
 
         public DicomQueryServiceTests()
         {
             _queryParser = Substitute.For<IQueryParser>();
             _queryStore = Substitute.For<IQueryStore>();
-            _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
+            _queryTagService = Substitute.For<IQueryTagService>();
+
             _queryService = new QueryService(
                 _queryParser,
                 _queryStore,
                 Substitute.For<IMetadataStore>(),
-                _extendedQueryTagStore,
-                new DicomTagParser());
+                _queryTagService);
         }
 
         [Theory]
@@ -84,16 +85,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
             };
 
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync().ReturnsForAnyArgs(storeEntries);
+            var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
+            _queryTagService.GetQueryTagsAsync().ReturnsForAnyArgs(list);
             _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(request, CancellationToken.None);
 
-            Dictionary<DicomTag, ExtendedQueryTagFilterDetails> filterDetails = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            filterDetails.Add(DicomTag.ProcedureStepState, new ExtendedQueryTagFilterDetails(1, QueryTagLevel.Instance, DicomVR.CS, DicomTag.ProcedureStepState));
-            filterDetails.Add(DicomTag.Date, new ExtendedQueryTagFilterDetails(2, QueryTagLevel.Series, DicomVR.DA, DicomTag.Date));
-            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, QueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
-
-            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, ExtendedQueryTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
+            _queryParser.Received().Parse(request, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
         }
 
         [Theory]
@@ -114,15 +111,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
             };
 
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync().ReturnsForAnyArgs(storeEntries);
+            var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
             _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(request, CancellationToken.None);
 
-            Dictionary<DicomTag, ExtendedQueryTagFilterDetails> filterDetails = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            filterDetails.Add(DicomTag.Date, new ExtendedQueryTagFilterDetails(2, QueryTagLevel.Series, DicomVR.DA, DicomTag.Date));
-            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, QueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
-
-            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, ExtendedQueryTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
+            _queryParser.Received().Parse(request, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
         }
 
         [Theory]
@@ -142,14 +135,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready),
             };
 
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync().ReturnsForAnyArgs(storeEntries);
+            var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
             _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(request, CancellationToken.None);
 
-            Dictionary<DicomTag, ExtendedQueryTagFilterDetails> filterDetails = new Dictionary<DicomTag, ExtendedQueryTagFilterDetails>();
-            filterDetails.Add(DicomTag.PatientBirthName, new ExtendedQueryTagFilterDetails(3, QueryTagLevel.Study, DicomVR.PN, DicomTag.PatientBirthName));
-
-            _queryParser.Received().Parse(request, Arg.Do<IDictionary<DicomTag, ExtendedQueryTagFilterDetails>>(x => Assert.Equal(x, filterDetails)));
+            _queryParser.Received().Parse(request, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
         }
     }
 }

@@ -2,10 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Dicom;
+using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -14,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public const int MaxQueryResultCount = 200;
         public const int DefaultQueryResultCount = 100;
 
-        public static readonly HashSet<DicomTag> AllStudiesTags = new HashSet<DicomTag>()
+        private static readonly HashSet<DicomTag> CoreStudyTags = new HashSet<DicomTag>()
         {
             DicomTag.StudyDate,
             DicomTag.StudyInstanceUID,
@@ -25,45 +27,69 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.ReferringPhysicianName,
         };
 
-        public static readonly HashSet<DicomTag> StudySeriesTags = new HashSet<DicomTag>()
+
+        private static readonly HashSet<DicomTag> CoreSeriesTags = new HashSet<DicomTag>()
         {
             DicomTag.SeriesInstanceUID,
             DicomTag.Modality,
             DicomTag.PerformedProcedureStepStartDate,
         };
 
-        public static readonly HashSet<DicomTag> StudySeriesInstancesTags = new HashSet<DicomTag>()
+        private static readonly HashSet<DicomTag> CoreInstanceTags = new HashSet<DicomTag>()
         {
             DicomTag.SOPInstanceUID,
         };
 
-        public static readonly HashSet<DicomTag> StudyInstancesTags = new HashSet<DicomTag>(
-            StudySeriesTags.Union(StudySeriesInstancesTags));
+        public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
+            CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
 
-        public static readonly HashSet<DicomTag> AllSeriesTags = new HashSet<DicomTag>(
-            AllStudiesTags.Union(StudySeriesTags));
 
-        public static readonly HashSet<DicomTag> AllInstancesTags = new HashSet<DicomTag>(
-            AllStudiesTags.Union(StudySeriesTags).Union(StudySeriesInstancesTags));
-
-        public static readonly IReadOnlyDictionary<QueryResource, HashSet<DicomTag>> QueryResourceTypeToTagsMapping = new Dictionary<QueryResource, HashSet<DicomTag>>()
+        public static readonly IReadOnlyDictionary<QueryResource, IReadOnlySet<QueryTagLevel>> QueryResourceTypeToQueryLevelsMapping = new Dictionary<QueryResource, IReadOnlySet<QueryTagLevel>>()
         {
-            { QueryResource.AllStudies, AllStudiesTags },
-            { QueryResource.AllSeries, AllSeriesTags },
-            { QueryResource.AllInstances, AllInstancesTags },
-            { QueryResource.StudySeries, StudySeriesTags },
-            { QueryResource.StudyInstances, StudyInstancesTags },
-            { QueryResource.StudySeriesInstances, StudySeriesInstancesTags },
+            { QueryResource.AllStudies, new HashSet<QueryTagLevel>(){ QueryTagLevel.Study } },
+            { QueryResource.AllSeries, new HashSet<QueryTagLevel>(){ QueryTagLevel.Study, QueryTagLevel.Series } },
+            { QueryResource.AllInstances, new HashSet<QueryTagLevel>(){ QueryTagLevel.Study, QueryTagLevel.Series, QueryTagLevel.Instance }  },
+            { QueryResource.StudySeries, new HashSet<QueryTagLevel>(){ QueryTagLevel.Series }  },
+            { QueryResource.StudyInstances,  new HashSet<QueryTagLevel>(){ QueryTagLevel.Series, QueryTagLevel.Instance } },
+            { QueryResource.StudySeriesInstances,  new HashSet<QueryTagLevel>(){  QueryTagLevel.Instance } },
         };
 
-        public static bool IsValidRangeQueryTag(DicomTag tag, DicomVR vr = null)
+        /// <summary>
+        /// Get QueryTagLevel of a core tag
+        /// </summary>
+        /// <param name="coreTag"></param>
+        /// <returns></returns>
+        public static QueryTagLevel GetQueryTagLevel(DicomTag coreTag)
         {
-            return tag == DicomTag.StudyDate || string.Equals(vr?.Code, DicomVR.DA.Code, StringComparison.OrdinalIgnoreCase);
+            EnsureArg.IsNotNull(coreTag, nameof(coreTag));
+            
+            if (CoreStudyTags.Contains(coreTag))
+            {
+                return QueryTagLevel.Study;
+            }
+            if (CoreSeriesTags.Contains(coreTag))
+            {
+                return QueryTagLevel.Series;
+            }
+            if (CoreInstanceTags.Contains(coreTag))
+            {
+                return QueryTagLevel.Instance;
+            }
+
+            Debug.Fail($"{coreTag} is not a core dicom tag");
+            return QueryTagLevel.Instance;
         }
 
-        public static bool IsValidFuzzyMatchingQueryTag(DicomTag tag, DicomVR vr = null)
+        public static bool IsValidRangeQueryTag(QueryTag queryTag)
         {
-            return tag == DicomTag.PatientName || string.Equals(vr?.Code, DicomVR.PN.Code, StringComparison.OrdinalIgnoreCase);
+            EnsureArg.IsNotNull(queryTag, nameof(queryTag));
+            return queryTag.VR == DicomVR.DA;
+        }
+
+        public static bool IsValidFuzzyMatchingQueryTag(QueryTag queryTag)
+        {
+            EnsureArg.IsNotNull(queryTag, nameof(queryTag));
+            return queryTag.VR == DicomVR.PN;
         }
     }
 }
