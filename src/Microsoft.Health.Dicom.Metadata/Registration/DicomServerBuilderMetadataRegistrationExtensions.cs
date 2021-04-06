@@ -77,7 +77,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static IDicomServerBuilder AddMetadataHealthCheck(this IDicomServerBuilder serverBuilder)
         {
-            serverBuilder.Services.AddHealthChecks().AddCheck<MetadataHealthCheck>("MetadataHealthCheck");
+            serverBuilder.Services.AddHealthChecks().AddCheck<MetadataHealthCheck>(name: "MetadataHealthCheck");
             return serverBuilder;
         }
     }
