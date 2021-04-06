@@ -27,6 +27,8 @@ namespace Microsoft.AspNetCore.Builder
         {
             EnsureArg.IsNotNull(app, nameof(app));
 
+            app.UseQueryStringValidator();
+
             app.UseMvc();
 
             app.UseHealthChecksExtension(new PathString(KnownRoutes.HealthCheck));
