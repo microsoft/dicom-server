@@ -27,6 +27,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 return false;
             }
 
+            // DicomDictionary.Default contains private tags by default which we don't need       
+            DicomDictionary.EnsureDefaultDictionariesLoaded(false);
+
             // Try Keyword match, returns null if not found
             DicomTag dicomTag = DicomDictionary.Default[dicomTagPath];
 

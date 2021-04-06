@@ -55,6 +55,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
             yield return new object[] { DicomTag.AcquisitionDateTime.DictionaryEntry.Keyword.ToLowerInvariant() }; // keyword in lower case
             yield return new object[] { "0018B001" }; // unknown tag
             yield return new object[] { "0018B001A1" }; // longer than 8
+            yield return new object[] { "Unknown" }; // bug https://microsofthealth.visualstudio.com/Health/_workitems/edit/80766
         }
     }
 }
