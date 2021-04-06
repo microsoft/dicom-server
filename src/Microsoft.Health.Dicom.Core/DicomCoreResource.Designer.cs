@@ -152,6 +152,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Extended Query Tag feature is disabled..
+        /// </summary>
+        internal static string ExtendedQueryTagFeatureDisabled {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagFeatureDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified extended query tag with tag path {0} cannot be found..
         /// </summary>
         internal static string ExtendedQueryTagNotFound {
