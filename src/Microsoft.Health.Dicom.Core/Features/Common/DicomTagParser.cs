@@ -27,11 +27,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 return false;
             }
 
-            // DicomDictionary.Default contains private tags by default which we don't need       
-            DicomDictionary.EnsureDefaultDictionariesLoaded(false);
 
-            // Try Keyword match, returns null if not found
-            DicomTag dicomTag = DicomDictionary.Default[dicomTagPath];
+            DicomTag dicomTag = ParseDicomTagKeyword(dicomTagPath);
 
             if (dicomTag == null)
             {
@@ -40,6 +37,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 
             dicomTags = new DicomTag[] { dicomTag };
             return dicomTag != null;
+        }
+
+        private static DicomTag ParseDicomTagKeyword(string keyword)
+        {
+            // Try Keyword match, returns null if not found
+            DicomTag dicomTag = DicomDictionary.Default[keyword];
+
+            if (dicomTag == null)
+            {
+                return null;
+            }
+
+            // We don't accept private tag from keywrod
+            return dicomTag.IsPrivate ? null : dicomTag;
         }
 
         private static DicomTag ParseDicomTagNumber(string s)
