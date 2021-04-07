@@ -36,6 +36,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             Assert.Null(normalized.PrivateCreator);
         }
 
+        [Fact]
+
+        public void GivenPrivateIdentificationCodeTagWithoutVR_WhenNormalizing_ThenVRShouldBeFilled()
+        {
+            ExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry("22010010", null, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready);
+            ExtendedQueryTagEntry normalized = entry.Normalize(ExtendedQueryTagStatus.Adding);
+            Assert.Equal(DicomVRCode.LO, normalized.VR);
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]
@@ -87,10 +96,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             Assert.Equal(normalized.Path, expectedPath);
         }
 
+        [Fact]
+
+        public void GivenInvalidTagWithoutVR_WhenNormalizing_ThenShouldNotThrowException()
+        {
+            // track bug  https://microsofthealth.visualstudio.com/Health/_workitems/edit/81015
+            ExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path: "00111011", null, null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready);
+            entry.Normalize(ExtendedQueryTagStatus.Adding);
+        }
+
         public static IEnumerable<object[]> GetValidExtendedQueryTagEntries()
         {
             yield return new object[] { DicomTag.DeviceSerialNumber.BuildExtendedQueryTagEntry() }; // standard extended query tag with VR
-            yield return new object[] { CreateExtendedQueryTagEntry("12051003", DicomVRCode.OB, "PrivateCreator1", QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready) }; // private tag with VR
+            yield return new object[] { CreateExtendedQueryTagEntry("12051003", DicomVRCode.OB, "PrivateCreator1", QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready) }; // private tag with VR            
         }
 
         private static ExtendedQueryTagEntry CreateExtendedQueryTagEntry(string path, string vr, string privateCreator, QueryTagLevel level = QueryTagLevel.Instance, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)

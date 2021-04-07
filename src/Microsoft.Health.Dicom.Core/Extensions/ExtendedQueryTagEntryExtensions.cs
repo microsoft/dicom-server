@@ -38,8 +38,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             string vr = extendedQueryTagEntry.VR;
             string privateCreator = string.IsNullOrWhiteSpace(extendedQueryTagEntry.PrivateCreator) ? null : extendedQueryTagEntry.PrivateCreator;
 
-            // when VR is not specified for standard tag,
-            if (!tag.IsPrivate && tag.DictionaryEntry != DicomDictionary.UnknownTag)
+            // when VR is not specified for known tags
+            if (tag.DictionaryEntry != DicomDictionary.UnknownTag)
             {
                 if (string.IsNullOrWhiteSpace(vr))
                 {
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 }
             }
 
-            vr = vr.ToUpperInvariant();
+            vr = vr?.ToUpperInvariant();
 
             return new ExtendedQueryTagEntry { Path = path, VR = vr, PrivateCreator = privateCreator, Level = extendedQueryTagEntry.Level, Status = status };
         }
