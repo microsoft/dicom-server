@@ -77,7 +77,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static IDicomServerBuilder AddBlobHealthCheck(this IDicomServerBuilder serverBuilder)
         {
-            serverBuilder.Services.AddHealthChecks().AddCheck<DicomBlobHealthCheck>(name: nameof(DicomBlobHealthCheck));
+            serverBuilder.Services.AddHealthChecks().AddCheck<DicomBlobHealthCheck>(name: "DcmHealthCheck");
             return serverBuilder;
         }
     }
