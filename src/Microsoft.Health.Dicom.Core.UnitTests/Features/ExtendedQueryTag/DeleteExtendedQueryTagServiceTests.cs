@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dicom;
@@ -37,8 +36,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Fact]
         public async Task GivenNotExistingTagPath_WhenDeleteExtendedQueryTagIsInvoked_ThenShouldThrowException()
         {
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync(default, default).ReturnsForAnyArgs(new Func<NSubstitute.Core.CallInfo, IReadOnlyList<ExtendedQueryTagStoreEntry>>((x) => { throw new Exception(); }));
-            await Assert.ThrowsAsync<Exception>(() => _extendedQueryTagService.DeleteExtendedQueryTagAsync(DicomTag.DeviceSerialNumber.GetPath()));
+            _extendedQueryTagStore.GetExtendedQueryTagsAsync(default, default).ReturnsForAnyArgs(new List<ExtendedQueryTagStoreEntry>());
+            await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _extendedQueryTagService.DeleteExtendedQueryTagAsync(DicomTag.DeviceSerialNumber.GetPath()));
         }
 
         [Fact]

@@ -46,6 +46,10 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             {
                 await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(normalizedPath, extendedQueryTagEntries[0].VR, cancellationToken);
             }
+            else
+            {
+                throw new ExtendedQueryTagNotFoundException(string.Format(DicomCoreResource.ExtendedQueryTagNotFound, tagPath));
+            }
         }
     }
 }
