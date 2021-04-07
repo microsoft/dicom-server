@@ -36,16 +36,29 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         public DicomDatasetValidatorTests()
         {
-            var featureConfiguration = Substitute.For<IOptions<FeatureConfiguration>>();
-            featureConfiguration.Value.Returns(new FeatureConfiguration
-            {
-                EnableFullDicomItemValidation = false,
-            });
+            var featureConfiguration = Options.Create(new FeatureConfiguration() { EnableFullDicomItemValidation = false });
             var minValidator = new DicomElementMinimumValidator();
             _queryTagService = Substitute.For<IQueryTagService>();
             _queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
             _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>()).Returns(_queryTags);
             _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _queryTagService);
+        }
+
+        [Fact]
+        public async Task GivenDicomTagWithDifferentVR_WhenValidated_ThenShouldSkip()
+        {
+            var featureConfiguration = Options.Create(new FeatureConfiguration() { EnableFullDicomItemValidation = false });
+            DicomTag tag = DicomTag.Date;
+            DicomElement element = new DicomDateTime(tag, DateTime.Now);
+            _dicomDataset.AddOrUpdate(element);
+
+            _queryTags.Clear();
+            _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
+            IDicomElementMinimumValidator validator = Substitute.For<IDicomElementMinimumValidator>();
+            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, validator, _queryTagService);
+            await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
+
+            validator.DidNotReceive().Validate(Arg.Any<DicomElement>());
         }
 
         [Fact]

@@ -111,7 +111,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(queryTag.Tag);
 
-                if (dicomElement != null)
+                if (dicomElement != null && dicomElement.ValueRepresentation == queryTag.VR)
                 {
                     _minimumValidator.Validate(dicomElement);
                 }

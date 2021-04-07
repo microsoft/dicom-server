@@ -21,6 +21,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         private readonly DicomDataset _dicomDataset = new DicomDataset();
 
         [Fact]
+        public void GivenDicomTagWithDifferentVR_WhenGetSingleOrDefaultIsCalled_ThenShouldReturnNull()
+        {
+            DicomTag tag = DicomTag.AbortReason;
+            DicomVR expectedVR = DicomVR.CS;
+            DicomElement element = new DicomLongString(tag, "Value");
+            _dicomDataset.Add(element);
+            Assert.Null(_dicomDataset.GetSingleValueOrDefault<string>(tag, expectedVR));
+        }
+
+        [Fact]
         public void GivenDicomTagDoesNotExist_WhenGetSingleOrDefaultIsCalled_ThenDefaultValueShouldBeReturned()
         {
             Assert.Equal(default, _dicomDataset.GetSingleValueOrDefault<string>(DicomTag.StudyInstanceUID));
