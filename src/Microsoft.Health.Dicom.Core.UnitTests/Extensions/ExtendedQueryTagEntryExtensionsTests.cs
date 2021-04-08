@@ -100,7 +100,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
         public void GivenInvalidTagWithoutVR_WhenNormalizing_ThenShouldNotThrowException()
         {
-            // track bug  https://microsofthealth.visualstudio.com/Health/_workitems/edit/81015
+            // Add this unit test for regression: we had a bug when tag is valid and VR is null, NullPointerException is thrown. More details can be found https://microsofthealth.visualstudio.com/Health/_workitems/edit/81015
             ExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path: "00111011", null, null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready);
             entry.Normalize(ExtendedQueryTagStatus.Adding);
         }
