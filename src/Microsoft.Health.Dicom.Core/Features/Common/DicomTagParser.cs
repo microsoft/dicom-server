@@ -27,8 +27,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 return false;
             }
 
-            // Try Keyword match, returns null if not found
-            DicomTag dicomTag = DicomDictionary.Default[dicomTagPath];
+
+            DicomTag dicomTag = ParseStardandDicomTagKeyword(dicomTagPath);
 
             if (dicomTag == null)
             {
@@ -37,6 +37,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 
             dicomTags = new DicomTag[] { dicomTag };
             return dicomTag != null;
+        }
+
+        private static DicomTag ParseStardandDicomTagKeyword(string keyword)
+        {
+            // Try Keyword match, returns null if not found
+            DicomTag dicomTag = DicomDictionary.Default[keyword];
+
+            // We don't accept private tag from keywrod
+            return (dicomTag != null && dicomTag.IsPrivate) ? null : dicomTag;
         }
 
         private static DicomTag ParseDicomTagNumber(string s)
