@@ -1,5 +1,5 @@
 # Start from the sdk image
-FROM mcr.microsoft.com/dotnet/sdk:5.0.201-alpine3.12@sha256:b868e7c133fa9089a031ecc2766d5524c9a1a9a76602ef07d2e3ab4c7e0a5130 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.202-alpine3.12@sha256:f21dae6d20085dd7f994d14b2479186c79fcc3327646217faee1198a83f130dd AS build
 
 # Set the working directory to where the source is located
 WORKDIR /src
@@ -12,7 +12,7 @@ RUN dotnet build --configuration Release
 RUN dotnet publish "./src/Microsoft.Health.Dicom.Web/Microsoft.Health.Dicom.Web.csproj" -c Release -o "/build" --no-build
 
 # Build the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.4-alpine3.12@sha256:edf03b07bd084a8c98115416021bc1413ed3338ffb532800e8ea83286bb283bd AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.5-alpine3.12@sha256:6809cda3436013c4e9d69df72c7b84f0943e97269ac0164c987895c4780b583d AS runtime
 
 RUN set -x && \
     # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/
