@@ -108,7 +108,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         public static IEnumerable<object[]> GetValidExtendedQueryTagEntries()
         {
             yield return new object[] { DicomTag.DeviceSerialNumber.BuildAddExtendedQueryTagEntry() }; // standard extended query tag with VR
-            yield return new object[] { CreateExtendedQueryTagEntry("12051003", DicomVRCode.OB, "PrivateCreator1", QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready) }; // private tag with VR            
+            yield return new object[] { CreateExtendedQueryTagEntry("12051003", DicomVRCode.OB, "PrivateCreator1", QueryTagLevel.Instance) }; // private tag with VR            
         }
 
         private static GetExtendedQueryTagEntry CreateExtendedQueryTagEntry(string path, string vr, string privateCreator, QueryTagLevel level = QueryTagLevel.Instance, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
