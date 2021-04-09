@@ -42,11 +42,14 @@ namespace Microsoft.AspNetCore.Builder
         /// <summary>
         /// Add services for DICOM background workers.
         /// </summary>
-        /// <param name="services">The services collection.</param>
-        public static void AddDicomBackgroundWorkers(this IServiceCollection services)
+        /// <param name="serverBuilder">The DICOM server builder instance.</param>
+        /// <returns>The DICOM server builder instance.</returns>
+        public static IDicomServerBuilder AddBackgroundWorkers(this IDicomServerBuilder serverBuilder)
         {
-            services.AddScoped<DeletedInstanceCleanupWorker>();
-            services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
+            EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
+            serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
+            serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
+            return serverBuilder;
         }
 
         /// <summary>
