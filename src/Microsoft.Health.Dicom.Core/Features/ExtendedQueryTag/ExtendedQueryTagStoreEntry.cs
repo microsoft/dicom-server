@@ -8,7 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// <summary>
     /// Represent each extended query tag entry has retrieved from the store.
     /// </summary>
-    public class ExtendedQueryTagStoreEntry
+    public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
     {
         public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status)
         {
@@ -26,21 +26,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public int Key { get; set; }
 
         /// <summary>
-        /// Path of this tag. Normally it's composed of groupid and elementid.
-        /// E.g: 00100020 is path of patient id.
+        /// Status of this tag.
         /// </summary>
-        public string Path { get; set; }
-
-        /// <summary>
-        /// VR of this tag.
-        /// </summary>
-        public string VR { get; set; }
-
-        /// <summary>
-        /// Identification code of private tag implementer of this Tag.
-        /// </summary>
-        /// <remarks>It's only apply to private tag. Please refer to http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html for more details.</remarks>
-        public string PrivateCreator { get; set; }
+        public ExtendedQueryTagStatus Status { get; set; }
 
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
@@ -48,17 +36,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public QueryTagLevel Level { get; set; }
 
         /// <summary>
-        /// Status of this tag.
-        /// </summary>
-        public ExtendedQueryTagStatus Status { get; set; }
-
-        /// <summary>
-        /// Convert to  <see cref="ExtendedQueryTagEntry"/>.
+        /// Convert to  <see cref="GetExtendedQueryTagEntry"/>.
         /// </summary>
         /// <returns>The extended query tag entry.</returns>
-        public ExtendedQueryTagEntry ToExtendedQueryTagEntry()
+        public GetExtendedQueryTagEntry ToExtendedQueryTagEntry()
         {
-            return new ExtendedQueryTagEntry { Path = Path, VR = VR, PrivateCreator = PrivateCreator, Level = Level, Status = Status };
+            return new GetExtendedQueryTagEntry { Path = Path, VR = VR, PrivateCreator = PrivateCreator, Level = Level, Status = Status };
         }
 
         public override string ToString()

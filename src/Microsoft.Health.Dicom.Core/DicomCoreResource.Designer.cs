@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class DicomCoreResource {
@@ -270,7 +270,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is invalid..
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is invalid as it cannot be parsed into a valid Dicom Tag..
         /// </summary>
         internal static string InvalidExtendedQueryTag {
             get {
@@ -351,7 +351,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; is invalid..
+        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; for tag &apos;{1}&apos; is invalid..
         /// </summary>
         internal static string InvalidVRCode {
             get {
@@ -495,6 +495,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The query tag &apos;{0}&apos; is already supported..
+        /// </summary>
+        internal static string QueryTagAlreadySupported {
+            get {
+                return ResourceManager.GetString("QueryTagAlreadySupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sequential dicom tags are currently not supported..
         /// </summary>
         internal static string SequentialDicomTagsNotSupported {
@@ -585,7 +594,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CR code &apos;{0}&apos; is not supported..
+        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; specified for tag &apos;{1}&apos; is not supported..
         /// </summary>
         internal static string UnsupportedVRCode {
             get {
@@ -594,7 +603,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; is not supported for tag &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; is incorrectly specified for &apos;{1}&apos;. The expected VR code for it is &apos;{2}&apos;. Retry this request either with the correct VR code or without specifying it..
         /// </summary>
         internal static string UnsupportedVRCodeOnTag {
             get {

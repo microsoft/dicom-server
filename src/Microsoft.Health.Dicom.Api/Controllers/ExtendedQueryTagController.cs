@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpPost]
         [Route(KnownRoutes.ExtendedQueryTagRoute)]
         [AuditEventType(AuditEventSubType.AddExtendedQueryTag)]
-        public async Task<IActionResult> PostAsync([FromBody] IEnumerable<ExtendedQueryTagEntry> extendedQueryTags)
+        public async Task<IActionResult> PostAsync([FromBody] IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags)
         {
             _logger.LogInformation("DICOM Web Add Extended Query Tag request received, with extendedQueryTags {extendedQueryTags}.", extendedQueryTags);
 

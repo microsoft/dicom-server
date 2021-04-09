@@ -7,14 +7,5 @@ namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
     public class AddExtendedQueryTagResponse
     {
-        public AddExtendedQueryTagResponse(string job)
-        {
-            Job = job;
-        }
-
-        /// <summary>
-        /// The Url to view job details.
-        /// </summary>
-        public string Job { get; }
     }
 }

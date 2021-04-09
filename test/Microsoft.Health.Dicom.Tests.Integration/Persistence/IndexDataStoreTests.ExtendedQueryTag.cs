@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             dataset.Add(element);
             QueryTagLevel level = QueryTagLevel.Study;
-            var extendedQueryTagEntry = element.Tag.BuildExtendedQueryTagEntry(level: level);
+            var extendedQueryTagEntry = element.Tag.BuildExtendedQueryTagStoreEntry(level: level);
 
             QueryTag queryTag = await AddExtendedQueryTag(extendedQueryTagEntry);
             try
@@ -287,7 +287,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string value = "SYN";
             dataset.Add(tag, value);
 
-            QueryTag queryTag = await AddExtendedQueryTag(tag.BuildExtendedQueryTagEntry(level: level));
+            QueryTag queryTag = await AddExtendedQueryTag(tag.BuildExtendedQueryTagStoreEntry(level: level));
             try
             {
                 long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
@@ -306,12 +306,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        private async Task<QueryTag> AddExtendedQueryTag(ExtendedQueryTagEntry extendedQueryTagEntry)
+        private async Task<QueryTag> AddExtendedQueryTag(ExtendedQueryTagStoreEntry extendedQueryTagEntry)
         {
-            return (await AddExtendedQueryTags(new ExtendedQueryTagEntry[] { extendedQueryTagEntry }))[0];
+            return (await AddExtendedQueryTags(new ExtendedQueryTagStoreEntry[] { extendedQueryTagEntry }))[0];
         }
 
-        private async Task<IReadOnlyList<QueryTag>> AddExtendedQueryTags(IEnumerable<ExtendedQueryTagEntry> extendedQueryTags)
+        private async Task<IReadOnlyList<QueryTag>> AddExtendedQueryTags(IEnumerable<ExtendedQueryTagStoreEntry> extendedQueryTags)
         {
             await _extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTags);
             var extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
@@ -332,7 +332,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag = DicomTag.ConversionType;
             string value = "SYN";
             dataset.Add(tag, value);
-            QueryTag queryTag = await AddExtendedQueryTag(tag.BuildExtendedQueryTagEntry(level: level));
+            QueryTag queryTag = await AddExtendedQueryTag(tag.BuildExtendedQueryTagStoreEntry(level: level));
             try
             {
                 // index extended query tags
@@ -372,13 +372,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             QueryTagLevel series = QueryTagLevel.Series;
             QueryTagLevel instance = QueryTagLevel.Instance;
 
-            IEnumerable<ExtendedQueryTagEntry> extendedQueryTagEntries = new List<ExtendedQueryTagEntry>()
+            IEnumerable<ExtendedQueryTagStoreEntry> extendedQueryTagEntries = new List<ExtendedQueryTagStoreEntry>()
             {
-                DicomTag.AcquisitionDate.BuildExtendedQueryTagEntry(level: study),
-                DicomTag.ConversionType.BuildExtendedQueryTagEntry(level: series),
-                DicomTag.DopplerCorrectionAngle.BuildExtendedQueryTagEntry(level: series),
-                DicomTag.ReferencePixelX0.BuildExtendedQueryTagEntry(level: instance),
-                DicomTag.DistributionNameRETIRED.BuildExtendedQueryTagEntry(level: instance),
+                DicomTag.AcquisitionDate.BuildExtendedQueryTagStoreEntry(level: study),
+                DicomTag.ConversionType.BuildExtendedQueryTagStoreEntry(level: series),
+                DicomTag.DopplerCorrectionAngle.BuildExtendedQueryTagStoreEntry(level: series),
+                DicomTag.ReferencePixelX0.BuildExtendedQueryTagStoreEntry(level: instance),
+                DicomTag.DistributionNameRETIRED.BuildExtendedQueryTagStoreEntry(level: instance),
             };
 
             return await AddExtendedQueryTags(extendedQueryTagEntries);

@@ -10,11 +10,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
     public class GetAllExtendedQueryTagsResponse
     {
-        public GetAllExtendedQueryTagsResponse(IEnumerable<ExtendedQueryTagEntry> extendedQueryTagEntries)
+        public GetAllExtendedQueryTagsResponse(IEnumerable<GetExtendedQueryTagEntry> extendedQueryTagEntries)
         {
             ExtendedQueryTags = extendedQueryTagEntries;
         }
 
-        public IEnumerable<ExtendedQueryTagEntry> ExtendedQueryTags { get; }
+        public IEnumerable<GetExtendedQueryTagEntry> ExtendedQueryTags { get; }
     }
 }

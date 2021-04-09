@@ -3,19 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Validate if given extended query tag entries are valid
+    /// External representation of a extended query tag entry for add.
     /// </summary>
-    public interface IExtendedQueryTagEntryValidator
+    public class AddExtendedQueryTagEntry : ExtendedQueryTagEntry
     {
+
         /// <summary>
-        /// Validate if given extended query tag entries are valid.
+        /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        /// <param name="extendedQueryTagEntries">The extended query tag entries</param>
-        void ValidateExtendedQueryTags(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries);
+        public QueryTagLevel? Level { get; set; }
     }
 }

@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             _logger = logger;
         }
 
-        public async Task AddExtendedQueryTagsAsync(IEnumerable<ExtendedQueryTagEntry> extendedQueryTagEntries, CancellationToken cancellationToken = default)
+        public async Task AddExtendedQueryTagsAsync(IEnumerable<ExtendedQueryTagStoreEntry> extendedQueryTagEntries, CancellationToken cancellationToken = default)
         {
             if (_schemaInformation.Current < SchemaVersionConstants.SupportExtendedQueryTagSchemaVersion)
             {
@@ -113,7 +113,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             return results;
         }
 
-        private static AddExtendedQueryTagsInputTableTypeV1Row ToAddExtendedQueryTagsInputTableTypeV1Row(ExtendedQueryTagEntry entry)
+        private static AddExtendedQueryTagsInputTableTypeV1Row ToAddExtendedQueryTagsInputTableTypeV1Row(ExtendedQueryTagStoreEntry entry)
         {
             return new AddExtendedQueryTagsInputTableTypeV1Row(entry.Path, entry.VR, entry.PrivateCreator, (byte)entry.Level);
         }

@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             DicomVRCode.UL,
             DicomVRCode.US);
 
-        public void ValidateExtendedQueryTags(IEnumerable<ExtendedQueryTagEntry> extendedQueryTagEntries)
+        public void ValidateExtendedQueryTags(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries)
         {
             EnsureArg.IsNotNull(extendedQueryTagEntries, nameof(extendedQueryTagEntries));
             if (!extendedQueryTagEntries.Any())
@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             }
 
             var pathSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (ExtendedQueryTagEntry tagEntry in extendedQueryTagEntries)
+            foreach (AddExtendedQueryTagEntry tagEntry in extendedQueryTagEntries)
             {
                 ValidateExtendedQueryTagEntry(tagEntry);
 
@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Validate extended query tag entry.
         /// </summary>
         /// <param name="tagEntry">the tag entry.</param>
-        private void ValidateExtendedQueryTagEntry(ExtendedQueryTagEntry tagEntry)
+        private void ValidateExtendedQueryTagEntry(AddExtendedQueryTagEntry tagEntry)
         {
             DicomTag tag = ParseTag(tagEntry.Path);
 
@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             if (QueryLimit.CoreTags.Contains(tag))
             {
                 throw new ExtendedQueryTagEntryValidationException(
-                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagEntry.Path));
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.QueryTagAlreadySupported, tagEntry.Path));
             }
 
             ValidatePrivateCreator(tag, tagEntry.PrivateCreator, tagEntry.Path);
@@ -98,18 +98,18 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         private static void ValidateVRCode(DicomTag tag, string vrCode, string tagPath)
         {
-            DicomVR dicomVR = string.IsNullOrWhiteSpace(vrCode) ? null : ParseVRCode(vrCode);
+            DicomVR dicomVR = string.IsNullOrWhiteSpace(vrCode) ? null : ParseVRCode(vrCode, tagPath);
 
             if (tag.DictionaryEntry != DicomDictionary.UnknownTag)
             {
-                // if VS is specified for knownTag, validate 
+                // if VR is specified for knownTag, validate 
                 if (dicomVR != null)
                 {
                     if (!tag.DictionaryEntry.ValueRepresentations.Contains(dicomVR))
                     {
                         // not a valid VR
                         throw new ExtendedQueryTagEntryValidationException(
-                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCodeOnTag, vrCode, tagPath));
+                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCodeOnTag, vrCode, tagPath, tag.GetDefaultVR()));
                     }
                 }
                 else
@@ -128,7 +128,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 }
             }
 
-            EnsureVRIsSupported(dicomVR);
+            EnsureVRIsSupported(dicomVR, tagPath);
         }
 
         private static void ValidatePrivateCreator(DicomTag tag, string privateCreator, string tagPath)
@@ -174,7 +174,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         }
 
-        private static DicomVR ParseVRCode(string vrCode)
+        private static DicomVR ParseVRCode(string vrCode, string tagPath)
         {
             try
             {
@@ -184,7 +184,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             catch (DicomDataException ex)
             {
                 throw new ExtendedQueryTagEntryValidationException(
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidVRCode, vrCode), ex);
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidVRCode, vrCode, tagPath), ex);
             }
         }
 
@@ -199,12 +199,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             return result[0];
         }
 
-        private static void EnsureVRIsSupported(DicomVR vr)
+        private static void EnsureVRIsSupported(DicomVR vr, string tagPath)
         {
             if (!SupportedVRCodes.Contains(vr.Code))
             {
                 throw new ExtendedQueryTagEntryValidationException(
-                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCode, vr.Code));
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedVRCode, vr.Code, tagPath));
             }
         }
     }
