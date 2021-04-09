@@ -55,10 +55,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             Assert.Equal(expected, response.ExtendedQueryTags, ExtendedQueryTagEntryEqualityComparer.Default);
         }
 
-        [Fact]
-        public async Task GivenRequestForExtendedQueryTag_WhenTagDoesntExist_ThenExceptionShouldBeThrown()
+        [Theory]
+        [InlineData("00181003")]
+        [InlineData("DeviceID")]
+        public async Task GivenRequestForExtendedQueryTag_WhenTagDoesntExist_ThenExceptionShouldBeThrown(string tagPath)
         {
-            string tagPath = DicomTag.DeviceID.GetPath();
             DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
 
             _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>

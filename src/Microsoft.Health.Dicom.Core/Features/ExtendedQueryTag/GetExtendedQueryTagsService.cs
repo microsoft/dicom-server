@@ -33,6 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public async Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
         {
+            string numericalTagPath = null;
             DicomTag[] tags;
             if (_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
             {
@@ -41,14 +42,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                     throw new NotImplementedException(DicomCoreResource.SequentialDicomTagsNotSupported);
                 }
 
-                tagPath = tags[0].GetPath();
+                numericalTagPath = tags[0].GetPath();
             }
             else
             {
                 throw new InvalidExtendedQueryTagPathException(string.Format(DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
             }
 
-            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tagPath, cancellationToken);
+            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(numericalTagPath, cancellationToken);
 
             if (!extendedQueryTags.Any())
             {
