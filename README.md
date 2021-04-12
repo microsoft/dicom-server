@@ -49,6 +49,7 @@ Note that the webapp library, ARM templates and Web.Zip package are for testing 
 - [Enable Authorization](docs/how-to-guides/enable-authorization.md)
 - [Pull Changes from Medical Imaging Server for DICOM with Change Feed](docs/how-to-guides/pull-changes-from-change-feed.md)
 - [Sync DICOM metadata to FHIR](docs/how-to-guides/sync-dicom-metadata-to-fhir.md)
+- [Extended Query Tags](docs/how-to-guides/extended-query-tags.md)
 
 ## Concepts
 
