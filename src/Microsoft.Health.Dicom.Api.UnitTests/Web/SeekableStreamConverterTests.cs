@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         }
 
         [Fact]
-        public async Task GivenANonSeekableStreamWithoutLimitReachMaxThrowError_WhenConverted_ThenANewSeekableStreamShouldBeReturned()
+        public async Task GivenANonSeekableStreamWithoutLimitReachMax_ThrowsDicomFileLengthLimitExceeded()
         {
 
             IOptions<StoreConfiguration> configuration = Substitute.For<IOptions<StoreConfiguration>>();
