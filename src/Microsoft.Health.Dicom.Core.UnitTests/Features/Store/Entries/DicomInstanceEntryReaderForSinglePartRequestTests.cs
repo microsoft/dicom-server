@@ -65,7 +65,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
         public async Task GivenBodyPartWithValidContentType_WhenReading_ThenCorrectResultsShouldBeReturned()
         {
             using var source = new CancellationTokenSource();
-            _seekableStreamConverter.ConvertAsync(_stream, source.Token).Returns(_stream);
+            _seekableStreamConverter.ConvertAsync(_stream, false, source.Token).Returns(_stream);
             IReadOnlyCollection<IDicomInstanceEntry> results = await _dicomInstanceEntryReader.ReadAsync(
                 DefaultContentType,
                 _stream,

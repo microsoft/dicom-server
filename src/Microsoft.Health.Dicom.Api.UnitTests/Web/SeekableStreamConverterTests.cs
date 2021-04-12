@@ -32,16 +32,49 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         }
 
         [Fact]
-        public async Task GivenANonSeekableStream_WhenConverted_ThenANewSeekableStreamShouldBeReturned()
+        public async Task GivenANonSeekableStreamWithLimit_WhenConverted_ThenANewSeekableStreamShouldBeReturned()
         {
             Stream nonseekableStream = Substitute.For<Stream>();
 
             nonseekableStream.CanSeek.Returns(false);
 
-            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None);
+            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(nonseekableStream, true, CancellationToken.None);
 
             Assert.NotNull(seekableStream);
             Assert.True(seekableStream.CanSeek);
+        }
+
+        [Fact]
+        public async Task GivenANonSeekableStreamWithoutLimit_WhenConverted_ThenANewSeekableStreamShouldBeReturned()
+        {
+            Stream nonseekableStream = Substitute.For<Stream>();
+
+            nonseekableStream.CanSeek.Returns(false);
+
+            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(nonseekableStream, false, CancellationToken.None);
+
+            Assert.NotNull(seekableStream);
+            Assert.True(seekableStream.CanSeek);
+        }
+
+        [Fact]
+        public async Task GivenANonSeekableStreamWithoutLimitReachMaxThrowError_WhenConverted_ThenANewSeekableStreamShouldBeReturned()
+        {
+
+            IOptions<StoreConfiguration> configuration = Substitute.For<IOptions<StoreConfiguration>>();
+            configuration.Value.Returns(new StoreConfiguration
+            {
+                MaxAllowedDicomFileSize = -1,
+            });
+
+            SeekableStreamConverter seekableStreamConverterLowLimit = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), configuration);
+
+            Stream nonseekableStream = Substitute.For<Stream>();
+
+            nonseekableStream.CanSeek.Returns(false);
+
+            await Assert.ThrowsAsync<DicomFileLengthLimitExceededException>(
+                () => seekableStreamConverterLowLimit.ConvertAsync(nonseekableStream, false, CancellationToken.None));
         }
 
         [Fact]
@@ -50,7 +83,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             Stream nonseekableStream = SetupNonSeekableStreamException<IOException>();
 
             await Assert.ThrowsAsync<InvalidMultipartBodyPartException>(
-                () => _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None));
+                () => _seekableStreamConverter.ConvertAsync(nonseekableStream, true, CancellationToken.None));
         }
 
         [Fact]
@@ -59,7 +92,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             Stream nonseekableStream = SetupNonSeekableStreamException<InvalidOperationException>();
 
             await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None));
+                () => _seekableStreamConverter.ConvertAsync(nonseekableStream, true, CancellationToken.None));
         }
 
         private Stream SetupNonSeekableStreamException<TException>()

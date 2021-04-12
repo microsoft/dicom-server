@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, contentType));
             }
 
-            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(stream, cancellationToken);
+            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(stream, false, cancellationToken);
             dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(seekableStream));
 
             return dicomInstanceEntries;

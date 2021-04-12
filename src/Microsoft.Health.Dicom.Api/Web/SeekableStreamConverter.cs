@@ -35,13 +35,18 @@ namespace Microsoft.Health.Dicom.Api.Web
         }
 
         /// <inheritdoc />
-        public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default)
+        public async Task<Stream> ConvertAsync(Stream stream, bool streamContainsLimit, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(stream, nameof(stream));
 
             int bufferThreshold = DefaultBufferThreshold;
             long? bufferLimit = null;
             Stream seekableStream = null;
+
+            if (!streamContainsLimit)
+            {
+                stream = new LimitStream(stream, _storeConfiguration.Value.MaxAllowedDicomFileSize);
+            }
 
             if (!stream.CanSeek)
             {
@@ -67,6 +72,12 @@ namespace Microsoft.Health.Dicom.Api.Web
             }
 
             seekableStream.Seek(0, SeekOrigin.Begin);
+
+            if(seekableStream.Length > _storeConfiguration.Value.MaxAllowedDicomFileSize)
+            {
+                throw new DicomFileLengthLimitExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
+            }
+
             return seekableStream;
         }
 

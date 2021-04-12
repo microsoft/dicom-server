@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Api.Web
                 // it seekable so that we can process the stream multiple times.
                 return new MultipartBodyPart(
                     contentType,
-                    await _seekableStreamConverter.ConvertAsync(section.Body, cancellationToken));
+                    await _seekableStreamConverter.ConvertAsync(section.Body, true, cancellationToken));
             }
             catch (InvalidMultipartBodyPartException)
             {
