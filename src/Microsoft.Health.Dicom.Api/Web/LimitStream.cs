@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -12,11 +13,13 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Api.Web
 {
-    class LimitStream : Stream
+    internal class LimitStream : Stream
     {
-        private Stream _stream;
+        private readonly Stream _stream;
 
         private long _bytesLeft;
+
+        private readonly long _limit;
 
         public override bool CanRead => _stream.CanRead;
 
@@ -26,14 +29,16 @@ namespace Microsoft.Health.Dicom.Api.Web
 
         public override long Length => _stream.Length;
 
-        public override long Position { get => _stream.Position; set => throw new NotImplementedException(); }
+        public override long Position { get => _stream.Position; set => throw new NotSupportedException(); }
 
         public LimitStream(Stream stream, long limit)
         {
             EnsureArg.IsNotNull(stream, nameof(stream));
+            EnsureArg.IsGte(limit, 0);
 
             _stream = stream;
             _bytesLeft = limit;
+            _limit = limit;
         }
 
         public override void Flush()
@@ -43,62 +48,53 @@ namespace Microsoft.Health.Dicom.Api.Web
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (_bytesLeft <= 0)
-            {
-                throw new DicomFileLengthLimitExceededException(_bytesLeft);
-            }
+            ThrowIfExceedLimit();
 
             int amountRead = _stream.Read(buffer, offset, count);
-
             _bytesLeft -= amountRead;
-            makeCheck();
+
+            ThrowIfExceedLimit();
 
             return amountRead;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1835:Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'", Justification = "Buffer is pass through")]
+        [SuppressMessage("Performance", "CA1835:Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'", Justification = "Buffer is pass through")]
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            if (_bytesLeft <= 0)
-            {
-                throw new DicomFileLengthLimitExceededException(_bytesLeft);
-            }
+            ThrowIfExceedLimit();
 
             int amountRead = await _stream.ReadAsync(buffer, offset, count, cancellationToken);
-
             _bytesLeft -= amountRead;
-            makeCheck();
+
+            ThrowIfExceedLimit();
 
             return amountRead;
         }
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
-            if (_bytesLeft <= 0)
-            {
-                throw new DicomFileLengthLimitExceededException(_bytesLeft);
-            }
+            ThrowIfExceedLimit();
 
             int amountRead = await _stream.ReadAsync(buffer, cancellationToken);
-
             _bytesLeft -= amountRead;
-            makeCheck();
+
+            ThrowIfExceedLimit();
 
             return amountRead;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void makeCheck()
+        private void ThrowIfExceedLimit()
         {
             if (_bytesLeft < 0)
             {
-                throw new DicomFileLengthLimitExceededException(_bytesLeft);
+                throw new DicomFileLengthLimitExceededException(_limit);
             }
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return _stream.Seek(offset, origin);
+            throw new NotSupportedException();
         }
 
         public override void SetLength(long value)
