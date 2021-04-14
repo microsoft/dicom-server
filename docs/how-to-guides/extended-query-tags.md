@@ -64,23 +64,25 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 
 Add extended query tags to supported set with route:  /extendedquerytags
 
+`Content-Type` of `application/json` is supported.
+
 #### Request Body
 
 ```
 [
 	{
-		"Path":"04011001", //Private tag
+		"Path":"04011001",
 		"VR":"SS",
 		"PrivateCreator":"MicrosoftPC",
 		"Level":"Instance"
 	},
 	{
-		"Path":"Manufacturer Model Name", //Standard tag by name
+		"Path":"ManufacturerModelName", 
 		"VR":"LO",
 		"Level":"Series"
 	},
 	{
-		"Path":"00100040", //Standard tag
+		"Path":"00100040", 
 		"VR":"CS",
 		"Level":"Study"
 	},
@@ -110,20 +112,20 @@ List all supported extended query tags with route: /extendedquerytags
 ```
 [
 	{
-		"Path":"04011001", //Private tag
+		"Path":"04011001",
 		"VR":"SS",
 		"PrivateCreator":"MicrosoftPC",
 		"Level":"Instance",
 		"Status":"Adding"
 	},
 	{
-		"Path":"00081090", //Standard tag
+		"Path":"00081090",
 		"VR":"LO",
 		"Level":"Series",
 		"Status":"Ready"
 	},
 	{
-		"Path":"00100040", //Standard tag
+		"Path":"00100040",
 		"VR":"CS",
 		"Level":"Study",
 		"Status":"Deleting"
@@ -149,7 +151,7 @@ tagPath is the path for the tag, normally composed of group id and element id. E
 
 ```
 {
-    "Path":"04011001", //Private tag
+    "Path":"04011001",
     "VR":"SS",
     "PrivateCreator":"MicrosoftPC",
     "Level":"Instance",
