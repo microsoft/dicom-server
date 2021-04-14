@@ -18,9 +18,8 @@ namespace Microsoft.Health.Dicom.Core.Web
         /// Converts the <paramref name="stream"/> into a seekable stream.
         /// </summary>
         /// <param name="stream">The stream to convert.</param>
-        /// <param name="streamContainsLimit">The</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A instance of seekable <see cref="Stream"/>.</returns>
-        Task<Stream> ConvertAsync(Stream stream, bool streamContainsLimit, CancellationToken cancellationToken = default);
+        Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default);
     }
 }

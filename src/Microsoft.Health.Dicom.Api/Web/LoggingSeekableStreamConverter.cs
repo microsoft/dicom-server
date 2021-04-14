@@ -45,11 +45,11 @@ namespace Microsoft.Health.Dicom.Api.Web
         }
 
         /// <inheritdoc />
-        public async Task<Stream> ConvertAsync(Stream stream, bool streamContainsLimit, CancellationToken cancellationToken)
+        public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken)
         {
             try
             {
-                return await _seekableStreamConverter.ConvertAsync(stream, streamContainsLimit, cancellationToken);
+                return await _seekableStreamConverter.ConvertAsync(stream, cancellationToken);
             }
             catch (InvalidMultipartBodyPartException ex)
             {

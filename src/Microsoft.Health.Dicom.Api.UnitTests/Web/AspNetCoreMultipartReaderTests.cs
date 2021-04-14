@@ -5,12 +5,14 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -25,11 +27,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         private const string DefaultBodyPartSeparator = "--+b+";
         private const string DefaultBodyPartFinalSeparator = "--+b+--";
 
-        private readonly ISeekableStreamConverter _seekableStreamConverter;
+        private ISeekableStreamConverter _seekableStreamConverter;
 
         public AspNetCoreMultipartReaderTests()
         {
-            _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), CreateStoreConfiguration());
+            _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
         }
 
         [Fact]
@@ -158,7 +160,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
             ISeekableStreamConverter seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
 
-            seekableStreamConverter.ConvertAsync(default, default).ThrowsForAnyArgs(new InvalidMultipartBodyPartException(new IOException()));
+            seekableStreamConverter.ConvertAsync(default, default).ThrowsForAnyArgs(new IOException());
 
             using (MemoryStream stream = await CreateMemoryStream(body))
             {
@@ -177,6 +179,50 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
             Assert.Throws<NotSupportedException>(() => Create(requestContentType));
         }
+
+        [Fact]
+        public async Task GivenAnIOExceptionReadingStream_WhenConverted_ShouldReturnNull()
+        {
+            _seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
+
+            string body = GenerateBody(
+                DefaultBodyPartSeparator,
+                $"Content-Type: application/dicom",
+                string.Empty,
+                "content",
+                DefaultBodyPartFinalSeparator);
+
+
+            _seekableStreamConverter.ConvertAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Throws(new IOException());
+
+            await ExecuteAndValidateAsync(
+                body,
+                DefaultContentType,
+                bodyPart => { Assert.Null(bodyPart); return Task.CompletedTask; } );
+        }
+
+        [Fact]
+        public async Task GivenAInvalidDataException__ThenDicomFileLengthLimitExceededExceptionShouldBeRethrown()
+        {
+            _seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
+
+            string body = GenerateBody(
+                DefaultBodyPartSeparator,
+                $"Content-Type: application/dicom",
+                string.Empty,
+                "content",
+                DefaultBodyPartFinalSeparator);
+
+
+            _seekableStreamConverter.ConvertAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Throws(new InvalidDataException());
+
+            await Assert.ThrowsAsync<DicomFileLengthLimitExceededException>(
+                () => ExecuteAndValidateAsync(
+                body,
+                DefaultContentType,
+                async bodyPart => await ValidateMultipartBodyPartAsync("application/dicom", "content", bodyPart)));
+        }
+
 
         private AspNetCoreMultipartReader Create(string contentType, Stream body = null, ISeekableStreamConverter seekableStreamConverter = null)
         {
@@ -252,6 +298,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
                 Assert.Equal(expectedBody, await reader.ReadToEndAsync());
             }
         }
+
 
         private string GenerateBody(params string[] lines)
         {
