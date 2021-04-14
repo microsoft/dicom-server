@@ -5,11 +5,23 @@
 
 using System.Collections.Generic;
 using Dicom;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class DicomFileEqualityComparer : IEqualityComparer<DicomFile>
     {
+        public DicomFileEqualityComparer()
+           : this(new DicomTag[0])
+        {
+        }
+
+        public DicomFileEqualityComparer(IEnumerable<DicomTag> ignoredTags)
+        {
+            EnsureArg.IsNotNull(ignoredTags, nameof(ignoredTags));
+            IgnoredTags = ignoredTags;
+        }
+
         bool IEqualityComparer<DicomFile>.Equals(DicomFile x, DicomFile y)
         {
             if (x == null || y == null)
@@ -17,13 +29,13 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
                 return object.ReferenceEquals(x, y);
             }
 
-            IEqualityComparer<IEnumerable<DicomItem>> metadataComparer = new DicomItemCollectionEqualityComparer();
+            IEqualityComparer<IEnumerable<DicomItem>> metadataComparer = new DicomItemCollectionEqualityComparer(IgnoredTags);
             if (!metadataComparer.Equals(x.FileMetaInfo, y.FileMetaInfo))
             {
                 return false;
             }
 
-            IEqualityComparer<DicomDataset> dataSetComparer = new DicomDatasetEqualityComparer();
+            IEqualityComparer<DicomDataset> dataSetComparer = new DicomDatasetEqualityComparer(IgnoredTags);
             return dataSetComparer.Equals(x.Dataset, y.Dataset);
         }
 
@@ -31,5 +43,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
         {
             return obj.GetHashCode();
         }
+
+        public IEnumerable<DicomTag> IgnoredTags { get; }
     }
 }

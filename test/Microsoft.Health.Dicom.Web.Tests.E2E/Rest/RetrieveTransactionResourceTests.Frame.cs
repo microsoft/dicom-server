@@ -36,10 +36,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenSupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
         {
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
-            DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);
-            await EnsureFileIsStoredAsync(inputDicomFile);
-            var instanceId = inputDicomFile.Dataset.ToInstanceIdentifier();
-            _studiesToClean.Add(instanceId.StudyInstanceUid);
+            DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);             
+            var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
+
+            await InternalStoreAsync(new[] { inputDicomFile });
 
             DicomFile outputDicomFile = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
             DicomPixelData pixelData = DicomPixelData.Create(outputDicomFile.Dataset);
@@ -60,6 +60,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 Assert.Equal(item.ToByteArray(), pixelData.GetFrame(frameIndex).Data);
                 frameIndex++;
             }
+
         }
 
         [Theory]

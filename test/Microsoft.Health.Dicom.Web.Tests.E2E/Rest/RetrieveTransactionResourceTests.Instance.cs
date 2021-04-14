@@ -9,7 +9,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Client;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -32,16 +31,25 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
             DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
-            await EnsureFileIsStoredAsync(inputDicomFile);
-            var instanceId = inputDicomFile.Dataset.ToInstanceIdentifier();
+            var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
+
+            await InternalStoreAsync(new[] { inputDicomFile });
 
             using DicomWebResponse<DicomFile> response = await _client.RetrieveInstanceAsync(instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid, transferSyntax);
 
             Assert.Equal(DicomWebConstants.ApplicationDicomMediaType, response.ContentHeaders.ContentType.MediaType);
 
-            DicomFile actual = await response.GetValueAsync();
-            DicomFile expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
-            Assert.Equal(expected, actual, new DicomFileEqualityComparer());
+            var actual = (await response.GetValueAsync());
+            var expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
+            Assert.Equal(expected, actual, new DicomFileEqualityComparer(
+                ignoredTags: new[]
+                {
+                    DicomTag.ImplementationVersionName,  // Version name is updated as we update fo-dicom
+                    DicomTag.StudyInstanceUID,
+                    DicomTag.SeriesInstanceUID,
+                    DicomTag.SOPInstanceUID
+                }));
+
         }
 
         [Theory]
