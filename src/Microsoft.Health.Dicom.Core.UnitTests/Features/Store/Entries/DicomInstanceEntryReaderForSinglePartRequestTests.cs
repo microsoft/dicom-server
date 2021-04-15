@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
@@ -75,9 +76,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
                 _stream,
                 source.Token);
 
-            var bytes = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
-            _stream.Write(bytes);
-            _stream.Seek(0, SeekOrigin.Begin);
+            _stream.Write(Encoding.UTF8.GetBytes("someteststring"));
 
             Assert.NotNull(results);
             Assert.Collection(
@@ -96,8 +95,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
 
             using var source = new CancellationTokenSource();
 
-            var bytes = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
-            Stream stream = new MemoryStream(bytes);
+            Stream stream = new MemoryStream();
+            stream.Write(Encoding.UTF8.GetBytes("someteststring"));
             stream.Seek(0, SeekOrigin.Begin);
 
             await Assert.ThrowsAsync<DicomFileLengthLimitExceededException>(
