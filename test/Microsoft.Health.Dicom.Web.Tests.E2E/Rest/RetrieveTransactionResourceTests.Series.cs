@@ -10,7 +10,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Client;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -33,8 +32,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
             DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
-            await EnsureFileIsStoredAsync(inputDicomFile);
-            var instanceId = inputDicomFile.Dataset.ToInstanceIdentifier();
+            var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
+            await InternalStoreAsync(new[] { inputDicomFile });
 
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveSeriesAsync(instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, transferSyntax);
             Assert.Equal(DicomWebConstants.MultipartRelatedMediaType, response.ContentHeaders.ContentType.MediaType);
@@ -42,8 +41,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await foreach (DicomFile actual in response)
             {
                 // TODO: verify media type once https://microsofthealth.visualstudio.com/Health/_workitems/edit/75185 is done
-                DicomFile expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
-                Assert.Equal(expected, actual, new DicomFileEqualityComparer());
+                var expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
+                Assert.Equal(expected, actual, new DicomFileEqualityComparer(
+                    ignoredTags: new[]
+                    {
+                        DicomTag.ImplementationVersionName,  // Version name is updated as we update fo-dicom
+                        DicomTag.StudyInstanceUID,
+                        DicomTag.SeriesInstanceUID,
+                        DicomTag.SOPInstanceUID
+                    }));
             }
         }
 

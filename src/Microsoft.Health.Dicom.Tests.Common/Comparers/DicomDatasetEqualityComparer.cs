@@ -3,25 +3,36 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
 using Dicom.Imaging;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class DicomDatasetEqualityComparer : IEqualityComparer<DicomDataset>
     {
+        private static DicomDatasetEqualityComparer _default = new DicomDatasetEqualityComparer();
+
+        public static DicomDatasetEqualityComparer Default => _default;
+
+        private readonly IEnumerable<DicomTag> _ignoredTags;
+
         public DicomDatasetEqualityComparer()
-            : this(new DicomTag[0])
+            : this(Array.Empty<DicomTag>())
         {
         }
 
-        public DicomDatasetEqualityComparer(IEnumerable<DicomTag> ignoredTags) => IgnoredTags = ignoredTags;
+        public DicomDatasetEqualityComparer(IEnumerable<DicomTag> ignoredTags)
+        {
+            EnsureArg.IsNotNull(ignoredTags, nameof(ignoredTags));
+            _ignoredTags = ignoredTags;
+        }
 
-        public IEnumerable<DicomTag> IgnoredTags { get; }
 
-        bool IEqualityComparer<DicomDataset>.Equals(DicomDataset x, DicomDataset y)
+        public bool Equals(DicomDataset x, DicomDataset y)
         {
             if (x == null || y == null)
             {
@@ -29,7 +40,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
             }
 
             // Compare DicomItems except PixelData, since DicomItemCollectionEqualityComparer cannot handle it
-            IEqualityComparer<IEnumerable<DicomItem>> dicomItemsComparaer = new DicomItemCollectionEqualityComparer(IgnoredTags.Concat(new[] { DicomTag.PixelData }));
+            IEqualityComparer<IEnumerable<DicomItem>> dicomItemsComparaer = new DicomItemCollectionEqualityComparer(_ignoredTags.Concat(new[] { DicomTag.PixelData }));
 
             if (!dicomItemsComparaer.Equals(x, y))
             {
@@ -42,7 +53,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
             return dicomPixelDataComparer.Equals(DicomPixelData.Create(x), DicomPixelData.Create(y));
         }
 
-        int IEqualityComparer<DicomDataset>.GetHashCode(DicomDataset obj)
+        public int GetHashCode(DicomDataset obj)
         {
             return obj.GetHashCode();
         }
