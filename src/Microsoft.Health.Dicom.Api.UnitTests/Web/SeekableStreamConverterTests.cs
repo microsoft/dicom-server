@@ -72,6 +72,5 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
 
             return nonseekableStream;
         }
-
     }
 }

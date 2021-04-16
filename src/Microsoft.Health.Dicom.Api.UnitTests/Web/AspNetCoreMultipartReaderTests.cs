@@ -183,7 +183,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         [Fact]
         public async Task GivenAnIOExceptionReadingStream_WhenConverted_ShouldReturnNull()
         {
-            _seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
+            ISeekableStreamConverter seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
 
             string body = GenerateBody(
                 DefaultBodyPartSeparator,
@@ -192,8 +192,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
                 "content",
                 DefaultBodyPartFinalSeparator);
 
-
-            _seekableStreamConverter.ConvertAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Throws(new IOException());
+            seekableStreamConverter.ConvertAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Throws(new IOException());
 
             await ExecuteAndValidateAsync(
                 body,
@@ -204,7 +203,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         [Fact]
         public async Task GivenAInvalidDataException__ThenDicomFileLengthLimitExceededExceptionShouldBeRethrown()
         {
-            _seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
+            ISeekableStreamConverter seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
 
             string body = GenerateBody(
                 DefaultBodyPartSeparator,
@@ -214,7 +213,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
                 DefaultBodyPartFinalSeparator);
 
 
-            _seekableStreamConverter.ConvertAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Throws(new InvalidDataException());
+            seekableStreamConverter.ConvertAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Throws(new InvalidDataException());
 
             await Assert.ThrowsAsync<DicomFileLengthLimitExceededException>(
                 () => ExecuteAndValidateAsync(
@@ -298,7 +297,6 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
                 Assert.Equal(expectedBody, await reader.ReadToEndAsync());
             }
         }
-
 
         private string GenerateBody(params string[] lines)
         {

@@ -28,8 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
     public class DicomInstanceEntryReaderForSinglePartRequest : IDicomInstanceEntryReader
     {
         private readonly ISeekableStreamConverter _seekableStreamConverter;
-        private readonly IOptions<StoreConfiguration> _storeConfiguration;
-
+        private readonly StoreConfiguration _storeConfiguration;
 
         public DicomInstanceEntryReaderForSinglePartRequest(ISeekableStreamConverter seekableStreamConverter, IOptions<StoreConfiguration> storeConfiguration)
         {
@@ -37,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
             EnsureArg.IsNotNull(storeConfiguration, nameof(storeConfiguration));
 
             _seekableStreamConverter = seekableStreamConverter;
-            _storeConfiguration = storeConfiguration;
+            _storeConfiguration = storeConfiguration.Value;
         }
 
         /// <inheritdoc />
@@ -62,8 +61,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, contentType));
             }
 
+            // Can dispose of the underlying stream becasue in seekableStreamConverter the entire stream is copied over into a new stream
             Stream seekableStream;
-            using (Stream limitStream = new LimitStream(stream, _storeConfiguration.Value.MaxAllowedDicomFileSize))
+            using (Stream limitStream = new ReadOnlyLimitStream(stream, _storeConfiguration.MaxAllowedDicomFileSize))
             {
                 seekableStream = await _seekableStreamConverter.ConvertAsync(limitStream, cancellationToken);
             }
@@ -73,7 +73,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
             return dicomInstanceEntries;
         }
 
-        private class LimitStream : Stream
+        private class ReadOnlyLimitStream : Stream
         {
             private readonly Stream _stream;
 
@@ -85,13 +85,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
 
             public override bool CanSeek => false;
 
-            public override bool CanWrite => _stream.CanWrite;
+            public override bool CanWrite => false;
 
             public override long Length => throw new NotSupportedException();
 
             public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
-            public LimitStream(Stream stream, long limit)
+            public ReadOnlyLimitStream(Stream stream, long limit)
             {
                 EnsureArg.IsNotNull(stream, nameof(stream));
                 EnsureArg.IsGte(limit, 0);
@@ -104,6 +104,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
             public override void Flush()
             {
                 _stream.Flush();
+            }
+
+            public override int ReadByte()
+            {
+                ThrowIfExceedLimit();
+                
+                int read = _stream.ReadByte();
+
+                if (read != -1)
+                {
+                    _bytesLeft--;
+                    ThrowIfExceedLimit();
+                }
+
+                return read;
             }
 
             public override int Read(byte[] buffer, int offset, int count)
