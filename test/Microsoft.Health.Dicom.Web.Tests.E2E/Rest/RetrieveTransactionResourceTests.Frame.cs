@@ -60,7 +60,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 Assert.Equal(item.ToByteArray(), pixelData.GetFrame(frameIndex).Data);
                 frameIndex++;
             }
-
         }
 
         [Theory]

@@ -12,7 +12,10 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class ExtendedQueryTagEntryEqualityComparer : IEqualityComparer<ExtendedQueryTagEntry>
     {
-        public static ExtendedQueryTagEntryEqualityComparer Default => new ExtendedQueryTagEntryEqualityComparer();
+        private static ExtendedQueryTagEntryEqualityComparer _default = new ExtendedQueryTagEntryEqualityComparer();
+
+        public static ExtendedQueryTagEntryEqualityComparer Default => _default;
+
 
         public bool Equals(ExtendedQueryTagEntry x, ExtendedQueryTagEntry y)
         {

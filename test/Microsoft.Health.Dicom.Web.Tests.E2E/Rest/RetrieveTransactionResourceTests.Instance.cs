@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.Equal(DicomWebConstants.ApplicationDicomMediaType, response.ContentHeaders.ContentType.MediaType);
 
-            var actual = (await response.GetValueAsync());
+            var actual = await response.GetValueAsync();
             var expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
             Assert.Equal(expected, actual, new DicomFileEqualityComparer(
                 ignoredTags: new[]

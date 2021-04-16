@@ -17,6 +17,10 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
     /// </summary>
     public class DicomItemEqualityComparer : IEqualityComparer<DicomItem>
     {
+        private static DicomItemEqualityComparer _default = new DicomItemEqualityComparer();
+
+        public static DicomItemEqualityComparer Default => _default;
+
         public bool Equals([AllowNull] DicomItem x, [AllowNull] DicomItem y)
         {
             if (x == null || y == null)
