@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Dicom Tag Property {0} must be specified..
+        ///   Looks up a localized string similar to The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace..
         /// </summary>
         internal static string AddExtendedQueryTagEntryPropertyNotSpecified {
             get {

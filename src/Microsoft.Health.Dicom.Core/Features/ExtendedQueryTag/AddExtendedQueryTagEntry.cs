@@ -22,13 +22,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             string property = null;
-            if (string.IsNullOrEmpty(Path))
+            if (string.IsNullOrWhiteSpace(Path))
             {
                 property = "Path";
                 yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
             }
 
-            if(string.IsNullOrEmpty(Level))
+            if(string.IsNullOrWhiteSpace(Level))
             {
                 property = "Level";
                 yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });

@@ -367,8 +367,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} Dicom Tag.</comment>
   </data>
   <data name="AddExtendedQueryTagEntryPropertyNotSpecified" xml:space="preserve">
-    <value>The Dicom Tag Property {0} must be specified.</value>
-    <comment>{0} is the property that was not specified.</comment>
+    <value>The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace.</value>
+    <comment>{0} is the property that was not specified correctly.</comment>
   </data>
   <data name="InvalidDicomTagLevel" xml:space="preserve">
     <value>Input Dicom Tag Level '{0}' is invalid. It must have value 'Study', 'Series' or 'Instance'.</value>

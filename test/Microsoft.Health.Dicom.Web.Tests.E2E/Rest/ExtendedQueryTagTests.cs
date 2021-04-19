@@ -39,15 +39,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomElement identificationCodeElement = new DicomLongString(identificationCodeTag, PrivateCreatorName);
 
             DicomTag privateTag = new DicomTag(0x0407, 0x1001, PrivateCreatorName);
-            ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance, PrivateCreator = privateTag.PrivateCreator.Creator };
+            ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance.ToString(), PrivateCreator = privateTag.PrivateCreator.Creator };
 
             // One is standard tag on Series level
             DicomTag standardTagSeries = DicomTag.ManufacturerModelName;
-            ExtendedQueryTag standardTagSeriesQueryTag = new ExtendedQueryTag { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = QueryTagLevel.Series };
+            ExtendedQueryTag standardTagSeriesQueryTag = new ExtendedQueryTag { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = QueryTagLevel.Series.ToString() };
 
             // One is standard tag on Study level
             DicomTag standardTagStudy = DicomTag.PatientSex;
-            ExtendedQueryTag standardTagStudyQueryTag = new ExtendedQueryTag { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, Level = QueryTagLevel.Study };
+            ExtendedQueryTag standardTagStudyQueryTag = new ExtendedQueryTag { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, Level = QueryTagLevel.Study.ToString() };
 
             ExtendedQueryTag[] queryTags = new ExtendedQueryTag[] { privateQueryTag, standardTagSeriesQueryTag, standardTagStudyQueryTag };
 
@@ -136,15 +136,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         [Theory]
         [InlineData("[{\"Path\":\"00100040\"}]", "Level")]
-        [InlineData("[{\"Path\":\"00100040\",\"Level\":\"\"}]", "Level")]
-        [InlineData("[{\"Path\":\"\"}]", "Path")]
-        [InlineData("[{\"Path\":\"\",\"Level\":\"\"}]", "Path")]
         [InlineData("[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path")]
-        [InlineData("[{\"Level\":\"Study\"}]", "Path")]
         public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string request, string missingProperty)
         {
             var ex = await Assert.ThrowsAsync<DicomWebException>(() => _client.AddExtendedQueryTagAsync(request));
-            Assert.Contains(string.Format("BadRequest: The request body is not valid. Details: The Dicom Tag Property {0} must be specified", missingProperty), ex.Message);
+            Assert.Contains(string.Format("BadRequest: The request body is not valid. Details: The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), ex.Message);
         }
 
         [Fact]
