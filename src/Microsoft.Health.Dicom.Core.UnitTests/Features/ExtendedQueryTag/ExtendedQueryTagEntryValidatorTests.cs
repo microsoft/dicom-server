@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Linq;
 using Dicom;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -19,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
         public ExtendedQueryTagEntryValidatorTests()
         {
-            _extendedQueryTagEntryValidator = new ExtendedQueryTagEntryValidator(new DicomTagParser());
+            _extendedQueryTagEntryValidator = new ExtendedQueryTagEntryValidator(new DicomTagParser(), Options.Create(new Configs.ExtendedQueryTagConfiguration()));
         }
 
         [Fact]
@@ -160,6 +162,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             DicomTag dicomTag = new DicomTag(0x2201, 0x0010);
             ExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(dicomTag.GetPath(), DicomVR.AE.Code);
             Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new ExtendedQueryTagEntry[] { entry }));
+        }
+
+        [Fact]
+        public void GivenTooManyTags_WhenValidating_ThenShouldThrowException()
+        {
+            DicomTag dicomTag = new DicomTag(0x2201, 0x0010);
+            ExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(dicomTag.GetPath(), DicomVR.AE.Code);
+            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(Enumerable.Repeat(entry, 129)));
         }
 
 

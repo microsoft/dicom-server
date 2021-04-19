@@ -10,6 +10,8 @@ using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -21,11 +23,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     public class ExtendedQueryTagEntryValidator : IExtendedQueryTagEntryValidator
     {
         private readonly IDicomTagParser _dicomTagParser;
+        private readonly int _maxBulkAddSize;
 
-        public ExtendedQueryTagEntryValidator(IDicomTagParser dicomTagParser)
+        public ExtendedQueryTagEntryValidator(IDicomTagParser dicomTagParser, IOptions<ExtendedQueryTagConfiguration> extendedQueryTagConfiguration)
         {
             EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
+            EnsureArg.IsNotNull(extendedQueryTagConfiguration?.Value, nameof(extendedQueryTagConfiguration));
             _dicomTagParser = dicomTagParser;
+            _maxBulkAddSize = extendedQueryTagConfiguration.Value.MaxBulkAddSize;
         }
 
         /*
@@ -58,6 +63,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             if (!extendedQueryTagEntries.Any())
             {
                 throw new ExtendedQueryTagEntryValidationException(DicomCoreResource.MissingExtendedQueryTag);
+            }
+
+            if (extendedQueryTagEntries.Count() > _maxBulkAddSize)
+            {
+                throw new ExtendedQueryTagEntryValidationException(
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.TooManyTagsToAdd, _maxBulkAddSize));
             }
 
             var pathSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

@@ -5,12 +5,14 @@
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
-    public class ServicesConfiguration
+    /// <summary>
+    /// Configuration for extended query tag feature.
+    /// </summary>
+    public class ExtendedQueryTagConfiguration
     {
-        public DeletedInstanceCleanupConfiguration DeletedInstanceCleanup { get; } = new DeletedInstanceCleanupConfiguration();
-
-        public StoreConfiguration StoreServiceSettings { get; } = new StoreConfiguration();
-
-        public ExtendedQueryTagConfiguration ExtendedQueryTag { get; } = new ExtendedQueryTagConfiguration();
+        /// <summary>
+        /// Maximum allowed number of tags when adding.
+        /// </summary>
+        public int MaxBulkAddSize { get; set; } = 128;
     }
 }
