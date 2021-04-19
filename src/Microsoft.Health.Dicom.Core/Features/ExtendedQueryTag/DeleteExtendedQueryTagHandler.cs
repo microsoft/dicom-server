@@ -30,9 +30,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
-            if (await AuthorizationService.CheckAccess(DataActions.Delete, cancellationToken) != DataActions.Delete)
+            if (await AuthorizationService.CheckAccess(DataActions.Admin, cancellationToken) != DataActions.Admin)
             {
-                throw new UnauthorizedDicomActionException(DataActions.Delete);
+                throw new UnauthorizedDicomActionException(DataActions.Admin);
             }
 
             await _deleteExtendedQueryTagService.DeleteExtendedQueryTagAsync(request.TagPath, cancellationToken);

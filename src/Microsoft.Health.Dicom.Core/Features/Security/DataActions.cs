@@ -25,7 +25,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
         [EnumMember(Value = "delete")]
         Delete = 1 << 2,
 
+        [EnumMember(Value = "admin")]
+        Admin = 1 << 3,
+
         [EnumMember(Value = "*")]
-        All = (Delete << 1) - 1,
+        All = (Admin << 1) - 1,
     }
 }
