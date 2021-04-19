@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Globalization;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -49,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             vr = vr?.ToUpperInvariant();
 
-            return new ExtendedQueryTagStoreEntry(-1,  path, vr, privateCreator, extendedQueryTagEntry.Level.GetValueOrDefault(), status);
+            return new ExtendedQueryTagStoreEntry(-1,  path, vr, privateCreator, (QueryTagLevel)Enum.Parse(typeof(QueryTagLevel), extendedQueryTagEntry.Level, true), status);
         }
     }
 }

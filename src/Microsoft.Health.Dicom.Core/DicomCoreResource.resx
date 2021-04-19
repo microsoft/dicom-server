@@ -362,4 +362,16 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The query tag '{0}' is already supported.</value>
     <comment>{0} Dicom Tag.</comment>
   </data>
+  <data name="MissingLevel" xml:space="preserve">
+    <value>The level for extended query tag '{0}' is missing.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="AddExtendedQueryTagEntryPropertyNotSpecified" xml:space="preserve">
+    <value>The Dicom Tag Property {0} must be specified.</value>
+    <comment>{0} is the property that was not specified.</comment>
+  </data>
+  <data name="InvalidDicomTagLevel" xml:space="preserve">
+    <value>Input Dicom Tag Level '{0}' is invalid. It must have value 'Study', 'Series' or 'Instance'.</value>
+    <comment>{0} input Dicom Tag Level.</comment>
+  </data>
 </root>

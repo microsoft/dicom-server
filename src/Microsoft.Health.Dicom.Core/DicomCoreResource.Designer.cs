@@ -61,6 +61,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Dicom Tag Property {0} must be specified..
+        /// </summary>
+        internal static string AddExtendedQueryTagEntryPropertyNotSpecified {
+            get {
+                return ResourceManager.GetString("AddExtendedQueryTagEntryPropertyNotSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The limit must be between 1 and {0}..
         /// </summary>
         internal static string ChangeFeedLimitOutOfRange {
@@ -261,6 +270,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Input Dicom Tag Level &apos;{0}&apos; is invalid. It must have value &apos;Study&apos;, &apos;Series&apos; or &apos;Instance&apos;..
+        /// </summary>
+        internal static string InvalidDicomTagLevel {
+            get {
+                return ResourceManager.GetString("InvalidDicomTagLevel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; extended query tag with path &apos;{1}&apos; is not a valid double value..
         /// </summary>
         internal static string InvalidDoubleValue {
@@ -383,6 +401,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MissingExtendedQueryTag {
             get {
                 return ResourceManager.GetString("MissingExtendedQueryTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The level for extended query tag &apos;{0}&apos; is missing..
+        /// </summary>
+        internal static string MissingLevel {
+            get {
+                return ResourceManager.GetString("MissingLevel", resourceCulture);
             }
         }
         

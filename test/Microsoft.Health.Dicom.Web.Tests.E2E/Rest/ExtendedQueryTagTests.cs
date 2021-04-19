@@ -133,5 +133,26 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 }
             }
         }
+
+        [Theory]
+        [InlineData("[{\"Path\":\"00100040\"}]", "Level")]
+        [InlineData("[{\"Path\":\"00100040\",\"Level\":\"\"}]", "Level")]
+        [InlineData("[{\"Path\":\"\"}]", "Path")]
+        [InlineData("[{\"Path\":\"\",\"Level\":\"\"}]", "Path")]
+        [InlineData("[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path")]
+        [InlineData("[{\"Level\":\"Study\"}]", "Path")]
+        public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string request, string missingProperty)
+        {
+            var ex = await Assert.ThrowsAsync<DicomWebException>(() => _client.AddExtendedQueryTagAsync(request));
+            Assert.Contains(string.Format("BadRequest: The request body is not valid. Details: The Dicom Tag Property {0} must be specified", missingProperty), ex.Message);
+        }
+
+        [Fact]
+        public async Task GivenInvalidTagLevelInRequestBody_WhenCallingPostAync_ThenShouldThrowException()
+        {
+            string request = "[{\"Path\":\"00100040\",\"Level\":\"Studys\"}]";
+            var ex = await Assert.ThrowsAsync<DicomWebException>(() => _client.AddExtendedQueryTagAsync(request));
+            Assert.Equal("BadRequest: The request body is not valid. Details: Input Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", ex.Message);
+        }
     }
 }

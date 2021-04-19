@@ -91,6 +91,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.QueryTagAlreadySupported, tagEntry.Path));
             }
 
+            if(tagEntry.Level == null)
+            {
+                throw new ExtendedQueryTagEntryValidationException(
+                   string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingLevel, tagEntry.Path));
+            }
+
             ValidatePrivateCreator(tag, tagEntry.PrivateCreator, tagEntry.Path);
 
             ValidateVRCode(tag, tagEntry.VR, tagEntry.Path);

@@ -46,6 +46,8 @@ namespace Microsoft.Health.Dicom.Client
 
         Task<DicomWebResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTag> tagEntries, CancellationToken cancellationToken = default);
 
+        Task<DicomWebResponse> AddExtendedQueryTagAsync(string tagEntriesJson, CancellationToken cancellationToken = default);
+
         Task<DicomWebResponse> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
 
         Task<DicomWebResponse<IEnumerable<ExtendedQueryTag>>> GetExtendedQueryTagsAsync(CancellationToken cancellationToken = default);
