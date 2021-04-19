@@ -65,6 +65,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             await ExecuteAndValidateAsync(
                 body,
                 DefaultContentType,
+                null,
                 async bodyPart => await ValidateMultipartBodyPartAsync("application/dicom", "content", bodyPart));
         }
 
@@ -83,6 +84,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             await ExecuteAndValidateAsync(
                 body,
                 requestContentType,
+                null,
                 async bodyPart => await ValidateMultipartBodyPartAsync(expectedTypeValue, "content", bodyPart));
         }
 
@@ -100,6 +102,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             await ExecuteAndValidateAsync(
                 body,
                 requestContentType,
+                null,
                 async bodyPart => await ValidateMultipartBodyPartAsync("application/dicom", "content", bodyPart));
         }
 
@@ -119,6 +122,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             await ExecuteAndValidateAsync(
                 body,
                 requestContentType,
+                null,
                 async bodyPart => await ValidateMultipartBodyPartAsync("text/plain", "content", bodyPart),
                 async bodyPart => await ValidateMultipartBodyPartAsync(null, "content2", bodyPart));
         }
@@ -140,6 +144,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             await ExecuteAndValidateAsync(
                 body,
                 requestContentType,
+                null,
                 async bodyPart => await ValidateMultipartBodyPartAsync("text/plain", "content", bodyPart),
                 async bodyPart => await ValidateMultipartBodyPartAsync("application/dicom+json", "content2", bodyPart));
         }
@@ -197,6 +202,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             await ExecuteAndValidateAsync(
                 body,
                 DefaultContentType,
+                seekableStreamConverter,
                 bodyPart => { Assert.Null(bodyPart); return Task.CompletedTask; } );
         }
 
@@ -219,6 +225,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
                 () => ExecuteAndValidateAsync(
                 body,
                 DefaultContentType,
+                seekableStreamConverter,
                 async bodyPart => await ValidateMultipartBodyPartAsync("application/dicom", "content", bodyPart)));
         }
 
@@ -266,11 +273,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             return stream;
         }
 
-        private async Task ExecuteAndValidateAsync(string body, string requestContentType, params Func<MultipartBodyPart, Task>[] validators)
+        private async Task ExecuteAndValidateAsync(string body, string requestContentType, ISeekableStreamConverter seekableStreamConverter, params Func<MultipartBodyPart, Task>[] validators)
         {
             using (MemoryStream stream = await CreateMemoryStream(body))
             {
-                AspNetCoreMultipartReader aspNetCoreMultipartReader = Create(requestContentType, stream);
+                AspNetCoreMultipartReader aspNetCoreMultipartReader = Create(requestContentType, stream, seekableStreamConverter);
 
                 MultipartBodyPart result = null;
 
