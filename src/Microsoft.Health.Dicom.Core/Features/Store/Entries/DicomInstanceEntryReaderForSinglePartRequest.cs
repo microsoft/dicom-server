@@ -34,6 +34,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         {
             EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
             EnsureArg.IsNotNull(storeConfiguration, nameof(storeConfiguration));
+            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
+
 
             _seekableStreamConverter = seekableStreamConverter;
             _storeConfiguration = storeConfiguration.Value;

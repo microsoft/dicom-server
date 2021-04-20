@@ -78,7 +78,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
                 _stream,
                 source.Token);
 
-
             Assert.NotNull(results);
             Assert.Collection(
                 results,
@@ -105,7 +104,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
                     DefaultContentType,
                     stream,
                     source.Token));
-
         }
 
         [Fact]

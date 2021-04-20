@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         private const string DefaultBodyPartSeparator = "--+b+";
         private const string DefaultBodyPartFinalSeparator = "--+b+--";
 
-        private ISeekableStreamConverter _seekableStreamConverter;
+        private readonly ISeekableStreamConverter _seekableStreamConverter;
 
         public AspNetCoreMultipartReaderTests()
         {
