@@ -6,6 +6,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Client;
@@ -37,7 +38,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebResponse<DicomFile> response = await _client.RetrieveInstanceAsync(instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid, transferSyntax);
 
-            Assert.Equal(DicomWebConstants.ApplicationDicomMediaType, response.ContentHeaders.ContentType.MediaType);
+            Assert.Equal(DicomWebConstants.MultipartRelatedMediaType, response.ContentHeaders.ContentType.MediaType);
+            foreach (NameValueHeaderValue param in response.ContentHeaders.ContentType.Parameters)
+            {
+                if (param.Name == "type")
+                {
+                    Assert.Equal($"\"{DicomWebConstants.ApplicationDicomMediaType}\"", param.Value);
+                }
+            }
 
             var actual = await response.GetValueAsync();
             var expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);

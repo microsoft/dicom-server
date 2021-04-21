@@ -66,7 +66,7 @@ namespace Microsoft.Health.Dicom.Client
 
             request.Headers.TryAddWithoutValidation(
                 "Accept",
-                CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationDicom, dicomTransferSyntax));
+                CreateAcceptHeader(CreateMultipartMediaTypeHeader(DicomWebConstants.ApplicationDicomMediaType), dicomTransferSyntax));
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);

@@ -29,11 +29,11 @@ namespace Microsoft.Health.Dicom.Tests.Common
                quality: quality);
         }
 
-        public static AcceptHeader CreateAcceptHeaderForGetInstance(string transferSyntax = "*", string mediaType = KnownContentTypes.ApplicationDicom, double? quality = null)
+        public static AcceptHeader CreateAcceptHeaderForGetInstance(string transferSyntax = "*", string mediaType = KnownContentTypes.ApplicationDicom, double? quality = null, PayloadTypes payloadTypes = PayloadTypes.SinglePart)
         {
             return CreateAcceptHeader(
                transferSyntax: transferSyntax,
-               payloadType: PayloadTypes.SinglePart,
+               payloadType: payloadTypes,
                mediaType: mediaType,
                quality: quality);
         }
