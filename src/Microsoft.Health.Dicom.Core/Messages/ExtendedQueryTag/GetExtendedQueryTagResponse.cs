@@ -9,11 +9,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
     public class GetExtendedQueryTagResponse
     {
-        public GetExtendedQueryTagResponse(ExtendedQueryTagEntry extendedQueryTagEntry)
+        public GetExtendedQueryTagResponse(GetExtendedQueryTagEntry extendedQueryTagEntry)
         {
             ExtendedQueryTag = extendedQueryTagEntry;
         }
 
-        public ExtendedQueryTagEntry ExtendedQueryTag { get; }
+        public GetExtendedQueryTagEntry ExtendedQueryTag { get; }
     }
 }

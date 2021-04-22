@@ -360,9 +360,9 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTag> tagEntries, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(tagEntries, nameof(tagEntries));
+            string jsonString = JsonConvert.SerializeObject(tagEntries);
             using var request = new HttpRequestMessage(HttpMethod.Post, BaseExtendedQueryTagUri);
             {
-                string jsonString = JsonConvert.SerializeObject(tagEntries);
                 request.Content = new StringContent(jsonString);
                 request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
             }

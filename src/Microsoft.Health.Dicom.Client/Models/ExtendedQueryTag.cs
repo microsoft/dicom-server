@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Client.Models
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public QueryTagLevel Level { get; set; }
+        public string Level { get; set; }
 
         /// <summary>
         /// Status of this tag.

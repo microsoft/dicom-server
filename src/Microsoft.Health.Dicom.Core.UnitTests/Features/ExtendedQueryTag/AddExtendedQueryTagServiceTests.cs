@@ -30,8 +30,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         public async Task GivenValidInput_WhenAddExtendedQueryTagIsInvoked_ThenShouldSucceed()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
-            ExtendedQueryTagEntry entry = tag.BuildExtendedQueryTagEntry();
-            await _extendedQueryTagService.AddExtendedQueryTagAsync(new ExtendedQueryTagEntry[] { entry }, default);
+            AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
+            await _extendedQueryTagService.AddExtendedQueryTagAsync(new AddExtendedQueryTagEntry[] { entry }, default);
 
             _extendedQueryTagEntryValidator.ReceivedWithAnyArgs().ValidateExtendedQueryTags(default);
             await _extendedQueryTagStore.ReceivedWithAnyArgs().AddExtendedQueryTagsAsync(default, default);
@@ -42,11 +42,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             var exception = new ExtendedQueryTagEntryValidationException(string.Empty);
-            ExtendedQueryTagEntry entry = tag.BuildExtendedQueryTagEntry();
+            AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
             _extendedQueryTagEntryValidator.WhenForAnyArgs(validator => validator.ValidateExtendedQueryTags(default))
                 .Throw(exception);
 
-            await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagService.AddExtendedQueryTagAsync(new ExtendedQueryTagEntry[] { entry }, default));
+            await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagService.AddExtendedQueryTagAsync(new AddExtendedQueryTagEntry[] { entry }, default));
             _extendedQueryTagEntryValidator.ReceivedWithAnyArgs().ValidateExtendedQueryTags(default);
             await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().AddExtendedQueryTagsAsync(default, default);
         }

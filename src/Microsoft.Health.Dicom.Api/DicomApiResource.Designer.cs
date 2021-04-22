@@ -97,6 +97,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request body is not valid. Details: {0}.
+        /// </summary>
+        internal static string InvalidRequestBody {
+            get {
+                return ResourceManager.GetString("InvalidRequestBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The audit information is missing for Controller: {0} and Action: {1}. This usually means the action is not marked with appropriate attribute..
         /// </summary>
         internal static string MissingAuditInformation {
