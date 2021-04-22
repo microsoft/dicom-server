@@ -6,18 +6,18 @@
 using System.Linq;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Api.Web;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
-    public sealed class ModelStateValidatorAttribute : ActionFilterAttribute
+    public sealed class BodyModelStateValidatorAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             if (!context.ModelState.IsValid)
             {
-                throw new InvalidQueryStringValuesException(context.ModelState.FirstOrDefault(x => x.Value.Errors.Any()).Key);
+                throw new InvalidRequestBodyException(string.Join(",", context.ModelState.SelectMany(x => x.Value.Errors).Select(x => x.ErrorMessage)));
             }
         }
     }

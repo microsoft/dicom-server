@@ -361,15 +361,9 @@ namespace Microsoft.Health.Dicom.Client
         {
             EnsureArg.IsNotNull(tagEntries, nameof(tagEntries));
             string jsonString = JsonConvert.SerializeObject(tagEntries);
-            return await AddExtendedQueryTagAsync(jsonString, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<DicomWebResponse> AddExtendedQueryTagAsync(string tagEntriesJson, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(tagEntriesJson, nameof(tagEntriesJson));
             using var request = new HttpRequestMessage(HttpMethod.Post, BaseExtendedQueryTagUri);
             {
-                request.Content = new StringContent(tagEntriesJson);
+                request.Content = new StringContent(jsonString);
                 request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
             }
 

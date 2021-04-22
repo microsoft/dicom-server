@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         {
             _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
 
-            IEnumerable<ExtendedQueryTagStoreEntry> result = extendedQueryTags.Select(item => item.Normalize(ExtendedQueryTagStatus.Ready));
+            IEnumerable<AddExtendedQueryTagEntry> result = extendedQueryTags.Select(item => item.Normalize());
 
             await _extendedQueryTagStore.AddExtendedQueryTagsAsync(result, cancellationToken);
 

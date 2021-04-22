@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Globalization;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -21,9 +20,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// Normalize extended query tag entry before saving to ExtendedQueryTagStore.
         /// </summary>
         /// <param name="extendedQueryTagEntry">The extended query tag entry.</param>
-        /// <param name="status"> The status to set on the extended query tag entry.</param>
         /// <returns>Normalize extended query tag entry.</returns>
-        public static ExtendedQueryTagStoreEntry Normalize(this AddExtendedQueryTagEntry extendedQueryTagEntry, ExtendedQueryTagStatus status)
+        public static AddExtendedQueryTagEntry Normalize(this AddExtendedQueryTagEntry extendedQueryTagEntry)
         {
             DicomTagParser dicomTagParser = new DicomTagParser();
             DicomTag[] tags;
@@ -50,7 +48,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             vr = vr?.ToUpperInvariant();
 
-            return new ExtendedQueryTagStoreEntry(-1,  path, vr, privateCreator, (QueryTagLevel)Enum.Parse(typeof(QueryTagLevel), extendedQueryTagEntry.Level, true), status);
+            return new AddExtendedQueryTagEntry()
+            {
+                Path = path,
+                VR = vr,
+                PrivateCreator = privateCreator,
+                QueryTagLevel = extendedQueryTagEntry.QueryTagLevel,
+            };
         }
     }
 }

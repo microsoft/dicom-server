@@ -193,7 +193,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
         private static AddExtendedQueryTagEntry CreateExtendedQueryTagEntry(string path, string vr, string privateCreator = null, QueryTagLevel level = QueryTagLevel.Instance)
         {
-            return new AddExtendedQueryTagEntry { Path = path, VR = vr, PrivateCreator = privateCreator, Level = level.ToString() };
+            return new AddExtendedQueryTagEntry { Path = path, VR = vr, PrivateCreator = privateCreator, QueryTagLevel = level.ToString() };
         }
     }
 }

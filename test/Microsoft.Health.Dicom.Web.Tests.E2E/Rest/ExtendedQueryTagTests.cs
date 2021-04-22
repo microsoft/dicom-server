@@ -5,6 +5,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
@@ -137,18 +140,34 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Theory]
         [InlineData("[{\"Path\":\"00100040\"}]", "Level")]
         [InlineData("[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path")]
-        public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string request, string missingProperty)
+        public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string requestBody, string missingProperty)
         {
-            var ex = await Assert.ThrowsAsync<DicomWebException>(() => _client.AddExtendedQueryTagAsync(request));
-            Assert.Contains(string.Format("BadRequest: The request body is not valid. Details: The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), ex.Message);
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/extendedquerytags");
+            {
+                request.Content = new StringContent(requestBody);
+                request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
+            }
+
+            HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken))
+                .ConfigureAwait(false);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains(string.Format("The request body is not valid. Details: The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), response.Content.ReadAsStringAsync().Result);
         }
 
         [Fact]
         public async Task GivenInvalidTagLevelInRequestBody_WhenCallingPostAync_ThenShouldThrowException()
         {
-            string request = "[{\"Path\":\"00100040\",\"Level\":\"Studys\"}]";
-            var ex = await Assert.ThrowsAsync<DicomWebException>(() => _client.AddExtendedQueryTagAsync(request));
-            Assert.Equal("BadRequest: The request body is not valid. Details: Input Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", ex.Message);
+            string requestBody = "[{\"Path\":\"00100040\",\"Level\":\"Studys\"}]";
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/extendedquerytags");
+            {
+                request.Content = new StringContent(requestBody);
+                request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
+            }
+
+            HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken))
+                .ConfigureAwait(false);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal("The request body is not valid. Details: Input Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="extendedQueryTagEntries">The extended query tag entries.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The tag key.</returns>
-        Task AddExtendedQueryTagsAsync(IEnumerable<ExtendedQueryTagStoreEntry> extendedQueryTagEntries, CancellationToken cancellationToken = default);
+        Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Get stored extended query tags from ExtendedQueryTagStore, if provided, by tagPath.
