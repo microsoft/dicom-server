@@ -11,7 +11,11 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class DicomPixelDataEqualityComparer : IEqualityComparer<DicomPixelData>
     {
-        bool IEqualityComparer<DicomPixelData>.Equals(DicomPixelData x, DicomPixelData y)
+        private static DicomPixelDataEqualityComparer _default = new DicomPixelDataEqualityComparer();
+
+        public static DicomPixelDataEqualityComparer Default => _default;
+
+        public bool Equals(DicomPixelData x, DicomPixelData y)
         {
             if (x == null || y == null)
             {
@@ -59,7 +63,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
             return true;
         }
 
-        int IEqualityComparer<DicomPixelData>.GetHashCode(DicomPixelData obj)
+        public int GetHashCode(DicomPixelData obj)
         {
             return obj.GetHashCode();
         }

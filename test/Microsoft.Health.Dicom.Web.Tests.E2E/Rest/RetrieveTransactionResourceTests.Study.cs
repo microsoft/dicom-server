@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     /// </summary>
     public partial class RetrieveTransactionResourceTests
     {
-        [Theory(Skip = "Flaky Test, disable for now while fixing. Tracked by https://microsofthealth.visualstudio.com/Health/_workitems/edit/80262.")]
+        [Theory]
         [InlineData(RequestOriginalContentTestFolder, "*")]
         [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null)]
         [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1")]
@@ -32,18 +32,25 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
             DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
-            await EnsureFileIsStoredAsync(inputDicomFile);
-            string studyInstanceUid = inputDicomFile.Dataset.GetString(DicomTag.StudyInstanceUID);
+            var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 
-            using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(studyInstanceUid, transferSyntax);
+            await InternalStoreAsync(new[] { inputDicomFile });
+            using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(instanceId.StudyInstanceUid, transferSyntax);
 
             Assert.Equal(DicomWebConstants.MultipartRelatedMediaType, response.ContentHeaders.ContentType.MediaType);
 
             await foreach (DicomFile actual in response)
             {
                 // TODO: verify media type once https://microsofthealth.visualstudio.com/Health/_workitems/edit/75185 is done
-                DicomFile expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
-                Assert.Equal(expected, actual, new DicomFileEqualityComparer());
+                var expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
+                Assert.Equal(expected, actual, new DicomFileEqualityComparer(
+                    ignoredTags: new[]
+                    {
+                        DicomTag.ImplementationVersionName,  // Version name is updated as we update fo-dicom
+                        DicomTag.StudyInstanceUID,
+                        DicomTag.SeriesInstanceUID,
+                        DicomTag.SOPInstanceUID
+                    }));
             }
         }
 

@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
@@ -43,22 +42,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             return (dicomInstance, dicomFile);
         }
 
-        private async Task EnsureFileIsStoredAsync(DicomFile dicomFile)
-        {
-            var instanceId = dicomFile.Dataset.ToInstanceIdentifier();
-
-            try
-            {
-                await _client.DeleteStudyAsync(instanceId.StudyInstanceUid);
-            }
-            catch (DicomWebException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-            {
-                // No-op.
-            }
-
-            await InternalStoreAsync(new[] { dicomFile });
-        }
-
         private async Task InternalStoreAsync(IEnumerable<DicomFile> dicomFiles)
         {
             await _client.StoreAsync(dicomFiles);
@@ -66,6 +49,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 _studiesToClean.Add(dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
             }
+        }
+
+        private InstanceIdentifier RandomizeInstanceIdentifier(DicomDataset dataset)
+        {
+            InstanceIdentifier newId = new InstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
+            dataset.AddOrUpdate(DicomTag.StudyInstanceUID, newId.StudyInstanceUid);
+            dataset.AddOrUpdate(DicomTag.SeriesInstanceUID, newId.SeriesInstanceUid);
+            dataset.AddOrUpdate(DicomTag.SOPInstanceUID, newId.SopInstanceUid);
+            return newId;
         }
 
         public Task InitializeAsync()

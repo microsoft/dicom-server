@@ -6,21 +6,31 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class DicomItemCollectionEqualityComparer : IEqualityComparer<IEnumerable<DicomItem>>
     {
+        private static DicomItemCollectionEqualityComparer _default = new DicomItemCollectionEqualityComparer();
+        
+        public static DicomItemCollectionEqualityComparer Default => _default;
+
+        private readonly IEnumerable<DicomTag> _ignoredTags;
+
         public DicomItemCollectionEqualityComparer()
             : this(new DicomTag[] { DicomTag.ImplementationVersionName })
         {
         }
 
-        public DicomItemCollectionEqualityComparer(IEnumerable<DicomTag> ignoredTags) => IgnoredTags = ignoredTags;
+        public DicomItemCollectionEqualityComparer(IEnumerable<DicomTag> ignoredTags)
+        {
+            EnsureArg.IsNotNull(ignoredTags, nameof(ignoredTags));
+            _ignoredTags = ignoredTags;
+        }
 
-        public IEnumerable<DicomTag> IgnoredTags { get; }
 
-        bool IEqualityComparer<IEnumerable<DicomItem>>.Equals(IEnumerable<DicomItem> x, IEnumerable<DicomItem> y)
+        public bool Equals(IEnumerable<DicomItem> x, IEnumerable<DicomItem> y)
         {
             if (x == null || y == null)
             {
@@ -29,7 +39,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 
             IEqualityComparer<DicomItem> dicomItemComparer = new DicomItemEqualityComparer();
 
-            ISet<DicomTag> ignoredSet = new HashSet<DicomTag>(IgnoredTags);
+            ISet<DicomTag> ignoredSet = new HashSet<DicomTag>(_ignoredTags);
             Dictionary<DicomTag, DicomItem> xDict = x.ToDictionary(item => item.Tag);
             Dictionary<DicomTag, DicomItem> yDict = y.ToDictionary(item => item.Tag);
             if (xDict.Count != yDict.Count)
@@ -58,7 +68,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
             return true;
         }
 
-        int IEqualityComparer<IEnumerable<DicomItem>>.GetHashCode(IEnumerable<DicomItem> obj)
+        public int GetHashCode(IEnumerable<DicomItem> obj)
         {
             return obj.GetHashCode();
         }
