@@ -362,4 +362,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The dicom file in the request section exceeded the allowed limit of {0} bytes.</value>
     <comment>{0} Max number of bytes allowed per dicom file.</comment>
   </data>
+  <data name="MismatchVR" xml:space="preserve">
+    <value>The VR code '{0}' for tag '{1}' does not match to expected VR '{2}'.</value>
+    <comment>{0} input vr code. {1} dicom tag. {2} expected vr code.</comment>
+  </data>
 </root>

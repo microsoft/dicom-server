@@ -387,6 +387,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; for tag &apos;{1}&apos; does not match to expected VR &apos;{2}&apos;..
+        /// </summary>
+        internal static string MismatchVR {
+            get {
+                return ResourceManager.GetString("MismatchVR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The extended query tag(s) is missing..
         /// </summary>
         internal static string MissingExtendedQueryTag {

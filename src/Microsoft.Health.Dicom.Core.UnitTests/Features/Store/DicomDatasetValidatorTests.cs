@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public async Task GivenDicomTagWithDifferentVR_WhenValidated_ThenShouldSkip()
+        public async Task GivenDicomTagWithDifferentVR_WhenValidated_ThenShouldThrowException()
         {
             var featureConfiguration = Options.Create(new FeatureConfiguration() { EnableFullDicomItemValidation = false });
             DicomTag tag = DicomTag.Date;
@@ -56,8 +56,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
             IDicomElementMinimumValidator validator = Substitute.For<IDicomElementMinimumValidator>();
             _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, validator, _queryTagService);
-            await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
-
+            await Assert.ThrowsAsync<DatasetValidationException>(() => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null));
             validator.DidNotReceive().Validate(Arg.Any<DicomElement>());
         }
 
