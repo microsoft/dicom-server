@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 Path = path,
                 VR = vr,
                 PrivateCreator = privateCreator,
-                QueryTagLevel = extendedQueryTagEntry.QueryTagLevel,
+                Level = extendedQueryTagEntry.Level,
             };
         }
     }

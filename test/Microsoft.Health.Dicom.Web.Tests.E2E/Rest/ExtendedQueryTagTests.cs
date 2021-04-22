@@ -139,7 +139,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         [Theory]
         [InlineData("[{\"Path\":\"00100040\"}]", "Level")]
-        [InlineData("[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path")]
+        [InlineData("[{\"Path\":\"\",\"QueryTagLevel\":\"Study\"}]", "Path")]
         public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string requestBody, string missingProperty)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, "/extendedquerytags");

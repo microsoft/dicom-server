@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         [Fact]
         public void GivenValidAddExtendedQueryTagEntry_WhenValidating_ShouldSucced()
         {
-            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry() { Path = "00101001", QueryTagLevel = "Study" };
+            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry() { Path = "00101001", Level = "Study" };
             var validationContext = new ValidationContext(addExtendedQueryTagEntry);
             IEnumerable<ValidationResult> results = addExtendedQueryTagEntry.Validate(validationContext);
             Assert.Empty(results);
@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         [InlineData(" ")]
         public void GivenInvalidPath_WhenValidating_ResultShouldHaveExceptions(string pathValue)
         {
-            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry() { Path = pathValue, QueryTagLevel = "Study" };
+            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry() { Path = pathValue, Level = "Study" };
             var validationContext = new ValidationContext(addExtendedQueryTagEntry);
             IEnumerable<ValidationResult> results = addExtendedQueryTagEntry.Validate(validationContext);
             Assert.Single(results);
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         [InlineData(" ")]
         public void GivenEmptyNullOrWhitespaceLevel_WhenValidating_ResultShouldHaveExceptions(string levelValue)
         {
-            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry() { Path = "00101001", QueryTagLevel = levelValue };
+            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry() { Path = "00101001", Level = levelValue };
             var validationContext = new ValidationContext(addExtendedQueryTagEntry);
             IEnumerable<ValidationResult> results = addExtendedQueryTagEntry.Validate(validationContext);
             Assert.Collection(
@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         [Fact]
         public void GivenInvalidLevel_WhenValidating_ResultShouldHaveExceptions()
         {
-            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry() { Path = "00101001", QueryTagLevel = "Studys" };
+            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry() { Path = "00101001", Level = "Studys" };
             var validationContext = new ValidationContext(addExtendedQueryTagEntry);
             IEnumerable<ValidationResult> results = addExtendedQueryTagEntry.Validate(validationContext);
             Assert.Single(results);
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         [Fact]
         public void GivenMultipleValidationErrors_WhenValidating_ResultShouldHaveExceptions()
         {
-            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry() { Path = "", QueryTagLevel = " " };
+            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry() { Path = "", Level = " " };
             var validationContext = new ValidationContext(addExtendedQueryTagEntry);
             IEnumerable<ValidationResult> results = addExtendedQueryTagEntry.Validate(validationContext);
             Assert.Collection(
