@@ -25,10 +25,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
         [EnumMember(Value = "delete")]
         Delete = 1 << 2,
 
-        [EnumMember(Value = "admin")]
-        Admin = 1 << 3,
+        [EnumMember(Value = "extendedQueryTag")]
+        ExtendedQueryTag = 1 << 3,    // Allow to administrate extended query tags.
 
         [EnumMember(Value = "*")]
-        All = (Admin << 1) - 1,
+        All = (ExtendedQueryTag << 1) - 1,
     }
 }
