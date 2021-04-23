@@ -279,7 +279,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Input Dicom Tag Level &apos;{0}&apos; is invalid. It must have value &apos;Study&apos;, &apos;Series&apos; or &apos;Instance&apos;..
+        ///   Looks up a localized string similar to Input Dicom Tag QueryTagLevel &apos;{0}&apos; is invalid. It must have value &apos;Study&apos;, &apos;Series&apos; or &apos;Instance&apos;..
         /// </summary>
         internal static string InvalidDicomTagLevel {
             get {

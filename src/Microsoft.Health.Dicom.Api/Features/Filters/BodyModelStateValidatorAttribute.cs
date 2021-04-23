@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
             EnsureArg.IsNotNull(context, nameof(context));
             if (!context.ModelState.IsValid)
             {
-                throw new InvalidRequestBodyException(string.Join(",", context.ModelState.SelectMany(x => x.Value.Errors).Select(x => x.ErrorMessage)));
+                throw new InvalidRequestBodyException(string.Join("/n", context.ModelState.SelectMany(x => x.Value.Errors).Select(x => x.ErrorMessage)));
             }
         }
     }

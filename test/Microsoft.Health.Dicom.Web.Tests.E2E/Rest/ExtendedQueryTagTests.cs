@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -15,7 +16,6 @@ using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Comparers;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -42,17 +42,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomElement identificationCodeElement = new DicomLongString(identificationCodeTag, PrivateCreatorName);
 
             DicomTag privateTag = new DicomTag(0x0407, 0x1001, PrivateCreatorName);
-            ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance.ToString(), PrivateCreator = privateTag.PrivateCreator.Creator };
+            AddExtendedQueryTag privateQueryTag = new AddExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, QueryTagLevel = QueryTagLevel.Instance.ToString(), PrivateCreator = privateTag.PrivateCreator.Creator };
 
             // One is standard tag on Series level
             DicomTag standardTagSeries = DicomTag.ManufacturerModelName;
-            ExtendedQueryTag standardTagSeriesQueryTag = new ExtendedQueryTag { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = QueryTagLevel.Series.ToString() };
+            AddExtendedQueryTag standardTagSeriesQueryTag = new AddExtendedQueryTag { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, QueryTagLevel = QueryTagLevel.Series.ToString() };
 
             // One is standard tag on Study level
             DicomTag standardTagStudy = DicomTag.PatientSex;
-            ExtendedQueryTag standardTagStudyQueryTag = new ExtendedQueryTag { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, Level = QueryTagLevel.Study.ToString() };
+            AddExtendedQueryTag standardTagStudyQueryTag = new AddExtendedQueryTag { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, QueryTagLevel = QueryTagLevel.Study.ToString() };
 
-            ExtendedQueryTag[] queryTags = new ExtendedQueryTag[] { privateQueryTag, standardTagSeriesQueryTag, standardTagStudyQueryTag };
+            AddExtendedQueryTag[] queryTags = new AddExtendedQueryTag[] { privateQueryTag, standardTagSeriesQueryTag, standardTagStudyQueryTag };
 
             // Create 3 test files on same studyUid.
             string studyUid = TestUidGenerator.Generate();
@@ -91,8 +91,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 {
                     foreach (var queryTag in queryTags)
                     {
-                        ExtendedQueryTag returnTag = await (await _client.GetExtendedQueryTagAsync(queryTag.Path)).GetValueAsync();
-                        Assert.Equal(queryTag, returnTag, new ExtendedQueryTagEqualityComparer(true));
+                        GetExtendedQueryTag returnTag = await (await _client.GetExtendedQueryTagAsync(queryTag.Path)).GetValueAsync();
+                        CompareExtendedQueryTagEntries(queryTag, returnTag);
                     }
 
                     // Upload test files
@@ -138,7 +138,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("[{\"Path\":\"00100040\"}]", "Level")]
+        [InlineData("[{\"Path\":\"00100040\"}]", "QueryTagLevel")]
         [InlineData("[{\"Path\":\"\",\"QueryTagLevel\":\"Study\"}]", "Path")]
         public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string requestBody, string missingProperty)
         {
@@ -157,7 +157,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenInvalidTagLevelInRequestBody_WhenCallingPostAync_ThenShouldThrowException()
         {
-            string requestBody = "[{\"Path\":\"00100040\",\"Level\":\"Studys\"}]";
+            string requestBody = "[{\"Path\":\"00100040\",\"QueryTagLevel\":\"Studys\"}]";
             using var request = new HttpRequestMessage(HttpMethod.Post, "/extendedquerytags");
             {
                 request.Content = new StringContent(requestBody);
@@ -167,7 +167,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken))
                 .ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal("The request body is not valid. Details: Input Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
+            Assert.Equal("The request body is not valid. Details: Input Dicom Tag QueryTagLevel 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
+        }
+
+        private void CompareExtendedQueryTagEntries(AddExtendedQueryTag addedTag, GetExtendedQueryTag returnedTag)
+        {
+            if (addedTag == null || returnedTag == null)
+            {
+                Assert.True(addedTag == null && returnedTag == null);
+                return;
+            }
+
+            Assert.True(string.Equals(returnedTag.Path, addedTag.Path, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(addedTag.VR, returnedTag.VR, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(addedTag.QueryTagLevel, returnedTag.Level.ToString(), StringComparison.OrdinalIgnoreCase));
         }
     }
 }

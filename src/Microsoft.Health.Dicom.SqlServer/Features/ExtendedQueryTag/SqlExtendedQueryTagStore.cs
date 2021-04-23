@@ -116,7 +116,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         private static AddExtendedQueryTagsInputTableTypeV1Row ToAddExtendedQueryTagsInputTableTypeV1Row(AddExtendedQueryTagEntry entry)
         {
-            return new AddExtendedQueryTagsInputTableTypeV1Row(entry.Path, entry.VR, entry.PrivateCreator, (byte)((QueryTagLevel)Enum.Parse(typeof(QueryTagLevel), entry.Level, true)));
+            return new AddExtendedQueryTagsInputTableTypeV1Row(entry.Path, entry.VR, entry.PrivateCreator, (byte)((QueryTagLevel)Enum.Parse(typeof(QueryTagLevel), entry.QueryTagLevel, true)));
         }
 
         public async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
