@@ -181,9 +181,13 @@ The following `Accept` header(s) are supported for retrieving instances within a
 The following `Accept` header(s) are supported for retrieving a specific instance:
 
 - `application/dicom; transfer-syntax=*`
+- `multipart/related; type="application/dicom"; transfer-syntax=*`
 - `application/dicom;` (when transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
+- `multipart/related; type="application/dicom"` (when transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
 - `application/dicom; transfer-syntax=1.2.840.10008.1.2.1`
+- `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.1`
 - `application/dicom; transfer-syntax=1.2.840.10008.1.2.4.90`
+- `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.4.90`
 
 ### Retrieve Frames
 

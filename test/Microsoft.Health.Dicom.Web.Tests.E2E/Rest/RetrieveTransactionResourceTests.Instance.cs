@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null)]
         [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1")]
         [InlineData(FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder, "1.2.840.10008.1.2.4.90")]
-        public async Task GivenSupportedAcceptHeaders_WhenRetrieveInstance_ThenServerShouldReturnExpectedContent(string testDataFolder, string transferSyntax)
+        public async Task GivenSinglePartAcceptHeader_WhenRetrieveInstance_ThenServerShouldReturnExpectedContent(string testDataFolder, string transferSyntax)
         {
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
             DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
@@ -53,7 +53,26 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(false, DicomWebConstants.ApplicationDicomMediaType, DicomWebConstants.OriginalDicomTransferSyntax)] // use multipe part instead of single part
+        [InlineData(RequestOriginalContentTestFolder, "*")]
+        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null)]
+        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1")]
+        public async Task GivenMultipartAcceptHeader_WhenRetrieveInstance_ThenServerShouldReturnExpectedContent(string testDataFolder, string transferSyntax)
+        {
+            TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
+            DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
+            var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
+
+            await InternalStoreAsync(new[] { inputDicomFile });
+
+            var requestUri = new Uri(string.Format(DicomWebConstants.BaseInstanceUriFormat, instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid), UriKind.Relative);
+
+            using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: false, DicomWebConstants.ApplicationDicomMediaType, transferSyntax);
+            using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Theory]
         [InlineData(true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax)] // unsupported media type image/png
         [InlineData(true, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.100")] // unsupported transfer syntax MPEG2
         public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveInstance_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax)
