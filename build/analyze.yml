@@ -42,8 +42,26 @@ steps:
     ArtifactType: 'Container'
     AllTools: false
     AntiMalware: true
+    APIScan: false
     Armory: true
+    Bandit: false
+    BinSkim: false
+    CodesignValidation: false
     CredScan: true
+    CSRF: false
+    ESLint: false
+    Flawfinder: false
+    FortifySCA: false
+    FxCop: false
+    ModernCop: false
+    MSRD: false
+    PoliCheck: false
+    RoslynAnalyzers: false
+    SDLNativeRules: false
+    Semmle: false
+    SpotBugs: false
+    TSLint: false
+    WebScout: false
     ToolLogsNotFoundAction: 'Standard'
 
 - task: PostAnalysis@2
