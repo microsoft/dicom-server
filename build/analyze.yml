@@ -23,13 +23,6 @@ steps:
     targetFiles: 'f|*.json'
     excludePassesFromLog: false
 
-- task: BinSkim@4
-  inputs:
-    InputType: 'Basic'
-    Function: 'analyze'
-    AnalyzeTargetGlob: '+:file|$(Build.SourcesDirectory)\**\bin\$(buildConfiguration)\**\Microsoft.Health.Dicom*.dll;+:file|$(Build.SourcesDirectory)\**\bin\$(buildConfiguration)\**\Microsoft.Health.Dicom*.exe'
-    AnalyzeVerbose: true
-
 - task: CredScan@3
   inputs:
     scanFolder: '$(Build.SourcesDirectory)'
@@ -41,7 +34,6 @@ steps:
   inputs:
     GdnExportAllTools: false
     GdnExportGdnToolArmory: true
-    GdnExportGdnToolBinSkim: true
     GdnExportGdnToolCredScan: true
 
 - task: PublishSecurityAnalysisLogs@3
@@ -50,31 +42,12 @@ steps:
     ArtifactType: 'Container'
     AllTools: false
     AntiMalware: true
-    APIScan: false
     Armory: true
-    Bandit: false
-    BinSkim: true
-    CodesignValidation: false
     CredScan: true
-    CSRF: false
-    ESLint: false
-    Flawfinder: false
-    FortifySCA: false
-    FxCop: false
-    ModernCop: false
-    MSRD: false
-    PoliCheck: false
-    RoslynAnalyzers: false
-    SDLNativeRules: false
-    Semmle: false
-    SpotBugs: false
-    TSLint: false
-    WebScout: false
     ToolLogsNotFoundAction: 'Standard'
 
 - task: PostAnalysis@2
   inputs:
     GdnBreakAllTools: false
     GdnBreakGdnToolArmory: true
-    GdnBreakGdnToolBinSkim: true
     GdnBreakGdnToolCredScan: true
