@@ -378,4 +378,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The dicom file in the request section exceeded the allowed limit of {0} bytes.</value>
     <comment>{0} Max number of bytes allowed per dicom file.</comment>
   </data>
+  <data name="ExtendedQueryTagsExceedsMaxAllowedCount" xml:space="preserve">
+    <value>Extended query tags exceeds max allowed count '{0}'.</value>
+    <comment>{0} max allowed count.</comment>
+  </data>
 </root>

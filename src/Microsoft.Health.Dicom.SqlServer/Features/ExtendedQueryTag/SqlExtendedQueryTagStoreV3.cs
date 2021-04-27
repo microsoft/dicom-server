@@ -35,14 +35,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
         }
 
-        public override async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxCount, CancellationToken cancellationToken)
+        public override async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> rows = extendedQueryTagEntries.Select(ToAddExtendedQueryTagsInputTableTypeV1Row);
 
-                VLatest.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, maxCount, new VLatest.AddExtendedQueryTagsTableValuedParameters(rows));
+                VLatest.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, maxAllowedCount, new VLatest.AddExtendedQueryTagsTableValuedParameters(rows));
 
                 try
                 {
@@ -56,8 +56,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                             {
                                 if (ex.State == 1)
                                 {
-                                    // TODO: Different exception
-                                    throw new ExtendedQueryTagsAlreadyExistsException();
+                                    throw new ExtendedQueryTagsExceedsMaxAllowedCountException(maxAllowedCount);
                                 }
                                 else
                                 {
