@@ -13,7 +13,7 @@
 /***************************************************************************************/
 ALTER PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
-    @maxCount INT
+    @maxAllowedCount INT
 )
 AS
 
@@ -22,8 +22,8 @@ AS
 
     BEGIN TRANSACTION
         -- Check if total count exceed @maxCount
-        -- HOLDLOCK to avoid adding/deleting queryTags from other transactions
-        IF ((SELECT COUNT(*) FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)) + (SELECT COUNT(*) FROM @extendedQueryTags)) > @maxCount 
+        -- HOLDLOCK to prevent adding queryTags from other transactions at same time.
+        IF ((SELECT COUNT(*) FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)) + (SELECT COUNT(*) FROM @extendedQueryTags)) > @maxAllowedCount 
              THROW 50409, 'extended query tags exceed max allowed count', 1 
         
         -- Check if tag with same path already exist

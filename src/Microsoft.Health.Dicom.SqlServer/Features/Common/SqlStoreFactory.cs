@@ -21,19 +21,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         where TVersionedStore : IVersioned, TStore
     {
         private readonly SchemaInformation _schemaInformation;
-        private readonly IEnumerable<TVersionedStore> _sqlVersioningStores;
+        private readonly IEnumerable<TVersionedStore> _versionedStores;
 
         public SqlStoreFactory(SchemaInformation schemaInformation, IEnumerable<TVersionedStore> versionedStores)
         {
             EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
             EnsureArg.IsNotNull(versionedStores, nameof(versionedStores));
             _schemaInformation = schemaInformation;
-            _sqlVersioningStores = versionedStores;
+            _versionedStores = versionedStores;
         }
 
         public TStore GetInstance()
         {
-            return _sqlVersioningStores.First(store => (int)store.Version == _schemaInformation.Current.Value);
+            return _versionedStores.First(store => (int)store.Version == _schemaInformation.Current.Value);
         }
     }
 }
