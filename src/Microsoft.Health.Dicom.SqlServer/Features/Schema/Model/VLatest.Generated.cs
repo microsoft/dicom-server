@@ -242,19 +242,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             private readonly AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition _extendedQueryTags = new AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition("@extendedQueryTags");
-            private readonly ParameterDefinition<System.Int32> _maxCount = new ParameterDefinition<System.Int32>("@maxCount", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _maxAllowedCount = new ParameterDefinition<System.Int32>("@maxAllowedCount", global::System.Data.SqlDbType.Int, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> extendedQueryTags, System.Int32 maxCount)
+            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> extendedQueryTags, System.Int32 maxAllowedCount)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddExtendedQueryTags";
                 _extendedQueryTags.AddParameter(command.Parameters, extendedQueryTags);
-                _maxCount.AddParameter(command.Parameters, maxCount);
+                _maxAllowedCount.AddParameter(command.Parameters, maxAllowedCount);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 maxCount, AddExtendedQueryTagsTableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 maxAllowedCount, AddExtendedQueryTagsTableValuedParameters tableValuedParameters)
             {
-                PopulateCommand(command, maxCount: maxCount, extendedQueryTags: tableValuedParameters.ExtendedQueryTags);
+                PopulateCommand(command, maxAllowedCount: maxAllowedCount, extendedQueryTags: tableValuedParameters.ExtendedQueryTags);
             }
         }
 
