@@ -79,7 +79,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
 
-            SqlIndexDataStoreFactory = new SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>(
+            IndexDataStoreFactory = new SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>(
                 schemaInformation,
                 new[]
                 {
@@ -90,7 +90,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 
-            ExtendedQueryTagStore = new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance);
+            ExtendedQueryTagStoreFactory = new SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>(
+                schemaInformation,
+                new[]
+                {
+                    new SqlExtendedQueryTagStoreV1(),
+                    new SqlExtendedQueryTagStoreV2(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV2>.Instance) ,
+                    new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance)
+                });
+
 
             TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         }
@@ -104,15 +112,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
-        internal IStoreFactory<IIndexDataStore> SqlIndexDataStoreFactory { get; }
+        internal IStoreFactory<IIndexDataStore> IndexDataStoreFactory { get; }
 
         public string TestConnectionString { get; }
 
-        public IIndexDataStore IndexDataStore { get => SqlIndexDataStoreFactory.GetInstance(); }
+        public IIndexDataStore IndexDataStore { get => IndexDataStoreFactory.GetInstance(); }
 
         public IInstanceStore InstanceStore { get; }
 
-        public IExtendedQueryTagStore ExtendedQueryTagStore { get; }
+        public IStoreFactory<IExtendedQueryTagStore> ExtendedQueryTagStoreFactory { get; }
+
+        public IExtendedQueryTagStore ExtendedQueryTagStore { get => ExtendedQueryTagStoreFactory.GetInstance(); }
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
 

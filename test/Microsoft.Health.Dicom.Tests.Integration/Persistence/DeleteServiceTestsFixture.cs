@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
             optionsConfiguration.Value.Returns(cleanupConfiguration);
             DeleteService = new DeleteService(
-                _sqlDataStoreTestsFixture.SqlIndexDataStoreFactory,
+                _sqlDataStoreTestsFixture.IndexDataStoreFactory,
                 _blobStorageTestsFixture.MetadataStore,
                 _blobStorageTestsFixture.FileStore,
                 optionsConfiguration,
