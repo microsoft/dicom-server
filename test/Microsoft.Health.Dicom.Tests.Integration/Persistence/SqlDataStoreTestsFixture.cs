@@ -10,6 +10,7 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -78,13 +79,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
 
-            SqlIndexDataStoreFactory = new SqlIndexDataStoreFactory(
+            SqlIndexDataStoreFactory = new SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>(
                 schemaInformation,
-                new[] { new SqlIndexDataStoreV1(SqlConnectionWrapperFactory), new SqlIndexDataStoreV2(SqlConnectionWrapperFactory) });
+                new[]
+                {
+                    new SqlIndexDataStoreV1(SqlConnectionWrapperFactory),
+                    new SqlIndexDataStoreV2(SqlConnectionWrapperFactory) ,
+                    new SqlIndexDataStoreV3(SqlConnectionWrapperFactory)
+                });
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 
-            ExtendedQueryTagStore = new SqlExtendedQueryTagStore(SqlConnectionWrapperFactory, schemaInformation, NullLogger<SqlExtendedQueryTagStore>.Instance);
+            ExtendedQueryTagStore = new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance);
 
             TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         }
@@ -98,7 +104,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
-        public IIndexDataStoreFactory SqlIndexDataStoreFactory { get; }
+        internal IStoreFactory<IIndexDataStore> SqlIndexDataStoreFactory { get; }
 
         public string TestConnectionString { get; }
 

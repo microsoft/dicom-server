@@ -3,15 +3,24 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.SqlServer.Feature.Common;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Client;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
     /// <summary>
-    ///  Sql version of IIndexDataStore.
+    /// Sql IndexDataStore version 2.
     /// </summary>
-    internal interface ISqlIndexDataStore : IIndexDataStore, IVersioned
+    internal class SqlIndexDataStoreV3 : SqlIndexDataStoreV2
     {
+
+        public SqlIndexDataStoreV3(
+            SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+            : base(sqlConnectionWrapperFactory)
+        {
+        }
+
+        public override SchemaVersion Version => SchemaVersion.V3;
+
     }
 }

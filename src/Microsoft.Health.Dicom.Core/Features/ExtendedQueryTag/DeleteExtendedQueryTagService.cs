@@ -20,12 +20,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IDicomTagParser _dicomTagParser;
 
-        public DeleteExtendedQueryTagService(IExtendedQueryTagStore extendedQueryTagStore, IDicomTagParser dicomTagParser)
+        public DeleteExtendedQueryTagService(IStoreFactory<IExtendedQueryTagStore> extendedQueryTagStoreFactory, IDicomTagParser dicomTagParser)
         {
-            EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
+            EnsureArg.IsNotNull(extendedQueryTagStoreFactory, nameof(extendedQueryTagStoreFactory));
             EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
 
-            _extendedQueryTagStore = extendedQueryTagStore;
+            _extendedQueryTagStore = extendedQueryTagStoreFactory.GetInstance();
             _dicomTagParser = dicomTagParser;
         }
 

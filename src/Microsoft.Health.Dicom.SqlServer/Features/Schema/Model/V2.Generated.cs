@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V2
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -242,19 +242,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             private readonly AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition _extendedQueryTags = new AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition("@extendedQueryTags");
-            private readonly ParameterDefinition<System.Int32> _maxCount = new ParameterDefinition<System.Int32>("@maxCount", global::System.Data.SqlDbType.Int, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> extendedQueryTags, System.Int32 maxCount)
+            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> extendedQueryTags)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddExtendedQueryTags";
                 _extendedQueryTags.AddParameter(command.Parameters, extendedQueryTags);
-                _maxCount.AddParameter(command.Parameters, maxCount);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 maxCount, AddExtendedQueryTagsTableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, AddExtendedQueryTagsTableValuedParameters tableValuedParameters)
             {
-                PopulateCommand(command, maxCount: maxCount, extendedQueryTags: tableValuedParameters.ExtendedQueryTags);
+                PopulateCommand(command, extendedQueryTags: tableValuedParameters.ExtendedQueryTags);
             }
         }
 

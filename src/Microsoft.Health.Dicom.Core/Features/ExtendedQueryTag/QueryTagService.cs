@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
@@ -23,11 +24,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         private int _allQueryTagsStatus;
         private TaskCompletionSource<bool> _allQueryTagsCompletionSource = new TaskCompletionSource<bool>();
 
-        public QueryTagService(IExtendedQueryTagStore extendedQueryTagStore, IOptions<FeatureConfiguration> featureConfiguration)
+        public QueryTagService(IStoreFactory<IExtendedQueryTagStore> extendedQueryTagStoreFactory, IOptions<FeatureConfiguration> featureConfiguration)
         {
-            EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
+            EnsureArg.IsNotNull(extendedQueryTagStoreFactory, nameof(extendedQueryTagStoreFactory));
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
-            _extendedQueryTagStore = extendedQueryTagStore;
+            _extendedQueryTagStore = extendedQueryTagStoreFactory.GetInstance();
             _enableExtendedQueryTags = featureConfiguration.Value.EnableExtendedQueryTags;
         }
 

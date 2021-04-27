@@ -7,6 +7,8 @@ using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -56,8 +58,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Add<SqlIndexDataStoreV2>()
                 .Scoped()
                 .AsImplementedInterfaces();
-
-            services.Add<SqlIndexDataStoreFactory>()
+            services.Add<SqlIndexDataStoreV3>()
+                .Scoped()
+                .AsImplementedInterfaces();
+            services.Add<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -82,10 +86,22 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<SqlExtendedQueryTagStore>()
+            services.Add<SqlExtendedQueryTagStoreV1>()
+              .Scoped()
+              .AsSelf()
+              .AsImplementedInterfaces();
+            services.Add<SqlExtendedQueryTagStoreV2>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+            services.Add<SqlExtendedQueryTagStoreV3>()
+              .Scoped()
+              .AsSelf()
+              .AsImplementedInterfaces();
+            services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
+              .Scoped()
+              .AsSelf()
+              .AsImplementedInterfaces();
 
             return dicomServerBuilder;
         }

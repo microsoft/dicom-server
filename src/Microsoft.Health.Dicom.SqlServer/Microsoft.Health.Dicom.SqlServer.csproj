@@ -48,11 +48,17 @@
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
       <MutableClassVersion>1</MutableClassVersion>
     </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\3.diff.sql" />
+    <EmbeddedResource Include="Features\Schema\Migrations\3.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <MutableClassVersion>Latest</MutableClassVersion>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+    </EmbeddedResource>
     <EmbeddedResource Include="Features\Schema\Migrations\2.diff.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
       <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>Latest</MutableClassVersion>
+      <MutableClassVersion>2</MutableClassVersion>
     </EmbeddedResource>
   </ItemGroup>
 
