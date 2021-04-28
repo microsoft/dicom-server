@@ -145,6 +145,8 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.AddApplicationInsightsTelemetry();
 
+            services.AddSingleton<BackgroundServiceHealthCheckCache>();
+
             services.AddHealthChecks().AddCheck<BackgroundServiceHealthCheck>(name: "BackgroundServiceHealthCheck");
 
             if (_featureConfiguration.EnableExtendedQueryTags)
