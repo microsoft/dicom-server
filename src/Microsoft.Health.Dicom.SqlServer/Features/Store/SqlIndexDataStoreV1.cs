@@ -283,18 +283,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 sqlCommandWrapper.CommandText = @$"
-                        SELECT COUNT(Case When {VLatest.DeletedInstance.RetryCount} >= {maxRetryCount} THEN 1 ELSE NULL END)
-                        FROM {VLatest.DeletedInstance.TableName}";
+                        SELECT COUNT(*)
+                        FROM {VLatest.DeletedInstance.TableName}
+                        WHERE {VLatest.DeletedInstance.RetryCount} >= {maxRetryCount}";
 
                 try
                 {
                     using (SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken))
                     {
-                        while (await sqlDataReader.ReadAsync(cancellationToken))
-                        {
-                            return (int)sqlDataReader[0];
-                        }
-                        throw new DataStoreException("Failed to retrieve count of deleted instances at max retry count");
+                        await sqlDataReader.ReadAsync(cancellationToken);
+                        
+                        return (int)sqlDataReader[0];
                     }
                 }
                 catch (SqlException ex)
@@ -316,17 +315,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 {
                     using (SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken))
                     {
+                        await sqlDataReader.ReadAsync(cancellationToken);
 
-                        while (await sqlDataReader.ReadAsync(cancellationToken))
+                        if (sqlDataReader.IsDBNull(0))
                         {
-                            if (sqlDataReader.IsDBNull(0))
-                            {
-                                return DateTimeOffset.UtcNow;
-                            }
-
-                            return (DateTimeOffset)sqlDataReader[0];
+                            return DateTimeOffset.UtcNow;
                         }
-                        throw new DataStoreException("Failed to retrieve date of earliest delete requested");
+
+                        return (DateTimeOffset)sqlDataReader[0];
                     }
                 }
                 catch(SqlException ex)

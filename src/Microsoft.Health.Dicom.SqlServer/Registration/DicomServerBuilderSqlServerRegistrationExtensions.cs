@@ -59,7 +59,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsImplementedInterfaces();
 
             services.Add<SqlIndexDataStoreFactory>()
-                .Transient()
+                .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 

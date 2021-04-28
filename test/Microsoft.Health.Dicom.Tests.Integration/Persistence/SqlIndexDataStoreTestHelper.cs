@@ -236,8 +236,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 await sqlConnection.OpenAsync();
 
-                var result = new List<ChangeFeedRow>();
-
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = @$"
