@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Efferent.Native" Version="4.0.0" />
+    <PackageReference Include="Ensure.That" Version="10.1.0" />
+    <PackageReference Include="fo-dicom" Version="4.0.7" />
+    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.14" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="3.1.14" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="3.1.14" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.14" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.14" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="3.1.14" />
+    <PackageReference Include="Microsoft.Health.Abstractions" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Core" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14" />
+    <PackageReference Include="Scrutor" Version="3.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Features\Security\roles.schema.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="DicomCoreResource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DicomCoreResource.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="DicomCoreResource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>DicomCoreResource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

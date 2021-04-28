@@ -1,0 +1,381 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ChangeFeedLimitOutOfRange" xml:space="preserve">
+    <value>The limit must be between 1 and {0}.</value>
+    <comment>{0} number that is the maximum</comment>
+  </data>
+  <data name="ChangeFeedOffsetCannotBeNegative" xml:space="preserve">
+    <value>The offset cannot be a negative value.</value>
+  </data>
+  <data name="CustomHeaderPrefixCannotBeEmpty" xml:space="preserve">
+    <value>The prefix used to identify custom audit headers cannot be empty.</value>
+  </data>
+  <data name="DataStoreOperationFailed" xml:space="preserve">
+    <value>The data store operation failed.</value>
+  </data>
+  <data name="DicomElementValidationFailed" xml:space="preserve">
+    <value>Dicom element '{0}' with value '{1}' does not validate VR '{2}': {3}.</value>
+    <comment>Dicom element {0} of value {1} of type {2}. {3} has more detailed message on why.</comment>
+  </data>
+  <data name="DuplicatedUidsNotAllowed" xml:space="preserve">
+    <value>The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.</value>
+    <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"}</comment>
+  </data>
+  <data name="DuplicateQueryParam" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Duplicate AttributeId '{0}', Each attribute is allowed to be specified once.</value>
+    <comment>{0} specified attributeid</comment>
+  </data>
+  <data name="FrameNotFound" xml:space="preserve">
+    <value>The specified frame cannot be found.</value>
+  </data>
+  <data name="IncludeFieldUnknownAttribute" xml:space="preserve">
+    <value>Invalid QIDO-RS query. IncludeField has unknown attribute '{0}'.</value>
+    <comment>{0} attribute name</comment>
+  </data>
+  <data name="InstanceAlreadyExists" xml:space="preserve">
+    <value>The DICOM instance already exists.</value>
+  </data>
+  <data name="InstanceNotFound" xml:space="preserve">
+    <value>The specified instance cannot be found.</value>
+  </data>
+  <data name="SeriesNotFound" xml:space="preserve">
+    <value>The specified series cannot be found.</value>
+  </data>
+  <data name="StudyNotFound" xml:space="preserve">
+    <value>The specified study cannot be found.</value>
+  </data>
+  <data name="InvalidDateRangeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+The first part date {1} should be lesser than or equal to the second part date {2}.</value>
+    <comment>{0} date range with &lt;date1&gt;-&lt;date2&gt; format. {1} is date1. {2} is date2.</comment>
+  </data>
+  <data name="InvalidDateValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified Date value '{0}' is invalid for parameter '{1}'. Date should be valid and formatted as yyyyMMdd.</value>
+    <comment>{0} Date value. {1} parameter name.</comment>
+  </data>
+  <data name="InvalidDicomIdentifier" xml:space="preserve">
+    <value>DICOM Identifier '{0}' value '{1}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
+    <comment>{0} Identifier Parameter name, {1} Value.</comment>
+  </data>
+  <data name="InvalidDicomInstance" xml:space="preserve">
+    <value>The DICOM instance is invalid.</value>
+  </data>
+  <data name="InvalidFramesValue" xml:space="preserve">
+    <value>The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.</value>
+  </data>
+  <data name="InvalidFuzzyMatchValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified fuzzymatch value '{0}' is not a valid boolean</value>
+  </data>
+  <data name="InvalidLimitValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified limit value '{0}' is not a valid integer.</value>
+  </data>
+  <data name="InvalidOffsetValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified offset value '{0}' is not a valid integer.</value>
+  </data>
+  <data name="InvalidQueryString" xml:space="preserve">
+    <value>The query string included invalid characters.</value>
+  </data>
+  <data name="InvalidQueryStringValue" xml:space="preserve">
+    <value>The following query parameter is invalid: {0}.</value>
+    <comment>{0} is a parameter name.</comment>
+  </data>
+  <data name="InvalidTransferSyntaxValue" xml:space="preserve">
+    <value>The specified Transfer Syntax value is not valid.</value>
+  </data>
+  <data name="ItemNotFound" xml:space="preserve">
+    <value>The specified item cannot be found.</value>
+  </data>
+  <data name="MismatchStudyInstanceUid" xml:space="preserve">
+    <value>The StudyInstanceUid '{0}' in the payload does not match the specified StudyInstanceUid '{1}'.</value>
+    <comment>{0} and {1} are both StudyInstanceUid. StudyInstanceUID is defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID"}.</comment>
+  </data>
+  <data name="MissingRequestBody" xml:space="preserve">
+    <value>The request body is missing.</value>
+  </data>
+  <data name="MissingRequiredTag" xml:space="preserve">
+    <value>The required tag '{0}' is missing.</value>
+    <comment>{0} is the DICOM tag name. E.g., StudyInstanceUID.</comment>
+  </data>
+  <data name="NotAcceptableHeaders" xml:space="preserve">
+    <value>The request headers are not acceptable</value>
+  </data>
+  <data name="QueryEmptyAttributeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. AttributeId '{0}' has empty string value that is not supported.</value>
+    <comment>{0} AttributeId name</comment>
+  </data>
+  <data name="QueryInvalidResourceLevel" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Querying is only supported at resource level Studies/Series/Instances.</value>
+  </data>
+  <data name="QueryResultCountMaxExceeded" xml:space="preserve">
+    <value>Invalid QIDO-RS query.  Specified limit value {0} is outside the allowed range of {1}..{2}.</value>
+    <comment>{0} Specified query result limit. {1} min allowed. {2} max allowed.</comment>
+  </data>
+  <data name="SeriesInstanceNotFound" xml:space="preserve">
+    <value>The specified series cannot be found.</value>
+  </data>
+  <data name="ServiceUnavailable" xml:space="preserve">
+    <value>The server is currently unable to receive requests. Please retry your request. If the issue persists, please contact support.</value>
+  </data>
+  <data name="StudyInstanceNotFound" xml:space="preserve">
+    <value>The specified study cannot be found.</value>
+  </data>
+  <data name="UnknownQueryParameter" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Unknown query parameter '{0}'. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and queryable attributes.</value>
+    <comment>{0} Parameter name</comment>
+  </data>
+  <data name="UnsupportedContentType" xml:space="preserve">
+    <value>The specified content type '{0}' is not supported.</value>
+    <comment>{0} is the specified content type. E.g., application/dicom</comment>
+  </data>
+  <data name="UnsupportedSearchParameter" xml:space="preserve">
+    <value>Invalid QIDO-RS query. AttributeId {0} is not queryable. </value>
+    <comment>{0} AttributeId name.</comment>
+  </data>
+  <data name="UnsupportedTranscoding" xml:space="preserve">
+    <value>The specified transcoding is not supported.</value>
+  </data>
+  <data name="ValueContainsInvalidCharacter" xml:space="preserve">
+    <value>Value contains invalid character.</value>
+  </data>
+  <data name="ValueExceedsAllowedComponents" xml:space="preserve">
+    <value>Value contains more than 5 components.</value>
+  </data>
+  <data name="ValueExceedsAllowedGroups" xml:space="preserve">
+    <value>Value contains more than 3 groups.</value>
+  </data>
+  <data name="ValueIsInvalidDate" xml:space="preserve">
+    <value>Value cannot be parsed as a valid date.</value>
+  </data>
+  <data name="ValueLengthExceeds16Characters" xml:space="preserve">
+    <value>Value exceeds maximum length of 16 characters.</value>
+  </data>
+  <data name="ValueLengthExceeds64Characters" xml:space="preserve">
+    <value>Value exceeds maximum length of 64 characters.</value>
+  </data>
+  <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
+    <value>The request contains multiple accept headers, which is not supported.</value>
+  </data>
+  <data name="DuplicateExtendedQueryTag" xml:space="preserve">
+    <value>The extended query tag '{0}' has been specified before.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="InvalidExtendedQueryTag" xml:space="preserve">
+    <value>The extended query tag '{0}' is invalid as it cannot be parsed into a valid Dicom Tag.</value>
+    <comment>{0} Dicom Tag</comment>
+  </data>
+  <data name="InvalidVRCode" xml:space="preserve">
+    <value>The VR code '{0}' for tag '{1}' is invalid.</value>
+    <comment>{0} VR code. {1} Dicom Tag.</comment>
+  </data>
+  <data name="MissingExtendedQueryTag" xml:space="preserve">
+    <value>The extended query tag(s) is missing.</value>
+  </data>
+  <data name="MissingVRCode" xml:space="preserve">
+    <value>The vr for tag '{0}' is missing.</value>
+    <comment>{0} is the DICOM tag path.</comment>
+  </data>
+  <data name="UnsupportedVRCodeOnTag" xml:space="preserve">
+    <value>The VR code '{0}' is incorrectly specified for '{1}'. The expected VR code for it is '{2}'. Retry this request either with the correct VR code or without specifying it.</value>
+    <comment>{0} Specified VR Code. {1} Dicom Tag. {2} Correct VR Code for Tag.</comment>
+  </data>
+  <data name="UnsupportedVRCode" xml:space="preserve">
+    <value>The VR code '{0}' specified for tag '{1}' is not supported.</value>
+    <comment>{0} VR Code. {1} Dicom Tag.</comment>
+  </data>
+  <data name="Forbidden" xml:space="preserve">
+    <value>Authorization failed.</value>
+  </data>
+  <data name="ErrorValidatingRoles" xml:space="preserve">
+    <value>Error validating roles:
+{0}</value>
+  </data>
+  <data name="DuplicateRoleNames" xml:space="preserve">
+    <value>There are {0} roles with the name '{1}'</value>
+  </data>
+  <data name="ExtendedQueryTagsAlreadyExists" xml:space="preserve">
+    <value>One or more extended query tags already exist.</value>
+  </data>
+  <data name="ExtendedQueryTagNotFound" xml:space="preserve">
+    <value>The specified extended query tag with tag path {0} cannot be found.</value>
+    <comment>{0} tagPath on request</comment>
+  </data>
+  <data name="SequentialDicomTagsNotSupported" xml:space="preserve">
+    <value>Sequential dicom tags are currently not supported.</value>
+  </data>
+  <data name="InvalidDoubleValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified value '{0}' extended query tag with path '{1}' is not a valid double value.</value>
+    <comment>{0} double value. {1} extended query tag path.</comment>
+  </data>
+  <data name="InvalidLongValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified value '{0}' extended query tag with path '{1}' is not a valid long value.</value>
+    <comment>{0} long value. {1} extended query tag path.</comment>
+  </data>
+  <data name="ValueLengthAboveMaxLength" xml:space="preserve">
+    <value>Value length is above {0}.</value>
+    <comment>{0} max length.</comment>
+  </data>
+  <data name="ValueLengthBelowMinLength" xml:space="preserve">
+    <value>Value length is below {0}.</value>
+    <comment>{0} min length.</comment>
+  </data>
+  <data name="ValueLengthIsNotRequiredLength" xml:space="preserve">
+    <value>Value length is not {0}.</value>
+    <comment>{0} required length.</comment>
+  </data>
+  <data name="PrivateCreatorNotEmpty" xml:space="preserve">
+    <value>The private creator is not empty for standard tag '{0}'.</value>
+    <comment>{0} Dicom Tag</comment>
+  </data>
+  <data name="MissingPrivateCreator" xml:space="preserve">
+    <value>The private creator for private tag '{0}' is missing.</value>
+    <comment>{0} is the DICOM tag path.</comment>
+  </data>
+  <data name="PrivateCreatorNotValidLO" xml:space="preserve">
+    <value>The private creator for tag '{0}' is not a valid LO attribute.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="PrivateCreatorNotEmptyForPrivateIdentificationCode" xml:space="preserve">
+    <value>The private creator is not empty for private identification code '{0}'.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="ExtendedQueryTagFeatureDisabled" xml:space="preserve">
+    <value>Extended Query Tag feature is disabled.</value>
+  </data>
+  <data name="QueryTagAlreadySupported" xml:space="preserve">
+    <value>The query tag '{0}' is already supported.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="MissingLevel" xml:space="preserve">
+    <value>The level for extended query tag '{0}' is missing.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="AddExtendedQueryTagEntryPropertyNotSpecified" xml:space="preserve">
+    <value>The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace.</value>
+    <comment>{0} is the property that was not specified correctly.</comment>
+  </data>
+  <data name="InvalidDicomTagLevel" xml:space="preserve">
+    <value>Input Dicom Tag Level '{0}' is invalid. It must have value 'Study', 'Series' or 'Instance'.</value>
+    <comment>{0} input Dicom Tag Level.</comment>
+  </data>
+  <data name="DicomFileLengthLimitExceeded" xml:space="preserve">
+    <value>The dicom file in the request section exceeded the allowed limit of {0} bytes.</value>
+    <comment>{0} Max number of bytes allowed per dicom file.</comment>
+  </data>
+</root>
