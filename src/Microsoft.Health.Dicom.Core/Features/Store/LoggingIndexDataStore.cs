@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -274,19 +275,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
         }
 
-        public async Task<int> RetrieveNumDeletedExceedRetryCountAsync(int maxRetryCount, CancellationToken cancellationToken)
+        public async Task<int> RetrieveNumDeletedMaxRetryCountAsync(int maxNumberOfRetries, CancellationToken cancellationToken)
         {
-            LogRetrieveNumDeletedExceedRetryCountAsyncDelegate(_logger, maxRetryCount, null);
+            LogRetrieveNumDeletedExceedRetryCountAsyncDelegate(_logger, maxNumberOfRetries, null);
 
             try
             {
-                int returnValue = await _indexDataStore.RetrieveNumDeletedExceedRetryCountAsync(maxRetryCount, cancellationToken);
+                int returnValue = await _indexDataStore.RetrieveNumDeletedMaxRetryCountAsync(maxNumberOfRetries, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 
                 return returnValue;
             }
-            catch (Exception ex)
+            catch (DataStoreException ex)
             {
                 LogOperationFailedDelegate(_logger, ex);
 
@@ -306,7 +307,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                 return returnValue;
             }
-            catch (Exception ex)
+            catch (DataStoreException ex)
             {
                 LogOperationFailedDelegate(_logger, ex);
 

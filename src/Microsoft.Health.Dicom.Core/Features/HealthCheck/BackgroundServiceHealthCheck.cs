@@ -33,13 +33,11 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
             EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
             EnsureArg.IsNotNull(backgroundServiceHealthCheckCache, nameof(backgroundServiceHealthCheckCache));
 
-
             _indexDataStore = indexDataStoreFactory.GetInstance();
             _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
             _telemetryClient = telemetryClient;
             _backgroundServiceHealthCheckCache = backgroundServiceHealthCheckCache;
         }
-
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
@@ -53,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
             int numReachedMaxedRetry = _backgroundServiceHealthCheckCache.getNumRetries(Constants.NumDeleteMaxRetryCacheKey);
             if(numReachedMaxedRetry == -1)
             {
-                numReachedMaxedRetry = await _indexDataStore.RetrieveNumDeletedExceedRetryCountAsync(_deletedInstanceCleanupConfiguration.MaxRetries, cancellationToken);
+                numReachedMaxedRetry = await _indexDataStore.RetrieveNumDeletedMaxRetryCountAsync(_deletedInstanceCleanupConfiguration.MaxRetries, cancellationToken);
                 numReachedMaxedRetry = _backgroundServiceHealthCheckCache.updateCache(Constants.NumDeleteMaxRetryCacheKey, numReachedMaxedRetry);
             }
            

@@ -277,7 +277,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        public async Task<int> RetrieveNumDeletedExceedRetryCountAsync(int maxRetryCount, CancellationToken cancellationToken = default)
+        public async Task<int> RetrieveNumDeletedMaxRetryCountAsync(int maxNumberOfRetries, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -285,7 +285,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 sqlCommandWrapper.CommandText = @$"
                         SELECT COUNT(*)
                         FROM {VLatest.DeletedInstance.TableName}
-                        WHERE {VLatest.DeletedInstance.RetryCount} >= {maxRetryCount}";
+                        WHERE {VLatest.DeletedInstance.RetryCount} >= @maxNumberOfRetries";
+
+                sqlCommandWrapper.Parameters.AddWithValue("@maxNumberOfRetries", maxNumberOfRetries);
+
 
                 try
                 {
