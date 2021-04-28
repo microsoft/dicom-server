@@ -230,6 +230,25 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
+        public async Task ClearDeletedInstanceTable()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                await sqlConnection.OpenAsync();
+
+                var result = new List<ChangeFeedRow>();
+
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = @$"
+                        DELETE
+                        FROM {VLatest.DeletedInstance.TableName}";
+
+                    await sqlCommand.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         async Task<IReadOnlyList<ExtendedQueryTagDataRow>> IIndexDataStoreTestHelper.GetExtendedQueryTagDataAsync(
            ExtendedQueryTagDataType dataType,
            int tagKey,

@@ -75,6 +75,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 LogLevel.Debug,
                 default,
                 "Incrementing the retry count of deleted instances '{DicomInstanceIdentifier}' and setting next cleanup time to '{CleanupAfter}'.");
+        
+        private static readonly Action<ILogger, Exception> LogGetOldestDeletedAsyncDelegate =
+           LoggerMessage.Define(
+               LogLevel.Debug,
+               default,
+               "Finding time of oldest deleted instance.");
+
+        private static readonly Action<ILogger, int, Exception> LogRetrieveNumDeletedExceedRetryCountAsyncDelegate =
+           LoggerMessage.Define<int>(
+               LogLevel.Debug,
+               default,
+               "Finding number of delete instances at max retries of {MaxRetriesAllowed}.");
 
         private static readonly Action<ILogger, Exception> LogOperationSucceededDelegate =
             LoggerMessage.Define(
@@ -249,6 +261,46 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             try
             {
                 int returnValue = await _indexDataStore.IncrementDeletedInstanceRetryAsync(versionedInstanceIdentifier, cleanupAfter, cancellationToken);
+
+                LogOperationSucceededDelegate(_logger, null);
+
+                return returnValue;
+            }
+            catch (Exception ex)
+            {
+                LogOperationFailedDelegate(_logger, ex);
+
+                throw;
+            }
+        }
+
+        public async Task<int> RetrieveNumDeletedExceedRetryCountAsync(int maxRetryCount, CancellationToken cancellationToken)
+        {
+            LogRetrieveNumDeletedExceedRetryCountAsyncDelegate(_logger, maxRetryCount, null);
+
+            try
+            {
+                int returnValue = await _indexDataStore.RetrieveNumDeletedExceedRetryCountAsync(maxRetryCount, cancellationToken);
+
+                LogOperationSucceededDelegate(_logger, null);
+
+                return returnValue;
+            }
+            catch (Exception ex)
+            {
+                LogOperationFailedDelegate(_logger, ex);
+
+                throw;
+            }
+        }
+
+        public async Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken)
+        {
+            LogGetOldestDeletedAsyncDelegate(_logger, null);
+
+            try
+            {
+                DateTimeOffset returnValue = await _indexDataStore.GetOldestDeletedAsync(cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 

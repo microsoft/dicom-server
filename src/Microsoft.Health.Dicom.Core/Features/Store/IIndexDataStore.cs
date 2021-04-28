@@ -92,5 +92,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous update operation</returns>
         Task<int> IncrementDeletedInstanceRetryAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+
+        Task<int> RetrieveNumDeletedExceedRetryCountAsync(int maxRetryCount, CancellationToken cancellationToken = default);
+
+        Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken = default);
     }
 }

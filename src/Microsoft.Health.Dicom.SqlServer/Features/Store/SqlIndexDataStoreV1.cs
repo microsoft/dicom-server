@@ -276,5 +276,64 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
             }
         }
+
+        public async Task<int> RetrieveNumDeletedExceedRetryCountAsync(int maxRetryCount, CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                sqlCommandWrapper.CommandText = @$"
+                        SELECT COUNT(Case When {VLatest.DeletedInstance.RetryCount} >= {maxRetryCount} THEN 1 ELSE NULL END)
+                        FROM {VLatest.DeletedInstance.TableName}";
+
+                try
+                {
+                    using (SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken))
+                    {
+                        while (await sqlDataReader.ReadAsync(cancellationToken))
+                        {
+                            return (int)sqlDataReader[0];
+                        }
+                        throw new DataStoreException("Failed to retrieve count of deleted instances at max retry count");
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
+
+        public async Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                sqlCommandWrapper.CommandText = @$"
+                        SELECT MIN({VLatest.DeletedInstance.DeletedDateTime})
+                        FROM {VLatest.DeletedInstance.TableName}";
+                try
+                {
+                    using (SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken))
+                    {
+
+                        while (await sqlDataReader.ReadAsync(cancellationToken))
+                        {
+                            if (sqlDataReader.IsDBNull(0))
+                            {
+                                return DateTimeOffset.UtcNow;
+                            }
+
+                            return (DateTimeOffset)sqlDataReader[0];
+                        }
+                        throw new DataStoreException("Failed to retrieve date of earliest delete requested");
+                    }
+                }
+                catch(SqlException ex)
+                {
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
     }
 }
