@@ -120,9 +120,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                            string.Format(
                                CultureInfo.InvariantCulture,
                                DicomCoreResource.MismatchVR,
-                               dicomElement.ValueRepresentation,
                                queryTag.Tag,
-                               queryTag.VR));
+                               queryTag.VR,
+                               dicomElement.ValueRepresentation));
                     }
 
                     _minimumValidator.Validate(dicomElement);

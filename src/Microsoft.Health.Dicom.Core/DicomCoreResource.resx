@@ -363,7 +363,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} Max number of bytes allowed per dicom file.</comment>
   </data>
   <data name="MismatchVR" xml:space="preserve">
-    <value>The VR code '{0}' for tag '{1}' does not match to expected VR '{2}'.</value>
-    <comment>{0} input vr code. {1} dicom tag. {2} expected vr code.</comment>
+    <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
+    <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
   </data>
 </root>

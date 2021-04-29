@@ -387,7 +387,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The VR code &apos;{0}&apos; for tag &apos;{1}&apos; does not match to expected VR &apos;{2}&apos;..
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is expected to have VR &apos;{1}&apos; but has &apos;{2}&apos; in file..
         /// </summary>
         internal static string MismatchVR {
             get {
