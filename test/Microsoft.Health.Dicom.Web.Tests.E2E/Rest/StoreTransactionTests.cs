@@ -323,15 +323,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("11|")]
         public async Task GivenDatasetWithInvalidUid_WhenStoring_TheServerShouldReturnConflict(string studyInstanceUID)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = true;
-#pragma warning restore CS0618 // Type or member is obsolete
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(new[] { dicomFile1 }));
 
