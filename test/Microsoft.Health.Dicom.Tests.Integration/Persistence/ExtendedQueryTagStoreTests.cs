@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(extendedQueryTagEntry.Path, actualExtendedQueryTagEntry.Path);
             Assert.Equal(extendedQueryTagEntry.PrivateCreator, actualExtendedQueryTagEntry.PrivateCreator);
             Assert.Equal(extendedQueryTagEntry.VR, actualExtendedQueryTagEntry.VR);
-            Assert.Equal(extendedQueryTagEntry.QueryTagLevel, actualExtendedQueryTagEntry.Level.ToString());
+            Assert.Equal(extendedQueryTagEntry.Level, actualExtendedQueryTagEntry.Level.ToString());
             Assert.Equal(ExtendedQueryTagStatus.Ready, actualExtendedQueryTagEntry.Status);
         }
 

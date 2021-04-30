@@ -371,7 +371,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} is the property that was not specified correctly.</comment>
   </data>
   <data name="InvalidDicomTagLevel" xml:space="preserve">
-    <value>Input Dicom Tag QueryTagLevel '{0}' is invalid. It must have value 'Study', 'Series' or 'Instance'.</value>
+    <value>Input Dicom Tag Level '{0}' is invalid. It must have value 'Study', 'Series' or 'Instance'.</value>
     <comment>{0} input Dicom Tag Level.</comment>
   </data>
   <data name="DicomFileLengthLimitExceeded" xml:space="preserve">

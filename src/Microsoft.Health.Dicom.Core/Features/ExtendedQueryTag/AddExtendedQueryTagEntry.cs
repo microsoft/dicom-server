@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public string QueryTagLevel { get; set; }
+        public string Level { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -28,16 +28,16 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
             }
 
-            if(string.IsNullOrWhiteSpace(QueryTagLevel))
+            if(string.IsNullOrWhiteSpace(Level))
             {
-                property = "QueryTagLevel";
+                property = "Level";
                 yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
             }
 
-            if(!Enum.TryParse(typeof(QueryTagLevel), QueryTagLevel, true, out object result))
+            if(!Enum.TryParse(typeof(QueryTagLevel), Level, true, out object result))
             {
-                property = "QueryTagLevel";
-                yield return new ValidationResult(string.Format(DicomCoreResource.InvalidDicomTagLevel, QueryTagLevel), new[] { property });
+                property = "Level";
+                yield return new ValidationResult(string.Format(DicomCoreResource.InvalidDicomTagLevel, Level), new[] { property });
             }
         }
     }
