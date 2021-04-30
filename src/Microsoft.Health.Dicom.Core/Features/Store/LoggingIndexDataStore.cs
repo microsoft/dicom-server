@@ -275,13 +275,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
         }
 
-        public async Task<int> RetrieveNumDeletedMaxRetryCountAsync(int maxNumberOfRetries, CancellationToken cancellationToken)
+        public async Task<int> RetrieveNumExhaustedDeletedInstanceAttemptsAsync(int maxNumberOfRetries, CancellationToken cancellationToken)
         {
             LogRetrieveNumDeletedExceedRetryCountAsyncDelegate(_logger, maxNumberOfRetries, null);
 
             try
             {
-                int returnValue = await _indexDataStore.RetrieveNumDeletedMaxRetryCountAsync(maxNumberOfRetries, cancellationToken);
+                int returnValue = await _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(maxNumberOfRetries, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 

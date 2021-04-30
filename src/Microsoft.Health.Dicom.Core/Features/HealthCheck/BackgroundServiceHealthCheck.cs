@@ -42,8 +42,9 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             Task<DateTimeOffset> oldestWaitingToBeDeleated = _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(_indexDataStore.GetOldestDeletedAsync, cancellationToken);
-
-            Task<int> numReachedMaxedRetry = _backgroundServiceHealthCheckCache.GetOrAddRetriesAsync(_indexDataStore.RetrieveNumDeletedMaxRetryCountAsync, _deletedInstanceCleanupConfiguration.MaxRetries, cancellationToken);
+            Task<int> numReachedMaxedRetry = _backgroundServiceHealthCheckCache.GetOrAddNumExhaustedDeletionAttemptsAsync(
+                t => _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(_deletedInstanceCleanupConfiguration.MaxRetries, t),
+                cancellationToken);
 
             _telemetryClient.GetMetric("Oldest-Requested-Deletion").TrackValue((await oldestWaitingToBeDeleated).ToUnixTimeSeconds());
             _telemetryClient.GetMetric("Count-Deletions-Max-Retry").TrackValue(await numReachedMaxedRetry);

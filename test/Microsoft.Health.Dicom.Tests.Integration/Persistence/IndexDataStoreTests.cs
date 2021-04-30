@@ -442,7 +442,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenNoDeletedInstances_NumMatchRetryCountShouldBe0()
         {
             await _testHelper.ClearDeletedInstanceTable();
-            var numMatchRetryCount = await _indexDataStore.RetrieveNumDeletedMaxRetryCountAsync(0);
+            var numMatchRetryCount = await _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(0);
             Assert.Equal(0, numMatchRetryCount);
         }
 
@@ -463,7 +463,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
 
-            var numMatchRetryCount = await _indexDataStore.RetrieveNumDeletedMaxRetryCountAsync(0);
+            var numMatchRetryCount = await _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(0);
             Assert.Equal(2, numMatchRetryCount);
         }
 

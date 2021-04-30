@@ -26,21 +26,21 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
             _cache = memoryCache;
         }
 
-        public Task<DateTimeOffset> GetOrAddOldestTimeAsync(Func<CancellationToken,Task<DateTimeOffset>> getOldestTime, CancellationToken cancellationToken)
+        public Task<DateTimeOffset> GetOrAddOldestTimeAsync(Func<CancellationToken, Task<DateTimeOffset>> getOldestTime, CancellationToken cancellationToken)
         {
-            return _cache.GetOrCreate(OldestDeleteInstanceCacheKey, entry =>
+            return _cache.GetOrCreateAsync(OldestDeleteInstanceCacheKey, entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
                 return getOldestTime(cancellationToken);
             });
         }
 
-        public Task<int> GetOrAddRetriesAsync(Func<int, CancellationToken, Task<int>> getRetries, int retryCount, CancellationToken cancellationToken)
+        public Task<int> GetOrAddNumExhaustedDeletionAttemptsAsync(Func<CancellationToken, Task<int>> getRetries, CancellationToken cancellationToken)
         {
-            return _cache.GetOrCreate(NumDeleteMaxRetryCacheKey, entry =>
+            return _cache.GetOrCreateAsync(NumDeleteMaxRetryCacheKey, entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
-                return getRetries(retryCount, cancellationToken);
+                return getRetries(cancellationToken);
             });
         }
     }

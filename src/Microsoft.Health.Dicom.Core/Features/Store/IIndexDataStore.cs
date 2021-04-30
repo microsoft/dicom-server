@@ -93,17 +93,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <returns>A task that represents the asynchronous update operation</returns>
         Task<int> IncrementDeletedInstanceRetryAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
-
         /// <summary>
         /// Retrieves the number of deleted instances which have reached the max number of retries.
         /// </summary>
         /// <param name="maxNumberOfRetries">The max number of retries.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that gets the count</returns>
-        Task<int> RetrieveNumDeletedMaxRetryCountAsync(int maxNumberOfRetries, CancellationToken cancellationToken = default);
+        Task<int> RetrieveNumExhaustedDeletedInstanceAttemptsAsync(int maxNumberOfRetries, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves the datetimeoffset of oldest instance waiting to be delated
+        /// Retrieves the <see cref="DateTimeOffset"/> of oldest instance waiting to be delated
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that gets the date of the oldest deleted instance</returns>
