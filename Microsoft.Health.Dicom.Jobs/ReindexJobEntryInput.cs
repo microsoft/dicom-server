@@ -11,11 +11,13 @@ namespace Microsoft.Health.Dicom.Jobs
     {
         public IEnumerable<string> ExtendedQueryTags { get; set; }
 
-        public long Watermark { get; set; }
+        public long MaxWatermark { get; set; }
+
+        public int TopN { get; set; }
 
         public override string ToString()
         {
-            return $"Tags:{string.Join(",", ExtendedQueryTags)}, Watermark: {Watermark}";
+            return $"Tags:{string.Join(",", ExtendedQueryTags)}, MaxWatermark: {MaxWatermark}, TopN: {TopN}";
         }
     }
 }

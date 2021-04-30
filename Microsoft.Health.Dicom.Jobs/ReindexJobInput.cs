@@ -10,6 +10,6 @@ namespace Microsoft.Health.Dicom.Jobs
     public class ReindexJobInput
     {
         public IEnumerable<string> ExtendedQueryTags { get; set; }
-        public IReadOnlyList<long> Watermarks { get; set; }
+        public long MaxWatermark { get; set; }
     }
 }
