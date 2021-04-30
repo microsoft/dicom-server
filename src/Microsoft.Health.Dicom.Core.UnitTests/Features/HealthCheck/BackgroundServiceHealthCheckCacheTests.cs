@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.HealthCheck
         public async Task IfNoChachedValueNumRetries_ReturnNewValue()
         {
             _testNumRetries = 5;
-            int result = await _backgroundServiceHealthCheckCache.GetOrAddNumExhaustedDeletionAttemptsAsync(getNumRetriesTest, CancellationToken.None);
+            int result = await _backgroundServiceHealthCheckCache.GetOrAddNumExhaustedDeletionAttemptsAsync(GetNumRetriesTest, CancellationToken.None);
             Assert.Equal(5, result);
             _cache.Remove("_numMaxRetries");
         }
@@ -43,9 +43,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.HealthCheck
         public async Task IfChachedValueNumRetries_ReturCachedValue()
         {
             _testNumRetries = 10;
-            int addFrist = await _backgroundServiceHealthCheckCache.GetOrAddNumExhaustedDeletionAttemptsAsync(getNumRetriesTest, CancellationToken.None);
+            int addFrist = await _backgroundServiceHealthCheckCache.GetOrAddNumExhaustedDeletionAttemptsAsync(GetNumRetriesTest, CancellationToken.None);
             _testNumRetries = 5;
-            int result = await _backgroundServiceHealthCheckCache.GetOrAddNumExhaustedDeletionAttemptsAsync(getNumRetriesTest, CancellationToken.None);
+            int result = await _backgroundServiceHealthCheckCache.GetOrAddNumExhaustedDeletionAttemptsAsync(GetNumRetriesTest, CancellationToken.None);
 
             Assert.Equal(10, result);
             _cache.Remove("_numMaxRetries");
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.HealthCheck
         public async Task IfNoChachedValueOldestDate_ReturnNewValue()
         {
             _testDateTimeOffset = new DateTimeOffset(1000000, new TimeSpan(0));
-            DateTimeOffset result = await _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(getOldestTimeTest, CancellationToken.None);
+            DateTimeOffset result = await _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(GetOldestTimeTest, CancellationToken.None);
             Assert.Equal(new DateTimeOffset(1000000, new TimeSpan(0)), result);
             _cache.Remove("_oldestDeleted");
         }
@@ -64,20 +64,20 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.HealthCheck
         public async Task IfChachedValueOldestDate_ReturCachedValue()
         {
             _testDateTimeOffset = new DateTimeOffset(1000000, new TimeSpan(0));
-            DateTimeOffset addFrist = await _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(getOldestTimeTest, CancellationToken.None);
+            DateTimeOffset addFrist = await _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(GetOldestTimeTest, CancellationToken.None);
             _testDateTimeOffset = new DateTimeOffset(10000, new TimeSpan(0));
-            DateTimeOffset result = await _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(getOldestTimeTest, CancellationToken.None);
+            DateTimeOffset result = await _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(GetOldestTimeTest, CancellationToken.None);
 
             Assert.Equal(new DateTimeOffset(1000000, new TimeSpan(0)), result);
             _cache.Remove("_oldestDeleted");
         }
 
-        private Task<int> getNumRetriesTest(CancellationToken token)
+        private Task<int> GetNumRetriesTest(CancellationToken token)
         {
             return Task.FromResult(_testNumRetries);
         }
 
-        private Task<DateTimeOffset> getOldestTimeTest(CancellationToken token)
+        private Task<DateTimeOffset> GetOldestTimeTest(CancellationToken token)
         {
             return Task.FromResult(_testDateTimeOffset);
         }
