@@ -7,9 +7,15 @@ using System.Collections.Generic;
 
 namespace Microsoft.Health.Dicom.Jobs
 {
-    public class ReindexJobInput
+    public class ReindexJobStatus
     {
         public IEnumerable<string> ExtendedQueryTags { get; set; }
-        public IReadOnlyList<long> Watermarks { get; set; }
+        public long StartWatermark { get; set; }
+        public long EndWatermark { get; set; }
+
+        public override string ToString()
+        {
+            return $"Tags:{string.Join(",", ExtendedQueryTags)}, StartWatermark: {StartWatermark}, EndWatermark: {EndWatermark}";
+        }
     }
 }

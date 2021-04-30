@@ -6,8 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
@@ -17,13 +15,12 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Reindex;
 #pragma warning disable CA1822 // Mark members as static
 #pragma warning disable IDE0052 // Remove unread private members
 namespace Microsoft.Health.Dicom.Jobs
 {
 
-    public class ReindexJob : IReindexService
+    public class ReindexJob
     {
         private readonly IServiceProvider _serviceProvider;
         public ReindexJob(IServiceProvider serviceProvider)
@@ -32,44 +29,32 @@ namespace Microsoft.Health.Dicom.Jobs
             _serviceProvider = serviceProvider;
         }
 
-        const string RunOrchestratorName = "ReindexJob";
-        const string ReindexActiviyName = "ReindexActivity";
-
-        [FunctionName(RunOrchestratorName)]
-        public async Task RunOrchestrator(
+        [FunctionName("ReindexOrchestrator")]
+        public async Task<IReadOnlyList<ReindexJobEntryOutput>> RunOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             EnsureArg.IsNotNull(context);
             ReindexJobInput input = context.GetInput<ReindexJobInput>();
             var outputs = new List<ReindexJobEntryOutput>();
-
-
-            for (long watermark = input.EndWatermark; watermark >= input.StartWatermark; watermark--)
+            foreach (var item in input.Watermarks)
             {
-                var entryInput = new ReindexJobEntryInput() { ExtendedQueryTags = input.ExtendedQueryTags, Watermark = watermark };
-                var output = await context.CallActivityAsync<ReindexJobEntryOutput>(ReindexActiviyName, entryInput);
-                context.SetCustomStatus(output);
-                outputs.Add(output);
+                outputs.Add(await context.CallActivityAsync<ReindexJobEntryOutput>("ReindexInstanceActivity", item));
             }
 
+            return outputs;
         }
 
-        [FunctionName(ReindexActiviyName)]
+        [FunctionName("ReindexInstanceActivity")]
 
-        public ReindexJobEntryOutput Reindex([ActivityTrigger] ReindexJobEntryInput entryInput, ILogger log)
+        public ReindexJobEntryOutput ReindexInstance([ActivityTrigger] ReindexJobEntryInput entryInput, ILogger log)
         {
             EnsureArg.IsNotNull(entryInput);
             log.LogInformation($"Reindexing {entryInput}");
-            if (entryInput.Watermark == 9)
-            {
-                throw new ArgumentException("some exception");
-            }
-            Thread.Sleep(1000);
             return new ReindexJobEntryOutput();
         }
 
-        [FunctionName("GetStatus")]
-        public async Task<HttpResponseMessage> HttpGetStatus(
+        [FunctionName("GetJobStatusAsync")]
+        public async Task<HttpResponseMessage> GetJobStatusAsync(
            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "GetStatus")] HttpRequest req,
            [DurableClient] IDurableOrchestrationClient starter,
            ILogger log)
@@ -80,47 +65,27 @@ namespace Microsoft.Health.Dicom.Jobs
             log.LogInformation($"Query status of instance '{instanceId}'.");
             DurableOrchestrationStatus result = await starter.GetStatusAsync(instanceId, showHistory: true, true, true);
 
-            HttpResponseMessage response = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
-            JsonSerializerOptions options = new JsonSerializerOptions();
-            options.MaxDepth = 3;
+            HttpResponseMessage response = new HttpResponseMessage(System.Net.HttpStatusCode.OK);         
             response.Content = new StringContent(result.ToString());
             return response;
         }
 
 
-        [FunctionName("Reindex")]
-        public async Task<HttpResponseMessage> HttpStart(
+        [FunctionName("CreateReindexJobAsync")]
+        public async Task<HttpResponseMessage> CreateReindexJobAsync(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Reindex")] HttpRequestMessage req,
             [DurableClient] IDurableOrchestrationClient starter,
             ILogger log)
         {
             EnsureArg.IsNotNull(starter);
             EnsureArg.IsNotNull(req);
+
+            // check if valid  to reindex
             string tag = DicomTag.Manufacturer.GetPath();
-            var input = new ReindexJobInput() { ExtendedQueryTags = new string[] { tag }, StartWatermark = 0, EndWatermark = 10 };
-            string instanceId = await starter.StartNewAsync("ReindexJob", input);
+            var input = new ReindexJobInput() { ExtendedQueryTags = new string[] { tag }, Watermarks = new long[] { 100, 101, 102 } };
+            string instanceId = await starter.StartNewAsync("ReindexOrchestrator", input);
             log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
             return starter.CreateCheckStatusResponse(req, instanceId);
-        }
-
-        public Task<string> ReindexAsync(IEnumerable<string> extendedQueryTags, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Core.Features.Reindex.ReindexJob> GetReindexJobStatusAsync(string jobId, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task CancelReindexJobAsync(string jobId, CancellationToken cancellation = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ReindexJobReport> GetReindexJobReportAsync(string jobId, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
         }
     }
 }

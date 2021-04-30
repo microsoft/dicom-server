@@ -17,20 +17,9 @@ namespace Microsoft.Health.Dicom.Jobs
         {
             EnsureArg.IsNotNull(builder);
 
-            builder.Services.AddSingleton<IRepository, Repository>();
+            
             builder.Services.AddLogging();
         }
     }
-    public interface IRepository
-    {
-        string GetData();
-    }
-
-    public class Repository : IRepository
-    {
-        public string GetData()
-        {
-            return "some data!";
-        }
-    }
+    
 }

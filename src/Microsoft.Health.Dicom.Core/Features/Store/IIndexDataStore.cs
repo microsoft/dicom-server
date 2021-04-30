@@ -28,6 +28,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <returns>A task that represents the asynchronous create operation.</returns>
         Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
+        Task ReindexInstanceAsync(IEnumerable<QueryTag> queryTags, int watermark, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="studyInstanceUid"/>.
         /// </summary>
@@ -92,5 +94,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous update operation</returns>
         Task<int> IncrementDeletedInstanceRetryAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+
     }
 }

@@ -4,12 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Health.Dicom.Jobs
 {
-    public class ReindexJobInput
+    public interface IReindexJobClient
     {
-        public IEnumerable<string> ExtendedQueryTags { get; set; }
-        public IReadOnlyList<long> Watermarks { get; set; }
+        Task<string> CreateJobAsync(IEnumerable<string> extendedQueryTags, CancellationToken cancellationToken = default);
+
+        Task<ReindexJobStatus> GetJobStateAsync(string jobId, CancellationToken cancellationToken = default);
+
+        Task CancelJobAsync(string jobId, CancellationToken cancellationToken = default);
     }
 }

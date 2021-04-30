@@ -864,3 +864,65 @@ AS
 
     COMMIT TRANSACTION
 GO
+
+
+/*************************************************************
+    Stored procedures for adding an instance.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     AddInstance
+--
+-- DESCRIPTION
+--     Adds a DICOM instance.
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @patientId
+--         * The Id of the patient.
+--     @patientName
+--         * The name of the patient.
+--     @referringPhysicianName
+--         * The referring physician name.
+--     @studyDate
+--         * The study date.
+--     @studyDescription
+--         * The study description.
+--     @accessionNumber
+--         * The accession number associated for the study.
+--     @modality
+--         * The modality associated for the series.
+--     @performedProcedureStepStartDate
+--         * The date when the procedure for the series was performed.
+--     @stringExtendedQueryTags
+--         * String extended query tag data
+--     @longExtendedQueryTags
+--         * Long extended query tag data
+--     @doubleExtendedQueryTags
+--         * Double extended query tag data
+--     @dateTimeExtendedQueryTags
+--         * DateTime extended query tag data
+--     @personNameExtendedQueryTags
+--         * PersonName extended query tag data
+-- RETURN VALUE
+--     The watermark (version).
+------------------------------------------------------------------------
+ALTER PROCEDURE dbo.ReindexInstance
+    @watermark BIGINT,                
+    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,    
+    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY,
+    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+AS
+    SET NOCOUNT ON
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+        
+    COMMIT TRANSACTION
+GO

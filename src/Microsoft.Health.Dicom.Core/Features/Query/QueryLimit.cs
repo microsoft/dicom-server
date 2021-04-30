@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
 
 
-        public static readonly IReadOnlyDictionary<QueryResource, IReadOnlySet<QueryTagLevel>> QueryResourceTypeToQueryLevelsMapping = new Dictionary<QueryResource, IReadOnlySet<QueryTagLevel>>()
+        public static readonly IReadOnlyDictionary<QueryResource, ISet<QueryTagLevel>> QueryResourceTypeToQueryLevelsMapping = new Dictionary<QueryResource, ISet<QueryTagLevel>>()
         {
             { QueryResource.AllStudies, new HashSet<QueryTagLevel>(){ QueryTagLevel.Study } },
             { QueryResource.AllSeries, new HashSet<QueryTagLevel>(){ QueryTagLevel.Study, QueryTagLevel.Series } },
