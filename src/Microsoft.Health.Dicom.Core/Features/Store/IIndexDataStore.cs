@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
 
         /// <summary>
-        /// Retrieves the number of deleted instances which have reached the max number of retries
+        /// Retrieves the number of deleted instances which have reached the max number of retries.
         /// </summary>
         /// <param name="maxNumberOfRetries">The max number of retries.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// Retrieves the datetimeoffset of oldest instance waiting to be delated
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that gets the date of the oldest deleted instance </returns>
+        /// <returns>A task that gets the date of the oldest deleted instance</returns>
         Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken = default);
     }
 }

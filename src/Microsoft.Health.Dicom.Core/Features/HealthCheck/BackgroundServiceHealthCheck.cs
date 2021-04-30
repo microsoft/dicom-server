@@ -41,22 +41,12 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            DateTimeOffset oldestWaitingToBeDeleated = _backgroundServiceHealthCheckCache.getOldestTime(Constants.OldestDeleteInstanceCacheKey);
-            if (oldestWaitingToBeDeleated.Equals(new DateTimeOffset()))
-            {
-                oldestWaitingToBeDeleated = await _indexDataStore.GetOldestDeletedAsync(cancellationToken);
-                oldestWaitingToBeDeleated = _backgroundServiceHealthCheckCache.updateCache(Constants.OldestDeleteInstanceCacheKey, oldestWaitingToBeDeleated);
-            }
+            Task<DateTimeOffset> oldestWaitingToBeDeleated = _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(_indexDataStore.GetOldestDeletedAsync, cancellationToken);
 
-            int numReachedMaxedRetry = _backgroundServiceHealthCheckCache.getNumRetries(Constants.NumDeleteMaxRetryCacheKey);
-            if(numReachedMaxedRetry == -1)
-            {
-                numReachedMaxedRetry = await _indexDataStore.RetrieveNumDeletedMaxRetryCountAsync(_deletedInstanceCleanupConfiguration.MaxRetries, cancellationToken);
-                numReachedMaxedRetry = _backgroundServiceHealthCheckCache.updateCache(Constants.NumDeleteMaxRetryCacheKey, numReachedMaxedRetry);
-            }
-           
-            _telemetryClient.GetMetric("Oldest-Requested-Deletion").TrackValue(oldestWaitingToBeDeleated.ToUnixTimeSeconds());
-            _telemetryClient.GetMetric("Count-Deletions-Max-Retry").TrackValue(numReachedMaxedRetry);
+            Task<int> numReachedMaxedRetry = _backgroundServiceHealthCheckCache.GetOrAddRetriesAsync(_indexDataStore.RetrieveNumDeletedMaxRetryCountAsync, _deletedInstanceCleanupConfiguration.MaxRetries, cancellationToken);
+
+            _telemetryClient.GetMetric("Oldest-Requested-Deletion").TrackValue((await oldestWaitingToBeDeleated).ToUnixTimeSeconds());
+            _telemetryClient.GetMetric("Count-Deletions-Max-Retry").TrackValue(await numReachedMaxedRetry);
 
             return HealthCheckResult.Healthy("Successfully computed values for background service.");
         }

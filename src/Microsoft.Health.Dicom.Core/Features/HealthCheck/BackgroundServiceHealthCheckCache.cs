@@ -4,16 +4,20 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Caching.Memory;
 
-
 namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
 {
-
     public class BackgroundServiceHealthCheckCache
     {
         private IMemoryCache _cache;
+
+        private const string OldestDeleteInstanceCacheKey = "_oldestDeleted";
+
+        private const string NumDeleteMaxRetryCacheKey = "_numMaxRetries";
 
         public BackgroundServiceHealthCheckCache(IMemoryCache memoryCache)
         {
@@ -21,33 +25,22 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
 
             _cache = memoryCache;
         }
-        
-        public int getNumRetries(string cacheKey)
+
+        public Task<DateTimeOffset> GetOrAddOldestTimeAsync(Func<CancellationToken,Task<DateTimeOffset>> getOldestTime, CancellationToken cancellationToken)
         {
-            if (_cache.TryGetValue(cacheKey, out int val))
-            {
-                return val;
-            }
-
-            return -1;  
-        }
-
-        public DateTimeOffset getOldestTime(string cacheKey)
-        {
-            if (_cache.TryGetValue(cacheKey, out DateTimeOffset val))
-            {
-                return val;
-            }
-
-            return new DateTimeOffset();
-        }
-
-        public T updateCache<T>(string cacheKey, T newValue)
-        {
-            return _cache.GetOrCreate(cacheKey, entry =>
+            return _cache.GetOrCreate(OldestDeleteInstanceCacheKey, entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
-                return newValue;
+                return getOldestTime(cancellationToken);
+            });
+        }
+
+        public Task<int> GetOrAddRetriesAsync(Func<int, CancellationToken, Task<int>> getRetries, int retryCount, CancellationToken cancellationToken)
+        {
+            return _cache.GetOrCreate(NumDeleteMaxRetryCacheKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return getRetries(retryCount, cancellationToken);
             });
         }
     }
