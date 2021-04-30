@@ -155,9 +155,10 @@ namespace Microsoft.Health.Dicom.Tests.Common
         public static DicomFile CreateRandomDicomFile(
                     string studyInstanceUid = null,
                     string seriesInstanceUid = null,
-                    string sopInstanceUid = null)
+                    string sopInstanceUid = null,
+                    bool validateItems = true)
         {
-            return new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            return new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid, validateItems: validateItems));
         }
 
         public static DicomFile CreateRandomDicomFileWithInvalidVr(
@@ -165,7 +166,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
                    string seriesInstanceUid = null,
                    string sopInstanceUid = null)
         {
-            DicomFile file = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid).NotValidated()); 
+            DicomFile file = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid, validateItems: false));
             file.Dataset.Add(GenerateNewDataSetWithInvalidVr());
             return file;
         }
@@ -184,19 +185,23 @@ namespace Microsoft.Health.Dicom.Tests.Common
             string studyInstanceUid = null,
             string seriesInstanceUid = null,
             string sopInstanceUid = null,
-            string sopClassUid = null)
+            string sopClassUid = null,
+            bool validateItems = true)
         {
-            var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
-            {
-                { DicomTag.StudyInstanceUID, studyInstanceUid ?? TestUidGenerator.Generate() },
-                { DicomTag.SeriesInstanceUID, seriesInstanceUid ?? TestUidGenerator.Generate() },
-                { DicomTag.SOPInstanceUID, sopInstanceUid ?? TestUidGenerator.Generate() },
-                { DicomTag.SOPClassUID, sopClassUid ?? TestUidGenerator.Generate() },
-                { DicomTag.BitsAllocated, (ushort)8 },
-                { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
-                { DicomTag.PatientID, TestUidGenerator.Generate() },
-            };
+            var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian);
 
+            if (!validateItems)
+            {
+                ds = ds.NotValidated();
+            }
+
+            ds.Add(DicomTag.StudyInstanceUID, studyInstanceUid ?? TestUidGenerator.Generate());
+            ds.Add(DicomTag.SeriesInstanceUID, seriesInstanceUid ?? TestUidGenerator.Generate());
+            ds.Add(DicomTag.SOPInstanceUID, sopInstanceUid ?? TestUidGenerator.Generate());
+            ds.Add(DicomTag.SOPClassUID, sopClassUid ?? TestUidGenerator.Generate());
+            ds.Add(DicomTag.BitsAllocated, (ushort)8);
+            ds.Add(DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value);
+            ds.Add(DicomTag.PatientID, TestUidGenerator.Generate());
             return ds;
         }
 
