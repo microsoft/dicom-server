@@ -173,7 +173,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
 
         private static DicomDataset GenerateNewDataSetWithInvalidVr()
         {
-            var dicomDataset = new DicomDataset();
+            var dicomDataset = new DicomDataset().NotValidated();
 
             // CS VR type, char length should be less than or equal to 16
             dicomDataset.Add(DicomTag.Modality, "123456789ABCDEFGHIJK");
