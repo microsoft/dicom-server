@@ -56,31 +56,28 @@ namespace Microsoft.Health.Dicom.Api.Web
 
         private static class AspNetCoreTempDirectory
         {
-            private static string _tempDirectory;
+            private static string s_tempDirectory;
 
-            public static string TempDirectory
+            public static Func<string> TempDirectoryFactory => GetTempDirectory;
+
+            private static string GetTempDirectory()
             {
-                get
+                if (s_tempDirectory == null)
                 {
-                    if (_tempDirectory == null)
+                    // Look for folders in the following order.
+                    string temp = Environment.GetEnvironmentVariable("ASPNETCORE_TEMP") ?? // ASPNETCORE_TEMP - User set temporary location.
+                                  Path.GetTempPath();                                      // Fall back.
+
+                    if (!Directory.Exists(temp))
                     {
-                        // Look for folders in the following order.
-                        string temp = Environment.GetEnvironmentVariable("ASPNETCORE_TEMP") ?? // ASPNETCORE_TEMP - User set temporary location.
-                                      Path.GetTempPath();                                      // Fall back.
-
-                        if (!Directory.Exists(temp))
-                        {
-                            throw new DirectoryNotFoundException(temp);
-                        }
-
-                        _tempDirectory = temp;
+                        throw new DirectoryNotFoundException(temp);
                     }
 
-                    return _tempDirectory;
+                    s_tempDirectory = temp;
                 }
-            }
 
-            public static Func<string> TempDirectoryFactory => () => TempDirectory;
+                return s_tempDirectory;
+            }
         }
     }
 }
