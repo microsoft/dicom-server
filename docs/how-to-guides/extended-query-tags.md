@@ -41,7 +41,7 @@ To help manage the supported tags in a given DICOM server instance, a few manage
 | Path           | string | Path of tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020. |
 | VR             | string | Value representation of this tag.                            |
 | PrivateCreator | string | Identification code of the implementer of this private tag. Only set when the tag is a private tag. |
-| QueryTagLevel/Level          | string | Represents the hierarchy at which this tag is relevant.      |
+| Level          | string | Represents the hierarchy at which this tag is relevant.      |
 | Status         | string | Current state this tag is in. Not set when making a request to create a tag. |
 
 ### Level
@@ -74,17 +74,17 @@ Add extended query tags to supported set with route:  /extendedquerytags
 		"Path":"04011001",
 		"VR":"SS",
 		"PrivateCreator":"MicrosoftPC",
-		"QueryTagLevel":"Instance"
+		"Level":"Instance"
 	},
 	{
 		"Path":"ManufacturerModelName", 
 		"VR":"LO",
-		"QueryTagLevel":"Series"
+		"Level":"Series"
 	},
 	{
 		"Path":"00100040", 
 		"VR":"CS",
-		"QueryTagLevel":"Study"
+		"Level":"Study"
 	},
 ]
 ```
