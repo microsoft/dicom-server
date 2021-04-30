@@ -54,6 +54,11 @@
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
       <MutableClassVersion>Latest</MutableClassVersion>
     </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\3.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>3</MutableClassVersion>
+    </EmbeddedResource>
   </ItemGroup>
 
   <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
