@@ -7,14 +7,11 @@ using Microsoft.Health.Api.Configuration;
 using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Core.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
-using System;
 
 namespace Microsoft.Health.Dicom.Api.Configs
 {
     public class DicomServerConfiguration : IApiConfiguration
     {
-        public String Foo { get; set; }
-
         public FeatureConfiguration Features { get; } = new FeatureConfiguration();
 
         public SecurityConfiguration Security { get; } = new SecurityConfiguration();

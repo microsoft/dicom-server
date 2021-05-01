@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IDisposable
     {
         private readonly IDicomWebClient _client;
-        private HashSet<string> _createdDicomStudies = new HashSet<string>();
+        private readonly HashSet<string> _createdDicomStudies = new HashSet<string>();
 
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
