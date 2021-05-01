@@ -37,7 +37,6 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <AnalysisLevel>5.0</AnalysisLevel>
         <AnalysisMode>AllEnabledByDefault</AnalysisMode>
         <IsPackable>true</IsPackable>
