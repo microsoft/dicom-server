@@ -19,12 +19,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
                 return new InProcTestDicomWebServer(startupType);
             }
 
-            if (environmentUrl.Last() != '/')
+            if (environmentUrl[^1] != '/')
             {
-                environmentUrl = $"{environmentUrl}/";
+                environmentUrl += "/";
             }
 
-            return new RemoteTestDicomWebServer(environmentUrl);
+            return new RemoteTestDicomWebServer(new Uri(environmentUrl));
         }
 
         private static string GetEnvironmentUrl()

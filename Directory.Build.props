@@ -32,7 +32,6 @@
     <When Condition="$(MSBuildProjectName.Contains('Test'))">
       <PropertyGroup>
         <IsPackable>false</IsPackable>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\CustomAnalysisRules.Test.ruleset</CodeAnalysisRuleSet>
       </PropertyGroup>
     </When>
     <Otherwise>
@@ -40,7 +39,6 @@
         <AnalysisLevel>5.0</AnalysisLevel>
         <AnalysisMode>AllEnabledByDefault</AnalysisMode>
         <IsPackable>true</IsPackable>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
       </PropertyGroup>
     </Otherwise>
   </Choose>

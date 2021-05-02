@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         public DatasetValidationException(ushort failureCode, string message, Exception innerException)
             : base(message, innerException)
         {
-            FailureCode = failureCode;
+            this.FailureCode = failureCode;
         }
 
         public ushort FailureCode { get; }

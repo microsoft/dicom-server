@@ -101,19 +101,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     await _client.StoreAsync(dicomFiles, studyInstanceUid: string.Empty, cancellationToken: default);
 
                     // Query on instance for private tag
-                    DicomWebAsyncEnumerableResponse<DicomDataset> queryInstanceResponse = await _client.QueryAsync($"/instances?{privateTag.GetPath()}=3", cancellationToken: default);
+                    DicomWebAsyncEnumerableResponse<DicomDataset> queryInstanceResponse = await _client.QueryAsync(new Uri($"/instances?{privateTag.GetPath()}=3", UriKind.Relative), cancellationToken: default);
                     DicomDataset[] instanceResult = await queryInstanceResponse.ToArrayAsync();
                     Assert.Single(instanceResult);
                     Assert.Equal(instanceUid3, instanceResult[0].GetSingleValue<string>(DicomTag.SOPInstanceUID));
 
                     // Query on series for standardTagSeries
-                    DicomWebAsyncEnumerableResponse<DicomDataset> querySeriesResponse = await _client.QueryAsync($"/series?{standardTagSeries.GetPath()}=ManufacturerModelName2", cancellationToken: default);
+                    DicomWebAsyncEnumerableResponse<DicomDataset> querySeriesResponse = await _client.QueryAsync(new Uri($"/series?{standardTagSeries.GetPath()}=ManufacturerModelName2", UriKind.Relative), cancellationToken: default);
                     DicomDataset[] seriesResult = await querySeriesResponse.ToArrayAsync();
                     Assert.Single(seriesResult);
                     Assert.Equal(seriesUid1, seriesResult[0].GetSingleValue<string>(DicomTag.SeriesInstanceUID));
 
                     // Query on study for standardTagStudy
-                    DicomWebAsyncEnumerableResponse<DicomDataset> queryStudyResponse = await _client.QueryAsync($"/studies?{standardTagStudy.GetPath()}=1", cancellationToken: default);
+                    DicomWebAsyncEnumerableResponse<DicomDataset> queryStudyResponse = await _client.QueryAsync(new Uri($"/studies?{standardTagStudy.GetPath()}=1", UriKind.Relative), cancellationToken: default);
                     DicomDataset[] studyResult = await queryStudyResponse.ToArrayAsync();
                     Assert.Single(studyResult);
                     Assert.Equal(studyUid, seriesResult[0].GetSingleValue<string>(DicomTag.StudyInstanceUID));
