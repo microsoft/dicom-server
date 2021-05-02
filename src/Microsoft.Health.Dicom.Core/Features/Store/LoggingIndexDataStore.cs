@@ -76,7 +76,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 LogLevel.Debug,
                 default,
                 "Incrementing the retry count of deleted instances '{DicomInstanceIdentifier}' and setting next cleanup time to '{CleanupAfter}'.");
-        
+
         private static readonly Action<ILogger, Exception> LogGetOldestDeletedAsyncDelegate =
            LoggerMessage.Define(
                LogLevel.Debug,
@@ -280,7 +280,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                int returnValue = await _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(maxNumberOfRetries, cancellationToken);
+                int returnValue = await IndexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(maxNumberOfRetries, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 
@@ -300,7 +300,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                DateTimeOffset returnValue = await _indexDataStore.GetOldestDeletedAsync(cancellationToken);
+                DateTimeOffset returnValue = await IndexDataStore.GetOldestDeletedAsync(cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 

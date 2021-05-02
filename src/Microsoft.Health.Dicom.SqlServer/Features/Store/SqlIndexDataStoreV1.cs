@@ -292,7 +292,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     using (SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken))
                     {
                         await sqlDataReader.ReadAsync(cancellationToken);
-                        
                         return (int)sqlDataReader[0];
                     }
                 }
@@ -325,7 +324,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                         return (DateTimeOffset)sqlDataReader[0];
                     }
                 }
-                catch(SqlException ex)
+                catch (SqlException ex)
                 {
                     throw new DataStoreException(ex);
                 }
