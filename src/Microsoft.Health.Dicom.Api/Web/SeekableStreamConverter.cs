@@ -65,8 +65,8 @@ namespace Microsoft.Health.Dicom.Api.Web
                 if (s_tempDirectory == null)
                 {
                     // Look for folders in the following order.
-                    string temp = Environment.GetEnvironmentVariable("ASPNETCORE_TEMP") ?? // ASPNETCORE_TEMP - User set temporary location.
-                                  Path.GetTempPath();                                      // Fall back.
+                    // ASPNETCORE_TEMP - User set temporary location.
+                    string temp = Environment.GetEnvironmentVariable("ASPNETCORE_TEMP") ?? Path.GetTempPath();
 
                     if (!Directory.Exists(temp))
                     {
