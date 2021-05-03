@@ -143,8 +143,6 @@ namespace Microsoft.Health.Dicom.Core.Modules
                    .AsSelf()
                    .AsImplementedInterfaces();
 
-            services.AddApplicationInsightsTelemetry();
-
             services.AddSingleton<BackgroundServiceHealthCheckCache>();
 
             services.AddHealthChecks().AddCheck<BackgroundServiceHealthCheck>(name: "BackgroundServiceHealthCheck");

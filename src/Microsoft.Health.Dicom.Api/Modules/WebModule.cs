@@ -17,6 +17,8 @@ namespace Microsoft.Health.Dicom.Api.Modules
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
+            services.AddApplicationInsightsTelemetry();
+
             services.Add<SeekableStreamConverter>()
                 .Singleton()
                 .AsSelf()
