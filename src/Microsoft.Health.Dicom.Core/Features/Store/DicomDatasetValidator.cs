@@ -111,8 +111,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(queryTag.Tag);
 
-                if (dicomElement != null && dicomElement.ValueRepresentation == queryTag.VR)
+                if (dicomElement != null)
                 {
+                    if (dicomElement.ValueRepresentation != queryTag.VR)
+                    {
+                        throw new DatasetValidationException(
+                           FailureReasonCodes.ValidationFailure,
+                           string.Format(
+                               CultureInfo.InvariantCulture,
+                               DicomCoreResource.MismatchVR,
+                               queryTag.Tag,
+                               queryTag.VR,
+                               dicomElement.ValueRepresentation));
+                    }
+
                     _minimumValidator.Validate(dicomElement);
                 }
             }

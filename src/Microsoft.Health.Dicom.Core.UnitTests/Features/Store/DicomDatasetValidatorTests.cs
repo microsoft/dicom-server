@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Fact]
-        public async Task GivenDicomTagWithDifferentVR_WhenValidated_ThenShouldSkip()
+        public async Task GivenDicomTagWithDifferentVR_WhenValidated_ThenShouldThrowException()
         {
             var featureConfiguration = Options.Create(new FeatureConfiguration() { EnableFullDicomItemValidation = false });
             DicomTag tag = DicomTag.Date;
@@ -56,8 +56,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
             IDicomElementMinimumValidator validator = Substitute.For<IDicomElementMinimumValidator>();
             _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, validator, _queryTagService);
-            await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
-
+            await AssertThrowsAsyncWithMessage<DatasetValidationException>(
+                () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null),
+                expectedMessage: $"The extended query tag '{tag}' is expected to have VR 'DA' but has 'DT' in file.");
             validator.DidNotReceive().Validate(Arg.Any<DicomElement>());
         }
 
@@ -246,6 +247,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             {
                 var datasetValidationException = exception as DatasetValidationException;
                 Assert.Equal(failureCode, datasetValidationException.FailureCode);
+            }
+        }
+
+        private static async Task AssertThrowsAsyncWithMessage<T>(Func<Task> testCode, string expectedMessage) where T : Exception
+        {
+            try
+            {
+                await testCode();
+            }
+            catch (Exception e)
+            {
+                Assert.IsType<T>(e);
+                Assert.Equal(expectedMessage, e.Message);
             }
         }
     }
