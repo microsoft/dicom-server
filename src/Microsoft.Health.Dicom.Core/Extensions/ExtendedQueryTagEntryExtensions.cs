@@ -12,7 +12,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
     /// <summary>
-    /// Extension methods for <see cref="ExtendedQueryTagEntry"/>.
+    /// Extension methods for <see cref="GetExtendedQueryTagEntry"/>.
     /// </summary>
     internal static class ExtendedQueryTagEntryExtensions
     {
@@ -20,9 +20,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// Normalize extended query tag entry before saving to ExtendedQueryTagStore.
         /// </summary>
         /// <param name="extendedQueryTagEntry">The extended query tag entry.</param>
-        /// <param name="status"> The status to set on the extended query tag entry.</param>
         /// <returns>Normalize extended query tag entry.</returns>
-        public static ExtendedQueryTagEntry Normalize(this ExtendedQueryTagEntry extendedQueryTagEntry, ExtendedQueryTagStatus status)
+        public static AddExtendedQueryTagEntry Normalize(this AddExtendedQueryTagEntry extendedQueryTagEntry)
         {
             DicomTagParser dicomTagParser = new DicomTagParser();
             DicomTag[] tags;
@@ -49,7 +48,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             vr = vr?.ToUpperInvariant();
 
-            return new ExtendedQueryTagEntry { Path = path, VR = vr, PrivateCreator = privateCreator, Level = extendedQueryTagEntry.Level, Status = status };
+            return new AddExtendedQueryTagEntry()
+            {
+                Path = path,
+                VR = vr,
+                PrivateCreator = privateCreator,
+                Level = extendedQueryTagEntry.Level,
+            };
         }
     }
 }

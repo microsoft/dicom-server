@@ -141,7 +141,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(
-            this IMediator mediator, IEnumerable<ExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken)
+            this IMediator mediator, IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new AddExtendedQueryTagRequest(extendedQueryTags), cancellationToken);

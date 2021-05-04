@@ -16,6 +16,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Validate if given extended query tag entries are valid.
         /// </summary>
         /// <param name="extendedQueryTagEntries">The extended query tag entries</param>
-        void ValidateExtendedQueryTags(IEnumerable<ExtendedQueryTagEntry> extendedQueryTagEntries);
+        void ValidateExtendedQueryTags(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries);
     }
 }

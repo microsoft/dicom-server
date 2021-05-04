@@ -25,7 +25,6 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [ModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class ExtendedQueryTagController : Controller
     {
@@ -44,11 +43,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _featureEnabled = featureConfiguration.Value.EnableExtendedQueryTags;
         }
 
+        [BodyModelStateValidator]
         [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.Accepted)]
         [HttpPost]
         [Route(KnownRoutes.ExtendedQueryTagRoute)]
         [AuditEventType(AuditEventSubType.AddExtendedQueryTag)]
-        public async Task<IActionResult> PostAsync([FromBody] IEnumerable<ExtendedQueryTagEntry> extendedQueryTags)
+        public async Task<IActionResult> PostAsync([FromBody] IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags)
         {
             _logger.LogInformation("DICOM Web Add Extended Query Tag request received, with extendedQueryTags {extendedQueryTags}.", extendedQueryTags);
 

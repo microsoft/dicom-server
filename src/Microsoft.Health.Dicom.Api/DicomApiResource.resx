@@ -131,6 +131,10 @@
     <value>The content type '{0}' is either not multipart or is missing boundary.</value>
     <comment>{0} is the specified content type. E.g., application/dicom</comment>
   </data>
+  <data name="InvalidRequestBody" xml:space="preserve">
+    <value>The request body is not valid. Details: {0}</value>
+    <comment>{0} is the list of errors on the model state.</comment>
+  </data>
   <data name="MissingAuditInformation" xml:space="preserve">
     <value>The audit information is missing for Controller: {0} and Action: {1}. This usually means the action is not marked with appropriate attribute.</value>
     <comment>{0} is the controller name and {1} is the action name.</comment>

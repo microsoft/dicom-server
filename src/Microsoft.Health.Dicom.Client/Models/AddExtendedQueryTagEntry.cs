@@ -3,12 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
-    /// Representation of a extended query tag entry.
+    /// External representation of a extended query tag entry during add.
     /// </summary>
-    public abstract class ExtendedQueryTagEntry
+    public class AddExtendedQueryTagEntry
     {
         /// <summary>
         /// Path of this tag. Normally it's composed of groupid and elementid.
@@ -22,13 +22,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public string VR { get; set; }
 
         /// <summary>
+        /// Level of this tag. Could be Study, Series or Instance.
+        /// </summary>
+        public QueryTagLevel Level { get; set; }
+
+        /// <summary>
         /// Identification code of private tag implementer.
         /// </summary>
         public string PrivateCreator { get; set; }
-
-        public override string ToString()
-        {
-            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}";
-        }
     }
 }

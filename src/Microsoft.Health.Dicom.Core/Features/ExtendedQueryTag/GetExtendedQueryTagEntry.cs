@@ -6,29 +6,23 @@
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Representation of a extended query tag entry.
+    /// External representation of a extended query tag entry for get.
     /// </summary>
-    public abstract class ExtendedQueryTagEntry
+    public class GetExtendedQueryTagEntry : ExtendedQueryTagEntry
     {
         /// <summary>
-        /// Path of this tag. Normally it's composed of groupid and elementid.
-        /// E.g: 00100020 is path of patient id.
+        /// Status of this tag. Represents the current state the tag is in.
         /// </summary>
-        public string Path { get; set; }
+        public ExtendedQueryTagStatus Status { get; set; }
 
         /// <summary>
-        /// VR of this tag.
+        /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public string VR { get; set; }
-
-        /// <summary>
-        /// Identification code of private tag implementer.
-        /// </summary>
-        public string PrivateCreator { get; set; }
+        public QueryTagLevel Level { get; set; }
 
         public override string ToString()
         {
-            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}";
+            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}";
         }
     }
 }

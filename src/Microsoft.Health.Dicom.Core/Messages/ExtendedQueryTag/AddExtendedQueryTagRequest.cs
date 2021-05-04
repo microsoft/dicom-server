@@ -11,11 +11,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
     public class AddExtendedQueryTagRequest : IRequest<AddExtendedQueryTagResponse>
     {
-        public AddExtendedQueryTagRequest(IEnumerable<ExtendedQueryTagEntry> extendedQueryTags)
+        public AddExtendedQueryTagRequest(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags)
         {
             ExtendedQueryTags = extendedQueryTags;
         }
 
-        public IEnumerable<ExtendedQueryTagEntry> ExtendedQueryTags { get; }
+        public IEnumerable<AddExtendedQueryTagEntry> ExtendedQueryTags { get; }
     }
 }

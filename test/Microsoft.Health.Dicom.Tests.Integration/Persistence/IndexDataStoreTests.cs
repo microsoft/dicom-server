@@ -438,6 +438,67 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(1, retryCount);
         }
 
+        [Fact]
+        public async Task GivenNoDeletedInstances_NumMatchRetryCountShouldBe0()
+        {
+            await _testHelper.ClearDeletedInstanceTable();
+            var numMatchRetryCount = await _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(0);
+            Assert.Equal(0, numMatchRetryCount);
+        }
+
+        [Fact]
+        public async Task GivenFewDeletedInstances_NumMatchRetryCountShouldBeCorrect()
+        {
+            await _testHelper.ClearDeletedInstanceTable();
+
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+
+            string sopInstanceUid2 = TestUidGenerator.Generate();
+            Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+
+            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
+
+            var numMatchRetryCount = await _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(0);
+            Assert.Equal(2, numMatchRetryCount);
+        }
+
+        [Fact]
+        public async Task GivenNoDeletedInstances_OldestDeletedIsCurrentTime()
+        {
+            await _testHelper.ClearDeletedInstanceTable();
+
+            Assert.InRange(await _indexDataStore.GetOldestDeletedAsync(), Clock.UtcNow.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
+        }
+
+        [Fact]
+        public async Task GivenMultipleDeletedInstances_OldestDeletedIsCorrect()
+        {
+            await _testHelper.ClearDeletedInstanceTable();
+
+            DateTimeOffset start = Clock.UtcNow;
+
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+
+            string sopInstanceUid2 = TestUidGenerator.Generate();
+            Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+
+            await Task.Delay(5000);
+
+            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
+
+            Assert.InRange(await _indexDataStore.GetOldestDeletedAsync(), start.AddSeconds(-1), start.AddSeconds(1));
+        }
+
         private static void ValidateStudyMetadata(
             string expectedStudyInstanceUid,
             string expectedPatientId,

@@ -277,12 +277,12 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} Dicom Tag.</comment>
   </data>
   <data name="InvalidExtendedQueryTag" xml:space="preserve">
-    <value>The extended query tag '{0}' is invalid.</value>
+    <value>The extended query tag '{0}' is invalid as it cannot be parsed into a valid Dicom Tag.</value>
     <comment>{0} Dicom Tag</comment>
   </data>
   <data name="InvalidVRCode" xml:space="preserve">
-    <value>The VR code '{0}' is invalid.</value>
-    <comment>{0} VR code.</comment>
+    <value>The VR code '{0}' for tag '{1}' is invalid.</value>
+    <comment>{0} VR code. {1} Dicom Tag.</comment>
   </data>
   <data name="MissingExtendedQueryTag" xml:space="preserve">
     <value>The extended query tag(s) is missing.</value>
@@ -292,12 +292,12 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} is the DICOM tag path.</comment>
   </data>
   <data name="UnsupportedVRCodeOnTag" xml:space="preserve">
-    <value>The VR code '{0}' is not supported for tag '{1}'.</value>
-    <comment>{0} VR Code. {1} Dicom Tag.</comment>
+    <value>The VR code '{0}' is incorrectly specified for '{1}'. The expected VR code for it is '{2}'. Retry this request either with the correct VR code or without specifying it.</value>
+    <comment>{0} Specified VR Code. {1} Dicom Tag. {2} Correct VR Code for Tag.</comment>
   </data>
   <data name="UnsupportedVRCode" xml:space="preserve">
-    <value>The CR code '{0}' is not supported.</value>
-    <comment>{0} VR Code.</comment>
+    <value>The VR code '{0}' specified for tag '{1}' is not supported.</value>
+    <comment>{0} VR Code. {1} Dicom Tag.</comment>
   </data>
   <data name="Forbidden" xml:space="preserve">
     <value>Authorization failed.</value>
@@ -357,6 +357,22 @@ The first part date {1} should be lesser than or equal to the second part date {
   </data>
   <data name="ExtendedQueryTagFeatureDisabled" xml:space="preserve">
     <value>Extended Query Tag feature is disabled.</value>
+  </data>
+  <data name="QueryTagAlreadySupported" xml:space="preserve">
+    <value>The query tag '{0}' is already supported.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="MissingLevel" xml:space="preserve">
+    <value>The level for extended query tag '{0}' is missing.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="AddExtendedQueryTagEntryPropertyNotSpecified" xml:space="preserve">
+    <value>The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace.</value>
+    <comment>{0} is the property that was not specified correctly.</comment>
+  </data>
+  <data name="InvalidDicomTagLevel" xml:space="preserve">
+    <value>Input Dicom Tag Level '{0}' is invalid. It must have value 'Study', 'Series' or 'Instance'.</value>
+    <comment>{0} input Dicom Tag Level.</comment>
   </data>
   <data name="DicomFileLengthLimitExceeded" xml:space="preserve">
     <value>The dicom file in the request section exceeded the allowed limit of {0} bytes.</value>

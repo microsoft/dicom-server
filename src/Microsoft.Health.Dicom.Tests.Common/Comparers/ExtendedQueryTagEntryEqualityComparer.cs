@@ -10,14 +10,14 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
-    public class ExtendedQueryTagEntryEqualityComparer : IEqualityComparer<ExtendedQueryTagEntry>
+    public class ExtendedQueryTagEntryEqualityComparer : IEqualityComparer<GetExtendedQueryTagEntry>
     {
         private static ExtendedQueryTagEntryEqualityComparer _default = new ExtendedQueryTagEntryEqualityComparer();
 
         public static ExtendedQueryTagEntryEqualityComparer Default => _default;
 
 
-        public bool Equals(ExtendedQueryTagEntry x, ExtendedQueryTagEntry y)
+        public bool Equals(GetExtendedQueryTagEntry x, GetExtendedQueryTagEntry y)
         {
             if (x == null || y == null)
             {
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
                 && x.Status == y.Status;
         }
 
-        public int GetHashCode(ExtendedQueryTagEntry extendedQueryTagEntry)
+        public int GetHashCode(GetExtendedQueryTagEntry extendedQueryTagEntry)
         {
             EnsureArg.IsNotNull(extendedQueryTagEntry, nameof(extendedQueryTagEntry));
             return HashCode.Combine(
