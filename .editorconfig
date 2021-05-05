@@ -64,6 +64,14 @@ dotnet_naming_rule.mostly_everything_should_be_pascal_case.symbols  = mostly_eve
 dotnet_naming_rule.mostly_everything_should_be_pascal_case.style    = pascal_case_style
 dotnet_naming_symbols.mostly_everything.applicable_kinds = namespace,class,struct,interface,enum,property,method,field,event,delegate,type_parameter,local_function
 
+# interfaces should begin with an uppercase I
+dotnet_naming_rule.interfaces_begin_with_i.severity = error
+dotnet_naming_rule.interfaces_begin_with_i.symbols  = interfaces
+dotnet_naming_rule.interfaces_begin_with_i.style    = i_prefix_pascal_case
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.i_prefix_pascal_case.required_prefix = I
+dotnet_naming_style.i_prefix_pascal_case.capitalization  = pascal_case
+
 # name all constant fields using PascalCase
 dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
@@ -114,27 +122,27 @@ dotnet_style_readonly_field = true:error
 dotnet_code_quality_unused_parameters = non_public:warning
 
 # Expression-level preferences
-dotnet_style_object_initializer = true:suggestion
+dotnet_style_object_initializer     = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_null_propagation = true:suggestion
+dotnet_style_explicit_tuple_names   = true:suggestion
+dotnet_style_coalesce_expression    = true:suggestion
+dotnet_style_null_propagation       = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:error
-dotnet_style_prefer_conditional_expression_over_assignment = true:silent
-dotnet_style_prefer_conditional_expression_over_return = true:silent
+dotnet_style_prefer_inferred_tuple_names                         = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names         = true:suggestion
+dotnet_style_prefer_auto_properties                              = true:error
+dotnet_style_prefer_conditional_expression_over_assignment       = true:silent
+dotnet_style_prefer_conditional_expression_over_return           = true:silent
 csharp_prefer_simple_default_expression = true:suggestion
 
 # Expression-bodied members
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
-csharp_style_expression_bodied_lambdas = true:none
+csharp_style_expression_bodied_methods         = false:none
+csharp_style_expression_bodied_constructors    = false:none
+csharp_style_expression_bodied_operators       = false:none
+csharp_style_expression_bodied_properties      = true:none
+csharp_style_expression_bodied_indexers        = true:none
+csharp_style_expression_bodied_accessors       = true:none
+csharp_style_expression_bodied_lambdas         = true:none
 csharp_style_expression_bodied_local_functions = false:silent
 
 # Pattern matching
