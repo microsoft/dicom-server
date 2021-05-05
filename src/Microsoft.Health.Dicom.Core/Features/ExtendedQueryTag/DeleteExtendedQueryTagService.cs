@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
@@ -19,14 +20,17 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IDicomTagParser _dicomTagParser;
+        private readonly IReindexService _reindexService;
 
-        public DeleteExtendedQueryTagService(IExtendedQueryTagStore extendedQueryTagStore, IDicomTagParser dicomTagParser)
+        public DeleteExtendedQueryTagService(IExtendedQueryTagStore extendedQueryTagStore, IDicomTagParser dicomTagParser, IReindexService reindexService)
         {
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
+            EnsureArg.IsNotNull(reindexService, nameof(reindexService));
 
             _extendedQueryTagStore = extendedQueryTagStore;
             _dicomTagParser = dicomTagParser;
+            _reindexService = reindexService;
         }
 
         public async Task DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
@@ -44,7 +48,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
             if (extendedQueryTagEntries.Count > 0)
             {
-                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(normalizedPath, extendedQueryTagEntries[0].VR, cancellationToken);
+                var entry = extendedQueryTagEntries[0];
+
+                // TODO: merge this into SQL transaction? seems not work with optionmization if merged.
+                if (entry.Status == ExtendedQueryTagStatus.Adding)
+                {
+                    await _reindexService.RemoveTagFromReindexing(entry, cancellationToken);
+                }
+                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(normalizedPath, entry.VR, cancellationToken);
             }
             else
             {

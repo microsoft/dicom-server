@@ -28,8 +28,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <returns>A task that represents the asynchronous create operation.</returns>
         Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
-        // TODO: should be  IEnumerable<QueryTag> queryTags
-        Task ReindexInstanceAsync(IEnumerable<string> queryTags, long watermark, CancellationToken cancellationToken = default);
+        // TODO: should be  IEnumerable<QueryTag> queryTags     ?
+        Task ReindexInstanceAsync(IEnumerable<ExtendedQueryTagStoreEntry> queryTags, long watermark, CancellationToken cancellationToken = default);
 
         Task<IReadOnlyList<VersionedInstanceIdentifier>> FetchRecentNInstancesAsync(long maxWatermark, int topN, CancellationToken cancellationToken = default);
 

@@ -4,13 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Jobs
+namespace Microsoft.Health.Dicom.Core.Features.Reindex
 {
-    public class ReindexJobInput
+    public interface IReindexJobClient
     {
-        public IEnumerable<ExtendedQueryTagStoreEntry> ExtendedQueryTags { get; set; }
-        public long MaxWatermark { get; set; }
+        Task<string> StartNewReindexJob(IEnumerable<ExtendedQueryTagStoreEntry> extendedQueryTagStoreEntries, CancellationToken cancellationToken = default);
+
     }
 }
