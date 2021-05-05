@@ -31,6 +31,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <returns>Extended Query tag entry/entries with path, VR, level and status.</returns>
         Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(string path = null, CancellationToken cancellationToken = default);
 
+
+        Task<IEnumerable<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(IEnumerable<int> keys, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Delete extended query tag.
         /// </summary>

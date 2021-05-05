@@ -8,7 +8,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Reindex
     /// <summary>
     /// Represent each extended query tag entry has retrieved from the store.
     /// </summary>
-    public enum ReindexJobTagStatus
+    public enum ExtendedQueryTagJobStatus
+
     {
         Executing,
         Paused

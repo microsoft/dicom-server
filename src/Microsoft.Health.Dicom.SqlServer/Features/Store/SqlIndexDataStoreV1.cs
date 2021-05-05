@@ -276,5 +276,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
             }
         }
+
+        public Task ReindexInstanceAsync(IEnumerable<QueryTag> queryTags, long watermark, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IReadOnlyList<VersionedInstanceIdentifier>> FetchRecentNInstancesAsync(long maxWatermark, int topN, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

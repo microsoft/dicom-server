@@ -14,25 +14,27 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Reindex;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Jobs
 {
-#pragma warning disable CA1822 // Mark members as static
-
     public class ReindexJob
     {
 
         private readonly IIndexDataStore _indexDataStore;
-        private readonly IReindexJobTagStore _reindexJobStore;
+        private readonly IExtendedQueryTagJobStore _reindexJobStore;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
 
-        public ReindexJob(IIndexDataStore indexDataStore, IReindexJobTagStore reindexJobStore)
+        public ReindexJob(IIndexDataStore indexDataStore, IExtendedQueryTagJobStore reindexJobStore, IExtendedQueryTagStore extendedQueryTagStore)
         {
             EnsureArg.IsNotNull(indexDataStore);
             EnsureArg.IsNotNull(reindexJobStore);
+            EnsureArg.IsNotNull(extendedQueryTagStore);
             _indexDataStore = indexDataStore;
             _reindexJobStore = reindexJobStore;
+            _extendedQueryTagStore = extendedQueryTagStore;
         }
 
         [FunctionName(nameof(ReindexOrchestrator))]
@@ -68,11 +70,12 @@ namespace Microsoft.Health.Dicom.Jobs
             foreach (var instance in instances)
             {
                 // get qualified tags
-                var jobTags = await _reindexJobStore.GetReindexJobStoreEntryAsync(entryInput.JobId);
-                jobTags = jobTags.Where(x => x.Status == ReindexJobTagStatus.Executing);
+                var jobTags = await _reindexJobStore.GetExtendedQueryTagJobStoreEntryAsync(entryInput.JobId);
+                jobTags = jobTags.Where(x => x.Status == ExtendedQueryTagJobStatus.Executing);
+                var tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(jobTags.Select(x => x.TagKey));
 
                 // start reindex
-                await _indexDataStore.ReindexInstanceAsync(jobTags.Select(x => x.QueryTagStoreEntry), instance.Version);
+                await _indexDataStore.ReindexInstanceAsync(tags.Select(x => new QueryTag(x)), instance.Version);
             }
 
             long min = instances.Count == 0 ? -1 : instances.Min(x => x.Version) - 1;
@@ -124,6 +127,6 @@ namespace Microsoft.Health.Dicom.Jobs
             return input;
         }
     }
-#pragma warning restore CA1822 // Mark members as static
+
 }
 

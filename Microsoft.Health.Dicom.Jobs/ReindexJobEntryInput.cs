@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Jobs
 
         public override string ToString()
         {
-            return $"JobId:{JobId}, MaxWatermark: {MaxWatermark}, TopN: {TopN}";
+            return $"JobId:{JobId}, MaxWatermark: {MaxWatermark}";
         }
     }
 }

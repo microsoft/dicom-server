@@ -151,5 +151,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 }
             }
         }
+
+        Task<IEnumerable<ExtendedQueryTagStoreEntry>> IExtendedQueryTagStore.AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(IEnumerable<int> keys, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

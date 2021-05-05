@@ -12,12 +12,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Reindex
     /// <summary>
     /// The store saving extended query tags.
     /// </summary>
-    public interface IReindexJobTagStore
+    public interface IExtendedQueryTagJobStore
+
     {
-        Task<IEnumerable<ReindexJobTagStoreEntry>> GetReindexJobStoreEntryAsync(string jobId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<ExtendedQueryJobTagStoreEntry>> GetExtendedQueryTagJobStoreEntryAsync(string jobId, CancellationToken cancellationToken = default);
 
-        Task UpdateJobTagStatus(string jobId, int tagKey, ReindexJobTagStatus newStatus, CancellationToken cancellationToken = default);
+        Task<ExtendedQueryJobTagStoreEntry> GetExtendedQueryTagJobStoreEntryAsync(int tagKey, CancellationToken cancellationToken = default);
 
-        Task<ReindexJobTagStoreEntry> GetReindexJobStoreEntryAsync(int tagKey, CancellationToken cancellationToken = default);
+        Task UpdateExtendedQueryTagJobStatus(string jobId, int tagKey, ExtendedQueryTagJobStatus newStatus, CancellationToken cancellationToken = default);
+
     }
 }

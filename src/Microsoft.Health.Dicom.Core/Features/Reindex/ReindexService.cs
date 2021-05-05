@@ -14,8 +14,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Reindex
     public class ReindexService : IReindexService
     {
         private readonly IReindexJobClient _reindexJobClient;
-        private readonly IReindexJobTagStore _reindexJobTagStore;
-        public ReindexService(IReindexJobClient reindexJobClient, IReindexJobTagStore reindexJobTagStore)
+        private readonly IExtendedQueryTagJobStore _reindexJobTagStore;
+        public ReindexService(IReindexJobClient reindexJobClient, IExtendedQueryTagJobStore reindexJobTagStore)
         {
             EnsureArg.IsNotNull(reindexJobClient);
             EnsureArg.IsNotNull(reindexJobTagStore);
@@ -26,9 +26,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Reindex
         public async Task RemoveTagFromReindexing(ExtendedQueryTagStoreEntry extendedQueryTagEntry, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(extendedQueryTagEntry);
-            var row = await _reindexJobTagStore.GetReindexJobStoreEntryAsync(extendedQueryTagEntry.Key, cancellationToken);
+            var row = await _reindexJobTagStore.GetExtendedQueryTagJobStoreEntryAsync(extendedQueryTagEntry.Key, cancellationToken);
             // TODO: what if fail to update job tag status?
-            await _reindexJobTagStore.UpdateJobTagStatus(row.JobId, extendedQueryTagEntry.Key, ReindexJobTagStatus.Paused, cancellationToken);
+            await _reindexJobTagStore.UpdateExtendedQueryTagJobStatus(row.JobId, extendedQueryTagEntry.Key, ExtendedQueryTagJobStatus.Paused, cancellationToken);
         }
 
         public Task<string> StartNewReindexJob(IEnumerable<ExtendedQueryTagStoreEntry> extendedQueryTagStoreEntries, CancellationToken cancellationToken = default)
