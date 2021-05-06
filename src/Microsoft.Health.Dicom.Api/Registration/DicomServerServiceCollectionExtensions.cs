@@ -105,6 +105,9 @@ namespace Microsoft.AspNetCore.Builder
 
             services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
+            // Used by the BackgroundServiceHealthCheck
+            services.AddApplicationInsightsTelemetry();
+
             // Disable fo-dicom data item validation. Disabling at global level
             // Opt-in validation instead of opt-out
             // De-serializing to Dataset while read has no Dataset level option to disable validation
