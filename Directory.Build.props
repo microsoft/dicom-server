@@ -21,13 +21,6 @@
     <WarningsAsErrors />
   </PropertyGroup>
 
-  <PropertyGroup>
-    <!-- CA1031 - Allow Exception to be caught -->
-    <!-- CA1305 - Allow the current locale settings to be used by default in string.Format -->
-    <!-- NU5104 - Allow pre-release dependencies -->
-    <NoWarn>$(NoWarn);CA1031;CA1305;NU5104</NoWarn>
-  </PropertyGroup>
-
   <Choose>
     <When Condition="$(MSBuildProjectName.Contains('Test'))">
       <PropertyGroup>
