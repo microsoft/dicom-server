@@ -116,14 +116,14 @@ namespace Microsoft.Health.DicomCast.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<ImagingStudySeriesPropertySynchronizer>()
-               .Singleton()
-               .AsSelf()
-               .AsImplementedInterfaces();
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             services.Add<ImagingStudyInstancePropertySynchronizer>()
-               .Singleton()
-               .AsSelf()
-               .AsImplementedInterfaces();
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             services.Add<FhirTransactionRequestResponsePropertyAccessors>()
                 .Singleton()
@@ -145,6 +145,11 @@ namespace Microsoft.Health.DicomCast.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<ImagingStudyPipelineStep>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<ObservationPipelineStep>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();

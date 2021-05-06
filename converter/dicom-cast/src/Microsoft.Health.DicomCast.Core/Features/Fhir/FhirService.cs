@@ -27,7 +27,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         private readonly IFhirClient _fhirClient;
         private readonly IFhirResourceValidator _fhirResourceValidator;
 
-        private readonly IEnumerable<FHIRVersion> _supportedFHIRVersions = new List<FHIRVersion> { FHIRVersion.N4_0_0, FHIRVersion.N4_0_1 };
+        private readonly IEnumerable<FHIRVersion> _supportedFHIRVersions = new List<FHIRVersion> {FHIRVersion.N4_0_0, FHIRVersion.N4_0_1};
 
         public FhirService(IFhirClient fhirClient, IFhirResourceValidator fhirResourceValidator)
         {
@@ -49,6 +49,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         /// <inheritdoc/>
         public Task<Endpoint> RetrieveEndpointAsync(string queryParameter, CancellationToken cancellationToken)
             => SearchByQueryParameterAsync<Endpoint>(queryParameter, cancellationToken);
+
+        public Task<IEnumerable<Observation>> RetrieveObservationsAsync(Identifier identifier, CancellationToken cancellationToken = default)
+        {
+            return SearchMultiByIdentifierAsync<Observation>(identifier, cancellationToken);
+        }
+
+        public Task<Observation> RetrieveObservationAsync(Identifier imagingStudyID, CancellationToken cancellationToken)
+            => SearchByIdentifierAsync<Observation>(imagingStudyID, cancellationToken);
 
         /// <inheritdoc/>
         public async Task CheckFhirServiceCapability(CancellationToken cancellationToken)
@@ -80,6 +88,59 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
             return await SearchByQueryParameterAsync<TResource>(identifier.ToSearchQueryParameter(), cancellationToken);
+        }
+
+
+        private async Task<IEnumerable<TResource>> SearchMultiByIdentifierAsync<TResource>(Identifier identifier, CancellationToken cancellationToken)
+            where TResource : Resource, new()
+        {
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
+            
+            return await SearchMultiByQueryParameterAsync<TResource>(identifier.ToSearchQueryParameter(), cancellationToken);
+        }
+
+        private async Task<IEnumerable<TResource>> SearchMultiByQueryParameterAsync<TResource>(string queryParameter, CancellationToken cancellationToken)
+            where TResource : Resource, new()
+        {
+            EnsureArg.IsNotNullOrEmpty(queryParameter, nameof(queryParameter));
+            string fhirTypeName = ModelInfo.GetFhirTypeNameForType(typeof(TResource));
+            if (!Enum.TryParse(fhirTypeName, out ResourceType resourceType))
+            {
+                Debug.Assert(false, "Resource type could not be parsed from TResource");
+            }
+
+            Bundle bundle = await _fhirClient.SearchAsync(
+                resourceType,
+                queryParameter,
+                count: null,
+                cancellationToken);
+
+
+            var results = new List<TResource>();
+
+            while (bundle != null)
+            {
+                IEnumerable<TResource> resources = bundle.Entry
+                    .Select(component => (TResource)component.Resource);
+                results.AddRange(resources);
+
+                if (bundle.NextLink != null)
+                {
+                    bundle = await _fhirClient.SearchAsync(bundle.NextLink.ToString(), cancellationToken);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            // Validate to make sure the resources are valid.
+            foreach (TResource resource in results)
+            {
+                _fhirResourceValidator.Validate(resource);
+            }
+
+            return results;
         }
 
         private async Task<TResource> SearchByQueryParameterAsync<TResource>(string queryParameter, CancellationToken cancellationToken)

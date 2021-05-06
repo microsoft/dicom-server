@@ -25,5 +25,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// Gets or sets the imaging study.
         /// </summary>
         T ImagingStudy { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Observation
+        /// </summary>
+        T Observation { get; set; }
     }
 }
