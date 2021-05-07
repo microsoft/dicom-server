@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
 {
     public class BackgroundServiceHealthCheckCache
     {
-        private IMemoryCache _cache;
+        private readonly IMemoryCache _cache;
 
         private const string OldestDeleteInstanceCacheKey = "_oldestDeleted";
 

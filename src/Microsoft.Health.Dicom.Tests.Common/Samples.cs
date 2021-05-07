@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
 {
     public static class Samples
     {
-        private static readonly Random _random = new Random();
+        private static readonly Random Rng = new Random();
 
         public static IEnumerable<DicomFile> GetDicomFilesForTranscoding()
         {
@@ -215,7 +215,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             var result = new byte[pixelDataSize];
             for (var i = 0; i < pixelDataSize; i++)
             {
-                result[i] = (byte)_random.Next(0, 255);
+                result[i] = (byte)Rng.Next(0, 255);
             }
 
             return new MemoryByteBuffer(result);

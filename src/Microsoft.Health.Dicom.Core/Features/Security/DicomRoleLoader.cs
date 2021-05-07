@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Security
 {
     public class DicomRoleLoader : RoleLoader<DataActions>
     {
-        private Dictionary<string, DataActions> _dataActionsMap = new Dictionary<string, DataActions>();
+        private readonly Dictionary<string, DataActions> _dataActionsMap = new Dictionary<string, DataActions>();
 
         public DicomRoleLoader(AuthorizationConfiguration<DataActions> authorizationConfiguration, IHostEnvironment hostEnvironment)
             : base(authorizationConfiguration, hostEnvironment)

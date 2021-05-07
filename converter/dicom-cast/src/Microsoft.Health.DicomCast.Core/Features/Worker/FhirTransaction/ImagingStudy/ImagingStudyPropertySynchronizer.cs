@@ -22,7 +22,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         private readonly DicomCastConfiguration _dicomCastConfiguration;
         private readonly IExceptionStore _exceptionStore;
-        private IEnumerable<(Action<ImagingStudy, FhirTransactionContext> PropertyAction, bool RequiredProperty)> propertiesToSync = new List<(Action<ImagingStudy, FhirTransactionContext>, bool)>()
+        private readonly IEnumerable<(Action<ImagingStudy, FhirTransactionContext> PropertyAction, bool RequiredProperty)> _propertiesToSync = new List<(Action<ImagingStudy, FhirTransactionContext>, bool)>()
             {
                 (AddStartedElement, false),
                 (AddImagingStudyEndpoint, false),
@@ -57,7 +57,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 return;
             }
 
-            foreach (var property in propertiesToSync)
+            foreach (var property in _propertiesToSync)
             {
                 await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(imagingStudy, context, property.PropertyAction, property.RequiredProperty, _dicomCastConfiguration.Features.EnforceValidationOfTagValues, _exceptionStore, cancellationToken);
             }

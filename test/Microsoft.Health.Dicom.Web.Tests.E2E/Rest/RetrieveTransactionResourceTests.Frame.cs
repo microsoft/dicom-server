@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenSupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
         {
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
-            DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);             
+            DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);
             var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 
             await InternalStoreAsync(new[] { inputDicomFile });
