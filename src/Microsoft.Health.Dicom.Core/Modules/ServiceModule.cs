@@ -10,7 +10,6 @@ using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.HealthCheck;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -142,12 +141,6 @@ namespace Microsoft.Health.Dicom.Core.Modules
                    .Scoped()
                    .AsSelf()
                    .AsImplementedInterfaces();
-
-            services.AddApplicationInsightsTelemetry();
-
-            services.AddSingleton<BackgroundServiceHealthCheckCache>();
-
-            services.AddHealthChecks().AddCheck<BackgroundServiceHealthCheck>(name: "BackgroundServiceHealthCheck");
 
             if (_featureConfiguration.EnableExtendedQueryTags)
             {

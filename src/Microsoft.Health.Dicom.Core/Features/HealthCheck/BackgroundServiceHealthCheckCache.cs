@@ -13,13 +13,17 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
 {
     public class BackgroundServiceHealthCheckCache
     {
-        private readonly IMemoryCache _cache;
+        private readonly MemoryCache _cache;
 
         private const string OldestDeleteInstanceCacheKey = "_oldestDeleted";
-
         private const string NumDeleteMaxRetryCacheKey = "_numMaxRetries";
 
-        public BackgroundServiceHealthCheckCache(IMemoryCache memoryCache)
+        public BackgroundServiceHealthCheckCache()
+            : this(new MemoryCache(new MemoryCacheOptions()))
+        {
+        }
+
+        internal BackgroundServiceHealthCheckCache(MemoryCache memoryCache)
         {
             EnsureArg.IsNotNull(memoryCache, nameof(memoryCache));
 
