@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 {
     public class ChangeFeedService : IChangeFeedService
     {
-        private const int _limitMax = 100;
+        private const int MaxLimit = 100;
         private readonly IChangeFeedStore _changeFeedStore;
         private readonly IMetadataStore _metadataStore;
 
@@ -36,9 +36,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
                 throw new InvalidChangeFeedOffsetException();
             }
 
-            if (limit < 1 || limit > _limitMax)
+            if (limit < 1 || limit > MaxLimit)
             {
-                throw new ChangeFeedLimitOutOfRangeException(_limitMax);
+                throw new ChangeFeedLimitOutOfRangeException(MaxLimit);
             }
 
             IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(offset, limit, cancellationToken);

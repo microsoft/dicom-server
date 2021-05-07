@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private const string RequestOriginalContentTestFolder = TestFileFolder + "RequestOriginalContent";
 
         private readonly IDicomWebClient _client;
-        private HashSet<string> _studiesToClean = new HashSet<string>();
+        private readonly HashSet<string> _studiesToClean = new HashSet<string>();
 
         public RetrieveTransactionResourceTests(HttpIntegrationTestFixture<Startup> fixture)
         {

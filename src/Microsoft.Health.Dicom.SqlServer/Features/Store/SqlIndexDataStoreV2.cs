@@ -75,17 +75,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
                 catch (SqlException ex)
                 {
-                    switch (ex.Number)
+                    if (ex.Number == SqlErrorCodes.Conflict)
                     {
-                        case SqlErrorCodes.Conflict:
-                            {
-                                if (ex.State == (byte)IndexStatus.Creating)
-                                {
-                                    throw new PendingInstanceException();
-                                }
+                        if (ex.State == (byte)IndexStatus.Creating)
+                        {
+                            throw new PendingInstanceException();
+                        }
 
-                                throw new InstanceAlreadyExistsException();
-                            }
+                        throw new InstanceAlreadyExistsException();
                     }
 
                     throw new DataStoreException(ex);
