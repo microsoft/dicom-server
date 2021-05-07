@@ -16,7 +16,7 @@ trim_trailing_whitespace = true
 indent_size = 2
 
 # Generated code
-[*{_AssemblyInfo.cs,.notsupported.cs}]
+[*{_AssemblyInfo.cs,.notsupported.cs,.Generated.cs}]
 generated_code = true
 
 # C# files
@@ -242,7 +242,7 @@ indent_size = 2
 [*.{props,targets,config,nuspec}]
 indent_size = 2
 
-# YAML config files
+# YAML files
 [*.{yml,yaml}]
 indent_size = 2
 
@@ -251,7 +251,3 @@ indent_size = 2
 end_of_line = lf
 [*.{cmd,bat}]
 end_of_line = crlf
-
-# YAML files
-[*.{yml,yaml}]
-indent_size = 2
