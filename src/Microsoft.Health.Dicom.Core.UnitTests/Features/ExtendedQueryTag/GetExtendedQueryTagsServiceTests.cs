@@ -19,9 +19,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 {
     public class GetExtendedQueryTagsServiceTests
     {
-        private IExtendedQueryTagStore _extendedQueryTagStore;
-        private IDicomTagParser _dicomTagParser;
-        private IGetExtendedQueryTagsService _getExtendedQueryTagsService;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IDicomTagParser _dicomTagParser;
+        private readonly IGetExtendedQueryTagsService _getExtendedQueryTagsService;
 
         public GetExtendedQueryTagsServiceTests()
         {

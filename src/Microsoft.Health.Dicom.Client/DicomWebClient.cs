@@ -303,11 +303,15 @@ namespace Microsoft.Health.Dicom.Client
             return new DicomWebResponse(response);
         }
 
-        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(string requestUri, CancellationToken cancellationToken)
+        [Obsolete("Please use QueryAsync(Uri, CancellationToken) instead.")]
+        public Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(string requestUri, CancellationToken cancellationToken)
         {
-            using var request = new HttpRequestMessage(
-                HttpMethod.Get,
-                new Uri(requestUri, UriKind.Relative));
+            return QueryAsync(new Uri(requestUri, UriKind.Relative), cancellationToken);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(Uri requestUri, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
             request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
 

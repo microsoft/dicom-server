@@ -20,7 +20,7 @@ namespace RetrieveBlobNames
 {
     public static class Program
     {
-        private static string _containerConnectionString;
+        private static string s_containerConnectionString;
         private const string ContainerName = "metadatacontainer";
 
         public static async Task Main(string[] args)
@@ -41,11 +41,11 @@ namespace RetrieveBlobNames
 
             KeyVaultSecret secret = client.GetSecret(KnownSecretNames.BlobStoreConnectionString);
 
-            _containerConnectionString = secret.Value;
+            s_containerConnectionString = secret.Value;
 
             string filepath = args[0];
 
-            var container = new BlobContainerClient(_containerConnectionString, ContainerName);
+            var container = new BlobContainerClient(s_containerConnectionString, ContainerName);
             int i = 0;
             var studies = new HashSet<string>();
             var series = new HashSet<string>();

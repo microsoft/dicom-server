@@ -24,7 +24,10 @@ namespace Microsoft.Health.Dicom.Client
 
         Task<DicomWebResponse<ChangeFeedEntry>> GetChangeFeedLatest(string queryString = "", CancellationToken cancellationToken = default);
 
+        [Obsolete("Please use QueryAsync(Uri, CancellationToken) instead.")]
         Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(string requestUri, CancellationToken cancellationToken = default);
+
+        Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(Uri requestUri, CancellationToken cancellationToken = default);
 
         Task<DicomWebAsyncEnumerableResponse<Stream>> RetrieveFramesAsync(Uri requestUri, string mediaType = DicomWebConstants.ApplicationOctetStreamMediaType, string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax, CancellationToken cancellationToken = default);
 

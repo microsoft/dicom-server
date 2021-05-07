@@ -12,9 +12,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class QueryTagComparer : IEqualityComparer<QueryTag>
     {
-        private static QueryTagComparer _default = new QueryTagComparer();
-
-        public static QueryTagComparer Default => _default;
+        public static QueryTagComparer Default { get; } = new QueryTagComparer();
 
         public bool Equals(QueryTag x, QueryTag y)
         {

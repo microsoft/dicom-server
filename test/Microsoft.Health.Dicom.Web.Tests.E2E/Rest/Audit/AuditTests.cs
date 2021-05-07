@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ThenAuditLogEntriesShouldBeCreated()
         {
             await ExecuteAndValidate(
-                () => _client.QueryAsync("/studies?StudyDate=20200101"),
+                () => _client.QueryAsync(new Uri("/studies?StudyDate=20200101", UriKind.Relative)),
                 AuditEventSubType.Query,
                 "studies?StudyDate=20200101",
                 HttpStatusCode.NoContent);

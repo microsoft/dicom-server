@@ -14,8 +14,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.HealthCheck
 {
     public class BackgroundServiceHealthCheckCacheTests
     {
-        private BackgroundServiceHealthCheckCache _backgroundServiceHealthCheckCache;
-        private MemoryCache _cache;
+        private readonly BackgroundServiceHealthCheckCache _backgroundServiceHealthCheckCache;
+        private readonly MemoryCache _cache;
         private DateTimeOffset _testDateTimeOffset = new DateTimeOffset();
         private int _testNumRetries = 0;
 

@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public static QueryTagLevel GetQueryTagLevel(DicomTag coreTag)
         {
             EnsureArg.IsNotNull(coreTag, nameof(coreTag));
-            
+
             if (CoreStudyTags.Contains(coreTag))
             {
                 return QueryTagLevel.Study;

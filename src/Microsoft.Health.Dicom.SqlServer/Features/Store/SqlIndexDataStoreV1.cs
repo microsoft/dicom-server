@@ -68,17 +68,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
                 catch (SqlException ex)
                 {
-                    switch (ex.Number)
+                    if (ex.Number == SqlErrorCodes.Conflict)
                     {
-                        case SqlErrorCodes.Conflict:
-                            {
-                                if (ex.State == (byte)IndexStatus.Creating)
-                                {
-                                    throw new PendingInstanceException();
-                                }
+                        if (ex.State == (byte)IndexStatus.Creating)
+                        {
+                            throw new PendingInstanceException();
+                        }
 
-                                throw new InstanceAlreadyExistsException();
-                            }
+                        throw new InstanceAlreadyExistsException();
                     }
 
                     throw new DataStoreException(ex);
@@ -295,7 +292,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     using (SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken))
                     {
                         await sqlDataReader.ReadAsync(cancellationToken);
-                        
                         return (int)sqlDataReader[0];
                     }
                 }
@@ -328,7 +324,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                         return (DateTimeOffset)sqlDataReader[0];
                     }
                 }
-                catch(SqlException ex)
+                catch (SqlException ex)
                 {
                     throw new DataStoreException(ex);
                 }
