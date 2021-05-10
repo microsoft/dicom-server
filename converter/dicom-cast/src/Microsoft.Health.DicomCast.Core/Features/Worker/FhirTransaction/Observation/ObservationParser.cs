@@ -43,20 +43,41 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         {
             var parsedObservations = new ParsedObservation();
 
-            // Recursive loop to add all found Dose Summaries and Irradiation Events to the passed observation set
-            static void ObservationParseLoop(
-                DicomDataset dataset,
-                ResourceReference patientRef,
-                ResourceReference imagingStudyRef,
-                ParsedObservation observations
-            )
+            // run the loop
+            ObservationParseLoop(dataset, patientRef, imagingStudyRef, parsedObservations);
+
+            // Set each observation status to Preliminary
+            foreach (Observation doseSummary in parsedObservations.DoseSummaries)
             {
-                var report = new DicomStructuredReport(dataset);
-                // see if the current report code matches any of the observation container codes; if so, create the appropriate observation
-                try
+                doseSummary.Status = ObservationStatus.Preliminary;
+            }
+
+            foreach (Observation irradiationEvent in parsedObservations.IrradiationEvents)
+            {
+                irradiationEvent.Status = ObservationStatus.Preliminary;
+            }
+
+            return parsedObservations;
+        }
+
+        /// <summary>
+        /// Helper function to add all found Dose Summaries and Irradiation Events to the passed observation set
+        /// </summary>
+        private static void ObservationParseLoop(
+            DicomDataset dataset,
+            ResourceReference patientRef,
+            ResourceReference imagingStudyRef,
+            ParsedObservation observations)
+        {
+            var report = new DicomStructuredReport(dataset);
+            // see if the current report code matches any of the observation container codes; if so, create the appropriate observation
+            try
+            {
+                DicomCodeItem code = report.Code;
+                if (code != null)
                 {
                     (string Value, string Scheme) lookupTuple = (report.Code.Value, report.Code.Scheme);
-                    if (DoseSummaryReportCodes.Contains(lookupTuple))
+                    if (ObservationConstants.DoseSummaryReportCodes.Contains(lookupTuple))
                     {
                         Observation doseSummary = CreateDoseSummary(
                             dataset,
@@ -65,39 +86,25 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                         observations.DoseSummaries.Add(doseSummary);
                     }
 
-                    if (IrradiationEventCodes.Contains(lookupTuple))
+                    if (ObservationConstants.IrradiationEventCodes.Contains(lookupTuple))
                     {
                         Observation irradiationEvent = CreateIrradiationEvent(dataset, patientRef);
                         observations.IrradiationEvents.Add(irradiationEvent);
                     }
                 }
-                catch (MissingMemberException)
-                {
-                    // Occurs when a required attribute is unable to be extracted from a dataset.
-                    // Ignore and move onto the next one.
-                }
-                catch (Exception)
-                {
-                    // exception thrown if the report does not contain a Code. In which case we ignore it
-                    // and move onto the next reports
-                }
-
-                // Recursively iterate through every child in the document checking for nested observations.
-                // Return the final aggregated list of observations.
-                foreach (DicomContentItem childItem in report.Children())
-                    ObservationParseLoop(childItem.Dataset, patientRef, imagingStudyRef, observations);
+            }
+            catch (MissingMemberException)
+            {
+                // Occurs when a required attribute is unable to be extracted from a dataset.
+                // Ignore and move onto the next one.
             }
 
-            // run the loop
-            ObservationParseLoop(dataset, patientRef, imagingStudyRef, parsedObservations);
-
-            // Set each observation status to Preliminary
-            foreach (Observation doseSummary in parsedObservations.DoseSummaries)
-                doseSummary.Status = ObservationStatus.Preliminary;
-            foreach (Observation irradiationEvent in parsedObservations.IrradiationEvents)
-                irradiationEvent.Status = ObservationStatus.Preliminary;
-
-            return parsedObservations;
+            // Recursively iterate through every child in the document checking for nested observations.
+            // Return the final aggregated list of observations.
+            foreach (DicomContentItem childItem in report.Children())
+            {
+                ObservationParseLoop(childItem.Dataset, patientRef, imagingStudyRef, observations);
+            }
         }
 
         /// <summary>
@@ -150,21 +157,21 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             // Add all structured report information
             ApplyDicomTransforms(observation, dataset, new List<(string, string)>()
             {
-                EntranceExposureAtRp,
-                AccumulatedAverageGlandularDose,
-                DoseAreaProductTotal,
-                FluoroDoseAreaProductTotal,
-                AcquisitionDoseAreaProductTotal,
-                TotalFluoroTime,
-                TotalNumberOfRadiographicFrames,
-                AdministeredActivity,
-                CtDoseLengthProductTotal,
-                TotalNumberOfIrradiationEvents,
-                MeanCtdIvol,
-                RadiopharmaceuticalAgent,
-                RadiopharmaceuticalVolume,
-                Radionuclide,
-                RouteOfAdministration,
+                ObservationConstants.EntranceExposureAtRp,
+                ObservationConstants.AccumulatedAverageGlandularDose,
+                ObservationConstants.DoseAreaProductTotal,
+                ObservationConstants.FluoroDoseAreaProductTotal,
+                ObservationConstants.AcquisitionDoseAreaProductTotal,
+                ObservationConstants.TotalFluoroTime,
+                ObservationConstants.TotalNumberOfRadiographicFrames,
+                ObservationConstants.AdministeredActivity,
+                ObservationConstants.CtDoseLengthProductTotal,
+                ObservationConstants.TotalNumberOfIrradiationEvents,
+                ObservationConstants.MeanCtdIvol,
+                ObservationConstants.RadiopharmaceuticalAgent,
+                ObservationConstants.RadiopharmaceuticalVolume,
+                ObservationConstants.Radionuclide,
+                ObservationConstants.RouteOfAdministration,
             });
 
             return observation;
@@ -190,26 +197,26 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             try
             {
                 DicomContentItem irradiationEventItem = report.Children()
-                    .First(item => (item.Code.Value, item.Code.Scheme) == IrradiationEventUid);
+                    .First(item => (item.Code.Value, item.Code.Scheme) == ObservationConstants.IrradiationEventUid);
                 DicomUID irradiationEventUidValue = irradiationEventItem.Get<DicomUID>();
                 // TODO is this the right "system"???
-                var system = irradiationEventItem.Code.Scheme == Dcm
-                    ? DcmSystem
-                    : SctSystem;
+                var system = irradiationEventItem.Code.Scheme == ObservationConstants.Dcm
+                    ? ObservationConstants.DcmSystem
+                    : ObservationConstants.SctSystem;
                 var identifier = new Identifier(irradiationEventUidValue.Name, irradiationEventUidValue.UID);
                 observation.Identifier.Add(identifier);
             }
             catch (Exception ex)
             {
-                throw new MissingMemberException($"unable to extract {nameof(IrradiationEventUid)} from dataset: {ex.Message}");
+                throw new MissingMemberException($"unable to extract {nameof(ObservationConstants.IrradiationEventUid)} from dataset: {ex.Message}");
             }
 
             // Extract the necessary information
             ApplyDicomTransforms(observation, report.Dataset, new List<(string, string)>()
             {
-                MeanCtdIvol,
-                Dlp,
-                CtdIwPhantomType
+                ObservationConstants.MeanCtdIvol,
+                ObservationConstants.Dlp,
+                ObservationConstants.CtdIwPhantomType
             });
 
             return observation;
@@ -242,110 +249,29 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 ApplyDicomTransforms(observation, child.Dataset, onlyInclude);
         }
 
-        // https://www.hl7.org/fhir/terminologies-systems.html
-        private const string SctSystem = "http://snomed.info/sct";
-        private const string DcmSystem = "http://dicom.nema.org/resources/ontology/DCM";
-
-        private const string Dcm = "DCM";
-        private const string Sct = "Sct";
-
-        //------------------------------------------------------------
-        // Report codes
-        // - When you encounter this code in a structured report, it means to create a new "Does Summary" Observation
-        //------------------------------------------------------------
-        private static readonly (string, string) RadiopharmaceuticalRadiationDoseReport = ("113500", Dcm); // (113500,DCM,"Radiopharmaceutical Radiation Dose Report")
-        private static readonly (string, string) XRayRadiationDoseReport = ("113701", Dcm); // (113701,DCM,"X-Ray Radiation Dose Report")
-
-
-        //------------------------------------------------------------
-        // Irradiation Event Codes
-        // - When you encounter this code in a structured report, it means to create a new "Irradiation Event" Observation
-        //------------------------------------------------------------
-        private static readonly (string, string) IrradiationEventXRayData = ("113706", Dcm); // (113706,DCM,"Irradiation Event X-Ray Data")
-        private static readonly (string, string) CtAcquisition = ("113819", Dcm); // (113819,DCM,"CT Acquisition")
-        private static readonly (string, string) OrganDose = ("113518", "DCM"); // (113518,DCM,"Organ Dose")  => Radiopharmaceutical Radiation Dose Report
-
-
-        //------------------------------------------------------------
-        // Dicom Codes (attribute)
-        // - These are report values which map to non component observation attributes.
-        //------------------------------------------------------------
-        private static readonly (string, string) IrradiationEventUid = ("113769", Dcm); // (113769,DCM,"Irradiation Event UID")
-        // private static readonly (string, string) StudyInstanceUid = ("110180", Dcm); // (110180,DCM,"Study Instance UID") TODO maybe (0020,000D) ???
-        // private static readonly (string, string) AccessionNumber = ("121022", Dcm); // TODO no sample; maybe (0008,0050) ???
-        // private static readonly (string, string) StartOfXrayIrradiation = ("113809", Dcm); // (113809,DCM,"Start of X-ray Irradiation")
-        // private static readonly (string, string) IrradiationAuthorizing = ("113850", Dcm); // TODO no sample maybe (121406,DCM,"Reference Authority") ???
-        // private static readonly (string, string) PregnancyObservable = ("364320009", Sct); // TODO no sample maybe "(0010,21c0) US" ???
-
-        //------------------------------------------------------------
-        // Dicom codes (component)
-        // - These are report values which map to Observation.component values
-        //------------------------------------------------------------
-        // Dose Summary
-        // TODO cannot find "DoseSummary.component:effectiveDose" anywhere
-        private static readonly (string, string) EntranceExposureAtRp = ("111636", Dcm); // (111636,DCM,"Entrance Exposure at RP")
-        private static readonly (string, string) AccumulatedAverageGlandularDose = ("111637", Dcm); // (111637,DCM,"Accumulated Average Glandular Dose")
-        private static readonly (string, string) DoseAreaProductTotal = ("113722", Dcm); // (113722,DCM,"Dose Area Product Total")
-        private static readonly (string, string) FluoroDoseAreaProductTotal = ("113726", Dcm); // (113726,DCM,"Fluoro Dose Area Product Total")
-        private static readonly (string, string) AcquisitionDoseAreaProductTotal = ("113727", Dcm); // (113727,DCM,"Acquisition Dose Area Product Total")
-        private static readonly (string, string) TotalFluoroTime = ("113730", Dcm); // (113730,DCM,"Total Fluoro Time")
-        private static readonly (string, string) TotalNumberOfRadiographicFrames = ("113731", Dcm); // (113731,DCM,"Total Number of Radiographic Frames")
-        private static readonly (string, string) AdministeredActivity = ("113507", Dcm); // (113507,DCM,"Administered activity")
-        private static readonly (string, string) CtDoseLengthProductTotal = ("113813", Dcm); // (113813,DCM,"CT Dose Length Product Total") 
-        private static readonly (string, string) TotalNumberOfIrradiationEvents = ("113812", Dcm); // (113812,DCM,"Total Number of Irradiation Events")
-        private static readonly (string, string) MeanCtdIvol = ("113830", Dcm); // (113830,DCM,"Mean CTDIvol")
-        private static readonly (string, string) RadiopharmaceuticalAgent = ("349358000", Sct); // TODO no sample; maybe (F-61FDB,SRT,"Radiopharmaceutical agent") ???
-        private static readonly (string, string) RadiopharmaceuticalVolume = ("123005", Dcm); // TODO no sample; maybe (0018,1071) DS ???
-        private static readonly (string, string) Radionuclide = ("89457008", Sct); // TODO no sample; maybe (C-10072,SRT,"Radionuclide") ???
-        private static readonly (string, string) RouteOfAdministration = ("410675002", Sct); // TODO no sample; maybe (G-C340,SRT,"Route of administration") ???
-
-        // (Ir)radiation Event
-        // uses MeanCtdIvol as well
-        private static readonly (string, string) Dlp = ("113838", Dcm); // (113838,DCM,"DLP")
-        private static readonly (string, string) CtdIwPhantomType = ("113835", Dcm); // (113835,DCM,"CTDIw Phantom Type")
-
-        /// <summary>
-        /// DicomStructuredReport codes which mean the start of a Dose Summary
-        /// </summary>
-        private static List<(string, string)> DoseSummaryReportCodes = new()
-        {
-            RadiopharmaceuticalRadiationDoseReport,
-            XRayRadiationDoseReport,
-        };
-
-        /// <summary>
-        /// DicomStructuredReport codes which mean the start of an Irradiation Event
-        /// </summary>
-        private static List<(string, string)> IrradiationEventCodes = new()
-        {
-            IrradiationEventXRayData,
-            CtAcquisition,
-            OrganDose
-        };
-
         /// <summary>
         /// Lookup map of Dicom Report Codes `(code,string)` to Observation mutator
         /// </summary>
         private static readonly Dictionary<(string, string), Action<Observation, DicomStructuredReport>> DicomComponentMutators = new()
         {
-            [IrradiationEventUid] = SetIrradiationEventUid,
-            [EntranceExposureAtRp] = AddComponentForDicomMeasuredValue,
-            [AccumulatedAverageGlandularDose] = AddComponentForDicomMeasuredValue,
-            [DoseAreaProductTotal] = AddComponentForDicomMeasuredValue,
-            [FluoroDoseAreaProductTotal] = AddComponentForDicomMeasuredValue,
-            [AcquisitionDoseAreaProductTotal] = AddComponentForDicomMeasuredValue,
-            [TotalFluoroTime] = AddComponentForDicomMeasuredValue,
-            [TotalNumberOfRadiographicFrames] = AddComponentForDicomIntegerValue,
-            [AdministeredActivity] = AddComponentForDicomMeasuredValue,
-            [CtDoseLengthProductTotal] = AddComponentForDicomMeasuredValue,
-            [TotalNumberOfIrradiationEvents] = AddComponentForDicomIntegerValue,
-            [MeanCtdIvol] = AddComponentForDicomMeasuredValue,
-            [RadiopharmaceuticalAgent] = AddComponentForDicomTextValue,
-            [RadiopharmaceuticalVolume] = AddComponentForDicomMeasuredValue,
-            [Radionuclide] = AddComponentForDicomTextValue,
-            [RouteOfAdministration] = AddComponentForDicomMeasuredValue,
-            [Dlp] = AddComponentForDicomMeasuredValue,
-            [CtdIwPhantomType] = AddComponentForDicomCodeValue,
+            [ObservationConstants.IrradiationEventUid] = SetIrradiationEventUid,
+            [ObservationConstants.EntranceExposureAtRp] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.AccumulatedAverageGlandularDose] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.DoseAreaProductTotal] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.FluoroDoseAreaProductTotal] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.AcquisitionDoseAreaProductTotal] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.TotalFluoroTime] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.TotalNumberOfRadiographicFrames] = AddComponentForDicomIntegerValue,
+            [ObservationConstants.AdministeredActivity] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.CtDoseLengthProductTotal] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.TotalNumberOfIrradiationEvents] = AddComponentForDicomIntegerValue,
+            [ObservationConstants.MeanCtdIvol] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.RadiopharmaceuticalAgent] = AddComponentForDicomTextValue,
+            [ObservationConstants.RadiopharmaceuticalVolume] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.Radionuclide] = AddComponentForDicomTextValue,
+            [ObservationConstants.RouteOfAdministration] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.Dlp] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.CtdIwPhantomType] = AddComponentForDicomCodeValue,
         };
 
         private static void SetIrradiationEventUid(Observation observation, DicomStructuredReport report)
@@ -408,8 +334,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         {
             return scheme switch
             {
-                Dcm => DcmSystem,
-                Sct => SctSystem,
+                ObservationConstants.Dcm => ObservationConstants.DcmSystem,
+                ObservationConstants.Sct => ObservationConstants.SctSystem,
                 _ => throw new InvalidOperationException($"unsupported code system: {scheme}")
             };
         }

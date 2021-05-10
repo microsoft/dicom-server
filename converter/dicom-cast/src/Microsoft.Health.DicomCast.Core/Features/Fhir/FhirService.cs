@@ -95,11 +95,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
             where TResource : Resource, new()
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
-            
+
             return await SearchMultiByQueryParameterAsync<TResource>(identifier.ToSearchQueryParameter(), cancellationToken);
         }
 
-        private async Task<IEnumerable<TResource>> SearchMultiByQueryParameterAsync<TResource>(string queryParameter, CancellationToken cancellationToken)
+        private async Task<IEnumerable<TResource>> SearchMultiWithLimitByQueryParameterAsync<TResource>(string queryParameter, int maxCount, CancellationToken cancellationToken)
             where TResource : Resource, new()
         {
             EnsureArg.IsNotNullOrEmpty(queryParameter, nameof(queryParameter));
@@ -116,10 +116,18 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
                 cancellationToken);
 
 
+            int matchCount = 0;
             var results = new List<TResource>();
 
             while (bundle != null)
             {
+                matchCount += bundle.Entry.Count;
+                if (matchCount > maxCount)
+                {
+                    // Too many matches
+                    throw new MultipleMatchingResourcesException(typeof(TResource).Name);
+                }
+
                 IEnumerable<TResource> resources = bundle.Entry
                     .Select(component => (TResource)component.Resource);
                 results.AddRange(resources);
@@ -143,59 +151,17 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
             return results;
         }
 
+        private async Task<IEnumerable<TResource>> SearchMultiByQueryParameterAsync<TResource>(string queryParameter, CancellationToken cancellationToken)
+            where TResource : Resource, new()
+        {
+            return await SearchMultiWithLimitByQueryParameterAsync<TResource>(queryParameter, int.MaxValue, cancellationToken);
+        }
+
         private async Task<TResource> SearchByQueryParameterAsync<TResource>(string queryParameter, CancellationToken cancellationToken)
             where TResource : Resource, new()
         {
-            EnsureArg.IsNotNullOrEmpty(queryParameter, nameof(queryParameter));
-
-            string fhirTypeName = ModelInfo.GetFhirTypeNameForType(typeof(TResource));
-            if (!Enum.TryParse(fhirTypeName, out ResourceType resourceType))
-            {
-                Debug.Assert(false, "Resource type could not be parsed from TResource");
-            }
-
-            Bundle bundle = await _fhirClient.SearchAsync(
-                resourceType,
-                queryParameter,
-                count: null,
-                cancellationToken);
-
-            int matchCount = 0;
-            TResource result = null;
-
-            while (bundle != null)
-            {
-                matchCount += bundle.Entry.Count;
-
-                if (matchCount > 1)
-                {
-                    // Multiple matches.
-                    throw new MultipleMatchingResourcesException(typeof(TResource).Name);
-                }
-                else if (bundle.Entry.Count == 1)
-                {
-                    // There was only one match but because the server could return empty continuation token
-                    // with more results, we need to follow the links to make sure there are no additional matching resources.
-                    result = (TResource)bundle.Entry[0].Resource;
-                }
-
-                if (bundle.NextLink != null)
-                {
-                    bundle = await _fhirClient.SearchAsync(bundle.NextLink.ToString(), cancellationToken);
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            // Validate to make sure the resource is valid.
-            if (result != null)
-            {
-                _fhirResourceValidator.Validate(result);
-            }
-
-            return result;
+            IEnumerable<TResource> matches = await SearchMultiWithLimitByQueryParameterAsync<TResource>(queryParameter, 1, cancellationToken);
+            return matches.First();
         }
     }
 }

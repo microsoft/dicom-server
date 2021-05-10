@@ -22,8 +22,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         public ObservationPipelineStep(
             IObservationUpsertHandler observationUpsertHandler,
-            IObservationDeleteHandler observationDeleteHandler
-        )
+            IObservationDeleteHandler observationDeleteHandler)
         {
             EnsureArg.IsNotNull(observationUpsertHandler, nameof(observationUpsertHandler));
             EnsureArg.IsNotNull(observationDeleteHandler, nameof(observationDeleteHandler));
@@ -55,11 +54,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         {
             EnsureArg.IsNotNull(context, nameof(context));
             if (context.Request?.Observation?.RequestMode != FhirTransactionRequestMode.Create)
+            {
                 return;
+            }
 
             HttpStatusCode statusCode = context.Response.Observation.Response.Annotation<HttpStatusCode>();
             if (statusCode == HttpStatusCode.OK)
+            {
                 throw new ResourceConflictException();
+            }
         }
     }
 }

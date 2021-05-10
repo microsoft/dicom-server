@@ -15,24 +15,6 @@ using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
-    public interface IObservationDeleteHandler
-    {
-        /// <summary>
-        /// Create a transaction request entry to delete an existing DoseSummary observation based on the StudyInstanceUID provided
-        /// in the transaction context.
-        /// </summary>
-        /// <remarks>
-        /// - This currently only supports single observation deletion.
-        /// - There _should_ only be a single observation per study instance -- but a users can technically create add
-        ///   more as there is no built in 1:1 mapping in FHIR.
-        /// - If multiple dose summaries are found mapping to the same study instance, we only delete the first one returned.
-        /// </remarks>
-        /// <param name="context">The transaction request context</param>
-        /// <param name="cancellationToken">the cancellation token</param>
-        /// <returns>a transaction request entry to delete a single Dose Summary if a matching one is found</returns>
-        Task<FhirTransactionRequestEntry> BuildAsync(FhirTransactionContext context, CancellationToken cancellationToken);
-    }
-
     /// <inheritdoc/>
     class ObservationDeleteHandler : IObservationDeleteHandler
     {
@@ -62,7 +44,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 return null;
 
             Observation observationToDelete = matchingObservations.First();
-            var request = new Bundle.RequestComponent()
+            Bundle.RequestComponent request = new Bundle.RequestComponent()
             {
                 Method = Bundle.HTTPVerb.DELETE,
                 Url = $"{ResourceType.Observation.GetLiteral()}/{observationToDelete.Id}"
