@@ -246,6 +246,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseDataset(QueryResource.AllStudies, matchInstance2, testDataResponse2);
         }
 
+        [Fact]
+        public async Task GivenSearchRequest_OHIFViewerStudyQuery_ReturnsOK()
+        {
+            var OhifViewerQuery = "/studies?limit=25&offset=0&includefield=00081030%2C00080060&StudyDate=19521125-20210507";
+
+            // client is checking the success response and throws exception otherwise
+            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(new Uri(OhifViewerQuery, UriKind.Relative));
+        }
+
         private static string RandomString(int length)
         {
             var random = new Random();

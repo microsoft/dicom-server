@@ -24,16 +24,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 return;
             }
 
-            foreach (string value in queryParameter.Value)
+            foreach (string paramValue in queryParameter.Value.ToArray())
             {
-                var trimmedValue = value.Trim();
-                if (TryParseDicomAttributeId(trimmedValue, out DicomTag dicomTag))
+                foreach (string value in paramValue.Split(','))
                 {
-                    _parsedQuery.IncludeFields.Add(dicomTag);
-                    continue;
-                }
+                    var trimmedValue = value.Trim();
+                    if (TryParseDicomAttributeId(trimmedValue, out DicomTag dicomTag))
+                    {
+                        _parsedQuery.IncludeFields.Add(dicomTag);
+                        continue;
+                    }
 
-                throw new QueryParseException(string.Format(DicomCoreResource.IncludeFieldUnknownAttribute, trimmedValue));
+                    throw new QueryParseException(string.Format(DicomCoreResource.IncludeFieldUnknownAttribute, trimmedValue));
+                }
             }
         }
 
