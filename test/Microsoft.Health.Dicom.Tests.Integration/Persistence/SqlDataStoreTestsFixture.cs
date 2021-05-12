@@ -68,11 +68,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory);
 
-            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
+            SchemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
 
             var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
 
-            _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
+            _schemaInitializer = new SchemaInitializer(config, SchemaUpgradeRunner, schemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
 
             SqlTransactionHandler = new SqlTransactionHandler();
 
@@ -99,6 +99,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
         public IIndexDataStoreFactory SqlIndexDataStoreFactory { get; }
+
+        public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
 
         public string TestConnectionString { get; }
 

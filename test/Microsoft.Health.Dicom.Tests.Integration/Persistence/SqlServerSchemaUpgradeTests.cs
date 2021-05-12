@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.SqlServer.Dac.Compare;
 using Xunit;
 
@@ -33,6 +35,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // cleanup if succeeds
             await snapshotFixture.DisposeAsync();
             await diffFixture.DisposeAsync();
+        }
+
+        [Fact]
+        public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed()
+        {
+            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"));
+            await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(SchemaVersionConstants.Max, applyFullSchemaSnapshot: false, CancellationToken.None);
         }
     }
 }

@@ -6,24 +6,31 @@
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
     TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTag (
-    TagKey                  INT                  NOT NULL, --PK
-    TagPath                 VARCHAR(64)          NOT NULL,
-    TagVR                   VARCHAR(2)           NOT NULL,
-    TagPrivateCreator       NVARCHAR(64)         NULL, 
-    TagLevel                TINYINT              NOT NULL,
-    TagStatus               TINYINT              NOT NULL
-)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTag')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTag (
+        TagKey                  INT                  NOT NULL, --PK
+        TagPath                 VARCHAR(64)          NOT NULL,
+        TagVR                   VARCHAR(2)           NOT NULL,
+        TagPrivateCreator       NVARCHAR(64)         NULL, 
+        TagLevel                TINYINT              NOT NULL,
+        TagStatus               TINYINT              NOT NULL
+    )
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
-(
-    TagKey
-)
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
+    (
+        TagKey
+    )
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
-(
-    TagPath
-)
+    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
+    (
+        TagPath
+    )
+END
+GO
 
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to String
@@ -32,23 +39,30 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQuer
           the Watermark is used to ensure that if there are different values between instances,
           the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagString (
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagString')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagString (
     TagKey                  INT                  NOT NULL, --PK
     TagValue                NVARCHAR(64)         NOT NULL,
     StudyKey                BIGINT               NOT NULL, --FK
     SeriesKey               BIGINT               NULL,     --FK
     InstanceKey             BIGINT               NULL,     --FK
     Watermark               BIGINT               NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
+    ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
-(
-    TagKey,
-    TagValue,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-)
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+END
+GO
 
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to Long
@@ -57,23 +71,30 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTag
           the Watermark is used to ensure that if there are different values between instances,
           the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagLong (
-    TagKey                  INT                  NOT NULL, --PK
-    TagValue                BIGINT               NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagLong')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagLong (
+        TagKey                  INT                  NOT NULL, --PK
+        TagValue                BIGINT               NOT NULL,
+        StudyKey                BIGINT               NOT NULL, --FK
+        SeriesKey               BIGINT               NULL,     --FK
+        InstanceKey             BIGINT               NULL,     --FK
+        Watermark               BIGINT               NOT NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
-(
-    TagKey,
-    TagValue,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-)
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+END
+GO
 
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to Double
@@ -82,23 +103,30 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLo
           the Watermark is used to ensure that if there are different values between instances,
           the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagDouble (
-    TagKey                  INT                  NOT NULL, --PK
-    TagValue                FLOAT(53)            NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagDouble')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagDouble (
+        TagKey                  INT                  NOT NULL, --PK
+        TagValue                FLOAT(53)            NOT NULL,
+        StudyKey                BIGINT               NOT NULL, --FK
+        SeriesKey               BIGINT               NULL,     --FK
+        InstanceKey             BIGINT               NULL,     --FK
+        Watermark               BIGINT               NOT NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
-(
-    TagKey,
-    TagValue,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-)
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+END
+GO
 
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to DateTime
@@ -107,23 +135,30 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTag
           the Watermark is used to ensure that if there are different values between instances,
           the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagDateTime (
-    TagKey                  INT                  NOT NULL, --PK
-    TagValue                DATETIME2(7)         NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagDateTime')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagDateTime (
+        TagKey                  INT                  NOT NULL, --PK
+        TagValue                DATETIME2(7)         NOT NULL,
+        StudyKey                BIGINT               NOT NULL, --FK
+        SeriesKey               BIGINT               NULL,     --FK
+        InstanceKey             BIGINT               NULL,     --FK
+        Watermark               BIGINT               NOT NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
-(
-    TagKey,
-    TagValue,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-)
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+END
+GO
 
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to PersonName
@@ -133,113 +168,143 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryT
           the value on the instance with the highest watermark wins.
     Note: The primary key is designed on the assumption that tags only occur once in an instance.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagPersonName (
-    TagKey                  INT                  NOT NULL, --FK
-    TagValue                NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL,
-    WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark), --PK
-    TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagPersonName')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagPersonName (
+        TagKey                  INT                  NOT NULL, --FK
+        TagValue                NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
+        StudyKey                BIGINT               NOT NULL, --FK
+        SeriesKey               BIGINT               NULL,     --FK
+        InstanceKey             BIGINT               NULL,     --FK
+        Watermark               BIGINT               NOT NULL,
+        WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark), --PK
+        TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
+    ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
-(
-    TagKey,
-    TagValue,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-)
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
 
-CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey ON dbo.ExtendedQueryTagPersonName
-(
-    WatermarkAndTagKey
-)
+    CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey ON dbo.ExtendedQueryTagPersonName
+    (
+        WatermarkAndTagKey
+    )
 
-CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
-KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
-WITH STOPLIST = OFF;
+    CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
+    KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
+    WITH STOPLIST = OFF;
+END
+GO
 
 /*************************************************************
     The user defined type for AddExtendedQueryTagsInput
 *************************************************************/
-CREATE TYPE dbo.AddExtendedQueryTagsInputTableType_1 AS TABLE
-(
-    TagPath                    VARCHAR(64),  -- Extended Query Tag Path. Each extended query tag take 8 bytes, support upto 8 levels, no delimeter between each level.
-    TagVR                      VARCHAR(2),  -- Extended Query Tag VR.
-    TagPrivateCreator          NVARCHAR(64),  -- Extended Query Tag Private Creator, only valid for private tag.
-    TagLevel                   TINYINT  -- Extended Query Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
-)
+IF TYPE_ID(N'AddExtendedQueryTagsInputTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.AddExtendedQueryTagsInputTableType_1 AS TABLE
+    (
+        TagPath                    VARCHAR(64),  -- Extended Query Tag Path. Each extended query tag take 8 bytes, support upto 8 levels, no delimeter between each level.
+        TagVR                      VARCHAR(2),  -- Extended Query Tag VR.
+        TagPrivateCreator          NVARCHAR(64),  -- Extended Query Tag Private Creator, only valid for private tag.
+        TagLevel                   TINYINT  -- Extended Query Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
+    )
+END
 GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type String
 *************************************************************/
-CREATE TYPE dbo.InsertStringExtendedQueryTagTableType_1 AS TABLE
-(
-    TagKey                     INT,
-    TagValue                   NVARCHAR(64),
-    TagLevel                   TINYINT
-)
+IF TYPE_ID(N'InsertStringExtendedQueryTagTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.InsertStringExtendedQueryTagTableType_1 AS TABLE
+    (
+        TagKey                     INT,
+        TagValue                   NVARCHAR(64),
+        TagLevel                   TINYINT
+    )
+END
 GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Double
 *************************************************************/
-CREATE TYPE dbo.InsertDoubleExtendedQueryTagTableType_1 AS TABLE
-(
-    TagKey                     INT,
-    TagValue                   FLOAT(53),
-    TagLevel                   TINYINT
-)
+IF TYPE_ID(N'InsertDoubleExtendedQueryTagTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.InsertDoubleExtendedQueryTagTableType_1 AS TABLE
+    (
+        TagKey                     INT,
+        TagValue                   FLOAT(53),
+        TagLevel                   TINYINT
+    )
+END
 GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Long
 *************************************************************/
-CREATE TYPE dbo.InsertLongExtendedQueryTagTableType_1 AS TABLE
-(
-    TagKey                     INT,
-    TagValue                   BIGINT,
-    TagLevel                   TINYINT
-)
+IF TYPE_ID(N'InsertLongExtendedQueryTagTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.InsertLongExtendedQueryTagTableType_1 AS TABLE
+    (
+        TagKey                     INT,
+        TagValue                   BIGINT,
+        TagLevel                   TINYINT
+    )
+END
 GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Date Time
 *************************************************************/
-CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_1 AS TABLE
-(
-    TagKey                     INT,
-    TagValue                   DATETIME2(7),
-    TagLevel                   TINYINT
-)
+IF TYPE_ID(N'InsertDateTimeExtendedQueryTagTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_1 AS TABLE
+    (
+        TagKey                     INT,
+        TagValue                   DATETIME2(7),
+        TagLevel                   TINYINT
+    )
+END
 GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Person Name
 *************************************************************/
-CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE
-(
-    TagKey                     INT,
-    TagValue                   NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
-    TagLevel                   TINYINT
-)
+IF TYPE_ID(N'InsertPersonNameExtendedQueryTagTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE
+    (
+        TagKey                     INT,
+        TagValue                   NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
+        TagLevel                   TINYINT
+    )
+END
 GO
 
 /*************************************************************
     Sequence for generating sequential unique ids
 **************************************************************/
-CREATE SEQUENCE dbo.TagKeySequence
-    AS INT
-    START WITH 1
-    INCREMENT BY 1
-    MINVALUE 1
-    NO CYCLE
-    CACHE 10000
-
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.sequences
+    WHERE name = 'TagKeySequence')
+BEGIN
+    CREATE SEQUENCE dbo.TagKeySequence
+        AS INT
+        START WITH 1
+        INCREMENT BY 1
+        MINVALUE 1
+        NO CYCLE
+        CACHE 10000
+END
 GO
 
 /***************************************************************************************/
@@ -441,7 +506,7 @@ GO
 --     @extendedQueryTags
 --         * The extended query tag list
 /***************************************************************************************/
-CREATE PROCEDURE dbo.AddExtendedQueryTags (
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY
 )
 AS
@@ -479,7 +544,7 @@ GO
 --     @tagPath
 --         * The TagPath for the extended query tag to retrieve.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetExtendedQueryTag (
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTag (
     @tagPath  VARCHAR(64) = NULL
 )
 AS
@@ -511,7 +576,7 @@ GO
 --     @dataType
 --         * the data type of extended query tag. 0 -- String, 1 -- Long, 2 -- Double, 3 -- DateTime, 4 -- PersonName
 /***************************************************************************************/
-CREATE PROCEDURE dbo.DeleteExtendedQueryTag (
+CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTag (
     @tagPath VARCHAR(64),
     @dataType TINYINT
 )
