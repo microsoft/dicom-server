@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 using Dicom;
@@ -50,6 +51,39 @@ AND a.StudyKey = f.StudyKey";
             Assert.Contains(expectedCrossApply, stringBuilder.ToString());
 
             Assert.Contains("StudyDate BETWEEN @p0 AND @p1", stringBuilder.ToString());
+        }
+
+        [Fact]
+        public void GivenAcquisitionDateTime_WhenIELevelInstance_ValidateDistinctInstances()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var minDateTime = DateTime.ParseExact("20200201000000.000000", "yyyyMMddHHmmss.ffffff", CultureInfo.InvariantCulture);
+            var maxDateTime = DateTime.ParseExact("20200301213456.123456", "yyyyMMddHHmmss.ffffff", CultureInfo.InvariantCulture);
+
+            var filters = new List<QueryFilterCondition>()
+            {
+                new DateTimeRangeValueMatchCondition(new QueryTag(DicomTag.AcquisitionDateTime), minDateTime, maxDateTime),
+            };
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
+
+            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+            new SqlQueryGenerator(stringBuilder, query, parm);
+
+            string expectedDistinctSelect = @"SELECT 
+i.StudyInstanceUid
+,i.SeriesInstanceUid
+,i.SopInstanceUid
+,i.Watermark
+FROM dbo.Study st
+INNER JOIN dbo.Series se
+ON se.StudyKey = st.StudyKey
+INNER JOIN dbo.Instance i
+ON i.SeriesKey = se.SeriesKey";
+            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
+
+            Assert.Contains("AcquisitionDateTime BETWEEN @p0 AND @p1", stringBuilder.ToString());
+            Assert.DoesNotContain("CROSS APPLY", stringBuilder.ToString());
         }
 
         [Fact]
