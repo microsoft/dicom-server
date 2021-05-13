@@ -6,6 +6,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.SqlServer.Dac.Compare;
 using Xunit;
 
@@ -37,12 +38,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await diffFixture.DisposeAsync();
         }
 
-        [Fact]
-        public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed()
+        [Theory]
+        [InlineData(SchemaVersionConstants.Max)]
+        // we can keep adding previous schema version explicitly whenever SchemaVersionConstants.Max is updated.
+        public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed(int schemaVersion)
         {
             SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"));
+            snapshotFixture.SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion - 1);
+
             await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
-            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(SchemaVersionConstants.Max, applyFullSchemaSnapshot: false, CancellationToken.None);
+            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
+            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
         }
+
     }
 }
