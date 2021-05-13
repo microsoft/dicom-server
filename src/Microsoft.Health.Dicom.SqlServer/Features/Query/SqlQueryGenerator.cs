@@ -349,7 +349,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .AppendLine();
         }
 
-        public override void Visit(DateRangeValueMatchCondition rangeValueMatchCondition)
+        public override void Visit(DateTimeRangeValueMatchCondition rangeValueMatchCondition)
         {
             var queryTag = rangeValueMatchCondition.QueryTag;
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(queryTag);
@@ -367,7 +367,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .AppendLine();
         }
 
-        public override void Visit(DateSingleValueMatchCondition dateSingleValueMatchCondition)
+        public override void Visit(DateTimeSingleValueMatchCondition dateSingleValueMatchCondition)
         {
             var queryTag = dateSingleValueMatchCondition.QueryTag;
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(queryTag);

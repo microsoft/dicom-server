@@ -25,6 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.PatientID,
             DicomTag.PatientName,
             DicomTag.ReferringPhysicianName,
+            DicomTag.PatientBirthDate,
         };
 
 
@@ -33,11 +34,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.SeriesInstanceUID,
             DicomTag.Modality,
             DicomTag.PerformedProcedureStepStartDate,
+            DicomTag.ManufacturerModelName,
         };
 
         private static readonly HashSet<DicomTag> CoreInstanceTags = new HashSet<DicomTag>()
         {
             DicomTag.SOPInstanceUID,
+            DicomTag.AcquisitionDateTime,
         };
 
         public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
@@ -83,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public static bool IsValidRangeQueryTag(QueryTag queryTag)
         {
             EnsureArg.IsNotNull(queryTag, nameof(queryTag));
-            return queryTag.VR == DicomVR.DA;
+            return queryTag.VR == DicomVR.DA || queryTag.VR == DicomVR.DT;
         }
 
         public static bool IsValidFuzzyMatchingQueryTag(QueryTag queryTag)

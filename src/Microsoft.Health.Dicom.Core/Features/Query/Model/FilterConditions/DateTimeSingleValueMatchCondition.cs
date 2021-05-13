@@ -8,10 +8,10 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class DateRangeValueMatchCondition : RangeValueMatchCondition<DateTime>
+    public class DateTimeSingleValueMatchCondition : SingleValueMatchCondition<DateTime>
     {
-        internal DateRangeValueMatchCondition(QueryTag tag, DateTime minimum, DateTime maximum)
-            : base(tag, minimum, maximum)
+        internal DateTimeSingleValueMatchCondition(QueryTag tag, DateTime value)
+            : base(tag, value)
         {
         }
 

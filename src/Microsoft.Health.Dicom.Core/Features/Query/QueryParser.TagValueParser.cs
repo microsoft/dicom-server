@@ -34,12 +34,41 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                             maxDate));
                     }
 
-                    return new DateRangeValueMatchCondition(queryTag, parsedMinDate, parsedMaxDate);
+                    return new DateTimeRangeValueMatchCondition(queryTag, parsedMinDate, parsedMaxDate);
                 }
             }
 
             DateTime parsedDate = ParseDate(value, queryTag.GetName());
-            return new DateSingleValueMatchCondition(queryTag, parsedDate);
+            return new DateTimeSingleValueMatchCondition(queryTag, parsedDate);
+        }
+
+        private static QueryFilterCondition ParseDateTimeTagValue(QueryTag queryTag, string value)
+        {
+            if (QueryLimit.IsValidRangeQueryTag(queryTag))
+            {
+                var splitString = value.Split('-');
+                if (splitString.Length == 2)
+                {
+                    string minDate = splitString[0].Trim();
+                    string maxDate = splitString[1].Trim();
+                    DateTime parsedMinDate = ParseDateTime(minDate, queryTag.GetName());
+                    DateTime parsedMaxDate = ParseDateTime(maxDate, queryTag.GetName());
+
+                    if (parsedMinDate > parsedMaxDate)
+                    {
+                        throw new QueryParseException(string.Format(
+                            DicomCoreResource.InvalidDateTimeRangeValue,
+                            value,
+                            minDate,
+                            maxDate));
+                    }
+
+                    return new DateTimeRangeValueMatchCondition(queryTag, parsedMinDate, parsedMaxDate);
+                }
+            }
+
+            DateTime parsedDate = ParseDateTime(value, queryTag.GetName());
+            return new DateTimeSingleValueMatchCondition(queryTag, parsedDate);
         }
 
         private static QueryFilterCondition ParseStringTagValue(QueryTag queryTag, string value)
@@ -75,6 +104,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
 
             return parsedDate;
+        }
+
+        private static DateTime ParseDateTime(string dateTime, string tagName)
+        {
+            if (!DateTime.TryParseExact(dateTime, DateTimeTagValueFormat, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDateTime))
+            {
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidDateTimeValue, dateTime, tagName));
+            }
+
+            return parsedDateTime;
         }
     }
 }

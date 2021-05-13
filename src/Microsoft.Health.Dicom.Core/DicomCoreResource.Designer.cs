@@ -252,6 +252,25 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date time range &apos;{0}&apos; is invalid.
+        ///The first part date time {1} should be lesser than or equal to the second part date time {2}..
+        /// </summary>
+        internal static string InvalidDateTimeRangeValue {
+            get {
+                return ResourceManager.GetString("InvalidDateTimeRangeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified DateTime value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. DateTime should be valid and formatted as yyyyMMddHHmmss.ffffff..
+        /// </summary>
+        internal static string InvalidDateTimeValue {
+            get {
+                return ResourceManager.GetString("InvalidDateTimeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. Date should be valid and formatted as yyyyMMdd..
         /// </summary>
         internal static string InvalidDateValue {

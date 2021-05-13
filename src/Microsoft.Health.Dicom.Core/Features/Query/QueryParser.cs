@@ -34,6 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             new Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>>();
 
         public const string DateTagValueFormat = "yyyyMMdd";
+        public const string DateTimeTagValueFormat = "yyyyMMddHHmmss.ffffff";
 
         public QueryParser(IDicomTagParser dicomTagPathParser)
         {
@@ -66,6 +67,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             _valueParsers.Add(DicomVR.FL, ParseDoubleTagValue);
             _valueParsers.Add(DicomVR.FD, ParseDoubleTagValue);
+
+            _valueParsers.Add(DicomVR.DT, ParseDateTimeTagValue);
         }
 
         public QueryExpression Parse(QueryResourceRequest request, IReadOnlyCollection<QueryTag> queryTags)
