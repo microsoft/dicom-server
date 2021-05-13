@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -39,8 +41,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Theory]
-        [InlineData(SchemaVersionConstants.Max)]
-        // we can keep adding previous schema version explicitly whenever SchemaVersionConstants.Max is updated.
+        [MemberData(nameof(SchemaDiffVersions))]
         public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed(int schemaVersion)
         {
             SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"));
@@ -54,5 +55,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await snapshotFixture.DisposeAsync();
         }
 
+        public static IEnumerable<object[]> SchemaDiffVersions = new List<object[]>(Enumerable.Range(SchemaVersionConstants.Min + 1, SchemaVersionConstants.Max - 1).Select(x => new object[] { x }));
     }
 }
