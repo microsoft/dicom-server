@@ -55,6 +55,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await snapshotFixture.DisposeAsync();
         }
 
-        public static IEnumerable<object[]> SchemaDiffVersions = new List<object[]>(Enumerable.Range(SchemaVersionConstants.Min + 1, SchemaVersionConstants.Max - 1).Select(x => new object[] { x }));
+        public static IEnumerable<object[]> SchemaDiffVersions = new List<object[]>(Enumerable.Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min).Select(x => new object[] { x }));
     }
 }
