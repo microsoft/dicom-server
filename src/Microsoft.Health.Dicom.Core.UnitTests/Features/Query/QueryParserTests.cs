@@ -330,16 +330,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
-        [InlineData("StudyDate", "19510910-20200220")]
-        [InlineData("PatientBirthDate", "19510910-20200220")]
-        public void GivenDateCoreTag_WithValidRangeMatch_CheckCondition(string key, string value)
+        [InlineData("StudyDate", "19510910-20200220", "00080020")]
+        [InlineData("PatientBirthDate", "19510910-20200220", "00100030")]
+        public void GivenDateCoreTag_WithValidRangeMatch_CheckCondition(string key, string value, string tagPath)
         {
             EnsureArg.IsNotNull(value, nameof(value));
             QueryExpression queryExpression = _queryParser
                 .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
             var cond = queryExpression.FilterConditions.First() as DateTimeRangeValueMatchCondition;
             Assert.NotNull(cond);
-            Assert.True(cond.QueryTag.Tag == DicomTag.StudyDate);
+            Assert.True(cond.QueryTag.Tag == DicomTag.Parse(tagPath));
             Assert.True(cond.Minimum == DateTime.ParseExact(value.Split('-')[0], QueryParser.DateTagValueFormat, null));
             Assert.True(cond.Maximum == DateTime.ParseExact(value.Split('-')[1], QueryParser.DateTagValueFormat, null));
         }
