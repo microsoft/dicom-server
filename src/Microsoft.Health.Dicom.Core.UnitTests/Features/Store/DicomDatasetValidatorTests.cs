@@ -177,7 +177,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenExtendedQueryTags_WhenValidating_ThenExtendedQueryTagsShouldBeValidated()
         {
-            DicomTag standardTag = DicomTag.DestinationAE; 
+            DicomTag standardTag = DicomTag.DestinationAE;
 
             // AE > 16 characters is not allowed
             _dicomDataset.Add(standardTag, "01234567890123456");
