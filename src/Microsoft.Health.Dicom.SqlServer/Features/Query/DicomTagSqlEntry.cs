@@ -22,13 +22,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 { DicomTag.PatientID, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.PatientId) },
                 { DicomTag.PatientName, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.PatientName, VLatest.StudyTable.PatientNameWords) },
                 { DicomTag.ReferringPhysicianName, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.ReferringPhysicianName) },
-                { DicomTag.PatientBirthDate, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.PatientBirthDate) },
+                { DicomTag.PatientBirthDate, new DicomTagSqlEntry(SqlTableType.StudyTable, V3.Study.PatientBirthDate) },
                 { DicomTag.SeriesInstanceUID, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.SeriesInstanceUid) },
                 { DicomTag.Modality, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.Modality) },
                 { DicomTag.PerformedProcedureStepStartDate, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.PerformedProcedureStepStartDate) },
-                { DicomTag.ManufacturerModelName, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.ManufacturerModelName) },
+                { DicomTag.ManufacturerModelName, new DicomTagSqlEntry(SqlTableType.SeriesTable, V3.Series.ManufacturerModelName) },
                 { DicomTag.SOPInstanceUID, new DicomTagSqlEntry(SqlTableType.InstanceTable, VLatest.Instance.SopInstanceUid) },
-                { DicomTag.AcquisitionDateTime, new DicomTagSqlEntry(SqlTableType.InstanceTable, VLatest.Instance.AcquisitionDateTime) },
+                { DicomTag.AcquisitionDateTime, new DicomTagSqlEntry(SqlTableType.InstanceTable, V3.Instance.AcquisitionDateTime) },
         };
 
         private static readonly IReadOnlyDictionary<DicomVR, DicomTagSqlEntry> ExtendedQueryTagVRToSqlMapping = new Dictionary<DicomVR, DicomTagSqlEntry>()

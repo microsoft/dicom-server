@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance.ToString(), PrivateCreator = privateTag.PrivateCreator.Creator };
 
             // One is standard tag on Series level
-            DicomTag standardTagSeries = DicomTag.ManufacturerModelName;
+            DicomTag standardTagSeries = DicomTag.ManufacturerModelVersion;
             ExtendedQueryTag standardTagSeriesQueryTag = new ExtendedQueryTag { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = QueryTagLevel.Series.ToString() };
 
             // One is standard tag on Study level
@@ -66,21 +66,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid1, sopInstanceUid: instanceUid1);
             dataset1.Add(identificationCodeElement);
             dataset1.AddOrUpdate(new DicomSignedShort(privateTag, 1));
-            dataset1.Add(standardTagSeries, "ManufacturerModelName1");
+            dataset1.Add(standardTagSeries, "ManufacturerModelVersion1");
             dataset1.Add(standardTagStudy, "0");
 
             // One is on seriesUid1 and instanceUid2
             DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid1, sopInstanceUid: instanceUid2);
             dataset2.Add(identificationCodeElement);
             dataset2.AddOrUpdate(new DicomSignedShort(privateTag, 2));
-            dataset2.Add(standardTagSeries, "ManufacturerModelName2");
+            dataset2.Add(standardTagSeries, "ManufacturerModelVersion2");
             dataset2.Add(standardTagStudy, "0");
 
             // One is on seriesUid2 and instanceUid3
             DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid2, sopInstanceUid: instanceUid3);
             dataset3.Add(identificationCodeElement);
             dataset3.AddOrUpdate(new DicomSignedShort(privateTag, 3));
-            dataset3.Add(standardTagSeries, "ManufacturerModelName3");
+            dataset3.Add(standardTagSeries, "ManufacturerModelVersion3");
             dataset3.Add(standardTagStudy, "1");
             try
             {
@@ -107,7 +107,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     Assert.Equal(instanceUid3, instanceResult[0].GetSingleValue<string>(DicomTag.SOPInstanceUID));
 
                     // Query on series for standardTagSeries
-                    DicomWebAsyncEnumerableResponse<DicomDataset> querySeriesResponse = await _client.QueryAsync($"/series?{standardTagSeries.GetPath()}=ManufacturerModelName2", cancellationToken: default);
+                    DicomWebAsyncEnumerableResponse<DicomDataset> querySeriesResponse = await _client.QueryAsync($"/series?{standardTagSeries.GetPath()}=ManufacturerModelVersion2", cancellationToken: default);
                     DicomDataset[] seriesResult = await querySeriesResponse.ToArrayAsync();
                     Assert.Single(seriesResult);
                     Assert.Equal(seriesUid1, seriesResult[0].GetSingleValue<string>(DicomTag.SeriesInstanceUID));
