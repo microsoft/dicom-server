@@ -19,12 +19,24 @@ BEGIN
         TagLevel                TINYINT              NOT NULL,
         TagStatus               TINYINT              NOT NULL
     )
+END
 
-    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTag' AND object_id = OBJECT_ID('dbo.ExtendedQueryTag'))
+BEGIN
+	CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
     (
         TagKey
     )
+END
 
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_ExtendedQueryTag_TagPath' AND object_id = OBJECT_ID('dbo.ExtendedQueryTag'))
+BEGIN
     CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
     (
         TagPath
@@ -52,8 +64,14 @@ BEGIN
     InstanceKey             BIGINT               NULL,     --FK
     Watermark               BIGINT               NOT NULL
     ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagString' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagString'))
+BEGIN
+	CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
     (
         TagKey,
         TagValue,
@@ -84,8 +102,14 @@ BEGIN
         InstanceKey             BIGINT               NULL,     --FK
         Watermark               BIGINT               NOT NULL
     ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagLong' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagLong'))
+BEGIN
+	CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
     (
         TagKey,
         TagValue,
@@ -126,6 +150,21 @@ BEGIN
         InstanceKey
     )
 END
+
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagDouble' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDouble'))
+BEGIN
+	CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+END
 GO
 
 /*************************************************************
@@ -148,8 +187,14 @@ BEGIN
         InstanceKey             BIGINT               NULL,     --FK
         Watermark               BIGINT               NOT NULL
     ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagDateTime' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime'))
+BEGIN
+	CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
     (
         TagKey,
         TagValue,
@@ -183,8 +228,14 @@ BEGIN
         WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark), --PK
         TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
     ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagPersonName' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName'))
+BEGIN
+	CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
     (
         TagKey,
         TagValue,
@@ -192,12 +243,24 @@ BEGIN
         SeriesKey,
         InstanceKey
     )
+END
 
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName'))
+BEGIN
     CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey ON dbo.ExtendedQueryTagPersonName
     (
         WatermarkAndTagKey
     )
+END
 
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.fulltext_indexes 
+	where object_id = object_id('dbo.ExtendedQueryTagPersonName'))
+BEGIN
     CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
     KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
     WITH STOPLIST = OFF;
