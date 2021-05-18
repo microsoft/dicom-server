@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             _logger = logger;
         }
 
-        public async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, CancellationToken cancellationToken = default)
+        public async Task<long?> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, CancellationToken cancellationToken = default)
         {
             if (_schemaInformation.Current < SchemaVersionConstants.SupportExtendedQueryTagSchemaVersion)
             {
@@ -60,7 +60,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
                 try
                 {
-                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                    object x = await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                    return (long?)x;
                 }
                 catch (SqlException ex)
                 {

@@ -22,8 +22,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static ExtendedQueryTagPersonNameTable ExtendedQueryTagPersonName = new ExtendedQueryTagPersonNameTable();
         internal readonly static ExtendedQueryTagStringTable ExtendedQueryTagString = new ExtendedQueryTagStringTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
+        internal readonly static ReindexOperationTable ReindexOperation = new ReindexOperationTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
+        internal readonly static TagReindexOperationTable TagReindexOperation = new TagReindexOperationTable();
         internal readonly static AddExtendedQueryTagsProcedure AddExtendedQueryTags = new AddExtendedQueryTagsProcedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
@@ -192,6 +194,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Instance_StudyKey_Status = new Index("IX_Instance_StudyKey_Status");
         }
 
+        internal class ReindexOperationTable : Table
+        {
+            internal ReindexOperationTable() : base("dbo.ReindexOperation")
+            {
+            }
+
+            internal readonly BigIntColumn OperationKey = new BigIntColumn("OperationKey");
+            internal readonly VarCharColumn EndWatermark = new VarCharColumn("EndWatermark", 50);
+        }
+
         internal class SeriesTable : Table
         {
             internal SeriesTable() : base("dbo.Series")
@@ -233,6 +245,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Study_StudyDate = new Index("IX_Study_StudyDate");
             internal readonly Index IX_Study_StudyDescription = new Index("IX_Study_StudyDescription");
             internal readonly Index IX_Study_AccessionNumber = new Index("IX_Study_AccessionNumber");
+        }
+
+        internal class TagReindexOperationTable : Table
+        {
+            internal TagReindexOperationTable() : base("dbo.TagReindexOperation")
+            {
+            }
+
+            internal readonly IntColumn TagKey = new IntColumn("TagKey");
+            internal readonly BigIntColumn OperationKey = new BigIntColumn("OperationKey");
+            internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
+            internal readonly BigIntColumn EndWatermark = new BigIntColumn("EndWatermark");
         }
 
         internal class AddExtendedQueryTagsProcedure : StoredProcedure

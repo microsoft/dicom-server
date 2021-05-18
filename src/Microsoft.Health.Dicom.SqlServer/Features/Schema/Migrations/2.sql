@@ -528,6 +528,19 @@ CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
 KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
 WITH STOPLIST = OFF;
 
+
+CREATE TABLE dbo.TagReindexOperation (
+    TagKey                  INT                  NOT NULL, --PK
+    OperationKey            BIGINT              NOT NULL,
+    Status                  TINYINT             NOT NULL,
+    EndWatermark            BIGINT              NOT NULL    
+)
+
+CREATE TABLE dbo.ReindexOperation (
+    OperationKey            BIGINT                  NOT NULL, --PK
+    EndWatermark             VARCHAR(50)          NOT NULL,     
+)
+
 /*************************************************************
     The user defined type for AddExtendedQueryTagsInput
 *************************************************************/
@@ -536,7 +549,7 @@ CREATE TYPE dbo.AddExtendedQueryTagsInputTableType_1 AS TABLE
     TagPath                    VARCHAR(64),  -- Extended Query Tag Path. Each extended query tag take 8 bytes, support upto 8 levels, no delimeter between each level.
     TagVR                      VARCHAR(2),  -- Extended Query Tag VR.
     TagPrivateCreator          NVARCHAR(64),  -- Extended Query Tag Private Creator, only valid for private tag.
-    TagLevel                   TINYINT  -- Extended Query Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
+    TagLevel                   TINYINT  -- Extended Query Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level ,
 )
 GO
 
@@ -638,6 +651,14 @@ CREATE SEQUENCE dbo.TagKeySequence
     MINVALUE 1
     NO CYCLE
     CACHE 10000
+
+CREATE SEQUENCE dbo.OperationKeySequence
+    AS BIGINT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 1000000
 
 GO
 
@@ -1468,10 +1489,38 @@ AS
         IF @@ROWCOUNT <> 0
             THROW 50409, 'extended query tag(s) already exist', 1 
 
-        -- add to extended query tag table with status 1(Ready)
+        DECLARE @maxWatermark BIGINT
+        SELECT @maxWatermark = MAX(Watermark) from dbo.Instance WHERE Status = 1
+
+        -- add to extended query tag table with status 0(Adding) or 1 (Ready)
         INSERT INTO dbo.ExtendedQueryTag 
             (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, 1 FROM @extendedQueryTags
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel,
+        (case when @maxWatermark IS NULL THEN 1 ELSE 0 END) FROM @extendedQueryTags
+
+        DECLARE @operationKey BIGINT 
+       
+        IF @maxWatermark IS NOT NULL
+        BEGIN
+            SET @operationKey = NEXT VALUE FOR OperationKeySequence
+
+            -- add new operation
+             INSERT INTO dbo.ReindexOperation
+                (OperationKey,  EndWatermark)
+            VALUES (@operationKey, @maxWatermark)
+
+            -- add to TagReindexOperation   with Status 0 (Pending)
+            INSERT INTO dbo.TagReindexOperation
+                (TagKey,   OperationKey, Status, EndWatermark)
+            SELECT E.TagKey, @operationKey, 0, @maxWatermark FROM  dbo.ExtendedQueryTag E JOIN  @extendedQueryTags IE
+            ON E.TagPath = IE.TagPath
+        
+            SELECT @operationKey
+        END
+        ELSE
+        BEGIN
+            SELECT -1
+        END
         
     COMMIT TRANSACTION
 GO
