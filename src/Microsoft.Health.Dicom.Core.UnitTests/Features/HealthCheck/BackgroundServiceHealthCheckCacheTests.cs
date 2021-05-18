@@ -7,7 +7,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Features.HealthCheck;
 using Xunit;
 
@@ -16,18 +15,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.HealthCheck
     public class BackgroundServiceHealthCheckCacheTests
     {
         private readonly BackgroundServiceHealthCheckCache _backgroundServiceHealthCheckCache;
-        private readonly IMemoryCache _cache;
+        private readonly MemoryCache _cache;
         private DateTimeOffset _testDateTimeOffset = new DateTimeOffset();
         private int _testNumRetries = 0;
 
         public BackgroundServiceHealthCheckCacheTests()
         {
-            var services = new ServiceCollection();
-            services.AddMemoryCache();
-            var serviceProvider = services.BuildServiceProvider();
-            var memoryCache = serviceProvider.GetService<IMemoryCache>();
-            _cache = memoryCache;
-            _backgroundServiceHealthCheckCache = new BackgroundServiceHealthCheckCache(memoryCache);
+            _cache = new MemoryCache(new MemoryCacheOptions());
+            _backgroundServiceHealthCheckCache = new BackgroundServiceHealthCheckCache(_cache);
         }
 
         [Fact]

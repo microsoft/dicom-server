@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         private IDicomDatasetValidator _dicomDatasetValidator;
 
-        private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset();
+        private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
         private readonly IQueryTagService _queryTagService;
         private readonly List<QueryTag> _queryTags;
 
@@ -153,16 +153,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _queryTagService);
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-
             // LO VR, invalid characters
             _dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = true;
-#pragma warning restore CS0618 // Type or member is obsolete
 
             await ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
         }
@@ -170,17 +162,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenDatasetWithInvalidIndexedTagValue_WhenValidating_ThenValidationExceptionShouldBeThrown()
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-
             // CS VR, > 16 characters is not allowed
             _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = true;
-#pragma warning restore CS0618 // Type or member is obsolete
-
             await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
         }
 
@@ -196,16 +179,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             DicomTag standardTag = DicomTag.DestinationAE;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-
             // AE > 16 characters is not allowed
             _dicomDataset.Add(standardTag, "01234567890123456");
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = true;
-#pragma warning restore CS0618 // Type or member is obsolete
 
             QueryTag indextag = new QueryTag(standardTag.BuildExtendedQueryTagStoreEntry());
             _queryTags.Add(indextag);
@@ -219,16 +194,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             DicomIntegerString element = new DicomIntegerString(tag, "0123456789123"); // exceed max length 12
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-
             // AE > 16 characters is not allowed
             _dicomDataset.Add(element);
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = true;
-#pragma warning restore CS0618 // Type or member is obsolete
 
             QueryTag indextag = new QueryTag(tag.BuildExtendedQueryTagStoreEntry(vr: element.ValueRepresentation.Code));
             _queryTags.Clear();
