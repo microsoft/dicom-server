@@ -15,6 +15,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Reindex;
 using Microsoft.Health.Dicom.Functions.Indexing.Configuration;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
@@ -28,11 +29,19 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     {
         private readonly ReindexConfiguration _reindexConfig;
 
+        private readonly IReindexTagStore _reindexTagStore;
+        private readonly IReindexService _reindexService;
         // TODO: Leverages services for fulfilling the various activies
-        public ReindexFunction(IOptions<IndexingConfiguration> configOptions)
+        public ReindexFunction(IOptions<IndexingConfiguration> configOptions,
+            IReindexTagStore reindexTagStore,
+            IReindexService reindexService)
         {
             EnsureArg.IsNotNull(configOptions, nameof(configOptions));
+            EnsureArg.IsNotNull(reindexTagStore, nameof(reindexTagStore));
+            EnsureArg.IsNotNull(reindexService, nameof(reindexService));
             _reindexConfig = configOptions.Value.Add;
+            _reindexTagStore = reindexTagStore;
+            _reindexService = reindexService;
         }
 
         [FunctionName(nameof(RunOrchestrator))]
@@ -80,31 +89,40 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             }
 
+            await context.CallActivityAsync(nameof(CompleteReindexAsync), operationKey);
             log.LogInformation($"Completed re-indexing of data on operation {operationKey}");
         }
 
-        [FunctionName(nameof(FetchQueryTagsAsync))]
-        public Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> FetchQueryTagsAsync([ActivityTrigger] string instanceId, ILogger log)
+        [FunctionName(nameof(CompleteReindexAsync))]
+        public async Task CompleteReindexAsync([ActivityTrigger] long operationKey, ILogger log)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(instanceId, nameof(instanceId));
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation("Querying for tags assigned to {InstanceId}", instanceId);
+            log.LogInformation($"Complete Reindex for tags assigned to {operationKey}");
+            await _reindexTagStore.CompleteReindexAsync(operationKey);
+        }
+
+        [FunctionName(nameof(FetchQueryTagsAsync))]
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> FetchQueryTagsAsync([ActivityTrigger] long operationKey, ILogger log)
+        {
+            EnsureArg.IsNotNull(log, nameof(log));
+
+            log.LogInformation($"Querying for tags assigned to {operationKey}");
+            var result = await _reindexTagStore.GetTagsOnOperationAsync(operationKey);
 
             // Query SQL for query tags who have been tagged with the given Instance ID for adding
-            return Task.FromResult<IReadOnlyList<ExtendedQueryTagStoreEntry>>(Array.Empty<ExtendedQueryTagStoreEntry>());
+            return result;
         }
 
         [FunctionName(nameof(FetchWatarmarksAsync))]
-        public Task<IReadOnlyList<long>> FetchWatarmarksAsync([ActivityTrigger] string instanceId, ILogger log)
+        public async Task<IReadOnlyList<long>> FetchWatarmarksAsync([ActivityTrigger] long operationKey, ILogger log)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(instanceId, nameof(instanceId));
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation("Querying for tags assigned to {InstanceId}", instanceId);
-
+            log.LogInformation("Querying for tags assigned to {operationKey}", operationKey);
+            var result = await _reindexTagStore.GetWatermarksAsync(operationKey, 1);
             // Query SQL for query tags who have been tagged with the given Instance ID for adding
-            return Task.FromResult<IReadOnlyList<long>>(Array.Empty<long>());
+            return result;
         }
 
         [FunctionName(nameof(UpdateProgressAsync))]
@@ -113,24 +131,19 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(progress, nameof(progress));
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation("Updating progress from re-index job for the following tags: {Tags}", string.Join(", ", progress.Keys));
-
-            // Write to SQL the updated progress metrics
-            // If the watermark has hit the end, change to "Added"
+            log.LogInformation($"Updating progress from re-index job for operation: {progress.OperationKey}"); ;
+            _reindexTagStore.UpdateMaxWatermarkAsync(progress.OperationKey, progress.NextWatermark);
             return Task.CompletedTask;
         }
 
         [FunctionName(nameof(ReindexActivityAsync))]
-        public static Task ReindexActivityAsync([ActivityTrigger] ReindexActivityInput input, ILogger log)
+        public async Task ReindexActivityAsync([ActivityTrigger] ReindexActivityInput input, ILogger log)
         {
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(log, nameof(log));
 
             log.LogInformation($"Processing watermark {input.Watarmark}");
-
-            // Read from Blob and write to SQL
-            // Any exceptions should be appened to SQL too for diagnosis later
-            return Task.CompletedTask;
+            await _reindexService.ReindexAsync(input.TagEntries, input.Watarmark);
         }
 
 
