@@ -15,9 +15,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
         /// </summary>
         public long NextWatermark { get; set; }
 
-        ///// <summary>
-        ///// Gets or sets the number of new errors encountered.
-        ///// </summary>
-        //public int NewErrorCount { get; set; }
+        public long OperationKey { get; set; }
     }
 }
