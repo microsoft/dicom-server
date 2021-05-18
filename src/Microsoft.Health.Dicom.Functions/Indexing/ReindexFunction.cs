@@ -8,10 +8,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Functions.Indexing.Configuration;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
@@ -23,68 +26,65 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     /// </summary>
     public class ReindexFunction
     {
-        private readonly ReindexConfiguration _clientConfig;
+        private readonly ReindexConfiguration _reindexConfig;
 
         // TODO: Leverages services for fulfilling the various activies
         public ReindexFunction(IOptions<IndexingConfiguration> configOptions)
         {
             EnsureArg.IsNotNull(configOptions, nameof(configOptions));
-            _clientConfig = configOptions.Value.Add;
+            _reindexConfig = configOptions.Value.Add;
         }
 
-        [FunctionName("ReindexV1")]
-        public static async Task RunOrchestrator(
+        [FunctionName(nameof(RunOrchestrator))]
+        public async Task RunOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context,
             ILogger log)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(log, nameof(log));
+            long operationKey = long.Parse(context.InstanceId);
 
-            ReindexInput input = EnsureArg.IsNotNull(context.GetInput<ReindexInput>());
             log = context.CreateReplaySafeLogger(log);
 
-            log.LogInformation("Beginning to re-index data between watermarks {Start} and {End}", input.Start, input.End);
+            log.LogInformation("Beginning to re-index data");
 
-            long current = input.Start;
-            while (current < input.End)
+            while (true)
             {
-                // TODO: Adjust the "start" if all of the tags have indexed beyond "start"
-                IReadOnlyList<ExtendedQueryTagEntry> queryTags = await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagEntry>>(
-                    "ReindexV1_FetchQueryTags",
+                IReadOnlyList<long> watermarks = await context.CallActivityAsync<IReadOnlyList<long>>(nameof(FetchWatarmarksAsync), context.InstanceId);
+                if (watermarks.Count == 0)
+                {
+                    break;
+                }
+                // Fetch Query Tas
+                IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                    nameof(FetchQueryTagsAsync),
                     context.InstanceId);
 
-                // TODO: Adjust batch size based on I/O in storage layers. Leverage an activity
-                var batches = new List<Task>();
-                for (int i = 0; i < input.MaxParallelBatches && current < input.End; i++)
+                if (queryTags.Count == 0)
                 {
-                    var batch = new ReindexBatch
-                    {
-                        Start = current,
-                        End = Math.Min(current + input.BatchSize, input.End),
-                        TagEntries = queryTags,
-                    };
-
-                    batches.Add(context.CallActivityAsync("ReindexV1_ProcessBatch", batch));
-
-                    current = batch.End;
+                    break;
                 }
 
-                // Wait for all of the batches to complete
-                await Task.WhenAll(batches);
+                // Reindex
+
+                // TODO: process them parallel
+                foreach (long watermark in watermarks)
+                {
+                    await context.CallActivityAsync(nameof(ReindexActivityAsync),
+                     new ReindexActivityInput() { TagEntries = queryTags, Watarmark = watermark });
+                }
 
                 // TODO: Handle possibly different offsets for resumed tags
-                IReadOnlyDictionary<string, ReindexProgress> progress = queryTags.ToDictionary(
-                    x => x.Path,
-                    _ => new ReindexProgress { NextWatermark = current });
+                await context.CallActivityAsync(nameof(UpdateProgressAsync),
+                    new ReindexProgress { NextWatermark = watermarks.Min() - 1, OperationKey = operationKey });
 
-                await context.CallActivityAsync("ReindexV1_UpdateProgress", progress);
             }
 
-            log.LogInformation("Completed re-indexing of data between watermarks {Start} and {End}", input.Start, input.End);
+            log.LogInformation($"Completed re-indexing of data on operation {operationKey}");
         }
 
-        [FunctionName("ReindexV1_FetchQueryTags")]
-        public static Task<IReadOnlyList<ExtendedQueryTagEntry>> FetchQueryTagsAsync([ActivityTrigger] string instanceId, ILogger log)
+        [FunctionName(nameof(FetchQueryTagsAsync))]
+        public Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> FetchQueryTagsAsync([ActivityTrigger] string instanceId, ILogger log)
         {
             EnsureArg.IsNotNullOrWhiteSpace(instanceId, nameof(instanceId));
             EnsureArg.IsNotNull(log, nameof(log));
@@ -92,11 +92,23 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             log.LogInformation("Querying for tags assigned to {InstanceId}", instanceId);
 
             // Query SQL for query tags who have been tagged with the given Instance ID for adding
-            return Task.FromResult<IReadOnlyList<ExtendedQueryTagEntry>>(Array.Empty<ExtendedQueryTagEntry>());
+            return Task.FromResult<IReadOnlyList<ExtendedQueryTagStoreEntry>>(Array.Empty<ExtendedQueryTagStoreEntry>());
         }
 
-        [FunctionName("ReindexV1_UpdateProgress")]
-        public static Task UpdateProgressAsync([ActivityTrigger] IReadOnlyDictionary<string, ReindexProgress> progress, ILogger log)
+        [FunctionName(nameof(FetchWatarmarksAsync))]
+        public Task<IReadOnlyList<long>> FetchWatarmarksAsync([ActivityTrigger] string instanceId, ILogger log)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(instanceId, nameof(instanceId));
+            EnsureArg.IsNotNull(log, nameof(log));
+
+            log.LogInformation("Querying for tags assigned to {InstanceId}", instanceId);
+
+            // Query SQL for query tags who have been tagged with the given Instance ID for adding
+            return Task.FromResult<IReadOnlyList<long>>(Array.Empty<long>());
+        }
+
+        [FunctionName(nameof(UpdateProgressAsync))]
+        public Task UpdateProgressAsync([ActivityTrigger] ReindexProgress progress, ILogger log)
         {
             EnsureArg.IsNotNull(progress, nameof(progress));
             EnsureArg.IsNotNull(log, nameof(log));
@@ -108,53 +120,34 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             return Task.CompletedTask;
         }
 
-        [FunctionName("ReindexV1_ProcessBatch")]
-        public static Task ProcessBatchAsync([ActivityTrigger] ReindexBatch batch, ILogger log)
+        [FunctionName(nameof(ReindexActivityAsync))]
+        public static Task ReindexActivityAsync([ActivityTrigger] ReindexActivityInput input, ILogger log)
         {
-            EnsureArg.IsNotNull(batch, nameof(batch));
+            EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation("Processing watermarks [{Start}, {End})", batch.Start, batch.End);
+            log.LogInformation($"Processing watermark {input.Watarmark}");
 
             // Read from Blob and write to SQL
             // Any exceptions should be appened to SQL too for diagnosis later
             return Task.CompletedTask;
         }
 
-        [FunctionName("ReindexV1_Timer")]
-        public async Task TimerStartAsync(
-            [TimerTrigger("0 */5 * * * *")] TimerInfo timer,
+
+
+
+        [FunctionName(nameof(StartReindexOperation))]
+        public async Task StartReindexOperation(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = nameof(StartReindexOperation))] HttpRequest req,
             [DurableClient] IDurableOrchestrationClient client,
             ILogger log)
         {
-            EnsureArg.IsNotNull(timer, nameof(timer));
+            EnsureArg.IsNotNull(req, nameof(req));
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(log, nameof(log));
-
-            (string instanceId, long end) = await GetPendingJobParametersAsync();
-
-            DurableOrchestrationStatus status = await client.GetStatusAsync(instanceId);
-            if (status != null)
-            {
-                log.LogInformation("Job instance '{InstanceId}' was previously started and has status '{Status}'",
-                    instanceId,
-                    status.RuntimeStatus);
-            }
-            else
-            {
-                var input = new ReindexInput
-                {
-                    Start = 0,
-                    End = end,
-                    BatchSize = _clientConfig.BatchSize,
-                    MaxParallelBatches = _clientConfig.MaxParallelBatches,
-                };
-
-                // Note: If the instance is already started, this will silently replace it
-                await client.StartNewAsync("ReindexV1", instanceId, input);
-
-                log.LogInformation("Started job instance '{InstanceId}'.", instanceId);
-            }
+            string operationId = req.Query["operationId"];
+            log.LogInformation($"Start processing operation on {operationId}");
+            await client.StartNewAsync(nameof(RunOrchestrator), instanceId: operationId);
         }
 
         private static Task<(string InstanceId, long End)> GetPendingJobParametersAsync()
