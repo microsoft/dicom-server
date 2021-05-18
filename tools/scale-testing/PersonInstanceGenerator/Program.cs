@@ -122,10 +122,10 @@ namespace PersonInstanceGenerator
             "M",
         };
 
-        private static Random rand;
+        private static Random s_rand;
 
-        private static string _serviceBusConnectionString;
-        private static ITopicClient topicClient;
+        private static string s_serviceBusConnectionString;
+        private static ITopicClient s_topicClient;
 
         public static async Task Main(string[] args)
         {
@@ -145,13 +145,13 @@ namespace PersonInstanceGenerator
 
             KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
 
-            _serviceBusConnectionString = secret.Value;
+            s_serviceBusConnectionString = secret.Value;
 
-            rand = new Random();
+            s_rand = new Random();
             var patientNames = File.ReadAllLines(args[0]);
             var physiciansNames = File.ReadAllLines(args[1]);
             string path = args[2];
-            topicClient = new TopicClient(_serviceBusConnectionString, KnownTopics.StowRs);
+            s_topicClient = new TopicClient(s_serviceBusConnectionString, KnownTopics.StowRs);
             int tracker = 0;
             int totalCount = int.Parse(args[3]);
 
@@ -163,7 +163,7 @@ namespace PersonInstanceGenerator
                 DateTime patientBirthDate = RandomDateTimeBefore1995();
                 var patientSex = Sex.RandomElement();
                 var patientOccupation = Occupation.RandomElement();
-                int studies = rand.Next(1, 5);
+                int studies = s_rand.Next(1, 5);
                 for (int i = 0; i < studies; i++)
                 {
                     var physicianName = physiciansNames.RandomElement();
@@ -172,7 +172,7 @@ namespace PersonInstanceGenerator
                     List<(string, (int, string), (int, string))> instances = InstanceGenerator();
                     (string, string) modality = Modalities.RandomElement();
                     var patientAge = Math.Round((decimal)(studyDate - patientBirthDate).Days / 365);
-                    var patientWeight = rand.Next(50, 90);
+                    var patientWeight = s_rand.Next(50, 90);
 
                     foreach ((string, (int, string), (int, string)) inst in instances)
                     {
@@ -195,7 +195,7 @@ namespace PersonInstanceGenerator
                             AccessionNumber = accession.ToString(),
                             StudyDate = studyDate.Date.Year.ToString() + studyDate.Date.Month.ToString() + studyDate.Date.Day.ToString(),
                             StudyDescription = modality.Item2,
-                            PerformedProcedureStepStartDate = studyDate.AddMinutes(rand.Next(1, 10)).ToString(),
+                            PerformedProcedureStepStartDate = studyDate.AddMinutes(s_rand.Next(1, 10)).ToString(),
                         };
 
                         var patient = JsonSerializer.Serialize(pI);
@@ -208,7 +208,7 @@ namespace PersonInstanceGenerator
                             Console.WriteLine($" tracker = {tracker}");
 
                             // Send the message to the topic
-                            await topicClient.SendAsync(message);
+                            await s_topicClient.SendAsync(message);
 
                             sw.WriteLine(patient);
                         }
@@ -227,11 +227,11 @@ namespace PersonInstanceGenerator
         {
             List<(string studyUid, (int seriesIndex, string seriesUid), (int instanceIndex, string instanceUid))> ret = new List<(string, (int, string), (int, string))>();
             string studyUid = DicomUID.Generate().UID;
-            int series = rand.Next(1, 5);
+            int series = s_rand.Next(1, 5);
             for (int i = 0; i < series; i++)
             {
                 string seriesUid = DicomUID.Generate().UID;
-                int instances = rand.Next(1, 7);
+                int instances = s_rand.Next(1, 7);
                 for (int j = 0; j < instances; j++)
                 {
                     string instanceUid = DicomUID.Generate().UID;
@@ -247,10 +247,10 @@ namespace PersonInstanceGenerator
             var start = new DateTime(1970, 1, 1);
             var end = new DateTime(1990, 1, 1);
             int range = (end - start).Days;
-            DateTime ret = start.AddDays(rand.Next(range));
-            ret = ret.AddHours(rand.Next(24));
-            ret = ret.AddMinutes(rand.Next(60));
-            ret = ret.AddSeconds(rand.Next(60));
+            DateTime ret = start.AddDays(s_rand.Next(range));
+            ret = ret.AddHours(s_rand.Next(24));
+            ret = ret.AddMinutes(s_rand.Next(60));
+            ret = ret.AddSeconds(s_rand.Next(60));
             return ret;
         }
 
@@ -258,21 +258,21 @@ namespace PersonInstanceGenerator
         {
             var start = new DateTime(1995, 1, 1);
             int range = (DateTime.Today - start).Days;
-            DateTime ret = start.AddDays(rand.Next(range));
-            ret = ret.AddHours(rand.Next(24));
-            ret = ret.AddMinutes(rand.Next(60));
-            ret = ret.AddSeconds(rand.Next(60));
+            DateTime ret = start.AddDays(s_rand.Next(range));
+            ret = ret.AddHours(s_rand.Next(24));
+            ret = ret.AddMinutes(s_rand.Next(60));
+            ret = ret.AddSeconds(s_rand.Next(60));
             return ret;
         }
 
         private static int AccessionNumber()
         {
-            return rand.Next(11111111, 19999999);
+            return s_rand.Next(11111111, 19999999);
         }
 
         private static int PatientId()
         {
-            return rand.Next(1000000, 1000000000);
+            return s_rand.Next(1000000, 1000000000);
         }
     }
 }

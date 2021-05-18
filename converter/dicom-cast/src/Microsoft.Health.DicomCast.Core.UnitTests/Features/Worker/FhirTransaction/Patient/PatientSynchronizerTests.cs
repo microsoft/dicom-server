@@ -23,7 +23,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
         private static readonly DicomDataset DefaultDicomDataset = new DicomDataset();
 
-        private IPatientPropertySynchronizer _propertySynchronizer = Substitute.For<IPatientPropertySynchronizer>();
+        private readonly IPatientPropertySynchronizer _propertySynchronizer = Substitute.For<IPatientPropertySynchronizer>();
 
         private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
 

@@ -3,11 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
     /// Level of a queryable tag.
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum QueryTagLevel
     {
         /// <summary>

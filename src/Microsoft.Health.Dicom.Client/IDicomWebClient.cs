@@ -24,7 +24,10 @@ namespace Microsoft.Health.Dicom.Client
 
         Task<DicomWebResponse<ChangeFeedEntry>> GetChangeFeedLatest(string queryString = "", CancellationToken cancellationToken = default);
 
+        [Obsolete("Please use QueryAsync(Uri, CancellationToken) instead.")]
         Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(string requestUri, CancellationToken cancellationToken = default);
+
+        Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(Uri requestUri, CancellationToken cancellationToken = default);
 
         Task<DicomWebAsyncEnumerableResponse<Stream>> RetrieveFramesAsync(Uri requestUri, string mediaType = DicomWebConstants.ApplicationOctetStreamMediaType, string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax, CancellationToken cancellationToken = default);
 
@@ -44,12 +47,12 @@ namespace Microsoft.Health.Dicom.Client
 
         Task<DicomWebResponse<DicomDataset>> StoreAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTag> tagEntries, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> tagEntries, CancellationToken cancellationToken = default);
 
         Task<DicomWebResponse> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse<IEnumerable<ExtendedQueryTag>>> GetExtendedQueryTagsAsync(CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<IEnumerable<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse<ExtendedQueryTag>> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<GetExtendedQueryTagEntry>> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
     }
 }

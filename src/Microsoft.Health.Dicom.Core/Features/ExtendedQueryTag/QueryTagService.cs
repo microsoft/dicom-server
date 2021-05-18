@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public static readonly IReadOnlyList<QueryTag> CoreQueryTags = GetCoreQueryTags();
         private List<QueryTag> _allQueryTags;
         private int _allQueryTagsStatus;
-        private TaskCompletionSource<bool> _allQueryTagsCompletionSource = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource<bool> _allQueryTagsCompletionSource = new TaskCompletionSource<bool>();
 
         public QueryTagService(IExtendedQueryTagStore extendedQueryTagStore, IOptions<FeatureConfiguration> featureConfiguration)
         {

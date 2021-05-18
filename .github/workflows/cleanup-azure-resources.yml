@@ -15,7 +15,7 @@ jobs:
           enable-AzPSSession: true
       
       - name: Clean Up Azure Resources
-        uses: azure/powershell@v1
+        uses: azure/powershell@v1.1.0
         with:
           azPSVersion: '3.1.0'
           inlineScript: | 

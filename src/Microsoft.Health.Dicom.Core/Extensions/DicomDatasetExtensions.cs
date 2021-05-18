@@ -79,7 +79,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             return CopyDicomDatasetWithoutBulkDataItems(dicomDataset);
 
-            DicomDataset CopyDicomDatasetWithoutBulkDataItems(DicomDataset dicomDatasetToCopy)
+            static DicomDataset CopyDicomDatasetWithoutBulkDataItems(DicomDataset dicomDatasetToCopy)
             {
                 return new DicomDataset(dicomDatasetToCopy
                     .Select(dicomItem =>

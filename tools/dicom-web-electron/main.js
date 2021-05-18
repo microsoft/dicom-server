@@ -81,6 +81,7 @@ async function createWindow() {
                     'Authorization': authorizationHeader
                 },
                 maxContentLength: maxSizeBytes,
+                maxBodyLength: maxSizeBytes,
                 httpsAgent: httpsAgent
             })
             .then(function(response) {

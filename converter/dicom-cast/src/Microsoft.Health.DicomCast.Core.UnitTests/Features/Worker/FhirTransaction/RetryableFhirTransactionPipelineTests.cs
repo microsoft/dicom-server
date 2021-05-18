@@ -26,7 +26,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
         private readonly IFhirTransactionPipeline _fhirTransactionPipeline = Substitute.For<IFhirTransactionPipeline>();
-        private RetryableFhirTransactionPipeline _retryableFhirTransactionPipeline;
+        private readonly RetryableFhirTransactionPipeline _retryableFhirTransactionPipeline;
         private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
 
         public RetryableFhirTransactionPipelineTests()

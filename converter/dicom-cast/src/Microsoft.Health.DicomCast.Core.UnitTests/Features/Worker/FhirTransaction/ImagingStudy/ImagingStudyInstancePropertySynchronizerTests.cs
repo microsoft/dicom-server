@@ -20,13 +20,14 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 {
     public class ImagingStudyInstancePropertySynchronizerTests
     {
+        private const string StudyInstanceUid = "111";
+        private const string SeriesInstanceUid = "222";
+        private const string SopInstanceUid = "333";
+        private const string SopClassUid = "4444";
+        private const string PatientResourceId = "555";
+
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
         private readonly IImagingStudyInstancePropertySynchronizer _imagingStudyInstancePropertySynchronizer;
-        private readonly string studyInstanceUid = "111";
-        private readonly string seriesInstanceUid = "222";
-        private readonly string sopInstanceUid = "333";
-        private readonly string sopClassUid = "4444";
-        private readonly string patientResourceId = "555";
         private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
         private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
 
@@ -40,15 +41,19 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             DicomDataset dataset = FhirTransactionContextBuilder.CreateDicomDataset();
 
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(StudyInstanceUid, new List<string>() { SeriesInstanceUid }, new List<string>() { SopInstanceUid }, PatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(dataset);
 
+            if (imagingStudy.Series.Count() > 0)
+            {
+                System.Console.WriteLine("");
+            }
             ImagingStudy.SeriesComponent series = imagingStudy.Series.First();
             ImagingStudy.InstanceComponent instance = series.Instance.First();
 
             await _imagingStudyInstancePropertySynchronizer.SynchronizeAsync(context, instance, DefaultCancellationToken);
 
-            Assert.Equal(sopClassUid, instance.SopClass.Code);
+            Assert.Equal(SopClassUid, instance.SopClass.Code);
             Assert.Equal(1, instance.Number);
         }
 
@@ -57,7 +62,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             DicomDataset dataset = FhirTransactionContextBuilder.CreateDicomDataset();
 
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(StudyInstanceUid, new List<string>() { SeriesInstanceUid }, new List<string>() { SopInstanceUid }, PatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(dataset);
 
             ImagingStudy.SeriesComponent series = imagingStudy.Series.First();
@@ -78,7 +83,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             DicomDataset dataset = FhirTransactionContextBuilder.CreateDicomDataset();
 
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
+            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(StudyInstanceUid, new List<string>() { SeriesInstanceUid }, new List<string>() { SopInstanceUid }, PatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(dataset);
 
             ImagingStudy.SeriesComponent series = imagingStudy.Series.First();

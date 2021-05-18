@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Client;
@@ -27,7 +28,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 IDicomWebClient client = _fixture.GetDicomWebClient(TestApplications.InvalidClient);
                 DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                    () => client.QueryAsync("/studies"));
+                    () => client.QueryAsync(new Uri("/studies", UriKind.Relative)));
                 Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
             }
         }

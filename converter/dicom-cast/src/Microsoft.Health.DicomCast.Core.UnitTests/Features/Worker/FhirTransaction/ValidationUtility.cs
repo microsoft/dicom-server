@@ -15,7 +15,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
     {
         public static void ValidateRequestEntryMinimumRequirementForWithChange(
             FhirTransactionRequestMode expectedRequestMode,
-            string expectedUrl,
+            string path,
             Bundle.HTTPVerb? expectedMethod,
             FhirTransactionRequestEntry actualEntry)
         {
@@ -35,12 +35,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 // Otherwise, it should be server generated resource id.
                 ServerResourceId serverResourceId = Assert.IsType<ServerResourceId>(actualEntry.ResourceId);
 
-                Assert.Equal(expectedUrl, serverResourceId.ToString());
+                Assert.Equal(path, serverResourceId.ToString());
             }
 
             Assert.NotNull(actualEntry.Request);
             Assert.Equal(expectedMethod, actualEntry.Request.Method);
-            Assert.Equal(expectedUrl, actualEntry.Request.Url);
+            Assert.Equal(path, actualEntry.Request.Url);
 
             if (expectedMethod != Bundle.HTTPVerb.DELETE)
             {

@@ -43,8 +43,19 @@
 ![Post Succeeds](/docs/images/FiddlerSucceedPost.png)
 - Note: you cannot upload the same DCM file again unless it is first deleted. Doing so will result in an HTTP 409 Conflict error.
 
-## Postman for Get
+## Posting DICOM files using Postman
+Postman only supports uploading DICOM files using the single part payload defined in the DICOM standard. This is because Postman cannot support custom separators in a multipart/related POST request.
 - [Install Postman](https://www.postman.com/downloads/)
+- Set the request to be a post request to the url `https://localhost:63838/studies`
+- In the `Body` tab of Postman select `binary` and and then select the single part DICOM file you would like to upload
+- In the headers section add the following. All the headers should match as in the image below 
+   - Accept: `application/dicom+json`
+   - Content-Type: `application/dicom`
+- Click `Send`, a successful post will result in a 200 OK
+
+![Postman headers](/docs/images/postman-singlepart-headers.png)
+
+## Postman for Get
 - Example QIDO to get all studies
 ```http
 GET https://localhost:63838/studies

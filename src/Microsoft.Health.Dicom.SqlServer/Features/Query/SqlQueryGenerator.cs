@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Linq;
+using Dicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -23,6 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private readonly QueryExpression _queryExpression;
         private readonly SqlQueryParameterManager _parameters;
         private const string SqlDateFormat = "yyyy-MM-dd";
+        private const string SqlDateTimeFormat = "YYYY-MM-DD hh:mm:ss.nnnnnnn";
         private const string InstanceTableAlias = "i";
         private const string StudyTableAlias = "st";
         private const string SeriesTableAlias = "se";
@@ -349,7 +351,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .AppendLine();
         }
 
-        public override void Visit(DateRangeValueMatchCondition rangeValueMatchCondition)
+        public override void Visit(DateTimeRangeValueMatchCondition rangeValueMatchCondition)
         {
             var queryTag = rangeValueMatchCondition.QueryTag;
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(queryTag);
@@ -358,16 +360,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .Append("AND ");
 
             AppendExtendedQueryTagKeyFilter(dicomTagSqlEntry, tableAlias, rangeValueMatchCondition);
+            bool? dateTime = queryTag.VR == DicomVR.DT ? true : (queryTag.VR == DicomVR.DA ? false : null);
+            var min = dateTime.Value ? rangeValueMatchCondition.Minimum.ToString(SqlDateTimeFormat) : rangeValueMatchCondition.Minimum.ToString(SqlDateFormat);
+            var max = dateTime.Value ? rangeValueMatchCondition.Maximum.ToString(SqlDateTimeFormat) : rangeValueMatchCondition.Maximum.ToString(SqlDateFormat);
 
             _stringBuilder
                 .Append(dicomTagSqlEntry.SqlColumn, tableAlias).Append(" BETWEEN ")
-                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Minimum.ToString(SqlDateFormat)))
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, min))
                 .Append(" AND ")
-                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Maximum.ToString(SqlDateFormat)))
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, max))
                 .AppendLine();
         }
 
-        public override void Visit(DateSingleValueMatchCondition dateSingleValueMatchCondition)
+        public override void Visit(DateTimeSingleValueMatchCondition dateSingleValueMatchCondition)
         {
             var queryTag = dateSingleValueMatchCondition.QueryTag;
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(queryTag);
@@ -376,11 +381,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .Append("AND ");
 
             AppendExtendedQueryTagKeyFilter(dicomTagSqlEntry, tableAlias, dateSingleValueMatchCondition);
+            bool? dateTime = queryTag.VR == DicomVR.DT ? true : (queryTag.VR == DicomVR.DA ? false : null);
+            var value = dateTime.Value ? dateSingleValueMatchCondition.Value.ToString(SqlDateTimeFormat) : dateSingleValueMatchCondition.Value.ToString(SqlDateFormat);
 
             _stringBuilder
                 .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
                 .Append("=")
-                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, dateSingleValueMatchCondition.Value.ToString(SqlDateFormat)))
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, value))
                 .AppendLine();
         }
 
@@ -390,7 +397,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(queryTag);
             var tableAlias = GetTableAlias(dicomTagSqlEntry, queryTag.IsExtendedQueryTag ? queryTag.ExtendedQueryTagStoreEntry.Key : null);
 
-           var fuzzyMatchString = $"\"{fuzzyMatchCondition.Value}*\"";
+            var fuzzyMatchString = $"\"{fuzzyMatchCondition.Value}*\"";
             _stringBuilder
                 .Append("AND ");
 

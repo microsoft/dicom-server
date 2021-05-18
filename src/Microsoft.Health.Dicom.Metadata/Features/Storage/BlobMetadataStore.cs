@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
     {
         private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
         private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
-        private static readonly Encoding _metadataEncoding = Encoding.UTF8;
+        private static readonly Encoding MetadataEncoding = Encoding.UTF8;
 
         private readonly BlobContainerClient _container;
         private readonly JsonSerializer _jsonSerializer;
@@ -73,7 +73,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             try
             {
                 await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName))
-                await using (var streamWriter = new StreamWriter(stream, _metadataEncoding))
+                await using (var streamWriter = new StreamWriter(stream, MetadataEncoding))
                 using (var jsonTextWriter = new JsonTextWriter(streamWriter))
                 {
                     _jsonSerializer.Serialize(jsonTextWriter, dicomDatasetWithoutBulkData);
@@ -123,7 +123,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
                     stream.Seek(0, SeekOrigin.Begin);
 
-                    using (var streamReader = new StreamReader(stream, _metadataEncoding))
+                    using (var streamReader = new StreamReader(stream, MetadataEncoding))
                     using (var jsonTextReader = new JsonTextReader(streamReader))
                     {
                         dicomDataset = _jsonSerializer.Deserialize<DicomDataset>(jsonTextReader);

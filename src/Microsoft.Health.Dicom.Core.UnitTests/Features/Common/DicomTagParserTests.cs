@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
 {
     public class DicomTagParserTests
     {
-        private IDicomTagParser _dicomTagParser;
+        private readonly IDicomTagParser _dicomTagParser;
 
         public DicomTagParserTests()
         {

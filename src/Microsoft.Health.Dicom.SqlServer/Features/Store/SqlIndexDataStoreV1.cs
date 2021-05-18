@@ -68,17 +68,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
                 catch (SqlException ex)
                 {
-                    switch (ex.Number)
+                    if (ex.Number == SqlErrorCodes.Conflict)
                     {
-                        case SqlErrorCodes.Conflict:
-                            {
-                                if (ex.State == (byte)IndexStatus.Creating)
-                                {
-                                    throw new PendingInstanceException();
-                                }
+                        if (ex.State == (byte)IndexStatus.Creating)
+                        {
+                            throw new PendingInstanceException();
+                        }
 
-                                throw new InstanceAlreadyExistsException();
-                            }
+                        throw new InstanceAlreadyExistsException();
                     }
 
                     throw new DataStoreException(ex);
@@ -273,6 +270,63 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                         default:
                             throw new DataStoreException(ex);
                     }
+                }
+            }
+        }
+
+        public async Task<int> RetrieveNumExhaustedDeletedInstanceAttemptsAsync(int maxNumberOfRetries, CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                sqlCommandWrapper.CommandText = @$"
+                        SELECT COUNT(*)
+                        FROM {VLatest.DeletedInstance.TableName}
+                        WHERE {VLatest.DeletedInstance.RetryCount} >= @maxNumberOfRetries";
+
+                sqlCommandWrapper.Parameters.AddWithValue("@maxNumberOfRetries", maxNumberOfRetries);
+
+
+                try
+                {
+                    using (SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken))
+                    {
+                        await sqlDataReader.ReadAsync(cancellationToken);
+                        return (int)sqlDataReader[0];
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
+
+        public async Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                sqlCommandWrapper.CommandText = @$"
+                        SELECT MIN({VLatest.DeletedInstance.DeletedDateTime})
+                        FROM {VLatest.DeletedInstance.TableName}";
+                try
+                {
+                    using (SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken))
+                    {
+                        await sqlDataReader.ReadAsync(cancellationToken);
+
+                        if (sqlDataReader.IsDBNull(0))
+                        {
+                            return DateTimeOffset.UtcNow;
+                        }
+
+                        return (DateTimeOffset)sqlDataReader[0];
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
                 }
             }
         }

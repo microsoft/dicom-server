@@ -22,8 +22,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 {
     public class FrameHandlerTests
     {
-        private IFrameHandler _frameHandler;
-        private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly IFrameHandler _frameHandler;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public FrameHandlerTests()
         {

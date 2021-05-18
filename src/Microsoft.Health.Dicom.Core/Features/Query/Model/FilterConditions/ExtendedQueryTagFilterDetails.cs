@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public override string ToString()
         {
-            return $"Key: {Key}, VR {VR.Code} Level:{Level} Tag:{Tag.ToString()}";
+            return $"Key: {Key}, VR {VR.Code} Level:{Level} Tag:{Tag}";
         }
 
         public override int GetHashCode()

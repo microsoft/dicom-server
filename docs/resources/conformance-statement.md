@@ -30,6 +30,7 @@ The following `Accept` header(s) for the response are supported:
 The following `Content-Type` header(s) are supported:
 
 - `multipart/related; type="application/dicom"`
+- `application/dicom`
 
 > Note: The Server will <u>not</u> coerce or replace attributes that conflict with existing data. All data will be stored as provided.
 

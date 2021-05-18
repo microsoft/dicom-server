@@ -16,12 +16,13 @@ namespace QidoFunctionApp
 {
     public static class Qido
     {
-        private static IDicomWebClient client;
+        private static IDicomWebClient s_client;
 
         [FunctionName("Qido")]
-        public static void Run([ServiceBusTrigger(KnownTopics.Qido, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
+        public static void Run([ServiceBusTrigger(KnownTopics.Qido, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")] byte[] message, ILogger log)
         {
-            log.LogInformation($"C# ServiceBus topic trigger function processed message: {Encoding.UTF8.GetString(message)}");
+            var url = new Uri(Encoding.UTF8.GetString(message));
+            log.LogInformation($"C# ServiceBus topic trigger function processed message: {url}");
             using var httpClient = new HttpClient
             {
                 BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
@@ -31,7 +32,7 @@ namespace QidoFunctionApp
 
             try
             {
-                ProcessMessageWithQueryUrl(message);
+                ProcessMessageWithQueryUrl(url);
             }
             catch (Exception ex)
             {
@@ -39,14 +40,14 @@ namespace QidoFunctionApp
             }
         }
 
-        private static void ProcessMessageWithQueryUrl(byte[] message)
+        private static void ProcessMessageWithQueryUrl(Uri url)
         {
-            client.QueryAsync(Encoding.UTF8.GetString(message)).Wait();
+            s_client.QueryAsync(url).Wait();
         }
 
         private static void SetupDicomWebClient(HttpClient httpClient)
         {
-            client = new DicomWebClient(httpClient);
+            s_client = new DicomWebClient(httpClient);
         }
     }
 }

@@ -53,6 +53,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Add<SqlIndexDataStoreV1>()
                 .Scoped()
                 .AsImplementedInterfaces();
+
             services.Add<SqlIndexDataStoreV2>()
                 .Scoped()
                 .AsImplementedInterfaces();

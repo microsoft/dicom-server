@@ -28,13 +28,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
             }
 
-            if(string.IsNullOrWhiteSpace(Level))
+            if (string.IsNullOrWhiteSpace(Level))
             {
                 property = "Level";
                 yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
             }
 
-            if(!Enum.TryParse(typeof(QueryTagLevel), Level, true, out object result))
+            if (!Enum.TryParse(typeof(QueryTagLevel), Level, true, out object result))
             {
                 property = "Level";
                 yield return new ValidationResult(string.Format(DicomCoreResource.InvalidDicomTagLevel, Level), new[] { property });

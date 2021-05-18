@@ -14,8 +14,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
     /// </summary>
     public class RemoteTestDicomWebServer : TestDicomWebServer
     {
-        public RemoteTestDicomWebServer(string environmentUrl)
-            : base(new Uri(environmentUrl))
+        public RemoteTestDicomWebServer(Uri environmentUrl)
+            : base(environmentUrl)
         {
         }
 

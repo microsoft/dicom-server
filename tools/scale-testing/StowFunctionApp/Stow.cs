@@ -19,10 +19,10 @@ namespace StowFunctionApp
 {
     public static class Stow
     {
-        private static IDicomWebClient client;
+        private static IDicomWebClient s_client;
 
         [FunctionName("StorePreGeneratedData")]
-        public static void Run([ServiceBusTrigger(KnownTopics.StowRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
+        public static void Run([ServiceBusTrigger(KnownTopics.StowRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")] byte[] message, ILogger log)
         {
             log.LogInformation($"C# ServiceBus topic trigger function processed message: {Encoding.UTF8.GetString(message)}");
             using var httpClient = new HttpClient
@@ -46,12 +46,12 @@ namespace StowFunctionApp
 
         private static void SetupDicomWebClient(HttpClient httpClient)
         {
-            client = new DicomWebClient(httpClient);
+            s_client = new DicomWebClient(httpClient);
         }
 
         private static void StoreRetrievedData(DicomFile dicomFile)
         {
-            DicomWebResponse<DicomDataset> response = client.StoreAsync(new List<DicomFile>() { dicomFile }).Result;
+            DicomWebResponse<DicomDataset> response = s_client.StoreAsync(new List<DicomFile>() { dicomFile }).Result;
 
             int statusCode = (int)response.StatusCode;
             if (statusCode != 409 && statusCode < 200 && statusCode > 299)

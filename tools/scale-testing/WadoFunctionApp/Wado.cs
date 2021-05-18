@@ -16,10 +16,10 @@ namespace WadoFunctionApp
 {
     public static class Wado
     {
-        private static IDicomWebClient client;
+        private static IDicomWebClient s_client;
 
         [FunctionName("WadoInstance")]
-        public static void Run([ServiceBusTrigger(KnownTopics.WadoRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
+        public static void Run([ServiceBusTrigger(KnownTopics.WadoRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")] byte[] message, ILogger log)
         {
             log.LogInformation($"C# ServiceBus topic trigger function processed message: {message}");
             using var httpClient = new HttpClient
@@ -41,12 +41,12 @@ namespace WadoFunctionApp
 
         private static void SetupDicomWebClient(HttpClient httpClient)
         {
-            client = new DicomWebClient(httpClient);
+            s_client = new DicomWebClient(httpClient);
         }
 
         private static void RetrieveInstance(string studyUid, string seriesUid, string instanceUid)
         {
-            client.RetrieveInstanceAsync(studyUid, seriesUid, instanceUid).Wait();
+            s_client.RetrieveInstanceAsync(studyUid, seriesUid, instanceUid).Wait();
         }
 
         private static void ProcessMessageWithInstanceReference(byte[] message, ILogger log)

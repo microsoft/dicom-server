@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 {
     public class RetrieveTransferSyntaxHandlerTests
     {
-        private RetrieveTransferSyntaxHandler _handler;
+        private readonly RetrieveTransferSyntaxHandler _handler;
 
         public RetrieveTransferSyntaxHandlerTests()
         {

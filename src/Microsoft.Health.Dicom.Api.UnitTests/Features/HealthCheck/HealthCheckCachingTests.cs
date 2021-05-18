@@ -21,9 +21,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.HealthCheck
     {
         private readonly CachedHealthCheck _cachedHealthCheck;
         private readonly HealthCheckContext _context;
-        private Func<IServiceProvider, IHealthCheck> _healthCheckFunc;
-        private IHealthCheck _healthCheck;
-        private IServiceScope _serviceScope;
+        private readonly Func<IServiceProvider, IHealthCheck> _healthCheckFunc;
+        private readonly IHealthCheck _healthCheck;
+        private readonly IServiceScope _serviceScope;
 
         public HealthCheckCachingTests()
         {

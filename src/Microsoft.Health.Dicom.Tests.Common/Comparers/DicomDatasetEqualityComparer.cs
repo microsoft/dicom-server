@@ -14,9 +14,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class DicomDatasetEqualityComparer : IEqualityComparer<DicomDataset>
     {
-        private static DicomDatasetEqualityComparer _default = new DicomDatasetEqualityComparer();
-
-        public static DicomDatasetEqualityComparer Default => _default;
+        public static DicomDatasetEqualityComparer Default { get; } = new DicomDatasetEqualityComparer();
 
         private readonly IEnumerable<DicomTag> _ignoredTags;
 

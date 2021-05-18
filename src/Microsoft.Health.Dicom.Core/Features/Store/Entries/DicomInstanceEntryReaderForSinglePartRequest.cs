@@ -111,7 +111,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
             public override int ReadByte()
             {
                 ThrowIfExceedLimit();
-                
+
                 int read = _stream.ReadByte();
 
                 if (read != -1)

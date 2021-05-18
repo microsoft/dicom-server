@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 {
     public class ExtendedQueryTagEntryValidatorTests
     {
-        private IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
+        private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
 
         public ExtendedQueryTagEntryValidatorTests()
         {
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             });
         }
 
-        [Fact] 
+        [Fact]
         public void GivenInvalidVRForTag_WhenValidating_ThenShouldThrowException()
         {
             string tagPath = DicomTag.DeviceSerialNumber.GetPath();

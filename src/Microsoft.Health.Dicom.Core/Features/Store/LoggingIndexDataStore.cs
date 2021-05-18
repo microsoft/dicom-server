@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -76,6 +77,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "Incrementing the retry count of deleted instances '{DicomInstanceIdentifier}' and setting next cleanup time to '{CleanupAfter}'.");
 
+        private static readonly Action<ILogger, Exception> LogGetOldestDeletedAsyncDelegate =
+           LoggerMessage.Define(
+               LogLevel.Debug,
+               default,
+               "Finding time of oldest deleted instance.");
+
+        private static readonly Action<ILogger, int, Exception> LogRetrieveNumDeletedExceedRetryCountAsyncDelegate =
+           LoggerMessage.Define<int>(
+               LogLevel.Debug,
+               default,
+               "Finding number of delete instances at max retries of {MaxRetriesAllowed}.");
+
         private static readonly Action<ILogger, Exception> LogOperationSucceededDelegate =
             LoggerMessage.Define(
                 LogLevel.Debug,
@@ -88,7 +101,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "The operation failed.");
 
-        private readonly IIndexDataStore _indexDataStore;
         private readonly ILogger _logger;
 
         public LoggingIndexDataStore(IIndexDataStore indexDataStore, ILogger<LoggingIndexDataStore> logger)
@@ -96,11 +108,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _indexDataStore = indexDataStore;
+            IndexDataStore = indexDataStore;
             _logger = logger;
         }
 
-        protected IIndexDataStore IndexDataStore => _indexDataStore;
+        protected IIndexDataStore IndexDataStore { get; }
 
         /// <inheritdoc />
         public async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
@@ -111,7 +123,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
+                long version = await IndexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
 
                 LogCreateInstanceIndexSucceededDelegate(_logger, version, null);
 
@@ -132,7 +144,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -151,7 +163,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -170,7 +182,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -189,7 +201,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, status, cancellationToken);
+                await IndexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, status, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -208,7 +220,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                IEnumerable<VersionedInstanceIdentifier> deletedInstances = await _indexDataStore.RetrieveDeletedInstancesAsync(batchSize, maxRetries, cancellationToken);
+                IEnumerable<VersionedInstanceIdentifier> deletedInstances = await IndexDataStore.RetrieveDeletedInstancesAsync(batchSize, maxRetries, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 
@@ -229,7 +241,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _indexDataStore.DeleteDeletedInstanceAsync(versionedInstanceIdentifier, cancellationToken);
+                await IndexDataStore.DeleteDeletedInstanceAsync(versionedInstanceIdentifier, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -248,13 +260,53 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                int returnValue = await _indexDataStore.IncrementDeletedInstanceRetryAsync(versionedInstanceIdentifier, cleanupAfter, cancellationToken);
+                int returnValue = await IndexDataStore.IncrementDeletedInstanceRetryAsync(versionedInstanceIdentifier, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 
                 return returnValue;
             }
             catch (Exception ex)
+            {
+                LogOperationFailedDelegate(_logger, ex);
+
+                throw;
+            }
+        }
+
+        public async Task<int> RetrieveNumExhaustedDeletedInstanceAttemptsAsync(int maxNumberOfRetries, CancellationToken cancellationToken)
+        {
+            LogRetrieveNumDeletedExceedRetryCountAsyncDelegate(_logger, maxNumberOfRetries, null);
+
+            try
+            {
+                int returnValue = await IndexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(maxNumberOfRetries, cancellationToken);
+
+                LogOperationSucceededDelegate(_logger, null);
+
+                return returnValue;
+            }
+            catch (DataStoreException ex)
+            {
+                LogOperationFailedDelegate(_logger, ex);
+
+                throw;
+            }
+        }
+
+        public async Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken)
+        {
+            LogGetOldestDeletedAsyncDelegate(_logger, null);
+
+            try
+            {
+                DateTimeOffset returnValue = await IndexDataStore.GetOldestDeletedAsync(cancellationToken);
+
+                LogOperationSucceededDelegate(_logger, null);
+
+                return returnValue;
+            }
+            catch (DataStoreException ex)
             {
                 LogOperationFailedDelegate(_logger, ex);
 

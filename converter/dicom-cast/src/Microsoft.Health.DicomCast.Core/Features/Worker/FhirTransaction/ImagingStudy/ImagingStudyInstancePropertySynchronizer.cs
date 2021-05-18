@@ -20,7 +20,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         private readonly DicomCastConfiguration _dicomCastConfiguration;
         private readonly IExceptionStore _exceptionStore;
-        private IEnumerable<(Action<ImagingStudy.InstanceComponent, FhirTransactionContext> PropertyAction, bool RequiredProperty)> propertiesToSync = new List<(Action<ImagingStudy.InstanceComponent, FhirTransactionContext> PropertyAction, bool RequiredProperty)>()
+        private readonly IEnumerable<(Action<ImagingStudy.InstanceComponent, FhirTransactionContext> PropertyAction, bool RequiredProperty)> _propertiesToSync = new List<(Action<ImagingStudy.InstanceComponent, FhirTransactionContext> PropertyAction, bool RequiredProperty)>()
             {
                 (AddSopClass, true),
                 (AddInstanceNumber, false),
@@ -51,7 +51,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 return;
             }
 
-            foreach (var property in propertiesToSync)
+            foreach (var property in _propertiesToSync)
             {
                 await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(instance, context, property.PropertyAction, property.RequiredProperty, _dicomCastConfiguration.Features.EnforceValidationOfTagValues, _exceptionStore, cancellationToken);
             }

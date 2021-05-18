@@ -21,8 +21,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 {
     public class TranscoderTests
     {
-        private ITranscoder _transcoder;
-        private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly ITranscoder _transcoder;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         private static readonly HashSet<DicomTransferSyntax> SupportedTransferSyntaxesFor8BitTranscoding = new HashSet<DicomTransferSyntax>
         {

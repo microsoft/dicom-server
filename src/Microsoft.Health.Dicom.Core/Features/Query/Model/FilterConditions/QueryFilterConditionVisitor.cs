@@ -8,9 +8,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         public abstract void Visit(StringSingleValueMatchCondition stringSingleValueMatchCondition);
 
-        public abstract void Visit(DateRangeValueMatchCondition rangeValueMatchCondition);
+        public abstract void Visit(DateTimeRangeValueMatchCondition rangeValueMatchCondition);
 
-        public abstract void Visit(DateSingleValueMatchCondition dateSingleValueMatchCondition);
+        public abstract void Visit(DateTimeSingleValueMatchCondition dateSingleValueMatchCondition);
 
         public abstract void Visit(PersonNameFuzzyMatchCondition fuzzyMatchCondition);
 

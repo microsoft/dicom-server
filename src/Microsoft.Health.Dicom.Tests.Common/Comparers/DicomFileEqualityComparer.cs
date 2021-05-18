@@ -12,9 +12,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class DicomFileEqualityComparer : IEqualityComparer<DicomFile>
     {
-        private static DicomFileEqualityComparer _default = new DicomFileEqualityComparer();
-
-        public static DicomFileEqualityComparer Default => _default;
+        public static DicomFileEqualityComparer Default { get; } = new DicomFileEqualityComparer();
 
         private readonly DicomItemCollectionEqualityComparer _metadataComparer;
         private readonly DicomDatasetEqualityComparer _datasetComparer;

@@ -12,9 +12,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class DicomItemCollectionEqualityComparer : IEqualityComparer<IEnumerable<DicomItem>>
     {
-        private static DicomItemCollectionEqualityComparer _default = new DicomItemCollectionEqualityComparer();
-        
-        public static DicomItemCollectionEqualityComparer Default => _default;
+        public static DicomItemCollectionEqualityComparer Default { get; } = new DicomItemCollectionEqualityComparer();
 
         private readonly IEnumerable<DicomTag> _ignoredTags;
 

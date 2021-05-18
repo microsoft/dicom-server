@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             Offset = offset;
             FilterConditions = filterConditions;
             SetIELevel();
-         }
+        }
 
         /// <summary>
         /// Query Resource type level

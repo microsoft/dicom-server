@@ -20,10 +20,10 @@ namespace MessageUploader
 {
     public static class Program
     {
-        private static string _serviceBusConnectionString;
-        private static string _topicName;
-        private static ITopicClient topicClient;
-        private static string[] file;
+        private static string s_serviceBusConnectionString;
+        private static string s_topicName;
+        private static ITopicClient s_topicClient;
+        private static string[] s_file;
 
         public static async Task Main(string[] args)
         {
@@ -43,15 +43,15 @@ namespace MessageUploader
 
             KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
 
-            _serviceBusConnectionString = secret.Value;
-            _topicName = args[0];
-            topicClient = new TopicClient(_serviceBusConnectionString, _topicName);
+            s_serviceBusConnectionString = secret.Value;
+            s_topicName = args[0];
+            s_topicClient = new TopicClient(s_serviceBusConnectionString, s_topicName);
             string filePath = args[1];
 
             int start = int.Parse(args[2]);
             int end = int.Parse(args[3]);
 
-            file = File.ReadLines(filePath).Skip(start).Take(end - start).ToArray();
+            s_file = File.ReadLines(filePath).Skip(start).Take(end - start).ToArray();
 
             Console.WriteLine("======================================================");
             Console.WriteLine("Press ENTER key to exit after sending all the messages.");
@@ -60,7 +60,7 @@ namespace MessageUploader
             // Send messages.
             await SendAllMessagesAsync();
 
-            await topicClient.CloseAsync();
+            await s_topicClient.CloseAsync();
         }
 
         private static async Task SendAllMessagesAsync()
@@ -68,7 +68,7 @@ namespace MessageUploader
             try
             {
                 int count = 0;
-                foreach (string line in file)
+                foreach (string line in s_file)
                 {
                     // Create a new message to send to the topic
                     var message = new Message(Encoding.UTF8.GetBytes(line));
@@ -77,7 +77,7 @@ namespace MessageUploader
                     Console.WriteLine($"Sending message: {Encoding.UTF8.GetString(message.Body)}" + $" count = {count}");
 
                     // Send the message to the topic
-                    await topicClient.SendAsync(message);
+                    await s_topicClient.SendAsync(message);
 
                     count++;
                 }

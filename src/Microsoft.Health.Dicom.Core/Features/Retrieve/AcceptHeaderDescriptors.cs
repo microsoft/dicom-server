@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public class AcceptHeaderDescriptors
     {
-        private AcceptHeaderDescriptor[] _descriptors;
+        private readonly AcceptHeaderDescriptor[] _descriptors;
 
         public AcceptHeaderDescriptors(params AcceptHeaderDescriptor[] descriptors)
         {
