@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IDisposable
     {
         private readonly IDicomWebClient _client;
-        private HashSet<string> _createdDicomStudies = new HashSet<string>();
+        private readonly HashSet<string> _createdDicomStudies = new HashSet<string>();
 
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenSearchRequest_WithUnsupportedTag_ReturnBadRequest()
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.QueryAsync("/studies?Modality=CT"));
+                () => _client.QueryAsync(new Uri("/studies?Modality=CT", UriKind.Relative)));
 
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
             Assert.Equal(exception.ResponseMessage, string.Format(DicomCoreResource.UnsupportedSearchParameter, "Modality", "study"));
@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
         {
-            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync("/studies?StudyDate=20200101");
+            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(new Uri("/studies?StudyDate=20200101", UriKind.Relative));
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
-            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync($"/studies?StudyDate=20190101");
+            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(new Uri("/studies?StudyDate=20190101", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                $"/studies?PatientName={patientNameWithNoAccent}");
+                new Uri($"/studies?PatientName={patientNameWithNoAccent}", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -113,7 +113,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                $"/studies/{studyId}/series?Modality=MRI");
+                new Uri($"/studies/{studyId}/series?Modality=MRI", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -131,7 +131,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var seriesId = matchInstance.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                $"/series?Modality=MRI");
+                new Uri("/series?Modality=MRI", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -156,7 +156,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                   $"/studies/{studyId}/instances?Modality=MRI");
+                   new Uri($"/studies/{studyId}/instances?Modality=MRI", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -178,7 +178,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                   $"/studies/{studyId}/series/{seriesId}/instances?SOPInstanceUID={instanceId}");
+                new Uri($"/studies/{studyId}/series/{seriesId}/instances?SOPInstanceUID={instanceId}", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -196,7 +196,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                   $"/instances?Modality=XRAY");
+                new Uri("/instances?Modality=XRAY", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -230,7 +230,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             while (retryCount < 3 || testDataResponse1 == null)
             {
                 using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                       $"/studies?PatientName={randomNamePart}&FuzzyMatching=true");
+                    new Uri($"/studies?PatientName={randomNamePart}&FuzzyMatching=true", UriKind.Relative));
 
                 responseDatasets = await response.ToArrayAsync();
 
@@ -244,6 +244,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset testDataResponse2 = responseDatasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId2);
             Assert.NotNull(testDataResponse2);
             ValidateResponseDataset(QueryResource.AllStudies, matchInstance2, testDataResponse2);
+        }
+
+        [Fact]
+        public async Task GivenSearchRequest_OHIFViewerStudyQuery_ReturnsOK()
+        {
+            var OhifViewerQuery = "/studies?limit=25&offset=0&includefield=00081030%2C00080060&StudyDate=19521125-20210507";
+
+            // client is checking the success response and throws exception otherwise
+            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(new Uri(OhifViewerQuery, UriKind.Relative));
         }
 
         private static string RandomString(int length)

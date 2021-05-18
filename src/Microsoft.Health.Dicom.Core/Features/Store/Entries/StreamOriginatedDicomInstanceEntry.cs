@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
         private readonly Stream _stream;
         private DicomFile _dicomFile;
         private int _dicomFileLoadedState;
-        private TaskCompletionSource<bool> _dicomFileLoadingCompletionSource = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource<bool> _dicomFileLoadingCompletionSource = new TaskCompletionSource<bool>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamOriginatedDicomInstanceEntry"/> class.

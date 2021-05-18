@@ -11,9 +11,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {
     public class DicomPixelDataEqualityComparer : IEqualityComparer<DicomPixelData>
     {
-        private static DicomPixelDataEqualityComparer _default = new DicomPixelDataEqualityComparer();
-
-        public static DicomPixelDataEqualityComparer Default => _default;
+        public static DicomPixelDataEqualityComparer Default => new DicomPixelDataEqualityComparer();
 
         public bool Equals(DicomPixelData x, DicomPixelData y)
         {

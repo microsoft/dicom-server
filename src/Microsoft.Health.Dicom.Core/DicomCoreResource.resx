@@ -378,9 +378,12 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The dicom file in the request section exceeded the allowed limit of {0} bytes.</value>
     <comment>{0} Max number of bytes allowed per dicom file.</comment>
   </data>
+  <data name="MismatchVR" xml:space="preserve">
+    <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
+    <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
+  </data>
   <data name="InvalidDateTimeRangeValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified date time range '{0}' is invalid.
-The first part date time {1} should be lesser than or equal to the second part date time {2}.</value>
+    <value>Invalid QIDO-RS query. Specified date time range '{0}' is invalid. The first part date time {1} should be lesser than or equal to the second part date time {2}.</value>
     <comment>{0} date time range with &lt;dateTime1&gt;-&lt;dateTime2&gt; format. {1} is dateTime1. {2} is dateTime2.</comment>
   </data>
   <data name="InvalidDateTimeValue" xml:space="preserve">

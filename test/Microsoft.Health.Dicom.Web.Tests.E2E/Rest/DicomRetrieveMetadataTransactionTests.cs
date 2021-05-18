@@ -36,19 +36,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             // Study
             await _client.ValidateResponseStatusCodeAsync(
-                string.Format(DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid().ToString()),
+                new Uri(string.Format(DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid().ToString()), UriKind.Relative),
                 acceptHeader,
                 HttpStatusCode.NotAcceptable);
 
             // Series
             await _client.ValidateResponseStatusCodeAsync(
-                string.Format(DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                new Uri(string.Format(DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()), UriKind.Relative),
                 acceptHeader,
                 HttpStatusCode.NotAcceptable);
 
             // Instance
             await _client.ValidateResponseStatusCodeAsync(
-                string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()),
+                new Uri(string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()), UriKind.Relative),
                 acceptHeader,
                 HttpStatusCode.NotAcceptable);
         }
