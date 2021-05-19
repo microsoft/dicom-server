@@ -23,7 +23,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    class SqlExtendedQueryTagStoreV2 : SqlExtendedQueryTagStoreV1
+    internal class SqlExtendedQueryTagStoreV2 : SqlExtendedQueryTagStoreV1
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
         private readonly ILogger<SqlExtendedQueryTagStoreV2> _logger;

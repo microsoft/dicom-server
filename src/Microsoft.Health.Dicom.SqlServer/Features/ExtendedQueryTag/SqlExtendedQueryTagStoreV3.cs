@@ -20,11 +20,9 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    class SqlExtendedQueryTagStoreV3 : SqlExtendedQueryTagStoreV2
+    internal class SqlExtendedQueryTagStoreV3 : SqlExtendedQueryTagStoreV2
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
-
-        public override SchemaVersion Version => SchemaVersion.V3;
 
         public SqlExtendedQueryTagStoreV3(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
@@ -34,6 +32,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
         }
+
+        public override SchemaVersion Version => SchemaVersion.V3;
 
         public override async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, CancellationToken cancellationToken)
         {
@@ -53,16 +53,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     switch (ex.Number)
                     {
                         case SqlErrorCodes.Conflict:
+                        {
+                            if (ex.State == 1)
                             {
-                                if (ex.State == 1)
-                                {
-                                    throw new ExtendedQueryTagsExceedsMaxAllowedCountException(maxAllowedCount);
-                                }
-                                else
-                                {
-                                    throw new ExtendedQueryTagsAlreadyExistsException();
-                                }
+                                throw new ExtendedQueryTagsExceedsMaxAllowedCountException(maxAllowedCount);
                             }
+                            else
+                            {
+                                throw new ExtendedQueryTagsAlreadyExistsException();
+                            }
+                        }
 
                         default:
                             throw new DataStoreException(ex);

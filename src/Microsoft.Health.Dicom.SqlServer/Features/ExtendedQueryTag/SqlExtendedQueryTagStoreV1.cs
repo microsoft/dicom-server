@@ -12,7 +12,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    class SqlExtendedQueryTagStoreV1 : ISqlExtendedQueryTagStore
+    internal class SqlExtendedQueryTagStoreV1 : ISqlExtendedQueryTagStore
     {
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
