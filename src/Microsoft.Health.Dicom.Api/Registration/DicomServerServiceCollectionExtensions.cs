@@ -80,6 +80,7 @@ namespace Microsoft.AspNetCore.Builder
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
             services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
+            services.AddApplicationInsightsTelemetry();
 
             services.AddOptions();
 
