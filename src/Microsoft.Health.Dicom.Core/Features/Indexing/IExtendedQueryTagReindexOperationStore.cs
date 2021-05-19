@@ -9,17 +9,18 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
-    public interface IReindexTagStore
+    public interface IExtendedQueryTagReindexOperationStore
+
     {
-        Task<IReadOnlyList<ReindexTagStoreEntry>> GetTagsOnOperationAsync(
-            long operationKey,
+        Task<IReadOnlyList<ExtendedQueryTagReindexOperationEntry>> GetEntriesAsync(
+            string operationId,
             CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyList<long>> GetWatermarksAsync(long operationKey, int topN, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<long>> GetNextWatermarks(string operationId, int count, CancellationToken cancellationToken = default);
 
-        Task UpdateMaxWatermarkAsync(string operationId, long maxWatarmark, CancellationToken cancellationToken = default);
+        Task UpdateEndWatermarkAsync(string operationId, long endWatermark, CancellationToken cancellationToken = default);
 
-        Task CompleteReindexAsync(string operationId, CancellationToken cancellationToken = default);
+        Task CompleteReindexOperationAsync(string operationId, CancellationToken cancellationToken = default);
 
     }
 }

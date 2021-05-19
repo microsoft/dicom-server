@@ -5,9 +5,14 @@
 
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
-    public enum ReindexTagStatus
+    public class ExtendedQueryTagReindexOperationEntry
     {
-        Running = 0,
-        Paused = 1
+        public long ExtendedQueryTagKey { get; set; }
+
+        public string OperationId { get; set; }
+
+        public long EndWatermark { get; set; }
+
+        public ExtendedQueryTagOperationStatus Status { get; set; }
     }
 }

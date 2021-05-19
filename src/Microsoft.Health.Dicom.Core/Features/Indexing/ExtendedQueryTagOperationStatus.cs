@@ -3,18 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
-    public class ReindexTagStoreEntry
+    public enum ExtendedQueryTagOperationStatus
     {
-        public ExtendedQueryTagStoreEntry QueryTagStoreEntry { get; set; }
-
-        public long OperationKey { get; set; }
-
-        public long EndWatarmark { get; set; }
-
-        public ReindexTagStatus Status { get; set; }
+        Processing = 0,
+        Paused = 1
     }
 }
