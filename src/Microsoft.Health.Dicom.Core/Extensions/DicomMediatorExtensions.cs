@@ -15,9 +15,11 @@ using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
@@ -166,6 +168,15 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new GetExtendedQueryTagRequest(extendedQueryTagPath), cancellationToken);
+        }
+
+        public static Task<OperationStateResponse> GetOperationStateAsync(
+           this IMediator mediator,
+           string id,
+           CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new OperationStateRequest(id), cancellationToken);
         }
     }
 }
