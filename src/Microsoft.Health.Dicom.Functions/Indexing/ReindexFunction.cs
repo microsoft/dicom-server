@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -57,17 +56,21 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             log.LogInformation("Beginning to re-index data");
 
+            // TODO: should start a new orchestraion instead of while loop
             while (true)
             {
-                IReadOnlyList<long> watermarks = await context.CallActivityAsync<IReadOnlyList<long>>(nameof(FetchWatarmarksAsync), context.InstanceId);
+                // TODO: what if failed here?
+                IReadOnlyList<long> watermarks = await context.CallActivityAsync<IReadOnlyList<long>>(nameof(FetchWatarmarksAsync), operationKey);
                 if (watermarks.Count == 0)
                 {
                     break;
                 }
-                // Fetch Query Tas
+
+                // TODO: what if failed here?
+                // Fetch Query Tags
                 IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(FetchQueryTagsAsync),
-                    context.InstanceId);
+                    operationKey);
 
                 if (queryTags.Count == 0)
                 {
@@ -75,20 +78,21 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 }
 
                 // Reindex
-
                 // TODO: process them parallel
                 foreach (long watermark in watermarks)
                 {
+                    // TODO: what if failed here?
                     await context.CallActivityAsync(nameof(ReindexActivityAsync),
                      new ReindexActivityInput() { TagEntries = queryTags, Watarmark = watermark });
                 }
 
-                // TODO: Handle possibly different offsets for resumed tags
+                // TODO: what if failed here?
                 await context.CallActivityAsync(nameof(UpdateProgressAsync),
                     new ReindexProgress { NextWatermark = watermarks.Min() - 1, OperationKey = operationKey });
 
             }
 
+            // TODO: what if failed here?
             await context.CallActivityAsync(nameof(CompleteReindexAsync), operationKey);
             log.LogInformation($"Completed re-indexing of data on operation {operationKey}");
         }
@@ -110,8 +114,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             log.LogInformation($"Querying for tags assigned to {operationKey}");
             var result = await _reindexTagStore.GetTagsOnOperationAsync(operationKey);
 
-            // Query SQL for query tags who have been tagged with the given Instance ID for adding
-            return result;
+            // only process Running tags on this operation
+            return result.Where(x => x.Status == ReindexTagStoreStatus.Running).Select(y => y.QueryTagStoreEntry).ToList();
         }
 
         [FunctionName(nameof(FetchWatarmarksAsync))]
@@ -119,9 +123,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         {
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation("Querying for tags assigned to {operationKey}", operationKey);
+            // TODO: make number of watermarks configurable
             var result = await _reindexTagStore.GetWatermarksAsync(operationKey, 1);
-            // Query SQL for query tags who have been tagged with the given Instance ID for adding
             return result;
         }
 
@@ -163,10 +166,5 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             await client.StartNewAsync(nameof(RunOrchestrator), instanceId: operationId);
         }
 
-        private static Task<(string InstanceId, long End)> GetPendingJobParametersAsync()
-        {
-            // Fetch the Job ID of the pending reindex job
-            return Task.FromResult((Guid.NewGuid().ToString(), 12345L));
-        }
     }
 }

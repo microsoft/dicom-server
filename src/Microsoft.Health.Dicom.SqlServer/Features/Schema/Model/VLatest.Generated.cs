@@ -28,6 +28,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static TagReindexOperationTable TagReindexOperation = new TagReindexOperationTable();
         internal readonly static AddExtendedQueryTagsProcedure AddExtendedQueryTags = new AddExtendedQueryTagsProcedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
+        internal readonly static CompleteReindexProcedure CompleteReindex = new CompleteReindexProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteExtendedQueryTagProcedure DeleteExtendedQueryTag = new DeleteExtendedQueryTagProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
@@ -35,9 +36,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
+        internal readonly static GetTagsOnOperationProcedure GetTagsOnOperation = new GetTagsOnOperationProcedure();
+        internal readonly static GetWatarmarksProcedure GetWatarmarks = new GetWatarmarksProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
+        internal readonly static UpdateMaxWatarmarksProcedure UpdateMaxWatarmarks = new UpdateMaxWatarmarksProcedure();
 
         internal class ChangeFeedTable : Table
         {
@@ -399,6 +403,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
         }
 
+        internal class CompleteReindexProcedure : StoredProcedure
+        {
+            internal CompleteReindexProcedure() : base("dbo.CompleteReindex")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _operationKey = new ParameterDefinition<System.Int64>("@operationKey", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 operationKey)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.CompleteReindex";
+                _operationKey.AddParameter(command.Parameters, operationKey);
+            }
+        }
+
         internal class DeleteDeletedInstanceProcedure : StoredProcedure
         {
             internal DeleteDeletedInstanceProcedure() : base("dbo.DeleteDeletedInstance")
@@ -532,6 +552,40 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetTagsOnOperationProcedure : StoredProcedure
+        {
+            internal GetTagsOnOperationProcedure() : base("dbo.GetTagsOnOperation")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _operationKey = new ParameterDefinition<System.Int64>("@operationKey", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 operationKey)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetTagsOnOperation";
+                _operationKey.AddParameter(command.Parameters, operationKey);
+            }
+        }
+
+        internal class GetWatarmarksProcedure : StoredProcedure
+        {
+            internal GetWatarmarksProcedure() : base("dbo.GetWatarmarks")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _operationKey = new ParameterDefinition<System.Int64>("@operationKey", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int32> _topN = new ParameterDefinition<System.Int32>("@topN", global::System.Data.SqlDbType.Int, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 operationKey, System.Int32 topN)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetWatarmarks";
+                _operationKey.AddParameter(command.Parameters, operationKey);
+                _topN.AddParameter(command.Parameters, topN);
+            }
+        }
+
         internal class IncrementDeletedInstanceRetryProcedure : StoredProcedure
         {
             internal IncrementDeletedInstanceRetryProcedure() : base("dbo.IncrementDeletedInstanceRetry")
@@ -595,6 +649,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
                 _watermark.AddParameter(command.Parameters, watermark);
                 _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        internal class UpdateMaxWatarmarksProcedure : StoredProcedure
+        {
+            internal UpdateMaxWatarmarksProcedure() : base("dbo.UpdateMaxWatarmarks")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _operationKey = new ParameterDefinition<System.Int64>("@operationKey", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _maxWatarmark = new ParameterDefinition<System.Int64>("@maxWatarmark", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 operationKey, System.Int64 maxWatarmark)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.UpdateMaxWatarmarks";
+                _operationKey.AddParameter(command.Parameters, operationKey);
+                _maxWatarmark.AddParameter(command.Parameters, maxWatarmark);
             }
         }
     }

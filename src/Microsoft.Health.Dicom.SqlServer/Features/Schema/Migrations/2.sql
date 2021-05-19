@@ -1525,6 +1525,65 @@ AS
     COMMIT TRANSACTION
 GO
 
+CREATE PROCEDURE dbo.CompleteReindex(@operationKey BIGINT NOT NULL)
+AS
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+    BEGIN TRANSACTION
+
+        -- TODO: consider concurrency
+        -- update tag status to 1(Ready)
+        UPDATE dbo.ExtendedQueryTag
+        SET TagStatus = 1
+        WHERE TagKey IN (SELECT TagKey  FROM dbo.TagReindexOperation WHERE OperationKey = @operationKey)
+
+         -- delete from TagReindexOperation
+        DELETE FROM dbo.TagReindexOperation
+        WHERE OperationKey = @operationKey
+        -- delete from ReindexOperation
+        DELETE FROM dbo.ReindexOperation
+        WHERE OperationKey = @operationKey
+
+    COMMIT TRANSACTION
+
+GO
+
+CREATE PROCEDURE dbo.GetTagsOnOperation(@operationKey BIGINT NOT NULL)
+AS
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+    BEGIN TRANSACTION
+
+        SELECT E.TagKey, E.TagPath, E.TagVR, E.TagPrivateCreator, E.TagLevel, E.TagStatus, T.OperationKey, T.Status
+        FROM dbo.TagReindexOperation T join dbo.ExtendedQueryTag E
+        on T.OperationKey = @operationKey        
+
+    COMMIT TRANSACTION
+GO
+
+CREATE PROCEDURE dbo.GetWatarmarks(@operationKey BIGINT NOT NULL, @topN INT NOT NULL)
+AS
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+    BEGIN TRANSACTION
+        SELECT TOP (@topN) Watermark FROM dbo.Instance WHERE Status = 1 AND  Watermark <= (SELECT EndWatermark FROM dbo.ReindexOperation  WHERE OperationKey = @operationKey) ORDER BY Watermark
+    COMMIT TRANSACTION
+GO
+
+CREATE PROCEDURE dbo.UpdateMaxWatarmarks(@operationKey BIGINT NOT NULL, @maxWatarmark BIGINT NOT NULL)
+AS
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+    BEGIN TRANSACTION
+        -- TODO: consider concurrency
+        -- Update ReindexOperation
+        Update dbo.ReindexOperation SET EndWatermar = @maxWatarmark WHERE  OperationKey = @operationKey
+        -- Update TagReindexOperation
+        Update dbo.TagReindexOperation SET EndWatermar = @maxWatarmark WHERE  OperationKey = @operationKey
+        
+    COMMIT TRANSACTION
+GO
+
 /***************************************************************************************/
 -- STORED PROCEDURE
 --    DeleteExtendedQueryTag

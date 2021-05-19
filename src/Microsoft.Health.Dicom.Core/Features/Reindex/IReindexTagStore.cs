@@ -6,13 +6,12 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Reindex
 {
     public interface IReindexTagStore
     {
-        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetTagsOnOperationAsync(
+        Task<IReadOnlyList<ReindexTagStoreEntry>> GetTagsOnOperationAsync(
             long operationKey,
             CancellationToken cancellationToken = default);
 
