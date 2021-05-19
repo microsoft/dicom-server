@@ -26,8 +26,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private const string TestDataRootFolderForDecode = TestDataRootFolder + @"\Decode";
         private const string TestDataRootFolderForEncode = TestDataRootFolder + @"\Encode";
         private const string TestDataRootFolderForUncompressed = TestDataRootFolder + @"\Uncompressed";
-        private ITranscoder _transcoder;
-        private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly ITranscoder _transcoder;
+        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public TranscoderTests()
         {

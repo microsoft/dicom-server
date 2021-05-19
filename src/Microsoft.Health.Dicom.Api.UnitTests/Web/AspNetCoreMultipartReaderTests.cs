@@ -203,7 +203,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
                 body,
                 DefaultContentType,
                 seekableStreamConverter,
-                bodyPart => { Assert.Null(bodyPart); return Task.CompletedTask; } );
+                bodyPart => { Assert.Null(bodyPart); return Task.CompletedTask; });
         }
 
         [Fact]

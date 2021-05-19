@@ -5,9 +5,10 @@ VisualStudioVersion = 16.0.28729.10
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{404C6C33-DB00-4182-BD90-F10A8B17C321}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
-		global.json = global.json
 		GitVersion.yml = GitVersion.yml
+		global.json = global.json
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Web", "src\Microsoft.Health.Dicom.Web\Microsoft.Health.Dicom.Web.csproj", "{BFB96311-9B1A-41C1-ABF1-4F6522660084}"
@@ -39,6 +40,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer.UnitTests", "src\Microsoft.Health.Dicom.SqlServer.UnitTests\Microsoft.Health.Dicom.SqlServer.UnitTests.csproj", "{ECC018C1-BFA8-44BE-B560-ACB05CA57251}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{D100EA60-8DC8-4576-A177-56BC7193BF4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Functions", "src\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj", "{BB88616C-6208-43D0-B9EF-79FC0652A151}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -98,6 +101,10 @@ Global
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -116,9 +123,10 @@ Global
 		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{ECC018C1-BFA8-44BE-B560-ACB05CA57251} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{BB88616C-6208-43D0-B9EF-79FC0652A151} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
+		RESX_SortFileContentOnSave = True
 	EndGlobalSection
 EndGlobal

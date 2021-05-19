@@ -18,8 +18,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 {
     public class DeleteExtendedQueryTagServiceTests
     {
-        private IExtendedQueryTagStore _extendedQueryTagStore;
-        private IDeleteExtendedQueryTagService _extendedQueryTagService;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IDeleteExtendedQueryTagService _extendedQueryTagService;
 
         public DeleteExtendedQueryTagServiceTests()
         {

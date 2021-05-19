@@ -3,12 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Client.Models
+namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
+    // This is a hack to avoid the DICOM Core dependency
+
     /// <summary>
-    /// External representation of a extended query tag entry.
+    /// Represents an extended query tag.
     /// </summary>
-    public class ExtendedQueryTag
+    public class ExtendedQueryTagEntry
     {
         /// <summary>
         /// Path of this tag. Normally it's composed of groupid and elementid.
@@ -22,18 +24,13 @@ namespace Microsoft.Health.Dicom.Client.Models
         public string VR { get; set; }
 
         /// <summary>
-        /// Level of this tag. Could be Study, Series or Instance.
-        /// </summary>
-        public string Level { get; set; }
-
-        /// <summary>
-        /// Status of this tag.
-        /// </summary>
-        public ExtendedQueryTagStatus Status { get; set; }
-
-        /// <summary>
         /// Identification code of private tag implementer.
         /// </summary>
         public string PrivateCreator { get; set; }
+
+        /// <summary>
+        /// Level of this tag. Could be Study, Series or Instance.
+        /// </summary>
+        public string Level { get; set; }
     }
 }

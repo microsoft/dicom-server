@@ -382,4 +382,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Extended query tags exceeds max allowed count '{0}'.</value>
     <comment>{0} max allowed count.</comment>
   </data>
+  <data name="MismatchVR" xml:space="preserve">
+    <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
+    <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
+  </data>
 </root>

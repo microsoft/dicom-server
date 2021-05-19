@@ -9,30 +9,34 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>2.1.11</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>2.1.15</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <LangVersion>Latest</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <SdkPackageVersion>5.0.0</SdkPackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
 
-  <PropertyGroup>
-    <!-- CA1031 - Allow Exception to be caught -->
-    <!-- CA1305 - Allow the current locale settings to be used by default in string.Format -->
-    <!-- NU5104 - Allow pre-release dependencies -->
-    <NoWarn>$(NoWarn);CA1031;CA1305;NU5104</NoWarn>
-  </PropertyGroup>
+  <Choose>
+    <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+      <PropertyGroup>
+        <SdkPackageVersion>3.1.14</SdkPackageVersion>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <SdkPackageVersion>5.0.0</SdkPackageVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
   <Choose>
     <When Condition="$(MSBuildProjectName.Contains('Test'))">
       <PropertyGroup>
         <IsPackable>false</IsPackable>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\CustomAnalysisRules.Test.ruleset</CodeAnalysisRuleSet>
       </PropertyGroup>
     </When>
     <Otherwise>
@@ -40,7 +44,6 @@
         <AnalysisLevel>5.0</AnalysisLevel>
         <AnalysisMode>AllEnabledByDefault</AnalysisMode>
         <IsPackable>true</IsPackable>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
       </PropertyGroup>
     </Otherwise>
   </Choose>
