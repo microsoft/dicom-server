@@ -4,27 +4,23 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
     /// Represents a batch of DICOM instances to be re-indexed based on the given tags.
     /// </summary>
-    public class ReindexBatch
+    public class ReindexActivityInput
     {
         /// <summary>
         /// Gets or sets the inclusive starting watermark.
         /// </summary>
-        public long Start { get; set; }
-
-        /// <summary>
-        /// Gets or sets the exclusive ending watermark.
-        /// </summary>
-        public long End { get; set; }
+        public long Watermark { get; set; }
 
         /// <summary>
         /// Gets or sets the tags upon which to index.
         /// </summary>
-        public IReadOnlyList<ExtendedQueryTagEntry> TagEntries { get; set; }
+        public IReadOnlyList<ExtendedQueryTagStoreEntry> TagEntries { get; set; }
     }
 }
