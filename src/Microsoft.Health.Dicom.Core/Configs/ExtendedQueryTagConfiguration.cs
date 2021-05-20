@@ -3,16 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
+namespace Microsoft.Health.Dicom.Core.Configs
 {
     /// <summary>
-    /// Enum to keep track of available SQL schema versions.
+    /// Configuration for extended query tag feature.
     /// </summary>
-    public enum SchemaVersion
+    public class ExtendedQueryTagConfiguration
     {
-        Unknown = 0,
-        V1 = 1,
-        V2 = 2,
-        V3 = 3
+        /// <summary>
+        /// Maximum allowed number of tags.
+        /// </summary>
+        public int MaxAllowedCount { get; set; } = 128;
     }
 }

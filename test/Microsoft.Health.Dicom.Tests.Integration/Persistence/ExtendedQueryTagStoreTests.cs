@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
@@ -21,7 +23,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     /// <summary>
     /// Tests for ExtendedQueryTagStore
     /// </summary>
-    public class ExtendedQueryTagStoreTests : IClassFixture<SqlDataStoreTestsFixture>
+    public class ExtendedQueryTagStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLifetime
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStore _indexDataStore;
@@ -45,19 +47,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag2 = new DicomTag(0x0405, 0x1001, "PrivateCreator1");
             AddExtendedQueryTagEntry extendedQueryTagEntry1 = tag1.BuildAddExtendedQueryTagEntry();
             AddExtendedQueryTagEntry extendedQueryTagEntry2 = tag2.BuildAddExtendedQueryTagEntry(vr: DicomVRCode.CS);
-            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry1, extendedQueryTagEntry2 });
+            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry1, extendedQueryTagEntry2 }, 128);
 
-            try
-            {
-                await VerifyTagIsAdded(extendedQueryTagEntry1);
-                await VerifyTagIsAdded(extendedQueryTagEntry2);
-            }
-            finally
-            {
-                // Delete extended query tag
-                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(extendedQueryTagEntry1.Path, extendedQueryTagEntry1.VR);
-                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(extendedQueryTagEntry2.Path, extendedQueryTagEntry2.VR);
-            }
+            await VerifyTagIsAdded(extendedQueryTagEntry1);
+            await VerifyTagIsAdded(extendedQueryTagEntry2);
         }
 
         [Fact]
@@ -65,15 +58,19 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
-            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry });
-            try
-            {
-                await Assert.ThrowsAsync<ExtendedQueryTagsAlreadyExistsException>(() => _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry }));
-            }
-            finally
-            {
-                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(extendedQueryTagEntry.Path, extendedQueryTagEntry.VR);
-            }
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry });
+            await Assert.ThrowsAsync<ExtendedQueryTagsAlreadyExistsException>(() => AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry }));
+        }
+
+        [Fact]
+        public async Task GivenMoreThanAllowedExtendedQueryTags_WhenAddExtendedQueryTag_ThenShouldThrowException()
+        {
+            DicomTag tag1 = DicomTag.DeviceSerialNumber;
+            AddExtendedQueryTagEntry extendedQueryTagEntry1 = tag1.BuildAddExtendedQueryTagEntry();
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry1 });
+            DicomTag tag2 = DicomTag.DeviceDescription;
+            AddExtendedQueryTagEntry extendedQueryTagEntry2 = tag2.BuildAddExtendedQueryTagEntry();
+            await Assert.ThrowsAsync<ExtendedQueryTagsExceedsMaxAllowedCountException>(() => _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry2 }, maxAllowedCount: 1));
         }
 
         [Fact]
@@ -81,7 +78,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
-            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry });
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry });
             await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(extendedQueryTagEntry.Path, extendedQueryTagEntry.VR);
             await VerifyTagNotExist(extendedQueryTagEntry.Path);
         }
@@ -104,7 +101,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
             dataset.Add(tag, "123");
 
-            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() });
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() });
             ExtendedQueryTagStoreEntry storeEntry = (await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath()))[0];
             QueryTag queryTag = new QueryTag(storeEntry);
             await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
@@ -135,6 +132,31 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             var extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
             Assert.DoesNotContain(extendedQueryTagEntries, item => item.Path.Equals(tagPath));
+        }
+
+        public Task InitializeAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        public async Task DisposeAsync()
+        {
+            await CleanupTagsAsync();
+        }
+
+        private async Task CleanupTagsAsync()
+        {
+            var tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
+            foreach (var tag in tags)
+            {
+                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(tag.Path, tag.VR);
+            }
+        }
+
+
+        private Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount = 128, CancellationToken cancellationToken = default)
+        {
+            return _extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTagEntries, maxAllowedCount, cancellationToken);
         }
     }
 }

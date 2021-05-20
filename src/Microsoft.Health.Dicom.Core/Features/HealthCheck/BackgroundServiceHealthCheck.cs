@@ -11,6 +11,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
@@ -23,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
         private readonly BackgroundServiceHealthCheckCache _backgroundServiceHealthCheckCache;
 
         public BackgroundServiceHealthCheck(
-            IIndexDataStoreFactory indexDataStoreFactory,
+            IStoreFactory<IIndexDataStore> indexDataStoreFactory,
             IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
             TelemetryClient telemetryClient,
             BackgroundServiceHealthCheckCache backgroundServiceHealthCheckCache)

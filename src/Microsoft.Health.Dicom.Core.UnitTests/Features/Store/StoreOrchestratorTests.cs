@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private readonly IFileStore _fileStore = Substitute.For<IFileStore>();
         private readonly IMetadataStore _metadataStore = Substitute.For<IMetadataStore>();
         private readonly IIndexDataStore _indexDataStore = Substitute.For<IIndexDataStore>();
-        private readonly IIndexDataStoreFactory _indexDataStoreFactory = Substitute.For<IIndexDataStoreFactory>();
+        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory = Substitute.For<IStoreFactory<IIndexDataStore>>();
         private readonly IDeleteService _deleteService = Substitute.For<IDeleteService>();
         private readonly StoreOrchestrator _storeOrchestrator;
 

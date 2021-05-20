@@ -197,6 +197,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Extended query tags exceeds max allowed count &apos;{0}&apos;..
+        /// </summary>
+        internal static string ExtendedQueryTagsExceedsMaxAllowedCount {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagsExceedsMaxAllowedCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Authorization failed..
         /// </summary>
         internal static string Forbidden {

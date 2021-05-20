@@ -19,44 +19,36 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
-using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    public class SqlExtendedQueryTagStore : IExtendedQueryTagStore
+    internal class SqlExtendedQueryTagStoreV2 : SqlExtendedQueryTagStoreV1
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
-        private readonly SchemaInformation _schemaInformation;
-        private readonly ILogger<SqlExtendedQueryTagStore> _logger;
+        private readonly ILogger<SqlExtendedQueryTagStoreV2> _logger;
 
-        public SqlExtendedQueryTagStore(
+        public SqlExtendedQueryTagStoreV2(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           SchemaInformation schemaInformation,
-           ILogger<SqlExtendedQueryTagStore> logger)
+           ILogger<SqlExtendedQueryTagStoreV2> logger)
         {
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-            EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
-            _schemaInformation = schemaInformation;
             _logger = logger;
         }
 
-        public async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, CancellationToken cancellationToken = default)
-        {
-            if (_schemaInformation.Current < SchemaVersionConstants.SupportExtendedQueryTagSchemaVersion)
-            {
-                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-            }
+        public override SchemaVersion Version => SchemaVersion.V2;
 
+        public override async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxCount, CancellationToken cancellationToken)
+        {
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> rows = extendedQueryTagEntries.Select(ToAddExtendedQueryTagsInputTableTypeV1Row);
 
-                VLatest.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, new VLatest.AddExtendedQueryTagsTableValuedParameters(rows));
+                V2.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, new V2.AddExtendedQueryTagsTableValuedParameters(rows));
 
                 try
                 {
@@ -76,13 +68,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(string path, CancellationToken cancellationToken = default)
+        public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(string path, CancellationToken cancellationToken = default)
         {
-            if (_schemaInformation.Current < SchemaVersionConstants.SupportExtendedQueryTagSchemaVersion)
-            {
-                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-            }
-
             List<ExtendedQueryTagStoreEntry> results = new List<ExtendedQueryTagStoreEntry>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
@@ -114,18 +101,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             return results;
         }
 
-        private static AddExtendedQueryTagsInputTableTypeV1Row ToAddExtendedQueryTagsInputTableTypeV1Row(AddExtendedQueryTagEntry entry)
+        internal static AddExtendedQueryTagsInputTableTypeV1Row ToAddExtendedQueryTagsInputTableTypeV1Row(AddExtendedQueryTagEntry entry)
         {
             return new AddExtendedQueryTagsInputTableTypeV1Row(entry.Path, entry.VR, entry.PrivateCreator, (byte)((QueryTagLevel)Enum.Parse(typeof(QueryTagLevel), entry.Level, true)));
         }
 
-        public async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
+        public override async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
         {
-            if (_schemaInformation.Current < SchemaVersionConstants.SupportExtendedQueryTagSchemaVersion)
-            {
-                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-            }
-
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
