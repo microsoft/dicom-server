@@ -3,16 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+
+namespace Microsoft.Health.Dicom.SqlServer.Feature.Common
 {
     /// <summary>
-    /// Enum to keep track of available SQL schema versions.
+    ///  Support versioning.
     /// </summary>
-    public enum SchemaVersion
+    internal interface IVersioned
     {
-        Unknown = 0,
-        V1 = 1,
-        V2 = 2,
-        V3 = 3
+        /// <summary>
+        /// Get the Schema version
+        /// </summary>
+        SchemaVersion Version { get; }
     }
 }

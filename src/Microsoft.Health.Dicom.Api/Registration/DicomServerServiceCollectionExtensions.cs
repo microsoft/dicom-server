@@ -76,6 +76,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.ExtendedQueryTag));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);

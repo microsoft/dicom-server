@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
         private readonly ILogger<DeleteService> _logger;
 
         public DeleteService(
-            IIndexDataStoreFactory indexDataStoreFactory,
+            IStoreFactory<IIndexDataStore> indexDataStoreFactory,
             IMetadataStore metadataStore,
             IFileStore fileStore,
             IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
