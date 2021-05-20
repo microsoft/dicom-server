@@ -27,11 +27,11 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public class ReindexOperation
     {
         private readonly ReindexConfiguration _reindexConfig;
-        private readonly IExtendedQueryTagReindexOperationStore _tagOperationStore;
+        private readonly ITagReindexOperationStore _tagOperationStore;
         private readonly IInstanceReindexer _instanceReindexer;
 
         public ReindexOperation(IOptions<IndexingConfiguration> configOptions,
-            IExtendedQueryTagReindexOperationStore tagOperationStore,
+            ITagReindexOperationStore tagOperationStore,
             IInstanceReindexer instanceReindexer)
         {
             EnsureArg.IsNotNull(configOptions, nameof(configOptions));
@@ -42,33 +42,29 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             _instanceReindexer = instanceReindexer;
         }
 
-        [FunctionName(nameof(RunOrchestrator))]
-        public async Task RunOrchestrator(
+        [FunctionName(nameof(RunOrchestratorAsync))]
+        public async Task RunOrchestratorAsync(
             [OrchestrationTrigger] IDurableOrchestrationContext context,
-            ILogger log)
+            ILogger logger)
         {
             EnsureArg.IsNotNull(context, nameof(context));
-            EnsureArg.IsNotNull(log, nameof(log));
+            logger = context.CreateReplaySafeLogger(logger);
             string operationId = context.InstanceId;
 
-            log = context.CreateReplaySafeLogger(log);
-
-            log.LogInformation("Beginning to re-index data");
+            logger.LogInformation("Beginning to run orchestrator on {operationId}", operationId);
 
             // TODO: should start a new orchestraion instead of while loop
             while (true)
             {
-                IReadOnlyList<long> watermarks = await context.CallActivityAsync<IReadOnlyList<long>>(nameof(FetchWatarmarksAsync), operationId);
+                IReadOnlyList<long> watermarks = await context
+                    .CallActivityAsync<IReadOnlyList<long>>(nameof(GetNextWatermarksOfOperationAsync), operationId);
                 if (watermarks.Count == 0)
                 {
                     break;
                 }
 
-                // TODO: what if failed here?
-                // Fetch Query Tags
-                IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                    nameof(FetchQueryTagsAsync),
-                    operationId);
+                IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context
+                    .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetExtendedQueryTagsOfOperationAsync), operationId);
 
                 if (queryTags.Count == 0)
                 {
@@ -79,83 +75,92 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 // TODO: process them parallel
                 foreach (long watermark in watermarks)
                 {
-                    await context.CallActivityAsync(nameof(ReindexActivityAsync),
-                     new ReindexActivityInput() { TagEntries = queryTags, Watermark = watermark });
+                    await context
+                        .CallActivityAsync(nameof(ReindexInstanceAsync), new ReindexInstanceAsync() { TagEntries = queryTags, Watermark = watermark });
                 }
 
-                await context.CallActivityAsync(nameof(UpdateProgressAsync),
+                await context.CallActivityAsync(nameof(UpdateEndWatermarkOfOperationAsync),
                     new ReindexProgress { NextWatermark = watermarks.Min() - 1, OperationId = operationId });
 
             }
 
-            await context.CallActivityAsync(nameof(CompleteReindexAsync), operationId);
-            log.LogInformation($"Completed re-indexing of data on operation {operationId}");
+            await context.CallActivityAsync(nameof(CompleteOperationAsync), operationId);
+            logger.LogInformation("Completed to run orchestrator on {operationId}", operationId);
         }
 
-        [FunctionName(nameof(CompleteReindexAsync))]
-        public async Task CompleteReindexAsync([ActivityTrigger] string operationId, ILogger log)
+        [FunctionName(nameof(CompleteOperationAsync))]
+        public Task CompleteOperationAsync([ActivityTrigger] string operationId, ILogger log)
         {
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation($"Complete Reindex for tags assigned to {operationId}");
-            await _tagOperationStore.CompleteReindexOperationAsync(operationId);
+            log.LogInformation("Completing Reindex operation {operationId}", operationId);
+            return _tagOperationStore.CompleteOperationAsync(operationId);
         }
 
-        [FunctionName(nameof(FetchQueryTagsAsync))]
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> FetchQueryTagsAsync([ActivityTrigger] string operationId, ILogger log)
+        [FunctionName(nameof(GetExtendedQueryTagsOfOperationAsync))]
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsOfOperationAsync([ActivityTrigger] string operationId, ILogger log)
         {
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation($"Querying for tags assigned to {operationId}");
-            var result = await _tagOperationStore.GetEntriesAsync(operationId);
-
-            // only process Running tags on this operation
-            return result.Where(x => x.Status == ExtendedQueryTagOperationStatus.Processing).Select(y => y.ExtendedQueryTagKey).ToList();
+            log.LogInformation("Getting extended query tags of {operationId}", operationId);
+            var entries = await _tagOperationStore.GetEntriesOfOperationAsync(operationId);
+            // only process tags which is on Processing
+            return entries.Where(x => x.Status == TagOperationStatus.Processing).Select(y => y.TagStoreEntry).ToList();
         }
 
-        [FunctionName(nameof(FetchWatarmarksAsync))]
-        public async Task<IReadOnlyList<long>> FetchWatarmarksAsync([ActivityTrigger] string operationKey, ILogger log)
+        [FunctionName(nameof(GetNextWatermarksOfOperationAsync))]
+        public Task<IReadOnlyList<long>> GetNextWatermarksOfOperationAsync([ActivityTrigger] string operationId, ILogger logger)
         {
-            EnsureArg.IsNotNull(log, nameof(log));
-
-            // TODO: make number of watermarks configurable
-            var result = await _tagOperationStore.GetNextWatermarks(operationKey, 1);
-            return result;
+            EnsureArg.IsNotNull(logger, nameof(logger));
+            logger.LogInformation("Getting next watermarks of operation {operationId}", operationId);
+            return _tagOperationStore.GetNextWatermarksOfOperationAsync(operationId, _reindexConfig.BatchSize * _reindexConfig.MaxParallelBatches);
         }
 
-        [FunctionName(nameof(UpdateProgressAsync))]
-        public Task UpdateProgressAsync([ActivityTrigger] ReindexProgress progress, ILogger log)
+        [FunctionName(nameof(UpdateEndWatermarkOfOperationAsync))]
+        public Task UpdateEndWatermarkOfOperationAsync([ActivityTrigger] ReindexProgress progress, ILogger log)
         {
             EnsureArg.IsNotNull(progress, nameof(progress));
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation($"Updating progress from re-index job for operation: {progress.OperationId}"); ;
-            _tagOperationStore.UpdateEndWatermarkAsync(progress.OperationId, progress.NextWatermark);
-            return Task.CompletedTask;
+            log.LogInformation($"Updating end watermark of operation: {progress.OperationId}"); ;
+            return _tagOperationStore.UpdateEndWatermarkOfOperationAsync(progress.OperationId, progress.NextWatermark);
         }
 
-        [FunctionName(nameof(ReindexActivityAsync))]
-        public async Task ReindexActivityAsync([ActivityTrigger] ReindexActivityInput input, ILogger log)
+        /// <summary>
+        /// Reindex  Dicom instance.
+        /// </summary>
+        /// <param name="input">The input</param>
+        /// <param name="logger">The log.</param>
+        /// <returns>The task</returns>
+        [FunctionName(nameof(ReindexInstanceAsync))]
+        public Task ReindexInstanceAsync([ActivityTrigger] ReindexInstanceAsync input, ILogger logger)
         {
             EnsureArg.IsNotNull(input, nameof(input));
-            EnsureArg.IsNotNull(log, nameof(log));
+            EnsureArg.IsNotNull(logger, nameof(logger));
 
-            log.LogInformation($"Processing watermark {input.Watermark}");
-            await _instanceReindexer.ReindexAsync(input.TagEntries, input.Watermark);
+            logger.LogInformation("Reindexing with {input}", input);
+            return _instanceReindexer.ReindexInstanceAsync(input.TagEntries, input.Watermark);
         }
 
-        [FunctionName(nameof(StartReindexOperation))]
-        public async Task StartReindexOperation(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = nameof(StartReindexOperation))] HttpRequest req,
+        /// <summary>
+        /// Start reinex operation.
+        /// </summary>
+        /// <param name="request">The http request.</param>
+        /// <param name="client">The client.</param>
+        /// <param name="logger">The logger.</param>
+        /// <returns>The task.</returns>
+        [FunctionName(nameof(StartReindexOperationAsync))]
+        public async Task StartReindexOperationAsync(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = nameof(StartReindexOperationAsync))] HttpRequest request,
             [DurableClient] IDurableOrchestrationClient client,
-            ILogger log)
+            ILogger logger)
         {
-            EnsureArg.IsNotNull(req, nameof(req));
+            EnsureArg.IsNotNull(request, nameof(request));
             EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(log, nameof(log));
-            string operationId = req.Query["operationId"];
-            log.LogInformation($"Start processing operation {operationId}");
-            await client.StartNewAsync(nameof(RunOrchestrator), instanceId: operationId);
+            EnsureArg.IsNotNull(logger, nameof(logger));
+            string operationId = request.Query["operationId"];
+            logger.LogInformation($"Start processing reindex operation {operationId}");
+            await client.StartNewAsync(nameof(RunOrchestratorAsync), instanceId: operationId);
         }
 
     }

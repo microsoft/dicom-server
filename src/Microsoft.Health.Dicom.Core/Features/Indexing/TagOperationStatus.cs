@@ -3,20 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
-    public class ExtendedQueryTagReindexOperationEntry
+    /// <summary>
+    /// Tag status on operation .
+    /// </summary>
+    public enum TagOperationStatus
     {
-        public long ExtendedQueryTagKey { get; set; }
+        /// <summary>
+        /// The tag is being processed on the operation.
+        /// </summary>
+        Processing = 0,
 
-        public string OperationId { get; set; }
-
-        public long EndWatermark { get; set; }
-
-        public ExtendedQueryTagOperationStatus Status { get; set; }
-
-        public ExtendedQueryTagStoreEntry ExtendedQueryTagStoreEntry { get; set; }
+        /// <summary>
+        /// The tag is paused on the operation.
+        /// </summary>
+        Paused = 1
     }
 }
