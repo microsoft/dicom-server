@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
     public interface IExtendedQueryTagReindexOperationStore
-
     {
         Task<IReadOnlyList<ExtendedQueryTagReindexOperationEntry>> GetEntriesAsync(
             string operationId,
@@ -21,6 +20,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         Task UpdateEndWatermarkAsync(string operationId, long endWatermark, CancellationToken cancellationToken = default);
 
         Task CompleteReindexOperationAsync(string operationId, CancellationToken cancellationToken = default);
-
     }
 }
