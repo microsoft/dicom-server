@@ -6,9 +6,9 @@
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    /// Represents incremental progress in the re-indexing of DICOM instances.
+    /// Represents input to activity <see cref="ReindexOperation.UpdateEndWatermarkOfOperationAsync"/>.
     /// </summary>
-    public class UpdateEndWatermarkOfOperationAsyncINput
+    public class UpdateEndWatermarkOfOperationInput
     {
         /// <summary>
         /// Gets or sets the next watermark of the next instance to process.
@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
         public long NextWatermark { get; set; }
 
         ///// <summary>
-        ///// Gets or sets the number of new errors encountered.
+        ///// Gets or sets the operation id.
         ///// </summary>
         public string OperationId { get; set; }
     }

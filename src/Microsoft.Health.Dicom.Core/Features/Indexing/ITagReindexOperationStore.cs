@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
@@ -49,5 +50,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The task.</returns>
         Task CompleteOperationAsync(string operationId, CancellationToken cancellationToken = default);
+
+
+        Task StartOperationAsync(string operationId, IEnumerable<ExtendedQueryTagStoreEntry> entries, CancellationToken cancellationToken = default);
     }
 }

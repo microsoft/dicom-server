@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Configuration
         /// <see cref="BatchSize"/> and <see cref="MaxParallelBatches"/>.
         /// </remarks>
         [Range(1, int.MaxValue)]
-        public int BatchSize { get; set; } = 1000;
+        public int BatchSize { get; set; } = 2;
 
         /// <summary>
         /// Gets or sets the maximum number of concurrent batches processed at a given time.
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Configuration
         /// <see cref="BatchSize"/> and <see cref="MaxParallelBatches"/>.
         /// </remarks>
         [Range(1, int.MaxValue)]
-        public int MaxParallelBatches { get; set; } = 10;
+        public int MaxParallelBatches { get; set; } = 2;
 
         ///// <summary>
         ///// Gets or sets the maximum error percentage for a query tag before automatically pausing

@@ -10,12 +10,12 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    /// Represents a batch of DICOM instances to be re-indexed based on the given tags.
+    ///  Represents input to <see cref="ReindexOperation.ReindexInstanceAsync"/>
     /// </summary>
-    public class ReindexInstanceAsync
+    public class ReindexInstanceInput
     {
         /// <summary>
-        /// Gets or sets the inclusive starting watermark.
+        /// Gets or sets the inclusive end watermark.
         /// </summary>
         public long Watermark { get; set; }
 
