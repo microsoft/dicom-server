@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         {
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation("Completing Reindex operation {operationId}", operationId);
+            log.LogInformation("Completing Reindex operation on {operationId}", operationId);
             return _tagOperationStore.CompleteOperationAsync(operationId);
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(log, nameof(log));
             EnsureArg.IsNotNull(input, nameof(input));
 
-            log.LogInformation("Completing Reindex operation {operationId}", input.OperationId);
+            log.LogInformation("Starting reindex operation with input {input}", input);
             return _tagOperationStore.StartOperationAsync(input.OperationId, input.TagStoreEntries);
         }
 
@@ -64,6 +64,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         {
             EnsureArg.IsNotNull(entries, nameof(entries));
             EnsureArg.IsNotNull(log, nameof(log));
+            log.LogInformation("Adding extended query tags {entries}", entries);
             var response = await _addExtendedQueryTagService.AddExtendedQueryTagAsync(entries);
             return response.ExtendedQueryTagStoreEntries;
         }
