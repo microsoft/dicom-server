@@ -3,15 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Messages.Operations
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace Microsoft.Health.Dicom.Core.Configs
 {
-    public enum OperationStatus
+    public class OperationsConfiguration
     {
-        Unknown,
-        Pending,
-        Running,
-        Completed,
-        Failed,
-        Canceled,
+        [Required]
+        public Uri BaseAddress { get; }
     }
 }

@@ -5,6 +5,7 @@
 
 using System;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Operations
 {
@@ -32,14 +33,14 @@ namespace Microsoft.Health.Dicom.Core.Messages.Operations
             ErrorMessage = string.IsNullOrWhiteSpace(errorMessage) ? null : errorMessage;
         }
 
-        public string Id { get; set; }
+        public string Id { get; }
 
-        public OperationType Type { get; set; }
+        public OperationType Type { get; }
 
-        public DateTime CreatedTime { get; set; }
+        public DateTime CreatedTime { get; }
 
-        public OperationStatus Status { get; set; }
+        public OperationStatus Status { get; }
 
-        public string ErrorMessage { get; set; }
+        public string ErrorMessage { get; }
     }
 }

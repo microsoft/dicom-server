@@ -5,9 +5,13 @@
 
 namespace Microsoft.Health.Dicom.Core.Operations
 {
-    public enum OperationType
+    public enum OperationStatus
     {
         Unknown,
-        AddExtendedQueryTag,
+        Pending,
+        Running,
+        Completed,
+        Failed,
+        Canceled,
     }
 }

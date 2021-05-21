@@ -3,11 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Operations
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Messages.Operations;
+
+namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
-    public enum OperationType
+    public interface IOperationsService
     {
-        Unknown,
-        AddExtendedQueryTag,
+        Task<OperationStateResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default);
     }
 }
