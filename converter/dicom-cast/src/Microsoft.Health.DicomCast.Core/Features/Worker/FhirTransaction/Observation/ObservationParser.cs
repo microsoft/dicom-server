@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using Dicom;
 using Dicom.StructuredReport;
 using Hl7.Fhir.Model;
@@ -76,8 +75,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 DicomCodeItem code = report.Code;
                 if (code != null)
                 {
-                    (string Value, string Scheme) lookupTuple = (report.Code.Value, report.Code.Scheme);
-                    if (ObservationConstants.DoseSummaryReportCodes.Contains(lookupTuple))
+                    if (ObservationConstants.DoseSummaryReportCodes.Contains(code))
                     {
                         Observation doseSummary = CreateDoseSummary(
                             dataset,
@@ -86,7 +84,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                         observations.DoseSummaries.Add(doseSummary);
                     }
 
-                    if (ObservationConstants.IrradiationEventCodes.Contains(lookupTuple))
+                    if (ObservationConstants.IrradiationEventCodes.Contains(code))
                     {
                         Observation irradiationEvent = CreateIrradiationEvent(dataset, patientRef);
                         observations.IrradiationEvents.Add(irradiationEvent);
@@ -137,10 +135,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             // Attempt to get the StudyInstanaceUID from the report; if it is not there fallback to the Tag value in the dataset
             var report = new DicomStructuredReport(dataset);
             var studyInstanceUid = report.Get<string>(
-                new DicomCodeItem(
-                    ObservationConstants.StudyInstanceUid.Item1,
-                    ObservationConstants.StudyInstanceUid.Item2,
-                    "Study Instance UID"),
+                ObservationConstants.StudyInstanceUid,
                 "");
             if (string.IsNullOrEmpty(studyInstanceUid))
             {
@@ -171,7 +166,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
 
             // Add all structured report information
-            ApplyDicomTransforms(observation, dataset, new List<(string, string)>()
+            ApplyDicomTransforms(observation, dataset, new Collection<DicomCodeItem>()
             {
                 ObservationConstants.EntranceExposureAtRp,
                 ObservationConstants.AccumulatedAverageGlandularDose,
@@ -210,25 +205,17 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             };
 
             // try to extract the event UID
-            try
+            DicomUID irradiationEventUidValue = report.Get<DicomUID>(ObservationConstants.IrradiationEventUid, null);
+            if (irradiationEventUidValue == null)
             {
-                DicomContentItem irradiationEventItem = report.Children()
-                    .First(item => (item.Code.Value, item.Code.Scheme) == ObservationConstants.IrradiationEventUid);
-                DicomUID irradiationEventUidValue = irradiationEventItem.Get<DicomUID>();
-                // TODO is this the right "system"???
-                var system = irradiationEventItem.Code.Scheme == ObservationConstants.Dcm
-                    ? ObservationConstants.DcmSystem
-                    : ObservationConstants.SctSystem;
-                var identifier = new Identifier(irradiationEventUidValue.Name, irradiationEventUidValue.UID);
-                observation.Identifier.Add(identifier);
-            }
-            catch (Exception ex)
-            {
-                throw new MissingMemberException($"unable to extract {nameof(ObservationConstants.IrradiationEventUid)} from dataset: {ex.Message}");
+                throw new MissingMemberException($"unable to extract {nameof(ObservationConstants.IrradiationEventUid)} from dataset");
             }
 
+            var identifier = new Identifier(irradiationEventUidValue.Name, irradiationEventUidValue.UID);
+            observation.Identifier.Add(identifier);
+
             // Extract the necessary information
-            ApplyDicomTransforms(observation, report.Dataset, new List<(string, string)>()
+            ApplyDicomTransforms(observation, report.Dataset, new List<DicomCodeItem>()
             {
                 ObservationConstants.MeanCtdIvol,
                 ObservationConstants.Dlp,
@@ -245,19 +232,18 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <param name="observation">Observation to mutate</param>
         /// <param name="dataset">DicomDataset to parse for values</param>
         /// <param name="onlyInclude">Dicom structured report codes to parse values from</param>
-        private static void ApplyDicomTransforms(Observation observation, DicomDataset dataset, ICollection<(string, string)> onlyInclude = null)
+        private static void ApplyDicomTransforms(Observation observation, DicomDataset dataset, ICollection<DicomCodeItem> onlyInclude = null)
         {
             var report = new DicomStructuredReport(dataset);
-            (string Value, string Scheme) lookupTuple = (report.Code.Value, report.Code.Scheme);
-            if (onlyInclude == null || onlyInclude.Contains(lookupTuple))
+            if (onlyInclude == null || onlyInclude.Contains(report.Code))
             {
-                if (DicomComponentMutators.TryGetValue(lookupTuple, out Action<Observation, DicomStructuredReport> mutator))
+                if (DicomComponentMutators.TryGetValue(report.Code, out Action<Observation, DicomStructuredReport> mutator))
                 {
                     mutator(observation, report);
                 }
                 else
                 {
-                    throw new InvalidProgramException($"no attribute applicator found for dicom code {lookupTuple.ToString()}");
+                    throw new InvalidProgramException($"no attribute applicator found for dicom code {report.Code}");
                 }
             }
 
@@ -268,7 +254,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <summary>
         /// Lookup map of Dicom Report Codes `(code,string)` to Observation mutator
         /// </summary>
-        private static readonly Dictionary<(string, string), Action<Observation, DicomStructuredReport>> DicomComponentMutators = new()
+        private static readonly Dictionary<DicomCodeItem, Action<Observation, DicomStructuredReport>> DicomComponentMutators = new()
         {
             [ObservationConstants.IrradiationEventUid] = SetIrradiationEventUid,
             [ObservationConstants.EntranceExposureAtRp] = AddComponentForDicomMeasuredValue,
