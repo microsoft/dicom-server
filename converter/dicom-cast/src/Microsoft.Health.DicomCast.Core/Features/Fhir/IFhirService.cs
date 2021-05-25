@@ -41,7 +41,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         Task<Endpoint> RetrieveEndpointAsync(string queryParameter, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Asynchronously retrieve all Observations which have contain the provided `Identifier` as an Observation.Identifier.
+        /// Asynchronously retrieve all Observations which contains the provided `Identifier` as an Observation.Identifier.
         /// </summary>
         /// <param name="identifier">the identifier to search by</param>
         /// <param name="cancellationToken">The cancellation token.</param>
