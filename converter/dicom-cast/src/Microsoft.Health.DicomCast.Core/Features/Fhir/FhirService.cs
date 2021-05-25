@@ -27,7 +27,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         private readonly IFhirClient _fhirClient;
         private readonly IFhirResourceValidator _fhirResourceValidator;
 
-        private readonly IEnumerable<FHIRVersion> _supportedFHIRVersions = new List<FHIRVersion> {FHIRVersion.N4_0_0, FHIRVersion.N4_0_1};
+        private readonly IEnumerable<FHIRVersion> _supportedFHIRVersions = new List<FHIRVersion>
+        {
+            FHIRVersion.N4_0_0, FHIRVersion.N4_0_1
+        };
 
         public FhirService(IFhirClient fhirClient, IFhirResourceValidator fhirResourceValidator)
         {

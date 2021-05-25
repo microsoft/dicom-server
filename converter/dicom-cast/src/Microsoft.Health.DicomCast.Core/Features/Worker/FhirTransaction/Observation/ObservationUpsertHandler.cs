@@ -65,12 +65,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                         cancellationToken)
                 : new List<Observation>();
 
-            var existingDoseSummaries =
-                existingDoseSummariesAsync.ToList();
-            bool isExisting = existingDoseSummaries.Any();
+            var existingDoseSummaries = existingDoseSummariesAsync.ToList();
 
             FhirTransactionRequestEntry transactionRequestEntry;
-            if (isExisting)
+            if (existingDoseSummaries.Any())
             {
                 transactionRequestEntry = new FhirTransactionRequestEntry(
                     FhirTransactionRequestMode.Update,

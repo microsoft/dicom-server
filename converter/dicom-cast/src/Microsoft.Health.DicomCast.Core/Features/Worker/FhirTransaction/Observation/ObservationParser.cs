@@ -14,15 +14,6 @@ using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
-    /// <summary>
-    /// Container for holding the parsed Observations from a DicomDataset
-    /// </summary>
-    public class ParsedObservation
-    {
-        public Collection<Observation> DoseSummaries { get; } = new();
-        public Collection<Observation> IrradiationEvents { get; } = new();
-    }
-
     public static class ObservationParser
     {
         /// <summary>
@@ -43,7 +34,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             var parsedObservations = new ParsedObservation();
 
             // run the loop
-            ObservationParseLoop(dataset, patientRef, imagingStudyRef, parsedObservations);
+            ParseObservations(dataset, patientRef, imagingStudyRef, parsedObservations);
 
             // Set each observation status to Preliminary
             foreach (Observation doseSummary in parsedObservations.DoseSummaries)
@@ -62,7 +53,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <summary>
         /// Helper function to add all found Dose Summaries and Irradiation Events to the passed observation set
         /// </summary>
-        private static void ObservationParseLoop(
+        private static void ParseObservations(
             DicomDataset dataset,
             ResourceReference patientRef,
             ResourceReference imagingStudyRef,
@@ -101,7 +92,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             // Return the final aggregated list of observations.
             foreach (DicomContentItem childItem in report.Children())
             {
-                ObservationParseLoop(childItem.Dataset, patientRef, imagingStudyRef, observations);
+                ParseObservations(childItem.Dataset, patientRef, imagingStudyRef, observations);
             }
         }
 
@@ -152,10 +143,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             if (!string.IsNullOrEmpty(accessionNumber))
             {
-                // TODO system correct? seems like a foobar name
-                const string accessionSystem = "http://ginormoushospital.org/accession";
-                var identifier = new Identifier(accessionSystem, accessionNumber)
+                var identifier = new Identifier
                 {
+                    Value = accessionNumber,
                     Type = new CodeableConcept("http://terminology.hl7.org/CodeSystem/v2-0203", "ACSN")
                 };
                 observation.Identifier.Add(identifier);
@@ -164,7 +154,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             // Add all structured report information
             ApplyDicomTransforms(observation, dataset, new Collection<DicomCodeItem>()
             {
-                ObservationConstants.EntranceExposureAtRp,
+                ObservationConstants.DoseRpTotal,
                 ObservationConstants.AccumulatedAverageGlandularDose,
                 ObservationConstants.DoseAreaProductTotal,
                 ObservationConstants.FluoroDoseAreaProductTotal,
@@ -210,6 +200,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             var identifier = new Identifier(irradiationEventUidValue.Name, irradiationEventUidValue.UID);
             observation.Identifier.Add(identifier);
 
+            DicomCodeItem bodySite = report.Get<DicomCodeItem>(ObservationConstants.TargetRegion, null);
+            if (bodySite != null)
+            {
+                observation.BodySite = new CodeableConcept(
+                    GetSystem(bodySite.Scheme),
+                    bodySite.Value,
+                    bodySite.Meaning);
+            }
+
             // Extract the necessary information
             ApplyDicomTransforms(observation, report.Dataset, new List<DicomCodeItem>()
             {
@@ -227,13 +226,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// </summary>
         /// <param name="observation">Observation to mutate</param>
         /// <param name="dataset">DicomDataset to parse for values</param>
-        /// <param name="onlyInclude">Dicom structured report codes to parse values from</param>
+        /// <param name="reportCodesToParse">Dicom structured report codes to parse values from</param>
         private static void ApplyDicomTransforms(Observation observation,
             DicomDataset dataset,
-            IEnumerable<DicomCodeItem> onlyInclude)
+            IEnumerable<DicomCodeItem> reportCodesToParse)
         {
             var report = new DicomStructuredReport(dataset);
-            foreach (DicomCodeItem item in onlyInclude)
+            foreach (DicomCodeItem item in reportCodesToParse)
             {
                 if (DicomComponentMutators.TryGetValue(item,
                     out Action<Observation, DicomStructuredReport, DicomCodeItem> mutator))
@@ -244,7 +243,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             foreach (DicomContentItem dicomContentItem in report.Children())
             {
-                ApplyDicomTransforms(observation, dicomContentItem.Dataset, onlyInclude);
+                ApplyDicomTransforms(observation, dicomContentItem.Dataset, reportCodesToParse);
             }
         }
 
@@ -254,6 +253,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         private static readonly Dictionary<DicomCodeItem, Action<Observation, DicomStructuredReport, DicomCodeItem>> DicomComponentMutators = new()
         {
             [ObservationConstants.EntranceExposureAtRp] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.DoseRpTotal] = AddComponentForDicomMeasuredValue,
             [ObservationConstants.AccumulatedAverageGlandularDose] = AddComponentForDicomMeasuredValue,
             [ObservationConstants.DoseAreaProductTotal] = AddComponentForDicomMeasuredValue,
             [ObservationConstants.FluoroDoseAreaProductTotal] = AddComponentForDicomMeasuredValue,
@@ -347,7 +347,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             {
                 ObservationConstants.Dcm => ObservationConstants.DcmSystem,
                 ObservationConstants.Sct => ObservationConstants.SctSystem,
-                _ => throw new InvalidOperationException($"unsupported code system: {scheme}")
+                _ => scheme
             };
         }
     }

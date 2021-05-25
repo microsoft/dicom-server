@@ -67,7 +67,7 @@ namespace Microsoft.Health.DicomCast.Core.Modules
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
-            
+
             services.Add<ObservationUpsertHandler>()
                 .Singleton()
                 .AsSelf()

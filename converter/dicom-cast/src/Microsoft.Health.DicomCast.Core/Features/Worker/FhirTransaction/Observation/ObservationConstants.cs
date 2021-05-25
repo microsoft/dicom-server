@@ -35,7 +35,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         //------------------------------------------------------------
         public static readonly DicomCodeItem IrradiationEventXRayData = new("113706", Dcm, "Irradiation Event X-Ray Data");
         public static readonly DicomCodeItem CtAcquisition = new("113819", Dcm, "CT Acquisition");
-        public static readonly DicomCodeItem OrganDose = new("113518", Dcm, "Organ Dose");
+        public static readonly DicomCodeItem RadiopharmaceuticalAdministration = new("113502", Dcm, "Radiopharmaceutical Administration");
 
 
         //------------------------------------------------------------
@@ -57,6 +57,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         // - These are report values which map to Observation.component values
         //------------------------------------------------------------
         // Study
+        public static readonly DicomCodeItem DoseRpTotal = new("113725", Dcm, "Dose (RP) Total");
         public static readonly DicomCodeItem EntranceExposureAtRp = new("111636", Dcm, "Entrance Exposure at RP");
         public static readonly DicomCodeItem AccumulatedAverageGlandularDose = new("111637", Dcm, "Accumulated Average Glandular Dose");
         public static readonly DicomCodeItem DoseAreaProductTotal = new("113722", Dcm, "Dose Area Product Total");
@@ -95,7 +96,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         {
             IrradiationEventXRayData,
             CtAcquisition,
-            OrganDose
+            RadiopharmaceuticalAdministration
         };
     }
 }

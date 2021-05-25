@@ -15,6 +15,51 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
     public class ObservationParserTests
     {
         [Fact]
+        public void RadiationEventWithAllSupportedAttributes()
+        {
+            const string randomIrradiationEventUid = "1.2.3.4.5.6.123123";
+            const decimal randomDecimalNumber = (decimal)0.10;
+            var randomRadiationMeasurementCodeItem = new DicomCodeItem("mGy", "UCUM", "mGy");
+            var report = new DicomStructuredReport(
+                ObservationConstants.IrradiationEventXRayData,
+                new DicomContentItem(
+                    ObservationConstants.IrradiationEventUid,
+                    DicomRelationship.Contains,
+                    new DicomUID(randomIrradiationEventUid, "", DicomUidType.Unknown)),
+                new DicomContentItem(
+                    ObservationConstants.MeanCtdIvol,
+                    DicomRelationship.Contains,
+                    new DicomMeasuredValue(randomDecimalNumber,
+                        randomRadiationMeasurementCodeItem)),
+                new DicomContentItem(
+                    ObservationConstants.Dlp,
+                    DicomRelationship.Contains,
+                    new DicomMeasuredValue(randomDecimalNumber,
+                        randomRadiationMeasurementCodeItem)),
+                new DicomContentItem(
+                    ObservationConstants.CtdIwPhantomType,
+                    DicomRelationship.Contains,
+                    new DicomCodeItem("113691", "DCM", "IEC Body Dosimetry Phantom")));
+
+            ParsedObservation observations = ObservationParser.CreateObservations(
+                report.Dataset,
+                new ResourceReference(),
+                new ResourceReference());
+            Assert.Empty(observations.DoseSummaries);
+            Assert.Single(observations.IrradiationEvents);
+
+            Observation radiationEvent = observations.IrradiationEvents.First();
+            Assert.Single(radiationEvent.Identifier);
+            Assert.Equal(randomIrradiationEventUid, radiationEvent.Identifier[0].Value);
+            Assert.Equal(2,
+                radiationEvent.Component
+                    .Count(component => component.Value is Quantity));
+            Assert.Equal(1,
+                radiationEvent.Component
+                    .Count(component => component.Value is CodeableConcept));
+        }
+
+        [Fact]
         public void DoseSummaryWithAllSupportedAttributes()
         {
             const string studyInstanceUid = "1.3.12.2.123.5.4.5.123123.123123";
@@ -37,7 +82,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
                 // attributes
                 new DicomContentItem(
-                    ObservationConstants.EntranceExposureAtRp,
+                    ObservationConstants.DoseRpTotal,
                     DicomRelationship.Contains,
                     new DicomMeasuredValue(randomDecimalNumber,
                         randomRadiationMeasurementCodeItem)),
