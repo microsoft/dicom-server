@@ -87,6 +87,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                     observations.IrradiationEvents.Add(irradiationEvent);
                 }
             }
+            catch (DicomDataException)
+            {
+                // Ignore, this occurs when the report has no content sequence and we attempt to access report.Code; i.e and empty report
+            }
             catch (MissingMemberException)
             {
                 // Occurs when a required attribute is unable to be extracted from a dataset.
@@ -237,10 +241,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                     mutator(observation, report, item);
                 }
             }
+
+            foreach (DicomContentItem dicomContentItem in report.Children())
+            {
+                ApplyDicomTransforms(observation, dicomContentItem.Dataset, onlyInclude);
+            }
         }
 
         /// <summary>
-        /// Lookup map of Dicom Report Codes `(code,string)` to Observation mutator
+        /// Lookup map of DicomCodeItem to Fhir Observation mutator
         /// </summary>
         private static readonly Dictionary<DicomCodeItem, Action<Observation, DicomStructuredReport, DicomCodeItem>> DicomComponentMutators = new()
         {
@@ -324,8 +333,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             {
                 Code = new CodeableConcept(system, codeItem.Value, codeItem.Meaning),
             };
-            var value = report.Get<int>(codeItem, -1);
-            if (value != -1)
+            var value = report.Get<int>(codeItem, 0);
+            if (value != 0)
             {
                 component.Value = new Integer(value);
                 observation.Component.Add(component);
