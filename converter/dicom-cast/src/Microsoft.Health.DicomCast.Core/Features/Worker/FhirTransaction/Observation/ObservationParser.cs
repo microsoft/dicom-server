@@ -72,33 +72,24 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             // see if the current report code matches any of the observation container codes; if so, create the appropriate observation
             try
             {
-                DicomCodeItem code = report.Code;
-                if (code != null)
+                if (ObservationConstants.DoseSummaryReportCodes.Contains(report.Code))
                 {
-                    if (ObservationConstants.DoseSummaryReportCodes.Contains(code))
-                    {
-                        Observation doseSummary = CreateDoseSummary(
-                            dataset,
-                            imagingStudyRef,
-                            patientRef);
-                        observations.DoseSummaries.Add(doseSummary);
-                    }
+                    Observation doseSummary = CreateDoseSummary(
+                        dataset,
+                        imagingStudyRef,
+                        patientRef);
+                    observations.DoseSummaries.Add(doseSummary);
+                }
 
-                    if (ObservationConstants.IrradiationEventCodes.Contains(code))
-                    {
-                        Observation irradiationEvent = CreateIrradiationEvent(dataset, patientRef);
-                        observations.IrradiationEvents.Add(irradiationEvent);
-                    }
+                if (ObservationConstants.IrradiationEventCodes.Contains(report.Code))
+                {
+                    Observation irradiationEvent = CreateIrradiationEvent(dataset, patientRef);
+                    observations.IrradiationEvents.Add(irradiationEvent);
                 }
             }
             catch (MissingMemberException)
             {
                 // Occurs when a required attribute is unable to be extracted from a dataset.
-                // Ignore and move onto the next one.
-            }
-            catch (Exception)
-            {
-                // Occurs when the report does not have a .Code; expected as not all items need to have a code.
                 // Ignore and move onto the next one.
             }
 
@@ -148,8 +139,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             Identifier studyInstanceIdentifier = ImagingStudyIdentifierUtility.CreateIdentifier(studyInstanceUid);
             observation.Identifier.Add(studyInstanceIdentifier);
 
+            // Try to get accession number from report first then tag; ignore if it is not present it is not a required identifier.
+            var accessionNumber = report.Get<string>(ObservationConstants.AccessionNumber, "");
+            if (string.IsNullOrEmpty(accessionNumber))
+            {
+                dataset.TryGetSingleValue(DicomTag.AccessionNumber, out accessionNumber);
+            }
 
-            if (dataset.TryGetSingleValue(DicomTag.AccessionNumber, out string accessionNumber))
+            if (!string.IsNullOrEmpty(accessionNumber))
             {
                 // TODO system correct? seems like a foobar name
                 const string accessionSystem = "http://ginormoushospital.org/accession";
@@ -158,11 +155,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                     Type = new CodeableConcept("http://terminology.hl7.org/CodeSystem/v2-0203", "ACSN")
                 };
                 observation.Identifier.Add(identifier);
-            }
-            else
-            {
-                // throw new MissingMemberException($"Unable to {nameof(DicomTag.AccessionNumber)} from dose summary observation dataset");
-                // Accession numbers is marked as a 0..1 identifier. If its not there, ignore it.
             }
 
             // Add all structured report information
@@ -232,31 +224,26 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <param name="observation">Observation to mutate</param>
         /// <param name="dataset">DicomDataset to parse for values</param>
         /// <param name="onlyInclude">Dicom structured report codes to parse values from</param>
-        private static void ApplyDicomTransforms(Observation observation, DicomDataset dataset, ICollection<DicomCodeItem> onlyInclude = null)
+        private static void ApplyDicomTransforms(Observation observation,
+            DicomDataset dataset,
+            IEnumerable<DicomCodeItem> onlyInclude)
         {
             var report = new DicomStructuredReport(dataset);
-            if (onlyInclude == null || onlyInclude.Contains(report.Code))
+            foreach (DicomCodeItem item in onlyInclude)
             {
-                if (DicomComponentMutators.TryGetValue(report.Code, out Action<Observation, DicomStructuredReport> mutator))
+                if (DicomComponentMutators.TryGetValue(item,
+                    out Action<Observation, DicomStructuredReport, DicomCodeItem> mutator))
                 {
-                    mutator(observation, report);
-                }
-                else
-                {
-                    throw new InvalidProgramException($"no attribute applicator found for dicom code {report.Code}");
+                    mutator(observation, report, item);
                 }
             }
-
-            foreach (DicomContentItem child in report.Children())
-                ApplyDicomTransforms(observation, child.Dataset, onlyInclude);
         }
 
         /// <summary>
         /// Lookup map of Dicom Report Codes `(code,string)` to Observation mutator
         /// </summary>
-        private static readonly Dictionary<DicomCodeItem, Action<Observation, DicomStructuredReport>> DicomComponentMutators = new()
+        private static readonly Dictionary<DicomCodeItem, Action<Observation, DicomStructuredReport, DicomCodeItem>> DicomComponentMutators = new()
         {
-            [ObservationConstants.IrradiationEventUid] = SetIrradiationEventUid,
             [ObservationConstants.EntranceExposureAtRp] = AddComponentForDicomMeasuredValue,
             [ObservationConstants.AccumulatedAverageGlandularDose] = AddComponentForDicomMeasuredValue,
             [ObservationConstants.DoseAreaProductTotal] = AddComponentForDicomMeasuredValue,
@@ -271,65 +258,78 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             [ObservationConstants.RadiopharmaceuticalAgent] = AddComponentForDicomTextValue,
             [ObservationConstants.RadiopharmaceuticalVolume] = AddComponentForDicomMeasuredValue,
             [ObservationConstants.Radionuclide] = AddComponentForDicomTextValue,
-            [ObservationConstants.RouteOfAdministration] = AddComponentForDicomMeasuredValue,
+            [ObservationConstants.RouteOfAdministration] = AddComponentForDicomCodeValue,
             [ObservationConstants.Dlp] = AddComponentForDicomMeasuredValue,
             [ObservationConstants.CtdIwPhantomType] = AddComponentForDicomCodeValue,
         };
 
-        private static void SetIrradiationEventUid(Observation observation, DicomStructuredReport report)
+        private static void AddComponentForDicomMeasuredValue(Observation observation,
+            DicomStructuredReport report,
+            DicomCodeItem codeItem)
         {
-            var system = GetSystem(report.Code.Scheme);
-            var value = report.Get<string>();
-            observation.Identifier.Add(new Identifier(system, value));
-        }
-
-        private static void AddComponentForDicomMeasuredValue(Observation observation, DicomStructuredReport report)
-        {
-            var system = GetSystem(report.Code.Scheme);
+            var system = GetSystem(codeItem.Scheme);
             var component = new Observation.ComponentComponent
             {
-                Code = new CodeableConcept(system, report.Code.Value, report.Code.Meaning),
+                Code = new CodeableConcept(system, codeItem.Value, codeItem.Meaning),
             };
-            DicomMeasuredValue measuredValue = report.Get<DicomMeasuredValue>();
-            component.Value = new Quantity(measuredValue.Value, measuredValue.Code.Value);
-            observation.Component.Add(component);
+            DicomMeasuredValue measuredValue = report.Get<DicomMeasuredValue>(codeItem, null);
+            if (measuredValue != null)
+            {
+                component.Value = new Quantity(measuredValue.Value, measuredValue.Code.Value);
+                observation.Component.Add(component);
+            }
         }
 
-        private static void AddComponentForDicomTextValue(Observation observation, DicomStructuredReport report)
+        private static void AddComponentForDicomTextValue(Observation observation,
+            DicomStructuredReport report,
+            DicomCodeItem codeItem)
         {
-            var system = GetSystem(report.Code.Scheme);
+            var system = GetSystem(codeItem.Scheme);
             var component = new Observation.ComponentComponent
             {
-                Code = new CodeableConcept(system, report.Code.Value, report.Code.Meaning),
+                Code = new CodeableConcept(system, codeItem.Value, codeItem.Meaning),
             };
-            var value = report.Get<string>();
-            component.Value = new FhirString(value);
-            observation.Component.Add(component);
+            var value = report.Get<string>(codeItem, "");
+            if (!string.IsNullOrEmpty(value))
+            {
+                component.Value = new FhirString(value);
+                observation.Component.Add(component);
+            }
         }
 
 
-        private static void AddComponentForDicomCodeValue(Observation observation, DicomStructuredReport report)
+        private static void AddComponentForDicomCodeValue(Observation observation,
+            DicomStructuredReport report,
+            DicomCodeItem codeItem)
         {
-            var system = GetSystem(report.Code.Scheme);
+            var system = GetSystem(codeItem.Scheme);
             var component = new Observation.ComponentComponent
             {
-                Code = new CodeableConcept(system, report.Code.Value, report.Code.Meaning),
+                Code = new CodeableConcept(system, codeItem.Value, codeItem.Meaning),
             };
-            DicomCodeItem codeItem = report.Get<DicomCodeItem>();
-            component.Value = new CodeableConcept(system, codeItem.Value, codeItem.Meaning);
-            observation.Component.Add(component);
+            var value = report.Get<DicomCodeItem>(codeItem, null);
+            if (value != null)
+            {
+                component.Value = new CodeableConcept(system, value.Value, value.Meaning);
+                observation.Component.Add(component);
+            }
         }
 
-        private static void AddComponentForDicomIntegerValue(Observation observation, DicomStructuredReport report)
+        private static void AddComponentForDicomIntegerValue(Observation observation,
+            DicomStructuredReport report,
+            DicomCodeItem codeItem)
         {
-            var system = GetSystem(report.Code.Scheme);
+            var system = GetSystem(codeItem.Scheme);
             var component = new Observation.ComponentComponent
             {
-                Code = new CodeableConcept(system, report.Code.Value, report.Code.Meaning),
+                Code = new CodeableConcept(system, codeItem.Value, codeItem.Meaning),
             };
-            var value = report.Get<int>();
-            component.Value = new Integer(value);
-            observation.Component.Add(component);
+            var value = report.Get<int>(codeItem, -1);
+            if (value != -1)
+            {
+                component.Value = new Integer(value);
+                observation.Component.Add(component);
+            }
         }
 
         private static string GetSystem(string scheme)
