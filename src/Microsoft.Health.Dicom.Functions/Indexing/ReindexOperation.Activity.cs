@@ -56,17 +56,16 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <summary>
         ///  The activity to add extended query tags.
         /// </summary>
-        /// <param name="entries">The entries.</param>
+        /// <param name="input">The input.</param>
         /// <param name="log">The log.</param>
         /// <returns>The store entries.</returns>
-        [FunctionName(nameof(AddExtendedQueryTagAsync))]
-        public async Task<IEnumerable<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagAsync([ActivityTrigger] IEnumerable<AddExtendedQueryTagEntry> entries, ILogger log)
+        [FunctionName(nameof(AddExtendedQueryTagsAsync))]
+        public Task AddExtendedQueryTagsAsync([ActivityTrigger] AddExtendedQueryTagsInput input, ILogger log)
         {
-            EnsureArg.IsNotNull(entries, nameof(entries));
+            EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(log, nameof(log));
-            log.LogInformation("Adding extended query tags {entries}", entries);
-            var response = await _addExtendedQueryTagService.AddExtendedQueryTagAsync(entries);
-            return response.ExtendedQueryTagStoreEntries;
+            log.LogInformation("Adding extended query tags  wiht inpu {input}", input);
+            return _addExtendedQueryTagService.AddExtendedQueryTagAsync(input.ExtendedQueryTagEntries, input.OperationId);
         }
 
         /// <summary>
@@ -123,13 +122,22 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="logger">The log.</param>
         /// <returns>The task</returns>
         [FunctionName(nameof(ReindexInstanceAsync))]
-        public Task ReindexInstanceAsync([ActivityTrigger] ReindexInstanceInput input, ILogger logger)
+        public async Task ReindexInstanceAsync([ActivityTrigger] ReindexInstanceInput input, ILogger logger)
         {
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            logger.LogInformation("Reindexing with {input}", input);
-            return _instanceReindexer.ReindexInstanceAsync(input.TagEntries, input.Watermark);
+            logger.LogInformation("Reindexing with {input}", ConvertToStringForLogging(input));
+            foreach (var watermark in input.Watermarks)
+            {
+                await _instanceReindexer.ReindexInstanceAsync(input.TagEntries, watermark);
+            }
+        }
+
+        private static string ConvertToStringForLogging(ReindexInstanceInput input)
+        {
+            string tagEntriesText = string.Concat(",", input.TagEntries.Select(x => x.ToString()));
+            return $"Watermark - { input.Watermarks}, TagEntries - {tagEntriesText}";
         }
 
     }

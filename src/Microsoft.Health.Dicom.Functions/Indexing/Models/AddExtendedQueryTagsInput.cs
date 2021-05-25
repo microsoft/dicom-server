@@ -9,19 +9,19 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    ///  Represents input to <see cref="ReindexOperation.ReindexInstanceAsync"/>
+    ///  Represents input to <see cref="ReindexOperation.AddExtendedQueryTagsAsync"/>
     /// </summary>
-    public class ReindexInstanceInput
+    public class AddExtendedQueryTagsInput
     {
         /// <summary>
-        /// Gets or sets the inclusive end watermark.
+        /// Gets or sets the operation id
         /// </summary>
-        public long[] Watermarks { get; set; }
+        public string OperationId { get; set; }
 
         /// <summary>
         /// Gets or sets the tags upon which to index.
         /// </summary>
-        public IReadOnlyList<ExtendedQueryTagStoreEntry> TagEntries { get; set; }
+        public IEnumerable<AddExtendedQueryTagEntry> ExtendedQueryTagEntries { get; set; }
 
     }
 }

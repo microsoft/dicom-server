@@ -52,16 +52,16 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="context">The context.</param>
         /// <param name="logger">The logger.</param>
         /// <returns>The task.</returns>
-        [FunctionName(nameof(AddExtendedQueryTagsOrchestrationAsync))]
-        public async Task AddExtendedQueryTagsOrchestrationAsync(
+        [FunctionName(nameof(AddExtendedQueryTagsOrcAsync))]
+        public async Task AddExtendedQueryTagsOrcAsync(
             [OrchestrationTrigger] IDurableOrchestrationContext context,
             ILogger logger)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
             var input = context.GetInput<IEnumerable<AddExtendedQueryTagEntry>>();
-            var tagEntries = await context.CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(nameof(AddExtendedQueryTagAsync), input);
-            await context.CallSubOrchestratorAsync(nameof(ReindexExtendedQueryTagsOrchestrationAsync), context.InstanceId, tagEntries);
+            await context.CallActivityAsync(nameof(AddExtendedQueryTagsAsync), new AddExtendedQueryTagsInput() { ExtendedQueryTagEntries = input, OperationId = context.InstanceId });
+            await context.CallSubOrchestratorAsync(nameof(ReindexExtendedQueryTagsOrcAsync), context.InstanceId);
         }
 
         /// <summary>
@@ -70,16 +70,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="context">the context.</param>
         /// <param name="logger">The logger.</param>
         /// <returns></returns>
-        [FunctionName(nameof(ReindexExtendedQueryTagsOrchestrationAsync))]
-        public async Task ReindexExtendedQueryTagsOrchestrationAsync(
+        [FunctionName(nameof(ReindexExtendedQueryTagsOrcAsync))]
+        public async Task ReindexExtendedQueryTagsOrcAsync(
            [OrchestrationTrigger] IDurableOrchestrationContext context,
            ILogger logger)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
-            var input = context.GetInput<IEnumerable<ExtendedQueryTagStoreEntry>>();
-
-
             // TODO: should start a new orchestraion instead of while loop
             while (true)
             {
@@ -103,7 +100,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 foreach (long watermark in watermarks)
                 {
                     await context
-                        .CallActivityAsync(nameof(ReindexInstanceAsync), new ReindexInstanceInput() { TagEntries = queryTags, Watermark = watermark });
+                        .CallActivityAsync(nameof(ReindexInstanceAsync), new ReindexInstanceInput() { TagEntries = queryTags, Watermarks = new long[] { watermark } });
                 }
 
                 await context.CallActivityAsync(nameof(UpdateEndWatermarkOfOperationAsync),
@@ -122,8 +119,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="client">The client.</param>
         /// <param name="logger">The logger.</param>
         /// <returns>The task.</returns>
-        [FunctionName(nameof(AddExtendedQueryTagsAsync))]
-        public async Task AddExtendedQueryTagsAsync(
+        [FunctionName(nameof(StartExtendedQueryTagAdditionAsync))]
+        public async Task StartExtendedQueryTagAdditionAsync(
             [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "extendedquerytags")] HttpRequestMessage request,
             [DurableClient] IDurableOrchestrationClient client,
             ILogger logger)
@@ -133,7 +130,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(logger, nameof(logger));
             var extendedQueryTags = await request.Content.ReadAsAsync<IEnumerable<AddExtendedQueryTagEntry>>();
             logger.LogInformation($"Start adding extended query tags {string.Join(",", extendedQueryTags.Select(x => x.ToString()))}");
-            await client.StartNewAsync(nameof(AddExtendedQueryTagsOrchestrationAsync), instanceId: null, extendedQueryTags);
+            await client.StartNewAsync(nameof(AddExtendedQueryTagsOrcAsync), instanceId: null, extendedQueryTags);
 
         }
 
