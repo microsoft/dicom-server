@@ -2,6 +2,8 @@
 
 DICOM Cast allows synchronizing the data from a Medical Imaging Server for DICOM to a [FHIR Server for Azure](https://github.com/microsoft/fhir-server), which allows healthcare organization to integrate clinical and imaging data. DICOM Cast expands the use cases for health data by supporting both a streamlined view of longitudinal patient data and the ability to effectively create cohorts for medical studies, analytics, and machine learning.
 
+DICOM Cast captures metadata from a DICOM file to create [Patient](https://www.hl7.org/fhir/patient.html) and [Imaging Study](https://www.hl7.org/fhir/imagingstudy.html) Resources in FHIR. In addition, if a DICOM file contains a radiation dose information in a Structured Report, an [Observation](https://www.hl7.org/fhir/observation.html) Resource will be created as a [Profile](https://www.hl7.org/fhir/profiling.html) in FHIR.
+
 ## Architecture
 
 ![Architecture](/docs/images/dicom-cast-architecture.png)
@@ -27,9 +29,11 @@ The current implementation of DICOM Cast supports:
         - `TransientRetryExceptionTable`: Stores information about change feed entries that faced a transient error (such as FHIR server too busy) and are being retried. Entries in this table note how many times they have been retried but does not necessarily mean that they eventually failed or succeeded to store to FHIR.
         - `TransientFailureExceptionTable`: Stores information about change feed entries that had a transient error, and went through the retry policy and still failed to store to FHIR. All entries in this table failed to store to FHIR.
 
-## Mappings
+## Mapping from DICOM to FHIR
 
-The current implementation of DICOM Cast has the following mappings:
+### Patient and Imaging Study Resource Creation
+
+DICOM Cast creates a [Patient](https://www.hl7.org/fhir/patient.html) and [Imaging Study](https://www.hl7.org/fhir/imagingstudy.html) Resource in FHIR from the metadata in a DICOM File. The mapping is specified using the tags identified below: 
 
 **Patient:**
 
@@ -68,6 +72,85 @@ The current implementation of DICOM Cast has the following mappings:
 | ImagingStudy.series.instance.sopClass | (0008,0016) | SOPClassUID | Yes | |
 | ImagingStudy.series.instance.number | (0020,0013) | InstanceNumber | No| |
 | ImagingStudy.identifier.where(type.coding.system='http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code='ACSN')) | (0008,0050) | Accession Number | No | Refer to http://hl7.org/fhir/imagingstudy.html#notes. |
+
+### Observation Profile Creation from DICOM Structured Reports
+
+Radiologists use DICOM Structured Reports to capture content, measurements and codes associated with a DICOM image in a structured format. DICOM Structure Reports are used to capture critical information about radiation dose exposure. Our DICOM Cast Implementation has been expanded to create Observation Resources based on metadata captured from X-Ray, CT and Radiopharmaceutical Structured Reports.
+
+**Note: This implementation is based on a draft proposal to HL7 to capture [Radiation Dose Summary for Diagnostic Procedures on FHIR] (https://confluence.hl7.org/display/IMIN/Radiation+Dose+Summary+for+Diagnostic+Procedures+on+FHIR).**
+
+#### Dose Summary Observation Profile
+
+If a DICOM file includes one of the following structured reports, a Dose Summary Observation Profile is created in FHIR:
+
+- [X-Ray Radiation Dose SR IOD Templates](http://dicom.nema.org/medical/dicom/current/output/chtml/part16/sect_XRayRadiationDoseSRIODTemplates.html)
+- [Radiopharmaceutical Radiation Dose SR IOD Templates](http://dicom.nema.org/medical/dicom/current/output/chtml/part16/sect_RadiopharmaceuticalRadiationDoseSRIODTemplates.html)
+
+The Dose Summary Observation Resource is defined by this Profile mapping:
+
+| Property | DICOM Identifier | Identifier Name | Note |
+| :------- | :----- | :------- | :--- |
+| observation.identifier.studyInstanceUID | 110180 | Study Instance UID |    |
+| observation.identifier.accessionNumber | 121022 | Accession Number |  |
+| observation.partOf.imagingStudyRef |  |  | Reference(Imaging Study) |
+| observation.code.coding.system |  |  | Fixed value: http://loinc.org |
+| observation.code.coding.code |  |  | Fixed value: 73569-6 |
+| observation.code.coding.display |  |  | Fixed value: "Radiation exposure and protection information" |
+| observation.subject |  |  | Reference(Patient) |
+| observation.effective | 113809  | Start of X-Ray Irradiation |  |
+| observation.performer.irradiationAuthorizingPerson | 113850 | Irradiation Authorizing |   |
+| observation.component.entraceExposureAtRP | 111636 | Entrance Exposure at RP ||
+| observation.component.accumulatedAverageGlandularDose | 111637 | Accumulated Average Glandular Dose | |
+| observation.component.doseAreaProductTotal | 113722 | Dose Area Product Total | |
+| observation.component.fluoroDoseAreaProductTotal | 113726 | Fluoro Dose Area Product Total | |
+| observation.component.acquisitionDoseAreaProductTotal | 113727 | Acquisition Dose Area Product Total | |
+| observation.component.totalFluoroTime | 113730 | Total Fluoro Time |    |
+| observation.component.totalNumberOfRadiographicFrames | 113731 | Total Number of Radiographic Frames | |
+| observation.component.administeredActivity | 113507 | Administered activity | |
+| observation.component.cTDoseLengthProductTotal | 113813 | CT Dose Length Product Total | |
+| observation.component.meanCTDIvol | 113830| Mean CTDIvol | |
+| observation.component.radiopharmaceutical | 349358000 | Radiopharmaceutical agent | Note: this code was updated in 2020, previously it was (F-61FDB,SRT,"Radiopharmaceutical agent") |
+| observation.component.radiopharmaceuticalVolume | 123005 | Radiopharmaceutical Volume | |
+| observation.component.radionucleide | 89457008 | Radionuclide | Note: this code was updated in 2020, previously it was  (C-10072,SRT,"Radionuclide")|
+| observation.component.routeOfAdministration | 410675002 | Route of administration | Note: this code was updated in 2020, previously it was  (G-C340,SRT,"Route of administration") |
+
+The following fields have not yet been implemented as the Profile is still in draft form:
+
+- observation.device: Creation of a FHIR Device Resource is not yet support. Once a Device resource is created, it will be referenced from this Observation Profile
+- observation.hasMember.pregnancyObservation: Pregnancy Observation cannot be pulled directly from Structured Report. This value will need to be pulled elsewhere in FHIR Resource.
+- observation.bodySite
+- observation.hasmember.indicationObservation
+- observation.hasMember.alertObservation
+- observation.component.effectiveDose
+- observation.component.numbIrradiationEvents
+- observation.identifier.radiationSRUID
+
+#### Radiation Event Observation Profile
+
+If a DICOM file includes [CT Radiation Dose Structured Report](http://dicom.nema.org/medical/dicom/current/output/chtml/part16/sect_CTRadiationDoseSRIODTemplates.html), a Radiation Event Observation Profile is created in FHIR. We verify that the DICOM file includes a CT Structured Report by checking if the following fields are included:
+
+- Irradiation X-ray Event ("113706", DCM)
+- CT Acquisition ("113819", DCM)
+- Organ Dose ("113518", "DCM")
+
+The Radiation Event Observation Resource is defined by this Profile mapping:
+
+| Property | DICOM Identifier | Identifier Name | Note |
+| :------- | :----- | :------- | :--- |
+| observation.identifier.irradiationEventUID.system |  |  | Fixed value: irradiation-event-uid |
+| observation.identifier.irradiationEventUID.value | 113769 | Irradiation Event UID | |
+| observation.code.coding.system |  |   | Fixed value: http://dicom.nema.org/resources/ontology/DCM |
+| observation.code.coding.code |  |  | Fixed value: 113853 |
+| observation.code.coding.display |  |  | Fixed value: "Irradiation Event" |
+| observation.subject |  | |Reference(Patient)|
+| observation.effective | 113809  | Start of X-Ray Irradiation |  |
+| observation.component.meanCTDIvol | 113830| Mean CTDIvol | |
+| observation.component.dlp | 113838 | DLP  | |
+| observation.component.ctdiPhantomType | 113835 | CDTIw Phantom Type | |
+
+The following fields have not yet been implemented as the Profile is still in draft form:
+
+- observation.bodySite
 
 ### Timestamp
 
