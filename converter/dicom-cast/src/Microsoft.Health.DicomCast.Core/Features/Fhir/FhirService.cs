@@ -161,7 +161,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
             where TResource : Resource, new()
         {
             IEnumerable<TResource> matches = await SearchMultiWithLimitByQueryParameterAsync<TResource>(queryParameter, 1, cancellationToken);
-            return matches.First();
+            IEnumerable<TResource> enumerable = matches.ToList();
+            return enumerable.Any() ? enumerable.First() : null;
         }
     }
 }

@@ -16,7 +16,7 @@ using Microsoft.Health.DicomCast.Core.Features.Fhir;
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
     /// <inheritdoc/>
-    class ObservationDeleteHandler : IObservationDeleteHandler
+    public class ObservationDeleteHandler : IObservationDeleteHandler
     {
         private readonly IFhirService _fhirService;
 
@@ -41,7 +41,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             // terminate early if no observation found
             if (!matchingObservations.Any())
+            {
                 return null;
+            }
 
             Observation observationToDelete = matchingObservations.First();
             Bundle.RequestComponent request = new Bundle.RequestComponent()

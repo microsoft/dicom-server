@@ -18,7 +18,7 @@ using Microsoft.Health.DicomCast.Core.Features.Fhir;
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
     /// <inheritdoc/>
-    class ObservationUpsertHandler : IObservationUpsertHandler
+    public class ObservationUpsertHandler : IObservationUpsertHandler
     {
         private readonly IFhirService _fhirService;
 

@@ -24,16 +24,16 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         // - When you encounter these codes in a structured report, it means to create a new "Does Summary" Observation
         //------------------------------------------------------------
         private static readonly (string, string) RadiopharmaceuticalRadiationDoseReport = ("113500", Dcm); // (113500,DCM,"Radiopharmaceutical Radiation Dose Report")
-        private static readonly (string, string) XRayRadiationDoseReport = ("113701", Dcm); // (113701,DCM,"X-Ray Radiation Dose Report")
+        public static readonly (string, string) XRayRadiationDoseReport = ("113701", Dcm); // (113701,DCM,"X-Ray Radiation Dose Report")
 
 
         //------------------------------------------------------------
         // Irradiation Event Codes
         // - When you encounter these code in a structured report, it means to create a new "Irradiation Event" Observation
         //------------------------------------------------------------
-        private static readonly (string, string) IrradiationEventXRayData = ("113706", Dcm); // (113706,DCM,"Irradiation Event X-Ray Data")
-        private static readonly (string, string) CtAcquisition = ("113819", Dcm); // (113819,DCM,"CT Acquisition")
-        private static readonly (string, string) OrganDose = ("113518", "DCM"); // (113518,DCM,"Organ Dose")  => Radiopharmaceutical Radiation Dose Report
+        public static readonly (string, string) IrradiationEventXRayData = ("113706", Dcm); // (113706,DCM,"Irradiation Event X-Ray Data")
+        public static readonly (string, string) CtAcquisition = ("113819", Dcm); // (113819,DCM,"CT Acquisition")
+        public static readonly (string, string) OrganDose = ("113518", Dcm); // (113518,DCM,"Organ Dose")  => Radiopharmaceutical Radiation Dose Report
 
 
         //------------------------------------------------------------
@@ -41,7 +41,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         // - These are report values which map to non component observation attributes.
         //------------------------------------------------------------
         public static readonly (string, string) IrradiationEventUid = ("113769", Dcm); // (113769,DCM,"Irradiation Event UID")
-        // public static readonly (string, string) StudyInstanceUid = ("110180", Dcm); // (110180,DCM,"Study Instance UID") TODO maybe (0020,000D) ???
+        public static readonly (string, string) StudyInstanceUid = ("110180", Dcm); // (110180,DCM,"Study Instance UID") TODO maybe (0020,000D) ???
         // public static readonly (string, string) AccessionNumber = ("121022", Dcm); // TODO no sample; maybe (0008,0050) ???
         // public static readonly (string, string) StartOfXrayIrradiation = ("113809", Dcm); // (113809,DCM,"Start of X-ray Irradiation")
         // public static readonly (string, string) IrradiationAuthorizing = ("113850", Dcm); // TODO no sample maybe (121406,DCM,"Reference Authority") ???

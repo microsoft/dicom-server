@@ -98,6 +98,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 // Occurs when a required attribute is unable to be extracted from a dataset.
                 // Ignore and move onto the next one.
             }
+            catch (Exception)
+            {
+                // Occurs when the report does not have a .Code; expected as not all items need to have a code.
+                // Ignore and move onto the next one.
+            }
 
             // Recursively iterate through every child in the document checking for nested observations.
             // Return the final aggregated list of observations.
@@ -129,15 +134,25 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             observation.PartOf.Add(imagingStudyRef);
 
             // Set identifiers
-            if (dataset.TryGetSingleValue(DicomTag.StudyInstanceUID, out string studyUid))
+            // Attempt to get the StudyInstanaceUID from the report; if it is not there fallback to the Tag value in the dataset
+            var report = new DicomStructuredReport(dataset);
+            var studyInstanceUid = report.Get<string>(
+                new DicomCodeItem(
+                    ObservationConstants.StudyInstanceUid.Item1,
+                    ObservationConstants.StudyInstanceUid.Item2,
+                    "Study Instance UID"),
+                "");
+            if (string.IsNullOrEmpty(studyInstanceUid))
             {
-                Identifier identifier = ImagingStudyIdentifierUtility.CreateIdentifier(studyUid);
-                observation.Identifier.Add(identifier);
+                if (!dataset.TryGetSingleValue(DicomTag.StudyInstanceUID, out studyInstanceUid))
+                {
+                    throw new MissingMemberException($"Unable to {nameof(DicomTag.StudyInstanceUID)} from dose summary observation dataset");
+                }
             }
-            else
-            {
-                throw new MissingMemberException($"Unable to {nameof(DicomTag.StudyInstanceUID)} from dose summary observation dataset");
-            }
+
+            Identifier studyInstanceIdentifier = ImagingStudyIdentifierUtility.CreateIdentifier(studyInstanceUid);
+            observation.Identifier.Add(studyInstanceIdentifier);
+
 
             if (dataset.TryGetSingleValue(DicomTag.AccessionNumber, out string accessionNumber))
             {
@@ -151,7 +166,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
             else
             {
-                throw new MissingMemberException($"Unable to {nameof(DicomTag.AccessionNumber)} from dose summary observation dataset");
+                // throw new MissingMemberException($"Unable to {nameof(DicomTag.AccessionNumber)} from dose summary observation dataset");
+                // Accession numbers is marked as a 0..1 identifier. If its not there, ignore it.
             }
 
             // Add all structured report information
