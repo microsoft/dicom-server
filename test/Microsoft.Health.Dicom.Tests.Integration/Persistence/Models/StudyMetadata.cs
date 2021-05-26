@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             PatientID = sqlDataReader.GetString(2);
             PatientName = sqlDataReader.GetString(3);
             ReferringPhysicianName = sqlDataReader.GetString(4);
-            StudyDate = sqlDataReader.IsDBNull(5) ? null : (DateTime?)sqlDataReader.GetDateTime(5);
+            StudyDate = sqlDataReader.IsDBNull(5) ? null : sqlDataReader.GetDateTime(5);
             StudyDescription = sqlDataReader.GetString(6);
             AccessionNumber = sqlDataReader.GetString(7);
         }
