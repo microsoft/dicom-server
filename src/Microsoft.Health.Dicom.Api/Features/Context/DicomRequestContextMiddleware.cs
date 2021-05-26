@@ -45,6 +45,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
                 method: request.Method,
                 uri,
                 baseUri,
+                correlationId: System.Diagnostics.Activity.Current?.RootId,
                 context.Request.Headers,
                 context.Response.Headers);
 
