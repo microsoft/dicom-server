@@ -9,6 +9,7 @@ using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Serilog.Context;
 
 namespace Microsoft.Health.Dicom.Api.Features.Context
 {
@@ -51,8 +52,12 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
 
             dicomRequestContextAccessor.RequestContext = dicomRequestContext;
 
-            // Call the next delegate/middleware in the pipeline
-            await _next(context);
+            // Adding operation id for this request thread to the log context.
+            using (LogContext.PushProperty("operationId", System.Diagnostics.Activity.Current?.RootId))
+            {
+                // Call the next delegate/middleware in the pipeline
+                await _next(context);
+            }
         }
     }
 }
