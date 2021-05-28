@@ -41,6 +41,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{D100EA60-8DC8-4576-A177-56BC7193BF4A}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,10 @@ Global
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -119,7 +125,7 @@ Global
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 		RESX_SortFileContentOnSave = True
+		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 	EndGlobalSection
 EndGlobal
