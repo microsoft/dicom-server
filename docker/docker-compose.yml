@@ -4,7 +4,7 @@ services:
   microsoft.health.dicom.web:
     image: ${DOCKER_REGISTRY-}microsofthealthdicomweb
     build:
-      context: .
+      context: ./..
       dockerfile: src/Microsoft.Health.Dicom.Web/Dockerfile
     environment:
       DicomServer__Security__Enabled: "false"
@@ -21,7 +21,7 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite
   sql:
     build:
-      context: .
+      context: ./..
       dockerfile: ./build/docker/sql/Dockerfile
     environment:
       # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Password is only used for development.")]
