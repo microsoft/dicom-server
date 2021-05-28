@@ -15,6 +15,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
 {
     public class DicomRequestContextMiddleware
     {
+        private const string OperationIdName = "operationId";
         private readonly RequestDelegate _next;
 
         public DicomRequestContextMiddleware(RequestDelegate next)
@@ -53,7 +54,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
             dicomRequestContextAccessor.RequestContext = dicomRequestContext;
 
             // Adding operation id for this request thread to the log context.
-            using (LogContext.PushProperty("operationId", System.Diagnostics.Activity.Current?.RootId))
+            using (LogContext.PushProperty(OperationIdName, System.Diagnostics.Activity.Current?.RootId))
             {
                 // Call the next delegate/middleware in the pipeline
                 await _next(context);
