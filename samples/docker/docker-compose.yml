@@ -3,7 +3,7 @@ services:
   dicom-api:
     build:
       context: ./../../
-      dockerfile: ./build/docker/Dockerfile
+      dockerfile: ./src/Microsoft.Health.Dicom.Web/Dockerfile
     restart: always
     environment:
       DicomServer__Security__Enabled: "false"
@@ -38,7 +38,7 @@ services:
   sql:
     build:
       context: ./../../
-      dockerfile: ./build/docker/sql/Dockerfile
+      dockerfile: ./docker/sql/Dockerfile
     restart: always
     environment:
       SA_PASSWORD: ${SAPASSWORD}
