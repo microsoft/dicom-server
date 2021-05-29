@@ -35,8 +35,8 @@ Given the DICOM API is likely to start before the SQL server is ready, you may n
 
 Once deployed the Medical Imaging Server for DICOM should be available at `http://localhost:8080/`.
 
-Additionally if uncommented in the docker-compose file the 
-* SQL Server is able to be browsed using a TCP connection to `localhost:1433` 
+Additionally if uncommented in the docker-compose file the
+* SQL Server is able to be browsed using a TCP connection to `localhost:1433`
 * the storage containers can be examined via [Azure Storage Explorer](https://azure.microsoft.com/features/storage-explorer/) using the [default storage emulator connection string](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator#connect-to-the-emulator-account-using-the-well-known-account-name-and-key)
 * [FHIR](https://github.com/microsoft/fhir-server) can be accessible via `http://localhost:8081`
 
@@ -51,7 +51,7 @@ docker inspect -f 'Name: {{.Name}} - IPs: {{range .NetworkSettings.Networks}}{{.
 To build the `dicom-api` image run the following command from the root of the `microsoft/dicom-server`repository:
 
 ```bash
-docker build -f build/docker/Dockerfile -t dicom-api .
+docker build -f src/microsoft.health.dicom.web/Dockerfile -t microsoft.health.dicom.web .
 ```
 
 The container can then be run, specifying configuration details such as:
@@ -65,7 +65,8 @@ docker run -d \
     -e DataStore="SqlServer" \
     -e BlobStore__ConnectionString="<blob-connection-string" \
     -p 8080:8080
-    dicom-api dicom-api
+    microsoft.health.dicom.web
+    microsoft.health.dicom.web
 ```
 
 ## Next steps

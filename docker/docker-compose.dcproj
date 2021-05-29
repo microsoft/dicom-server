@@ -8,9 +8,13 @@
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
     <DockerServiceName>microsoft.health.dicom.web</DockerServiceName>
+    <AdditionalComposeFilePaths>docker-compose.dependencies.yml;docker-compose.vs.yml</AdditionalComposeFilePaths>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="docker-compose.override.yml">
+    <None Include="docker-compose.dependencies.yml">
+      <DependentUpon>docker-compose.yml</DependentUpon>
+    </None>
+    <None Include="docker-compose.vs.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.vs.debug.yml">
@@ -20,6 +24,7 @@
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
+    <None Include="sql\Dockerfile" />
     <None Include=".dockerignore" />
   </ItemGroup>
 </Project>

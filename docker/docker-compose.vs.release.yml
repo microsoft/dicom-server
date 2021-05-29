@@ -4,4 +4,4 @@ services:
   microsoft.health.dicom.web:
     build:
       args:
-        - BUILD_CONFIGURATION=Release
+        BUILD_CONFIGURATION: "Release"

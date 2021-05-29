@@ -4,4 +4,4 @@ services:
   microsoft.health.dicom.web:
     build:
       args:
-        - BUILD_CONFIGURATION=Debug
+        BUILD_CONFIGURATION: "Debug"
