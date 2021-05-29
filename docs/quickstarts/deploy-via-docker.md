@@ -1,29 +1,38 @@
 # Deploy the Medical Imaging Server for DICOM locally using Docker
 
-This quickstart details how to build and run the Medical Imaging Server for DICOM in Docker on Linux.
+This quickstart guide details how to build and run the Medical Imaging Server for DICOM in Docker.
 
-> [!IMPORTANT]
+> **IMPORTANT**
+>
 > This sample has been created to enable Development/Test scenarios and is not suitable for production scenarios. Passwords are contained in deployment files, the SQL server connection is not encrypted, authentication on the Medical Imaging Server for DICOM has been disabled, and data is not persisted between container restarts.
 
-## Prerequisites
+## Visual Studio
+
+You can easily run and debug the Medical Imaging Server for DICOM right from Visual Studio with all of the necessary dependencies. Simply open up the solution file *Microsoft.Health.Dicom.sln* in Visual Studio 2019 (or later) and run the "docker-compose" project. This should build each of the images and run the containers locally without any additional action.
+
+Once it's ready, a web page should open automatically for the URL `https://localhost:63839` where you can communicate with the Medical Imaging Server for DICOM.
+
+## Docker Compose
+
+### Prerequisites
 
 To deploy the Medical Imaging Server for DICOM using Docker Compose, you have to have a local version of the OSS repository along with the submodules. To clone the repository via the command line with the submodles, run the following command:
 
 ```bash
 git clone --recurse-submodules https://github.com/microsoft/dicom-server.git
-
 ```
 
 If you already have a copy of the OSS repository, you can initialize the submodules with the following command:
 
 ```bash
 git submodule update --init --recursive
-
 ```
 
-## Build and run with SQL Server and Azurite using Docker Compose
+### Build and run with SQL Server and Azurite using Docker Compose
 
 Use Docker Compose to run the Medical Imaging Server for DICOM on Docker with a [SQL Server container](https://docs.microsoft.com/sql/linux/quickstart-install-connect-docker?view=sql-server-ver15&pivots=cs1-bash) and an [Azurite container](https://github.com/Azure/Azurite).
+
+#### Command Line
 
 Run the following command from the root of the `microsoft/dicom-server` repository, replacing `<SA_PASSWORD>` with your chosen password (be sure to follow the [SQL Server password complexity requirements](https://docs.microsoft.com/sql/relational-databases/security/password-policy?view=sql-server-ver15#password-complexity)):
 
@@ -46,7 +55,7 @@ You can also connect to them via their IP rather rather than expose them on loca
 docker inspect -f 'Name: {{.Name}} - IPs: {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} - Ports: {{.Config.ExposedPorts}}' $(docker ps -aq)
 ```
 
-## Run in Docker with a custom configuration
+### Run in Docker with a custom configuration
 
 To build the `dicom-api` image run the following command from the root of the `microsoft/dicom-server`repository:
 
@@ -71,7 +80,7 @@ docker run -d \
 
 ## Next steps
 
-Once deployment is complete you can access your Medical Imaging Server at: ```https://localhost:8080```
+Once deployment is complete you can access your Medical Imaging Server at: `https://localhost:8080`
 
 * [Use Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md)
 * [Upload DICOM files via the Electron Tool](../../tools/dicom-web-electron)
