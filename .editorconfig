@@ -12,9 +12,6 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
-[project.json]
-indent_size = 2
-
 # Generated code
 [*{_AssemblyInfo.cs,.notsupported.cs,.Generated.cs}]
 generated_code = true
@@ -240,6 +237,10 @@ indent_size = 2
 
 # Xml config files
 [*.{props,targets,config,nuspec}]
+indent_size = 2
+
+# JSON files
+[*.json]
 indent_size = 2
 
 # YAML files

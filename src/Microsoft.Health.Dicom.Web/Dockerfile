@@ -1,28 +1,31 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
-WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+# Define the "runtime" image which will run the DICOM Server
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.6-alpine3.12@sha256:717a278e712e7b97a0c1021304e95cc95f8690c355b3cad19077ddccb3a83846 AS runtime
+RUN set -x && \
+    # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/
+    apk add --no-cache icu-libs && \
+    addgroup nonroot && \
+    adduser -S -D -H -s /sbin/nologin -G nonroot -g nonroot nonroot
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+USER nonroot
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
-WORKDIR /src
-COPY ["nuget.config", "."]
-COPY ["src/Microsoft.Health.Dicom.Web/Microsoft.Health.Dicom.Web.csproj", "src/Microsoft.Health.Dicom.Web/"]
-COPY ["src/Microsoft.Health.Dicom.Metadata/Microsoft.Health.Dicom.Metadata.csproj", "src/Microsoft.Health.Dicom.Metadata/"]
-COPY ["src/Microsoft.Health.Dicom.Core/Microsoft.Health.Dicom.Core.csproj", "src/Microsoft.Health.Dicom.Core/"]
-COPY ["src/Microsoft.Health.Dicom.Blob/Microsoft.Health.Dicom.Blob.csproj", "src/Microsoft.Health.Dicom.Blob/"]
-COPY ["src/Microsoft.Health.Dicom.SqlServer/Microsoft.Health.Dicom.SqlServer.csproj", "src/Microsoft.Health.Dicom.SqlServer/"]
-COPY ["src/Microsoft.Health.Dicom.Api/Microsoft.Health.Dicom.Api.csproj", "src/Microsoft.Health.Dicom.Api/"]
-RUN dotnet restore "src/Microsoft.Health.Dicom.Web/Microsoft.Health.Dicom.Web.csproj"
+# Copy the DICOM Server project and build it
+FROM mcr.microsoft.com/dotnet/sdk:5.0.203-alpine3.12@sha256:4fe96d2e0ad763284c5a222efb5e7098c84c1bce8fcb18c2f896c547963de1a5 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /dicom-server
 COPY . .
-WORKDIR "/src/src/Microsoft.Health.Dicom.Web"
-RUN dotnet build "Microsoft.Health.Dicom.Web.csproj" -c Release -o /app/build
+WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Web
+RUN dotnet build "Microsoft.Health.Dicom.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
-RUN dotnet publish "Microsoft.Health.Dicom.Web.csproj" -c Release -o /app/publish
+# Publish the DICOM Server from the build
+FROM build as publish
+RUN dotnet publish "Microsoft.Health.Dicom.Web.csproj" -c "$BUILD_CONFIGURATION" -o /app/publish --no-build
 
-FROM base AS final
+# Copy the published application
+FROM runtime AS dicom-server
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Microsoft.Health.Dicom.Web.dll"]

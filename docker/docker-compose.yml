@@ -22,7 +22,7 @@ services:
   sql:
     build:
       context: ./..
-      dockerfile: ./build/docker/sql/Dockerfile
+      dockerfile: docker/sql/Dockerfile
     environment:
       # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Password is only used for development.")]
       SA_PASSWORD: T3stP@ssw0rd

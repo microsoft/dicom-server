@@ -1,7 +1,7 @@
 version: "3"
 services:
   dicom-api:
-    build: 
+    build:
       context: ./../../
       dockerfile: ./build/docker/Dockerfile
     restart: always
@@ -12,7 +12,7 @@ services:
       SqlServer__Initialize: "true"
       BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
       DataStore: "SqlServer"
-    ports:     
+    ports:
       - "8080:8080"
     depends_on:
       - sql
@@ -30,15 +30,15 @@ services:
       context: ../Azurite
       dockerfile: ./Dockerfile
     restart: always
-    environment: 
+    environment:
       executable: table
     # # uncomment if you want to expose azure storage explorer against localhost
     # ports:
     #   - "10002:10002"
   sql:
-    build: 
+    build:
       context: ./../../
-      dockerfile: ./build/docker/sql/Dockerfile
+      dockerfile: ./docker/sql/Dockerfile
     restart: always
     environment:
       SA_PASSWORD: ${SAPASSWORD}
@@ -51,10 +51,10 @@ services:
         interval: 10s
         timeout: 10s
         retries: 6
-  
+
   # deploy optional component dicom-cast
   dicom-cast:
-    build: 
+    build:
       context: ./../../
       dockerfile: ./converter/dicom-cast/build/docker/Dockerfile
     environment:
@@ -82,7 +82,7 @@ services:
       SqlServer__SchemaOptions__AutomaticUpdatesEnabled: "true"
       DataStore: "SqlServer"
     # # uncomment if you want to expose fhir against localhost
-    ports:     
+    ports:
       - "8081:8080"
     depends_on:
       - sql
