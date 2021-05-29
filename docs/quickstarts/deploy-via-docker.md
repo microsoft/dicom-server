@@ -10,13 +10,13 @@ This quickstart guide details how to build and run the Medical Imaging Server fo
 
 You can easily run and debug the Medical Imaging Server for DICOM right from Visual Studio with all of the necessary dependencies. Simply open up the solution file *Microsoft.Health.Dicom.sln* in Visual Studio 2019 (or later) and run the "docker-compose" project. This should build each of the images and run the containers locally without any additional action.
 
-Once it's ready, a web page should open automatically for the URL `https://localhost:63839` where you can communicate with the Medical Imaging Server for DICOM.
+Once it's ready, a web page should open automatically for the URL `https://localhost:8080` where you can communicate with the Medical Imaging Server for DICOM.
 
 ## Docker Compose
 
 ### Prerequisites
 
-To deploy the Medical Imaging Server for DICOM using Docker Compose, you have to have a local version of the OSS repository along with the submodules. To clone the repository via the command line with the submodles, run the following command:
+To deploy the Medical Imaging Server for DICOM using Docker Compose, you have to have a local version of the OSS repository along with the submodules. To clone the repository via the command line with the submodules, run the following command:
 
 ```bash
 git clone --recurse-submodules https://github.com/microsoft/dicom-server.git
