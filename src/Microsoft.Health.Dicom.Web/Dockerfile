@@ -22,7 +22,8 @@ RUN dotnet build "Microsoft.Health.Dicom.Web.csproj" -c $BUILD_CONFIGURATION
 
 # Publish the DICOM Server from the build
 FROM build as publish
-RUN dotnet publish "Microsoft.Health.Dicom.Web.csproj" -c "$BUILD_CONFIGURATION" --no-build -o /app/publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "Microsoft.Health.Dicom.Web.csproj" -c $BUILD_CONFIGURATION --no-build -o /app/publish
 
 # Copy the published application
 FROM runtime AS dicom-server
