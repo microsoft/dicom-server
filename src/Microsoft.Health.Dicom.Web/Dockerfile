@@ -18,7 +18,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /dicom-server
 COPY . .
 WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Web
-RUN dotnet build "Microsoft.Health.Dicom.Web.csproj" -c $BUILD_CONFIGURATION
+RUN dotnet build "Microsoft.Health.Dicom.Web.csproj" -c $BUILD_CONFIGURATION -warnaserror
 
 # Publish the DICOM Server from the build
 FROM build as publish
