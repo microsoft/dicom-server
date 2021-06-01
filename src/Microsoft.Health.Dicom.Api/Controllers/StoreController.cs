@@ -51,7 +51,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Store)]
         public async Task<IActionResult> PostAsync(string studyInstanceUid = null)
         {
-            _logger.LogInformation("DICOM Web Store Transaction request received, with study instance UID {studyInstanceUid}.", studyInstanceUid);
+            long fileSize = Request.ContentLength ?? 0;
+            _logger.LogInformation("DICOM Web Store Transaction request received, with study instance UID {studyInstanceUid} and file size of {fileSize} bytes", studyInstanceUid, fileSize);
 
             StoreResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
                 Request.Body,
