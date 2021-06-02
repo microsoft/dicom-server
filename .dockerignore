@@ -1,8 +1,6 @@
 **/.classpath
 **/.dockerignore
 **/.env
-**/.git
-**/.gitignore
 **/.project
 **/.settings
 **/.toolstarget
@@ -21,5 +19,10 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/build
+**/docs
+**/samples
+test
+tools
+*.md
 LICENSE
-README.md
