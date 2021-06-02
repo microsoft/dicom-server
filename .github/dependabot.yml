@@ -27,7 +27,15 @@ updates:
     open-pull-requests-limit: 30
 
   - package-ecosystem: "docker"
-    directory: "/build/docker"
+    directory: "/docker"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 30
+
+  - package-ecosystem: "docker"
+    directory: "/src/Microsoft.Health.Dicom.Web"
     schedule:
       interval: "daily"
       time: "09:00"

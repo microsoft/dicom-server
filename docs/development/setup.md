@@ -53,7 +53,7 @@ Postman only supports uploading DICOM files using the single part payload define
    - Content-Type: `application/dicom`
 - Click `Send`, a successful post will result in a 200 OK
 
-![Postman headers](/docs/images/postman-singlepart-headers.png)
+![Postman headers](/docs/images/postman-singlepart-headers.PNG)
 
 ## Postman for Get
 - Example QIDO to get all studies

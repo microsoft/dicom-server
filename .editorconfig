@@ -12,9 +12,6 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
-[project.json]
-indent_size = 2
-
 # Generated code
 [*{_AssemblyInfo.cs,.notsupported.cs,.Generated.cs}]
 generated_code = true
@@ -224,10 +221,10 @@ curly_bracket_next_line = true
 indent_brace_style = Allman
 
 # Xml project files
-[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
+[*.{csproj,dcproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
 indent_size = 2
 
-[*.{csproj,vbproj,proj,nativeproj,locproj}]
+[*.{csproj,dcproj,vbproj,proj,nativeproj,locproj}]
 charset = utf-8
 
 # Xml build files
@@ -240,6 +237,10 @@ indent_size = 2
 
 # Xml config files
 [*.{props,targets,config,nuspec}]
+indent_size = 2
+
+# JSON files
+[*.json]
 indent_size = 2
 
 # YAML files

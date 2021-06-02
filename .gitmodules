@@ -1,3 +1,0 @@
-[submodule "samples/Azurite"]
-	path = samples/Azurite
-	url = https://github.com/Azure/Azurite.git

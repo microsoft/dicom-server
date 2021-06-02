@@ -9,7 +9,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>2.1.15</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>2.1.25</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <LangVersion>Latest</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -23,7 +23,7 @@
   <Choose>
     <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
       <PropertyGroup>
-        <SdkPackageVersion>3.1.14</SdkPackageVersion>
+        <SdkPackageVersion>3.1.15</SdkPackageVersion>
       </PropertyGroup>
     </When>
     <Otherwise>
@@ -48,7 +48,9 @@
     </Otherwise>
   </Choose>
 
-  <ItemGroup>
+  <!-- Dotnet CLI throws errors on restore if package references are included in docker compose projects -->
+  <!-- See microsoft/DockerTools#209 for details -->
+  <ItemGroup Condition="'$(MSBuildProjectExtension)' != '.dcproj'">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 

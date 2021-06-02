@@ -12,4 +12,3 @@ steps:
     configFilePath: 'GitVersion.yml'
     targetPath: '$(Build.SourcesDirectory)'
     useConfigFile: true
-
