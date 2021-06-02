@@ -14,6 +14,13 @@ services:
       - "63839:8080"
     volumes:
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+  functions:
+    image: ${DOCKER_REGISTRY-}microsofthealthdicomfunctions
+    environment:
+      # This is typically set by Visual Studio automatically
+      WEBSITE_HOSTNAME: "localhost:80"
+    ports:
+      - "7072:80"
   sql:
     environment:
       # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Password is only used for development.")]
