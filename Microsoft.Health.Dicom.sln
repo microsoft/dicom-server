@@ -11,13 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		global.json = global.json
 	EndProjectSection
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker\docker-compose.dcproj", "{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Web", "src\Microsoft.Health.Dicom.Web\Microsoft.Health.Dicom.Web.csproj", "{BFB96311-9B1A-41C1-ABF1-4F6522660084}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8C9A0050-5D22-4398-9F93-DDCD80B3BA51}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Web.Tests.E2E", "test\Microsoft.Health.Dicom.Web.Tests.E2E\Microsoft.Health.Dicom.Web.Tests.E2E.csproj", "{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{176641B3-297C-4E04-A83D-8F80F80485E8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Blob", "src\Microsoft.Health.Dicom.Blob\Microsoft.Health.Dicom.Blob.csproj", "{1FFFABFB-B30A-4AB8-8193-67016B1C5276}"
 EndProject
@@ -40,6 +38,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer.UnitTests", "src\Microsoft.Health.Dicom.SqlServer.UnitTests\Microsoft.Health.Dicom.SqlServer.UnitTests.csproj", "{ECC018C1-BFA8-44BE-B560-ACB05CA57251}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{D100EA60-8DC8-4576-A177-56BC7193BF4A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{176641B3-297C-4E04-A83D-8F80F80485E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8C9A0050-5D22-4398-9F93-DDCD80B3BA51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +101,10 @@ Global
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -119,7 +125,7 @@ Global
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 		RESX_SortFileContentOnSave = True
+		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 	EndGlobalSection
 EndGlobal

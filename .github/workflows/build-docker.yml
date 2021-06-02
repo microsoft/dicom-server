@@ -2,7 +2,7 @@ name: build-docker-files
 
 on:
   push:
-    branches: 
+    branches:
     - main
   pull_request:
     branches:
@@ -13,19 +13,15 @@ jobs:
     # create a quick build to get sane output and error messages
     runs-on: ubuntu-latest
     steps:
-    - 
+    - name: Checkout repository
       uses: actions/checkout@v2.3.4
-      with:
-        submodules: true
-    -
-      # sample contains all the docker files
-      name: Build all docker files
+
+    - name: Build all docker files
       run: |
         docker-compose build
       working-directory: samples/docker
-    - 
-      name: test-docker
+
+    - name: Test Docker Sample
       run: .github/workflows/test-docker.ps1
       shell: pwsh
       timeout-minutes: 6
-    

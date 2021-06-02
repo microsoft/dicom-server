@@ -45,9 +45,9 @@ jobs:
     # Build C# solutions manually
     - name: dotnet build
       run: |
-        dotnet build Microsoft.Health.Dicom.sln -c Release -p:ContinuousIntegrationBuild=true
-        dotnet build converter/dicom-cast/Microsoft.Health.DicomCast.sln -c Release -p:ContinuousIntegrationBuild=true
-        dotnet build tools/scale-testing/ScaleTesting.sln -c Release -p:ContinuousIntegrationBuild=true
+        dotnet build Microsoft.Health.Dicom.sln -c Release -p:ContinuousIntegrationBuild=true -warnaserror
+        dotnet build converter/dicom-cast/Microsoft.Health.DicomCast.sln -c Release -p:ContinuousIntegrationBuild=true -warnaserror
+        dotnet build tools/scale-testing/ScaleTesting.sln -c Release -p:ContinuousIntegrationBuild=true -warnaserror
       if: ${{ matrix.language == 'csharp' }}
 
     - name: Perform CodeQL Analysis
