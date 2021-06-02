@@ -15,10 +15,11 @@ USER nonroot
 # Copy the DICOM Server project and build it
 FROM mcr.microsoft.com/dotnet/sdk:5.0.300-alpine3.12@sha256:cd03cb780dc61a1ef6e450a9e7025aa34c15a2c03e8a62a5dcfe7f490f7d2905 AS build
 ARG BUILD_CONFIGURATION=Release
+ARG CONTINUOUS_INTEGRATION_BUILD=false
 WORKDIR /dicom-server
 COPY . .
 WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Web
-RUN dotnet build "Microsoft.Health.Dicom.Web.csproj" -c $BUILD_CONFIGURATION -warnaserror
+RUN dotnet build "Microsoft.Health.Dicom.Web.csproj" -c $BUILD_CONFIGURATION -p:ContinuousIntegrationBuild=$CONTINUOUS_INTEGRATION_BUILD -warnaserror
 
 # Publish the DICOM Server from the build
 FROM build as publish

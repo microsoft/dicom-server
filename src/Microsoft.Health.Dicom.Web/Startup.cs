@@ -30,14 +30,12 @@ namespace Microsoft.Health.Dicom.Web
             });
             services.AddDevelopmentIdentityProvider<DataActions>(Configuration, "DicomServer");
 
+            // The execution of IHostedServices depends on the order they are added to the dependency injection container, so we
+            // need to ensure that the schema is initialized before the background workers are started.
             services.AddDicomServer(Configuration)
                 .AddBlobStorageDataStore(Configuration)
                 .AddMetadataStorageDataStore(Configuration)
                 .AddSqlServer(Configuration)
-                /*
-                    The execution of IHostedServices depends on the order they are added to the dependency injection container, so we
-                    need to ensure that the schema is initialized before the background workers are started.
-                */
                 .AddBackgroundWorkers();
 
             AddApplicationInsightsTelemetry(services);

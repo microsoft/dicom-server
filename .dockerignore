@@ -21,5 +21,15 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/build
+**/docs
+**/samples
+test
+tools
+*.md
 LICENSE
-README.md
+
+# SourceLink
+!.git/HEAD
+!.git/config
+!.git/refs/heads
