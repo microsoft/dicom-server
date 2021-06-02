@@ -21,7 +21,7 @@ services:
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     restart: always
-    # Uncomment if you want to expose azure storage explorer against localhost
+    # # Uncomment if you want to expose azure storage explorer against localhost
     # ports:
     #   - "10001:10001"
     #   - "10000:10000"
@@ -35,7 +35,7 @@ services:
     environment:
       SA_PASSWORD: ${SAPASSWORD}
       ACCEPT_EULA: "Y"
-    # Uncomment if you want to expose sql management studio against localhost
+    # # Uncomment if you want to expose sql management studio against localhost
     # ports:
     #   - "1433:1433"
     healthcheck:
