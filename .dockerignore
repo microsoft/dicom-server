@@ -1,6 +1,8 @@
 **/.classpath
 **/.dockerignore
 **/.env
+**/.git
+**/.gitignore
 **/.project
 **/.settings
 **/.toolstarget
@@ -26,3 +28,8 @@ test
 tools
 *.md
 LICENSE
+
+# SourceLink
+!.git/HEAD
+!.git/config
+!.git/refs/heads
