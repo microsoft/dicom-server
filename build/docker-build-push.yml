@@ -15,6 +15,7 @@ steps:
       dockerComposeFile: $(dicomServerComposeLocation)
       projectName: linux
       additionalImageTags: ${{parameters.tag}}
+      arguments: '--build-arg CONTINUOUS_INTEGRATION_BUILD=true'
 
   - task: DockerCompose@0
     displayName: 'Push Dicom Server Image'
@@ -35,7 +36,7 @@ steps:
       dockerComposeFile: $(dicomCastComposeLocation)
       projectName: linux
       additionalImageTags: ${{parameters.tag}}
-    
+
   - task: DockerCompose@0
     displayName: 'Push Dicom cast Server Image'
     inputs:

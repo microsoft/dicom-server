@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
             StudyKey = sqlDataReader.GetInt64(1);
             SeriesInstanceUid = sqlDataReader.GetString(2);
             Modality = sqlDataReader.GetString(3);
-            PerformedProcedureStepStartDate = sqlDataReader.IsDBNull(4) ? null : (DateTime?)sqlDataReader.GetDateTime(4);
+            PerformedProcedureStepStartDate = sqlDataReader.IsDBNull(4) ? null : sqlDataReader.GetDateTime(4);
         }
 
         public long SeriesKey { get; private set; }
