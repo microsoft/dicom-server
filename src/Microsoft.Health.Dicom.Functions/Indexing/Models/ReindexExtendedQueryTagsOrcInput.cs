@@ -6,18 +6,13 @@
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    /// Represents input to activity <see cref="ReindexOperation.UpdateEndWatermarkOfOperationAsync"/>.
+    ///  Represents input to <see cref="ReindexOperation.AddExtendedQueryTagsAsync"/>
     /// </summary>
-    public class UpdateEndWatermarkOfOperationInput
+    public class ReindexExtendedQueryTagsOrcInput
     {
         /// <summary>
-        /// Gets or sets the next watermark of the next instance to process.
+        /// Gets or sets the operation id
         /// </summary>
-        public long NextWatermark { get; set; }
-
-        ///// <summary>
-        ///// Gets or sets the operation id.
-        ///// </summary>
-        public string OperationId { get; set; }
+        public Microsoft.Health.Dicom.Core.Features.Indexing.ReindexOperation OperationEntry { get; set; }
     }
 }

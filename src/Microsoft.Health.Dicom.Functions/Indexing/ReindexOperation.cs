@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -27,13 +28,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexOperation
     {
         private readonly ReindexConfiguration _reindexConfig;
-        private readonly ITagReindexOperationStore _tagOperationStore;
+        private readonly ITagOperationStore _tagOperationStore;
         private readonly IInstanceReindexer _instanceReindexer;
         private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
 
         public ReindexOperation(IOptions<IndexingConfiguration> configOptions,
             IAddExtendedQueryTagService addExtendedQueryTagService,
-            ITagReindexOperationStore tagOperationStore,
+            ITagOperationStore tagOperationStore,
             IInstanceReindexer instanceReindexer)
         {
             EnsureArg.IsNotNull(configOptions, nameof(configOptions));
@@ -60,8 +61,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
             var input = context.GetInput<IEnumerable<AddExtendedQueryTagEntry>>();
-            await context.CallActivityAsync(nameof(AddExtendedQueryTagsAsync), new AddExtendedQueryTagsInput() { ExtendedQueryTagEntries = input, OperationId = context.InstanceId });
-            await context.CallSubOrchestratorAsync(nameof(ReindexExtendedQueryTagsOrcAsync), context.InstanceId);
+            Core.Features.Indexing.ReindexOperation operationEntry = await context.CallActivityAsync<Core.Features.Indexing.ReindexOperation>(nameof(AddExtendedQueryTagsAsync), new AddExtendedQueryTagsInput() { ExtendedQueryTagEntries = input, OperationId = context.InstanceId });
+            await context.CallSubOrchestratorAsync(nameof(ReindexExtendedQueryTagsOrcAsync), input: operationEntry);
         }
 
         /// <summary>
@@ -77,38 +78,53 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         {
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
-            // TODO: should start a new orchestraion instead of while loop
-            while (true)
+            Core.Features.Indexing.ReindexOperation operationEntry = context.GetInput<Core.Features.Indexing.ReindexOperation>();
+
+            IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetExtendedQueryTagsOfOperationAsync), context.InstanceId);
+
+            if (queryTags.Count == 0)
             {
-                IReadOnlyList<long> watermarks = await context
-                    .CallActivityAsync<IReadOnlyList<long>>(nameof(GetNextWatermarksOfOperationAsync), context.InstanceId);
-                if (watermarks.Count == 0)
-                {
-                    break;
-                }
-
-                IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context
-                    .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetExtendedQueryTagsOfOperationAsync), context.InstanceId);
-
-                if (queryTags.Count == 0)
-                {
-                    break;
-                }
-
-                // Reindex
-                // TODO: process them parallel
-                foreach (long watermark in watermarks)
-                {
-                    await context
-                        .CallActivityAsync(nameof(ReindexInstanceAsync), new ReindexInstanceInput() { TagEntries = queryTags, Watermarks = new long[] { watermark } });
-                }
-
-                await context.CallActivityAsync(nameof(UpdateEndWatermarkOfOperationAsync),
-                    new UpdateEndWatermarkOfOperationInput { NextWatermark = watermarks.Min() - 1, OperationId = context.InstanceId });
-
+                return;
             }
 
-            await context.CallActivityAsync(nameof(CompleteOperationAsync), context.InstanceId);
+            // Reindex
+            // pickup next section and send task to activity
+            long start = operationEntry.StartWatermark;
+            long end = operationEntry.EndWatermark;
+            var batches = new List<Task>();
+            for (int parallel = 0; parallel < _reindexConfig.MaxParallelBatches; parallel++)
+            {
+
+                long childStart = end - _reindexConfig.BatchSize;
+                childStart = Math.Max(childStart, start);
+                if (childStart <= end)
+                {
+                    ReindexInstanceInput reindexInstanceInput = new ReindexInstanceInput() { TagEntries = queryTags, StartWatermark = childStart, EndWatermark = end };
+                    batches.Add(context.CallActivityAsync(nameof(ReindexInstanceAsync), reindexInstanceInput));
+                    end = childStart - 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            await Task.WhenAll(batches);
+
+            await context.CallActivityAsync(nameof(UpdateOperationProgress),
+                new UpdateOperationProgressInput { EndWatermark = end, OperationId = context.InstanceId });
+
+            if (start <= end)
+            {
+                var newInput = new Core.Features.Indexing.ReindexOperation() { StartWatermark = start, EndWatermark = end, OperationId = operationEntry.OperationId };
+                context.StartNewOrchestration(nameof(ReindexExtendedQueryTagsOrcAsync), input: newInput);
+            }
+            else
+            {
+                await context.CallActivityAsync(nameof(CompleteOperationAsync), context.InstanceId);
+            }
+
             logger.LogInformation("Completed to run orchestrator on {operationId}", context.InstanceId);
         }
 

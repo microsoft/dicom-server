@@ -3,12 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Features.Indexing;
-
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
-    public class AddExtendedQueryTagResponse
+    /// <summary>
+    /// External representation of a extended query tag entry for add.
+    /// </summary>
+    public class ReindexOperation : Operation
     {
-        public ReindexOperation Operation { get; set; }
+        public long StartWatermark { get; set; }
+
+        public long EndWatermark { get; set; }
     }
 }

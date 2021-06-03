@@ -60,12 +60,12 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="log">The log.</param>
         /// <returns>The store entries.</returns>
         [FunctionName(nameof(AddExtendedQueryTagsAsync))]
-        public Task AddExtendedQueryTagsAsync([ActivityTrigger] AddExtendedQueryTagsInput input, ILogger log)
+        public async Task<Core.Features.Indexing.ReindexOperation> AddExtendedQueryTagsAsync([ActivityTrigger] AddExtendedQueryTagsInput input, ILogger log)
         {
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(log, nameof(log));
-            log.LogInformation("Adding extended query tags  wiht inpu {input}", input);
-            return _addExtendedQueryTagService.AddExtendedQueryTagAsync(input.ExtendedQueryTagEntries, input.OperationId);
+            log.LogInformation("Adding extended query tags with input {input}", input);
+            return (await _addExtendedQueryTagService.AddExtendedQueryTagAsync(input.ExtendedQueryTagEntries, input.OperationId)).Operation;
         }
 
         /// <summary>
@@ -86,33 +86,19 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         }
 
         /// <summary>
-        /// The activity to get next watermarks of an operation.
-        /// </summary>
-        /// <param name="operationId">The operation id.</param>
-        /// <param name="log">The logger.</param>
-        /// <returns>Next watermarks.</returns>
-        [FunctionName(nameof(GetNextWatermarksOfOperationAsync))]
-        public Task<IReadOnlyList<long>> GetNextWatermarksOfOperationAsync([ActivityTrigger] string operationId, ILogger log)
-        {
-            EnsureArg.IsNotNull(log, nameof(log));
-            log.LogInformation("Getting next watermarks of operation {operationId}", operationId);
-            return _tagOperationStore.GetNextWatermarksOfOperationAsync(operationId, _reindexConfig.BatchSize * _reindexConfig.MaxParallelBatches);
-        }
-
-        /// <summary>
         ///  The activity to update end watermark of an operation.
         /// </summary>
         /// <param name="input">The input.</param>
         /// <param name="log">The log</param>
         /// <returns>The task.</returns>
-        [FunctionName(nameof(UpdateEndWatermarkOfOperationAsync))]
-        public Task UpdateEndWatermarkOfOperationAsync([ActivityTrigger] UpdateEndWatermarkOfOperationInput input, ILogger log)
+        [FunctionName(nameof(UpdateOperationProgress))]
+        public Task UpdateOperationProgress([ActivityTrigger] UpdateOperationProgressInput input, ILogger log)
         {
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(log, nameof(log));
 
             log.LogInformation($"Updating end watermark of operation: {input.OperationId}"); ;
-            return _tagOperationStore.UpdateEndWatermarkOfOperationAsync(input.OperationId, input.NextWatermark);
+            return _tagOperationStore.UpdateEndWatermarkOfOperationAsync(input.OperationId, input.EndWatermark);
         }
 
         /// <summary>
@@ -127,18 +113,16 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            logger.LogInformation("Reindexing with {input}", ConvertToStringForLogging(input));
-            foreach (var watermark in input.Watermarks)
+            var watermarks = await _tagOperationStore.GetWatermarksAsync(input.StartWatermark, input.EndWatermark);
+
+            logger.LogInformation("Reindexing with {input}", input);
+            var tasks = new List<Task>();
+            foreach (var watermark in watermarks)
             {
-                await _instanceReindexer.ReindexInstanceAsync(input.TagEntries, watermark);
+                tasks.Add(_instanceReindexer.ReindexInstanceAsync(input.TagEntries, watermark));
             }
-        }
 
-        private static string ConvertToStringForLogging(ReindexInstanceInput input)
-        {
-            string tagEntriesText = string.Concat(",", input.TagEntries.Select(x => x.ToString()));
-            return $"Watermark - { input.Watermarks}, TagEntries - {tagEntriesText}";
+            await Task.WhenAll(tasks);
         }
-
     }
 }

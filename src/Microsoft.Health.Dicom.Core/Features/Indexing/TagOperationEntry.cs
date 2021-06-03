@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     /// <summary>
     /// Entry of TagReindexOperationStore.
     /// </summary>
-    public class TagReindexOperationEntry
+    public class TagOperationEntry
     {
         /// <summary>
         /// The tag key.
@@ -20,12 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <summary>
         /// The operation id.
         /// </summary>
-        public string OperationId { get; set; }
-
-        /// <summary>
-        /// The end wartermark.
-        /// </summary>
-        public long EndWatermark { get; set; }
+        public Operation Operation { get; set; }
 
         /// <summary>
         /// The tag status on operation.

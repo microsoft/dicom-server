@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     /// <summary>
     /// Store that records relationship between extended query tag and reindex operation.
     /// </summary>
-    public interface ITagReindexOperationStore
+    public interface ITagOperationStore
     {
         /// <summary>
         /// Get entires of operations.
@@ -21,18 +21,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <param name="operationId">The operation id.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The entries.</returns>
-        Task<IReadOnlyList<TagReindexOperationEntry>> GetEntriesOfOperationAsync(
+        Task<IReadOnlyList<TagOperationEntry>> GetEntriesOfOperationAsync(
             string operationId,
             CancellationToken cancellationToken = default);
-
-        /// <summary>
-        ///  Get next watermarks for operation.
-        /// </summary>
-        /// <param name="operationId">The operation id.</param>
-        /// <param name="count">The count of watermarks</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Watermark list.</returns>
-        Task<IReadOnlyList<long>> GetNextWatermarksOfOperationAsync(string operationId, int count, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Update endwatermark of opeation.
@@ -42,6 +33,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The task.</returns>
         Task UpdateEndWatermarkOfOperationAsync(string operationId, long endWatermark, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<long>> GetWatermarksAsync(long startWatermark, long endWatermark, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Complete operation.
