@@ -1,3 +1,12 @@
+
+/*************************************************************
+Wrapping up in a transaction except CREATE FULLTEXT INDEX which is non-transactional script. Since there are no slow scripts(all the statements i.e. CREATE TABLE/INDEX/STORED PROC and ALTER STORED PROC are faster) so keeping all in one transaction.
+Guidelines to create migration scripts - https://github.com/microsoft/healthcare-shared-components/tree/master/src/Microsoft.Health.SqlServer/SqlSchemaScriptsGuidelines.md
+**************************************************************/
+SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+
 /*************************************************************
     Extended Query Tag Table
     Stores added extended query tags
@@ -255,17 +264,6 @@ BEGIN
         WatermarkAndTagKey
     )
 END
-
-IF NOT EXISTS (
-    SELECT * 
-	FROM sys.fulltext_indexes 
-	where object_id = object_id('dbo.ExtendedQueryTagPersonName'))
-BEGIN
-    CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
-    KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
-    WITH STOPLIST = OFF;
-END
-GO
 
 /*************************************************************
     The user defined type for AddExtendedQueryTagsInput
@@ -991,4 +989,18 @@ AS
     SELECT @newWatermark
 
     COMMIT TRANSACTION
+GO
+
+COMMIT TRANSACTION
+GO
+
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.fulltext_indexes 
+	where object_id = object_id('dbo.ExtendedQueryTagPersonName'))
+BEGIN
+    CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
+    KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
+    WITH STOPLIST = OFF;
+END
 GO
