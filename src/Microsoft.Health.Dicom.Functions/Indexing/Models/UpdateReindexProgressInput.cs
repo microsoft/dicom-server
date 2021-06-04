@@ -3,26 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.Indexing
+namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    /// The reindex status.
+    /// Represents input to activity <see cref="ReindexDurableFunction.UpdateReindexProgressAsync"/>.
     /// </summary>
-    public enum ReindexStatus
+    public class UpdateReindexProgressInput
     {
         /// <summary>
-        /// Reindex is ongoing.
+        /// Gets or sets the end watermark of operation.
         /// </summary>
-        Processing = 0,
+        public long EndWatermark { get; set; }
 
-        /// <summary>
-        /// Reindex is paused.
-        /// </summary>
-        Paused = 1,
-
-        /// <summary>
-        /// Reindex is completed.
-        /// </summary>
-        Completed = 2,
+        ///// <summary>
+        ///// Gets or sets the operation id.
+        ///// </summary>
+        public string OperationId { get; set; }
     }
 }

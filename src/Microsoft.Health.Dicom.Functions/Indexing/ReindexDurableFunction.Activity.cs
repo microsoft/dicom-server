@@ -17,10 +17,6 @@ using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
 {
-    /// <summary>
-    /// Represents the Azure Durable Functions that perform the re-indexing of previously added DICOM instances
-    /// based on new tags configured by the user.
-    /// </summary>
     public partial class ReindexDurableFunction
     {
         /// <summary>
@@ -29,8 +25,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="operationId">The operation id.</param>
         /// <param name="log">The log.</param>
         /// <returns>The task.</returns>
-        [FunctionName(nameof(CompleteReindexActivityAsync))]
-        public Task CompleteReindexActivityAsync([ActivityTrigger] string operationId, ILogger log)
+        [FunctionName(nameof(CompleteReindexingTagsAsync))]
+        public Task CompleteReindexingTagsAsync([ActivityTrigger] string operationId, ILogger log)
         {
             EnsureArg.IsNotNull(log, nameof(log));
 
@@ -44,8 +40,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="input">The input.</param>
         /// <param name="log">The log.</param>
         /// <returns>The store entries.</returns>
-        [FunctionName(nameof(AddExtendedQueryTagsActivityAsync))]
-        public async Task<IEnumerable<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsActivityAsync([ActivityTrigger] IEnumerable<AddExtendedQueryTagEntry> input, ILogger log)
+        [FunctionName(nameof(AddTagsAsync))]
+        public async Task<IEnumerable<ExtendedQueryTagStoreEntry>> AddTagsAsync([ActivityTrigger] IEnumerable<AddExtendedQueryTagEntry> input, ILogger log)
         {
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(log, nameof(log));
@@ -62,13 +58,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="input">The input.</param>
         /// <param name="log">The log.</param>
         /// <returns>The reindex operation.</returns>
-        [FunctionName(nameof(StartReindexActivityAsync))]
-        public async Task<ReindexOperation> StartReindexActivityAsync([ActivityTrigger] StartReindexActivityInput input, ILogger log)
+        [FunctionName(nameof(PrepareReindexingTagsAsync))]
+        public async Task<ReindexOperation> PrepareReindexingTagsAsync([ActivityTrigger] PrepareReindexingTagsInput input, ILogger log)
         {
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(log, nameof(log));
             log.LogInformation("Start reindex with {input}", input);
-            return await _reindexStore.StartReindexAsync(input.TagKeys, input.OperationId);
+            return await _reindexStore.PrepareReindexingAsync(input.TagKeys, input.OperationId);
         }
 
         /// <summary>
@@ -77,15 +73,18 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="operationId">The operation id.</param>
         /// <param name="log">The log.</param>
         /// <returns>Extended query tag store entries.</returns>
-        [FunctionName(nameof(GetProcessingQueryTagsActivityAsync))]
-        public async Task<IEnumerable<ExtendedQueryTagStoreEntry>> GetProcessingQueryTagsActivityAsync([ActivityTrigger] string operationId, ILogger log)
+        [FunctionName(nameof(GetProcessingTagsAsync))]
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetProcessingTagsAsync([ActivityTrigger] string operationId, ILogger log)
         {
             EnsureArg.IsNotNull(log, nameof(log));
 
             log.LogInformation("Getting query tags which is being processed by operation {operationId}", operationId);
             var entries = await _reindexStore.GetReindexEntriesAsync(operationId);
             // only process tags which is on Processing
-            var tagKeys = entries.Where(x => x.Status == ReindexStatus.Processing).Select(y => y.TagKey);
+            var tagKeys = entries
+                .Where(x => x.Status == IndexStatus.Processing)
+                .Select(y => y.TagKey)
+                .ToList();
             return await _extendedQueryTagStore.GetExtendedQueryTagsByKeyAsync(tagKeys);
         }
 
@@ -95,8 +94,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="input">The input.</param>
         /// <param name="log">The log</param>
         /// <returns>The task.</returns>
-        [FunctionName(nameof(UpdateReindexProgressActivityAsync))]
-        public Task UpdateReindexProgressActivityAsync([ActivityTrigger] UpdateReindexProgressActivityInput input, ILogger log)
+        [FunctionName(nameof(UpdateReindexProgressAsync))]
+        public Task UpdateReindexProgressAsync([ActivityTrigger] UpdateReindexProgressInput input, ILogger log)
         {
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(log, nameof(log));
@@ -106,20 +105,20 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         }
 
         /// <summary>
-        /// The activity to reindex  Dicom instance.
+        /// The activity to reindex  Dicom instances.
         /// </summary>
         /// <param name="input">The input</param>
         /// <param name="logger">The log.</param>
         /// <returns>The task</returns>
-        [FunctionName(nameof(ReindexInstanceActivityAsync))]
-        public async Task ReindexInstanceActivityAsync([ActivityTrigger] ReindexInstanceActivityInput input, ILogger logger)
+        [FunctionName(nameof(ReindexInstancesAsync))]
+        public async Task ReindexInstancesAsync([ActivityTrigger] ReindexInstanceInput input, ILogger logger)
         {
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            logger.LogInformation("Reindex instance with with {input}", input);
+            logger.LogInformation("Reindex instances with {input}", input);
 
-            var instanceIdentifiers = await _instanceStore.GetInstanceIdentifierAsync(input.StartWatermark, input.EndWatermark);
+            var instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersAsync(input.StartWatermark, input.EndWatermark);
 
             var tasks = new List<Task>();
             foreach (var instanceIdentifier in instanceIdentifiers)

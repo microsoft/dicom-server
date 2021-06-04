@@ -32,7 +32,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         private readonly IInstanceStore _instanceStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
 
-        public ReindexDurableFunction(IOptions<IndexingConfiguration> configOptions,
+        public ReindexDurableFunction(
+            IOptions<IndexingConfiguration> configOptions,
             IAddExtendedQueryTagService addExtendedQueryTagService,
             IReindexStore reindexStore,
             IInstanceStore instanceStore,
@@ -60,8 +61,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="client">The client.</param>
         /// <param name="logger">The logger.</param>
         /// <returns>The task.</returns>
-        [FunctionName(nameof(StartAddingExtendedQueryTagHttpTriggerAsync))]
-        public async Task StartAddingExtendedQueryTagHttpTriggerAsync(
+        [FunctionName(nameof(StartAddingTagsAsync))]
+        public async Task<HttpResponseMessage> StartAddingTagsAsync(
             [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "extendedquerytags")] HttpRequestMessage request,
             [DurableClient] IDurableOrchestrationClient client,
             ILogger logger)
@@ -69,9 +70,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(request, nameof(request));
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(logger, nameof(logger));
-            var extendedQueryTags = await request.Content.ReadAsAsync<IEnumerable<AddExtendedQueryTagEntry>>();
+            var extendedQueryTags = await request.Content.ReadAsAsync<List<AddExtendedQueryTagEntry>>();
             logger.LogInformation("Start adding extended query tags {input}", extendedQueryTags);
-            await client.StartNewAsync(nameof(AddExtendedQueryTagsOrchestrationAsync), instanceId: null, extendedQueryTags);
+            string instanceId = await client.StartNewAsync(nameof(AddAndReindexTagsAsync), instanceId: null, extendedQueryTags);
+            logger.LogInformation("Started new orchestration with instanceId {instancId}", instanceId);
+
+            // TODO: these code need to be updated based on contract to client.
+            return new HttpResponseMessage() { Content = new StringContent(instanceId) };
         }
 
     }

@@ -3,24 +3,26 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-
-namespace Microsoft.Health.Dicom.Functions.Indexing.Models
+namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
     /// <summary>
-    ///  Represents input to <see cref="ReindexDurableFunction.StartReindexActivityAsync"/>
+    /// The index status.
     /// </summary>
-    public class StartReindexActivityInput
+    public enum IndexStatus
     {
         /// <summary>
-        /// Gets or sets the operation id
+        /// index is ongoing.
         /// </summary>
-        public string OperationId { get; set; }
+        Processing = 0,
 
         /// <summary>
-        /// Gets or sets the tag keys
+        /// Index is paused.
         /// </summary>
-        public IEnumerable<int> TagKeys { get; set; }
+        Paused = 1,
 
+        /// <summary>
+        /// Reindex is completed.
+        /// </summary>
+        Completed = 2,
     }
 }

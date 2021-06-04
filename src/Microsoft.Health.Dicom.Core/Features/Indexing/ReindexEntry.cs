@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <summary>
         /// The reindex status.
         /// </summary>
-        public ReindexStatus Status { get; set; }
+        public IndexStatus Status { get; set; }
 
         /// <summary>
         /// The start watermark.

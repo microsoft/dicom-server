@@ -9,9 +9,9 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    ///  Represents input to <see cref="ReindexDurableFunction.ReindexInstanceActivityAsync"/>
+    ///  Represents input to <see cref="ReindexDurableFunction.ReindexInstancesAsync"/>
     /// </summary>
-    public class ReindexInstanceActivityInput
+    public class ReindexInstanceInput
     {
         /// <summary>
         /// Gets or sets the inclusive start watermark.
@@ -26,6 +26,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
         /// <summary>
         /// Gets or sets the tag entires.
         /// </summary>
-        public IEnumerable<ExtendedQueryTagStoreEntry> TagStoreEntries { get; set; }
+        public IReadOnlyList<ExtendedQueryTagStoreEntry> TagStoreEntries { get; set; }
     }
 }

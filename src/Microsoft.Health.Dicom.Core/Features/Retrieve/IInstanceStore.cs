@@ -28,13 +28,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets idenfiers of instances amoung startWatermark and endWatermark.
+        /// Gets idenfiers of instances within the given range of watermarks.
         /// </summary>
         /// <param name="startWatermark">The inclusive start watermark</param>
         /// <param name="endWatermark">The inclusive end watermark</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>The instanceidentifiers</returns>
-        Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(long startWatermark, long endWatermark, CancellationToken cancellationToken = default);
+        Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersAsync(long startWatermark, long endWatermark, CancellationToken cancellationToken = default);
 
     }
 }

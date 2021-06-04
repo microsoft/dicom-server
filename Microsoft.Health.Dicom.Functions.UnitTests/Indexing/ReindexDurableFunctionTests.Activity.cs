@@ -31,12 +31,12 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             var expectedReturn = new[] { storeEntry1 };
 
             string operationId = Guid.NewGuid().ToString();
-            ReindexEntry entry1 = new ReindexEntry() { StartWatermark = 0, EndWatermark = 1, OperationId = operationId, Status = ReindexStatus.Processing, TagKey = 1 };
-            ReindexEntry entry2 = new ReindexEntry() { StartWatermark = 0, EndWatermark = 1, OperationId = operationId, Status = ReindexStatus.Completed, TagKey = 2 };
-            ReindexEntry entry3 = new ReindexEntry() { StartWatermark = 0, EndWatermark = 1, OperationId = operationId, Status = ReindexStatus.Paused, TagKey = 3 };
+            ReindexEntry entry1 = new ReindexEntry() { StartWatermark = 0, EndWatermark = 1, OperationId = operationId, Status = IndexStatus.Processing, TagKey = 1 };
+            ReindexEntry entry2 = new ReindexEntry() { StartWatermark = 0, EndWatermark = 1, OperationId = operationId, Status = IndexStatus.Completed, TagKey = 2 };
+            ReindexEntry entry3 = new ReindexEntry() { StartWatermark = 0, EndWatermark = 1, OperationId = operationId, Status = IndexStatus.Paused, TagKey = 3 };
             _reindexStore.GetReindexEntriesAsync(operationId, Arg.Any<CancellationToken>()).Returns(new[] { entry1, entry2, entry3 });
-            _extendedQueryTagStore.GetExtendedQueryTagsByKeyAsync(Arg.Is<IEnumerable<int>>(x => x.SequenceEqual(new int[] { 1 })), Arg.Any<CancellationToken>()).Returns(expectedReturn);
-            var result = await _reindexDurableFunction.GetProcessingQueryTagsActivityAsync(operationId, NullLogger.Instance);
+            _extendedQueryTagStore.GetExtendedQueryTagsByKeyAsync(Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(new int[] { 1 })), Arg.Any<CancellationToken>()).Returns(expectedReturn);
+            var result = await _reindexDurableFunction.GetProcessingTagsAsync(operationId, NullLogger.Instance);
             Assert.Equal(result, expectedReturn);
         }
 
@@ -45,17 +45,17 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             ExtendedQueryTagStoreEntry storeEntry = tag.BuildExtendedQueryTagStoreEntry(key: 1);
-            IEnumerable<ExtendedQueryTagStoreEntry> tagsEntries = new[] { storeEntry };
+            IReadOnlyList<ExtendedQueryTagStoreEntry> tagsEntries = new[] { storeEntry };
 
-            ReindexInstanceActivityInput input = new ReindexInstanceActivityInput() { TagStoreEntries = tagsEntries, StartWatermark = 1, EndWatermark = 4 };
+            ReindexInstanceInput input = new ReindexInstanceInput() { TagStoreEntries = tagsEntries, StartWatermark = 1, EndWatermark = 4 };
             VersionedInstanceIdentifier[] identifiers = new VersionedInstanceIdentifier[]
             {
                 new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1),
                 new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 2),
                 new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 4),
             };
-            _instanceStore.GetInstanceIdentifierAsync(input.StartWatermark, input.EndWatermark, Arg.Any<CancellationToken>()).Returns(identifiers);
-            await _reindexDurableFunction.ReindexInstanceActivityAsync(input, NullLogger.Instance);
+            _instanceStore.GetInstanceIdentifiersAsync(input.StartWatermark, input.EndWatermark, Arg.Any<CancellationToken>()).Returns(identifiers);
+            await _reindexDurableFunction.ReindexInstancesAsync(input, NullLogger.Instance);
             foreach (var identifier in identifiers)
             {
                 await _instanceReindexer.Received().ReindexInstanceAsync(tagsEntries, identifier.Version, Arg.Any<CancellationToken>());

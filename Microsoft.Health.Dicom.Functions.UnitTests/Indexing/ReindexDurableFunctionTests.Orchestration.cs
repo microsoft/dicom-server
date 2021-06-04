@@ -30,20 +30,20 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<IEnumerable<AddExtendedQueryTagEntry>>().Returns(tagsEntries);
-            await _reindexDurableFunction.AddExtendedQueryTagsOrchestrationAsync(context, NullLogger.Instance);
+            await _reindexDurableFunction.AddAndReindexTagsAsync(context, NullLogger.Instance);
             await context.Received()
                  .CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(
-                 nameof(ReindexDurableFunction.AddExtendedQueryTagsActivityAsync),
+                 nameof(ReindexDurableFunction.AddTagsAsync),
                   tagsEntries);
 
             await context.Received()
                 .CallActivityAsync<ReindexOperation>(
-                nameof(ReindexDurableFunction.StartReindexActivityAsync),
-                 Arg.Any<StartReindexActivityInput>());
+                nameof(ReindexDurableFunction.PrepareReindexingTagsAsync),
+                 Arg.Any<PrepareReindexingTagsInput>());
 
             await context.Received()
                  .CallSubOrchestratorAsync(
-                nameof(ReindexDurableFunction.ReindexExtendedQueryTagsOrchestrationAsync),
+                nameof(ReindexDurableFunction.ReindexTagsAsync),
                 Arg.Any<ReindexOperation>());
         }
 
@@ -55,24 +55,24 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<IEnumerable<AddExtendedQueryTagEntry>>().Returns(tagsEntries);
             context.CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(
-                nameof(ReindexDurableFunction.AddExtendedQueryTagsActivityAsync),
+                nameof(ReindexDurableFunction.AddTagsAsync),
                  tagsEntries)
                 .Returns<IEnumerable<ExtendedQueryTagStoreEntry>>(x => { throw new FunctionFailedException(""); });
 
-            await Assert.ThrowsAsync<FunctionFailedException>(() => _reindexDurableFunction.AddExtendedQueryTagsOrchestrationAsync(context, NullLogger.Instance));
+            await Assert.ThrowsAsync<FunctionFailedException>(() => _reindexDurableFunction.AddAndReindexTagsAsync(context, NullLogger.Instance));
             await context.Received()
                  .CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(
-                 nameof(ReindexDurableFunction.AddExtendedQueryTagsActivityAsync),
+                 nameof(ReindexDurableFunction.AddTagsAsync),
                   tagsEntries);
 
             await context.DidNotReceive()
                 .CallActivityAsync<ReindexOperation>(
-                nameof(ReindexDurableFunction.StartReindexActivityAsync),
-                 Arg.Any<StartReindexActivityInput>());
+                nameof(ReindexDurableFunction.PrepareReindexingTagsAsync),
+                 Arg.Any<PrepareReindexingTagsInput>());
 
             await context.DidNotReceive()
                  .CallSubOrchestratorAsync(
-                nameof(ReindexDurableFunction.ReindexExtendedQueryTagsOrchestrationAsync),
+                nameof(ReindexDurableFunction.ReindexTagsAsync),
                 Arg.Any<ReindexOperation>());
         }
 
@@ -88,28 +88,28 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);
 
-            context.CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(nameof(ReindexDurableFunction.GetProcessingQueryTagsActivityAsync), reindexOperation.OperationId)
+            context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(ReindexDurableFunction.GetProcessingTagsAsync), reindexOperation.OperationId)
                 .Returns(storeEntires);
 
-            await _reindexDurableFunction.ReindexExtendedQueryTagsOrchestrationAsync(context, NullLogger.Instance);
+            await _reindexDurableFunction.ReindexTagsAsync(context, NullLogger.Instance);
 
             // Verify ReindexInstanceActivityAsync is called
             for (int i = 0; i < _reindexConfig.MaxParallelBatches; i++)
             {
                 await context.Received().
-                     CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstanceActivityAsync),
-                         Arg.Is<ReindexInstanceActivityInput>(x => x.StartWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i - 1
+                     CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstancesAsync),
+                         Arg.Is<ReindexInstanceInput>(x => x.StartWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i - 1
                          && x.EndWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i));
             }
 
             // Verify  UpdateReindexProgressActivityAsync is called
             await context.Received().
-                    CallActivityAsync(nameof(ReindexDurableFunction.UpdateReindexProgressActivityAsync),
-                    Arg.Is<UpdateReindexProgressActivityInput>(x => x.EndWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * _reindexConfig.MaxParallelBatches));
+                    CallActivityAsync(nameof(ReindexDurableFunction.UpdateReindexProgressAsync),
+                    Arg.Is<UpdateReindexProgressInput>(x => x.EndWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * _reindexConfig.MaxParallelBatches));
 
 
             // Verify  StartNewOrchestration
-            context.Received().StartNewOrchestration(nameof(ReindexDurableFunction.ReindexExtendedQueryTagsOrchestrationAsync),
+            context.Received().StartNewOrchestration(nameof(ReindexDurableFunction.ReindexTagsAsync),
                 Arg.Is<ReindexOperation>(
                     x => x.StartWatermark == reindexOperation.StartWatermark
                     && x.EndWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * _reindexConfig.MaxParallelBatches
@@ -127,32 +127,32 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);
 
-            context.CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(nameof(ReindexDurableFunction.GetProcessingQueryTagsActivityAsync), reindexOperation.OperationId)
+            context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(ReindexDurableFunction.GetProcessingTagsAsync), reindexOperation.OperationId)
                 .Returns(storeEntires);
 
-            await _reindexDurableFunction.ReindexExtendedQueryTagsOrchestrationAsync(context, NullLogger.Instance);
+            await _reindexDurableFunction.ReindexTagsAsync(context, NullLogger.Instance);
 
-            // Verify ReindexInstanceActivityAsync is called
+            // Verify ReindexInstancesAsync is called
             for (int i = 0; i < _reindexConfig.MaxParallelBatches; i++)
             {
                 await context.Received().
-                     CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstanceActivityAsync),
-                         Arg.Is<ReindexInstanceActivityInput>(x => x.StartWatermark == Math.Max(reindexOperation.StartWatermark, reindexOperation.EndWatermark - _reindexConfig.BatchSize * i - 1)
+                     CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstancesAsync),
+                         Arg.Is<ReindexInstanceInput>(x => x.StartWatermark == Math.Max(reindexOperation.StartWatermark, reindexOperation.EndWatermark - _reindexConfig.BatchSize * i - 1)
                          && x.EndWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i));
             }
 
-            // Verify  UpdateReindexProgressActivityAsync is called
+            // Verify  UpdateReindexProgressAsync is called
             await context.Received().
-                    CallActivityAsync(nameof(ReindexDurableFunction.UpdateReindexProgressActivityAsync),
-                    Arg.Is<UpdateReindexProgressActivityInput>(x =>
+                    CallActivityAsync(nameof(ReindexDurableFunction.UpdateReindexProgressAsync),
+                    Arg.Is<UpdateReindexProgressInput>(x =>
                     x.EndWatermark == Math.Max(reindexOperation.StartWatermark - 1, reindexOperation.EndWatermark - _reindexConfig.BatchSize * _reindexConfig.MaxParallelBatches)));
 
-            // Verify  CompleteReindexActivityAsync is called
+            // Verify  CompleteReindexAsync is called
             await context.Received().
-                    CallActivityAsync(nameof(ReindexDurableFunction.CompleteReindexActivityAsync), reindexOperation.OperationId);
+                    CallActivityAsync(nameof(ReindexDurableFunction.CompleteReindexingTagsAsync), reindexOperation.OperationId);
 
             // Verify StartNewOrchestration is not called
-            context.DidNotReceive().StartNewOrchestration(nameof(ReindexDurableFunction.ReindexExtendedQueryTagsOrchestrationAsync), Arg.Any<ReindexOperation>());
+            context.DidNotReceive().StartNewOrchestration(nameof(ReindexDurableFunction.ReindexTagsAsync), Arg.Any<ReindexOperation>());
         }
 
         [Fact]
@@ -165,17 +165,17 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);
-            context.CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(nameof(ReindexDurableFunction.GetProcessingQueryTagsActivityAsync), reindexOperation.OperationId)
+            context.CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(nameof(ReindexDurableFunction.GetProcessingTagsAsync), reindexOperation.OperationId)
                 .Returns(new ExtendedQueryTagStoreEntry[0]);
 
-            await _reindexDurableFunction.ReindexExtendedQueryTagsOrchestrationAsync(context, NullLogger.Instance);
+            await _reindexDurableFunction.ReindexTagsAsync(context, NullLogger.Instance);
 
             await context.Received().
-                  CallActivityAsync(nameof(ReindexDurableFunction.CompleteReindexActivityAsync), reindexOperation.OperationId);
+                  CallActivityAsync(nameof(ReindexDurableFunction.CompleteReindexingTagsAsync), reindexOperation.OperationId);
 
-            context.DidNotReceive().StartNewOrchestration(nameof(ReindexDurableFunction.ReindexExtendedQueryTagsOrchestrationAsync), Arg.Any<ReindexOperation>());
-            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstanceActivityAsync), Arg.Any<ReindexInstanceActivityInput>());
-            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.UpdateReindexProgressActivityAsync), Arg.Any<UpdateReindexProgressActivityInput>());
+            context.DidNotReceive().StartNewOrchestration(nameof(ReindexDurableFunction.ReindexTagsAsync), Arg.Any<ReindexOperation>());
+            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstancesAsync), Arg.Any<ReindexInstanceInput>());
+            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.UpdateReindexProgressAsync), Arg.Any<UpdateReindexProgressInput>());
 
         }
 
@@ -189,15 +189,15 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);
-            await _reindexDurableFunction.ReindexExtendedQueryTagsOrchestrationAsync(context, NullLogger.Instance);
+            await _reindexDurableFunction.ReindexTagsAsync(context, NullLogger.Instance);
 
             await context.Received().
-                  CallActivityAsync(nameof(ReindexDurableFunction.CompleteReindexActivityAsync), reindexOperation.OperationId);
+                  CallActivityAsync(nameof(ReindexDurableFunction.CompleteReindexingTagsAsync), reindexOperation.OperationId);
 
-            context.DidNotReceive().StartNewOrchestration(nameof(ReindexDurableFunction.ReindexExtendedQueryTagsOrchestrationAsync), Arg.Any<ReindexOperation>());
-            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.GetProcessingQueryTagsActivityAsync), Arg.Any<string>());
-            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstanceActivityAsync), Arg.Any<ReindexInstanceActivityInput>());
-            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.UpdateReindexProgressActivityAsync), Arg.Any<UpdateReindexProgressActivityInput>());
+            context.DidNotReceive().StartNewOrchestration(nameof(ReindexDurableFunction.ReindexTagsAsync), Arg.Any<ReindexOperation>());
+            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.GetProcessingTagsAsync), Arg.Any<string>());
+            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstancesAsync), Arg.Any<ReindexInstanceInput>());
+            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.UpdateReindexProgressAsync), Arg.Any<UpdateReindexProgressInput>());
         }
     }
 }

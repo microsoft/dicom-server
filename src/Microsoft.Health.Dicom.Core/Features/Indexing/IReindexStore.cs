@@ -46,6 +46,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <param name="operationId">The operation id.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The task.</returns>
-        Task<ReindexOperation> StartReindexAsync(IEnumerable<int> tagKeys, string operationId, CancellationToken cancellationToken = default);
+        Task<ReindexOperation> PrepareReindexingAsync(IEnumerable<int> tagKeys, string operationId, CancellationToken cancellationToken = default);
     }
 }
