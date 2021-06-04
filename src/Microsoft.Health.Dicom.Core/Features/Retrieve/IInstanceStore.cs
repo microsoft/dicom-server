@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets instances amoung startWatermark and endWatermark.
+        /// Gets idenfiers of instances amoung startWatermark and endWatermark.
         /// </summary>
         /// <param name="startWatermark">The inclusive start watermark</param>
         /// <param name="endWatermark">The inclusive end watermark</param>

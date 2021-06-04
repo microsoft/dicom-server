@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
     /// <summary>
-    /// Store that records relationship between extended query tag and reindex operation.
+    /// Store that records reindex status.
     /// </summary>
     public interface IReindexStore
     {
         /// <summary>
-        /// Get entires of operations.
+        /// Get entries of reindex.
         /// </summary>
         /// <param name="operationId">The operation id.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         Task<IReadOnlyList<ReindexEntry>> GetReindexEntriesAsync(string operationId, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Update endwatermark of opeation.
+        /// Update reindex progress.
         /// </summary>
         /// <param name="operationId">The operation id.</param>
         /// <param name="endWatermark">The end watermark.</param>
@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         Task UpdateReindexProgressAsync(string operationId, long endWatermark, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Complete operation.
+        /// Complete reindex.
         /// </summary>
         /// <param name="operationId">The operation id.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         Task CompleteReindexAsync(string operationId, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Complete operation.
+        /// Start reindex.
         /// </summary>
         /// <param name="tagKeys">Key to tags</param>
         /// <param name="operationId">The operation id.</param>

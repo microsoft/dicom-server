@@ -6,20 +6,23 @@
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
     /// <summary>
-    /// Tag status on operation .
+    /// The reindex status.
     /// </summary>
     public enum ReindexStatus
     {
         /// <summary>
-        /// The tag is being processed on the operation.
+        /// Reindex is ongoing.
         /// </summary>
         Processing = 0,
 
         /// <summary>
-        /// The tag is paused on the operation.
+        /// Reindex is paused.
         /// </summary>
         Paused = 1,
 
+        /// <summary>
+        /// Reindex is completed.
+        /// </summary>
         Completed = 2,
     }
 }

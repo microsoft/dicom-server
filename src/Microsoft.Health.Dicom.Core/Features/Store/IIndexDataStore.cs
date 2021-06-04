@@ -27,16 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous create operation.</returns>
         Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Asynchronously reindex Dicom instance on query tags. 
-        /// </summary>
-        /// <param name="dicomDataset">Dicom dataset.</param>
-        /// <param name="queryTags">query tags.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns></returns>
-        Task ReindexInstanceAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
-
+ 
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="studyInstanceUid"/>.
         /// </summary>

@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         {
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation("Getting processing query tags on operation {operationId}", operationId);
+            log.LogInformation("Getting query tags which is being processed by operation {operationId}", operationId);
             var entries = await _reindexStore.GetReindexEntriesAsync(operationId);
             // only process tags which is on Processing
             var tagKeys = entries.Where(x => x.Status == ReindexStatus.Processing).Select(y => y.TagKey);

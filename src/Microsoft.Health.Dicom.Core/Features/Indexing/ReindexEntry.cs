@@ -21,12 +21,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         public string OperationId { get; set; }
 
         /// <summary>
-        /// The tag status on operation.
+        /// The reindex status.
         /// </summary>
         public ReindexStatus Status { get; set; }
 
+        /// <summary>
+        /// The start watermark.
+        /// </summary>
         public long StartWatermark { get; set; }
 
+        /// <summary>
+        /// The end watermark.
+        /// </summary>
         public long EndWatermark { get; set; }
     }
 }

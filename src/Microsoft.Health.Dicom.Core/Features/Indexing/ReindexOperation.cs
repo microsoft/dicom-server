@@ -3,15 +3,34 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
     /// <summary>
-    /// External representation of a extended query tag entry for add.
+    /// Stands for reindex operation.
     /// </summary>
-    public class ReindexOperation : Operation
+    public class ReindexOperation
     {
+        /// <summary>
+        /// Gets or sets operation id.
+        /// </summary>
+        public string OperationId { get; set; }
+
+        /// <summary>
+        /// Gets or sets query tags.
+        /// </summary>
+        public IReadOnlyCollection<QueryTag> QueryTags { get; set; }
+
+        /// <summary>
+        /// The inclusive start watermark.
+        /// </summary>
         public long StartWatermark { get; set; }
 
+        /// <summary>
+        /// The inclusive end watermark.
+        /// </summary>
         public long EndWatermark { get; set; }
     }
 }

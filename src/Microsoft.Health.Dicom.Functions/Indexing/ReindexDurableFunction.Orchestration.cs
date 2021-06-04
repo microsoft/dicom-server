@@ -59,15 +59,17 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
 
+            ReindexOperation reindexOperation = context.GetInput<ReindexOperation>();
+
             IEnumerable<ExtendedQueryTagStoreEntry> queryTags = await context
                 .CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(nameof(GetProcessingQueryTagsActivityAsync), context.InstanceId);
 
             if (queryTags.Any())
             {
+                await context.CallActivityAsync(nameof(CompleteReindexActivityAsync), reindexOperation.OperationId);
                 return;
             }
 
-            ReindexOperation reindexOperation = context.GetInput<ReindexOperation>();
             long newEnd = await ReindexNextSectionAsync(context, reindexOperation, queryTags);
 
             if (reindexOperation.StartWatermark <= newEnd)

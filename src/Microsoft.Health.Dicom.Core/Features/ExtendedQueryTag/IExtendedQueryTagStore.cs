@@ -41,6 +41,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <returns>The task.</returns>
         Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Get extended query tags by keys.
+        /// </summary>
+        /// <param name="tagKeys">The tag keys.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The task.</returns>
         Task<IEnumerable<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByKeyAsync(IEnumerable<int> tagKeys, CancellationToken cancellationToken = default);
     }
 }
