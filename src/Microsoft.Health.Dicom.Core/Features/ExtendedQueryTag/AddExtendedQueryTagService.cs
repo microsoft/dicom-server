@@ -35,15 +35,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             _maxAllowedCount = extendedQueryTagConfiguration.Value.MaxAllowedCount;
         }
 
-        public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, string operationId, CancellationToken cancellationToken)
+        public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken)
         {
             _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
 
             IEnumerable<AddExtendedQueryTagEntry> result = extendedQueryTags.Select(item => item.Normalize());
 
-            // TODO: AddExtendedQueryTagsAsync should create reindex operation with the operationId
             await _extendedQueryTagStore.AddExtendedQueryTagsAsync(result, _maxAllowedCount, cancellationToken);
-
             return new AddExtendedQueryTagResponse();
         }
     }

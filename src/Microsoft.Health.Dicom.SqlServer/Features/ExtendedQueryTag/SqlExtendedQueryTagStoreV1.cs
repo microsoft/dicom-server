@@ -30,5 +30,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
+
+        public virtual Task<IEnumerable<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByKeyAsync(IEnumerable<int> tagKeys, CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

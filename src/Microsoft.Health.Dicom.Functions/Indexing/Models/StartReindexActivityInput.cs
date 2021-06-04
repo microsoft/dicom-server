@@ -4,14 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    ///  Represents input to <see cref="ReindexOperation.AddExtendedQueryTagsAsync"/>
+    ///  Represents input to <see cref="ReindexDurableFunction.StartReindexActivityAsync"/>
     /// </summary>
-    public class AddExtendedQueryTagsInput
+    public class StartReindexActivityInput
     {
         /// <summary>
         /// Gets or sets the operation id
@@ -19,9 +18,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
         public string OperationId { get; set; }
 
         /// <summary>
-        /// Gets or sets the tags upon which to index.
+        /// Gets or sets the tag keys
         /// </summary>
-        public IEnumerable<AddExtendedQueryTagEntry> ExtendedQueryTagEntries { get; set; }
+        public IEnumerable<int> TagKeys { get; set; }
 
     }
 }

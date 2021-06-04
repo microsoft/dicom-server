@@ -3,20 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    /// Represents input to <see cref="ReindexOperation.StartOperationAsync"/>
+    /// Represents input to activity <see cref="ReindexDurableFunction.UpdateReindexProgressActivityAsync"/>.
     /// </summary>
-    public class StartOperationInput
+    public class UpdateReindexProgressActivityInput
     {
         /// <summary>
-        /// Gets or sets the extended query tag store entries to start operation.
+        /// Gets or sets the end watermark of operation.
         /// </summary>
-        public IEnumerable<ExtendedQueryTagStoreEntry> TagStoreEntries { get; set; }
+        public long EndWatermark { get; set; }
 
         ///// <summary>
         ///// Gets or sets the operation id.

@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Add extended query tags into ExtendedQueryTagStore
         /// Notes: once moved to job framework, the return will jobid, to save development effort, just return task for now.
         /// </summary>
-        /// <param name="extendedQueryTagEntries">The extended query tag entries.</param>
+        /// <param name="extendedQueryTagEntries">The extended query tag entries.</param>        
         /// <param name="maxAllowedCount">The max allowed count.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The tag key.</returns>
@@ -40,5 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>The task.</returns>
         Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default);
+
+        Task<IEnumerable<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByKeyAsync(IEnumerable<int> tagKeys, CancellationToken cancellationToken = default);
     }
 }

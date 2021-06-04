@@ -6,14 +6,13 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
     /// <summary>
     /// Store that records relationship between extended query tag and reindex operation.
     /// </summary>
-    public interface ITagOperationStore
+    public interface IReindexStore
     {
         /// <summary>
         /// Get entires of operations.
@@ -21,9 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <param name="operationId">The operation id.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The entries.</returns>
-        Task<IReadOnlyList<TagOperationEntry>> GetEntriesOfOperationAsync(
-            string operationId,
-            CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<ReindexEntry>> GetReindexEntriesAsync(string operationId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Update endwatermark of opeation.
@@ -32,9 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <param name="endWatermark">The end watermark.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The task.</returns>
-        Task UpdateEndWatermarkOfOperationAsync(string operationId, long endWatermark, CancellationToken cancellationToken = default);
-
-        Task<IReadOnlyList<long>> GetWatermarksAsync(long startWatermark, long endWatermark, CancellationToken cancellationToken = default);
+        Task UpdateReindexProgressAsync(string operationId, long endWatermark, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Complete operation.
@@ -42,9 +37,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <param name="operationId">The operation id.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The task.</returns>
-        Task CompleteOperationAsync(string operationId, CancellationToken cancellationToken = default);
+        Task CompleteReindexAsync(string operationId, CancellationToken cancellationToken = default);
 
-
-        Task StartOperationAsync(string operationId, IEnumerable<ExtendedQueryTagStoreEntry> entries, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Complete operation.
+        /// </summary>
+        /// <param name="tagKeys">Key to tags</param>
+        /// <param name="operationId">The operation id.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The task.</returns>
+        Task<ReindexOperation> StartReindexAsync(IEnumerable<int> tagKeys, string operationId, CancellationToken cancellationToken = default);
     }
 }

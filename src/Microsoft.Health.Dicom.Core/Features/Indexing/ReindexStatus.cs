@@ -3,16 +3,23 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Indexing.Models
+namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
     /// <summary>
-    ///  Represents input to <see cref="ReindexOperation.AddExtendedQueryTagsAsync"/>
+    /// Tag status on operation .
     /// </summary>
-    public class ReindexExtendedQueryTagsOrcInput
+    public enum ReindexStatus
     {
         /// <summary>
-        /// Gets or sets the operation id
+        /// The tag is being processed on the operation.
         /// </summary>
-        public Microsoft.Health.Dicom.Core.Features.Indexing.ReindexOperation OperationEntry { get; set; }
+        Processing = 0,
+
+        /// <summary>
+        /// The tag is paused on the operation.
+        /// </summary>
+        Paused = 1,
+
+        Completed = 2,
     }
 }

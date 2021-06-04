@@ -10,27 +10,23 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    ///  Represents input to <see cref="ReindexOperation.ReindexInstanceAsync"/>
+    ///  Represents input to <see cref="ReindexDurableFunction.ReindexInstanceActivityAsync"/>
     /// </summary>
-    public class ReindexInstanceInput
+    public class ReindexInstanceActivityInput
     {
         /// <summary>
-        /// Gets or sets the inclusive end watermark.
+        /// Gets or sets the inclusive start watermark.
         /// </summary>
         public long StartWatermark { get; set; }
 
+        /// <summary>
+        /// Gets or sets the inclusive end watermark.
+        /// </summary>
         public long EndWatermark { get; set; }
 
         /// <summary>
-        /// Gets or sets the tags upon which to index.
+        /// Gets or sets the tag entires.
         /// </summary>
-        public IReadOnlyList<ExtendedQueryTagStoreEntry> TagEntries { get; set; }
-
-        public override string ToString()
-        {
-            string tagEntriesText = string.Concat(",", TagEntries.Select(x => x.ToString()));
-            return $"StartWatermark - { StartWatermark}, EndWatermark - {EndWatermark},  TagEntries - {tagEntriesText}";
-        }
-
+        public IEnumerable<ExtendedQueryTagStoreEntry> TagStoreEntries { get; set; }
     }
 }
