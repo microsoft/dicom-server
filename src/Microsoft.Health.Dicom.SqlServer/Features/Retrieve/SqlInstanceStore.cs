@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         }
 
-        public Task<IReadOnlyCollection<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(long startVersion, long endVersion, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(long startWatermark, long endWatermark, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }

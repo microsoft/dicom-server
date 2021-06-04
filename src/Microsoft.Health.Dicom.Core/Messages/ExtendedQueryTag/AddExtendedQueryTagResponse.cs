@@ -7,6 +7,5 @@ namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
     public class AddExtendedQueryTagResponse
     {
-
     }
 }

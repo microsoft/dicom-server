@@ -50,6 +50,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(log, nameof(log));
             log.LogInformation("Adding extended query tags with {input}", input);
+
+            // TODO: change AddExtendedQueryTagAsync to return ExtendedQueryTagStoreEntry
             await _addExtendedQueryTagService.AddExtendedQueryTagAsync(input);
             return Array.Empty<ExtendedQueryTagStoreEntry>();
         }
