@@ -119,12 +119,12 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             logger.LogInformation("Reindex instance with with {input}", input);
 
-            var watermarks = await _instanceStore.GetInstanceIdentifierAsync(input.StartWatermark, input.EndWatermark);
+            var instanceIdentifiers = await _instanceStore.GetInstanceIdentifierAsync(input.StartWatermark, input.EndWatermark);
 
             var tasks = new List<Task>();
-            foreach (var watermark in watermarks)
+            foreach (var instanceIdentifier in instanceIdentifiers)
             {
-                tasks.Add(_instanceReindexer.ReindexInstanceAsync(input.TagStoreEntries, watermark.Version));
+                tasks.Add(_instanceReindexer.ReindexInstanceAsync(input.TagStoreEntries, instanceIdentifier.Version));
             }
 
             await Task.WhenAll(tasks);

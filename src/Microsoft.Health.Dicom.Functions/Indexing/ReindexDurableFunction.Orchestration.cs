@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
             var input = context.GetInput<IEnumerable<AddExtendedQueryTagEntry>>();
-            var storeEntires = await context.CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+            var storeEntires = await context.CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(
                 nameof(AddExtendedQueryTagsActivityAsync),
                  input);
             ReindexOperation reindexOperation = await context.CallActivityAsync<ReindexOperation>(
@@ -61,34 +61,30 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             ReindexOperation reindexOperation = context.GetInput<ReindexOperation>();
 
-            IEnumerable<ExtendedQueryTagStoreEntry> queryTags = await context
-                .CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(nameof(GetProcessingQueryTagsActivityAsync), context.InstanceId);
-
-            if (queryTags.Any())
+            // EndWatermark <0 means there is no instances.
+            if (reindexOperation.EndWatermark >= 0)
             {
-                await context.CallActivityAsync(nameof(CompleteReindexActivityAsync), reindexOperation.OperationId);
-                return;
-            }
+                IEnumerable<ExtendedQueryTagStoreEntry> queryTags = await context
+                    .CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(nameof(GetProcessingQueryTagsActivityAsync), reindexOperation.OperationId);
 
-            long newEnd = await ReindexNextSectionAsync(context, reindexOperation, queryTags);
-
-            if (reindexOperation.StartWatermark <= newEnd)
-            {
-                ReindexOperation newInput = new ReindexOperation()
+                if (queryTags.Any())
                 {
-                    StartWatermark = reindexOperation.StartWatermark,
-                    EndWatermark = newEnd,
-                    QueryTags = reindexOperation.QueryTags
-                };
+                    long newEnd = await ReindexNextSectionAsync(context, reindexOperation, queryTags);
 
-                context.StartNewOrchestration(nameof(ReindexExtendedQueryTagsOrchestrationAsync), input: newInput);
-            }
-            else
-            {
-                await context.CallActivityAsync(nameof(CompleteReindexActivityAsync), reindexOperation.OperationId);
-            }
+                    if (reindexOperation.StartWatermark <= newEnd)
+                    {
+                        ReindexOperation newInput = new ReindexOperation()
+                        {
+                            StartWatermark = reindexOperation.StartWatermark,
+                            EndWatermark = newEnd,
+                            StoreEntries = reindexOperation.StoreEntries
+                        };
 
-            logger.LogInformation("Completed to run orchestrator on {operationId}", reindexOperation.OperationId);
+                        context.StartNewOrchestration(nameof(ReindexExtendedQueryTagsOrchestrationAsync), input: newInput);
+                    }
+                }
+            }
+            await context.CallActivityAsync(nameof(CompleteReindexActivityAsync), reindexOperation.OperationId);
         }
 
         private async Task<long> ReindexNextSectionAsync(IDurableOrchestrationContext context,
@@ -106,7 +102,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             for (int parallel = 0; parallel < _reindexConfig.MaxParallelBatches; parallel++)
             {
 
-                long batchStart = end - _reindexConfig.BatchSize;
+                long batchStart = end - _reindexConfig.BatchSize + 1;
                 batchStart = Math.Max(batchStart, start);
                 if (batchStart <= end)
                 {

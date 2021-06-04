@@ -19,9 +19,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         public string OperationId { get; set; }
 
         /// <summary>
-        /// Gets or sets query tags.
+        /// Gets or sets query tags store entries.
         /// </summary>
-        public IReadOnlyCollection<QueryTag> QueryTags { get; set; }
+        public IEnumerable<ExtendedQueryTagStoreEntry> StoreEntries { get; set; }
 
         /// <summary>
         /// The inclusive start watermark.

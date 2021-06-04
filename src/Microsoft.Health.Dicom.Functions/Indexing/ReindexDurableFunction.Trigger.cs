@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -71,7 +70,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(logger, nameof(logger));
             var extendedQueryTags = await request.Content.ReadAsAsync<IEnumerable<AddExtendedQueryTagEntry>>();
-            logger.LogInformation($"Start adding extended query tags {string.Join(",", extendedQueryTags.Select(x => x.ToString()))}");
+            logger.LogInformation("Start adding extended query tags {input}", extendedQueryTags);
             await client.StartNewAsync(nameof(AddExtendedQueryTagsOrchestrationAsync), instanceId: null, extendedQueryTags);
         }
 

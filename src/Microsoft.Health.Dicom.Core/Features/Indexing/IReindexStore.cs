@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <param name="operationId">The operation id.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The entries.</returns>
-        Task<IReadOnlyList<ReindexEntry>> GetReindexEntriesAsync(string operationId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<ReindexEntry>> GetReindexEntriesAsync(string operationId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Update reindex progress.
