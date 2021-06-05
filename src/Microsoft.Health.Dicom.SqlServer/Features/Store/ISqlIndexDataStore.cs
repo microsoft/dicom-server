@@ -4,15 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.Dicom.SqlServer.Feature.Common;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
     /// <summary>
     ///  Sql version of IIndexDataStore.
     /// </summary>
-    internal interface ISqlIndexDataStore : IIndexDataStore
+    internal interface ISqlIndexDataStore : IIndexDataStore, IVersioned
     {
-        SchemaVersion Version { get; }
     }
 }

@@ -20,15 +20,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
             string method,
             string uriString,
             string baseUriString,
+            string correlationId,
             IDictionary<string, StringValues> requestHeaders,
             IDictionary<string, StringValues> responseHeaders)
-            : this(method, new Uri(uriString), new Uri(baseUriString), requestHeaders, responseHeaders)
+            : this(method, new Uri(uriString), new Uri(baseUriString), correlationId, requestHeaders, responseHeaders)
         { }
 
         public DicomRequestContext(
             string method,
             Uri uri,
             Uri baseUri,
+            string correlationId,
             IDictionary<string, StringValues> requestHeaders,
             IDictionary<string, StringValues> responseHeaders)
         {
@@ -40,6 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
             Method = method;
             Uri = uri;
             BaseUri = baseUri;
+            CorrelationId = correlationId;
             RequestHeaders = requestHeaders;
             ResponseHeaders = responseHeaders;
         }

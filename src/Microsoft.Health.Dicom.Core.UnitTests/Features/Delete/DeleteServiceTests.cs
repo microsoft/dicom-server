@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
     {
         private readonly DeleteService _deleteService;
         private readonly IIndexDataStore _indexDataStore;
-        private readonly IIndexDataStoreFactory _indexDataStoreFactory;
+        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
         private readonly IFileStore _fileDataStore;
         private readonly ITransactionScope _transactionScope;
         private readonly DeletedInstanceCleanupConfiguration _deleteConfiguration;
@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
             _indexDataStore = Substitute.For<IIndexDataStore>();
             _metadataStore = Substitute.For<IMetadataStore>();
             _fileDataStore = Substitute.For<IFileStore>();
-            _indexDataStoreFactory = Substitute.For<IIndexDataStoreFactory>();
+            _indexDataStoreFactory = Substitute.For<IStoreFactory<IIndexDataStore>>();
             _deleteConfiguration = new DeletedInstanceCleanupConfiguration
             {
                 DeleteDelay = TimeSpan.FromDays(1),

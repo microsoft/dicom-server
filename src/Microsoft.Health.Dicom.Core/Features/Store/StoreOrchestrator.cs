@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         public StoreOrchestrator(
             IFileStore fileStore,
             IMetadataStore metadataStore,
-            IIndexDataStoreFactory indexDataStoreFactory,
+            IStoreFactory<IIndexDataStore> indexDataStoreFactory,
             IDeleteService deleteService,
             IQueryTagService queryTagService)
         {

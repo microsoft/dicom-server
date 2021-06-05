@@ -3,16 +3,6 @@ parameters:
   analyzeSecurity: true
 
 steps:
-  - checkout: self
-    submodules: true # Remove once the submodules no longer cause build warnings
-
-  - task: DeleteFiles@1
-    displayName: 'Remove Submodule'
-    inputs:
-      SourceFolder: '$(Build.SourcesDirectory)/samples/Azurite'
-      Contents: '*'
-      RemoveSourceFolder: true
-
   - task: UseDotNet@2
     displayName: 'Use .NET Core sdk (for sql generation)'
     inputs:

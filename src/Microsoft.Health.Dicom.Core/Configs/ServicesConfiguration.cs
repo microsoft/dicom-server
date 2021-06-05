@@ -12,5 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Configs
         public OperationsConfiguration OperationsSettings { get; } = new OperationsConfiguration();
 
         public StoreConfiguration StoreServiceSettings { get; } = new StoreConfiguration();
+
+        public ExtendedQueryTagConfiguration ExtendedQueryTag { get; } = new ExtendedQueryTagConfiguration();
     }
 }

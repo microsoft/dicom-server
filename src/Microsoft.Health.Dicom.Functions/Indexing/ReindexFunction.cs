@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             return Task.CompletedTask;
         }
 
-        [FunctionName("ReindexV1_Timer")]
+        //[FunctionName("ReindexV1_Timer")]
         public async Task TimerStartAsync(
             [TimerTrigger("0 */5 * * * *")] TimerInfo timer,
             [DurableClient] IDurableOrchestrationClient client,
