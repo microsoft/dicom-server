@@ -12,7 +12,7 @@ using Microsoft.Health.Dicom.Core.Messages.Operations;
 namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
     // TODO: Check for data action
-    public class OperationStateHandler : IRequestHandler<OperationStateRequest, OperationStateResponse>
+    public class OperationStateHandler : IRequestHandler<OperationStatusRequest, OperationStatusResponse>
     {
         private readonly IOperationsService _service;
 
@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
             _service = service;
         }
 
-        public async Task<OperationStateResponse> Handle(OperationStateRequest request, CancellationToken cancellationToken)
+        public async Task<OperationStatusResponse> Handle(OperationStatusRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
             return await _service.GetStatusAsync(request.Id, cancellationToken);

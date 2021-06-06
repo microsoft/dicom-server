@@ -8,9 +8,9 @@ using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Operations
 {
-    public class OperationStateRequest : IRequest<OperationStateResponse>
+    public class OperationStatusRequest : IRequest<OperationStatusResponse>
     {
-        public OperationStateRequest(string id)
+        public OperationStatusRequest(string id)
         {
             EnsureArg.IsNotNullOrWhiteSpace(id, nameof(id));
             Id = id;
@@ -19,3 +19,4 @@ namespace Microsoft.Health.Dicom.Core.Messages.Operations
         public string Id { get; set; }
     }
 }
+

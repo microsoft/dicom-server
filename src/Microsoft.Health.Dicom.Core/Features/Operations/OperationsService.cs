@@ -23,10 +23,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
 
             _clientService = clientService;
         }
-        public async Task<OperationStateResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default)
+        public async Task<OperationStatusResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default)
         {
-            OperationStateResponse response = await _clientService.GetStatusAsync(id, cancellationToken);
-            return PublicOperationTypes.Contains(response.Type) ? response : new OperationStateResponse();
+            OperationStatusResponse response = await _clientService.GetStatusAsync(id, cancellationToken);
+            return PublicOperationTypes.Contains(response.Type) ? response : new OperationStatusResponse();
         }
     }
 }

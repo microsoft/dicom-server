@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
-using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
@@ -24,7 +23,6 @@ using DicomApiAuditLoggingFilterAttribute = Microsoft.Health.Dicom.Api.Features.
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomApiAuditLoggingFilterAttribute))]
     public class OperationsController : ControllerBase
     {
@@ -44,16 +42,16 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [Route(KnownRoutes.OperationInstanceRoute)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(OperationStateResponse), (int)HttpStatusCode.Accepted)]
-        [ProducesResponseType(typeof(OperationStateResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.OK)]
         [AuditEventType(AuditEventSubType.Operation)]
         public async Task<IActionResult> GetOperationStatusAsync([Required] string id)
         {
-            _logger.LogInformation("DICOM Web Get Operation Status request received for ID {OperationId}", id);
+            _logger.LogInformation("DICOM Web Get Operation Status request received for ID '{OperationId}'", id);
 
-            OperationStateResponse response = await _mediator.GetOperationStateAsync(id, HttpContext.RequestAborted);
+            OperationStatusResponse response = await _mediator.GetOperationStatusAsync(id, HttpContext.RequestAborted);
 
-            if (response.Id == null)
+            if (response == null)
             {
                 return NotFound();
             }

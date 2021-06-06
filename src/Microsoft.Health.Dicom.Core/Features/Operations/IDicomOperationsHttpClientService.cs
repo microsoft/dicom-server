@@ -26,6 +26,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         /// A task representing the <see cref="GetStatusAsync(string, CancellationToken)"/> operation.
         /// The result of the task is the status of the operation with the specified <paramref name="id"/>
         /// </returns>
-        Task<OperationStateResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default);
+        Task<OperationStatusResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default);
     }
 }

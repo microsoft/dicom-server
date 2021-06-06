@@ -9,13 +9,13 @@ using Microsoft.Health.Dicom.Core.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Operations
 {
-    public class OperationStateResponse
+    public class OperationStatusResponse
     {
-        public OperationStateResponse()
+        public OperationStatusResponse()
         {
         }
 
-        public OperationStateResponse(
+        public OperationStatusResponse(
             string id,
             OperationType type,
             DateTime createdTime,

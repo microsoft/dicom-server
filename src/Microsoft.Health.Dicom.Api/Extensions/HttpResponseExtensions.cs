@@ -6,6 +6,7 @@
 using System;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Extensions
 {
@@ -16,7 +17,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
             EnsureArg.IsNotNull(response, nameof(response));
             EnsureArg.IsNotNull(locationUrl, nameof(locationUrl));
 
-            response.Headers.Add("Location", Uri.EscapeUriString(locationUrl.ToString()));
+            response.Headers.Add(HeaderNames.Location, Uri.EscapeUriString(locationUrl.ToString()));
         }
     }
 }

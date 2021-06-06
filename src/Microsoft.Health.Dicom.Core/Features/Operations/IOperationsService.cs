@@ -11,6 +11,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
     public interface IOperationsService
     {
-        Task<OperationStateResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default);
+        Task<OperationStatusResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default);
     }
 }

@@ -13,11 +13,11 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
-    public static class ClientFunction
+    public static class ClientProxyFunctions
     {
-        [FunctionName(nameof(GetStatusAsync))]
-        public static async Task<IActionResult> GetStatusAsync(
-            [HttpTrigger("GET", Route = "Jobs/{instanceId}")] HttpRequest req,
+        [FunctionName(nameof(GetOrchestrationStatusAsync))]
+        public static async Task<IActionResult> GetOrchestrationStatusAsync(
+            [HttpTrigger("GET", Route = "Orchestrations/{instanceId}")] HttpRequest req,
             [DurableClient] IDurableOrchestrationClient client,
             string instanceId,
             ILogger log)
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation("Querying job with ID {InstanceId}", instanceId);
+            log.LogInformation("Querying orchestration instance with ID '{InstanceId}'", instanceId);
 
             if (string.IsNullOrWhiteSpace(instanceId))
             {

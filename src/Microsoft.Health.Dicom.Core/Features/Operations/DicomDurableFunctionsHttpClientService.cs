@@ -37,14 +37,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
             _client = client;
         }
 
-        public async Task<OperationStateResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default)
+        public async Task<OperationStatusResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default)
         {
             var jobPath = new Uri("/Jobs/" + id, UriKind.Relative);
             using (HttpResponseMessage response = await _client.GetAsync(jobPath, cancellationToken))
             {
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return new OperationStateResponse();
+                    return new OperationStatusResponse();
                 }
 
                 // Re-throw any exceptions we may have encountered when making the HTTP request
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
                     JsonSettings);
 
                 OperationStatus status = GetOperationStatus(responseState.RuntimeStatus);
-                return new OperationStateResponse(
+                return new OperationStatusResponse(
                     responseState.InstanceId,
                     GetOperationType(responseState.Name),
                     responseState.CreatedTime,
