@@ -12,11 +12,11 @@ using Microsoft.Health.Dicom.Core.Messages.Operations;
 namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
     // TODO: Check for data action
-    public class OperationStateHandler : IRequestHandler<OperationStatusRequest, OperationStatusResponse>
+    public class OperationStatusHandler : IRequestHandler<OperationStatusRequest, OperationStatusResponse>
     {
         private readonly IOperationsService _service;
 
-        public OperationStateHandler(IOperationsService service)
+        public OperationStatusHandler(IOperationsService service)
         {
             EnsureArg.IsNotNull(service, nameof(service));
             _service = service;

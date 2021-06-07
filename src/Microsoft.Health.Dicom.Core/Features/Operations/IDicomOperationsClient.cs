@@ -10,9 +10,9 @@ using Microsoft.Health.Dicom.Core.Messages.Operations;
 namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
     /// <summary>
-    /// Represents a client for communicating with DICOM-specific long-running operations via HTTP.
+    /// Represents a client for communicating with DICOM-specific long-running operations.
     /// </summary>
-    public interface IDicomOperationsHttpClientService
+    public interface IDicomOperationsClient
     {
         /// <summary>
         /// Fetches the status of a long-running operation for the given <paramref name="id"/>.

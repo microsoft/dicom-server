@@ -11,12 +11,14 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.HealthCheck;
+using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Polly;
 
 namespace Microsoft.Health.Dicom.Core.Modules
 {
@@ -139,9 +141,27 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<QueryTagService>()
-                   .Scoped()
-                   .AsSelf()
-                   .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.AddHttpClient<DicomDurableFunctionsHttpClient>()
+                .AddTransientHttpErrorPolicy(p => p.RetryAsync(3));
+
+            services.Add<DicomDurableFunctionsHttpClient>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<OperationsService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<OperationStatusHandler>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             services.AddSingleton<BackgroundServiceHealthCheckCache>();
 

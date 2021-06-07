@@ -11,6 +11,9 @@ namespace Microsoft.Health.Dicom.Core.Configs
     public class OperationsConfiguration
     {
         [Required]
-        public Uri BaseAddress { get; }
+        public Uri BaseAddress { get; set; }
+
+        [Required]
+        public string StatusRouteTemplate { get; set; }
     }
 }

@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             IMediator mediator = Substitute.For<IMediator>();
             OperationStatusResponse expected = new OperationStatusResponse(
                 id,
-                OperationType.AddExtendedQueryTag,
+                OperationType.Reindex,
                 DateTime.UtcNow,
                 inProgressStatus);
 
@@ -92,7 +92,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             IMediator mediator = Substitute.For<IMediator>();
             OperationStatusResponse expected = new OperationStatusResponse(
                 id,
-                OperationType.AddExtendedQueryTag,
+                OperationType.Reindex,
                 DateTime.UtcNow,
                 doneStatus);
 

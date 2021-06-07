@@ -4,13 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Dicom.Core.Models.Operations.Serialization;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Dicom.Core.Model.Operations
+namespace Microsoft.Health.Dicom.Core.Models.Operations
 {
-    public class DurableOrchestrationInstanceState
+    internal class DurableOrchestrationInstanceStatus
     {
-        public string Name { get; set; }
+        [JsonProperty("Name")]
+        [JsonConverter(typeof(OperationTypeConverter))]
+        public OperationType Type { get; set; }
 
         public string InstanceId { get; set; }
 
@@ -20,7 +24,8 @@ namespace Microsoft.Health.Dicom.Core.Model.Operations
 
         public JToken Output { get; set; }
 
-        public string RuntimeStatus { get; set; }
+        [JsonConverter(typeof(OperationStatusConverter))]
+        public OperationStatus RuntimeStatus { get; set; }
 
         public JToken CustomStatus { get; set; }
     }

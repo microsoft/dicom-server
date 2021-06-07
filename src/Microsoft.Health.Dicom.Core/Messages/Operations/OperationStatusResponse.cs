@@ -5,22 +5,17 @@
 
 using System;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Operations
 {
     public class OperationStatusResponse
     {
-        public OperationStatusResponse()
-        {
-        }
-
         public OperationStatusResponse(
             string id,
             OperationType type,
             DateTime createdTime,
-            OperationStatus status,
-            string errorMessage = null)
+            OperationStatus status)
         {
             EnsureArg.IsNotNullOrWhiteSpace(id, nameof(id));
             EnsureArg.EnumIsDefined(type, nameof(type));
@@ -30,7 +25,6 @@ namespace Microsoft.Health.Dicom.Core.Messages.Operations
             Type = type;
             CreatedTime = createdTime;
             Status = status;
-            ErrorMessage = string.IsNullOrWhiteSpace(errorMessage) ? null : errorMessage;
         }
 
         public string Id { get; }
@@ -40,7 +34,5 @@ namespace Microsoft.Health.Dicom.Core.Messages.Operations
         public DateTime CreatedTime { get; }
 
         public OperationStatus Status { get; }
-
-        public string ErrorMessage { get; }
     }
 }

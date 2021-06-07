@@ -80,9 +80,8 @@ dotnet_naming_symbols.constant_fields.required_modifiers = const
 dotnet_naming_rule.static_readonly_fields_pascal_case.severity = suggestion
 dotnet_naming_rule.static_readonly_fields_pascal_case.symbols  = static_readonly_fields
 dotnet_naming_rule.static_readonly_fields_pascal_case.style    = pascal_case_style
-dotnet_naming_symbols.static_readonly_fields.applicable_kinds           = field
-dotnet_naming_symbols.static_readonly_fields.applicable_accessibilities = private
-dotnet_naming_symbols.static_readonly_fields.required_modifiers         = readonly,static
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds   = field
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = readonly,static
 
 # static fields should have s_ prefix
 dotnet_naming_rule.static_fields_should_have_prefix.severity = suggestion

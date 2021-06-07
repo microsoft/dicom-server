@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Operations
+namespace Microsoft.Health.Dicom.Core.Models.Operations
 {
     public enum OperationType
     {
         Unknown,
-        AddExtendedQueryTag,
+        Reindex,
     }
 }

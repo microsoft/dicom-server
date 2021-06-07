@@ -8,25 +8,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
-using Microsoft.Health.Dicom.Core.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
     public class OperationsService : IOperationsService
     {
-        private readonly IDicomOperationsHttpClientService _clientService;
-        private static readonly ImmutableHashSet<OperationType> PublicOperationTypes = ImmutableHashSet.Create(OperationType.AddExtendedQueryTag);
+        private readonly IDicomOperationsClient _client;
+        internal static readonly ImmutableHashSet<OperationType> PublicOperationTypes = ImmutableHashSet.Create(OperationType.Reindex);
 
-        public OperationsService(IDicomOperationsHttpClientService clientService)
+        public OperationsService(IDicomOperationsClient client)
         {
-            EnsureArg.IsNotNull(clientService, nameof(clientService));
-
-            _clientService = clientService;
+            EnsureArg.IsNotNull(client, nameof(client));
+            _client = client;
         }
+
         public async Task<OperationStatusResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default)
         {
-            OperationStatusResponse response = await _clientService.GetStatusAsync(id, cancellationToken);
-            return PublicOperationTypes.Contains(response.Type) ? response : new OperationStatusResponse();
+            OperationStatusResponse response = await _client.GetStatusAsync(id, cancellationToken);
+            return PublicOperationTypes.Contains(response.Type) ? response : null;
         }
     }
 }
