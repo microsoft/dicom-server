@@ -32,5 +32,9 @@
       "Factor": 2,
       "FastFirst": true
     }
+  },
+  "OrchestrationsCleanup": {
+    "RuntimeStatuses": [ "Completed" ],
+    "MinimumAgeDays": 14
   }
 }

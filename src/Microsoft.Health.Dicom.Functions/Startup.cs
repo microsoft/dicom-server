@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Modules;
+using Microsoft.Health.Dicom.Functions.Management;
 using Microsoft.Health.Dicom.Operations.Functions.Configs;
 using Newtonsoft.Json.Converters;
 
@@ -45,6 +46,17 @@ namespace Microsoft.Health.Dicom.Functions
             // TODO: the FeatureConfiguration should be removed once we moved the logic to add tags into database out of Azure Function
             new ServiceModule(new FeatureConfiguration { EnableExtendedQueryTags = true }).Load(builder.Services);
 
+            builder.Services
+                .AddOptions<PurgeOrchestrationInstancesHistoryConfiguration>()
+                .Configure<IConfiguration>((sectionObj, config) => config
+                    .GetSection(AzureFunctionsJobHost.SectionName)
+                    .GetSection(PurgeOrchestrationInstancesHistoryConfiguration.SectionName)
+                    .Bind(sectionObj));
+
+            builder.Services
+                .AddMvcCore()
+                .AddNewtonsoftJson(x => x.SerializerSettings.Converters
+                    .Add(new StringEnumConverter()));
         }
     }
 }
