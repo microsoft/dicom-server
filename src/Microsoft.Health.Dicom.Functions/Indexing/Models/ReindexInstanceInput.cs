@@ -14,14 +14,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
     public class ReindexInstanceInput
     {
         /// <summary>
-        /// Gets or sets the inclusive start watermark.
+        /// Gets or sets the inclusive watermark range.
         /// </summary>
-        public long StartWatermark { get; set; }
-
-        /// <summary>
-        /// Gets or sets the inclusive end watermark.
-        /// </summary>
-        public long EndWatermark { get; set; }
+        public (long Start, long End) WatermarkRange { get; set; }
 
         /// <summary>
         /// Gets or sets the tag entires.

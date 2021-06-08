@@ -85,7 +85,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 .Where(x => x.Status == IndexStatus.Processing)
                 .Select(y => y.TagKey)
                 .ToList();
-            return await _extendedQueryTagStore.GetExtendedQueryTagsByKeyAsync(tagKeys);
+            return await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tagKeys);
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             logger.LogInformation("Reindex instances with {input}", input);
 
-            var instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersAsync(input.StartWatermark, input.EndWatermark);
+            var instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersAsync(input.WatermarkRange);
 
             var tasks = new List<Task>();
             foreach (var instanceIdentifier in instanceIdentifiers)

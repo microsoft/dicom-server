@@ -76,7 +76,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             logger.LogInformation("Started new orchestration with instanceId {instancId}", instanceId);
 
             // TODO: these code need to be updated based on contract to client.
-            return new HttpResponseMessage() { Content = new StringContent(instanceId) };
+            return new HttpResponseMessage { Content = new StringContent(instanceId) };
         }
 
     }

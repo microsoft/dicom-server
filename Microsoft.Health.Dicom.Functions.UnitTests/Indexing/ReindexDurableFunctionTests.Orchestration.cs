@@ -98,8 +98,8 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             {
                 await context.Received().
                      CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstancesAsync),
-                         Arg.Is<ReindexInstanceInput>(x => x.StartWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i - 1
-                         && x.EndWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i));
+                         Arg.Is<ReindexInstanceInput>(x => x.WatermarkRange.Start == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i - 1
+                         && x.WatermarkRange.End == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i));
             }
 
             // Verify  UpdateReindexProgressActivityAsync is called
@@ -137,8 +137,8 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             {
                 await context.Received().
                      CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstancesAsync),
-                         Arg.Is<ReindexInstanceInput>(x => x.StartWatermark == Math.Max(reindexOperation.StartWatermark, reindexOperation.EndWatermark - _reindexConfig.BatchSize * i - 1)
-                         && x.EndWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i));
+                         Arg.Is<ReindexInstanceInput>(x => x.WatermarkRange.Start == Math.Max(reindexOperation.StartWatermark, reindexOperation.EndWatermark - _reindexConfig.BatchSize * i - 1)
+                         && x.WatermarkRange.End == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i));
             }
 
             // Verify  UpdateReindexProgressAsync is called

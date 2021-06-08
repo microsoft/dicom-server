@@ -101,7 +101,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 batchStart = Math.Max(batchStart, start);
                 if (batchStart <= end)
                 {
-                    ReindexInstanceInput reindexInstanceInput = new ReindexInstanceInput() { TagStoreEntries = queryTags, StartWatermark = batchStart, EndWatermark = end };
+                    ReindexInstanceInput reindexInstanceInput = new ReindexInstanceInput() { TagStoreEntries = queryTags, WatermarkRange = (Start: batchStart, End: end) };
                     batches.Add(context.CallActivityAsync(nameof(ReindexInstancesAsync), reindexInstanceInput));
                     end = batchStart - 1;
                 }
