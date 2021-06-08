@@ -26,5 +26,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             string seriesInstanceUid,
             string sopInstanceUid,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets idenfiers of instances within the given range of watermarks.
+        /// </summary>
+        /// <param name="watermarkRange"></param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns>The instanceidentifiers</returns>
+        Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersAsync((long Start, long End) watermarkRange, CancellationToken cancellationToken = default);
+
     }
 }

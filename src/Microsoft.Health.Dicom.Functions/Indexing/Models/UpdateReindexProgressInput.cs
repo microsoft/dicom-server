@@ -6,18 +6,18 @@
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    /// Represents incremental progress in the re-indexing of DICOM instances.
+    /// Represents input to activity <see cref="ReindexDurableFunction.UpdateReindexProgressAsync"/>.
     /// </summary>
-    public class ReindexProgress
+    public class UpdateReindexProgressInput
     {
         /// <summary>
-        /// Gets or sets the next watermark of the next instance to process.
+        /// Gets or sets the end watermark of operation.
         /// </summary>
-        public long NextWatermark { get; set; }
+        public long EndWatermark { get; set; }
 
         ///// <summary>
-        ///// Gets or sets the number of new errors encountered.
+        ///// Gets or sets the operation id.
         ///// </summary>
-        //public int NewErrorCount { get; set; }
+        public string OperationId { get; set; }
     }
 }
