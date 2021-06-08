@@ -33,6 +33,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(string path = null, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Get extended query tags by keys.
+        /// </summary>
+        /// <param name="tagKeys">The tag keys.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The task.</returns>
+        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> tagKeys, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Delete extended query tag.
         /// </summary>
         /// <param name="tagPath">The tag path.</param>
@@ -41,12 +49,5 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <returns>The task.</returns>
         Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Get extended query tags by keys.
-        /// </summary>
-        /// <param name="tagKeys">The tag keys.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The task.</returns>
-        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> tagKeys, CancellationToken cancellationToken = default);
     }
 }

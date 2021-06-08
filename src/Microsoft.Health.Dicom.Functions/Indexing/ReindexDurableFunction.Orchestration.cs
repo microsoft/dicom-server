@@ -35,10 +35,10 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             var input = context.GetInput<IReadOnlyList<AddExtendedQueryTagEntry>>();
             var storeEntires = await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                 nameof(AddTagsAsync),
-                 input);
+                input);
             ReindexOperation reindexOperation = await context.CallActivityAsync<ReindexOperation>(
-                 nameof(PrepareReindexingTagsAsync),
-                 new PrepareReindexingTagsInput { OperationId = context.InstanceId, TagKeys = storeEntires.Select(x => x.Key).ToList() });
+                nameof(PrepareReindexingTagsAsync),
+                new PrepareReindexingTagsInput { OperationId = context.InstanceId, TagKeys = storeEntires.Select(x => x.Key).ToList() });
             await context.CallSubOrchestratorAsync(nameof(ReindexTagsAsync), input: reindexOperation);
         }
 
@@ -49,8 +49,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="logger">The logger.</param>
         /// <returns></returns>
         [FunctionName(nameof(ReindexTagsAsync))]
-        public async Task ReindexTagsAsync([OrchestrationTrigger] IDurableOrchestrationContext context,
-           ILogger logger)
+        public async Task ReindexTagsAsync(
+            [OrchestrationTrigger] IDurableOrchestrationContext context,
+            ILogger logger)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
@@ -63,7 +64,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context
                     .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetProcessingTagsAsync), reindexOperation.OperationId);
 
-                if (queryTags.Any())
+                if (queryTags.Count > 0)
                 {
                     long newEnd = await ReindexNextSegmentAsync(context, reindexOperation, queryTags);
 
@@ -83,7 +84,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             await context.CallActivityAsync(nameof(CompleteReindexingTagsAsync), reindexOperation.OperationId);
         }
 
-        private async Task<long> ReindexNextSegmentAsync(IDurableOrchestrationContext context,
+        private async Task<long> ReindexNextSegmentAsync(
+            IDurableOrchestrationContext context,
             ReindexOperation reindexOperation,
             IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags)
         {

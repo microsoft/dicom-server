@@ -330,6 +330,5 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
             }
         }
-
     }
 }
