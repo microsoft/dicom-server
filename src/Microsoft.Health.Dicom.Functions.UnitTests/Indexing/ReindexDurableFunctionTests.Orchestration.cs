@@ -26,13 +26,13 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
-            IEnumerable<AddExtendedQueryTagEntry> tagsEntries = new[] { entry };
+            IReadOnlyList<AddExtendedQueryTagEntry> tagsEntries = new[] { entry };
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
-            context.GetInput<IEnumerable<AddExtendedQueryTagEntry>>().Returns(tagsEntries);
+            context.GetInput<IReadOnlyList<AddExtendedQueryTagEntry>>().Returns(tagsEntries);
             await _reindexDurableFunction.AddAndReindexTagsAsync(context, NullLogger.Instance);
             await context.Received()
-                 .CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(
+                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                  nameof(ReindexDurableFunction.AddTagsAsync),
                   tagsEntries);
 
@@ -50,18 +50,18 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         [Fact]
         public async Task GivenInvalidTags_WhenAddExtendedQueryTagsOrchestrationAsync_ShouldFailAtBegining()
         {
-            IEnumerable<AddExtendedQueryTagEntry> tagsEntries = new AddExtendedQueryTagEntry[0];
+            IReadOnlyList<AddExtendedQueryTagEntry> tagsEntries = new AddExtendedQueryTagEntry[0];
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
-            context.GetInput<IEnumerable<AddExtendedQueryTagEntry>>().Returns(tagsEntries);
-            context.CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(
+            context.GetInput<IReadOnlyList<AddExtendedQueryTagEntry>>().Returns(tagsEntries);
+            context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                 nameof(ReindexDurableFunction.AddTagsAsync),
                  tagsEntries)
-                .Returns<IEnumerable<ExtendedQueryTagStoreEntry>>(x => { throw new FunctionFailedException(""); });
+                .Returns<IReadOnlyList<ExtendedQueryTagStoreEntry>>(x => { throw new FunctionFailedException(""); });
 
             await Assert.ThrowsAsync<FunctionFailedException>(() => _reindexDurableFunction.AddAndReindexTagsAsync(context, NullLogger.Instance));
             await context.Received()
-                 .CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(
+                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                  nameof(ReindexDurableFunction.AddTagsAsync),
                   tagsEntries);
 
@@ -165,7 +165,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);
-            context.CallActivityAsync<IEnumerable<ExtendedQueryTagStoreEntry>>(nameof(ReindexDurableFunction.GetProcessingTagsAsync), reindexOperation.OperationId)
+            context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(ReindexDurableFunction.GetProcessingTagsAsync), reindexOperation.OperationId)
                 .Returns(new ExtendedQueryTagStoreEntry[0]);
 
             await _reindexDurableFunction.ReindexTagsAsync(context, NullLogger.Instance);

@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <summary>
         /// Gets or sets query tags store entries.
         /// </summary>
-        public IEnumerable<ExtendedQueryTagStoreEntry> StoreEntries { get; set; }
+        public IReadOnlyList<ExtendedQueryTagStoreEntry> StoreEntries { get; set; }
 
         /// <summary>
         /// The inclusive start watermark.

@@ -331,9 +331,5 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        public Task ReindexInstanceAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

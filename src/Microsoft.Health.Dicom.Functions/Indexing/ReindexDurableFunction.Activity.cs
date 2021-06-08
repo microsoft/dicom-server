@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="log">The log.</param>
         /// <returns>The store entries.</returns>
         [FunctionName(nameof(AddTagsAsync))]
-        public async Task<IEnumerable<ExtendedQueryTagStoreEntry>> AddTagsAsync([ActivityTrigger] IEnumerable<AddExtendedQueryTagEntry> input, ILogger log)
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddTagsAsync([ActivityTrigger] IReadOnlyList<AddExtendedQueryTagEntry> input, ILogger log)
         {
             EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(log, nameof(log));
