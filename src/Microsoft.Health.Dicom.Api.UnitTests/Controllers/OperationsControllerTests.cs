@@ -23,6 +23,18 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
     public class OperationsControllerTests
     {
         [Fact]
+        public void Ctor_GivenNullArguments_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new OperationsController(
+                null,
+                NullLogger<OperationsController>.Instance));
+
+            Assert.Throws<ArgumentNullException>(() => new OperationsController(
+                new Mediator(t => null),
+                null));
+        }
+
+        [Fact]
         public async Task GetOperationStatusAsync_GivenNullStatus_ReturnNotFound()
         {
             string id = Guid.NewGuid().ToString();

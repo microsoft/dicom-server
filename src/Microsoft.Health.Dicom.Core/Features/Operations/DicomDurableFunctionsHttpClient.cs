@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         {
             EnsureArg.IsNotNullOrWhiteSpace(id, nameof(id));
             var statusRoute = new Uri(
-                string.Format(CultureInfo.InvariantCulture, _config.StatusRouteTemplate, id),
+                string.Format(CultureInfo.InvariantCulture, _config.Routes.StatusTemplate, id),
                 UriKind.Relative);
 
             using HttpResponseMessage response = await _client.GetAsync(statusRoute, cancellationToken);

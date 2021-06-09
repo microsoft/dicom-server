@@ -16,6 +16,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
 {
     public class OperationStatusHandlerTests
     {
+        [Fact]
+        public void Ctor_GivenNullArgument_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new OperationStatusHandler(null));
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]

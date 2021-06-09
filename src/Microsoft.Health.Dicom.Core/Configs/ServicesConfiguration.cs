@@ -9,10 +9,10 @@ namespace Microsoft.Health.Dicom.Core.Configs
     {
         public DeletedInstanceCleanupConfiguration DeletedInstanceCleanup { get; } = new DeletedInstanceCleanupConfiguration();
 
-        public OperationsConfiguration OperationsSettings { get; } = new OperationsConfiguration();
-
         public StoreConfiguration StoreServiceSettings { get; } = new StoreConfiguration();
 
         public ExtendedQueryTagConfiguration ExtendedQueryTag { get; } = new ExtendedQueryTagConfiguration();
+
+        public OperationsConfiguration Operations { get; } = new OperationsConfiguration();
     }
 }

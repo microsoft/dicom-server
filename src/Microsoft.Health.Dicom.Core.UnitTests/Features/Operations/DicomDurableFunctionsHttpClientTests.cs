@@ -26,6 +26,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
                 StatusRouteTemplate = "Operations/{0}",
             });
 
+        [Fact]
+        public void Ctor_GivenNullArguments_ThrowsArgumentNullException()
+        {
+            var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
+            Assert.Throws<ArgumentNullException>(
+                () => new DicomDurableFunctionsHttpClient(null, DefaultConfig));
+
+            Assert.Throws<ArgumentNullException>(
+                () => new DicomDurableFunctionsHttpClient(new HttpClient(handler), null));
+
+            Assert.Throws<ArgumentNullException>(
+                () => new DicomDurableFunctionsHttpClient(
+                    new HttpClient(handler),
+                    Options.Create<OperationsConfiguration>(null)));
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]

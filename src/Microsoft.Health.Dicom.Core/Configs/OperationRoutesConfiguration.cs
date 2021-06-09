@@ -3,23 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
-    public class OperationsConfiguration
+    public class OperationRoutesConfiguration
     {
         [Required]
-        public Uri BaseAddress { get; set; }
-
-        [Required]
-        public OperationRoutesConfiguration Routes { get; set; }
-
-        [Range(0, int.MaxValue)]
-        public int MaxRetries { get; set; }
-
-        [Range(0, 10000)]
-        public int MinRetryDelayMilliseconds { get; set; }
+        public string StatusTemplate { get; set; }
     }
 }

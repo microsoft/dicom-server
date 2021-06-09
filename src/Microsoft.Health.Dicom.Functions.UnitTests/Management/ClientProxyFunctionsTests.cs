@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             await Assert.ThrowsAsync<ArgumentNullException>(
                 () => ClientProxyFunctions.GetOrchestrationStatusAsync(context.Request, client, id, null));
 
-            await client.DidNotReceive().GetStatusAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<bool>());
+            await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default(string));
         }
 
         [Theory]
@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             Assert.IsType<BadRequestResult>(
                 await ClientProxyFunctions.GetOrchestrationStatusAsync(context.Request, client, id, NullLogger.Instance));
 
-            await client.DidNotReceive().GetStatusAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<bool>());
+            await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default(string));
         }
 
         [Fact]
@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
                 id,
                 NullLogger.Instance));
 
-            await client.Received(1).GetStatusAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<bool>());
+            await client.Received(1).GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false);
         }
 
         [Fact]
@@ -87,16 +87,16 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
             client.GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false).Returns(status);
 
-            IActionResult result = await ClientProxyFunctions.GetOrchestrationStatusAsync(
+            var result = await ClientProxyFunctions.GetOrchestrationStatusAsync(
                 context.Request,
                 client,
                 id,
-                NullLogger.Instance);
+                NullLogger.Instance) as OkObjectResult;
 
-            Assert.IsType<OkObjectResult>(result);
-            Assert.Same(status, (result as OkObjectResult).Value);
+            Assert.NotNull(result);
+            Assert.Same(status, result.Value);
 
-            await client.Received(1).GetStatusAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<bool>());
+            await client.Received(1).GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false);
         }
     }
 }

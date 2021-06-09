@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -19,17 +21,22 @@ using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Polly;
+using Polly.Contrib.WaitAndRetry;
 
 namespace Microsoft.Health.Dicom.Core.Modules
 {
     public class ServiceModule : IStartupModule
     {
         private readonly FeatureConfiguration _featureConfiguration;
+        private readonly OperationsConfiguration _operationsConfiguration;
 
-        public ServiceModule(FeatureConfiguration featureConfiguration)
+        public ServiceModule(FeatureConfiguration featureConfiguration, OperationsConfiguration operationsConfiguration)
         {
             EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+            EnsureArg.IsNotNull(operationsConfiguration, nameof(operationsConfiguration));
+
             _featureConfiguration = featureConfiguration;
+            _operationsConfiguration = operationsConfiguration;
         }
 
         public void Load(IServiceCollection services)
@@ -145,8 +152,12 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            IEnumerable<TimeSpan> delays = Backoff.ExponentialBackoff(
+                TimeSpan.FromMilliseconds(_operationsConfiguration.MinRetryDelayMilliseconds),
+                _operationsConfiguration.MaxRetries);
+
             services.AddHttpClient<DicomDurableFunctionsHttpClient>()
-                .AddTransientHttpErrorPolicy(p => p.RetryAsync(3));
+                .AddTransientHttpErrorPolicy(p => p.WaitAndRetryAsync(delays));
 
             services.Add<DicomDurableFunctionsHttpClient>()
                 .Scoped()
