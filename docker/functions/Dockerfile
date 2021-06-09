@@ -9,8 +9,12 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
 # Copy the DICOM Server repository and build the Azure Functions project
-FROM mcr.microsoft.com/dotnet/sdk:3.1.409-alpine3.12@sha256:3647a1c8c0b1c5533a3af9861e79299e07be33340f19b310ab9b74e2555e1b59 AS build
+# Note: While the latest .NET SDK is used for building, Azure Functions build target requires .NET Core 3.1 to be installed
+FROM mcr.microsoft.com/dotnet/sdk:5.0.300-alpine3.12@sha256:cd03cb780dc61a1ef6e450a9e7025aa34c15a2c03e8a62a5dcfe7f490f7d2905 AS build
 ARG BUILD_CONFIGURATION=Release
+RUN set -x && \
+    apk add --no-cache bash && \
+    curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel 3.1 -InstallDir /usr/share/dotnet
 WORKDIR /dicom-server
 COPY . .
 WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Functions
@@ -19,7 +23,7 @@ RUN dotnet build "Microsoft.Health.Dicom.Functions.csproj" -c $BUILD_CONFIGURATI
 # Publish the Azure Functions from the build
 FROM build as publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Microsoft.Health.Dicom.Functions.csproj" -c $BUILD_CONFIGURATION --no-build -o /home/site/wwwroot
+RUN dotnet publish "Microsoft.Health.Dicom.Functions.csproj" --framework netcoreapp3.1 -c $BUILD_CONFIGURATION --no-build -o /home/site/wwwroot
 
 # Copy the published application
 FROM az-func-runtime AS dicom-az-func
