@@ -25,10 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
