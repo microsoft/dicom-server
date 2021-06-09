@@ -5,7 +5,6 @@
 
 using System;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -14,7 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Controllers;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
-using Microsoft.Health.Dicom.Core.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Net.Http.Headers;
 using NSubstitute;
 using Xunit;
@@ -41,7 +40,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             Assert.IsType<NotFoundResult>(await controller.GetOperationStatusAsync(id));
             Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.Location));
 
-            await mediator.Received(1).Send(Arg.Any<OperationStatusRequest>(), Arg.Any<CancellationToken>());
+            await mediator.Received(1).Send(
+                Arg.Is<OperationStatusRequest>(x => x.Id == id),
+                Arg.Is(controller.HttpContext.RequestAborted));
         }
 
         [Theory]
@@ -78,7 +79,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             Assert.Same(expected, actual.Value);
             Assert.Equal("/api/v1/Operations/" + id, headerValue[0]);
 
-            await mediator.Received(1).Send(Arg.Any<OperationStatusRequest>(), Arg.Any<CancellationToken>());
+            await mediator.Received(1).Send(
+                Arg.Is<OperationStatusRequest>(x => x.Id == id),
+                Arg.Is(controller.HttpContext.RequestAborted));
         }
 
         [Theory]
@@ -115,7 +118,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             Assert.Equal((int)HttpStatusCode.OK, actual.StatusCode);
             Assert.Same(expected, actual.Value);
 
-            await mediator.Received(1).Send(Arg.Any<OperationStatusRequest>(), Arg.Any<CancellationToken>());
+            await mediator.Received(1).Send(
+                Arg.Is<OperationStatusRequest>(x => x.Id == id),
+                Arg.Is(controller.HttpContext.RequestAborted));
         }
     }
 }

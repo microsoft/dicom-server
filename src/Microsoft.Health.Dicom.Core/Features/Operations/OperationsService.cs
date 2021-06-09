@@ -25,6 +25,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
 
         public async Task<OperationStatusResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNullOrWhiteSpace(id, nameof(id));
+
             OperationStatusResponse response = await _client.GetStatusAsync(id, cancellationToken);
             return PublicOperationTypes.Contains(response.Type) ? response : null;
         }

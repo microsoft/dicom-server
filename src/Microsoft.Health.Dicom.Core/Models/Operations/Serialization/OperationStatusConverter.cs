@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Models.Operations.Serialization
@@ -15,7 +16,17 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations.Serialization
         public override OperationStatus ReadJson(JsonReader reader, Type objectType, OperationStatus existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             // TODO: Support Nullable<OperationStatus> is necessary
-            string value = reader.ReadAsString();
+            if (reader.TokenType is not (JsonToken.String or JsonToken.Null))
+            {
+                throw new JsonReaderException(
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.UnexpectedJsonToken,
+                        JsonToken.String,
+                        reader.TokenType));
+            }
+
+            string value = reader.Value as string;
             if (value is null)
             {
                 return OperationStatus.Unknown;

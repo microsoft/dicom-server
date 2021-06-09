@@ -386,4 +386,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
     <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
   </data>
+  <data name="UnexpectedJsonToken" xml:space="preserve">
+    <value>Expected JSON token type {0} but read {1}.</value>
+    <comment>{0} Expected Token Type. {1} Actual Token Type.</comment>
+  </data>
 </root>

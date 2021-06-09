@@ -48,30 +48,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
                 string.Format(CultureInfo.InvariantCulture, _config.StatusRouteTemplate, id),
                 UriKind.Relative);
 
-            using (HttpResponseMessage response = await _client.GetAsync(statusRoute, cancellationToken))
+            using HttpResponseMessage response = await _client.GetAsync(statusRoute, cancellationToken);
+            if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-
-                // Re-throw any exceptions we may have encountered when making the HTTP request
-                response.EnsureSuccessStatusCode();
-
-                DurableOrchestrationInstanceStatus responseState = JsonConvert.DeserializeObject<DurableOrchestrationInstanceStatus>(
-#if NET5_0_OR_GREATER
-                    await response.Content.ReadAsStringAsync(cancellationToken),
-#else
-                    await response.Content.ReadAsStringAsync(),
-#endif
-                    JsonSettings);
-
-                return new OperationStatusResponse(
-                    responseState.InstanceId,
-                    responseState.Type,
-                    responseState.CreatedTime,
-                    responseState.RuntimeStatus);
+                return null;
             }
+
+            // Re-throw any exceptions we may have encountered when making the HTTP request
+            response.EnsureSuccessStatusCode();
+
+            DurableOrchestrationInstanceStatus responseState = JsonConvert.DeserializeObject<DurableOrchestrationInstanceStatus>(
+#if NET5_0_OR_GREATER
+                await response.Content.ReadAsStringAsync(cancellationToken),
+#else
+                await response.Content.ReadAsStringAsync(),
+#endif
+                JsonSettings);
+
+            return new OperationStatusResponse(
+                responseState.InstanceId,
+                responseState.Type,
+                responseState.CreatedTime,
+                responseState.RuntimeStatus);
         }
     }
 }
