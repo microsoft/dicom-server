@@ -10,7 +10,7 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
 
 # Copy the DICOM Server repository and build the Azure Functions project
 # Note: While the latest .NET SDK is used for building, Azure Functions build target requires .NET Core 3.1 to be installed
-FROM mcr.microsoft.com/dotnet/sdk:5.0.300-alpine3.12@sha256:cd03cb780dc61a1ef6e450a9e7025aa34c15a2c03e8a62a5dcfe7f490f7d2905 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.301-alpine3.12@sha256:2e36595afe0c5e1f8c595ae0586d1c003817561afc8ab93586c6afde1d32e77c AS build
 ARG BUILD_CONFIGURATION=Release
 RUN set -x && \
     apk add --no-cache bash && \
