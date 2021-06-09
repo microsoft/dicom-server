@@ -8,23 +8,19 @@ using System.Collections.Generic;
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    /// Represents a batch of DICOM instances to be re-indexed based on the given tags.
+    ///  Represents input to <see cref="ReindexDurableFunction.PrepareReindexingTagsAsync"/>
     /// </summary>
-    public class ReindexBatch
+    public class PrepareReindexingTagsInput
     {
         /// <summary>
-        /// Gets or sets the inclusive starting watermark.
+        /// Gets or sets the operation id
         /// </summary>
-        public long Start { get; set; }
+        public string OperationId { get; set; }
 
         /// <summary>
-        /// Gets or sets the exclusive ending watermark.
+        /// Gets or sets the tag keys
         /// </summary>
-        public long End { get; set; }
+        public IReadOnlyList<int> TagKeys { get; set; }
 
-        /// <summary>
-        /// Gets or sets the tags upon which to index.
-        /// </summary>
-        public IReadOnlyList<ExtendedQueryTagEntry> TagEntries { get; set; }
     }
 }

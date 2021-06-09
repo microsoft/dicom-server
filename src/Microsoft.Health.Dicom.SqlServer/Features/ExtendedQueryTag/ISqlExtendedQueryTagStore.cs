@@ -8,7 +8,7 @@ using Microsoft.Health.Dicom.SqlServer.Feature.Common;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    interface ISqlExtendedQueryTagStore : IExtendedQueryTagStore, IVersioned
+    internal interface ISqlExtendedQueryTagStore : IExtendedQueryTagStore, IVersioned
     {
     }
 }
