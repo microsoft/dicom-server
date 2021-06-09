@@ -27,7 +27,6 @@
     </None>
     <None Include="docker-compose.yml" />
     <None Include="sql\Dockerfile" />
-    <None Include=".dockerignore" />
   </ItemGroup>
 
 </Project>
