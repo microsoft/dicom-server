@@ -4,14 +4,15 @@ parameters:
 
 steps:
   - task: UseDotNet@2
-    displayName: 'Use .NET Core sdk (for sql generation)'
-    inputs:
-      version: '3.1.401'
-
-  - task: UseDotNet@2
     displayName: 'Use .NET Core sdk'
     inputs:
       useGlobalJson: true
+
+  # For Az Func and SQL Code-Gen
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core 3.1x SDK'
+    inputs:
+      version: '3.1.x'
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet build $(buildConfiguration)'
