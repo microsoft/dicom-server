@@ -38,13 +38,35 @@ namespace Microsoft.Health.Dicom.Web
                 .AddSqlServer(Configuration)
                 .AddBackgroundWorkers();
 
+            services.AddApiVersioning(c =>
+            {
+                c.AssumeDefaultVersionWhenUnspecified = true;
+                c.DefaultApiVersion = new AspNetCore.Mvc.ApiVersion(1, 0);
+            });
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1",
+                    new OpenApi.Models.OpenApiInfo()
+                    {
+                        Title = "NetCore.WebApiExample",
+                        Version = "1.0",
+                        Description = "This API features several endpoints showing different API features"
+                    });
+            });
+
             AddApplicationInsightsTelemetry(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public virtual void Configure(IApplicationBuilder app)
         {
+            app.UseSwagger();
             app.UseDicomServer();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"NetCore.WebApiExample 1.0");
+            });
 
             app.UseDevelopmentIdentityProviderIfConfigured();
         }

@@ -12,6 +12,7 @@
     <PackageReference Include="IdentityServer4.Storage" Version="4.1.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ApiExplorer" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.15" />
@@ -19,6 +20,9 @@
     <PackageReference Include="Microsoft.Health.Development.IdentityProvider" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.1.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.1.4" />
     <PackageReference Include="System.Text.Encodings.Web" Version="5.0.1" />
   </ItemGroup>
 
@@ -39,5 +43,10 @@
       <UserProperties appsettings_1json__JsonSchema="" />
     </VisualStudio>
   </ProjectExtensions>
+
+  <!--<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="dotnet tool restore" />
+    <Exec Command="dotnet swagger tofile output swagger.json $(OutputPath)\$(AssemblyName).dll v1 " />
+  </Target>-->
 
 </Project>
