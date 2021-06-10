@@ -1,4 +1,5 @@
-﻿# Debugging for Azure Functions project is not supported out-of-the-box for Docker Compose tooling. See microsoft/DockerTools#124 for details.
+﻿# Debugging for Azure Functions project is not supported out-of-the-box for Docker Compose tooling.
+# See microsoft/DockerTools#124 for details.
 # To attach a debugger manually, follow the steps here:
 # https://docs.microsoft.com/en-us/visualstudio/debugger/attach-to-running-processes-with-the-visual-studio-debugger?view=vs-2019#BKMK_Linux_Docker_Attach
 
@@ -23,7 +24,7 @@ RUN dotnet build "Microsoft.Health.Dicom.Functions.csproj" -c $BUILD_CONFIGURATI
 # Publish the Azure Functions from the build
 FROM build as publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Microsoft.Health.Dicom.Functions.csproj" --framework netcoreapp3.1 -c $BUILD_CONFIGURATION --no-build -o /home/site/wwwroot
+RUN dotnet publish "Microsoft.Health.Dicom.Functions.csproj" -c $BUILD_CONFIGURATION --no-build --framework netcoreapp3.1 -o /home/site/wwwroot
 
 # Copy the published application
 FROM az-func-runtime AS dicom-az-func
