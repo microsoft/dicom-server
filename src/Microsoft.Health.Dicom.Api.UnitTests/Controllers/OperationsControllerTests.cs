@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         }
 
         [Fact]
-        public async Task GetOperationStatusAsync_GivenNullStatus_ReturnNotFound()
+        public async Task GetStatusAsync_GivenNullStatus_ReturnNotFound()
         {
             string id = Guid.NewGuid().ToString();
             IMediator mediator = Substitute.For<IMediator>();
@@ -45,22 +45,22 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
 
             mediator
                 .Send(
-                    Arg.Is<OperationStatusRequest>(x => x.Id == id),
+                    Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                     Arg.Is(controller.HttpContext.RequestAborted))
                 .Returns((OperationStatusResponse)null);
 
-            Assert.IsType<NotFoundResult>(await controller.GetOperationStatusAsync(id));
+            Assert.IsType<NotFoundResult>(await controller.GetStatusAsync(id));
             Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.Location));
 
             await mediator.Received(1).Send(
-                Arg.Is<OperationStatusRequest>(x => x.Id == id),
+                Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                 Arg.Is(controller.HttpContext.RequestAborted));
         }
 
         [Theory]
-        [InlineData(OperationStatus.Pending)]
-        [InlineData(OperationStatus.Running)]
-        public async Task GetOperationStatusAsync_GivenInProgressStatus_ReturnOk(OperationStatus inProgressStatus)
+        [InlineData(OperationRuntimeStatus.Pending)]
+        [InlineData(OperationRuntimeStatus.Running)]
+        public async Task GetStatusAsync_GivenInProgressStatus_ReturnOk(OperationRuntimeStatus inProgressStatus)
         {
             string id = Guid.NewGuid().ToString();
             IMediator mediator = Substitute.For<IMediator>();
@@ -77,11 +77,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
 
             mediator
                 .Send(
-                    Arg.Is<OperationStatusRequest>(x => x.Id == id),
+                    Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                     Arg.Is(controller.HttpContext.RequestAborted))
                 .Returns(expected);
 
-            IActionResult response = await controller.GetOperationStatusAsync(id);
+            IActionResult response = await controller.GetStatusAsync(id);
             Assert.IsType<ObjectResult>(response);
             Assert.True(controller.Response.Headers.TryGetValue(HeaderNames.Location, out StringValues headerValue));
             Assert.Single(headerValue);
@@ -92,16 +92,16 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             Assert.Equal("/api/v1/Operations/" + id, headerValue[0]);
 
             await mediator.Received(1).Send(
-                Arg.Is<OperationStatusRequest>(x => x.Id == id),
+                Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                 Arg.Is(controller.HttpContext.RequestAborted));
         }
 
         [Theory]
-        [InlineData(OperationStatus.Unknown)]
-        [InlineData(OperationStatus.Completed)]
-        [InlineData(OperationStatus.Failed)]
-        [InlineData(OperationStatus.Canceled)]
-        public async Task GetOperationStatusAsync_GivenDoneStatus_ReturnOk(OperationStatus doneStatus)
+        [InlineData(OperationRuntimeStatus.Unknown)]
+        [InlineData(OperationRuntimeStatus.Completed)]
+        [InlineData(OperationRuntimeStatus.Failed)]
+        [InlineData(OperationRuntimeStatus.Canceled)]
+        public async Task GetStatusAsync_GivenDoneStatus_ReturnOk(OperationRuntimeStatus doneStatus)
         {
             string id = Guid.NewGuid().ToString();
             IMediator mediator = Substitute.For<IMediator>();
@@ -118,11 +118,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
 
             mediator
                 .Send(
-                    Arg.Is<OperationStatusRequest>(x => x.Id == id),
+                    Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                     Arg.Is(controller.HttpContext.RequestAborted))
                 .Returns(expected);
 
-            IActionResult response = await controller.GetOperationStatusAsync(id);
+            IActionResult response = await controller.GetStatusAsync(id);
             Assert.IsType<ObjectResult>(response);
             Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.Location));
 
@@ -131,7 +131,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             Assert.Same(expected, actual.Value);
 
             await mediator.Received(1).Send(
-                Arg.Is<OperationStatusRequest>(x => x.Id == id),
+                Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                 Arg.Is(controller.HttpContext.RequestAborted));
         }
     }

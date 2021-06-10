@@ -129,8 +129,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
 
             Assert.NotNull(actual);
             Assert.Equal(createdDateTime, actual.CreatedTime);
-            Assert.Equal(id, actual.Id);
-            Assert.Equal(OperationStatus.Running, actual.Status);
+            Assert.Equal(id, actual.OperationId);
+            Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
             Assert.Equal(OperationType.Reindex, actual.Type);
         }
 

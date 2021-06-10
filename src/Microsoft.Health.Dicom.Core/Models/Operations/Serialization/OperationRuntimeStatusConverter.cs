@@ -9,11 +9,11 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Models.Operations.Serialization
 {
-    internal class OperationStatusConverter : JsonConverter<OperationStatus>
+    internal class OperationRuntimeStatusConverter : JsonConverter<OperationRuntimeStatus>
     {
         public override bool CanWrite => false;
 
-        public override OperationStatus ReadJson(JsonReader reader, Type objectType, OperationStatus existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override OperationRuntimeStatus ReadJson(JsonReader reader, Type objectType, OperationRuntimeStatus existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             // TODO: Support Nullable<OperationStatus> is necessary
             if (reader.TokenType is not (JsonToken.String or JsonToken.Null))
@@ -29,37 +29,37 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations.Serialization
             string value = reader.Value as string;
             if (value is null)
             {
-                return OperationStatus.Unknown;
+                return OperationRuntimeStatus.Unknown;
             }
             else if (value.Equals("Pending", StringComparison.OrdinalIgnoreCase))
             {
-                return OperationStatus.Pending;
+                return OperationRuntimeStatus.Pending;
             }
             else if (value.Equals("Running", StringComparison.OrdinalIgnoreCase) ||
                 value.Equals("ContinuedAsNew", StringComparison.OrdinalIgnoreCase))
             {
-                return OperationStatus.Running;
+                return OperationRuntimeStatus.Running;
             }
             else if (value.Equals("Completed", StringComparison.OrdinalIgnoreCase))
             {
-                return OperationStatus.Completed;
+                return OperationRuntimeStatus.Completed;
             }
             else if (value.Equals("Failed", StringComparison.OrdinalIgnoreCase))
             {
-                return OperationStatus.Failed;
+                return OperationRuntimeStatus.Failed;
             }
             else if (value.Equals("Canceled", StringComparison.OrdinalIgnoreCase) ||
                 value.Equals("Terminated", StringComparison.OrdinalIgnoreCase))
             {
-                return OperationStatus.Canceled;
+                return OperationRuntimeStatus.Canceled;
             }
             else
             {
-                return OperationStatus.Unknown;
+                return OperationRuntimeStatus.Unknown;
             }
         }
 
-        public override void WriteJson(JsonWriter writer, OperationStatus value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, OperationRuntimeStatus value, JsonSerializer serializer)
         {
             throw new NotSupportedException();
         }

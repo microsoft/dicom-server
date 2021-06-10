@@ -20,6 +20,9 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
+    /// <summary>
+    /// Represents a client for interacting with DICOM-specific Azure Durable Orchestrations.
+    /// </summary>
     internal class DicomDurableFunctionsHttpClient : IDicomOperationsClient
     {
         private readonly HttpClient _client;
@@ -29,6 +32,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
         };
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DicomDurableFunctionsHttpClient"/> class.
+        /// </summary>
+        /// <param name="client">The HTTP client used to communicate with the HTTP triggered functions.</param>
+        /// <param name="config">A configuration that specifies how to communicate with the Azure Functions.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="client"/>, <paramref name="config"/>, or the value of the configuration is <see langword="null"/>.
+        /// </exception>
         public DicomDurableFunctionsHttpClient(HttpClient client, IOptions<OperationsConfiguration> config)
         {
             EnsureArg.IsNotNull(client, nameof(client));
@@ -41,11 +52,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
             _config = config.Value;
         }
 
-        public async Task<OperationStatusResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default)
+        /// <inheritdoc/>
+        public async Task<OperationStatusResponse> GetStatusAsync(string operationId, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(id, nameof(id));
+            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
+
             var statusRoute = new Uri(
-                string.Format(CultureInfo.InvariantCulture, _config.Routes.StatusTemplate, id),
+                string.Format(CultureInfo.InvariantCulture, _config.Routes.StatusTemplate, operationId),
                 UriKind.Relative);
 
             using HttpResponseMessage response = await _client.GetAsync(statusRoute, cancellationToken);

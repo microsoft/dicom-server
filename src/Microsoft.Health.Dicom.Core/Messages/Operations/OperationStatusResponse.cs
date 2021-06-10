@@ -9,30 +9,62 @@ using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Operations
 {
+    /// <summary>
+    /// Represents the metadata for a long-running DICOM operation.
+    /// </summary>
     public class OperationStatusResponse
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OperationStatusResponse"/> class.
+        /// </summary>
+        /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
+        /// <param name="type"></param>
+        /// <param name="createdTime"></param>
+        /// <param name="status"></param>
+        /// <exception cref="ArgumentException"><paramref name="operationId"/> consists of white space characters.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="operationId"/> is <see langword="null"/>.</exception>
         public OperationStatusResponse(
-            string id,
+            string operationId,
             OperationType type,
             DateTime createdTime,
-            OperationStatus status)
+            OperationRuntimeStatus status)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(id, nameof(id));
+            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
             EnsureArg.EnumIsDefined(type, nameof(type));
             EnsureArg.EnumIsDefined(status, nameof(status));
 
-            Id = id;
+            OperationId = operationId;
             Type = type;
             CreatedTime = createdTime;
             Status = status;
         }
 
-        public string Id { get; }
+        /// <summary>
+        /// Gets the operation ID.
+        /// </summary>
+        /// <value>The unique ID that denotes a particular operation.</value>
+        public string OperationId { get; }
 
+        /// <summary>
+        /// Gets the category of the operation.
+        /// </summary>
+        /// <value>
+        /// The <see cref="OperationType"/> if recognized; otherwise <see cref="OperationType.Unknown"/>.
+        /// </value>
         public OperationType Type { get; }
 
+        /// <summary>
+        /// Gets the time the operation was started.
+        /// </summary>
+        /// <value>The <see cref="DateTime"/> when the operation was started.</value>
         public DateTime CreatedTime { get; }
 
-        public OperationStatus Status { get; }
+        /// <summary>
+        /// Gets the execution status of the operation.
+        /// </summary>
+        /// <value>
+        /// The <see cref="OperationRuntimeStatus"/> if recognized; otherwise <see cref="OperationType.Unknown"/>.
+        /// </value>
+        public OperationRuntimeStatus Status { get; }
     }
 }

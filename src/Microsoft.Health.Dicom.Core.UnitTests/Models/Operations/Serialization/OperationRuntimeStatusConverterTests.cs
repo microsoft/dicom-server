@@ -12,18 +12,18 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Models.Operations.Serialization
 {
-    public class OperationStatusConverterTests
+    public class OperationRuntimeStatusConverterTests
     {
         [Fact]
         public void CanRead()
         {
-            Assert.True(new OperationStatusConverter().CanRead);
+            Assert.True(new OperationRuntimeStatusConverter().CanRead);
         }
 
         [Fact]
         public void CanWrite()
         {
-            Assert.False(new OperationStatusConverter().CanWrite);
+            Assert.False(new OperationRuntimeStatusConverter().CanWrite);
         }
 
         [Theory]
@@ -38,33 +38,33 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Models.Operations.Serialization
 
             Assert.Equal(json != "", jsonReader.Read());
             Assert.Throws<JsonReaderException>(
-                () => new OperationStatusConverter().ReadJson(
+                () => new OperationRuntimeStatusConverter().ReadJson(
                     jsonReader,
-                    typeof(OperationStatus),
+                    typeof(OperationRuntimeStatus),
                     null,
                     new JsonSerializer()));
         }
 
         [Theory]
-        [InlineData("null", OperationStatus.Unknown)]
-        [InlineData("\"Pending\"", OperationStatus.Pending)]
-        [InlineData("\"running\"", OperationStatus.Running)]
-        [InlineData("\"ContinuedAsNew\"", OperationStatus.Running)]
-        [InlineData("\"completed\"", OperationStatus.Completed)]
-        [InlineData("\"Failed\"", OperationStatus.Failed)]
-        [InlineData("\"CANCELED\"", OperationStatus.Canceled)]
-        [InlineData("\"TerMINated\"", OperationStatus.Canceled)]
-        [InlineData("\"Unknown\"", OperationStatus.Unknown)]
-        [InlineData("\"Something Else\"", OperationStatus.Unknown)]
-        public void ReadJson_GivenStringOrNullToken_ReturnOperationStatus(string json, OperationStatus expected)
+        [InlineData("null", OperationRuntimeStatus.Unknown)]
+        [InlineData("\"Pending\"", OperationRuntimeStatus.Pending)]
+        [InlineData("\"running\"", OperationRuntimeStatus.Running)]
+        [InlineData("\"ContinuedAsNew\"", OperationRuntimeStatus.Running)]
+        [InlineData("\"completed\"", OperationRuntimeStatus.Completed)]
+        [InlineData("\"Failed\"", OperationRuntimeStatus.Failed)]
+        [InlineData("\"CANCELED\"", OperationRuntimeStatus.Canceled)]
+        [InlineData("\"TerMINated\"", OperationRuntimeStatus.Canceled)]
+        [InlineData("\"Unknown\"", OperationRuntimeStatus.Unknown)]
+        [InlineData("\"Something Else\"", OperationRuntimeStatus.Unknown)]
+        public void ReadJson_GivenStringOrNullToken_ReturnOperationStatus(string json, OperationRuntimeStatus expected)
         {
             using var reader = new StringReader(json);
             using var jsonReader = new JsonTextReader(reader);
 
             Assert.True(jsonReader.Read());
-            OperationStatus actual = (OperationStatus)(new OperationStatusConverter().ReadJson(
+            OperationRuntimeStatus actual = (OperationRuntimeStatus)(new OperationRuntimeStatusConverter().ReadJson(
                     jsonReader,
-                    typeof(OperationStatus),
+                    typeof(OperationRuntimeStatus),
                     null,
                     new JsonSerializer()));
 
@@ -75,9 +75,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Models.Operations.Serialization
         public void WriteJson_GivenAnyInput_ThrowsNotSupportedException()
         {
             Assert.Throws<NotSupportedException>(
-                () => new OperationStatusConverter().WriteJson(
+                () => new OperationRuntimeStatusConverter().WriteJson(
                     new JsonTextWriter(new StreamWriter(Stream.Null)),
-                    OperationStatus.Running,
+                    OperationRuntimeStatus.Running,
                     new JsonSerializer()));
         }
     }

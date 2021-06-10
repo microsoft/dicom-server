@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
             var handler = new OperationStatusHandler(service);
 
             string id = Guid.NewGuid().ToString();
-            var expected = new OperationStatusResponse(id, OperationType.Reindex, DateTime.UtcNow, OperationStatus.Completed);
+            var expected = new OperationStatusResponse(id, OperationType.Reindex, DateTime.UtcNow, OperationRuntimeStatus.Completed);
             service.GetStatusAsync(Arg.Is(id), Arg.Is(source.Token)).Returns(expected);
 
             Assert.Same(expected, await handler.Handle(new OperationStatusRequest(id), source.Token));

@@ -65,7 +65,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
 
             string id = Guid.NewGuid().ToString();
             client.GetStatusAsync(Arg.Is(id), Arg.Is(source.Token))
-                .Returns(new OperationStatusResponse(id, type, DateTime.UtcNow, OperationStatus.Completed));
+                .Returns(new OperationStatusResponse(id, type, DateTime.UtcNow, OperationRuntimeStatus.Completed));
 
             Assert.Null(await service.GetStatusAsync(id, source.Token));
 
@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
             var service = new OperationsService(client);
 
             string id = Guid.NewGuid().ToString();
-            var expected = new OperationStatusResponse(id, type, DateTime.UtcNow, OperationStatus.Completed);
+            var expected = new OperationStatusResponse(id, type, DateTime.UtcNow, OperationRuntimeStatus.Completed);
             client.GetStatusAsync(Arg.Is(id), Arg.Is(source.Token)).Returns(expected);
 
             Assert.Same(expected, await service.GetStatusAsync(id, source.Token));

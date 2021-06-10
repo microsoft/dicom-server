@@ -23,12 +23,23 @@ using DicomApiAuditLoggingFilterAttribute = Microsoft.Health.Dicom.Api.Features.
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    /// <summary>
+    /// Represents the REST API controller for interacting with long-running DICOM operations.
+    /// </summary>
     [ServiceFilter(typeof(DicomApiAuditLoggingFilterAttribute))]
     public class OperationsController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly ILogger<OperationsController> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OperationsController"/> class.
+        /// </summary>
+        /// <param name="mediator">A mediator object for passing requests to corresponding handlers.</param>
+        /// <param name="logger">A controller-specific logger.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="mediator"/> or <paramref name="logger"/> is <see langword="null"/>.
+        /// </exception>
         public OperationsController(IMediator mediator, ILogger<OperationsController> logger)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
@@ -38,6 +49,22 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Gets the status of a DICOM operation based on its ID.
+        /// </summary>
+        /// <remarks>
+        /// If the operation has not yet completed, then its response will include a "Location" header directing
+        /// clients to the URL where the status can be checked queried.
+        /// </remarks>
+        /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
+        /// <returns>
+        /// A task representing the <see cref="GetStatusAsync(string)"/> operation. The value of its
+        /// <see cref="Task{TResult}.Result"/> property contains the status of the operation, if found;
+        /// otherwise <see cref="NotFoundResult"/>
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="operationId"/> consists of white space characters.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="operationId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="OperationCanceledException">The connection was aborted.</exception>
         [HttpGet]
         [Route(KnownRoutes.OperationInstanceRoute)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -45,7 +72,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.OK)]
         [AuditEventType(AuditEventSubType.Operation)]
-        public async Task<IActionResult> GetOperationStatusAsync([Required] string operationId)
+        public async Task<IActionResult> GetStatusAsync([Required] string operationId)
         {
             _logger.LogInformation("DICOM Web Get Operation Status request received for ID '{OperationId}'", operationId);
 
@@ -57,7 +84,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             }
 
             HttpStatusCode statusCode;
-            if (response.Status == OperationStatus.Pending || response.Status == OperationStatus.Running)
+            if (response.Status == OperationRuntimeStatus.Pending || response.Status == OperationRuntimeStatus.Running)
             {
                 Response.AddLocationHeader(new Uri(UriHelper.BuildRelative(Request.PathBase, Request.Path), UriKind.Relative));
                 statusCode = HttpStatusCode.Accepted;

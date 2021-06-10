@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
@@ -10,22 +11,25 @@ using Microsoft.Health.Dicom.Core.Messages.Operations;
 namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
     /// <summary>
-    /// Represents a client for communicating with DICOM-specific long-running operations.
+    /// Represents a client for interacting with long-running DICOM operations.
     /// </summary>
     public interface IDicomOperationsClient
     {
         /// <summary>
-        /// Fetches the status of a long-running operation for the given <paramref name="id"/>.
+        /// Fetches the status of a long-running operation for the given <paramref name="operationId"/>.
         /// </summary>
-        /// <param name="id">The ID for the operation.</param>
+        /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
         /// <param name="cancellationToken">
-        /// An optional token for cancelling the execution of the
-        /// <see cref="GetStatusAsync(string, CancellationToken)"/> operation.
+        /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
         /// A task representing the <see cref="GetStatusAsync(string, CancellationToken)"/> operation.
-        /// The result of the task is the status of the operation with the specified <paramref name="id"/>
+        /// The value of its <see cref="Task{TResult}.Result"/> property contains the status of the operation
+        /// with the specified <paramref name="operationId"/>, if found; otherwise <see langword="null"/>.
         /// </returns>
-        Task<OperationStatusResponse> GetStatusAsync(string id, CancellationToken cancellationToken = default);
+        /// <exception cref="ArgumentException"><paramref name="operationId"/> consists of white space characters.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="operationId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+        Task<OperationStatusResponse> GetStatusAsync(string operationId, CancellationToken cancellationToken = default);
     }
 }
