@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Registration
 {
     public static class DicomFunctionsBuilderCoreRegistrationExtensions
     {
-        public static IDicomFunctionsBuilder AddCoreComponents(
+        public static IDicomFunctionsBuilder AddDicomFunctionsServices(
             this IDicomFunctionsBuilder builder)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));

@@ -129,17 +129,22 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             await Task.WhenAll(tasks);
         }
 
-        /// <returns>The store entries.</returns>
-        [FunctionName(nameof(UpdateSchemaVersionAsync))]
-        public async Task UpdateSchemaVersionAsync([ActivityTrigger] IDurableActivityContext context, ILogger log)
+        /// <summary>
+        ///  Fetch schema version.
+        /// </summary>
+        /// <param name="context">The durable activity context.</param>
+        /// <param name="log">The log</param>
+        /// <returns>The task.</returns>
+        [FunctionName(nameof(FetchSchemaVersionAsync))]
+        public async Task FetchSchemaVersionAsync([ActivityTrigger] IDurableActivityContext context, ILogger log)
         {
             // TODO: performance improvement, don't need to call service for every call.
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(log, nameof(log));
-            log.LogInformation("Update schema version");
+            log.LogInformation("Fetching schema version");
             int version = await _schemaManagerDataStore.GetCurrentSchemaVersionAsync(default);
             _schemaInformation.Current = version;
-            log.LogInformation("Current schema version is set to {version}", version);
+            log.LogInformation("Schema version is {version}", version);
         }
     }
 }

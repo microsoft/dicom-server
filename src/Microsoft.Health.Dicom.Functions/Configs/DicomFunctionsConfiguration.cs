@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Microsoft.Health.Dicom.Functions.Configs
 {
     /// <summary>
-    /// Represents configuration settings related to the indexing of data.
+    /// Represents configuration settings related to the Dicom functions.
     /// </summary>
     public class DicomFunctionsConfiguration
     {

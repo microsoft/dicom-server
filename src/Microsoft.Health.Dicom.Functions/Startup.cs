@@ -7,6 +7,7 @@ using EnsureThat;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Registration;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.Startup))]
@@ -21,6 +22,7 @@ namespace Microsoft.Health.Dicom.Functions
 
             IConfiguration configuration = builder.GetContext().Configuration?.GetSection(AzureFunctionsJobHostSection);
             builder.Services.AddDicomFunctions(configuration)
+                .AddDicomFunctionsServices()
                 .AddSqlServer(configuration);
         }
     }

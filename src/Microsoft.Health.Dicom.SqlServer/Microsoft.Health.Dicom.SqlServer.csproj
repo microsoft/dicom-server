@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>SQL Server extensions and utilities used by Microsoft's DICOMweb APIs.</Description>
@@ -39,7 +39,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Configs\" />
     <Folder Include="Features\Schema\Model\" />
   </ItemGroup>
 

@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             // Verify   UpdateSchemaVersionAsync is called
             await context.Received()
                  .CallActivityAsync(
-                 nameof(ReindexDurableFunction.UpdateSchemaVersionAsync),
+                 nameof(ReindexDurableFunction.FetchSchemaVersionAsync),
                  null);
 
             // Verify  AddTagsAsync is called

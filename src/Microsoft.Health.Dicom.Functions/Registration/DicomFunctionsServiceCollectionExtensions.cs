@@ -15,19 +15,18 @@ namespace Microsoft.Health.Dicom.Functions.Registration
     public static class DicomFunctionsServiceCollectionExtensions
     {
         /// <summary>
-        /// Add services for DICOM background workers.
+        /// Add services for DICOM functions.
         /// </summary>
-        /// <param name="services">The DICOM server builder instance.</param>
-        /// <param name="configuration"></param>
-        /// <returns>The DICOM server builder instance.</returns>
+        /// <param name="services">The DICOM function builder instance.</param>
+        /// <param name="configuration">The configuration</param>
+        /// <returns>The DICOM function builder instance.</returns>
         public static IDicomFunctionsBuilder AddDicomFunctions(this IServiceCollection services, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(services, nameof(services));
             DicomFunctionsConfiguration dicomFunctionsConfig = new DicomFunctionsConfiguration();
             configuration?.GetSection(DicomFunctionsConfiguration.SectionName).Bind(dicomFunctionsConfig);
             services.AddSingleton(Options.Create(dicomFunctionsConfig));
-            return new DicomFunctionsBuilder(services)
-                .AddCoreComponents();
+            return new DicomFunctionsBuilder(services);
         }
 
         private class DicomFunctionsBuilder : IDicomFunctionsBuilder

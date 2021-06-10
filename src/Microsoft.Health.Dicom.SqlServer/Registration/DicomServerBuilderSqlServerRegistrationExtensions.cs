@@ -7,6 +7,7 @@ using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Registration;
@@ -105,10 +106,7 @@ namespace Microsoft.Extensions.DependencyInjection
               .AsSelf()
               .AsImplementedInterfaces();
 
-            services.Add<SqlReindexStore>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
+            services.AddScopedDefault<SqlReindexStore>();
 
             return dicomServerBuilder;
         }

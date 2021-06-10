@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         {
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
-            await context.CallActivityAsync(nameof(UpdateSchemaVersionAsync), null);
+            await context.CallActivityAsync(nameof(FetchSchemaVersionAsync), null);
             var input = context.GetInput<IReadOnlyList<AddExtendedQueryTagEntry>>();
             var storeEntires = await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                 nameof(AddTagsAsync),
