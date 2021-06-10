@@ -149,15 +149,6 @@ BEGIN
         InstanceKey             BIGINT               NULL,     --FK
         Watermark               BIGINT               NOT NULL
     ) WITH (DATA_COMPRESSION = PAGE)
-
-    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
-    (
-        TagKey,
-        TagValue,
-        StudyKey,
-        SeriesKey,
-        InstanceKey
-    )
 END
 
 IF NOT EXISTS (
