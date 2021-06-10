@@ -1,17 +1,22 @@
 {
-    "version": "2.0",
-    "logging": {
-        "applicationInsights": {
-            "samplingSettings": {
-                "isEnabled": true,
-                "excludedTypes": "Request"
-            }
-        }
-    },
-    "indexing": {
-        "add": {
-            "batchSize": 1000,
-            "parallelBatches": 10
-        }
+  "version": "2.0",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
     }
+  },
+  "DicomFunctions": {
+    "Indexing": {
+      "Reindex": {
+        "BatchSize": 2,
+        "ParallelBatches": 2
+      }
+    }
+  },
+  "SqlServer": {
+    "ConnectionString": "server=(local);Initial Catalog=Dicom;Integrated Security=true"
+  }
 }

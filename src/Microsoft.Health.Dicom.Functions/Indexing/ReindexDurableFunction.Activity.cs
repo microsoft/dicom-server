@@ -128,5 +128,17 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             await Task.WhenAll(tasks);
         }
+
+        /// <returns>The store entries.</returns>
+        [FunctionName(nameof(UpdateSchemaVersionAsync))]
+        public async Task UpdateSchemaVersionAsync([ActivityTrigger] IDurableActivityContext context, ILogger log)
+        {
+            EnsureArg.IsNotNull(context, nameof(context));
+            EnsureArg.IsNotNull(log, nameof(log));
+            log.LogInformation("Update schema version");
+            int version = await _schemaManagerDataStore.GetCurrentSchemaVersionAsync(default);
+            _schemaInformation.Current = version;
+            log.LogInformation("Current schema version is set to {version}", version);
+        }
     }
 }

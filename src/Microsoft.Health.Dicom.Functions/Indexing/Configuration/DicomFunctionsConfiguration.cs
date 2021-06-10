@@ -10,14 +10,14 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Configuration
     /// <summary>
     /// Represents configuration settings related to the indexing of data.
     /// </summary>
-    public class IndexingConfiguration
+    public class DicomFunctionsConfiguration
     {
-        public const string SectionName = "Indexing";
+        public const string SectionName = "DicomFunctions";
 
         /// <summary>
         /// Gets or sets the settings for re-indexing DICOM instances
         /// </summary>
         [Required]
-        public ReindexConfiguration Add { get; set; }
+        public ReindexConfiguration Reindex { get; set; }
     }
 }

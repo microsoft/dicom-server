@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.SqlServer\Microsoft.Health.Dicom.SqlServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>

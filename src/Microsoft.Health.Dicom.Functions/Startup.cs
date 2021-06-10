@@ -3,30 +3,24 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
+using EnsureThat;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Functions.Indexing.Configuration;
+using Microsoft.Health.Dicom.Functions.Registration;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.Startup))]
 namespace Microsoft.Health.Dicom.Functions
 {
     public class Startup : FunctionsStartup
     {
-        private const string HostSectionName = "AzureFunctionsJobHost";
-
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
+            EnsureArg.IsNotNull(builder, nameof(builder));
 
-            builder.Services
-                .AddOptions<IndexingConfiguration>()
-                .Configure<IConfiguration>((sectionObj, config) => config
-                    .GetSection(HostSectionName)
-                    .GetSection(IndexingConfiguration.SectionName)
-                    .Bind(sectionObj));
+            IConfiguration configuration = builder.GetContext().Configuration?.GetSection("AzureFunctionsJobHost");
+            builder.Services.AddDicomFunctions(configuration)
+                .AddSqlServer(configuration);
         }
     }
 }
