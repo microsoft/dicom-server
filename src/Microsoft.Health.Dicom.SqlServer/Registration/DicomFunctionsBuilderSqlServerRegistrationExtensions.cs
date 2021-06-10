@@ -34,15 +34,16 @@ namespace Microsoft.Extensions.DependencyInjection
 
             SchemaInformation schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
             services.AddSingleton(schemaInformation);
+            services.AddSingleton(Options.Options.Create(config));
 
             AddInitializedSqlServerBase(services, config);
-            services.AddSingleton(Options.Options.Create(config));
-            services.AddSingletonDefault<SqlInstanceStore>();
-            services.AddSingletonDefault<SqlExtendedQueryTagStoreV1>();
-            services.AddSingletonDefault<SqlExtendedQueryTagStoreV2>();
-            services.AddSingletonDefault<SqlExtendedQueryTagStoreV3>();
-            services.AddSingletonDefault<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>();
-            services.AddSingletonDefault<SqlReindexStore>();
+
+            services.AddScopedDefault<SqlInstanceStore>();
+            services.AddScopedDefault<SqlExtendedQueryTagStoreV1>();
+            services.AddScopedDefault<SqlExtendedQueryTagStoreV2>();
+            services.AddScopedDefault<SqlExtendedQueryTagStoreV3>();
+            services.AddScopedDefault<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>();
+            services.AddScopedDefault<SqlReindexStore>();
             return builder;
         }
 
@@ -50,18 +51,19 @@ namespace Microsoft.Extensions.DependencyInjection
            this IServiceCollection services,
            SqlServerDataStoreConfiguration configuration)
         {
-            // TODO: consider moving these logic into healthcare-shared-components (https://github.com/microsoft/healthcare-shared-components/)
-            // once code becomes solid (e.g: merging back to main branch).
-            services.AddSingletonDefault<SchemaManagerDataStore>();
-            services.AddScoped<SqlTransactionHandler>();
-            // TODO:  Use RetrySqlCommandWrapperFactory instead when moving to healthcare-shared-components 
-            services.AddSingletonDefault<SqlCommandWrapperFactory>();
-
             //  SqlServerDataStoreConfiguration is consumed by DefaultSqlConnectionStringProvider
             services.AddSingleton(configuration);
+
+            // TODO: consider moving these logic into healthcare-shared-components (https://github.com/microsoft/healthcare-shared-components/)
+            // once code becomes solid (e.g: merging back to main branch).                 
+            services.AddScopedDefault<SqlTransactionHandler>();
+            services.AddScopedDefault<SqlConnectionWrapperFactory>();
+            services.AddSingletonDefault<SchemaManagerDataStore>();
+            // TODO:  Use RetrySqlCommandWrapperFactory instead when moving to healthcare-shared-components 
+            services.AddSingletonDefault<SqlCommandWrapperFactory>();
             services.AddSingletonDefault<DefaultSqlConnectionStringProvider>();
             services.AddSingletonDefault<DefaultSqlConnectionFactory>();
-            services.AddScoped<SqlConnectionWrapperFactory>();
+
             return services;
         }
     }
