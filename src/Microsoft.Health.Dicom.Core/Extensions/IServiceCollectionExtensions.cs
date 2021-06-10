@@ -19,5 +19,23 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return services;
         }
 
+        public static IServiceCollection AddScopedDefault<T>(this IServiceCollection services)
+        {
+            services.Add<T>()
+                  .Scoped()
+                  .AsSelf()
+                  .AsImplementedInterfaces();
+            return services;
+        }
+
+        public static IServiceCollection AddTransientDefault<T>(this IServiceCollection services)
+        {
+            services.Add<T>()
+                  .Transient()
+                  .AsSelf()
+                  .AsImplementedInterfaces();
+            return services;
+        }
+
     }
 }

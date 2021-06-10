@@ -133,6 +133,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         [FunctionName(nameof(UpdateSchemaVersionAsync))]
         public async Task UpdateSchemaVersionAsync([ActivityTrigger] IDurableActivityContext context, ILogger log)
         {
+            // TODO: performance improvement, don't need to call service for every call.
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(log, nameof(log));
             log.LogInformation("Update schema version");

@@ -14,11 +14,12 @@ namespace Microsoft.Health.Dicom.Functions
 {
     public class Startup : FunctionsStartup
     {
+        private const string AzureFunctionsJobHostSection = "AzureFunctionsJobHost";
         public override void Configure(IFunctionsHostBuilder builder)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
 
-            IConfiguration configuration = builder.GetContext().Configuration?.GetSection("AzureFunctionsJobHost");
+            IConfiguration configuration = builder.GetContext().Configuration?.GetSection(AzureFunctionsJobHostSection);
             builder.Services.AddDicomFunctions(configuration)
                 .AddSqlServer(configuration);
         }

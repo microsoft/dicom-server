@@ -29,10 +29,11 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
             IServiceCollection services = builder.Services;
-            SchemaInformation schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
-            services.AddSingleton(schemaInformation);
             var config = new SqlServerDataStoreConfiguration();
             configurationRoot?.GetSection("SqlServer").Bind(config);
+
+            SchemaInformation schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
+            services.AddSingleton(schemaInformation);
 
             AddInitializedSqlServerBase(services, config);
             services.AddSingleton(Options.Options.Create(config));
@@ -49,9 +50,10 @@ namespace Microsoft.Extensions.DependencyInjection
            this IServiceCollection services,
            SqlServerDataStoreConfiguration configuration)
         {
-            // TODO: consider moving these logic into healthcare-shared-components (https://github.com/microsoft/healthcare-shared-components/) once code gets solid.
+            // TODO: consider moving these logic into healthcare-shared-components (https://github.com/microsoft/healthcare-shared-components/)
+            // once code becomes solid (e.g: merging back to main branch).
             services.AddSingletonDefault<SchemaManagerDataStore>();
-            services.AddSingletonDefault<SqlTransactionHandler>();
+            services.AddScoped<SqlTransactionHandler>();
             // TODO:  Use RetrySqlCommandWrapperFactory instead when moving to healthcare-shared-components 
             services.AddSingletonDefault<SqlCommandWrapperFactory>();
 
@@ -59,7 +61,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton(configuration);
             services.AddSingletonDefault<DefaultSqlConnectionStringProvider>();
             services.AddSingletonDefault<DefaultSqlConnectionFactory>();
-            services.AddSingletonDefault<SqlConnectionWrapperFactory>();
+            services.AddScoped<SqlConnectionWrapperFactory>();
             return services;
         }
     }

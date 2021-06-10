@@ -18,10 +18,11 @@ namespace Microsoft.Health.Dicom.Core.Registration
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
             var services = builder.Services;
+            services.AddScopedDefault<InstanceReindexer>();
+            services.AddScopedDefault<AddExtendedQueryTagService>();
             services.AddSingletonDefault<DicomTagParser>();
-            services.AddSingletonDefault<InstanceReindexer>();
             services.AddSingletonDefault<ExtendedQueryTagEntryValidator>();
-            services.AddSingletonDefault<AddExtendedQueryTagService>();
+
             return builder;
         }
 
