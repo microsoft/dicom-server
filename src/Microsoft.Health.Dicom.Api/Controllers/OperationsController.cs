@@ -45,11 +45,11 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.OK)]
         [AuditEventType(AuditEventSubType.Operation)]
-        public async Task<IActionResult> GetOperationStatusAsync([Required] string id)
+        public async Task<IActionResult> GetOperationStatusAsync([Required] string operationId)
         {
-            _logger.LogInformation("DICOM Web Get Operation Status request received for ID '{OperationId}'", id);
+            _logger.LogInformation("DICOM Web Get Operation Status request received for ID '{OperationId}'", operationId);
 
-            OperationStatusResponse response = await _mediator.GetOperationStatusAsync(id, HttpContext.RequestAborted);
+            OperationStatusResponse response = await _mediator.GetOperationStatusAsync(operationId, HttpContext.RequestAborted);
 
             if (response == null)
             {

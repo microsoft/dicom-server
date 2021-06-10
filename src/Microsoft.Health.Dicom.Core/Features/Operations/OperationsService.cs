@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
             EnsureArg.IsNotNullOrWhiteSpace(id, nameof(id));
 
             OperationStatusResponse response = await _client.GetStatusAsync(id, cancellationToken);
-            return PublicOperationTypes.Contains(response.Type) ? response : null;
+            return response != null && PublicOperationTypes.Contains(response.Type) ? response : null;
         }
     }
 }

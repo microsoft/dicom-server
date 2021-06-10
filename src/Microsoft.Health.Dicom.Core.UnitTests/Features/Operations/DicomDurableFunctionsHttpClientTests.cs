@@ -23,7 +23,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
             new OperationsConfiguration
             {
                 BaseAddress = new Uri("https://dicom.core/unit/tests/", UriKind.Absolute),
-                StatusRouteTemplate = "Operations/{0}",
+                Routes = new OperationRoutesConfiguration
+                {
+                    StatusTemplate = "Operations/{0}",
+                }
             });
 
         [Fact]

@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Configs
         public Uri BaseAddress { get; set; }
 
         [Required]
-        public OperationRoutesConfiguration Routes { get; set; }
+        public OperationRoutesConfiguration Routes { get; set; } = new OperationRoutesConfiguration();
 
         [Range(0, int.MaxValue)]
         public int MaxRetries { get; set; }

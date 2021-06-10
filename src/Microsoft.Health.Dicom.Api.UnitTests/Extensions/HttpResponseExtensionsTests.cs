@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
     public class HttpResponseExtensionsTests
     {
         [Fact]
-        public void AddLocationHeader_GivenNullArguments_ThrowException()
+        public void AddLocationHeader_GivenNullArguments_ThrowsArgumentNullException()
         {
             var context = new DefaultHttpContext();
             var uri = new Uri("https://example.host.com/unit/tests?method=AddLocationHeader#GivenNullArguments_ThrowException");

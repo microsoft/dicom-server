@@ -28,15 +28,15 @@ namespace Microsoft.Health.Dicom.Core.Modules
     public class ServiceModule : IStartupModule
     {
         private readonly FeatureConfiguration _featureConfiguration;
-        private readonly OperationsConfiguration _operationsConfiguration;
+        private readonly ServicesConfiguration _servicesConfiguration;
 
-        public ServiceModule(FeatureConfiguration featureConfiguration, OperationsConfiguration operationsConfiguration)
+        public ServiceModule(FeatureConfiguration featureConfiguration, ServicesConfiguration servicesConfiguration)
         {
             EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-            EnsureArg.IsNotNull(operationsConfiguration, nameof(operationsConfiguration));
+            EnsureArg.IsNotNull(servicesConfiguration, nameof(servicesConfiguration));
 
             _featureConfiguration = featureConfiguration;
-            _operationsConfiguration = operationsConfiguration;
+            _servicesConfiguration = servicesConfiguration;
         }
 
         public void Load(IServiceCollection services)
@@ -152,9 +152,10 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            OperationsConfiguration operationsConfig = _servicesConfiguration.Operations;
             IEnumerable<TimeSpan> delays = Backoff.ExponentialBackoff(
-                TimeSpan.FromMilliseconds(_operationsConfiguration.MinRetryDelayMilliseconds),
-                _operationsConfiguration.MaxRetries);
+                TimeSpan.FromMilliseconds(operationsConfig.MinRetryDelayMilliseconds),
+                operationsConfig.MaxRetries);
 
             services.AddHttpClient<DicomDurableFunctionsHttpClient>()
                 .AddTransientHttpErrorPolicy(p => p.WaitAndRetryAsync(delays));

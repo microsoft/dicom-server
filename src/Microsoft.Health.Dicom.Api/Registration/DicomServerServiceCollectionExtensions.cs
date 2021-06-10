@@ -77,6 +77,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.ExtendedQueryTag));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.Operations));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
@@ -97,7 +98,7 @@ namespace Microsoft.AspNetCore.Builder
 
             services.AddSingleton<IUrlResolver, UrlResolver>();
 
-            services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features);
+            services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
             // Register the Json Serializer to use

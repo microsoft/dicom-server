@@ -40,6 +40,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
             await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default, default);
         }
 
+        [Fact]
+        public async Task GetStatusAsync_GivenNullResponse_ReturnsNull()
+        {
+            using var source = new CancellationTokenSource();
+            IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
+            var service = new OperationsService(client);
+
+            string id = Guid.NewGuid().ToString();
+            client.GetStatusAsync(Arg.Is(id), Arg.Is(source.Token)).Returns(default(OperationStatusResponse));
+
+            Assert.Null(await service.GetStatusAsync(id, source.Token));
+
+            await client.Received(1).GetStatusAsync(Arg.Is(id), Arg.Is(source.Token));
+        }
+
         [Theory]
         [InlineData(OperationType.Unknown)]
         public async Task GetStatusAsync_GivenNonPublicOperation_ReturnsNull(OperationType type)

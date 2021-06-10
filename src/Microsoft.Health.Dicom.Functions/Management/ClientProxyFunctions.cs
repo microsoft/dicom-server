@@ -4,20 +4,22 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
+using EnsureThat;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using EnsureThat;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
     public static class ClientProxyFunctions
     {
+        // TODO: Replace Anonymous with auth for all HTTP endpoints
         [FunctionName(nameof(GetOrchestrationStatusAsync))]
         public static async Task<IActionResult> GetOrchestrationStatusAsync(
-            [HttpTrigger("GET", Route = "Orchestrations/{instanceId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "Orchestrations/{instanceId}")] HttpRequest req,
             [DurableClient] IDurableOrchestrationClient client,
             string instanceId,
             ILogger log)
