@@ -31,16 +31,26 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<IReadOnlyList<AddExtendedQueryTagEntry>>().Returns(tagsEntries);
             await _reindexDurableFunction.AddAndReindexTagsAsync(context, NullLogger.Instance);
+
+            // Verify   UpdateSchemaVersionAsync is called
+            await context.Received()
+                 .CallActivityAsync(
+                 nameof(ReindexDurableFunction.UpdateSchemaVersionAsync),
+                 null);
+
+            // Verify  AddTagsAsync is called
             await context.Received()
                  .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                  nameof(ReindexDurableFunction.AddTagsAsync),
                   tagsEntries);
 
+            // Verify  PrepareReindexingTagsAsync is called
             await context.Received()
                 .CallActivityAsync<ReindexOperation>(
                 nameof(ReindexDurableFunction.PrepareReindexingTagsAsync),
                  Arg.Any<PrepareReindexingTagsInput>());
 
+            // Verify  ReindexTagsAsync is called
             await context.Received()
                  .CallSubOrchestratorAsync(
                 nameof(ReindexDurableFunction.ReindexTagsAsync),
