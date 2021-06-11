@@ -1,10 +1,10 @@
 # Dockerfile based on twright-msft's Dockerfile here:
 # https://github.com/Microsoft/mssql-docker/blob/master/linux/preview/examples/mssql-agent-fts-ha-tools/Dockerfile
 
-# Instructions for Ubuntu 20 (Focal) based on Microsoft documentation:
+# Instructions for installation based on Microsoft's documentation here:
 # https://docs.microsoft.com/en-us/sql/linux/quickstart-install-connect-ubuntu?view=sql-server-ver15
 
-# Base Image uses Ubuntu 20 (Focal)
+# Ubuntu 20.04 LTS ("Focal Fossa")
 FROM ubuntu:20.04@sha256:adf73ca014822ad8237623d388cedf4d5346aa72c270c5acc01431cc93e18e2d
 
 # Install SQL Server 2019 and after its prerequisites
