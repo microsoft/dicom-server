@@ -22,7 +22,8 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [ApiVersion("1.0")]
+    [ApiController]
+    [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class StoreController : Controller

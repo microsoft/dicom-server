@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -16,9 +17,11 @@ namespace Microsoft.Health.Dicom.Web
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            PrereleaseV1Version = new ApiVersion(1, 0, "prerelease");
         }
 
         public IConfiguration Configuration { get; }
+        private ApiVersion PrereleaseV1Version { get; }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public virtual void ConfigureServices(IServiceCollection services)
@@ -41,17 +44,17 @@ namespace Microsoft.Health.Dicom.Web
             services.AddApiVersioning(c =>
             {
                 c.AssumeDefaultVersionWhenUnspecified = true;
-                c.DefaultApiVersion = new AspNetCore.Mvc.ApiVersion(1, 0);
+                c.DefaultApiVersion = PrereleaseV1Version;
+                c.ReportApiVersions = true;
             });
-
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1",
+                c.SwaggerDoc(PrereleaseV1Version.ToString(),
                     new OpenApi.Models.OpenApiInfo()
                     {
-                        Title = "NetCore.WebApiExample",
-                        Version = "1.0",
-                        Description = "This API features several endpoints showing different API features"
+                        Title = "Microsoft.Health.Dicom",
+                        Version = PrereleaseV1Version.ToString(),
+                        Description = "Common components, such as controllers, for Microsoft's DICOMweb APIs using ASP.NET Core."
                     });
             });
 
@@ -65,7 +68,7 @@ namespace Microsoft.Health.Dicom.Web
             app.UseDicomServer();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"NetCore.WebApiExample 1.0");
+                c.SwaggerEndpoint($"/swagger/v{PrereleaseV1Version}/swagger.json", $"Microsoft.Health.Dicom {PrereleaseV1Version}");
             });
 
             app.UseDevelopmentIdentityProviderIfConfigured();
