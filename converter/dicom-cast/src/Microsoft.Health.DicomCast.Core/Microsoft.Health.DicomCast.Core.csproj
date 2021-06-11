@@ -9,9 +9,9 @@
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="4.0.7" />
     <PackageReference Include="fo-dicom.Json" Version="4.0.7" NoWarn="NU1701" />
-    <PackageReference Include="Hl7.Fhir.R4" Version="3.3.0" />
-    <PackageReference Include="Hl7.Fhir.Support" Version="1.9.0" />
-    <PackageReference Include="Hl7.Fhir.Support.Poco" Version="1.9.0" />
+    <PackageReference Include="Hl7.Fhir.R4" Version="$(Hl7FhirPackageVersion)" />
+    <PackageReference Include="Hl7.Fhir.Support" Version="$(Hl7FhirPackageVersion)" />
+    <PackageReference Include="Hl7.Fhir.Support.Poco" Version="$(Hl7FhirPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SdkPackageVersion)" />
@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.Health.Client" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Core" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="1.0.869" />
+    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="$(FhirServerPackageVersion)" />
     <PackageReference Include="Polly" Version="7.2.2" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
     <PackageReference Include="System.Linq.Async" Version="5.0.0" />

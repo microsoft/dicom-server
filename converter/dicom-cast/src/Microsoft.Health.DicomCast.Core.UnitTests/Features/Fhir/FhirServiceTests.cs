@@ -125,10 +125,13 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
             await _fhirService.CheckFhirServiceCapability(DefaultCancellationToken);
         }
 
-        private void SetupIdentifierSearchCriteria(ResourceType resourceType, Identifier identifier, Bundle bundle)
+        private void SetupIdentifierSearchCriteria(string typeName, Identifier identifier, Bundle bundle)
         {
+            ResourceType? resourceType = ModelInfo.FhirTypeNameToResourceType(typeName);
+            Assert.NotNull(resourceType);
+
             _fhirClient.SearchAsync(
-                resourceType,
+                resourceType.Value,
                 identifier.ToSearchQueryParameter(),
                 count: null,
                 DefaultCancellationToken)
@@ -138,7 +141,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
         private async Task ExecuteAndValidateNoMatch<TResource>(Identifier identifier, RetrieveAsyncDelegate<TResource> retrieve)
             where TResource : Resource, new()
         {
-            SetupIdentifierSearchCriteria(new TResource().ResourceType, identifier, new Bundle());
+            SetupIdentifierSearchCriteria(new TResource().TypeName, identifier, new Bundle());
 
             TResource resource = await retrieve(identifier, DefaultCancellationToken);
 
@@ -159,7 +162,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
                     Resource = expectedResource,
                 });
 
-            SetupIdentifierSearchCriteria(expectedResource.ResourceType, identifier, bundle);
+            SetupIdentifierSearchCriteria(expectedResource.TypeName, identifier, bundle);
 
             TResource actualResource = await retrieve(identifier, DefaultCancellationToken);
 
@@ -171,6 +174,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
             where TResource : Resource, new()
         {
             var expectedResource = new TResource();
+            Assert.True(expectedResource.TryDeriveResourceType(out ResourceType resourceType));
 
             var firstBundle = new Bundle()
             {
@@ -178,7 +182,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
             };
 
             _fhirClient.SearchAsync(
-                expectedResource.ResourceType,
+                resourceType,
                 query: Arg.Any<string>(),
                 count: Arg.Any<int?>(),
                 cancellationToken: DefaultCancellationToken)
@@ -203,6 +207,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
             where TResource : Resource, new()
         {
             var expectedResource = new TResource();
+            Assert.True(expectedResource.TryDeriveResourceType(out ResourceType resourceType));
 
             var bundleEntry = new Bundle.EntryComponent()
             {
@@ -214,7 +219,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
             bundle.Entry.AddRange(new[] { bundleEntry, bundleEntry });
 
             _fhirClient.SearchAsync(
-                expectedResource.ResourceType,
+                resourceType,
                 query: Arg.Any<string>(),
                 count: Arg.Any<int?>(),
                 cancellationToken: DefaultCancellationToken)
@@ -240,7 +245,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
 
             firstBundle.Entry.Add(bundleEntry);
 
-            SetupIdentifierSearchCriteria(expectedResource.ResourceType, identifier, firstBundle);
+            SetupIdentifierSearchCriteria(expectedResource.TypeName, identifier, firstBundle);
 
             var secondBundle = new Bundle();
 

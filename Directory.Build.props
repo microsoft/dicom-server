@@ -16,6 +16,8 @@
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <SdkPackageVersion>5.0.0</SdkPackageVersion>
+    <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
+    <Hl7FhirPackageVersion>3.3.0</Hl7FhirPackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
