@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
@@ -14,26 +16,55 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
+    /// <summary>
+    /// Represents a set of Azure Functions that servce as a proxy for the <see cref="IDurableOrchestrationClient"/>.
+    /// </summary>
     public static class ClientProxyFunctions
     {
+        /// <summary>
+        /// Gets the status of an orchestration instance.
+        /// </summary>
+        /// <param name="request">The incoming HTTP request.</param>
+        /// <param name="client">The client for interacting the the Durable Functions extension.</param>
+        /// <param name="instanceId">The unique ID for the orchestration instance.</param>
+        /// <param name="logger">An <see cref="ILogger"/> for logging information throughout execution.</param>
+        /// <param name="hostCancellationToken">
+        /// The token to monitor for cancellation requests from the Azure Functions host.
+        /// The default value is <see cref="CancellationToken.None"/>.
+        /// </param>
+        /// <returns>
+        /// A task representing the <see cref="GetOrchestrationInstanceStatusAsync(HttpRequest, IDurableOrchestrationClient, string, ILogger, CancellationToken)"/>
+        /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the status of the orchestration
+        /// instance with the specified <paramref name="instanceId"/>, if found; otherwise <see cref="BadRequestResult"/>.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="request"/>, <paramref name="client"/>, or <paramref name="logger"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="OperationCanceledException">The host is shutting down or the connection was aborted.</exception>
         // TODO: Replace Anonymous with auth for all HTTP endpoints
-        [FunctionName(nameof(GetOrchestrationStatusAsync))]
-        public static async Task<IActionResult> GetOrchestrationStatusAsync(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "Orchestrations/{instanceId}")] HttpRequest req,
+        [FunctionName(nameof(GetOrchestrationInstanceStatusAsync))]
+        public static async Task<IActionResult> GetOrchestrationInstanceStatusAsync(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "Orchestrations/{instanceId}")] HttpRequest request,
             [DurableClient] IDurableOrchestrationClient client,
             string instanceId,
-            ILogger log)
+            ILogger logger,
+            CancellationToken hostCancellationToken = default)
         {
-            EnsureArg.IsNotNull(req, nameof(req));
+            EnsureArg.IsNotNull(request, nameof(request));
             EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(log, nameof(log));
+            EnsureArg.IsNotNull(logger, nameof(logger));
 
-            log.LogInformation("Querying orchestration instance with ID '{InstanceId}'", instanceId);
+            using CancellationTokenSource source = HttpAzureFunctions.CreateCancellationSource(request, hostCancellationToken);
+
+            logger.LogInformation("Querying orchestration instance with ID '{InstanceId}'", instanceId);
 
             if (string.IsNullOrWhiteSpace(instanceId))
             {
                 return new BadRequestResult();
             }
+
+            // GetStatusAsync doesn't accept a token, so the best we can do is cancel before execution
+            source.Token.ThrowIfCancellationRequested();
 
             DurableOrchestrationStatus status = await client.GetStatusAsync(instanceId, showInput: false);
             return status == null ? new NotFoundResult() : new OkObjectResult(status);

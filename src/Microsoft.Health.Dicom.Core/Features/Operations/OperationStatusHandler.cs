@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         /// <returns>
         /// A task representing the <see cref="Handle(OperationStatusRequest, CancellationToken)"/> operation.
         /// The value of its <see cref="Task{TResult}.Result"/> property contains the status of the operation
-        /// base on the <paramref name="request"/>, if found; otherwise <see langword="null"/>.
+        /// based on the <paramref name="request"/>, if found; otherwise <see langword="null"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
