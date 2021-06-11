@@ -26,6 +26,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
 
         private static readonly Uri StudiesUri = new Uri("studies", UriKind.Relative);
+        private static readonly Uri PrereleaseV1StudiesUri = new Uri("v1.0-prerelease/studies", UriKind.Relative);
 
         private readonly IDicomWebClient _client;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
