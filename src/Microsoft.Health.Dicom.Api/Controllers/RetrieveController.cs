@@ -53,8 +53,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route(KnownRoutes.VersionedStudyRoute, Name = KnownRouteNames.RetrieveStudy)]
-        [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.UnversionedRetrieveStudy)]
+        [Route(KnownRoutes.VersionedStudyRoute, Name = KnownRouteNames.VersionedRetrieveStudy)]
+        [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetStudyAsync(string studyInstanceUid)
         {
@@ -129,8 +129,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route(KnownRoutes.VersionedInstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
-        [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.UnversionedRetrieveInstance)]
+        [Route(KnownRoutes.VersionedInstanceRoute, Name = KnownRouteNames.VersionedRetrieveInstance)]
+        [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetInstanceAsync(
             string studyInstanceUid,

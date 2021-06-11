@@ -7,10 +7,10 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 {
     internal class KnownRouteNames
     {
-        internal const string UnversionedRetrieveStudy = nameof(UnversionedRetrieveStudy);
+        internal const string VersionedRetrieveStudy = nameof(VersionedRetrieveStudy);
         internal const string RetrieveStudy = nameof(RetrieveStudy);
 
-        internal const string UnversionedRetrieveInstance = nameof(UnversionedRetrieveInstance);
+        internal const string VersionedRetrieveInstance = nameof(VersionedRetrieveInstance);
         internal const string RetrieveInstance = nameof(RetrieveInstance);
     }
 }
