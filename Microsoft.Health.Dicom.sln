@@ -41,6 +41,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Clie
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions", "src\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj", "{BB88616C-6208-43D0-B9EF-79FC0652A151}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client", "src\Microsoft.Health.Dicom.Functions.Client\Microsoft.Health.Dicom.Functions.Client.csproj", "{2236DB6E-B0C2-4809-B118-6CE8221C1D9D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client.UnitTests", "src\Microsoft.Health.Dicom.Functions.Client.UnitTests\Microsoft.Health.Dicom.Functions.Client.UnitTests.csproj", "{FF05CC31-501F-4CD0-832C-A8E4CB94D670}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.UnitTests", "src\Microsoft.Health.Dicom.Functions.UnitTests\Microsoft.Health.Dicom.Functions.UnitTests.csproj", "{3D679950-A578-45AD-AF89-FAF89580375F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{176641B3-297C-4E04-A83D-8F80F80485E8}"
@@ -113,10 +117,18 @@ Global
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2236DB6E-B0C2-4809-B118-6CE8221C1D9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2236DB6E-B0C2-4809-B118-6CE8221C1D9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2236DB6E-B0C2-4809-B118-6CE8221C1D9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2236DB6E-B0C2-4809-B118-6CE8221C1D9D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3D679950-A578-45AD-AF89-FAF89580375F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3D679950-A578-45AD-AF89-FAF89580375F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D679950-A578-45AD-AF89-FAF89580375F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D679950-A578-45AD-AF89-FAF89580375F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF05CC31-501F-4CD0-832C-A8E4CB94D670}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF05CC31-501F-4CD0-832C-A8E4CB94D670}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF05CC31-501F-4CD0-832C-A8E4CB94D670}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF05CC31-501F-4CD0-832C-A8E4CB94D670}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -136,7 +148,9 @@ Global
 		{ECC018C1-BFA8-44BE-B560-ACB05CA57251} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{BB88616C-6208-43D0-B9EF-79FC0652A151} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{2236DB6E-B0C2-4809-B118-6CE8221C1D9D} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{3D679950-A578-45AD-AF89-FAF89580375F} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{FF05CC31-501F-4CD0-832C-A8E4CB94D670} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_SortFileContentOnSave = True

@@ -5,9 +5,10 @@
 
 using System;
 using System.Globalization;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Newtonsoft.Json;
 
-namespace Microsoft.Health.Dicom.Core.Models.Operations.Serialization
+namespace Microsoft.Health.Dicom.Functions.Client.Serialization
 {
     internal class OperationRuntimeStatusConverter : JsonConverter<OperationRuntimeStatus>
     {
@@ -21,7 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations.Serialization
                 throw new JsonReaderException(
                     string.Format(
                         CultureInfo.InvariantCulture,
-                        DicomCoreResource.UnexpectedJsonToken,
+                        DicomFunctionsClientResource.UnexpectedJsonToken,
                         JsonToken.String,
                         reader.TokenType));
             }

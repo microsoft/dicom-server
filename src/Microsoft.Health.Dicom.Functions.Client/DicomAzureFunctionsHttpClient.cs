@@ -13,34 +13,35 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
-using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Functions.Client.Models;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
-namespace Microsoft.Health.Dicom.Core.Features.Operations
+namespace Microsoft.Health.Dicom.Functions.Client
 {
     /// <summary>
-    /// Represents a client for interacting with DICOM-specific Azure Durable Orchestrations.
+    /// Represents a client for interacting with DICOM-specific Azure Functions.
     /// </summary>
-    internal class DicomDurableFunctionsHttpClient : IDicomOperationsClient
+    internal class DicomAzureFunctionsHttpClient : IDicomOperationsClient
     {
         private readonly HttpClient _client;
-        private readonly OperationsConfiguration _config;
+        private readonly FunctionsClientConfiguration _config;
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
         {
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
         };
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DicomDurableFunctionsHttpClient"/> class.
+        /// Initializes a new instance of the <see cref="DicomAzureFunctionsHttpClient"/> class.
         /// </summary>
         /// <param name="client">The HTTP client used to communicate with the HTTP triggered functions.</param>
         /// <param name="config">A configuration that specifies how to communicate with the Azure Functions.</param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="client"/>, <paramref name="config"/>, or the value of the configuration is <see langword="null"/>.
         /// </exception>
-        public DicomDurableFunctionsHttpClient(HttpClient client, IOptions<OperationsConfiguration> config)
+        public DicomAzureFunctionsHttpClient(HttpClient client, IOptions<FunctionsClientConfiguration> config)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(config?.Value, nameof(config));

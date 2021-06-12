@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -20,23 +18,17 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Extensions.DependencyInjection;
-using Polly;
-using Polly.Contrib.WaitAndRetry;
 
 namespace Microsoft.Health.Dicom.Core.Modules
 {
     public class ServiceModule : IStartupModule
     {
         private readonly FeatureConfiguration _featureConfiguration;
-        private readonly ServicesConfiguration _servicesConfiguration;
 
-        public ServiceModule(FeatureConfiguration featureConfiguration, ServicesConfiguration servicesConfiguration)
+        public ServiceModule(FeatureConfiguration featureConfiguration)
         {
             EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-            EnsureArg.IsNotNull(servicesConfiguration, nameof(servicesConfiguration));
-
             _featureConfiguration = featureConfiguration;
-            _servicesConfiguration = servicesConfiguration;
         }
 
         public void Load(IServiceCollection services)
@@ -148,19 +140,6 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<QueryTagService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            OperationsConfiguration operationsConfig = _servicesConfiguration.Operations;
-            IEnumerable<TimeSpan> delays = Backoff.ExponentialBackoff(
-                TimeSpan.FromMilliseconds(operationsConfig.MinRetryDelayMilliseconds),
-                operationsConfig.MaxRetries);
-
-            services.AddHttpClient<DicomDurableFunctionsHttpClient>()
-                .AddTransientHttpErrorPolicy(p => p.WaitAndRetryAsync(delays));
-
-            services.Add<DicomDurableFunctionsHttpClient>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

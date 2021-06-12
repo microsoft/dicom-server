@@ -4,11 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Health.Dicom.Core.Models.Operations.Serialization;
+using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Functions.Client.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Dicom.Core.Models.Operations
+namespace Microsoft.Health.Dicom.Functions.Client.Models
 {
     /// <summary>
     /// Represents the metadata for an Azure Durable Orchestration instance.

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -6,24 +6,24 @@
 using System;
 using System.IO;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Core.Models.Operations.Serialization;
+using Microsoft.Health.Dicom.Functions.Client.Serialization;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Models.Operations.Serialization
+namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Serialization
 {
-    public class OperationTypeConverterTests
+    public class OperationRuntimeStatusConverterTests
     {
         [Fact]
         public void CanRead()
         {
-            Assert.True(new OperationTypeConverter().CanRead);
+            Assert.True(new OperationRuntimeStatusConverter().CanRead);
         }
 
         [Fact]
         public void CanWrite()
         {
-            Assert.False(new OperationTypeConverter().CanWrite);
+            Assert.False(new OperationRuntimeStatusConverter().CanWrite);
         }
 
         [Theory]
@@ -38,27 +38,33 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Models.Operations.Serialization
 
             Assert.Equal(json != "", jsonReader.Read());
             Assert.Throws<JsonReaderException>(
-                () => new OperationTypeConverter().ReadJson(
+                () => new OperationRuntimeStatusConverter().ReadJson(
                     jsonReader,
-                    typeof(OperationType),
+                    typeof(OperationRuntimeStatus),
                     null,
                     new JsonSerializer()));
         }
 
         [Theory]
-        [InlineData("null", OperationType.Unknown)]
-        [InlineData("\"ReIndeX\"", OperationType.Reindex)]
-        [InlineData("\"NewJob\"", OperationType.Unknown)]
-        [InlineData("\"Unknown\"", OperationType.Unknown)]
-        public void ReadJson_GivenStringOrNullToken_ReturnOperationType(string json, OperationType expected)
+        [InlineData("null", OperationRuntimeStatus.Unknown)]
+        [InlineData("\"Pending\"", OperationRuntimeStatus.Pending)]
+        [InlineData("\"running\"", OperationRuntimeStatus.Running)]
+        [InlineData("\"ContinuedAsNew\"", OperationRuntimeStatus.Running)]
+        [InlineData("\"completed\"", OperationRuntimeStatus.Completed)]
+        [InlineData("\"Failed\"", OperationRuntimeStatus.Failed)]
+        [InlineData("\"CANCELED\"", OperationRuntimeStatus.Canceled)]
+        [InlineData("\"TerMINated\"", OperationRuntimeStatus.Canceled)]
+        [InlineData("\"Unknown\"", OperationRuntimeStatus.Unknown)]
+        [InlineData("\"Something Else\"", OperationRuntimeStatus.Unknown)]
+        public void ReadJson_GivenStringOrNullToken_ReturnOperationStatus(string json, OperationRuntimeStatus expected)
         {
             using var reader = new StringReader(json);
             using var jsonReader = new JsonTextReader(reader);
 
             Assert.True(jsonReader.Read());
-            OperationType actual = (OperationType)(new OperationTypeConverter().ReadJson(
+            OperationRuntimeStatus actual = (OperationRuntimeStatus)(new OperationRuntimeStatusConverter().ReadJson(
                     jsonReader,
-                    typeof(OperationType),
+                    typeof(OperationRuntimeStatus),
                     null,
                     new JsonSerializer()));
 
@@ -69,9 +75,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Models.Operations.Serialization
         public void WriteJson_GivenAnyInput_ThrowsNotSupportedException()
         {
             Assert.Throws<NotSupportedException>(
-                () => new OperationTypeConverter().WriteJson(
+                () => new OperationRuntimeStatusConverter().WriteJson(
                     new JsonTextWriter(new StreamWriter(Stream.Null)),
-                    OperationType.Reindex,
+                    OperationRuntimeStatus.Running,
                     new JsonSerializer()));
         }
     }

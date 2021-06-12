@@ -10,17 +10,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
+namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
 {
-    public class DicomDurableFunctionsHttpClientTests
+    public class DicomAzureFunctionsHttpClientTests
     {
-        private static readonly IOptions<OperationsConfiguration> DefaultConfig = Options.Create(
-            new OperationsConfiguration
+        private static readonly IOptions<FunctionsClientConfiguration> DefaultConfig = Options.Create(
+            new FunctionsClientConfiguration
             {
                 BaseAddress = new Uri("https://dicom.core/unit/tests/", UriKind.Absolute),
                 Routes = new OperationRoutesConfiguration
@@ -34,15 +33,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
             Assert.Throws<ArgumentNullException>(
-                () => new DicomDurableFunctionsHttpClient(null, DefaultConfig));
+                () => new DicomAzureFunctionsHttpClient(null, DefaultConfig));
 
             Assert.Throws<ArgumentNullException>(
-                () => new DicomDurableFunctionsHttpClient(new HttpClient(handler), null));
+                () => new DicomAzureFunctionsHttpClient(new HttpClient(handler), null));
 
             Assert.Throws<ArgumentNullException>(
-                () => new DicomDurableFunctionsHttpClient(
+                () => new DicomAzureFunctionsHttpClient(
                     new HttpClient(handler),
-                    Options.Create<OperationsConfiguration>(null)));
+                    Options.Create<FunctionsClientConfiguration>(null)));
         }
 
         [Theory]
@@ -53,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
         public async Task GetStatusAsync_GivenInvalidId_ThrowsArgumentException(string id)
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
-            var client = new DicomDurableFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
+            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
 
             Type exceptionType = id is null ? typeof(ArgumentNullException) : typeof(ArgumentException);
             await Assert.ThrowsAsync(exceptionType, () => client.GetStatusAsync(id, CancellationToken.None));
@@ -65,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
         public async Task GetStatusAsync_GivenNotFound_ReturnsNull()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
-            var client = new DicomDurableFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
+            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
 
             string id = Guid.NewGuid().ToString();
             using var source = new CancellationTokenSource();
@@ -82,7 +81,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
         public async Task GetStatusAsync_GivenUnsuccessfulStatusCode_ThrowsHttpRequestException(HttpStatusCode expected)
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(expected));
-            var client = new DicomDurableFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
+            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
 
             string id = Guid.NewGuid().ToString();
             using var source = new CancellationTokenSource();
@@ -119,7 +118,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
                 )
             };
             var handler = new MockMessageHandler(response);
-            var client = new DicomDurableFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
+            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
 
             using var source = new CancellationTokenSource();
 

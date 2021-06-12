@@ -8,8 +8,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
-    public class OperationsConfiguration
+    public class FunctionsClientConfiguration
     {
+        public const string SectionName = "Functions";
+
         [Required]
         public Uri BaseAddress { get; set; }
 
