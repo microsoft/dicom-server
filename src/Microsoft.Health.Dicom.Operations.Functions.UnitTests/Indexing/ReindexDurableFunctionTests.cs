@@ -7,11 +7,11 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Functions.Indexing;
-using Microsoft.Health.Dicom.Functions.Indexing.Configuration;
+using Microsoft.Health.Dicom.Operations.Functions.Indexing;
+using Microsoft.Health.Dicom.Operations.Functions.Indexing.Configuration;
 using NSubstitute;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
+namespace Microsoft.Health.Dicom.Operations.Functions.UnitTests.Indexing
 {
     public partial class ReindexDurableFunctionTests
     {

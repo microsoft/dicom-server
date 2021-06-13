@@ -11,49 +11,12 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Indexing;
-using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Functions.Indexing.Configuration;
 
-namespace Microsoft.Health.Dicom.Functions.Indexing
+namespace Microsoft.Health.Dicom.Operations.Functions.Indexing
 {
-    /// <summary>
-    /// Represents the Azure Durable Functions that perform the re-indexing of previously added DICOM instances
-    /// based on new tags configured by the user.
-    /// </summary>
     public partial class ReindexDurableFunction
     {
-        private readonly ReindexConfiguration _reindexConfig;
-        private readonly IReindexStore _reindexStore;
-        private readonly IInstanceReindexer _instanceReindexer;
-        private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
-        private readonly IInstanceStore _instanceStore;
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-
-        public ReindexDurableFunction(
-            IOptions<IndexingConfiguration> configOptions,
-            IAddExtendedQueryTagService addExtendedQueryTagService,
-            IReindexStore reindexStore,
-            IInstanceStore instanceStore,
-            IInstanceReindexer instanceReindexer,
-            IExtendedQueryTagStore extendedQueryTagStore)
-        {
-            EnsureArg.IsNotNull(configOptions, nameof(configOptions));
-            EnsureArg.IsNotNull(reindexStore, nameof(reindexStore));
-            EnsureArg.IsNotNull(instanceReindexer, nameof(instanceReindexer));
-            EnsureArg.IsNotNull(addExtendedQueryTagService, nameof(addExtendedQueryTagService));
-            EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
-            EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
-            _reindexConfig = configOptions.Value.Add;
-            _reindexStore = reindexStore;
-            _instanceReindexer = instanceReindexer;
-            _addExtendedQueryTagService = addExtendedQueryTagService;
-            _instanceStore = instanceStore;
-            _extendedQueryTagStore = extendedQueryTagStore;
-        }
-
         /// <summary>
         /// The http trigger to add extended Query tags
         /// </summary>
@@ -78,6 +41,5 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             // TODO: these code need to be updated based on contract to client.
             return new HttpResponseMessage { Content = new StringContent(instanceId) };
         }
-
     }
 }

@@ -11,13 +11,13 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
-using Microsoft.Health.Dicom.Functions.Indexing;
-using Microsoft.Health.Dicom.Functions.Indexing.Models;
+using Microsoft.Health.Dicom.Operations.Functions.Indexing;
+using Microsoft.Health.Dicom.Operations.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
+namespace Microsoft.Health.Dicom.Operations.Functions.UnitTests.Indexing
 {
     public partial class ReindexDurableFunctionTests
     {

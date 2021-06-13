@@ -3,24 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Functions.Indexing.Models
+namespace Microsoft.Health.Dicom.Operations.Functions.Indexing.Configuration
 {
     /// <summary>
-    ///  Represents input to <see cref="ReindexDurableFunction.PrepareReindexingTagsAsync"/>
+    /// Represents configuration settings related to the indexing of data.
     /// </summary>
-    public class PrepareReindexingTagsInput
+    public class IndexingConfiguration
     {
-        /// <summary>
-        /// Gets or sets the operation id
-        /// </summary>
-        public string OperationId { get; set; }
+        public const string SectionName = "Indexing";
 
         /// <summary>
-        /// Gets or sets the tag keys
+        /// Gets or sets the settings for re-indexing DICOM instances
         /// </summary>
-        public IReadOnlyList<int> TagKeys { get; set; }
-
+        [Required]
+        public ReindexConfiguration Add { get; set; }
     }
 }
