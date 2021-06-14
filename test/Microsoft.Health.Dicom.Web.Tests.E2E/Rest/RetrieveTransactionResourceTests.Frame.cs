@@ -63,12 +63,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax)] // use single part instead of multiple part
-        [InlineData(false, DicomWebConstants.ImagePngMediaType, DicomWebConstants.OriginalDicomTransferSyntax)] // unsupported media type image/png
-        [InlineData(false, DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.4.100")] // unsupported media type MPEG2
-        public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax)
+        [InlineData(true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, "")] // use single part instead of multiple part
+        [InlineData(false, DicomWebConstants.ImagePngMediaType, DicomWebConstants.OriginalDicomTransferSyntax, "")] // unsupported media type image/png
+        [InlineData(false, DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.4.100", "")] // unsupported media type MPEG2
+        [InlineData(true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, PrereleaseV1VersionPath)] // use single part instead of multiple part
+        [InlineData(false, DicomWebConstants.ImagePngMediaType, DicomWebConstants.OriginalDicomTransferSyntax, PrereleaseV1VersionPath)] // unsupported media type image/png
+        [InlineData(false, DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.4.100", PrereleaseV1VersionPath)] // unsupported media type MPEG2
+        public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax, string versionPath)
         {
-            var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
+            var requestUri = new Uri(versionPath + string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
 
             using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
             using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);

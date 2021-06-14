@@ -26,32 +26,40 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private readonly IDicomWebClient _client;
         private readonly HashSet<string> _createdDicomStudies = new HashSet<string>();
 
+        private const string PrereleaseV1VersionPath = "/v1.0-prerelease";
+
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.Client;
         }
 
-        [Fact]
-        public async Task GivenSearchRequest_WithUnsupportedTag_ReturnBadRequest()
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
+        public async Task GivenSearchRequest_WithUnsupportedTag_ReturnBadRequest(string versionPath)
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.QueryAsync(new Uri("/studies?Modality=CT", UriKind.Relative)));
+                () => _client.QueryAsync(new Uri($"{versionPath}/studies?Modality=CT", UriKind.Relative)));
 
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
             Assert.Equal(exception.ResponseMessage, string.Format(DicomCoreResource.UnsupportedSearchParameter, "Modality", "study"));
         }
 
-        [Fact]
-        public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
+        public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent(string versionPath)
         {
-            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(new Uri("/studies?StudyDate=20200101", UriKind.Relative));
+            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(new Uri($"{versionPath}/studies?StudyDate=20200101", UriKind.Relative));
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
-        [Fact]
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
         [Trait("Category", "bvt")]
-        public async Task GivenSearchRequest_AllStudyLevel_MatchResult()
+        public async Task GivenSearchRequest_AllStudyLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
             {
@@ -63,7 +71,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
             var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
-            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(new Uri("/studies?StudyDate=20190101", UriKind.Relative));
+            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(new Uri($"{versionPath}/studies?StudyDate=20190101", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -73,8 +81,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseDataset(QueryResource.AllStudies, matchInstance, testDataResponse);
         }
 
-        [Fact]
-        public async Task GivenSearchRequest_AllStudyLevelOnPatientName_MatchIsCaseIncensitiveAndAccentIncensitive()
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
+        public async Task GivenSearchRequest_AllStudyLevelOnPatientName_MatchIsCaseIncensitiveAndAccentIncensitive(string versionPath)
         {
             string randomNamePart = RandomString(7);
             string patientName = $"Hall^{randomNamePart}^Tá";
@@ -87,7 +97,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                new Uri($"/studies?PatientName={patientNameWithNoAccent}", UriKind.Relative));
+                new Uri($"{versionPath}/studies?PatientName={patientNameWithNoAccent}", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -97,8 +107,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(patientName, testDataResponse.GetString(DicomTag.PatientName));
         }
 
-        [Fact]
-        public async Task GivenSearchRequest_StudySeriesLevel_MatchResult()
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
+        public async Task GivenSearchRequest_StudySeriesLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
             {
@@ -113,7 +125,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                new Uri($"/studies/{studyId}/series?Modality=MRI", UriKind.Relative));
+                new Uri($"{versionPath}/studies/{studyId}/series?Modality=MRI", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -121,8 +133,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseDataset(QueryResource.StudySeries, matchInstance, datasets[0]);
         }
 
-        [Fact]
-        public async Task GivenSearchRequest_AllSeriesLevel_MatchResult()
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
+        public async Task GivenSearchRequest_AllSeriesLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
             {
@@ -131,7 +145,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var seriesId = matchInstance.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                new Uri("/series?Modality=MRI", UriKind.Relative));
+                new Uri($"{versionPath}/series?Modality=MRI", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -141,8 +155,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseDataset(QueryResource.AllSeries, matchInstance, testDataResponse);
         }
 
-        [Fact]
-        public async Task GivenSearchRequest_StudyInstancesLevel_MatchResult()
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
+        public async Task GivenSearchRequest_StudyInstancesLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
             {
@@ -156,7 +172,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                   new Uri($"/studies/{studyId}/instances?Modality=MRI", UriKind.Relative));
+                   new Uri($"{versionPath}/studies/{studyId}/instances?Modality=MRI", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -164,8 +180,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseDataset(QueryResource.StudyInstances, matchInstance, datasets[0]);
         }
 
-        [Fact]
-        public async Task GivenSearchRequest_StudySeriesInstancesLevel_MatchResult()
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
+        public async Task GivenSearchRequest_StudySeriesInstancesLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync();
             var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
@@ -178,7 +196,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                new Uri($"/studies/{studyId}/series/{seriesId}/instances?SOPInstanceUID={instanceId}", UriKind.Relative));
+                new Uri($"{versionPath}/studies/{studyId}/series/{seriesId}/instances?SOPInstanceUID={instanceId}", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -186,8 +204,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseDataset(QueryResource.StudySeriesInstances, matchInstance, datasets[0]);
         }
 
-        [Fact]
-        public async Task GivenSearchRequest_AllInstancesLevel_MatchResult()
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
+        public async Task GivenSearchRequest_AllInstancesLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
             {
@@ -196,7 +216,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                new Uri("/instances?Modality=XRAY", UriKind.Relative));
+                new Uri($"{versionPath}/instances?Modality=XRAY", UriKind.Relative));
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -206,8 +226,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseDataset(QueryResource.AllInstances, matchInstance, testDataResponse);
         }
 
-        [Fact]
-        public async Task GivenSearchRequest_PatientNameFuzzyMatch_MatchResult()
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
+        public async Task GivenSearchRequest_PatientNameFuzzyMatch_MatchResult(string versionPath)
         {
             string randomNamePart = RandomString(7);
             DicomDataset matchInstance2 = await PostDicomFileAsync(new DicomDataset()
@@ -230,7 +252,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             while (retryCount < 3 || testDataResponse1 == null)
             {
                 using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
-                    new Uri($"/studies?PatientName={randomNamePart}&FuzzyMatching=true", UriKind.Relative));
+                    new Uri($"{versionPath}/studies?PatientName={randomNamePart}&FuzzyMatching=true", UriKind.Relative));
 
                 responseDatasets = await response.ToArrayAsync();
 
@@ -246,10 +268,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseDataset(QueryResource.AllStudies, matchInstance2, testDataResponse2);
         }
 
-        [Fact]
-        public async Task GivenSearchRequest_OHIFViewerStudyQuery_ReturnsOK()
+        [Theory]
+        [InlineData("")]
+        [InlineData(PrereleaseV1VersionPath)]
+        public async Task GivenSearchRequest_OHIFViewerStudyQuery_ReturnsOK(string versionPath)
         {
-            var OhifViewerQuery = "/studies?limit=25&offset=0&includefield=00081030%2C00080060&StudyDate=19521125-20210507";
+            var OhifViewerQuery = $"{versionPath}/studies?limit=25&offset=0&includefield=00081030%2C00080060&StudyDate=19521125-20210507";
 
             // client is checking the success response and throws exception otherwise
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(new Uri(OhifViewerQuery, UriKind.Relative));
