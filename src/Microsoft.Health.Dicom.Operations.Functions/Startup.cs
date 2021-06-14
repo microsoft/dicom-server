@@ -7,10 +7,10 @@ using System;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Functions.Indexing.Configuration;
+using Microsoft.Health.Dicom.Operations.Functions.Indexing.Configuration;
 
-[assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.Startup))]
-namespace Microsoft.Health.Dicom.Functions
+[assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Operations.Functions.Startup))]
+namespace Microsoft.Health.Dicom.Operations.Functions
 {
     public class Startup : FunctionsStartup
     {

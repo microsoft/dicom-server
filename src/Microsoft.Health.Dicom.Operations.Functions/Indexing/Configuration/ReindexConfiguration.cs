@@ -6,7 +6,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Functions.Indexing.Configuration
+namespace Microsoft.Health.Dicom.Operations.Functions.Indexing.Configuration
 {
     /// <summary>
     /// Represents the configuration for a "reindex" function.
