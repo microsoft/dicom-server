@@ -7,7 +7,7 @@ using System.Threading;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 
-namespace Microsoft.Health.Dicom.Functions
+namespace Microsoft.Health.Dicom.Operations.Functions.Http
 {
     internal static class HttpAzureFunctions
     {

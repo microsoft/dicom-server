@@ -9,7 +9,6 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations
     /// Specifies the status of a DICOM operation.
     /// </summary>
     public enum OperationRuntimeStatus
-
     {
         /// <summary>
         /// Specifies a state that is missing or unrecognized.

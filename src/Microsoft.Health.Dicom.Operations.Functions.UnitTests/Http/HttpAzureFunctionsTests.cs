@@ -7,9 +7,10 @@ using System;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Health.Dicom.Operations.Functions.Http;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests
+namespace Microsoft.Health.Dicom.Operations.Functions.UnitTests.Http
 {
     public class HttpAzureFunctionsTests
     {

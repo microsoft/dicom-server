@@ -9,29 +9,29 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Health.Dicom.Functions.Management;
+using Microsoft.Health.Dicom.Operations.Functions.Management;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
+namespace Microsoft.Health.Dicom.Operations.Functions.UnitTests.Management
 {
-    public class ClientProxyFunctionsTests
+    public class DurableClientProxyFunctionsTests
     {
         [Fact]
-        public async Task GetOrchestrationStatusAsync_GivenNullArguments_ThrowsException()
+        public async Task GetStatusAsync_GivenNullArguments_ThrowsException()
         {
             var context = new DefaultHttpContext();
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
             string id = Guid.NewGuid().ToString();
 
             await Assert.ThrowsAsync<ArgumentNullException>(
-                () => ClientProxyFunctions.GetOrchestrationInstanceStatusAsync(null, client, id, NullLogger.Instance));
+                () => DurableClientProxyFunctions.GetStatusAsync(null, client, id, NullLogger.Instance));
 
             await Assert.ThrowsAsync<ArgumentNullException>(
-                () => ClientProxyFunctions.GetOrchestrationInstanceStatusAsync(context.Request, null, id, NullLogger.Instance));
+                () => DurableClientProxyFunctions.GetStatusAsync(context.Request, null, id, NullLogger.Instance));
 
             await Assert.ThrowsAsync<ArgumentNullException>(
-                () => ClientProxyFunctions.GetOrchestrationInstanceStatusAsync(context.Request, client, id, null));
+                () => DurableClientProxyFunctions.GetStatusAsync(context.Request, client, id, null));
 
             await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default(string));
         }
@@ -41,19 +41,19 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("\t  \r\n")]
-        public async Task GetOrchestrationStatusAsync_GivenInvalidId_ReturnsBadRequest(string id)
+        public async Task GetStatusAsync_GivenInvalidId_ReturnsBadRequest(string id)
         {
             var context = new DefaultHttpContext();
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
 
             Assert.IsType<BadRequestResult>(
-                await ClientProxyFunctions.GetOrchestrationInstanceStatusAsync(context.Request, client, id, NullLogger.Instance));
+                await DurableClientProxyFunctions.GetStatusAsync(context.Request, client, id, NullLogger.Instance));
 
             await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default(string));
         }
 
         [Fact]
-        public async Task GetOrchestrationStatusAsync_GivenNullStatus_ReturnsNotFound()
+        public async Task GetStatusAsync_GivenNullStatus_ReturnsNotFound()
         {
             var context = new DefaultHttpContext();
             string id = Guid.NewGuid().ToString();
@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             client.GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false)
                 .Returns((DurableOrchestrationStatus)null);
 
-            Assert.IsType<NotFoundResult>(await ClientProxyFunctions.GetOrchestrationInstanceStatusAsync(
+            Assert.IsType<NotFoundResult>(await DurableClientProxyFunctions.GetStatusAsync(
                 context.Request,
                 client,
                 id,
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
         }
 
         [Fact]
-        public async Task GetOrchestrationStatusAsync_GivenNonNullStatus_ReturnsOk()
+        public async Task GetStatusAsync_GivenNonNullStatus_ReturnsOk()
         {
             var context = new DefaultHttpContext();
             string id = Guid.NewGuid().ToString();
@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
             client.GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false).Returns(status);
 
-            var result = await ClientProxyFunctions.GetOrchestrationInstanceStatusAsync(
+            var result = await DurableClientProxyFunctions.GetStatusAsync(
                 context.Request,
                 client,
                 id,

@@ -13,13 +13,14 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Operations.Functions.Http;
 
-namespace Microsoft.Health.Dicom.Functions.Management
+namespace Microsoft.Health.Dicom.Operations.Functions.Management
 {
     /// <summary>
     /// Represents a set of Azure Functions that servce as a proxy for the <see cref="IDurableOrchestrationClient"/>.
     /// </summary>
-    public static class ClientProxyFunctions
+    public static class DurableClientProxyFunctions
     {
         /// <summary>
         /// Gets the status of an orchestration instance.
@@ -33,7 +34,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
         /// The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
-        /// A task representing the <see cref="GetOrchestrationInstanceStatusAsync(HttpRequest, IDurableOrchestrationClient, string, ILogger, CancellationToken)"/>
+        /// A task representing the <see cref="GetStatusAsync(HttpRequest, IDurableOrchestrationClient, string, ILogger, CancellationToken)"/>
         /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the status of the orchestration
         /// instance with the specified <paramref name="instanceId"/>, if found; otherwise <see cref="BadRequestResult"/>.
         /// </returns>
@@ -42,9 +43,9 @@ namespace Microsoft.Health.Dicom.Functions.Management
         /// </exception>
         /// <exception cref="OperationCanceledException">The host is shutting down or the connection was aborted.</exception>
         // TODO: Replace Anonymous with auth for all HTTP endpoints
-        [FunctionName(nameof(GetOrchestrationInstanceStatusAsync))]
-        public static async Task<IActionResult> GetOrchestrationInstanceStatusAsync(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "Orchestrations/{instanceId}")] HttpRequest request,
+        [FunctionName(nameof(GetStatusAsync))]
+        public static async Task<IActionResult> GetStatusAsync(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "Orchestrations/Instances/{instanceId}")] HttpRequest request,
             [DurableClient] IDurableOrchestrationClient client,
             string instanceId,
             ILogger logger,
