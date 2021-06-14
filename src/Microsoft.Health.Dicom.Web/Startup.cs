@@ -47,7 +47,6 @@ namespace Microsoft.Health.Dicom.Web
                     options.SuppressModelStateInvalidFilter = true; // disables ProblemDetails in error response
                 });
 
-
             services.AddApiVersioning(c =>
             {
                 c.AssumeDefaultVersionWhenUnspecified = true;
