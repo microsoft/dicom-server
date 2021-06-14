@@ -41,21 +41,18 @@ namespace Microsoft.Health.Dicom.Web
                 .AddSqlServer(Configuration)
                 .AddBackgroundWorkers();
 
+            services.AddMvc()
+                .ConfigureApiBehaviorOptions(options =>
+                {
+                    options.SuppressModelStateInvalidFilter = true; // disables ProblemDetails in error response
+                });
+
+
             services.AddApiVersioning(c =>
             {
                 c.AssumeDefaultVersionWhenUnspecified = true;
                 c.DefaultApiVersion = PrereleaseV1Version;
                 c.ReportApiVersions = true;
-            });
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc(PrereleaseV1Version.ToString(),
-                    new OpenApi.Models.OpenApiInfo()
-                    {
-                        Title = "Microsoft.Health.Dicom",
-                        Version = PrereleaseV1Version.ToString(),
-                        Description = "Common components, such as controllers, for Microsoft's DICOMweb APIs using ASP.NET Core."
-                    });
             });
 
             AddApplicationInsightsTelemetry(services);
@@ -64,12 +61,7 @@ namespace Microsoft.Health.Dicom.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public virtual void Configure(IApplicationBuilder app)
         {
-            app.UseSwagger();
             app.UseDicomServer();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint($"/swagger/v{PrereleaseV1Version}/swagger.json", $"Microsoft.Health.Dicom {PrereleaseV1Version}");
-            });
 
             app.UseDevelopmentIdentityProviderIfConfigured();
         }
