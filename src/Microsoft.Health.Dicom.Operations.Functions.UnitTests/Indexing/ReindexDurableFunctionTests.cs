@@ -12,9 +12,11 @@ using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
+using Microsoft.Health.Dicom.Operations.Functions.Indexing;
+using Microsoft.Health.Dicom.Operations.Functions.Indexing.Configuration;
 using NSubstitute;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
+namespace Microsoft.Health.Dicom.Operations.Functions.UnitTests.Indexing
 {
     public partial class ReindexDurableFunctionTests
     {

@@ -18,13 +18,13 @@ RUN set -x && \
     curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel 3.1 -InstallDir /usr/share/dotnet
 WORKDIR /dicom-server
 COPY . .
-WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Functions
-RUN dotnet build "Microsoft.Health.Dicom.Functions.csproj" -c $BUILD_CONFIGURATION
+WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Operations.Functions
+RUN dotnet build "Microsoft.Health.Dicom.Operations.Functions.csproj" -c $BUILD_CONFIGURATION
 
 # Publish the Azure Functions from the build
 FROM build as publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Microsoft.Health.Dicom.Functions.csproj" -c $BUILD_CONFIGURATION --no-build --framework netcoreapp3.1 -o /home/site/wwwroot
+RUN dotnet publish "Microsoft.Health.Dicom.Operations.Functions.csproj" -c $BUILD_CONFIGURATION --no-build --framework netcoreapp3.1 -o /home/site/wwwroot
 
 # Copy the published application
 FROM az-func-runtime AS dicom-az-func
