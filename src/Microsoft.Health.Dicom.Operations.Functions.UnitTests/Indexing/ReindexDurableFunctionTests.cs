@@ -7,14 +7,12 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Functions.Configs;
-using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
 using Microsoft.Health.Dicom.Operations.Functions.Indexing;
-using Microsoft.Health.Dicom.Operations.Functions.Indexing.Configuration;
 using NSubstitute;
+using Microsoft.Health.Dicom.Operations.Functions.Configs;
 
 namespace Microsoft.Health.Dicom.Operations.Functions.UnitTests.Indexing
 {
