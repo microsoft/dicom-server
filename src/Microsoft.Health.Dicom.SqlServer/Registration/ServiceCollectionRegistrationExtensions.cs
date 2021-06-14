@@ -32,8 +32,8 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ServiceCollectionRegistrationExtensions
     {
-        public static IDicomFunctionsBuilder AddSqlServer(
-            this IDicomFunctionsBuilder builder,
+        public static IDicomOperationsBuilder AddSqlServer(
+            this IDicomOperationsBuilder builder,
             IConfiguration configurationRoot)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
@@ -52,15 +52,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddScopedDefault<SqlReindexStore>();
             return builder;
-        }
-
-        private static void AddSqlExtendedQueryTagStores(this IServiceCollection services)
-        {
-            services.AddScopedDefault<
-                SqlExtendedQueryTagStoreV1,
-                SqlExtendedQueryTagStoreV2,
-                SqlExtendedQueryTagStoreV3,
-                SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>();
         }
 
         public static IDicomServerBuilder AddSqlServer(
@@ -108,6 +99,15 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSqlExtendedQueryTagStores();
 
             return dicomServerBuilder;
+        }
+
+        private static void AddSqlExtendedQueryTagStores(this IServiceCollection services)
+        {
+            services.AddScopedDefault<
+                SqlExtendedQueryTagStoreV1,
+                SqlExtendedQueryTagStoreV2,
+                SqlExtendedQueryTagStoreV3,
+                SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>();
         }
 
         private static IServiceCollection AddInitializedSqlServerBase(

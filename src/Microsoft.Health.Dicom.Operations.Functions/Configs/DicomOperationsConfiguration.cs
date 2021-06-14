@@ -5,19 +5,19 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Operations.Functions.Indexing.Configuration
+namespace Microsoft.Health.Dicom.Operations.Functions.Configs
 {
     /// <summary>
-    /// Represents configuration settings related to the indexing of data.
+    /// Represents configuration settings related to the Dicom functions.
     /// </summary>
-    public class IndexingConfiguration
+    public class DicomOperationsConfiguration
     {
-        public const string SectionName = "Indexing";
+        public const string SectionName = "DicomOperations";
 
         /// <summary>
         /// Gets or sets the settings for re-indexing DICOM instances
         /// </summary>
         [Required]
-        public ReindexConfiguration Add { get; set; }
+        public ReindexOperationConfiguration Reindex { get; set; }
     }
 }

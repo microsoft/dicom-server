@@ -14,12 +14,12 @@ namespace Microsoft.Health.Dicom.Core.Registration
     public static class ServiceCollectionRegistrationExtensions
     {
         /// <summary>
-        /// Add core components for Dicom Functions.
+        /// Add core components for Dicom Operations.
         /// </summary>
-        /// <param name="builder">the DicomFunctionsBuilder.</param>
-        /// <returns>The DicomFunctionsBuilder</returns>
-        public static IDicomFunctionsBuilder AddDicomFunctionsCore(
-            this IDicomFunctionsBuilder builder)
+        /// <param name="builder">the DicomOperationsBuilder.</param>
+        /// <returns>The DicomOperationsBuilder</returns>
+        public static IDicomOperationsBuilder AddDicomOperationsCore(
+            this IDicomOperationsBuilder builder)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
             var services = builder.Services;

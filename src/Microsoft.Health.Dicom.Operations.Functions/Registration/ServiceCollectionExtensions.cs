@@ -8,30 +8,30 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Registration;
-using Microsoft.Health.Dicom.Functions.Configs;
+using Microsoft.Health.Dicom.Operations.Functions.Configs;
 
-namespace Microsoft.Health.Dicom.Functions.Registration
+namespace Microsoft.Health.Dicom.Operations.Functions.Registration
 {
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Add services for DICOM functions.
+        /// Add services for DICOM operations.
         /// </summary>
         /// <param name="services">The DICOM function builder instance.</param>
         /// <param name="configuration">The configuration</param>
         /// <returns>The DICOM function builder instance.</returns>
-        public static IDicomFunctionsBuilder AddDicomFunctions(this IServiceCollection services, IConfiguration configuration)
+        public static IDicomOperationsBuilder AddDicomOperations(this IServiceCollection services, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(services, nameof(services));
-            DicomFunctionsConfiguration dicomFunctionsConfig = new DicomFunctionsConfiguration();
-            configuration?.GetSection(DicomFunctionsConfiguration.SectionName).Bind(dicomFunctionsConfig);
-            services.AddSingleton(Options.Create(dicomFunctionsConfig));
-            return new DicomFunctionsBuilder(services);
+            DicomOperationsConfiguration dicomOperationsConfig = new DicomOperationsConfiguration();
+            configuration?.GetSection(DicomOperationsConfiguration.SectionName).Bind(dicomOperationsConfig);
+            services.AddSingleton(Options.Create(dicomOperationsConfig));
+            return new DicomOperationsBuilder(services);
         }
 
-        private class DicomFunctionsBuilder : IDicomFunctionsBuilder
+        private class DicomOperationsBuilder : IDicomOperationsBuilder
         {
-            public DicomFunctionsBuilder(IServiceCollection services)
+            public DicomOperationsBuilder(IServiceCollection services)
             {
                 EnsureArg.IsNotNull(services, nameof(services));
                 Services = services;

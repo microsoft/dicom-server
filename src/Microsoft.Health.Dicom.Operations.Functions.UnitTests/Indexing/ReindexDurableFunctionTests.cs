@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Operations.Functions.UnitTests.Indexing
             _schemaManagerDataStore = Substitute.For<ISchemaManagerDataStore>();
             _schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
             _reindexDurableFunction = new ReindexDurableFunction(
-                Options.Create(new DicomFunctionsConfiguration() { Reindex = _reindexConfig }),
+                Options.Create(new DicomOperationsConfiguration() { Reindex = _reindexConfig }),
                 _addExtendedQueryTagService,
                 _reindexStore,
                 _instanceStore,

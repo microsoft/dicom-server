@@ -8,7 +8,7 @@
             }
         }
     },
-    "DicomFunctions": {
+    "DicomOperations": {
         "Indexing": {
             "Reindex": {
                 "BatchSize": 2,

@@ -8,7 +8,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Operations.Functions.Indexing.Configuration;
+using Microsoft.Health.Dicom.Operations.Functions.Configs;
+using Microsoft.Health.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Schema.Manager;
 
 namespace Microsoft.Health.Dicom.Operations.Functions.Indexing
 {
@@ -28,7 +30,7 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Indexing
         private readonly SchemaInformation _schemaInformation;
 
         public ReindexDurableFunction(
-            IOptions<DicomFunctionsConfiguration> configOptions,
+            IOptions<DicomOperationsConfiguration> configOptions,
             IAddExtendedQueryTagService addExtendedQueryTagService,
             IReindexStore reindexStore,
             IInstanceStore instanceStore,
