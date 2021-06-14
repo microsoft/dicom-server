@@ -18,6 +18,6 @@ namespace Microsoft.Health.Dicom.Functions.Configs
         /// Gets or sets the settings for re-indexing DICOM instances
         /// </summary>
         [Required]
-        public ReindexConfiguration Reindex { get; set; }
+        public ReindexOperationConfiguration Reindex { get; set; }
     }
 }

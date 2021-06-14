@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Functions.Configs
     /// <summary>
     /// Represents the configuration for a "reindex" function.
     /// </summary>
-    public class ReindexConfiguration
+    public class ReindexOperationConfiguration
     {
         public const string SectionName = "Reindex";
         /// <summary>

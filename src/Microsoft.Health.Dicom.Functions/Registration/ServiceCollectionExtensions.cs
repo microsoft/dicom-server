@@ -12,7 +12,7 @@ using Microsoft.Health.Dicom.Functions.Configs;
 
 namespace Microsoft.Health.Dicom.Functions.Registration
 {
-    public static class DicomFunctionsServiceCollectionExtensions
+    public static class ServiceCollectionExtensions
     {
         /// <summary>
         /// Add services for DICOM functions.

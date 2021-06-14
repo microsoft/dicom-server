@@ -11,9 +11,14 @@ using Microsoft.Health.Dicom.Core.Features.Indexing;
 
 namespace Microsoft.Health.Dicom.Core.Registration
 {
-    public static class DicomFunctionsBuilderCoreRegistrationExtensions
+    public static class ServiceCollectionRegistrationExtensions
     {
-        public static IDicomFunctionsBuilder AddDicomFunctionsServices(
+        /// <summary>
+        /// Add core components for Dicom Functions.
+        /// </summary>
+        /// <param name="builder">the DicomFunctionsBuilder.</param>
+        /// <returns>The DicomFunctionsBuilder</returns>
+        public static IDicomFunctionsBuilder AddDicomFunctionsCore(
             this IDicomFunctionsBuilder builder)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));

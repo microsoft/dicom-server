@@ -18,8 +18,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     public class AddExtendedQueryTagService : IAddExtendedQueryTagService
     {
-        // Different from Asp.net Core, we couldn't get schemaVersion before AzureFunction execution.
-        // Thus make it lazy initialization so that work with both.
+        // IStoreFactory depends on SchemaInformation.Version to get proper IExtendedQueryTagStore,
+        // The version is not set during class construction, but during runtime.
+        // Thus has to be lazy initalization
         private readonly Lazy<IExtendedQueryTagStore> _extendedQueryTagStore;
         private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
         private readonly int _maxAllowedCount;
