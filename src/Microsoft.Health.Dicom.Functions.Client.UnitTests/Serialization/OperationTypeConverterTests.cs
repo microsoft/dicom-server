@@ -15,13 +15,13 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Serialization
     public class OperationTypeConverterTests
     {
         [Fact]
-        public void CanRead()
+        public void GivenOperationTypeConverter_WhenCheckingRead_ThenReturnTrue()
         {
             Assert.True(new OperationTypeConverter().CanRead);
         }
 
         [Fact]
-        public void CanWrite()
+        public void GivenOperationTypeConverter_WhenCheckingWrite_ThenReturnFalse()
         {
             Assert.False(new OperationTypeConverter().CanWrite);
         }
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Serialization
         [InlineData("42")]
         [InlineData("{ \"foo\": \"bar\" }")]
         [InlineData("[ 1, 2, 3 ]")]
-        public void ReadJson_GivenInvalidToken_ThrowsJsonReaderException(string json)
+        public void GivenInvalidToken_WhenReadingJson_ThenThrowJsonReaderException(string json)
         {
             using var reader = new StringReader(json);
             using var jsonReader = new JsonTextReader(reader);
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Serialization
         [InlineData("\"ReIndeX\"", OperationType.Reindex)]
         [InlineData("\"NewJob\"", OperationType.Unknown)]
         [InlineData("\"Unknown\"", OperationType.Unknown)]
-        public void ReadJson_GivenStringOrNullToken_ReturnOperationType(string json, OperationType expected)
+        public void GivenStringOrNullToken_WhenReadingJson_ThenReturnOperationType(string json, OperationType expected)
         {
             using var reader = new StringReader(json);
             using var jsonReader = new JsonTextReader(reader);
@@ -66,7 +66,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Serialization
         }
 
         [Fact]
-        public void WriteJson_GivenAnyInput_ThrowsNotSupportedException()
+        public void GivenAnyInput_WhenWritingJson_ThenThrowNotSupportedException()
         {
             Assert.Throws<NotSupportedException>(
                 () => new OperationTypeConverter().WriteJson(

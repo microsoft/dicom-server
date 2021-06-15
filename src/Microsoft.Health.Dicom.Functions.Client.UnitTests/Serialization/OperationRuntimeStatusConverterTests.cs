@@ -15,13 +15,13 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Serialization
     public class OperationRuntimeStatusConverterTests
     {
         [Fact]
-        public void CanRead()
+        public void GivenOperationRuntimeStatusConverter_WhenCheckingRead_ThenReturnTrue()
         {
             Assert.True(new OperationRuntimeStatusConverter().CanRead);
         }
 
         [Fact]
-        public void CanWrite()
+        public void GivenOperationRuntimeStatusConverter_WhenCheckingWrite_ThenReturnFalse()
         {
             Assert.False(new OperationRuntimeStatusConverter().CanWrite);
         }
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Serialization
         [InlineData("42")]
         [InlineData("{ \"foo\": \"bar\" }")]
         [InlineData("[ 1, 2, 3 ]")]
-        public void ReadJson_GivenInvalidToken_ThrowsJsonReaderException(string json)
+        public void GivenInvalidToken_WhenReadingJson_ThenThrowJsonReaderException(string json)
         {
             using var reader = new StringReader(json);
             using var jsonReader = new JsonTextReader(reader);
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Serialization
         [InlineData("\"TerMINated\"", OperationRuntimeStatus.Canceled)]
         [InlineData("\"Unknown\"", OperationRuntimeStatus.Unknown)]
         [InlineData("\"Something Else\"", OperationRuntimeStatus.Unknown)]
-        public void ReadJson_GivenStringOrNullToken_ReturnOperationStatus(string json, OperationRuntimeStatus expected)
+        public void GivenStringOrNullToken_WhenReadingJson_ThenReturnOperationStatus(string json, OperationRuntimeStatus expected)
         {
             using var reader = new StringReader(json);
             using var jsonReader = new JsonTextReader(reader);
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Serialization
         }
 
         [Fact]
-        public void WriteJson_GivenAnyInput_ThrowsNotSupportedException()
+        public void GivenAnyInput_WhenWritingJson_ThenThrowNotSupportedException()
         {
             Assert.Throws<NotSupportedException>(
                 () => new OperationRuntimeStatusConverter().WriteJson(

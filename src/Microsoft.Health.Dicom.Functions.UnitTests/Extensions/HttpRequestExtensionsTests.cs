@@ -15,13 +15,13 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Extensions
     public class HttpRequestExtensionsTests
     {
         [Fact]
-        public void CreateRequestAbortedLinkedTokenSource_GivenNullRequest_ThrowsArgumentNullException()
+        public void GivenNullRequest_WhenCreatingLinkedTokenSource_ThenThrowArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => HttpRequestExtensions.CreateRequestAbortedLinkedTokenSource(null, CancellationToken.None));
         }
 
         [Fact]
-        public void CreateRequestAbortedLinkedTokenSource_GivenValidInput_ReturnsLinkedCancellationTokenSource()
+        public void GivenValidInput_WhenCreatingLinkedTokenSource_ThenReturnLinkedCancellationTokenSource()
         {
             using var mockLifetimeFeature = new MockLifetimeFeature();
             var featureCollection = new FeatureCollection();
