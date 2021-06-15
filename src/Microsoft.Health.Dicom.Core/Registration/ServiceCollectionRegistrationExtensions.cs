@@ -18,15 +18,13 @@ namespace Microsoft.Health.Dicom.Core.Registration
         /// </summary>
         /// <param name="builder">the DicomOperationsBuilder.</param>
         /// <returns>The DicomOperationsBuilder</returns>
-        public static IDicomFunctionsBuilder AddDicomOperationsCore(
-            this IDicomFunctionsBuilder builder)
+        public static IDicomFunctionsBuilder AddDicomOperationsCore(this IDicomFunctionsBuilder builder)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
-            var services = builder.Services;
-            services.AddScopedDefault<InstanceReindexer>();
-            services.AddScopedDefault<AddExtendedQueryTagService>();
-            services.AddSingletonDefault<DicomTagParser>();
-            services.AddSingletonDefault<ExtendedQueryTagEntryValidator>();
+            builder.Services.AddScopedDefault<InstanceReindexer>()
+                .AddScopedDefault<AddExtendedQueryTagService>()
+                .AddSingletonDefault<DicomTagParser>()
+                .AddSingletonDefault<ExtendedQueryTagEntryValidator>();
 
             return builder;
         }

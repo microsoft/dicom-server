@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Registration
 
             services.AddMvcCore()
                 .AddNewtonsoftJson(x => x.SerializerSettings.Converters
-                    .Add(new StringEnumConverter()));
+                .Add(new StringEnumConverter()));
 
             return new DicomFunctionsBuilder(services);
         }

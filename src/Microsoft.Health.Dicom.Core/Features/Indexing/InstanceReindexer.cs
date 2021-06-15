@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
     /// <summary>
-    /// Reindexer which reindexes DICOM instance.
+    /// Represents an Reindexer which reindexes DICOM instance.
     /// </summary>
     public class InstanceReindexer : IInstanceReindexer
     {

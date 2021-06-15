@@ -44,13 +44,10 @@ namespace Microsoft.Extensions.DependencyInjection
             SchemaInformation schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
             services.AddSingleton(schemaInformation);
 
-            AddInitializedSqlServerBase(services, config);
-
-            services.AddScopedDefault<SqlInstanceStore>();
-
-            services.AddSqlExtendedQueryTagStores();
-
-            services.AddScopedDefault<SqlReindexStore>();
+            services.AddSqlConnectionServices(config)
+                .AddScopedDefault<SqlInstanceStore>()
+                .AddSqlExtendedQueryTagStores()
+                .AddScopedDefault<SqlReindexStore>();
             return builder;
         }
 
@@ -62,8 +59,8 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
             IServiceCollection services = dicomServerBuilder.Services;
 
-            services.AddSqlServerBase<SchemaVersion>(configurationRoot);
-            services.AddSqlServerApi();
+            services.AddSqlServerBase<SchemaVersion>(configurationRoot)
+                .AddSqlServerApi();
 
             var config = GetConfiguration(configurationRoot);
 
@@ -79,38 +76,32 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsSelf();
 
-            services.AddScopedDefault<
-                SqlIndexDataStoreV1,
-                SqlIndexDataStoreV2,
-                SqlIndexDataStoreV3,
-                SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>();
+            services.AddScopedDefault<SqlIndexDataStoreV1>()
+                .AddScopedDefault<SqlIndexDataStoreV2>()
+                .AddScopedDefault<SqlIndexDataStoreV3>()
+                .AddScopedDefault<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
+                // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
+                // However, the current implementation of the decorate method requires the concrete type to be already registered,
+                // so we need to register here. Need to some more investigation to see how we might be able to do this.
+                .Decorate<ISqlIndexDataStore, SqlLoggingIndexDataStore>();
 
-            // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
-            // However, the current implementation of the decorate method requires the concrete type to be already registered,
-            // so we need to register here. Need to some more investigation to see how we might be able to do this.
-            services.Decorate<ISqlIndexDataStore, SqlLoggingIndexDataStore>();
-
-            services.AddScopedDefault<SqlQueryStore>();
-
-            services.AddScopedDefault<SqlInstanceStore>();
-
-            services.AddScopedDefault<SqlChangeFeedStore>();
-
-            services.AddSqlExtendedQueryTagStores();
+            services.AddScopedDefault<SqlQueryStore>()
+                .AddScopedDefault<SqlInstanceStore>()
+                .AddScopedDefault<SqlChangeFeedStore>()
+                .AddSqlExtendedQueryTagStores();
 
             return dicomServerBuilder;
         }
 
-        private static void AddSqlExtendedQueryTagStores(this IServiceCollection services)
+        private static IServiceCollection AddSqlExtendedQueryTagStores(this IServiceCollection services)
         {
-            services.AddScopedDefault<
-                SqlExtendedQueryTagStoreV1,
-                SqlExtendedQueryTagStoreV2,
-                SqlExtendedQueryTagStoreV3,
-                SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>();
+            return services.AddScopedDefault<SqlExtendedQueryTagStoreV1>()
+                  .AddScopedDefault<SqlExtendedQueryTagStoreV2>()
+                  .AddScopedDefault<SqlExtendedQueryTagStoreV3>()
+                  .AddScopedDefault<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>();
         }
 
-        private static IServiceCollection AddInitializedSqlServerBase(
+        private static IServiceCollection AddSqlConnectionServices(
            this IServiceCollection services,
            SqlServerDataStoreConfiguration configuration)
         {
@@ -119,18 +110,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // TODO: consider moving these logic into healthcare-shared-components (https://github.com/microsoft/healthcare-shared-components/)
             // once code becomes solid (e.g: merging back to main branch).                 
-            services.AddScopedDefault<SqlTransactionHandler>();
-
-            services.AddScopedDefault<SqlConnectionWrapperFactory>();
-
-            services.AddSingletonDefault<SchemaManagerDataStore>();
-
-            // TODO:  Use RetrySqlCommandWrapperFactory instead when moving to healthcare-shared-components 
-            services.AddSingletonDefault<SqlCommandWrapperFactory>();
-
-            services.AddSingletonDefault<DefaultSqlConnectionStringProvider>();
-
-            services.AddSingletonDefault<DefaultSqlConnectionFactory>();
+            services.AddScopedDefault<SqlTransactionHandler>()
+                .AddScopedDefault<SqlConnectionWrapperFactory>()
+                .AddSingletonDefault<SchemaManagerDataStore>()
+                // TODO:  Use RetrySqlCommandWrapperFactory instead when moving to healthcare-shared-components 
+                .AddSingletonDefault<SqlCommandWrapperFactory>()
+                .AddSingletonDefault<DefaultSqlConnectionStringProvider>()
+                .AddSingletonDefault<DefaultSqlConnectionFactory>();
 
             return services;
         }

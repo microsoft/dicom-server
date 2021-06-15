@@ -41,29 +41,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return services;
         }
 
-        public static IServiceCollection AddScopedDefault<T1, T2>(this IServiceCollection services)
-        {
-            services.AddScopedDefault<T1>();
-            services.AddScopedDefault<T2>();
-            return services;
-        }
-
-        public static IServiceCollection AddScopedDefault<T1, T2, T3>(this IServiceCollection services)
-        {
-            services.AddScopedDefault<T1>();
-            services.AddScopedDefault<T2>();
-            services.AddScopedDefault<T3>();
-            return services;
-        }
-        public static IServiceCollection AddScopedDefault<T1, T2, T3, T4>(this IServiceCollection services)
-        {
-            services.AddScopedDefault<T1>();
-            services.AddScopedDefault<T2>();
-            services.AddScopedDefault<T3>();
-            services.AddScopedDefault<T4>();
-            return services;
-        }
-
         /// <summary>
         /// Register type as Transient with all implemented inferfaces and itself.
         /// </summary>
