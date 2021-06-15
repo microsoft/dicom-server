@@ -11,7 +11,6 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Operations.Functions.Configs;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
-using Microsoft.Health.Dicom.Functions.Indexing.Configuration;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
 {
@@ -31,7 +30,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         private readonly SchemaInformation _schemaInformation;
 
         public ReindexDurableFunction(
-            IOptions<DicomOperationsConfiguration> configOptions,
+            IOptions<DicomFunctionsConfiguration> configOptions,
             IAddExtendedQueryTagService addExtendedQueryTagService,
             IReindexStore reindexStore,
             IInstanceStore instanceStore,

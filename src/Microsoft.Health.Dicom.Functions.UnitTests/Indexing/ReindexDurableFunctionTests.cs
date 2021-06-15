@@ -10,9 +10,7 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
-using Microsoft.Health.Dicom.Operations.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Indexing;
-using Microsoft.Health.Dicom.Functions.Indexing.Configuration;
 using NSubstitute;
 using Microsoft.Health.Dicom.Operations.Functions.Configs;
 
@@ -41,7 +39,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _schemaManagerDataStore = Substitute.For<ISchemaManagerDataStore>();
             _schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
             _reindexDurableFunction = new ReindexDurableFunction(
-                Options.Create(new DicomOperationsConfiguration() { Reindex = _reindexConfig }),
+                Options.Create(new DicomFunctionsConfiguration() { Reindex = _reindexConfig }),
                 _addExtendedQueryTagService,
                 _reindexStore,
                 _instanceStore,

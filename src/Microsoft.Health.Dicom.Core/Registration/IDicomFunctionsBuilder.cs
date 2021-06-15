@@ -8,9 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Microsoft.Health.Dicom.Core.Registration
 {
     /// <summary>
-    /// A builder type for configuring DICOM operations.
+    /// A builder type for configuring DICOM functions.
     /// </summary>
-    public interface IDicomOperationsBuilder
+    public interface IDicomFunctionsBuilder
     {
         IServiceCollection Services { get; }
     }

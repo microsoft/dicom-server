@@ -18,8 +18,8 @@ namespace Microsoft.Health.Dicom.Core.Registration
         /// </summary>
         /// <param name="builder">the DicomOperationsBuilder.</param>
         /// <returns>The DicomOperationsBuilder</returns>
-        public static IDicomOperationsBuilder AddDicomOperationsCore(
-            this IDicomOperationsBuilder builder)
+        public static IDicomFunctionsBuilder AddDicomOperationsCore(
+            this IDicomFunctionsBuilder builder)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
             var services = builder.Services;

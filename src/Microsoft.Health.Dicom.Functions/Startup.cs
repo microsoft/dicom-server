@@ -7,11 +7,8 @@ using EnsureThat;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Functions.Indexing.Configuration;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Operations.Functions.Registration;
-using Microsoft.Health.Dicom.Operations.Functions.Indexing.Configuration;
-using Newtonsoft.Json.Converters;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.Startup))]
 namespace Microsoft.Health.Dicom.Functions
@@ -22,20 +19,8 @@ namespace Microsoft.Health.Dicom.Functions
         public override void Configure(IFunctionsHostBuilder builder)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
-
-            builder.Services
-                .AddOptions<IndexingConfiguration>()
-                .Configure<IConfiguration>((sectionObj, config) => config
-                    .GetSection(HostSectionName)
-                    .GetSection(IndexingConfiguration.SectionName)
-                    .Bind(sectionObj));
-
-            builder.Services
-                .AddMvcCore()
-                .AddNewtonsoftJson(x => x.SerializerSettings.Converters
-                    .Add(new StringEnumConverter()));
             IConfiguration configuration = builder.GetContext().Configuration?.GetSection(AzureFunctionsJobHostSection);
-            builder.Services.AddDicomOperations(configuration)
+            builder.Services.AddDicomFunctions(configuration)
                 .AddDicomOperationsCore()
                 .AddSqlServer(configuration);
         }

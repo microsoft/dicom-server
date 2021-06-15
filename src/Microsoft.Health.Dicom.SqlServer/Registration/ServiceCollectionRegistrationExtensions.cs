@@ -32,8 +32,8 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ServiceCollectionRegistrationExtensions
     {
-        public static IDicomOperationsBuilder AddSqlServer(
-            this IDicomOperationsBuilder builder,
+        public static IDicomFunctionsBuilder AddSqlServer(
+            this IDicomFunctionsBuilder builder,
             IConfiguration configurationRoot)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
