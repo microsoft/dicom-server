@@ -7,14 +7,14 @@ using System.Threading;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 
-namespace Microsoft.Health.Dicom.Operations.Functions.Http
+namespace Microsoft.Health.Dicom.Operations.Functions.Extensions
 {
-    internal static class HttpAzureFunctions
+    internal static class HttpRequestExtensions
     {
-        public static CancellationTokenSource CreateCancellationSource(HttpRequest request, CancellationToken hostCancellationToken)
+        public static CancellationTokenSource CreateRequestAbortedLinkedTokenSource(this HttpRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
-            return CancellationTokenSource.CreateLinkedTokenSource(request.HttpContext.RequestAborted, hostCancellationToken);
+            return CancellationTokenSource.CreateLinkedTokenSource(request.HttpContext.RequestAborted, cancellationToken);
         }
     }
 }

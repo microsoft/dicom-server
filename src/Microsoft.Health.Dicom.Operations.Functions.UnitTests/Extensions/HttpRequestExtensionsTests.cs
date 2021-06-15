@@ -7,21 +7,21 @@ using System;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Health.Dicom.Operations.Functions.Http;
+using Microsoft.Health.Dicom.Operations.Functions.Extensions;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Operations.Functions.UnitTests.Http
+namespace Microsoft.Health.Dicom.Operations.Functions.UnitTests.Extensions
 {
-    public class HttpAzureFunctionsTests
+    public class HttpRequestExtensionsTests
     {
         [Fact]
-        public void CreateCancellationSource_GivenNullRequest_ThrowsArgumentNullException()
+        public void CreateRequestAbortedLinkedTokenSource_GivenNullRequest_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => HttpAzureFunctions.CreateCancellationSource(null, CancellationToken.None));
+            Assert.Throws<ArgumentNullException>(() => HttpRequestExtensions.CreateRequestAbortedLinkedTokenSource(null, CancellationToken.None));
         }
 
         [Fact]
-        public void CreateCancellationSource_GivenValidInput_ReturnsLinkedCancellationTokenSource()
+        public void CreateRequestAbortedLinkedTokenSource_GivenValidInput_ReturnsLinkedCancellationTokenSource()
         {
             using var mockLifetimeFeature = new MockLifetimeFeature();
             var featureCollection = new FeatureCollection();
@@ -30,18 +30,18 @@ namespace Microsoft.Health.Dicom.Operations.Functions.UnitTests.Http
             var context = new DefaultHttpContext(featureCollection);
 
             // Host Cancellation
-            using (var hostSource = new CancellationTokenSource())
-            using (CancellationTokenSource source = HttpAzureFunctions.CreateCancellationSource(context.Request, hostSource.Token))
+            using (var upstreamSource = new CancellationTokenSource())
+            using (CancellationTokenSource source = context.Request.CreateRequestAbortedLinkedTokenSource(upstreamSource.Token))
             {
                 Assert.False(source.IsCancellationRequested);
 
-                hostSource.Cancel();
+                upstreamSource.Cancel();
                 Assert.True(source.IsCancellationRequested);
             }
 
             // Connection aborted
-            using (var hostSource = new CancellationTokenSource())
-            using (CancellationTokenSource source = HttpAzureFunctions.CreateCancellationSource(context.Request, hostSource.Token))
+            using (var upstreamSource = new CancellationTokenSource())
+            using (CancellationTokenSource source = context.Request.CreateRequestAbortedLinkedTokenSource(upstreamSource.Token))
             {
                 Assert.False(source.IsCancellationRequested);
 

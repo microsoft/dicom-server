@@ -13,7 +13,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Operations.Functions.Http;
+using Microsoft.Health.Dicom.Operations.Functions.Extensions;
 
 namespace Microsoft.Health.Dicom.Operations.Functions.Management
 {
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Management
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            using CancellationTokenSource source = HttpAzureFunctions.CreateCancellationSource(request, hostCancellationToken);
+            using CancellationTokenSource source = request.CreateRequestAbortedLinkedTokenSource(hostCancellationToken);
 
             logger.LogInformation("Querying orchestration instance with ID '{InstanceId}'", instanceId);
 
