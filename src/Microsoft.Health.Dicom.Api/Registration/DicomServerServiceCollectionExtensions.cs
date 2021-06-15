@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Builder
 
             services.AddSingleton<IUrlResolver, UrlResolver>();
 
-            services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features);
+            services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
             // Register the Json Serializer to use

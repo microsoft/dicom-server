@@ -20,3 +20,19 @@
         "ConnectionString": "server=(local);Initial Catalog=Dicom;Integrated Security=true"
     }
 }
+  "version": "2.0",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    }
+  },
+  "indexing": {
+    "add": {
+      "batchSize": 1000,
+      "parallelBatches": 10
+    }
+  }
+}

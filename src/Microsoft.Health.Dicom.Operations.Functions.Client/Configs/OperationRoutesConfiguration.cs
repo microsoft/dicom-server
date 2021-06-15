@@ -3,10 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Resources;
-using System.Runtime.CompilerServices;
+using System.ComponentModel.DataAnnotations;
 
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Operations.Functions.UnitTests")]
-[assembly: NeutralResourcesLanguage("en-us")]
-[assembly: CLSCompliant(false)]
+namespace Microsoft.Health.Dicom.Operations.Functions.Client.Configs
+{
+    public class OperationRoutesConfiguration
+    {
+        [Required]
+        public string StatusTemplate { get; set; }
+    }
+}
