@@ -8,6 +8,7 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Operations.Functions.Indexing.Configuration;
+using Newtonsoft.Json.Converters;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Operations.Functions.Startup))]
 namespace Microsoft.Health.Dicom.Operations.Functions
@@ -27,6 +28,11 @@ namespace Microsoft.Health.Dicom.Operations.Functions
                     .GetSection(HostSectionName)
                     .GetSection(IndexingConfiguration.SectionName)
                     .Bind(sectionObj));
+
+            builder.Services
+                .AddMvcCore()
+                .AddNewtonsoftJson(x => x.SerializerSettings.Converters
+                    .Add(new StringEnumConverter()));
         }
     }
 }
