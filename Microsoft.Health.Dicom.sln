@@ -25,15 +25,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core.UnitTests", "src\Microsoft.Health.Dicom.Core.UnitTests\Microsoft.Health.Dicom.Core.UnitTests.csproj", "{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions", "src\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj", "{BB88616C-6208-43D0-B9EF-79FC0652A151}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client", "src\Microsoft.Health.Dicom.Functions.Client\Microsoft.Health.Dicom.Functions.Client.csproj", "{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client.UnitTests", "src\Microsoft.Health.Dicom.Functions.Client.UnitTests\Microsoft.Health.Dicom.Functions.Client.UnitTests.csproj", "{3D5D7F69-C766-450A-AA3D-00A50E115E9C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.UnitTests", "src\Microsoft.Health.Dicom.Functions.UnitTests\Microsoft.Health.Dicom.Functions.UnitTests.csproj", "{3D679950-A578-45AD-AF89-FAF89580375F}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Metadata", "src\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj", "{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tests.Common", "src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj", "{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tests.Integration", "test\Microsoft.Health.Dicom.Tests.Integration\Microsoft.Health.Dicom.Tests.Integration.csproj", "{DFB41ECC-726C-4DBA-8AD3-17FB0A2546CA}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations.Functions", "src\Microsoft.Health.Dicom.Operations.Functions\Microsoft.Health.Dicom.Operations.Functions.csproj", "{BB88616C-6208-43D0-B9EF-79FC0652A151}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations.Functions.UnitTests", "src\Microsoft.Health.Dicom.Operations.Functions.UnitTests\Microsoft.Health.Dicom.Operations.Functions.UnitTests.csproj", "{3D679950-A578-45AD-AF89-FAF89580375F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer", "src\Microsoft.Health.Dicom.SqlServer\Microsoft.Health.Dicom.SqlServer.csproj", "{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}"
 EndProject
@@ -46,10 +50,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{176641B3-297C-4E04-A83D-8F80F80485E8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8C9A0050-5D22-4398-9F93-DDCD80B3BA51}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations.Functions.Client", "src\Microsoft.Health.Dicom.Operations.Functions.Client\Microsoft.Health.Dicom.Operations.Functions.Client.csproj", "{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations.Functions.Client.UnitTests", "src\Microsoft.Health.Dicom.Operations.Functions.Client.UnitTests\Microsoft.Health.Dicom.Operations.Functions.Client.UnitTests.csproj", "{3D5D7F69-C766-450A-AA3D-00A50E115E9C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
