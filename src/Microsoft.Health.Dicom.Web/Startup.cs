@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,11 +16,9 @@ namespace Microsoft.Health.Dicom.Web
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            PrereleaseV1Version = new ApiVersion(1, 0, "prerelease");
         }
 
         public IConfiguration Configuration { get; }
-        private ApiVersion PrereleaseV1Version { get; }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public virtual void ConfigureServices(IServiceCollection services)
@@ -40,19 +37,6 @@ namespace Microsoft.Health.Dicom.Web
                 .AddMetadataStorageDataStore(Configuration)
                 .AddSqlServer(Configuration)
                 .AddBackgroundWorkers();
-
-            services.AddMvc()
-                .ConfigureApiBehaviorOptions(options =>
-                {
-                    options.SuppressModelStateInvalidFilter = true; // disables ProblemDetails in error response
-                });
-
-            services.AddApiVersioning(c =>
-            {
-                c.AssumeDefaultVersionWhenUnspecified = true;
-                c.DefaultApiVersion = PrereleaseV1Version;
-                c.ReportApiVersions = true;
-            });
 
             AddApplicationInsightsTelemetry(services);
         }
