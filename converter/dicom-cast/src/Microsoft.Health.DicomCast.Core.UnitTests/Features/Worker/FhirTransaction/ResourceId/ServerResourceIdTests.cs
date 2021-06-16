@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using Hl7.Fhir.Model;
+using Hl7.Fhir.Utility;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Xunit;
 
@@ -28,7 +29,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public void GivenTheSystem_WhenNewServerResourceIdIsGenerated_ThenCorrectValuesShouldBeSet()
         {
-            Assert.Equal(DefaultResourceType, ServerResourceId.ResourceType);
+            Assert.Equal(EnumUtility.GetLiteral(ResourceType.Patient), ServerResourceId.TypeName);
             Assert.Equal(DefaultResourceId, ServerResourceId.ResourceId);
         }
 

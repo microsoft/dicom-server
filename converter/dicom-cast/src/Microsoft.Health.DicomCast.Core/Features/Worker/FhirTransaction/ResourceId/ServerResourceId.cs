@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
@@ -18,18 +19,42 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         private ResourceReference _resourceReference;
 
         public ServerResourceId(ResourceType resourceType, string resourceId)
+            : this(EnumUtility.GetLiteral(resourceType), resourceId)
         {
-            EnsureArg.EnumIsDefined(resourceType, nameof(resourceType));
+        }
+
+        public ServerResourceId(string typeName, string resourceId)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(typeName, nameof(typeName));
             EnsureArg.IsNotNullOrWhiteSpace(resourceId, nameof(resourceId));
 
-            ResourceType = resourceType;
+            TypeName = typeName;
             ResourceId = resourceId;
         }
 
         /// <summary>
+        /// Gets the type name.
+        /// </summary>
+        public string TypeName { get; }
+
+        /// <summary>
         /// Gets the resource type.
         /// </summary>
-        public ResourceType ResourceType { get; }
+        [Obsolete("Please use TypeName instead.")]
+        public ResourceType ResourceType
+        {
+            get
+            {
+                ResourceType? resourceType = ModelInfo.FhirTypeNameToResourceType(TypeName);
+                if (resourceType == null)
+                {
+                    throw new InvalidOperationException(
+                        string.Format(CultureInfo.InvariantCulture, DicomCastCoreResource.UnknownResourceType, TypeName));
+                }
+
+                return resourceType.GetValueOrDefault();
+            }
+        }
 
         /// <summary>
         /// Gets the server generated resource id.
@@ -39,14 +64,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <inheritdoc/>
         public ResourceReference ToResourceReference()
         {
-            _resourceReference ??= new ResourceReference($"{ResourceType.GetLiteral()}/{ResourceId}");
+            _resourceReference ??= new ResourceReference(TypeName + "/" + ResourceId);
 
             return _resourceReference;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(ResourceType, ResourceId);
+            return HashCode.Combine(TypeName, ResourceId);
         }
 
         public override bool Equals(object obj)
@@ -66,7 +91,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
             else
             {
-                return ResourceType == other.ResourceType &&
+                return string.Equals(TypeName, other.TypeName, StringComparison.Ordinal) &&
                     string.Equals(ResourceId, other.ResourceId, StringComparison.Ordinal);
             }
         }

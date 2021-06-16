@@ -366,7 +366,7 @@
                 "enableExport":{"value": "[parameters('enableExport')]"},    
                 "enableConvertData":{"value": "[parameters('enableConvertData')]"}, 
                 "enableReindex":{"value": "[parameters('enableReindex')]"}, 
-                "sqlSchemaAutomaticUpdatesEnabled":{"value": true}    
+                "sqlSchemaAutomaticUpdatesEnabled":{"value": "auto"}    
                 }
             }
         },

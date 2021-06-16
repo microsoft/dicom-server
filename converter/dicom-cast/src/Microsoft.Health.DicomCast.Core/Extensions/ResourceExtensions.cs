@@ -15,7 +15,7 @@ namespace Microsoft.Health.DicomCast.Core.Extensions
         {
             EnsureArg.IsNotNull(resource, nameof(resource));
 
-            return new ServerResourceId(resource.ResourceType, resource.Id);
+            return new ServerResourceId(resource.TypeName, resource.Id);
         }
     }
 }
