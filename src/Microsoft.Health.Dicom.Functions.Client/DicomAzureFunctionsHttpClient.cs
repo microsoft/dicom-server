@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -30,7 +31,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
     {
         private readonly HttpClient _client;
         private readonly FunctionsClientConfiguration _config;
-        private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
+        internal static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
         {
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
         };
@@ -49,7 +50,6 @@ namespace Microsoft.Health.Dicom.Functions.Client
             EnsureArg.IsNotNull(config?.Value, nameof(config));
 
             client.BaseAddress = config.Value.BaseAddress;
-            client.DefaultRequestHeaders.Add(HeaderNames.Accept, MediaTypeNames.Application.Json);
 
             _client = client;
             _config = config.Value;
@@ -64,7 +64,10 @@ namespace Microsoft.Health.Dicom.Functions.Client
                 string.Format(CultureInfo.InvariantCulture, _config.Routes.StatusTemplate, operationId),
                 UriKind.Relative);
 
-            using HttpResponseMessage response = await _client.GetAsync(statusRoute, cancellationToken);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, statusRoute);
+            request.Headers.Add(HeaderNames.Accept, MediaTypeNames.Application.Json);
+
+            using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 return null;
@@ -89,12 +92,13 @@ namespace Microsoft.Health.Dicom.Functions.Client
         }
 
         /// <inheritdoc/>
-        public async Task<string> StartExtendedQueryTagAdditionAsync(ICollection<AddExtendedQueryTagEntry> tags, CancellationToken cancellationToken = default)
+        public async Task<string> StartExtendedQueryTagAdditionAsync(IReadOnlyCollection<AddExtendedQueryTagEntry> tags, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(tags, nameof(tags));
             EnsureArg.HasItems(tags, nameof(tags));
 
-            using HttpResponseMessage response = await _client.GetAsync(_config.Routes.StartReindex, cancellationToken);
+            using var content = new StringContent(JsonConvert.SerializeObject(tags, JsonSettings), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using HttpResponseMessage response = await _client.PostAsync(_config.Routes.StartQueryTagReindex, content, cancellationToken);
 
             // Re-throw any exceptions we may have encountered when making the HTTP request
             response.EnsureSuccessStatusCode();

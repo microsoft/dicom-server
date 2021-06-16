@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             string expectedOperationId = Guid.NewGuid().ToString();
             _client
                 .StartExtendedQueryTagAdditionAsync(
-                    Arg.Is<ICollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
+                    Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
                     Arg.Is(tokenSource.Token))
                 .Returns(expectedOperationId);
 
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             await _client
                 .Received(1)
                 .StartExtendedQueryTagAdditionAsync(
-                    Arg.Is<ICollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
+                    Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
                     Arg.Is(tokenSource.Token));
         }
     }

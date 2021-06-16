@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _client = fixture.Client;
         }
 
-        [Fact]
+        [Fact(Skip = "Re-enable after implementing feature end-to-end")]
         public async Task GivenValidExtendedQueryTags_WhenGoThroughEndToEndScenario_ThenShouldSucceed()
         {
             // Prepare 3 extended query tags.

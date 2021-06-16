@@ -42,13 +42,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
-        /// A task representing the <see cref="StartExtendedQueryTagAdditionAsync(ICollection{AddExtendedQueryTagEntry}, CancellationToken)"/>
+        /// A task representing the <see cref="StartExtendedQueryTagAdditionAsync(IReadOnlyCollection{AddExtendedQueryTagEntry}, CancellationToken)"/>
         /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
         /// that is performing the asynchronous addition.
         /// </returns>
         /// <exception cref="ArgumentException"><paramref name="tags"/> is empty..</exception>
         /// <exception cref="ArgumentNullException"><paramref name="tags"/> is <see langword="null"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<string> StartExtendedQueryTagAdditionAsync(ICollection<AddExtendedQueryTagEntry> tags, CancellationToken cancellationToken = default);
+        Task<string> StartExtendedQueryTagAdditionAsync(IReadOnlyCollection<AddExtendedQueryTagEntry> tags, CancellationToken cancellationToken = default);
     }
 }
