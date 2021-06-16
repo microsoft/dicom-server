@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private readonly IDicomWebClient _client;
         private readonly HashSet<string> _createdDicomStudies = new HashSet<string>();
 
-        private const string PrereleaseV1VersionPath = "/v1.0-prerelease";
+        private const string PrereleaseV1VersionPath = "/api/v1.0-prerelease";
 
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {

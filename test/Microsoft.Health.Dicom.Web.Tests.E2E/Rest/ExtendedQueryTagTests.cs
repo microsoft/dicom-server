@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private readonly IDicomWebClient _client;
         private const string PrivateCreatorName = "PrivateCreator1";
 
-        private const string PrereleaseV1VersionPath = "/v1.0-prerelease";
+        private const string PrereleaseV1VersionPath = "/api/v1.0-prerelease";
 
         public ExtendedQueryTagTests(HttpIntegrationTestFixture<Startup> fixture)
         {
