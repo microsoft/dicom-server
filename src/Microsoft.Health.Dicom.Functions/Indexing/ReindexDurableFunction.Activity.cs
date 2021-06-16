@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             log.LogInformation("Adding extended query tags with {input}", input);
 
             // TODO: change AddExtendedQueryTagAsync to return ExtendedQueryTagStoreEntry
-            await _addExtendedQueryTagService.AddExtendedQueryTagAsync(input);
+            await _addExtendedQueryTagService.AddExtendedQueryTagsAsync(input);
             return Array.Empty<ExtendedQueryTagStoreEntry>();
         }
 

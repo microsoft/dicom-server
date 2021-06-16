@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -13,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -43,20 +46,21 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _featureEnabled = featureConfiguration.Value.EnableExtendedQueryTags;
         }
 
-        [BodyModelStateValidator]
-        [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.Accepted)]
         [HttpPost]
+        [BodyModelStateValidator]
+        [ProducesResponseType(typeof(AddExtendedQueryTagResponse), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [Route(KnownRoutes.ExtendedQueryTagRoute)]
         [AuditEventType(AuditEventSubType.AddExtendedQueryTag)]
-        public async Task<IActionResult> PostAsync([FromBody] IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags)
+        public async Task<IActionResult> PostAsync([Required][MinLength(1)][FromBody] IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTags)
         {
             _logger.LogInformation("DICOM Web Add Extended Query Tag request received, with extendedQueryTags {extendedQueryTags}.", extendedQueryTags);
 
             EnsureFeatureIsEnabled();
             AddExtendedQueryTagResponse response = await _mediator.AddExtendedQueryTagsAsync(extendedQueryTags, HttpContext.RequestAborted);
 
-            return StatusCode(
-               (int)HttpStatusCode.Accepted, response);
+            Response.AddLocationHeader(new Uri(KnownRoutes.OperationsSegment + "/" + response.OperationId, UriKind.Relative));
+            return StatusCode((int)HttpStatusCode.Accepted, response);
         }
 
         [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.NoContent)]

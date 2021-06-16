@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Operations
@@ -31,5 +33,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         /// <exception cref="ArgumentNullException"><paramref name="operationId"/> is <see langword="null"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         Task<OperationStatusResponse> GetStatusAsync(string operationId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Begins the addition of one or more extended query tags such that they can be used in QIDO.
+        /// </summary>
+        /// <param name="tags">A collection of 1 or more query tags.</param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+        /// </param>
+        /// <returns>
+        /// A task representing the <see cref="StartExtendedQueryTagAdditionAsync(ICollection{AddExtendedQueryTagEntry}, CancellationToken)"/>
+        /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
+        /// that is performing the asynchronous addition.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="tags"/> is empty..</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="tags"/> is <see langword="null"/>.</exception>
+        /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+        Task<string> StartExtendedQueryTagAdditionAsync(ICollection<AddExtendedQueryTagEntry> tags, CancellationToken cancellationToken = default);
     }
 }

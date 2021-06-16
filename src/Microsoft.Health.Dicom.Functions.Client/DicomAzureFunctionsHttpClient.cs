@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
@@ -12,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
@@ -84,6 +86,27 @@ namespace Microsoft.Health.Dicom.Functions.Client
                 responseState.Type,
                 responseState.CreatedTime,
                 responseState.RuntimeStatus);
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> StartExtendedQueryTagAdditionAsync(ICollection<AddExtendedQueryTagEntry> tags, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(tags, nameof(tags));
+            EnsureArg.HasItems(tags, nameof(tags));
+
+            using HttpResponseMessage response = await _client.GetAsync(_config.Routes.StartReindex, cancellationToken);
+
+            // Re-throw any exceptions we may have encountered when making the HTTP request
+            response.EnsureSuccessStatusCode();
+
+            string instanceId =
+#if NET5_0_OR_GREATER
+                await response.Content.ReadAsStringAsync(cancellationToken);
+#else
+                await response.Content.ReadAsStringAsync();
+#endif
+
+            return instanceId;
         }
     }
 }
