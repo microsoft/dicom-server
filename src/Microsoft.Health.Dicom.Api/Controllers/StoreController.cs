@@ -22,7 +22,6 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [ApiController]
     [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
@@ -49,7 +48,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType((int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
-        [Route(KnownRoutes.VersionedStoreRoute)]
+        [VersionedRoute(KnownRoutes.StoreRoute)]
         [Route(KnownRoutes.StoreRoute)]
         [AuditEventType(AuditEventSubType.Store)]
         public async Task<IActionResult> PostAsync(string studyInstanceUid = null)

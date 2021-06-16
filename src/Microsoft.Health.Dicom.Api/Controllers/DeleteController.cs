@@ -19,7 +19,6 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [ApiController]
     [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
@@ -41,7 +40,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [Route(KnownRoutes.VersionedStudyRoute)]
+        [VersionedRoute(KnownRoutes.StudyRoute)]
         [Route(KnownRoutes.StudyRoute)]
         [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUid)
@@ -58,7 +57,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [Route(KnownRoutes.VersionedSeriesRoute)]
+        [VersionedRoute(KnownRoutes.SeriesRoute)]
         [Route(KnownRoutes.SeriesRoute)]
         [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
@@ -75,7 +74,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [Route(KnownRoutes.VersionedInstanceRoute)]
+        [VersionedRoute(KnownRoutes.InstanceRoute)]
         [Route(KnownRoutes.InstanceRoute)]
         [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)

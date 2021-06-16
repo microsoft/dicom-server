@@ -29,7 +29,6 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [ApiController]
     [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
@@ -53,7 +52,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route(KnownRoutes.VersionedStudyRoute, Name = KnownRouteNames.VersionedRetrieveStudy)]
+        [VersionedRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.VersionedRetrieveStudy)]
         [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetStudyAsync(string studyInstanceUid)
@@ -72,7 +71,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
-        [Route(KnownRoutes.VersionedStudyMetadataRoute)]
+        [VersionedRoute(KnownRoutes.StudyMetadataRoute)]
         [Route(KnownRoutes.StudyMetadataRoute)]
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetStudyMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid)
@@ -89,7 +88,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route(KnownRoutes.VersionedSeriesRoute)]
+        [VersionedRoute(KnownRoutes.SeriesRoute)]
         [Route(KnownRoutes.SeriesRoute)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetSeriesAsync(
@@ -111,7 +110,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
-        [Route(KnownRoutes.VersionedSeriesMetadataRoute)]
+        [VersionedRoute(KnownRoutes.SeriesMetadataRoute)]
         [Route(KnownRoutes.SeriesMetadataRoute)]
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetSeriesMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
@@ -129,7 +128,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route(KnownRoutes.VersionedInstanceRoute, Name = KnownRouteNames.VersionedRetrieveInstance)]
+        [VersionedRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.VersionedRetrieveInstance)]
         [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetInstanceAsync(
@@ -155,7 +154,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
-        [Route(KnownRoutes.VersionedInstanceMetadataRoute)]
+        [VersionedRoute(KnownRoutes.InstanceMetadataRoute)]
         [Route(KnownRoutes.InstanceMetadataRoute)]
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetInstanceMetadataAsync(
@@ -178,7 +177,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route(KnownRoutes.VersionedFrameRoute)]
+        [VersionedRoute(KnownRoutes.FrameRoute)]
         [Route(KnownRoutes.FrameRoute)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetFramesAsync(
