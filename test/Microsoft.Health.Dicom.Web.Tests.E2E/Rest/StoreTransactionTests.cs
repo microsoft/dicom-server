@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private const ushort SopInstanceAlreadyExistsFailureCode = 45070;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
 
-        private const string PrereleaseV1Version = "api/v1.0-prerelease";
+        private const string PrereleaseV1Version = "v1.0-prerelease";
         private const string StudiesUriString = "studies";
         private const string PrereleaseV1StudiesUriString = PrereleaseV1Version + "/" + StudiesUriString;
 
