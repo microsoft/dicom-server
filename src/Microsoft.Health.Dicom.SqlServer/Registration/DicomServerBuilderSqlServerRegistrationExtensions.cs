@@ -17,9 +17,13 @@ using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Api.Registration;
 using Microsoft.Health.SqlServer.Configs;
+using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Schema.Manager;
+using Microsoft.Health.SqlServer.Features.Storage;
 using Microsoft.Health.SqlServer.Registration;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -27,16 +31,31 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class DicomServerBuilderSqlServerRegistrationExtensions
     {
         public static IDicomServerBuilder AddSqlServer(
-            this IDicomServerBuilder dicomServerBuilder,
-            IConfiguration configurationRoot,
-            Action<SqlServerDataStoreConfiguration> configureAction = null)
+           this IDicomServerBuilder builder,
+           IConfiguration configurationRoot,
+           Action<SqlServerDataStoreConfiguration> configureAction = null,
+           bool initializeSchema = true)
         {
-            EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
-            IServiceCollection services = dicomServerBuilder.Services;
+            EnsureArg.IsNotNull(builder, nameof(builder));
+            IServiceCollection services = builder.Services;
+            services.AddSqlServerCommon(configurationRoot, configureAction);
+            if (initializeSchema)
+            {
+                services.AddSqlServerBase<SchemaVersion>(configurationRoot)
+                    .AddSqlServerApi();
+            }
+            else
+            {
+                services.AddSqlServerBaseWithoutSchemaInitialization();
+            }
+            return builder;
+        }
 
-            services.AddSqlServerBase<SchemaVersion>(configurationRoot);
-            services.AddSqlServerApi();
-
+        private static IServiceCollection AddSqlServerCommon(
+            this IServiceCollection services,
+            IConfiguration configurationRoot,
+            Action<SqlServerDataStoreConfiguration> configureAction)
+        {
             var config = new SqlServerDataStoreConfiguration();
             configurationRoot?.GetSection("SqlServer").Bind(config);
 
@@ -88,23 +107,55 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsImplementedInterfaces();
 
             services.Add<SqlExtendedQueryTagStoreV1>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlExtendedQueryTagStoreV2>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
             services.Add<SqlExtendedQueryTagStoreV3>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
-            return dicomServerBuilder;
+            return services;
+        }
+
+        private static IServiceCollection AddSqlServerBaseWithoutSchemaInitialization(
+           this IServiceCollection services)
+        {
+            // TODO: consider moving these logic into healthcare-shared-components (https://github.com/microsoft/healthcare-shared-components/)
+            // once code becomes solid (e.g: merging back to main branch).                 
+            services.Add<SqlTransactionHandler>()
+               .Scoped()
+               .AsSelf()
+               .AsImplementedInterfaces();
+
+            services.Add<SqlConnectionWrapperFactory>()
+             .Scoped()
+             .AsSelf()
+             .AsImplementedInterfaces();
+
+            services.Add<SchemaManagerDataStore>()
+               .Singleton()
+               .AsSelf()
+               .AsImplementedInterfaces();
+
+            // TODO:  Use RetrySqlCommandWrapperFactory instead when moving to healthcare-shared-components 
+            services.Add<SqlCommandWrapperFactory>()
+            .Singleton()
+            .AsSelf();
+
+            services.AddSingleton<ISqlConnectionStringProvider, DefaultSqlConnectionStringProvider>();
+
+            services.AddSingleton<ISqlConnectionFactory, DefaultSqlConnectionFactory>();
+
+            return services;
         }
     }
 }

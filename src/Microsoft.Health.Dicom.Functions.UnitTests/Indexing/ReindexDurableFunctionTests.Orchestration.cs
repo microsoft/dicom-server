@@ -92,14 +92,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
 
-            var storeEntires = new[] { tag.BuildExtendedQueryTagStoreEntry() };
-            ReindexOperation reindexOperation = new ReindexOperation() { StartWatermark = 1, EndWatermark = 10, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntires };
+            var storeEntries = new[] { tag.BuildExtendedQueryTagStoreEntry() };
+            ReindexOperation reindexOperation = new ReindexOperation() { StartWatermark = 1, EndWatermark = 10, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntries };
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);
 
             context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(ReindexDurableFunction.GetProcessingTagsAsync), reindexOperation.OperationId)
-                .Returns(storeEntires);
+                .Returns(storeEntries);
 
             await _reindexDurableFunction.ReindexTagsAsync(context, NullLogger.Instance);
 
@@ -123,7 +123,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 Arg.Is<ReindexOperation>(
                     x => x.StartWatermark == reindexOperation.StartWatermark
                     && x.EndWatermark == reindexOperation.EndWatermark - _reindexConfig.BatchSize * _reindexConfig.MaxParallelBatches
-                    && x.StoreEntries == storeEntires));
+                    && x.StoreEntries == storeEntries));
         }
 
         [Fact]
@@ -131,14 +131,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
 
-            var storeEntires = new[] { tag.BuildExtendedQueryTagStoreEntry() };
-            ReindexOperation reindexOperation = new ReindexOperation() { StartWatermark = 1, EndWatermark = 3, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntires };
+            var storeEntries = new[] { tag.BuildExtendedQueryTagStoreEntry() };
+            ReindexOperation reindexOperation = new ReindexOperation() { StartWatermark = 1, EndWatermark = 3, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntries };
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);
 
             context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(ReindexDurableFunction.GetProcessingTagsAsync), reindexOperation.OperationId)
-                .Returns(storeEntires);
+                .Returns(storeEntries);
 
             await _reindexDurableFunction.ReindexTagsAsync(context, NullLogger.Instance);
 
@@ -170,8 +170,8 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
 
-            var storeEntires = new[] { tag.BuildExtendedQueryTagStoreEntry() };
-            ReindexOperation reindexOperation = new ReindexOperation() { StartWatermark = -1, EndWatermark = -1, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntires };
+            var storeEntries = new[] { tag.BuildExtendedQueryTagStoreEntry() };
+            ReindexOperation reindexOperation = new ReindexOperation() { StartWatermark = -1, EndWatermark = -1, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntries };
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);
@@ -194,8 +194,8 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
 
-            var storeEntires = new[] { tag.BuildExtendedQueryTagStoreEntry() };
-            ReindexOperation reindexOperation = new ReindexOperation() { StartWatermark = 1, EndWatermark = 10, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntires };
+            var storeEntries = new[] { tag.BuildExtendedQueryTagStoreEntry() };
+            ReindexOperation reindexOperation = new ReindexOperation() { StartWatermark = 1, EndWatermark = 10, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntries };
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);

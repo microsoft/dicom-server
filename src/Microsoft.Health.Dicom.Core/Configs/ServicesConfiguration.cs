@@ -12,5 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Configs
         public StoreConfiguration StoreServiceSettings { get; } = new StoreConfiguration();
 
         public ExtendedQueryTagConfiguration ExtendedQueryTag { get; } = new ExtendedQueryTagConfiguration();
+
+        public ReindexOperationConfiguration Reindex { get; } = new ReindexOperationConfiguration();
     }
 }

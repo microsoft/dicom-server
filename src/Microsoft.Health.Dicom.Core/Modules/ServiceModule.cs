@@ -6,7 +6,6 @@
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
@@ -182,7 +181,10 @@ namespace Microsoft.Health.Dicom.Core.Modules
                      .AsSelf()
                      .AsImplementedInterfaces();
 
-                services.AddScopedDefault<InstanceReindexer>();
+                services.Add<InstanceReindexer>()
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
             }
         }
     }

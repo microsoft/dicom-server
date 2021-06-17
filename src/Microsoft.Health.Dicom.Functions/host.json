@@ -9,9 +9,17 @@
     }
   },
   "DicomFunctions": {
-    "Reindex": {
-      "BatchSize": 2,
-      "ParallelBatches": 2
+    "Features": {
+      "EnableExtendedQueryTags": true
+    },
+    "Services": {
+      "ExtendedQueryTag": {
+        "MaxAllowedCount": 128
+      },
+      "Reindex": {
+        "BatchSize": 2,
+        "ParallelBatches": 2
+      }
     }
   },
   "SqlServer": {

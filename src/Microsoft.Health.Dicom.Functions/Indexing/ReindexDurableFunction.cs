@@ -5,6 +5,7 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -47,7 +48,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(schemaManagerDataStore, nameof(schemaManagerDataStore));
             EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
-            _reindexConfig = configOptions.Value.Reindex;
+            _reindexConfig = configOptions.Value.Services.Reindex;
             _reindexStore = reindexStore;
             _instanceReindexer = instanceReindexer;
             _addExtendedQueryTagService = addExtendedQueryTagService;

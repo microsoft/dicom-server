@@ -7,7 +7,6 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Operations.Functions.Configs;
@@ -35,8 +34,7 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Registration
                 .AddNewtonsoftJson(x => x.SerializerSettings.Converters
                 .Add(new StringEnumConverter()));
 
-            services.RegisterAssemblyModules(typeof(ServiceModule).Assembly, new FeatureConfiguration(), new ServicesConfiguration());
-
+            services.RegisterAssemblyModules(typeof(ServiceModule).Assembly, dicomOperationsConfig.Features, dicomOperationsConfig.Services);
             return new DicomServerBuilder(services);
         }
         private class DicomServerBuilder : IDicomServerBuilder

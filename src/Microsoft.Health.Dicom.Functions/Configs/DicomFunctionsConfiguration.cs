@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.ComponentModel.DataAnnotations;
+using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Operations.Functions.Configs
 {
@@ -14,10 +14,8 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Configs
     {
         public const string SectionName = "DicomFunctions";
 
-        /// <summary>
-        /// Gets or sets the settings for re-indexing DICOM instances
-        /// </summary>
-        [Required]
-        public ReindexOperationConfiguration Reindex { get; set; }
+        public FeatureConfiguration Features { get; } = new FeatureConfiguration();
+
+        public ServicesConfiguration Services { get; } = new ServicesConfiguration();
     }
 }
