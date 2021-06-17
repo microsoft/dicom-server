@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
     public class OperationsServiceTests
     {
         [Fact]
-        public void Ctor_GivenNullArgument_ThrowsArgumentNullException()
+        public void GivenNullArgument_WhenConstructing_ThenThrowArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => new OperationsService(null));
         }
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("\t  \r\n")]
-        public async Task GetStatusAsync_GivenInvalidId_ThrowsArgumentException(string id)
+        public async Task GivenInvalidId_WhenGettingStatus_ThenThrowArgumentException(string id)
         {
             IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
             Type exceptionType = id is null ? typeof(ArgumentNullException) : typeof(ArgumentException);
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
         }
 
         [Fact]
-        public async Task GetStatusAsync_GivenNullResponse_ReturnsNull()
+        public async Task GivenNullResponse_WhenGettingStatus_ThenReturnNull()
         {
             using var source = new CancellationTokenSource();
             IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
 
         [Theory]
         [InlineData(OperationType.Unknown)]
-        public async Task GetStatusAsync_GivenNonPublicOperation_ReturnsNull(OperationType type)
+        public async Task GivenNonPublicOperation_WhenGettingStatus_ThenReturnNull(OperationType type)
         {
             using var source = new CancellationTokenSource();
             IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
 
         [Theory]
         [InlineData(OperationType.Reindex)]
-        public async Task GetStatusAsync_GivenPublicOperation_ReturnsStatus(OperationType type)
+        public async Task GivenPublicOperation_WhenGettingStatus_ThenReturnStatus(OperationType type)
         {
             using var source = new CancellationTokenSource();
             IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
