@@ -9,5 +9,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
     {
         internal const string RetrieveStudy = nameof(RetrieveStudy);
         internal const string RetrieveInstance = nameof(RetrieveInstance);
+        internal const string OperationStatus = nameof(OperationStatus);
     }
 }

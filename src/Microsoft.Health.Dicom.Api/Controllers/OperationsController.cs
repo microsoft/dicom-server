@@ -9,7 +9,6 @@ using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
@@ -17,6 +16,7 @@ using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using DicomApiAuditLoggingFilterAttribute = Microsoft.Health.Dicom.Api.Features.Audit.AuditLoggingFilterAttribute;
@@ -30,22 +30,29 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     public class OperationsController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IUrlResolver _urlResolver;
         private readonly ILogger<OperationsController> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationsController"/> class.
         /// </summary>
         /// <param name="mediator">A mediator object for passing requests to corresponding handlers.</param>
+        /// <param name="urlResolver">A helper for building URLs within the application.</param>
         /// <param name="logger">A controller-specific logger.</param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="mediator"/> or <paramref name="logger"/> is <see langword="null"/>.
         /// </exception>
-        public OperationsController(IMediator mediator, ILogger<OperationsController> logger)
+        public OperationsController(
+            IMediator mediator,
+            IUrlResolver urlResolver,
+            ILogger<OperationsController> logger)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
+            EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _mediator = mediator;
+            _urlResolver = urlResolver;
             _logger = logger;
         }
 
@@ -86,7 +93,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             HttpStatusCode statusCode;
             if (response.Status == OperationRuntimeStatus.Pending || response.Status == OperationRuntimeStatus.Running)
             {
-                Response.AddLocationHeader(new Uri(UriHelper.BuildRelative(Request.PathBase, Request.Path), UriKind.Relative));
+                Response.AddLocationHeader(_urlResolver.ResolveOperationStatusUri(operationId));
                 statusCode = HttpStatusCode.Accepted;
             }
             else

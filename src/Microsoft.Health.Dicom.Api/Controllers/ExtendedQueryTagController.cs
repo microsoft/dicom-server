@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
@@ -23,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -32,16 +32,23 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     public class ExtendedQueryTagController : Controller
     {
         private readonly IMediator _mediator;
+        private readonly IUrlResolver _urlResolver;
         private readonly ILogger<ExtendedQueryTagController> _logger;
         private readonly bool _featureEnabled;
 
-        public ExtendedQueryTagController(IMediator mediator, ILogger<ExtendedQueryTagController> logger, IOptions<FeatureConfiguration> featureConfiguration)
+        public ExtendedQueryTagController(
+            IMediator mediator,
+            IUrlResolver urlResolver,
+            IOptions<FeatureConfiguration> featureConfiguration,
+            ILogger<ExtendedQueryTagController> logger)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
+            EnsureArg.IsNotNull(logger, nameof(logger));
 
             _mediator = mediator;
+            _urlResolver = urlResolver;
             _logger = logger;
             _featureEnabled = featureConfiguration.Value.EnableExtendedQueryTags;
         }
@@ -59,7 +66,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             EnsureFeatureIsEnabled();
             AddExtendedQueryTagResponse response = await _mediator.AddExtendedQueryTagsAsync(extendedQueryTags, HttpContext.RequestAborted);
 
-            Response.AddLocationHeader(new Uri(KnownRoutes.OperationsSegment + "/" + response.OperationId, UriKind.Relative));
+            Response.AddLocationHeader(_urlResolver.ResolveOperationStatusUri(response.OperationId));
             return StatusCode((int)HttpStatusCode.Accepted, response);
         }
 
