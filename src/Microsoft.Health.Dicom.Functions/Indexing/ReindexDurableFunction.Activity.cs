@@ -130,7 +130,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         }
 
         /// <summary>
-        ///  Fetch schema version.
+        /// Fetch schema version.
         /// </summary>
         /// <param name="context">The durable activity context.</param>
         /// <param name="log">The log</param>

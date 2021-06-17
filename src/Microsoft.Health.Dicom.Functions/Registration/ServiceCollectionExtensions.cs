@@ -7,8 +7,11 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Operations.Functions.Configs;
+using Microsoft.Health.Extensions.DependencyInjection;
 using Newtonsoft.Json.Converters;
 
 namespace Microsoft.Health.Dicom.Operations.Functions.Registration
@@ -21,7 +24,7 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Registration
         /// <param name="services">The DICOM function builder instance.</param>
         /// <param name="configuration">The configuration</param>
         /// <returns>The DICOM function builder instance.</returns>
-        public static IDicomFunctionsBuilder AddDicomFunctions(this IServiceCollection services, IConfiguration configuration)
+        public static IDicomServerBuilder AddDicomFunctions(this IServiceCollection services, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(services, nameof(services));
             DicomFunctionsConfiguration dicomOperationsConfig = new DicomFunctionsConfiguration();
@@ -32,12 +35,13 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Registration
                 .AddNewtonsoftJson(x => x.SerializerSettings.Converters
                 .Add(new StringEnumConverter()));
 
-            return new DicomFunctionsBuilder(services);
-        }
+            services.RegisterAssemblyModules(typeof(ServiceModule).Assembly, new FeatureConfiguration(), new ServicesConfiguration());
 
-        private class DicomFunctionsBuilder : IDicomFunctionsBuilder
+            return new DicomServerBuilder(services);
+        }
+        private class DicomServerBuilder : IDicomServerBuilder
         {
-            public DicomFunctionsBuilder(IServiceCollection services)
+            public DicomServerBuilder(IServiceCollection services)
             {
                 EnsureArg.IsNotNull(services, nameof(services));
                 Services = services;
@@ -45,5 +49,6 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Registration
 
             public IServiceCollection Services { get; }
         }
+
     }
 }
