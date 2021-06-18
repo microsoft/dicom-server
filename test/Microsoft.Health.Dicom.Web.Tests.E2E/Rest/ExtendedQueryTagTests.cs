@@ -25,8 +25,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private readonly IDicomWebClient _client;
         private const string PrivateCreatorName = "PrivateCreator1";
 
-        private const string PrereleaseV1VersionPath = "/v1.0-prerelease";
-
         public ExtendedQueryTagTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
@@ -35,8 +33,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenValidExtendedQueryTags_WhenGoThroughEndToEndScenario_ThenShouldSucceed(string versionPath)
         {
             // Prepare 3 extended query tags.
@@ -143,10 +140,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("[{\"Path\":\"00100040\"}]", "Level", "")]
-        [InlineData("[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path", "")]
-        [InlineData("[{\"Path\":\"00100040\"}]", "Level", PrereleaseV1VersionPath)]
-        [InlineData("[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path", PrereleaseV1VersionPath)]
+        [MemberData(nameof(GetVersionsAndRequestBodyWithMissingProperty))]
         public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string requestBody, string missingProperty, string versionPath)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, $"{versionPath}/extendedquerytags");
@@ -162,8 +156,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenInvalidTagLevelInRequestBody_WhenCallingPostAync_ThenShouldThrowException(string versionPath)
         {
             string requestBody = "[{\"Path\":\"00100040\",\"Level\":\"Studys\"}]";
@@ -177,6 +170,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 .ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal("The request body is not valid. Details: \r\nInput Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
+        }
+
+        public static IEnumerable<object[]> GetVersionsAndRequestBodyWithMissingProperty
+        {
+            get
+            {
+                foreach (object[] version in VersionAPIData.GetVersionData())
+                {
+                    yield return new object[] { "[{\"Path\":\"00100040\"}]", "Level", version[0] };
+                    yield return new object[] { "[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path", version[0] };
+                }
+            }
         }
 
         private void CompareExtendedQueryTagEntries(AddExtendedQueryTagEntry addedTag, GetExtendedQueryTagEntry returnedTag)

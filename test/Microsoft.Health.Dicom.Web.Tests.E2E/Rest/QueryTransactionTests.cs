@@ -26,8 +26,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private readonly IDicomWebClient _client;
         private readonly HashSet<string> _createdDicomStudies = new HashSet<string>();
 
-        private const string PrereleaseV1VersionPath = "/v1.0-prerelease";
-
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
@@ -35,8 +33,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_WithUnsupportedTag_ReturnBadRequest(string versionPath)
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
@@ -47,8 +44,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent(string versionPath)
         {
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(new Uri($"{versionPath}/studies?StudyDate=20200101", UriKind.Relative));
@@ -56,8 +52,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         [Trait("Category", "bvt")]
         public async Task GivenSearchRequest_AllStudyLevel_MatchResult(string versionPath)
         {
@@ -82,8 +77,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_AllStudyLevelOnPatientName_MatchIsCaseIncensitiveAndAccentIncensitive(string versionPath)
         {
             string randomNamePart = RandomString(7);
@@ -108,8 +102,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_StudySeriesLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
@@ -134,8 +127,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_AllSeriesLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
@@ -156,8 +148,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_StudyInstancesLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
@@ -181,8 +172,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_StudySeriesInstancesLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync();
@@ -205,8 +195,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_AllInstancesLevel_MatchResult(string versionPath)
         {
             DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
@@ -227,8 +216,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_PatientNameFuzzyMatch_MatchResult(string versionPath)
         {
             string randomNamePart = RandomString(7);
@@ -269,8 +257,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(PrereleaseV1VersionPath)]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_OHIFViewerStudyQuery_ReturnsOK(string versionPath)
         {
             var OhifViewerQuery = $"{versionPath}/studies?limit=25&offset=0&includefield=00081030%2C00080060&StudyDate=19521125-20210507";

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -25,9 +26,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private const ushort SopInstanceAlreadyExistsFailureCode = 45070;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
 
-        private const string PrereleaseV1Version = "v1.0-prerelease";
         private const string StudiesUriString = "studies";
-        private const string PrereleaseV1StudiesUriString = PrereleaseV1Version + "/" + StudiesUriString;
 
         private readonly IDicomWebClient _client;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -60,13 +59,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("application/data", StudiesUriString)]
-        [InlineData("application/dicom", StudiesUriString)]
-        [InlineData("application/data", PrereleaseV1StudiesUriString)]
-        [InlineData("application/dicom", PrereleaseV1StudiesUriString)]
-        public async Task GivenAnIncorrectAcceptHeader_WhenStoring_TheServerShouldReturnNotAcceptable(string acceptHeader, string studies)
+        [MemberData(nameof(GetVersionsAndIncorrectAcceptHeaders))]
+        public async Task GivenAnIncorrectAcceptHeader_WhenStoring_TheServerShouldReturnNotAcceptable(string version, string acceptHeader)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(studies, UriKind.Relative));
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(version + "/" + StudiesUriString, UriKind.Relative));
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
 
             using HttpResponseMessage response = await _client.HttpClient.SendAsync(request);
@@ -75,11 +71,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(StudiesUriString)]
-        [InlineData(PrereleaseV1StudiesUriString)]
-        public async Task GivenAnNonMultipartRequest_WhenStoring_TheServerShouldReturnUnsupportedMediaType(string studies)
+        [ClassData(typeof(VersionAPIData))]
+        public async Task GivenAnNonMultipartRequest_WhenStoring_TheServerShouldReturnUnsupportedMediaType(string version)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(studies, UriKind.Relative));
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(version + "/" + StudiesUriString, UriKind.Relative));
             request.Headers.Add(HeaderNames.Accept, DicomWebConstants.MediaTypeApplicationDicomJson.MediaType);
 
             var multiContent = new MultipartContent("form");
@@ -92,22 +87,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(StudiesUriString)]
-        [InlineData(PrereleaseV1StudiesUriString)]
-        public async Task GivenAMultipartRequestWithNoContent_WhenStoring_TheServerShouldReturnNoContent(string studies)
+        [ClassData(typeof(VersionAPIData))]
+        public async Task GivenAMultipartRequestWithNoContent_WhenStoring_TheServerShouldReturnNoContent(string version)
         {
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
 
-            using DicomWebResponse response = await _client.StoreAsync(new Uri(studies, UriKind.Relative), multiContent);
+            using DicomWebResponse response = await _client.StoreAsync(new Uri(version + "/" + StudiesUriString, UriKind.Relative), multiContent);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [Theory]
-        [InlineData(StudiesUriString)]
-        [InlineData(PrereleaseV1StudiesUriString)]
-        public async Task GivenAMultipartRequestWithEmptyContent_WhenStoring_TheServerShouldReturnConflict(string studies)
+        [ClassData(typeof(VersionAPIData))]
+        public async Task GivenAMultipartRequestWithEmptyContent_WhenStoring_TheServerShouldReturnConflict(string version)
         {
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
@@ -117,15 +110,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             multiContent.Add(byteContent);
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.StoreAsync(new Uri(studies, UriKind.Relative), multiContent));
+                () => _client.StoreAsync(new Uri(version + "/" + StudiesUriString, UriKind.Relative), multiContent));
 
             Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
         }
 
         [Theory]
-        [InlineData(StudiesUriString, null)]
-        [InlineData(PrereleaseV1StudiesUriString, PrereleaseV1Version)]
-        public async Task GivenAMultipartRequestWithAnInvalidMultipartSection_WhenStoring_TheServerShouldReturnAccepted(string studies, string version)
+        [ClassData(typeof(VersionAPIData))]
+        public async Task GivenAMultipartRequestWithAnInvalidMultipartSection_WhenStoring_TheServerShouldReturnAccepted(string version)
         {
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
@@ -149,7 +141,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     multiContent.Add(validByteContent);
                 }
 
-                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new Uri(studies, UriKind.Relative), multiContent);
+                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new Uri(version + "/" + StudiesUriString, UriKind.Relative), multiContent);
 
                 Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
@@ -164,9 +156,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(StudiesUriString, null)]
-        [InlineData(PrereleaseV1StudiesUriString, PrereleaseV1Version)]
-        public async Task GivenAMultipartRequestWithTypeParameterAndFirstSectionWithoutContentType_WhenStoring_TheServerShouldReturnOK(string studies, string version)
+        [ClassData(typeof(VersionAPIData))]
+        public async Task GivenAMultipartRequestWithTypeParameterAndFirstSectionWithoutContentType_WhenStoring_TheServerShouldReturnOK(string version)
         {
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
@@ -185,7 +176,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     multiContent.Add(byteContent);
                 }
 
-                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new Uri(studies, UriKind.Relative), multiContent);
+                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new Uri(version + "/" + StudiesUriString, UriKind.Relative), multiContent);
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -371,6 +362,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(dicomFile, studyInstanceUID);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        public static IEnumerable<object[]> GetVersionsAndIncorrectAcceptHeaders
+        {
+            get
+            {
+                foreach (object[] version in VersionAPIData.GetVersionData())
+                {
+                    yield return new object[] { version[0], "application/dicom" };
+                    yield return new object[] { version[0], "application/data" };
+                }
+            }
         }
 
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset, string version)

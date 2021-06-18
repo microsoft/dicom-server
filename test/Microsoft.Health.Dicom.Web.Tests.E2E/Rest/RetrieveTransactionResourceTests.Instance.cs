@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -53,12 +54,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(RequestOriginalContentTestFolder, "*", "")]
-        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null, "")]
-        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1", "")]
-        [InlineData(RequestOriginalContentTestFolder, "*", PrereleaseV1VersionPath)]
-        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null, PrereleaseV1VersionPath)]
-        [InlineData(FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1", PrereleaseV1VersionPath)]
+        [MemberData(nameof(GetVersionsAndAcceptHeadersForInstances))]
         public async Task GivenMultipartAcceptHeader_WhenRetrieveInstance_ThenServerShouldReturnExpectedContent(string testDataFolder, string transferSyntax, string versionPath)
         {
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
@@ -76,10 +72,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, "")] // unsupported media type image/png
-        [InlineData(true, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.100", "")] // unsupported transfer syntax MPEG2
-        [InlineData(true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, PrereleaseV1VersionPath)] // unsupported media type image/png
-        [InlineData(true, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.100", PrereleaseV1VersionPath)] // unsupported transfer syntax MPEG2
+        [MemberData(nameof(GetVersionsAndUnsupportedAcceptHeadersForInstances))]
         public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveInstance_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax, string versionPath)
         {
             var requestUri = new Uri(versionPath + string.Format(DicomWebConstants.BaseInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()), UriKind.Relative);
@@ -147,6 +140,31 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: "*");
             Assert.Equal(dicomFile1.ToByteArray(), (await instanceRetrieve.GetValueAsync()).ToByteArray());
+        }
+
+        public static IEnumerable<object[]> GetVersionsAndAcceptHeadersForInstances
+        {
+            get
+            {
+                foreach (object[] version in VersionAPIData.GetVersionData())
+                {
+                    yield return new object[] { RequestOriginalContentTestFolder, "*", version[0] };
+                    yield return new object[] { FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null, version[0] };
+                    yield return new object[] { FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1", version[0] };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> GetVersionsAndUnsupportedAcceptHeadersForInstances
+        {
+            get
+            {
+                foreach (object[] version in VersionAPIData.GetVersionData())
+                {
+                    yield return new object[] { true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, version[0] }; // unsupported media type image/png
+                    yield return new object[] { true, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.100", version[0] }; // unsupported transfer syntax MPEG2
+                }
+            }
         }
     }
 }

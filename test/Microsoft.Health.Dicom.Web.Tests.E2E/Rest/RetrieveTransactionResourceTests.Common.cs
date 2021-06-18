@@ -24,7 +24,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private const string FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder = TestFileFolder + "FromExplicitVRLittleEndianToJPEG2000Lossless";
         private const string FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder = TestFileFolder + "FromJPEG2000LosslessToExplicitVRLittleEndian";
         private const string RequestOriginalContentTestFolder = TestFileFolder + "RequestOriginalContent";
-        private const string PrereleaseV1VersionPath = "/v1.0-prerelease";
 
         private readonly IDicomWebClient _client;
         private readonly HashSet<string> _studiesToClean = new HashSet<string>();
@@ -74,6 +73,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
 
             _studiesToClean.Clear();
+        }
+
+        public static IEnumerable<object[]> GetVersionsAndUnsupportedAcceptHeadersForStudiesAndSeries
+        {
+            get
+            {
+                foreach (object[] version in VersionAPIData.GetVersionData())
+                {
+                    yield return new object[] { true, DicomWebConstants.ApplicationDicomMediaType, DicomWebConstants.OriginalDicomTransferSyntax, version[0] }; // use single part instead of multiple part
+                    yield return new object[] { false, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, version[0] }; // unsupported media type image/png
+                    yield return new object[] { false, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.100", version[0] }; // unsupported media type MPEG2
+                }
+            }
         }
     }
 }

@@ -55,12 +55,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(true, DicomWebConstants.ApplicationDicomMediaType, DicomWebConstants.OriginalDicomTransferSyntax, "")] // use single part instead of multiple part
-        [InlineData(false, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, "")] // unsupported media type image/png
-        [InlineData(false, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.100", "")] // unsupported media type MPEG2
-        [InlineData(true, DicomWebConstants.ApplicationDicomMediaType, DicomWebConstants.OriginalDicomTransferSyntax, PrereleaseV1VersionPath)] // use single part instead of multiple part
-        [InlineData(false, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, PrereleaseV1VersionPath)] // unsupported media type image/png
-        [InlineData(false, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.100", PrereleaseV1VersionPath)] // unsupported media type MPEG2
+        [MemberData(nameof(GetVersionsAndUnsupportedAcceptHeadersForStudiesAndSeries))]
         public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveStudy_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax, string versionPath)
         {
             var requestUri = new Uri(versionPath + string.Format(DicomWebConstants.BaseStudyUriFormat, TestUidGenerator.Generate()), UriKind.Relative);
