@@ -189,7 +189,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             get
             {
-                foreach (object[] version in VersionAPIData.GetVersionData())
+                foreach (object[] version in VersionAPIData.VersionSegmentData)
                 {
                     yield return new object[] { true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, version[0] }; // use single part instead of multiple part
                     yield return new object[] { false, DicomWebConstants.ImagePngMediaType, DicomWebConstants.OriginalDicomTransferSyntax, version[0] }; // unsupported media type image/png

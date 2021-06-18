@@ -146,7 +146,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             get
             {
-                foreach (object[] version in VersionAPIData.GetVersionData())
+                foreach (object[] version in VersionAPIData.VersionSegmentData)
                 {
                     yield return new object[] { RequestOriginalContentTestFolder, "*", version[0] };
                     yield return new object[] { FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null, version[0] };
@@ -159,7 +159,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             get
             {
-                foreach (object[] version in VersionAPIData.GetVersionData())
+                foreach (object[] version in VersionAPIData.VersionSegmentData)
                 {
                     yield return new object[] { true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, version[0] }; // unsupported media type image/png
                     yield return new object[] { true, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.100", version[0] }; // unsupported transfer syntax MPEG2

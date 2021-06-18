@@ -10,13 +10,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class VersionAPIData : IEnumerable<object[]>
     {
-        private static readonly List<object[]> VersionSegmentData = new List<object[]>
+        public static IReadOnlyList<object[]> VersionSegmentData { get; } = new List<object[]>
         {
             new object[] { "" },
             new object[] { "v1.0-prerelease" }
         };
-
-        public static IEnumerable<object[]> GetVersionData() => VersionSegmentData;
 
         public IEnumerator<object[]> GetEnumerator() => VersionSegmentData.GetEnumerator();
 

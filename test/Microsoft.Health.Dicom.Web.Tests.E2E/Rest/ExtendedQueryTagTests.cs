@@ -176,7 +176,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             get
             {
-                foreach (object[] version in VersionAPIData.GetVersionData())
+                foreach (object[] version in VersionAPIData.VersionSegmentData)
                 {
                     yield return new object[] { "[{\"Path\":\"00100040\"}]", "Level", version[0] };
                     yield return new object[] { "[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path", version[0] };

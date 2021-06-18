@@ -368,7 +368,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             get
             {
-                foreach (object[] version in VersionAPIData.GetVersionData())
+                foreach (object[] version in VersionAPIData.VersionSegmentData)
                 {
                     yield return new object[] { version[0], "application/dicom" };
                     yield return new object[] { version[0], "application/data" };
