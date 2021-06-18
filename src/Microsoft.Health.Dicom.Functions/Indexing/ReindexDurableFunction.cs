@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(schemaManagerDataStore, nameof(schemaManagerDataStore));
             EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
-            _reindexConfig = configOptions.Value.Services.Reindex;
+            _reindexConfig = configOptions.Value.Reindex;
             _reindexStore = reindexStore;
             _instanceReindexer = instanceReindexer;
             _addExtendedQueryTagService = addExtendedQueryTagService;

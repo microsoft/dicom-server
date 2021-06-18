@@ -13,6 +13,5 @@ namespace Microsoft.Health.Dicom.Core.Configs
 
         public ExtendedQueryTagConfiguration ExtendedQueryTag { get; } = new ExtendedQueryTagConfiguration();
 
-        public ReindexOperationConfiguration Reindex { get; } = new ReindexOperationConfiguration();
     }
 }

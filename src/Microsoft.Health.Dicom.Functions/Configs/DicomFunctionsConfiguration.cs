@@ -13,9 +13,6 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Configs
     public class DicomFunctionsConfiguration
     {
         public const string SectionName = "DicomFunctions";
-
-        public FeatureConfiguration Features { get; } = new FeatureConfiguration();
-
-        public ServicesConfiguration Services { get; } = new ServicesConfiguration();
+        public ReindexOperationConfiguration Reindex { get; } = new ReindexOperationConfiguration();
     }
 }
