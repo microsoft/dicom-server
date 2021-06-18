@@ -10,6 +10,7 @@ using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -92,6 +93,14 @@ namespace Microsoft.AspNetCore.Builder
             }).AddJsonOptions(jsonOptions =>
             {
                 jsonOptions.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
+
+            services.AddApiVersioning(c =>
+            {
+                c.AssumeDefaultVersionWhenUnspecified = true;
+                c.DefaultApiVersion = new ApiVersion(1, 0, "prerelease");
+                c.ReportApiVersions = true;
+                c.UseApiBehavior = false;
             });
 
             services.AddSingleton<IUrlResolver, UrlResolver>();
