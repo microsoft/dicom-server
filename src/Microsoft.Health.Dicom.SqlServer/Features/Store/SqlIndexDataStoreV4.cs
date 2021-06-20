@@ -9,17 +9,17 @@ using Microsoft.Health.SqlServer.Features.Client;
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
     /// <summary>
-    /// Sql IndexDataStore version 3.
+    /// Sql IndexDataStore version 4.
     /// </summary>
-    internal class SqlIndexDataStoreV3 : SqlIndexDataStoreV2
+    internal class SqlIndexDataStoreV4 : SqlIndexDataStoreV3
     {
-        public SqlIndexDataStoreV3(
+        public SqlIndexDataStoreV4(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
             : base(sqlConnectionWrapperFactory)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V3;
+        public override SchemaVersion Version => SchemaVersion.V4;
 
     }
 }
