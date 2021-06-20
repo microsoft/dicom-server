@@ -25,9 +25,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
     internal class SqlExtendedQueryTagStoreV2 : SqlExtendedQueryTagStoreV1
     {
-        private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
-        private readonly ILogger<SqlExtendedQueryTagStoreV2> _logger;
-
         public SqlExtendedQueryTagStoreV2(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
            ILogger<SqlExtendedQueryTagStoreV2> logger)
@@ -35,15 +32,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
-            _logger = logger;
+            ConnectionWrapperFactory = sqlConnectionWrapperFactory;
+            Logger = logger;
         }
 
         public override SchemaVersion Version => SchemaVersion.V2;
 
+        protected SqlConnectionWrapperFactory ConnectionWrapperFactory { get; }
+
+        protected ILogger Logger { get; }
+
         public override async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxCount, CancellationToken cancellationToken)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> rows = extendedQueryTagEntries.Select(ToAddExtendedQueryTagsInputTableTypeV1Row);
@@ -72,7 +73,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         {
             List<ExtendedQueryTagStoreEntry> results = new List<ExtendedQueryTagStoreEntry>();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, path);
@@ -94,7 +95,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     }
 
                     executionTimeWatch.Stop();
-                    _logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
+                    Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
                 }
             }
 
@@ -108,7 +109,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.DeleteExtendedQueryTag.PopulateCommand(sqlCommandWrapper, tagPath, (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr]);

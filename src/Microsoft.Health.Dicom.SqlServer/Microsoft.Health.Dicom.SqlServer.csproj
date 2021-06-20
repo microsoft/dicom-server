@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>SQL Server extensions and utilities used by Microsoft's DICOMweb APIs.</Description>
@@ -48,17 +48,23 @@
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
       <MutableClassVersion>1</MutableClassVersion>
     </EmbeddedResource>
-    <EmbeddedResource Include="Features\Schema\Migrations\3.diff.sql" />
-    <EmbeddedResource Include="Features\Schema\Migrations\3.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <MutableClassVersion>Latest</MutableClassVersion>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-    </EmbeddedResource>
     <EmbeddedResource Include="Features\Schema\Migrations\2.diff.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
       <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
       <MutableClassVersion>2</MutableClassVersion>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\3.diff.sql" />
+    <EmbeddedResource Include="Features\Schema\Migrations\3.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>3</MutableClassVersion>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\4.diff.sql" />
+    <EmbeddedResource Include="Features\Schema\Migrations\4.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>Latest</MutableClassVersion>
     </EmbeddedResource>
   </ItemGroup>
 

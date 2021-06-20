@@ -8,7 +8,6 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -22,27 +21,23 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
     internal class SqlExtendedQueryTagStoreV3 : SqlExtendedQueryTagStoreV2
     {
-        private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
-
         public SqlExtendedQueryTagStoreV3(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
            ILogger<SqlExtendedQueryTagStoreV3> logger)
             : base(sqlConnectionWrapperFactory, logger)
         {
-            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-            _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
         }
 
         public override SchemaVersion Version => SchemaVersion.V3;
 
         public override async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, CancellationToken cancellationToken)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> rows = extendedQueryTagEntries.Select(ToAddExtendedQueryTagsInputTableTypeV1Row);
 
-                VLatest.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, maxAllowedCount, new VLatest.AddExtendedQueryTagsTableValuedParameters(rows));
+                V3.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, maxAllowedCount, new V3.AddExtendedQueryTagsTableValuedParameters(rows));
 
                 try
                 {

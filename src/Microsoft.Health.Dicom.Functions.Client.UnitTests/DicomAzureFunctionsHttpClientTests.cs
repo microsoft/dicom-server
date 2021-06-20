@@ -12,9 +12,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
@@ -142,27 +140,25 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         }
 
         [Fact]
-        public async Task GivenNullTags_WhenStartingReindex_ThenThrowArgumentNullException()
+        public async Task GivenNullTagKEys_WhenStartingReindex_ThenThrowArgumentNullException()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
 
             await Assert.ThrowsAsync<ArgumentNullException>(
-                () => client.StartExtendedQueryTagAdditionAsync(null, CancellationToken.None));
+                () => client.StartQueryTagIndex(null, CancellationToken.None));
 
             Assert.Equal(0, handler.SentMessages);
         }
 
         [Fact]
-        public async Task GivenNoTags_WhenStartingReindex_ThenThrowArgumentNullException()
+        public async Task GivenNoTagKeys_WhenStartingReindex_ThenThrowArgumentNullException()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
 
             await Assert.ThrowsAsync<ArgumentException>(
-                () => client.StartExtendedQueryTagAdditionAsync(
-                    Array.Empty<AddExtendedQueryTagEntry>(),
-                    CancellationToken.None));
+                () => client.StartQueryTagIndex(Array.Empty<int>(), CancellationToken.None));
 
             Assert.Equal(0, handler.SentMessages);
         }
@@ -176,12 +172,12 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             var handler = new MockMessageHandler(new HttpResponseMessage(expected));
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
 
-            var input = new List<AddExtendedQueryTagEntry> { new AddExtendedQueryTagEntry { Path = "10101010" } };
+            var input = new List<int> { 1, 2, 3 };
             using var source = new CancellationTokenSource();
 
             handler.SendingAsync += (msg, token) => AssertExpectedStartAddRequestAsync(msg, input);
             HttpRequestException ex = await Assert.ThrowsAsync<HttpRequestException>(
-                () => client.StartExtendedQueryTagAdditionAsync(input, source.Token));
+                () => client.StartQueryTagIndex(input, source.Token));
 
             Assert.Equal(expected, ex.StatusCode);
             Assert.Equal(1, handler.SentMessages);
@@ -196,18 +192,10 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
 
             using var source = new CancellationTokenSource();
-            var input = new List<AddExtendedQueryTagEntry>
-            {
-                new AddExtendedQueryTagEntry
-                {
-                    Level = QueryTagLevel.Instance.ToString(),
-                    Path = "00101010",
-                    VR = DicomVRCode.AS
-                }
-            };
+            var input = new List<int> { 1, 2, 3 };
 
             handler.SendingAsync += (msg, token) => AssertExpectedStartAddRequestAsync(msg, input);
-            string actual = await client.StartExtendedQueryTagAdditionAsync(input, source.Token);
+            string actual = await client.StartQueryTagIndex(input, source.Token);
 
             Assert.Equal(1, handler.SentMessages);
             Assert.NotNull(actual);
@@ -220,7 +208,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             Assert.Equal(MediaTypeNames.Application.Json, msg.Headers.Accept.Single().MediaType);
         }
 
-        private static async Task AssertExpectedStartAddRequestAsync(HttpRequestMessage msg, IReadOnlyList<ExtendedQueryTagEntry> tags)
+        private static async Task AssertExpectedStartAddRequestAsync(HttpRequestMessage msg, IReadOnlyList<int> tags)
         {
             await AssertExpectedRequestAsync(msg, HttpMethod.Post, new Uri("https://dicom.core/unit/tests/Reindex"));
 

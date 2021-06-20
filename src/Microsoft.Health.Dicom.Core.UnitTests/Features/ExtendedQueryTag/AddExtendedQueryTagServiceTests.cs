@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
@@ -20,15 +22,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 {
     public class AddExtendedQueryTagServiceTests
     {
-        private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IDicomOperationsClient _client;
-        private readonly IAddExtendedQueryTagService _extendedQueryTagService;
+        private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
+        private readonly AddExtendedQueryTagService _extendedQueryTagService;
 
         public AddExtendedQueryTagServiceTests()
         {
-            _extendedQueryTagEntryValidator = Substitute.For<IExtendedQueryTagEntryValidator>();
+            _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _client = Substitute.For<IDicomOperationsClient>();
-            _extendedQueryTagService = new AddExtendedQueryTagService(_extendedQueryTagEntryValidator, _client);
+            _extendedQueryTagEntryValidator = Substitute.For<IExtendedQueryTagEntryValidator>();
+            _extendedQueryTagService = new AddExtendedQueryTagService(
+                _extendedQueryTagStore,
+                _client,
+                _extendedQueryTagEntryValidator,
+                Options.Create(new ExtendedQueryTagConfiguration { MaxAllowedCount = 128 }));
         }
 
         [Fact]
@@ -45,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagService.AddExtendedQueryTagsAsync(input, tokenSource.Token));
 
             _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
-            await _client.DidNotReceiveWithAnyArgs().StartExtendedQueryTagAdditionAsync(default, default);
+            await _client.DidNotReceiveWithAnyArgs().StartQueryTagIndex(default, default);
         }
 
         [Fact]
@@ -57,19 +65,31 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
             var input = new AddExtendedQueryTagEntry[] { entry };
             string expectedOperationId = Guid.NewGuid().ToString();
-            _client
-                .StartExtendedQueryTagAdditionAsync(
+            _extendedQueryTagStore
+                .UpsertExtendedQueryTagsAsync(
                     Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
+                    Arg.Is(128),
+                    Arg.Is(tokenSource.Token))
+                .Returns(new List<int> { 7 });
+            _client
+                .StartQueryTagIndex(
+                    Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == 7),
                     Arg.Is(tokenSource.Token))
                 .Returns(expectedOperationId);
 
             Assert.Equal(expectedOperationId, (await _extendedQueryTagService.AddExtendedQueryTagsAsync(input, tokenSource.Token)).OperationId);
 
             _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
+            await _extendedQueryTagStore
+                .Received(1)
+                .UpsertExtendedQueryTagsAsync(
+                    Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
+                    Arg.Is(128),
+                    Arg.Is(tokenSource.Token));
             await _client
                 .Received(1)
-                .StartExtendedQueryTagAdditionAsync(
-                    Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
+                .StartQueryTagIndex(
+                    Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == 7),
                     Arg.Is(tokenSource.Token));
         }
     }
