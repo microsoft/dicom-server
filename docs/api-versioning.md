@@ -67,7 +67,7 @@ Example:
 [ApiVersion("1.0-prerelease", Deprecated = true)]
 ```
 
-![Response headers](images/api-deprecated-versions-example1.PNG)
+![Response headers](images/api-headers-example.PNG)
 
 ## Testing for breaking changes
 
