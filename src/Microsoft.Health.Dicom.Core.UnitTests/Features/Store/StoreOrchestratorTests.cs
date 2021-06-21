@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset);
             _dicomInstanceEntry.GetStreamAsync(DefaultCancellationToken).Returns(_stream);
 
-            _indexDataStoreFactory.GetInstanceAsync().Returns(_indexDataStore);
+            _indexDataStoreFactory.GetInstanceAsync(DefaultCancellationToken).Returns(_indexDataStore);
 
             _indexDataStore.CreateInstanceIndexAsync(_dicomDataset, DefaultCancellationToken).Returns(DefaultVersion);
             _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>())
