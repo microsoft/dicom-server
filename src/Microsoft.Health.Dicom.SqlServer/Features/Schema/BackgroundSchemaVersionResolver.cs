@@ -14,18 +14,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
     /// <summary>
     /// Represents an <see cref="ISchemaVersionResolver"/> that relies on a background service to resolve the version.
     /// </summary>
-    public class PassthroughSchemaVersionResolver : ISchemaVersionResolver
+    public class BackgroundSchemaVersionResolver : ISchemaVersionResolver
     {
         private readonly SchemaInformation _schemaInformation;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PassthroughSchemaVersionResolver"/> class.
+        /// Initializes a new instance of the <see cref="BackgroundSchemaVersionResolver"/> class.
         /// </summary>
         /// <param name="schemaInformation">The information updated in the background.</param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="schemaInformation"/> is <see langword="null"/>.
         /// </exception>
-        public PassthroughSchemaVersionResolver(SchemaInformation schemaInformation)
+        public BackgroundSchemaVersionResolver(SchemaInformation schemaInformation)
         {
             EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
             _schemaInformation = schemaInformation;

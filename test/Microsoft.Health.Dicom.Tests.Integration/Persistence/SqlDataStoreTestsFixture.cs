@@ -79,7 +79,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
 
-            var schemaResolver = new PassthroughSchemaVersionResolver(schemaInformation);
+            var schemaResolver = new BackgroundSchemaVersionResolver(schemaInformation);
 
             IndexDataStoreFactory = new SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>(
                 schemaResolver,

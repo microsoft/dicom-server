@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsSelf();
 
-            services.Add<PassthroughSchemaVersionResolver>()
+            services.Add<BackgroundSchemaVersionResolver>()
                 .Singleton()
                 .AsImplementedInterfaces();
 
