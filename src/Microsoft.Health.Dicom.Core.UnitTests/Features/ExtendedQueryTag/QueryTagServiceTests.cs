@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = true };
             _extendedQueryTagStoreFactory = Substitute.For<IStoreFactory<IExtendedQueryTagStore>>();
-            _extendedQueryTagStoreFactory.GetInstance().Returns(_extendedQueryTagStore);
+            _extendedQueryTagStoreFactory.GetInstanceAsync().Returns(_extendedQueryTagStore);
             _queryTagService = new QueryTagService(_extendedQueryTagStoreFactory, Options.Create(_featureConfiguration));
         }
 

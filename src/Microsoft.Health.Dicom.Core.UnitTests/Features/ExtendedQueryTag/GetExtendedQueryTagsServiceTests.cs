@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _dicomTagParser = Substitute.For<IDicomTagParser>();
             var factory = Substitute.For<IStoreFactory<IExtendedQueryTagStore>>();
-            factory.GetInstance().Returns(_extendedQueryTagStore);
+            factory.GetInstanceAsync().Returns(_extendedQueryTagStore);
             _getExtendedQueryTagsService = new GetExtendedQueryTagsService(factory, _dicomTagParser);
         }
 

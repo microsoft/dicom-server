@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             var factory = Substitute.For<IStoreFactory<IExtendedQueryTagStore>>();
-            factory.GetInstance().Returns(_extendedQueryTagStore);
+            factory.GetInstanceAsync().Returns(_extendedQueryTagStore);
             _extendedQueryTagService = new DeleteExtendedQueryTagService(factory, new DicomTagParser());
         }
 
