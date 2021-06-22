@@ -13,6 +13,8 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
+using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Xunit;
 
@@ -27,16 +29,19 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly IReindexStateStore _reindexStateStore;
         private readonly IReindexStateStoreTestHelper _reindexStateStoreTestHelper;
         private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
+        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
         public ReindexStateStoreTests(SqlDataStoreTestsFixture fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             EnsureArg.IsNotNull(fixture.ExtendedQueryTagStoreFactory, nameof(fixture.ExtendedQueryTagStoreFactory));
             EnsureArg.IsNotNull(fixture.ReindexStateStore, nameof(fixture.ReindexStateStore));
+            EnsureArg.IsNotNull(fixture.IndexDataStoreFactory, nameof(fixture.IndexDataStoreFactory));
 
             _extendedQueryTagStoreFactory = fixture.ExtendedQueryTagStoreFactory;
             _reindexStateStore = fixture.ReindexStateStore;
             _reindexStateStoreTestHelper = fixture.ReindexStateStoreTestHelper;
             _extendedQueryTagStoreTestHelper = fixture.ExtendedQueryTagStoreTestHelper;
+            _indexDataStoreFactory = fixture.IndexDataStoreFactory;
         }
 
         [Fact]
@@ -83,11 +88,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             AddExtendedQueryTagEntry extendedQueryTagEntry1 = tag1.BuildAddExtendedQueryTagEntry();
             AddExtendedQueryTagEntry extendedQueryTagEntry2 = tag2.BuildAddExtendedQueryTagEntry(vr: DicomVRCode.CS);
             IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
+
+            // Add instance
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+            DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            long watermark = await (await _indexDataStoreFactory.GetInstanceAsync()).CreateInstanceIndexAsync(dataset);
+
             await extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry1, extendedQueryTagEntry2 }, ExtendedQueryTagStatus.Adding, 128);
             var storeEntries = await extendedQueryTagStore.GetExtendedQueryTagsAsync();
             string operationId = Guid.NewGuid().ToString();
             List<int> tagKeys = storeEntries.Select(x => x.Key).ToList();
             ReindexOperation reindexOperation = await _reindexStateStore.PrepareReindexingAsync(tagKeys, operationId);
+            Assert.Equal(watermark, reindexOperation.StartWatermark);
+            Assert.Equal(watermark, reindexOperation.EndWatermark);
+            Assert.Equal(operationId, reindexOperation.OperationId);
         }
 
         public Task InitializeAsync()
