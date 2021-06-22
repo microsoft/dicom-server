@@ -142,9 +142,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(log, nameof(log));
             log.LogInformation("Fetching schema version");
-            int version = await _schemaManagerDataStore.GetCurrentSchemaVersionAsync(default);
-            _schemaInformation.Current = version;
-            log.LogInformation("Schema version is {version}", version);
+            _schemaInformation.Current = (int?)await _schemaVersionResolver.GetCurrentVersionAsync(default);
+            log.LogInformation("Schema version is {version}", _schemaInformation.Current);
         }
     }
 }

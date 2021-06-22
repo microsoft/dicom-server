@@ -22,7 +22,6 @@ using Microsoft.Health.SqlServer.Api.Registration;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
-using Microsoft.Health.SqlServer.Features.Schema.Manager;
 using Microsoft.Health.SqlServer.Features.Storage;
 using Microsoft.Health.SqlServer.Registration;
 
@@ -30,24 +29,28 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomServerBuilderSqlServerRegistrationExtensions
     {
-        public static IDicomServerBuilder AddSqlServer(
+        public static IDicomServerBuilder AddSqlForWebServer(
            this IDicomServerBuilder builder,
            IConfiguration configurationRoot,
-           Action<SqlServerDataStoreConfiguration> configureAction = null,
-           bool initializeSchema = true)
+           Action<SqlServerDataStoreConfiguration> configureAction = null)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
             IServiceCollection services = builder.Services;
-            services.AddSqlServerCommon(configurationRoot, configureAction);
-            if (initializeSchema)
-            {
-                services.AddSqlServerBase<SchemaVersion>(configurationRoot)
-                    .AddSqlServerApi();
-            }
-            else
-            {
-                services.AddSqlServerBaseWithoutSchemaInitialization();
-            }
+            builder.Services.AddSqlServerBase<SchemaVersion>(configurationRoot)
+                .AddSqlServerApi()
+                .AddSqlServerCommon(configurationRoot, configureAction);
+            return builder;
+        }
+
+        public static IDicomServerBuilder AddSqlForAzureFunction(
+          this IDicomServerBuilder builder,
+          IConfiguration configurationRoot,
+          Action<SqlServerDataStoreConfiguration> configureAction = null)
+        {
+            EnsureArg.IsNotNull(builder, nameof(builder));
+            IServiceCollection services = builder.Services;
+            builder.Services.AddSqlServerFundation()
+                .AddSqlServerCommon(configurationRoot, configureAction);
             return builder;
         }
 
@@ -58,7 +61,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var config = new SqlServerDataStoreConfiguration();
             configurationRoot?.GetSection("SqlServer").Bind(config);
-
             services.Add(provider =>
             {
                 configureAction?.Invoke(config);
@@ -130,7 +132,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddSqlServerBaseWithoutSchemaInitialization(
+        private static IServiceCollection AddSqlServerFundation(
            this IServiceCollection services)
         {
             // TODO: consider moving these logic into healthcare-shared-components (https://github.com/microsoft/healthcare-shared-components/)
@@ -144,11 +146,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
-
-            services.Add<SchemaManagerDataStore>()
-               .Singleton()
-               .AsSelf()
-               .AsImplementedInterfaces();
 
             // TODO:  Use RetrySqlCommandWrapperFactory instead when moving to healthcare-shared-components 
             services.Add<SqlCommandWrapperFactory>()

@@ -9,9 +9,8 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Operations.Functions.Configs;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema;
-using Microsoft.Health.SqlServer.Features.Schema.Manager;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
 {
@@ -27,7 +26,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
         private readonly IInstanceStore _instanceStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly ISchemaManagerDataStore _schemaManagerDataStore;
+        private readonly ISchemaVersionResolver _schemaVersionResolver;
         private readonly SchemaInformation _schemaInformation;
 
         public ReindexDurableFunction(
@@ -37,7 +36,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             IInstanceStore instanceStore,
             IInstanceReindexer instanceReindexer,
             IExtendedQueryTagStore extendedQueryTagStore,
-            ISchemaManagerDataStore schemaManagerDataStore,
+            ISchemaVersionResolver schemaVersionResolver,
             SchemaInformation schemaInformation)
         {
             EnsureArg.IsNotNull(configOptions, nameof(configOptions));
@@ -46,7 +45,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(addExtendedQueryTagService, nameof(addExtendedQueryTagService));
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
-            EnsureArg.IsNotNull(schemaManagerDataStore, nameof(schemaManagerDataStore));
+            EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
             EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
             _reindexConfig = configOptions.Value;
             _reindexStore = reindexStore;
@@ -54,7 +53,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             _addExtendedQueryTagService = addExtendedQueryTagService;
             _instanceStore = instanceStore;
             _extendedQueryTagStore = extendedQueryTagStore;
-            _schemaManagerDataStore = schemaManagerDataStore;
+            _schemaVersionResolver = schemaVersionResolver;
             _schemaInformation = schemaInformation;
         }
     }

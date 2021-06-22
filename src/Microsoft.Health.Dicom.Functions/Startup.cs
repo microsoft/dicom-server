@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Functions
             EnsureArg.IsNotNull(builder, nameof(builder));
             IConfiguration configuration = builder.GetContext().Configuration?.GetSection(AzureFunctionsJobHostSection);
             builder.Services.AddDicomFunctions(configuration)
-                .AddSqlServer(configuration, initializeSchema: false);
+                .AddSqlForAzureFunction(configuration);
         }
     }
 }

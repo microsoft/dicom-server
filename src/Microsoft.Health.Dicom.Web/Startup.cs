@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Web
             services.AddDicomServer(Configuration)
                 .AddBlobStorageDataStore(Configuration)
                 .AddMetadataStorageDataStore(Configuration)
-                .AddSqlServer(Configuration)
+                .AddSqlForWebServer(Configuration)
                 .AddAzureFunctionsClient(Configuration)
                 .AddBackgroundWorkers();
 
