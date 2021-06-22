@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             await _extendedQueryTagService.AddExtendedQueryTagAsync(new AddExtendedQueryTagEntry[] { entry }, default);
 
             _extendedQueryTagEntryValidator.ReceivedWithAnyArgs().ValidateExtendedQueryTags(default);
-            await _extendedQueryTagStore.ReceivedWithAnyArgs().AddExtendedQueryTagsAsync(default, default);
+            await _extendedQueryTagStore.ReceivedWithAnyArgs().AddExtendedQueryTagsAsync(default, default, default);
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
             await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagService.AddExtendedQueryTagAsync(new AddExtendedQueryTagEntry[] { entry }, default));
             _extendedQueryTagEntryValidator.ReceivedWithAnyArgs().ValidateExtendedQueryTags(default);
-            await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().AddExtendedQueryTagsAsync(default, default);
+            await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().AddExtendedQueryTagsAsync(default, default, default);
         }
     }
 }
