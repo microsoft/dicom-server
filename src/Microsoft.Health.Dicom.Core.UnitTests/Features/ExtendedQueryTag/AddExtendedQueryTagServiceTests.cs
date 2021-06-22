@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             _extendedQueryTagEntryValidator = Substitute.For<IExtendedQueryTagEntryValidator>();
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             var storeFactory = Substitute.For<IStoreFactory<IExtendedQueryTagStore>>();
-            storeFactory.GetInstance().Returns(_extendedQueryTagStore);
+            storeFactory.GetInstanceAsync(default).Returns(_extendedQueryTagStore);
             var config = new Configs.ExtendedQueryTagConfiguration();
             _extendedQueryTagService = new AddExtendedQueryTagService(storeFactory, _extendedQueryTagEntryValidator, Options.Create(config));
         }

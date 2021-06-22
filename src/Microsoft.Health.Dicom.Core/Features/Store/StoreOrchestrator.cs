@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     {
         private readonly IFileStore _fileStore;
         private readonly IMetadataStore _metadataStore;
-        private readonly IIndexDataStore _indexDataStore;
+        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
         private readonly IDeleteService _deleteService;
         private readonly IQueryTagService _queryTagService;
 
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _metadataStore = metadataStore;
             _deleteService = deleteService;
             _queryTagService = queryTagService;
-            _indexDataStore = indexDataStoreFactory.GetInstance();
+            _indexDataStoreFactory = indexDataStoreFactory;
         }
 
         /// <inheritdoc />
@@ -57,9 +57,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync(cancellationToken);
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
             var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
+            long version = await indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
 
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 
@@ -75,7 +76,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 await Task.WhenAll(tasks);
 
                 // Successfully uploaded the files. Update the status to be available.
-                await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created, cancellationToken);
+                await indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created, cancellationToken);
             }
             catch (Exception)
             {

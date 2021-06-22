@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     public class QueryTagService : IQueryTagService
     {
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IStoreFactory<IExtendedQueryTagStore> _extendedQueryTagStoreFactory;
         private readonly bool _enableExtendedQueryTags;
         public static readonly IReadOnlyList<QueryTag> CoreQueryTags = GetCoreQueryTags();
         private List<QueryTag> _allQueryTags;
@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         {
             EnsureArg.IsNotNull(extendedQueryTagStoreFactory, nameof(extendedQueryTagStoreFactory));
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
-            _extendedQueryTagStore = extendedQueryTagStoreFactory.GetInstance();
+            _extendedQueryTagStoreFactory = extendedQueryTagStoreFactory;
             _enableExtendedQueryTags = featureConfiguration.Value.EnableExtendedQueryTags;
         }
 
@@ -40,7 +40,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 {
                     _allQueryTags = new List<QueryTag>(CoreQueryTags);
 
-                    IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(cancellationToken: cancellationToken);
+                    IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(cancellationToken);
+                    IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTagEntries = await extendedQueryTagStore.GetExtendedQueryTagsAsync(cancellationToken: cancellationToken);
                     _allQueryTags.AddRange(extendedQueryTagEntries.Select(entry => new QueryTag(entry)));
 
                     _allQueryTagsCompletionSource.SetResult(true);
