@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Data;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
     public class SqlSchemaVersionResolver : ISchemaVersionResolver
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
+
+        internal const string VersionStoredProcedure = "dbo.SelectCurrentSchemaVersion";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlSchemaVersionResolver"/> class.
@@ -45,15 +48,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         public async Task<SchemaVersion> GetCurrentVersionAsync(CancellationToken cancellationToken = default)
         {
-            using DbConnection connection = await _dbConnectionFactory.GetConnectionAsync(cancellationToken).ConfigureAwait(false);
-            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            using DbConnection connection = await _dbConnectionFactory.GetConnectionAsync(cancellationToken);
+            await connection.OpenAsync(cancellationToken);
 
             using DbCommand selectCommand = connection.CreateCommand();
-            selectCommand.CommandText = "SELECT MAX(Version) FROM dbo.SchemaVersion WHERE Status = 'complete' OR Status = 'completed'";
+            selectCommand.CommandType = CommandType.StoredProcedure;
+            selectCommand.CommandText = VersionStoredProcedure;
 
-            // TODO: For DBs, should we retry?
-            int? version = await selectCommand.ExecuteScalarAsync(cancellationToken) as int?;
-            return (SchemaVersion)version.GetValueOrDefault();
+            // TODO: If we cannot find the SP, should we retry because it's a new DB?
+            object current = await selectCommand.ExecuteScalarAsync(cancellationToken);
+            return (current == null || Convert.IsDBNull(current)) ? SchemaVersion.Unknown : (SchemaVersion)current;
         }
     }
 }

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Threading;
@@ -42,6 +43,19 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
         }
 
         [Fact]
+        public async Task GivenDBNull_WhenGettingCurrentVersion_ThenReturnUnknownVersion()
+        {
+            IDbConnectionFactory dbConnectionFactory = Substitute.For<IDbConnectionFactory>();
+            var resolver = new SqlSchemaVersionResolver(dbConnectionFactory);
+
+            using var tokenSource = new CancellationTokenSource();
+            await using (SqlCommandValidation.ForDBNull(dbConnectionFactory, tokenSource.Token))
+            {
+                Assert.Equal(SchemaVersion.Unknown, await resolver.GetCurrentVersionAsync(tokenSource.Token));
+            }
+        }
+
+        [Fact]
         public async Task GivenUnknownError_WhenGettingCurrentVersion_ThenThrowException()
         {
             IDbConnectionFactory dbConnectionFactory = Substitute.For<IDbConnectionFactory>();
@@ -64,7 +78,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
             private SqlCommandValidation(
                 IDbConnectionFactory dbConnectionFactory,
                 CancellationToken cancellationToken,
-                int? response = null,
+                object response = null,
                 Exception exception = null)
             {
                 _dbConnectionFactory = EnsureArg.IsNotNull(dbConnectionFactory, nameof(dbConnectionFactory));
@@ -77,7 +91,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
 
                 if (exception == null)
                 {
-                    _dbCommand.ExecuteScalarAsync(cancellationToken).Returns(Task.FromResult<object>(response));
+                    _dbCommand.ExecuteScalarAsync(cancellationToken).Returns(Task.FromResult(response));
                 }
                 else
                 {
@@ -87,7 +101,9 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
 
             public async ValueTask DisposeAsync()
             {
-                Assert.Equal("SELECT MAX(Version) FROM dbo.SchemaVersion WHERE Status = 'complete' OR Status = 'completed'", _dbCommand.CommandText);
+                Assert.Equal(CommandType.StoredProcedure, _dbCommand.CommandType);
+                Assert.Equal(SqlSchemaVersionResolver.VersionStoredProcedure, _dbCommand.CommandText);
+
                 await _dbConnectionFactory.Received(1).GetConnectionAsync(_cancellationToken);
                 await _dbConnection.Received(1).OpenAsync(_cancellationToken);
                 _dbConnection.Received(1).CreateCommand();
@@ -103,6 +119,13 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
                 int? response)
             {
                 return new SqlCommandValidation(dbConnectionFactory, cancellationToken, response: response);
+            }
+
+            public static SqlCommandValidation ForDBNull(
+                IDbConnectionFactory dbConnectionFactory,
+                CancellationToken cancellationToken)
+            {
+                return new SqlCommandValidation(dbConnectionFactory, cancellationToken, response: DBNull.Value);
             }
 
             public static SqlCommandValidation ForException(

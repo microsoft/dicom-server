@@ -35,7 +35,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public async Task<TStore> GetInstanceAsync(CancellationToken cancellationToken = default)
         {
-            return _versionedStores[await _schemaResolver.GetCurrentVersionAsync(cancellationToken)];
+            SchemaVersion currentVersion = await _schemaResolver.GetCurrentVersionAsync(cancellationToken);
+            if (!_versionedStores.TryGetValue(currentVersion, out TVersionedStore value))
+            {
+                string msg = currentVersion == SchemaVersion.Unknown
+                    ? DicomSqlServerResource.UnknownSchemaVersion
+                    : DicomSqlServerResource.SchemaVersionOutOfRange;
+
+                throw new KeyNotFoundException(msg);
+            }
+
+            return value;
         }
     }
 }
