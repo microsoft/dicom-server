@@ -258,19 +258,21 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             private readonly AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition _extendedQueryTags = new AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition("@extendedQueryTags");
+            private readonly ParameterDefinition<System.Byte> _initStatus = new ParameterDefinition<System.Byte>("@initStatus", global::System.Data.SqlDbType.TinyInt, false);
             private readonly ParameterDefinition<System.Int32> _maxAllowedCount = new ParameterDefinition<System.Int32>("@maxAllowedCount", global::System.Data.SqlDbType.Int, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> extendedQueryTags, System.Int32 maxAllowedCount)
+            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> extendedQueryTags, System.Byte initStatus, System.Int32 maxAllowedCount)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddExtendedQueryTags";
                 _extendedQueryTags.AddParameter(command.Parameters, extendedQueryTags);
+                _initStatus.AddParameter(command.Parameters, initStatus);
                 _maxAllowedCount.AddParameter(command.Parameters, maxAllowedCount);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 maxAllowedCount, AddExtendedQueryTagsTableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.Byte initStatus, System.Int32 maxAllowedCount, AddExtendedQueryTagsTableValuedParameters tableValuedParameters)
             {
-                PopulateCommand(command, maxAllowedCount: maxAllowedCount, extendedQueryTags: tableValuedParameters.ExtendedQueryTags);
+                PopulateCommand(command, initStatus: initStatus, maxAllowedCount: maxAllowedCount, extendedQueryTags: tableValuedParameters.ExtendedQueryTags);
             }
         }
 

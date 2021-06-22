@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public async Task GivenRequestForAllTags_WhenMultipleTagsAreStored_ThenExtendedQueryTagEntryListShouldBeReturned()
         {
             ExtendedQueryTagStoreEntry tag1 = CreateExtendedQueryTagEntry(1, "45456767", DicomVRCode.AE.ToString(), null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready);
-            ExtendedQueryTagStoreEntry tag2 = CreateExtendedQueryTagEntry(2, "04051001", DicomVRCode.FL.ToString(), "PrivateCreator1", QueryTagLevel.Series, ExtendedQueryTagStatus.Adding);
+            ExtendedQueryTagStoreEntry tag2 = CreateExtendedQueryTagEntry(2, "04051001", DicomVRCode.FL.ToString(), "PrivateCreator1", QueryTagLevel.Series, ExtendedQueryTagStatus.Ready);
 
             List<ExtendedQueryTagStoreEntry> storedEntries = new List<ExtendedQueryTagStoreEntry>() { tag1, tag2 };
 

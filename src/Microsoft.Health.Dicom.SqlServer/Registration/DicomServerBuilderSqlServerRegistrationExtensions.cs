@@ -54,13 +54,20 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.Add<SqlIndexDataStoreV1>()
                 .Scoped()
+                .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Add<SqlIndexDataStoreV2>()
                 .Scoped()
+                .AsSelf()
                 .AsImplementedInterfaces();
             services.Add<SqlIndexDataStoreV3>()
                 .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            services.Add<SqlIndexDataStoreV4>()
+                .Scoped()
+                .AsSelf()
                 .AsImplementedInterfaces();
             services.Add<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
                 .Scoped()
@@ -99,6 +106,10 @@ namespace Microsoft.Extensions.DependencyInjection
               .Scoped()
               .AsSelf()
               .AsImplementedInterfaces();
+            services.Add<SqlExtendedQueryTagStoreV4>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
               .Scoped()
               .AsSelf()

@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     {
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
-        public virtual Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxCount, CancellationToken cancellationToken)
+        public virtual Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, ExtendedQueryTagStatus initStatus, int maxCount, CancellationToken cancellationToken)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
@@ -33,7 +33,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public virtual Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> tagKeys, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
+
+        public virtual Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, ExtendedQueryTagStatus initStatus, CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
     }
 }

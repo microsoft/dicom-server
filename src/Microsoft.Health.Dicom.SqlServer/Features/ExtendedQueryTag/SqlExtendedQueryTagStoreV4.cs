@@ -20,11 +20,11 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    internal class SqlExtendedQueryTagStoreV3 : SqlExtendedQueryTagStoreV2
+    internal class SqlExtendedQueryTagStoreV4 : SqlExtendedQueryTagStoreV3
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
 
-        public SqlExtendedQueryTagStoreV3(
+        public SqlExtendedQueryTagStoreV4(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
            ILogger<SqlExtendedQueryTagStoreV3> logger)
             : base(sqlConnectionWrapperFactory, logger)
@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
         }
 
-        public override SchemaVersion Version => SchemaVersion.V3;
+        public override SchemaVersion Version => SchemaVersion.V4;
 
         public override async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, ExtendedQueryTagStatus initStatus, int maxAllowedCount, CancellationToken cancellationToken)
         {
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             {
                 IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> rows = extendedQueryTagEntries.Select(ToAddExtendedQueryTagsInputTableTypeV1Row);
 
-                V3.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, rows, maxAllowedCount);
+                VLatest.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, rows, (byte)initStatus, maxAllowedCount);
 
                 try
                 {

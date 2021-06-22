@@ -1480,6 +1480,7 @@ GO
 /***************************************************************************************/
 CREATE PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
+    @initStatus TINYINT,  --- 0 - Adding, 1 - Ready, 2 - Deleting
     @maxAllowedCount INT
 )
 AS
@@ -1505,7 +1506,7 @@ AS
         -- add to extended query tag table with status 1(Ready)
         INSERT INTO dbo.ExtendedQueryTag 
             (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, 1 FROM @extendedQueryTags
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @initStatus FROM @extendedQueryTags
         
     COMMIT TRANSACTION
 GO
