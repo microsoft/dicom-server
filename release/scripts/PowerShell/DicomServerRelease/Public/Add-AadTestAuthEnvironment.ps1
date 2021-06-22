@@ -25,6 +25,10 @@ function Add-AadTestAuthEnvironment {
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
+        [pscredential]$TenantId,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNull()]
         [pscredential]$TenantAdminCredential,
 
         [Parameter(Mandatory = $false )]
@@ -137,7 +141,7 @@ function Add-AadTestAuthEnvironment {
             $secretSecureString = ConvertTo-SecureString $newPassword.Value -AsPlainText -Force
         }
 
-        Grant-ClientAppAdminConsent -AppId $aadClientApplication.AppId -TenantAdminCredential $TenantAdminCredential
+        Grant-ClientAppAdminConsent -AppId $aadClientApplication.AppId -TenantId $TenantId -TenantAdminCredential $TenantAdminCredential
 
         $environmentClientApplications += @{
             id          = $clientApp.Id

@@ -15,6 +15,10 @@ function Grant-ClientAppAdminConsent {
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
+        [pscredential]$TenantId,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNull()]
         [pscredential]$TenantAdminCredential
     )
 
@@ -42,8 +46,8 @@ function Grant-ClientAppAdminConsent {
         'x-ms-client-request-id' = [guid]::NewGuid()
     }
 
-    $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/$AppId/Consent?onBehalfOfAll=true"
-
+    ##$url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/$AppId/Consent?onBehalfOfAll=true"
+    $url = "https://login.microsoftonline.com/$TenantId/adminconsent?client_id=$AppId"
     $retryCount = 0
 
     while ($true) {
