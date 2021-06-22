@@ -71,6 +71,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsSelf();
 
+            services.Add<BackgroundSchemaVersionResolver>()
+                .Singleton()
+                .AsImplementedInterfaces();
+
             services.Add<SqlIndexDataStoreV1>()
                 .Scoped()
                 .AsImplementedInterfaces();

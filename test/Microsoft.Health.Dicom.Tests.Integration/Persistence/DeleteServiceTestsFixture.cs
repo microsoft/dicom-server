@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
-        public IIndexDataStore IndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
+        public IStoreFactory<IIndexDataStore> IndexDataStoreFactory => _sqlDataStoreTestsFixture.IndexDataStoreFactory;
 
         public IIndexDataStoreTestHelper IndexDataStoreTestHelper => _sqlDataStoreTestsFixture.TestHelper;
 

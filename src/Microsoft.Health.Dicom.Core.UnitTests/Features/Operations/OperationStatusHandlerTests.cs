@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
     public class OperationStatusHandlerTests
     {
         [Fact]
-        public void Ctor_GivenNullArgument_ThrowsArgumentNullException()
+        public void GivenNullArgument_WhenConstructing_ThenThrowArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => new OperationStatusHandler(null));
         }
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("\t  \r\n")]
-        public async Task Handle_GivenInvalidId_ThrowsArgumentException(string id)
+        public async Task GivenInvalidId_WhenHandlingRequest_ThenThrowArgumentException(string id)
         {
             IOperationsService service = Substitute.For<IOperationsService>();
             Type exceptionType = id is null ? typeof(ArgumentNullException) : typeof(ArgumentException);
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
         }
 
         [Fact]
-        public async Task Handle_GivenValidRequest_ReturnsResponse()
+        public async Task GivenValidRequest_WhenHandlingRequest_ThenReturnResponse()
         {
             using var source = new CancellationTokenSource();
             IOperationsService service = Substitute.For<IOperationsService>();

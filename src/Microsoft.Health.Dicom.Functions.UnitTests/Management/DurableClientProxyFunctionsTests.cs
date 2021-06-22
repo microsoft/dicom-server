@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
     public class DurableClientProxyFunctionsTests
     {
         [Fact]
-        public async Task GetStatusAsync_GivenNullArguments_ThrowsException()
+        public async Task GivenNullArguments_WhenGettingStatus_ThenThrowException()
         {
             var context = new DefaultHttpContext();
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("\t  \r\n")]
-        public async Task GetStatusAsync_GivenInvalidId_ReturnsBadRequest(string id)
+        public async Task GivenInvalidId_WhenGettingStatus_ThenReturnBadRequest(string id)
         {
             var context = new DefaultHttpContext();
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
         }
 
         [Fact]
-        public async Task GetStatusAsync_GivenNullStatus_ReturnsNotFound()
+        public async Task GivenNullStatus_WhenGettingStatus_ThenReturnNotFound()
         {
             var context = new DefaultHttpContext();
             string id = Guid.NewGuid().ToString();
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
         }
 
         [Fact]
-        public async Task GetStatusAsync_GivenNonNullStatus_ReturnsOk()
+        public async Task GivenNonNullStatus_WhenGettingStatus_ThenReturnOk()
         {
             var context = new DefaultHttpContext();
             string id = Guid.NewGuid().ToString();

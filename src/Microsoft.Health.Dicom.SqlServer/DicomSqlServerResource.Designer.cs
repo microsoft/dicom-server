@@ -86,5 +86,23 @@ namespace Microsoft.Health.Dicom.SqlServer {
                 return ResourceManager.GetString("SchemaVersionNeedsToBeUpgraded", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot process SQL schema version {0}..
+        /// </summary>
+        internal static string SchemaVersionOutOfRange {
+            get {
+                return ResourceManager.GetString("SchemaVersionOutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current SQL schema version could not be resolved..
+        /// </summary>
+        internal static string UnknownSchemaVersion {
+            get {
+                return ResourceManager.GetString("UnknownSchemaVersion", resourceCulture);
+            }
+        }
     }
 }
