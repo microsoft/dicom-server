@@ -9,9 +9,9 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
-    public class PurgeOrchestrationInstancesHistoryConfiguration
+    public class OrchestrationsHistoryConfiguration
     {
-        public const string SectionName = "OrchestrationsCleanup";
+        public const string SectionName = "OrchestrationsHistory";
 
         [Required]
         [MinLength(1)]
@@ -19,5 +19,11 @@ namespace Microsoft.Health.Dicom.Functions.Management
 
         [Range(0, 1000)]
         public int MinimumAgeDays { get; set; } = 30;
+
+        [Required]
+        public string PurgeFrequency { get; set; }
+
+        public const string PurgeFrequencyVariable =
+            "%" + Startup.HostSectionName + ":" + SectionName + ":" + nameof(PurgeFrequency) + "%";
     }
 }

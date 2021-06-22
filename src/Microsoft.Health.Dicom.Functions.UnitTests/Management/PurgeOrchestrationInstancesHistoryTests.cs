@@ -16,11 +16,11 @@ using Microsoft.Health.Dicom.Functions.Management;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
 {
     public class PurgeOrchestrationInstancesHistoryTests
     {
-        private readonly PurgeOrchestrationInstancesHistoryConfiguration _purgeConfig;
+        private readonly OrchestrationsHistoryConfiguration _purgeConfig;
         private readonly TimerInfo _timer;
         private readonly ILogger _logger;
         private readonly DateTime _definedNow;
@@ -29,8 +29,10 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests
 
         public PurgeOrchestrationInstancesHistoryTests()
         {
-            _purgeConfig = new PurgeOrchestrationInstancesHistoryConfiguration();
-            _purgeConfig.RuntimeStatuses = new OrchestrationRuntimeStatus[] { OrchestrationRuntimeStatus.Completed };
+            _purgeConfig = new OrchestrationsHistoryConfiguration
+            {
+                RuntimeStatuses = new OrchestrationRuntimeStatus[] { OrchestrationRuntimeStatus.Completed }
+            };
             _timer = Substitute.For<TimerInfo>(default, default, default);
             _logger = Substitute.For<ILogger>();
             _definedNow = DateTime.UtcNow;
@@ -41,7 +43,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests
         }
 
         [Fact]
-        public async Task GivenValidInput_PurgeCompletedDurableFunctionsHistory_ShouldNotPurgeAnythingOrchestrationsAsync()
+        public async Task GivenNoOrchestrationInstances_WhenPurgeCompletedDurableFunctionsHistory_ThenNoOrchestrationsPurgedAsync()
         {
             using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
@@ -59,66 +61,57 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests
         }
 
         [Fact]
-        public async Task GivenValidInput_PurgeCompletedDurableFunctionsHistory_ShouldPurgeMultiPageListOfOrchestrationsAsync()
+        public async Task GivenContinuationToken_WhenPurgingHistory_ThenPurgeMultiplePagesAsync()
         {
             using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-            List<DurableOrchestrationStatus> durableOrchestrationStatuses = new List<DurableOrchestrationStatus>()
-            {
-                new DurableOrchestrationStatus{ InstanceId = "1" },
-                new DurableOrchestrationStatus{ InstanceId = "2" },
-                new DurableOrchestrationStatus{ InstanceId = "3" }
-            };
-
-            OrchestrationStatusQueryResult orchestrationStatusQueryResult = new OrchestrationStatusQueryResult();
-            orchestrationStatusQueryResult.DurableOrchestrationState = durableOrchestrationStatuses;
-            orchestrationStatusQueryResult.ContinuationToken = "fake_cancellation_token";
-
-            var collector = new List<string>();
+            var expected = new List<string> { "1", "2", "3", "4", "5", "6" };
+            var actual = new List<string>();
 
             _durableOrchestrationClientMock
                 .ListInstancesAsync(
                     Arg.Is<OrchestrationStatusQueryCondition>(
                             givenCondition => IsCondition(givenCondition, null)),
-                    Arg.Is<CancellationToken>(cancellationTokenSource.Token))
+                    Arg.Is(cancellationTokenSource.Token))
                 // First page, should have 3 orchestrations, then change continuation token.
-                .Returns(_ =>
+                .Returns(Task.FromResult(
+                    new OrchestrationStatusQueryResult
                     {
-                        orchestrationStatusQueryResult.ContinuationToken = null;
-                        Assert.True(orchestrationStatusQueryResult.DurableOrchestrationState.SequenceEqual(durableOrchestrationStatuses));
-                        return Task.FromResult(orchestrationStatusQueryResult);
-                    });
+                        DurableOrchestrationState = expected
+                            .Take(4)
+                            .Select(x => new DurableOrchestrationStatus { InstanceId = x }),
+                        ContinuationToken = "fake_cancellation_token"
+                    }));
 
             _durableOrchestrationClientMock
                 .ListInstancesAsync(
                     Arg.Is<OrchestrationStatusQueryCondition>(
-                            givenCondition => IsCondition(givenCondition, orchestrationStatusQueryResult.ContinuationToken)),
-                    Arg.Is<CancellationToken>(cancellationTokenSource.Token))
+                            givenCondition => IsCondition(givenCondition, "fake_cancellation_token")),
+                    Arg.Is(cancellationTokenSource.Token))
                 // Second page, should have no orchestrations.
-                .Returns(_ =>
+                .Returns(Task.FromResult(
+                    new OrchestrationStatusQueryResult
                     {
-                        Assert.True(orchestrationStatusQueryResult.DurableOrchestrationState.SequenceEqual(null));
-                        return Task.FromResult(new OrchestrationStatusQueryResult());
-                    });
+                        DurableOrchestrationState = expected
+                            .Skip(4)
+                            .Select(x => new DurableOrchestrationStatus { InstanceId = x }),
+                        ContinuationToken = null
+                    }));
 
             _durableOrchestrationClientMock
                 .When(x => x.PurgeInstanceHistoryAsync(Arg.Any<string>()))
-                .Do(x => collector.Add(x.Arg<string>()));
+                .Do(x => actual.Add(x.Arg<string>()));
 
             await _purgeOrchestrationInstancesHistory.Run(_timer, _durableOrchestrationClientMock, _logger, cancellationTokenSource.Token);
 
             await _durableOrchestrationClientMock
-                .Received(1)
-                .ListInstancesAsync(
-                    Arg.Is<OrchestrationStatusQueryCondition>(x => IsCondition(x, null)),
-                    Arg.Is<CancellationToken>(cancellationTokenSource.Token));
-
-            var expected = durableOrchestrationStatuses.Select(i => i.InstanceId);
+                .ReceivedWithAnyArgs(2)
+                .ListInstancesAsync(default, default);
 
             await _durableOrchestrationClientMock
-                .Received(3)
+                .Received(expected.Count)
                 .PurgeInstanceHistoryAsync(Arg.Is<string>(x => expected.Contains(x)));
-            Assert.Equal(expected, collector);
+            Assert.Equal(expected, actual);
         }
 
         private bool IsCondition(OrchestrationStatusQueryCondition givenCondition, string continuationToken)

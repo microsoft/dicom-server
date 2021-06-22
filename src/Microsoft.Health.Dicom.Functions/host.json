@@ -35,6 +35,7 @@
   },
   "OrchestrationsCleanup": {
     "RuntimeStatuses": [ "Completed" ],
-    "MinimumAgeDays": 14
+    "MinimumAgeDays": 14,
+    "PurgeFrequency": "0 0 * * *"
   }
 }

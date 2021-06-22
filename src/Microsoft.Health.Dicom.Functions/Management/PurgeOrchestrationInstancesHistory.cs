@@ -17,41 +17,46 @@ namespace Microsoft.Health.Dicom.Functions.Management
 {
     public class PurgeOrchestrationInstancesHistory
     {
-        private readonly PurgeOrchestrationInstancesHistoryConfiguration _cleanupConfig;
+        private readonly OrchestrationsHistoryConfiguration _purgeConfig;
         private readonly Func<DateTime> _getUtcNow;
 
-        public PurgeOrchestrationInstancesHistory(IOptions<PurgeOrchestrationInstancesHistoryConfiguration> cleanupOptions)
+        public PurgeOrchestrationInstancesHistory(IOptions<OrchestrationsHistoryConfiguration> cleanupOptions)
             : this(cleanupOptions, () => DateTime.UtcNow)
         { }
 
-        internal PurgeOrchestrationInstancesHistory(IOptions<PurgeOrchestrationInstancesHistoryConfiguration> cleanupOptions, Func<DateTime> getDateTimeUtcNow)
+        internal PurgeOrchestrationInstancesHistory(IOptions<OrchestrationsHistoryConfiguration> cleanupOptions, Func<DateTime> getDateTimeUtcNow)
         {
-            EnsureArg.IsNotNull(cleanupOptions, nameof(cleanupOptions));
+            EnsureArg.IsNotNull(cleanupOptions?.Value, nameof(cleanupOptions));
             EnsureArg.IsNotNull(getDateTimeUtcNow, nameof(getDateTimeUtcNow));
-            _cleanupConfig = cleanupOptions?.Value;
+            _purgeConfig = cleanupOptions?.Value;
             _getUtcNow = getDateTimeUtcNow;
         }
 
         [FunctionName(nameof(PurgeOrchestrationInstancesHistory))]
-        public async Task Run([TimerTrigger("*/15 * * * * *")] TimerInfo myTimer,
+        public async Task Run(
+            [TimerTrigger(OrchestrationsHistoryConfiguration.PurgeFrequencyVariable)] TimerInfo myTimer,
             [DurableClient] IDurableOrchestrationClient client,
             ILogger log,
             CancellationToken hostCancellationToken)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(myTimer, nameof(myTimer));
+            EnsureArg.IsNotNull(log, nameof(log));
 
             List<string> orchestrationInstanceIdList = new List<string>();
-            log.LogInformation("C# Timer trigger function executed at: {Timestamp}", _getUtcNow());
 
-            if (myTimer.IsPastDue) log.LogWarning("Current function invocation is later than scheduled.");
+            log.LogInformation("Purging orchestration instance history at: {Timestamp}", _getUtcNow());
+            if (myTimer.IsPastDue)
+            {
+                log.LogWarning("Current function invocation is later than scheduled.");
+            }
 
             // Specify conditions for orchestration instances.
             OrchestrationStatusQueryCondition condition = new OrchestrationStatusQueryCondition
             {
-                RuntimeStatus = _cleanupConfig.RuntimeStatuses,
+                RuntimeStatus = _purgeConfig.RuntimeStatuses,
                 CreatedTimeFrom = DateTime.MinValue,
-                CreatedTimeTo = _getUtcNow().AddDays(-_cleanupConfig.MinimumAgeDays),
+                CreatedTimeTo = _getUtcNow().AddDays(-_purgeConfig.MinimumAgeDays),
                 ContinuationToken = null
             };
 
@@ -69,7 +74,15 @@ namespace Microsoft.Health.Dicom.Functions.Management
                 }
             } while (condition.ContinuationToken != null);
 
-            log.LogInformation("{Count} Durable Functions cleaned up successfully. List of cleaned instance IDs:\n{list}", orchestrationInstanceIdList.Count, String.Join(",\n", orchestrationInstanceIdList));
+            if (orchestrationInstanceIdList.Count != 0)
+            {
+                log.LogInformation("{Count} Durable Functions cleaned up successfully.", orchestrationInstanceIdList.Count);
+                log.LogDebug("List of cleaned instance IDs: {list}", String.Join(", ", orchestrationInstanceIdList));
+            }
+            else
+            {
+                log.LogInformation("No Orchestration instances found within given conditions.");
+            }
         }
     }
 }
