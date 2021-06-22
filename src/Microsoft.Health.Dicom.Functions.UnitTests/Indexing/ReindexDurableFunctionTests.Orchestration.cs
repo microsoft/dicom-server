@@ -137,7 +137,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             {
                 await context.Received().
                      CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstancesAsync),
-                         Arg.Is<ReindexInstanceInput>(x => x.WatermarkRange.Start == Math.Max(reindexOperation.StartWatermark, reindexOperation.EndWatermark - _reindexConfig.BatchSize * i - 1)
+                         Arg.Is<ReindexInstanceInput>(x => x.WatermarkRange.Start == Math.Max(reindexOperation.StartWatermark.Value, reindexOperation.EndWatermark.Value - _reindexConfig.BatchSize * i - 1)
                          && x.WatermarkRange.End == reindexOperation.EndWatermark - _reindexConfig.BatchSize * i));
             }
 
@@ -145,7 +145,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             await context.Received().
                     CallActivityAsync(nameof(ReindexDurableFunction.UpdateReindexProgressAsync),
                     Arg.Is<UpdateReindexProgressInput>(x =>
-                    x.EndWatermark == Math.Max(reindexOperation.StartWatermark - 1, reindexOperation.EndWatermark - _reindexConfig.BatchSize * _reindexConfig.MaxParallelBatches)));
+                    x.EndWatermark == Math.Max(reindexOperation.StartWatermark.Value - 1, reindexOperation.EndWatermark.Value - _reindexConfig.BatchSize * _reindexConfig.MaxParallelBatches)));
 
             // Verify  CompleteReindexAsync is called
             await context.Received().
@@ -161,7 +161,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             DicomTag tag = DicomTag.DeviceSerialNumber;
 
             var storeEntires = new[] { tag.BuildExtendedQueryTagStoreEntry() };
-            ReindexOperation reindexOperation = new ReindexOperation() { StartWatermark = -1, EndWatermark = -1, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntires };
+            ReindexOperation reindexOperation = new ReindexOperation() { StartWatermark = null, EndWatermark = null, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntires };
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);

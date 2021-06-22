@@ -26,11 +26,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <summary>
         /// The inclusive start watermark.
         /// </summary>
-        public long StartWatermark { get; set; }
+        public long? StartWatermark { get; set; }
 
         /// <summary>
         /// The inclusive end watermark.
         /// </summary>
-        public long EndWatermark { get; set; }
+        public long? EndWatermark { get; set; }
     }
 }

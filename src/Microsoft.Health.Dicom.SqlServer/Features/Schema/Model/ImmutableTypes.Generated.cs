@@ -218,4 +218,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.String TagValue { get; }
         internal System.Byte TagLevel { get; }
     }
+
+    internal class PrepareReindexingTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<PrepareReindexingTableTypeV1Row>
+    {
+        internal PrepareReindexingTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.PrepareReindexingTableType_1")
+        {
+        }
+
+        internal readonly IntColumn TagKey = new IntColumn("TagKey");
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, PrepareReindexingTableTypeV1Row rowData)
+        {
+            TagKey.Set(record, 0, rowData.TagKey);
+        }
+    }
+
+    internal struct PrepareReindexingTableTypeV1Row
+    {
+        internal PrepareReindexingTableTypeV1Row(System.Int32 TagKey)
+        {
+            this.TagKey = TagKey;
+        }
+
+        internal System.Int32 TagKey { get; }
+    }
 }

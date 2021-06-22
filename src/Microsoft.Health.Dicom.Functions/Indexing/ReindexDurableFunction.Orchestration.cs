@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             ReindexOperation reindexOperation = context.GetInput<ReindexOperation>();
 
             // EndWatermark < 0 means there are no instances.
-            if (reindexOperation.EndWatermark >= 0)
+            if (reindexOperation.StartWatermark.HasValue && reindexOperation.EndWatermark.HasValue && reindexOperation.EndWatermark >= 0)
             {
                 IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context
                     .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetProcessingTagsAsync), reindexOperation.OperationId);
@@ -90,8 +90,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags)
         {
             // Reindex. Note that StartWatermark and EndWatermark are Inclusive
-            long start = reindexOperation.StartWatermark;
-            long end = reindexOperation.EndWatermark;
+            long start = reindexOperation.StartWatermark.Value;
+            long end = reindexOperation.EndWatermark.Value;
 
             if (start <= end)
             {

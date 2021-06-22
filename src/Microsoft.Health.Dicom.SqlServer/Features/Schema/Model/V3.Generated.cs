@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V3
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -22,7 +22,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static ExtendedQueryTagPersonNameTable ExtendedQueryTagPersonName = new ExtendedQueryTagPersonNameTable();
         internal readonly static ExtendedQueryTagStringTable ExtendedQueryTagString = new ExtendedQueryTagStringTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
-        internal readonly static ReindexStateTable ReindexState = new ReindexStateTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
         internal readonly static AddExtendedQueryTagsProcedure AddExtendedQueryTags = new AddExtendedQueryTagsProcedure();
@@ -35,7 +34,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
-        internal readonly static PrepareReindexingProcedure PrepareReindexing = new PrepareReindexingProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
 
@@ -192,20 +190,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Instance_Watermark = new Index("IX_Instance_Watermark");
             internal readonly Index IX_Instance_SeriesKey_Status = new Index("IX_Instance_SeriesKey_Status");
             internal readonly Index IX_Instance_StudyKey_Status = new Index("IX_Instance_StudyKey_Status");
-        }
-
-        internal class ReindexStateTable : Table
-        {
-            internal ReindexStateTable() : base("dbo.ReindexState")
-            {
-            }
-
-            internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly NullableVarCharColumn OperationId = new NullableVarCharColumn("OperationId", 40);
-            internal readonly TinyIntColumn ReindexStatus = new TinyIntColumn("ReindexStatus");
-            internal readonly NullableBigIntColumn StartWatermark = new NullableBigIntColumn("StartWatermark");
-            internal readonly NullableBigIntColumn EndWatermark = new NullableBigIntColumn("EndWatermark");
-            internal readonly Index IXC_ReindexState = new Index("IXC_ReindexState");
         }
 
         internal class SeriesTable : Table
@@ -548,54 +532,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _watermark.AddParameter(command.Parameters, watermark);
                 _cleanupAfter.AddParameter(command.Parameters, cleanupAfter);
             }
-        }
-
-        internal class PrepareReindexingProcedure : StoredProcedure
-        {
-            internal PrepareReindexingProcedure() : base("dbo.PrepareReindexing")
-            {
-            }
-
-            private readonly PrepareReindexingTableTypeV1TableValuedParameterDefinition _tagKeys = new PrepareReindexingTableTypeV1TableValuedParameterDefinition("@tagKeys");
-            private readonly ParameterDefinition<System.String> _operationId = new ParameterDefinition<System.String>("@operationId", global::System.Data.SqlDbType.VarChar, false, 40);
-
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<PrepareReindexingTableTypeV1Row> tagKeys, System.String operationId)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.PrepareReindexing";
-                _tagKeys.AddParameter(command.Parameters, tagKeys);
-                _operationId.AddParameter(command.Parameters, operationId);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String operationId, PrepareReindexingTableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, operationId: operationId, tagKeys: tableValuedParameters.TagKeys);
-            }
-        }
-
-        internal class PrepareReindexingTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, PrepareReindexingTableValuedParameters>
-        {
-            public PrepareReindexingTvpGenerator(ITableValuedParameterRowGenerator<TInput, PrepareReindexingTableTypeV1Row> PrepareReindexingTableTypeV1RowGenerator)
-            {
-                this.PrepareReindexingTableTypeV1RowGenerator = PrepareReindexingTableTypeV1RowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, PrepareReindexingTableTypeV1Row> PrepareReindexingTableTypeV1RowGenerator;
-
-            public PrepareReindexingTableValuedParameters Generate(TInput input)
-            {
-                return new PrepareReindexingTableValuedParameters(PrepareReindexingTableTypeV1RowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct PrepareReindexingTableValuedParameters
-        {
-            internal PrepareReindexingTableValuedParameters(global::System.Collections.Generic.IEnumerable<PrepareReindexingTableTypeV1Row> TagKeys)
-            {
-                this.TagKeys = TagKeys;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<PrepareReindexingTableTypeV1Row> TagKeys { get; }
         }
 
         internal class RetrieveDeletedInstanceProcedure : StoredProcedure

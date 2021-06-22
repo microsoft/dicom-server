@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     /// <summary>
     /// Store that records reindex status.
     /// </summary>
-    public interface IReindexStore
+    public interface IReindexStateStore
     {
         /// <summary>
         /// Get entries of reindex.
