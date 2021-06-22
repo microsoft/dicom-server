@@ -128,4 +128,11 @@
   <data name="SchemaVersionNeedsToBeUpgraded" xml:space="preserve">
     <value>Cannot carry out the SQL datastore operation because the SQL schema needs to be upgraded.</value>
   </data>
+  <data name="SchemaVersionOutOfRange" xml:space="preserve">
+    <value>Cannot process SQL schema version {0}.</value>
+    <comment>{0} current version</comment>
+  </data>
+  <data name="UnknownSchemaVersion" xml:space="preserve">
+    <value>Current SQL schema version could not be resolved.</value>
+  </data>
 </root>

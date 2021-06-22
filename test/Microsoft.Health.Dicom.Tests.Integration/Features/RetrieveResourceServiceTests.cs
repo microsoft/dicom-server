@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
     public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>, IClassFixture<SqlDataStoreTestsFixture>
     {
         private readonly RetrieveResourceService _retrieveResourceService;
-        private readonly IIndexDataStore _indexDataStore;
+        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
         private readonly IInstanceStore _instanceStore;
         private readonly IFileStore _fileStore;
         private readonly ITranscoder _retrieveTranscoder;
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             EnsureArg.IsNotNull(sqlIndexStorageFixture, nameof(sqlIndexStorageFixture));
             EnsureArg.IsNotNull(blobStorageFixture, nameof(blobStorageFixture));
-            _indexDataStore = sqlIndexStorageFixture.IndexDataStore;
+            _indexDataStoreFactory = sqlIndexStorageFixture.IndexDataStoreFactory;
             _instanceStore = sqlIndexStorageFixture.InstanceStore;
             _fileStore = blobStorageFixture.FileStore;
             _retrieveTranscoder = Substitute.For<ITranscoder>();
@@ -152,7 +152,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
         private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
         {
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+            long version = await indexDataStore.CreateInstanceIndexAsync(dataset);
 
             var versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
 
@@ -171,7 +172,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     stream);
             }
 
-            await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created);
+            await indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created);
         }
 
         private void ValidateResponseDicomFiles(
