@@ -110,7 +110,7 @@ AS
             THROW 50412, 'Not all tags are valid for reindexing', 1
         
         -- Add tagKey and operationId combination to ReindexState table
-        INSERT INTO dbo.ReindexStore
+        INSERT INTO dbo.ReindexState
         (TagKey, OperationId, ReindexStatus, StartWatermark, EndWatermark)
         SELECT  TagKey,
                 @operationId,
@@ -133,7 +133,7 @@ AS
         FROM    dbo.ExtendedQueryTag E
         INNER JOIN @tagKeys I
         ON      E.TagKey = I.TagKey
-        INNER JOIN dbo.ReindexStore R
+        INNER JOIN dbo.ReindexState R
         ON      E.TagKey = R.TagKey
     
     COMMIT TRANSACTION

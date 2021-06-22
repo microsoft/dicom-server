@@ -38,10 +38,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             EnsureArg.IsNotNull(fixture.IndexDataStoreFactory, nameof(fixture.IndexDataStoreFactory));
-            EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.TestHelper));
+            EnsureArg.IsNotNull(fixture.SqlIndexDataStoreTestHelper, nameof(fixture.SqlIndexDataStoreTestHelper));
             EnsureArg.IsNotNull(fixture.ExtendedQueryTagStoreFactory, nameof(fixture.ExtendedQueryTagStoreFactory));
             _indexDataStoreFactory = fixture.IndexDataStoreFactory;
-            _testHelper = fixture.TestHelper;
+            _testHelper = fixture.SqlIndexDataStoreTestHelper;
             _extendedQueryTagStoreFactory = fixture.ExtendedQueryTagStoreFactory;
         }
 

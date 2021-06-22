@@ -12,9 +12,11 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.SqlServer.Features.Indexing;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
@@ -103,8 +105,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance)
                 });
 
+            ReindexStateStore = new SqlReindexStateStore(SqlConnectionWrapperFactory);
 
-            TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
+            SqlIndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
+            ReindexStateStoreTestHelper = new ReindexStateStoreTestHelper(TestConnectionString);
+            ExtendedQueryTagStoreTestHelper = new ExtendedQueryTagStoreTestHelper(TestConnectionString);
         }
 
         public SqlDataStoreTestsFixture()
@@ -124,7 +129,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IStoreFactory<IExtendedQueryTagStore> ExtendedQueryTagStoreFactory { get; }
 
-        public SqlIndexDataStoreTestHelper TestHelper { get; }
+        public IReindexStateStore ReindexStateStore { get; }
+
+        public SqlIndexDataStoreTestHelper SqlIndexDataStoreTestHelper { get; }
+
+        public IReindexStateStoreTestHelper ReindexStateStoreTestHelper { get; }
+
+        public IExtendedQueryTagStoreTestHelper ExtendedQueryTagStoreTestHelper { get; }
 
         public static string GenerateDatabaseName(string prefix = "DICOMINTEGRATIONTEST_")
         {
@@ -179,8 +190,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 await sqlConnection.OpenAsync();
                 SqlConnection.ClearAllPools();
-
-                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                await using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandTimeout = 600;
                     sqlCommand.CommandText = $"DROP DATABASE IF EXISTS {_databaseName}";
