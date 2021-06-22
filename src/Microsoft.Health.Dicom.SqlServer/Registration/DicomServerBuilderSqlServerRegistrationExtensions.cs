@@ -132,14 +132,14 @@ namespace Microsoft.Extensions.DependencyInjection
             // TODO: consider moving these logic into healthcare-shared-components (https://github.com/microsoft/healthcare-shared-components/)
             // once code becomes solid (e.g: merging back to main branch).                 
             services.Add<SqlTransactionHandler>()
-               .Scoped()
-               .AsSelf()
-               .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             services.Add<SqlConnectionWrapperFactory>()
-             .Scoped()
-             .AsSelf()
-             .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             services.Add<SchemaManagerDataStore>()
                .Singleton()
@@ -148,8 +148,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // TODO:  Use RetrySqlCommandWrapperFactory instead when moving to healthcare-shared-components 
             services.Add<SqlCommandWrapperFactory>()
-            .Singleton()
-            .AsSelf();
+                .Singleton()
+                .AsSelf();
 
             services.AddSingleton<ISqlConnectionStringProvider, DefaultSqlConnectionStringProvider>();
 

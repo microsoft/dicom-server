@@ -13,6 +13,7 @@ using Microsoft.Health.SqlServer.Features.Schema.Manager;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using NSubstitute;
 using Microsoft.Health.Dicom.Operations.Functions.Configs;
+using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 {
@@ -38,8 +39,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _schemaManagerDataStore = Substitute.For<ISchemaManagerDataStore>();
             _schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
+            var configuration = Substitute.For<IOptions<DicomFunctionsConfiguration>>();
+            configuration.Value.Returns(new DicomFunctionsConfiguration
+            {
+                Reindex = _reindexConfig
+            });
+
             _reindexDurableFunction = new ReindexDurableFunction(
-                Options.Create(new DicomFunctionsConfiguration() { Reindex = _reindexConfig }),
+                configuration,
                 _addExtendedQueryTagService,
                 _reindexStore,
                 _instanceStore,

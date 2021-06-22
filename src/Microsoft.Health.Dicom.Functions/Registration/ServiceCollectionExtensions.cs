@@ -27,17 +27,20 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Registration
         public static IDicomServerBuilder AddDicomFunctions(this IServiceCollection services, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(services, nameof(services));
-            DicomFunctionsConfiguration dicomOperationsConfig = new DicomFunctionsConfiguration();
-            configuration?.GetSection(DicomFunctionsConfiguration.SectionName).Bind(dicomOperationsConfig);
-            services.AddSingleton(Options.Create(dicomOperationsConfig));
+            DicomFunctionsConfiguration dicomFuncionsConfig = new DicomFunctionsConfiguration();
+            configuration?.GetSection(DicomFunctionsConfiguration.SectionName).Bind(dicomFuncionsConfig);
+            services.AddSingleton(Options.Create(dicomFuncionsConfig));
+            services.AddSingleton(Options.Create(dicomFuncionsConfig.Reindex));
 
             services.AddMvcCore()
                 .AddNewtonsoftJson(x => x.SerializerSettings.Converters
                 .Add(new StringEnumConverter()));
 
+            // TODO: the FeatureConfiguration should be removed once we moved the logic to add tags into database out of Azure Function
             services.RegisterAssemblyModules(typeof(ServiceModule).Assembly, new FeatureConfiguration() { EnableExtendedQueryTags = true }, new ServicesConfiguration());
             return new DicomServerBuilder(services);
         }
+
         private class DicomServerBuilder : IDicomServerBuilder
         {
             public DicomServerBuilder(IServiceCollection services)
@@ -48,6 +51,5 @@ namespace Microsoft.Health.Dicom.Operations.Functions.Registration
 
             public IServiceCollection Services { get; }
         }
-
     }
 }
