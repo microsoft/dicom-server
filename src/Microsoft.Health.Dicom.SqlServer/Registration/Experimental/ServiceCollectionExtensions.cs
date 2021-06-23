@@ -27,10 +27,9 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         private const string SqlServerSectionName = "SqlServer";
 
-        public static IServiceCollection AddSqlServer(
+        public static ISqlServiceBuilder AddSqlServer(
             this IServiceCollection services,
-            IConfiguration configurationRoot,
-            Action<ISqlServiceBuilder> configureSqlServer = null)
+            IConfiguration configurationRoot)
         {
             EnsureArg.IsNotNull(services, nameof(services));
             EnsureArg.IsNotNull(configurationRoot, nameof(configurationRoot));
@@ -42,9 +41,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton(config)
                 .AddConnectionServices(config);
 
-            configureSqlServer?.Invoke(new SqlServiceBuilder(services));
-
-            return services;
+            return new SqlServiceBuilder(services);
         }
 
         private static IServiceCollection AddConnectionServices(

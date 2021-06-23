@@ -10,27 +10,24 @@ using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Blob.Features.Health;
+using Microsoft.Health.Dicom.Metadata;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class BlobServiceBuilderExtensions
+    public static class ServiceCollectionExtensions
     {
-        public static IBlobServiceBuilder AddBlobHealthCheck(this IBlobServiceBuilder builder)
-        {
-            EnsureArg.IsNotNull(builder?.Services, nameof(builder))
-                .AddHealthChecks()
-                .AddCheck<DicomBlobHealthCheck>(name: "DcmHealthCheck");
-
-            return builder;
-        }
-
-        public static IBlobServiceBuilder AddBlobServiceClient(
-            this IBlobServiceBuilder builder,
+        public static IBlobServiceBuilder AddAzureBlobServiceClient(
+            this IServiceCollection services,
             IConfiguration configurationRoot)
         {
+            EnsureArg.IsNotNull(services, nameof(services));
             EnsureArg.IsNotNull(configurationRoot, nameof(configurationRoot));
-            IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
+
+            services.Configure<BlobContainerConfiguration>(
+                Constants.ContainerConfigurationName,
+                containerConfiguration => configurationRoot
+                    .GetSection("DicomWeb:MetadataStore")
+                    .Bind(containerConfiguration));
 
             // TODO: Leverage Shared Components
             var config = new BlobDataStoreConfiguration();
@@ -50,13 +47,13 @@ namespace Microsoft.Extensions.DependencyInjection
             blobClientOptions.Retry.Delay = TimeSpan.FromSeconds(config.RequestOptions.ExponentialRetryBackoffDeltaInSeconds);
             blobClientOptions.Retry.NetworkTimeout = TimeSpan.FromMinutes(config.RequestOptions.ServerTimeoutInMinutes);
 
-            var client = config.AuthenticationType == BlobDataStoreAuthenticationType.ManagedIdentity
+            BlobServiceClient client = config.AuthenticationType == BlobDataStoreAuthenticationType.ManagedIdentity
                 ? new BlobServiceClient(new Uri(config.ConnectionString), new DefaultAzureCredential(), blobClientOptions)
                 : new BlobServiceClient(config.ConnectionString, blobClientOptions);
 
             services.AddSingleton(client);
 
-            return builder;
+            return new BlobServiceBuilder(services);
         }
     }
 }

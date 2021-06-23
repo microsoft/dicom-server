@@ -30,17 +30,13 @@ namespace Microsoft.Health.Dicom.Functions
                     .Bind(sectionObj));
 
             builder.Services
-                .AddSqlServer(
-                    config,
-                    builder => builder
-                        .AddForegroundSchemaVersionResolution()
-                        .AddExtendedQueryTagStores());
+                .AddSqlServer(config)
+                .AddForegroundSchemaVersionResolution()
+                .AddExtendedQueryTagStores();
 
             builder.Services
-                .AddBlobStorageDataStore(
-                    config,
-                    builder => builder
-                        .AddBlobServiceClient(config));
+                .AddAzureBlobServiceClient(config)
+                .AddMetadataStore();
 
             builder.Services
                 .AddMvcCore()

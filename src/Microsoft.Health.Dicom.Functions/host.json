@@ -25,17 +25,12 @@
     }
   },
   "SqlServer": {
-    "Initialize": "false",
-    "AllowDatabaseCreation": "false",
     "ConnectionString": "server=(local);Initial Catalog=Dicom;Integrated Security=true",
     "TransientFaultRetryPolicy": {
       "InitialDelay": "00:00:00.100",
       "RetryCount": 3,
       "Factor": 2,
       "FastFirst": true
-    },
-    "SchemaOptions": {
-      "AutomaticUpdatesEnabled": false
     }
   }
 }

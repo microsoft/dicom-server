@@ -3,34 +3,22 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Blob;
-using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Metadata.Features.Health;
+using Microsoft.Health.Dicom.Metadata.Features.Storage;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class ServiceCollectionExtensions
+    public static class BlobServiceBuilderExtensions
     {
-        public static IServiceCollection AddBlobStorageDataStore(
-            this IServiceCollection services,
-            IConfiguration configurationRoot,
-            Action<IBlobServiceBuilder> configureBlobServices = null)
+        public static IBlobServiceBuilder AddMetadataStore(this IBlobServiceBuilder builder)
         {
-            EnsureArg.IsNotNull(services, nameof(services));
-            EnsureArg.IsNotNull(configurationRoot, nameof(configurationRoot));
+            IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
 
-            services.Configure<BlobContainerConfiguration>(
-                Constants.ContainerConfigurationName,
-                containerConfiguration => configurationRoot
-                    .GetSection("DicomWeb:DicomStore")
-                    .Bind(containerConfiguration));
-
-            services.Add<BlobFileStore>()
+            services.Add<BlobMetadataStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -38,11 +26,18 @@ namespace Microsoft.Extensions.DependencyInjection
             // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
             // However, the current implementation of the decorate method requires the concrete type to be already registered,
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
-            services.Decorate<IFileStore, LoggingFileStore>();
+            services.Decorate<IMetadataStore, LoggingMetadataStore>();
 
-            configureBlobServices?.Invoke(new BlobServiceBuilder(services));
+            return builder;
+        }
 
-            return services;
+        public static IBlobServiceBuilder AddMetadataHealthCheck(this IBlobServiceBuilder builder)
+        {
+            EnsureArg.IsNotNull(builder?.Services, nameof(builder))
+                .AddHealthChecks()
+                .AddCheck<MetadataHealthCheck>(name: "MetadataHealthCheck");
+
+            return builder;
         }
     }
 }
