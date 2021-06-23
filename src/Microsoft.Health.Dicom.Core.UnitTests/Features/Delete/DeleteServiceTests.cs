@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
             _transactionScope = Substitute.For<ITransactionScope>();
             transactionHandler.BeginTransaction().Returns(_transactionScope);
 
-            _indexDataStoreFactory.GetInstance().Returns(_indexDataStore);
+            _indexDataStoreFactory.GetInstanceAsync(CancellationToken.None).Returns(_indexDataStore);
             _deleteService = new DeleteService(_indexDataStoreFactory, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance);
         }
 

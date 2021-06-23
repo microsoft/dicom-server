@@ -4,11 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.SqlServer.Feature.Common;
-using Microsoft.Health.SqlServer.Features.Schema;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
@@ -20,20 +23,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     internal class SqlStoreFactory<TVersionedStore, TStore> : IStoreFactory<TStore>
         where TVersionedStore : IVersioned, TStore
     {
-        private readonly SchemaInformation _schemaInformation;
-        private readonly IEnumerable<TVersionedStore> _versionedStores;
+        private readonly ISchemaVersionResolver _schemaResolver;
+        private readonly Dictionary<SchemaVersion, TVersionedStore> _versionedStores;
 
-        public SqlStoreFactory(SchemaInformation schemaInformation, IEnumerable<TVersionedStore> versionedStores)
+        public SqlStoreFactory(ISchemaVersionResolver schemaResolver, IEnumerable<TVersionedStore> versionedStores)
         {
-            EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
+            EnsureArg.IsNotNull(schemaResolver, nameof(schemaResolver));
             EnsureArg.IsNotNull(versionedStores, nameof(versionedStores));
-            _schemaInformation = schemaInformation;
-            _versionedStores = versionedStores;
+            _schemaResolver = schemaResolver;
+            _versionedStores = versionedStores.ToDictionary(x => x.Version);
         }
 
-        public TStore GetInstance()
+        public async Task<TStore> GetInstanceAsync(CancellationToken cancellationToken = default)
         {
-            return _versionedStores.First(store => (int)store.Version == _schemaInformation.Current.Value);
+            SchemaVersion currentVersion = await _schemaResolver.GetCurrentVersionAsync(cancellationToken);
+            if (!_versionedStores.TryGetValue(currentVersion, out TVersionedStore value))
+            {
+                string msg = currentVersion == SchemaVersion.Unknown
+                    ? DicomSqlServerResource.UnknownSchemaVersion
+                    : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, currentVersion);
+
+                throw new KeyNotFoundException(msg);
+            }
+
+            return value;
         }
     }
 }

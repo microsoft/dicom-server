@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     public class DeleteExtendedQueryTagService : IDeleteExtendedQueryTagService
     {
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IStoreFactory<IExtendedQueryTagStore> _extendedQueryTagStoreFactory;
         private readonly IDicomTagParser _dicomTagParser;
 
         public DeleteExtendedQueryTagService(IStoreFactory<IExtendedQueryTagStore> extendedQueryTagStoreFactory, IDicomTagParser dicomTagParser)
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             EnsureArg.IsNotNull(extendedQueryTagStoreFactory, nameof(extendedQueryTagStoreFactory));
             EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
 
-            _extendedQueryTagStore = extendedQueryTagStoreFactory.GetInstance();
+            _extendedQueryTagStoreFactory = extendedQueryTagStoreFactory;
             _dicomTagParser = dicomTagParser;
         }
 
@@ -38,13 +38,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
             }
 
-            string normalizedPath = tags[0].GetPath();
+            IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(cancellationToken);
 
-            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(normalizedPath, cancellationToken);
+            string normalizedPath = tags[0].GetPath();
+            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTagEntries = await extendedQueryTagStore.GetExtendedQueryTagsAsync(normalizedPath, cancellationToken);
 
             if (extendedQueryTagEntries.Count > 0)
             {
-                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(normalizedPath, extendedQueryTagEntries[0].VR, cancellationToken);
+                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(normalizedPath, extendedQueryTagEntries[0].VR, cancellationToken);
             }
             else
             {

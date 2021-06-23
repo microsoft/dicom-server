@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             });
 
         [Fact]
-        public void Ctor_GivenNullArguments_ThrowsArgumentNullException()
+        public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
             Assert.Throws<ArgumentNullException>(
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("\t  \r\n")]
-        public async Task GetStatusAsync_GivenInvalidId_ThrowsArgumentException(string id)
+        public async Task GivenInvalidId_WhenGettingStatus_ThenThrowArgumentException(string id)
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         }
 
         [Fact]
-        public async Task GetStatusAsync_GivenNotFound_ReturnsNull()
+        public async Task GivenNotFound_WhenGettingStatus_ThenReturnNull()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         [InlineData(HttpStatusCode.TemporaryRedirect)]
         [InlineData(HttpStatusCode.BadRequest)]
         [InlineData(HttpStatusCode.InternalServerError)]
-        public async Task GetStatusAsync_GivenUnsuccessfulStatusCode_ThrowsHttpRequestException(HttpStatusCode expected)
+        public async Task GivenUnsuccessfulStatusCode_WhenGettingStatus_ThenThrowHttpRequestException(HttpStatusCode expected)
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(expected));
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
@@ -99,7 +99,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         }
 
         [Fact]
-        public async Task GetStatusAsync_GivenSuccessfulResponse_ReturnsStatus()
+        public async Task GivenSuccessfulResponse_WhenGettingStatus_ThenReturnStatus()
         {
             string id = Guid.NewGuid().ToString();
             var createdDateTime = new DateTime(2021, 06, 08, 1, 2, 3, DateTimeKind.Utc);

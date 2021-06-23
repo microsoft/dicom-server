@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
@@ -18,23 +19,23 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     public class AddExtendedQueryTagService : IAddExtendedQueryTagService
     {
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IStoreFactory<IExtendedQueryTagStore> _extendedQueryTagStoreFactory;
         private readonly IDicomOperationsClient _client;
         private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
         private readonly int _maxAllowedCount;
 
         public AddExtendedQueryTagService(
-            IExtendedQueryTagStore extendedQueryTagStore,
+            IStoreFactory<IExtendedQueryTagStore> extendedQueryTagStoreFactory,
             IDicomOperationsClient client,
             IExtendedQueryTagEntryValidator extendedQueryTagEntryValidator,
             IOptions<ExtendedQueryTagConfiguration> extendedQueryTagConfiguration)
         {
-            EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
+            EnsureArg.IsNotNull(extendedQueryTagStoreFactory, nameof(extendedQueryTagStoreFactory));
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(extendedQueryTagEntryValidator, nameof(extendedQueryTagEntryValidator));
             EnsureArg.IsNotNull(extendedQueryTagConfiguration?.Value, nameof(extendedQueryTagConfiguration));
 
-            _extendedQueryTagStore = extendedQueryTagStore;
+            _extendedQueryTagStoreFactory = extendedQueryTagStoreFactory;
             _client = client;
             _extendedQueryTagEntryValidator = extendedQueryTagEntryValidator;
             _maxAllowedCount = extendedQueryTagConfiguration.Value.MaxAllowedCount;
@@ -47,7 +48,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 .Select(item => item.Normalize())
                 .ToList();
 
-            IReadOnlyList<int> keys = await _extendedQueryTagStore.UpsertExtendedQueryTagsAsync(normalized, _maxAllowedCount, cancellationToken);
+            IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(cancellationToken);
+            IReadOnlyList<int> keys = await extendedQueryTagStore.UpsertExtendedQueryTagsAsync(normalized, _maxAllowedCount, cancellationToken);
             return new AddExtendedQueryTagResponse(await _client.StartQueryTagIndex(keys, cancellationToken));
         }
     }

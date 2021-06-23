@@ -11,7 +11,7 @@
 --     @maxCount
 --         * The max allowed extended query tag count
 /***************************************************************************************/
-ALTER PROCEDURE dbo.UpsertExtendedQueryTags (
+CREATE PROCEDURE dbo.UpsertExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
     @maxAllowedCount INT
 )

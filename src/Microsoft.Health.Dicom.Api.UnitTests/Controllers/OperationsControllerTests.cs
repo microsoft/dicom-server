@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
     public class OperationsControllerTests
     {
         [Fact]
-        public void Ctor_GivenNullArguments_ThrowsArgumentNullException()
+        public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => new OperationsController(
                 null,
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         }
 
         [Fact]
-        public async Task GetStatusAsync_GivenNullStatus_ReturnNotFound()
+        public async Task GivenNullStatus_WhenGettingStatus_ThenReturnNotFound()
         {
             string id = Guid.NewGuid().ToString();
             IMediator mediator = Substitute.For<IMediator>();
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         [Theory]
         [InlineData(OperationRuntimeStatus.Pending)]
         [InlineData(OperationRuntimeStatus.Running)]
-        public async Task GetStatusAsync_GivenInProgressStatus_ReturnOk(OperationRuntimeStatus inProgressStatus)
+        public async Task GivenInProgressStatus_WhenGettingStatus_ThenReturnOk(OperationRuntimeStatus inProgressStatus)
         {
             string id = Guid.NewGuid().ToString();
             string statusUrl = "https://dicom.contoso.io/unit/test/Operations/" + id;
@@ -112,7 +112,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         [InlineData(OperationRuntimeStatus.Completed)]
         [InlineData(OperationRuntimeStatus.Failed)]
         [InlineData(OperationRuntimeStatus.Canceled)]
-        public async Task GetStatusAsync_GivenDoneStatus_ReturnOk(OperationRuntimeStatus doneStatus)
+        public async Task GivenDoneStatus_WhenGettingStatus_ThenReturnOk(OperationRuntimeStatus doneStatus)
         {
             string id = Guid.NewGuid().ToString();
             IMediator mediator = Substitute.For<IMediator>();
