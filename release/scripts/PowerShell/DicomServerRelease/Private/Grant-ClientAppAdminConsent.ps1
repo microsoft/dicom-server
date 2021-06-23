@@ -42,8 +42,8 @@ function Grant-ClientAppAdminConsent {
         'x-ms-client-request-id' = [guid]::NewGuid()
     }
 
-    $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/$AppId/Consent?onBehalfOfAll=true"
-
+    $url = "https://login.microsoftonline.com/resoluteopensource.onmicrosoft.com/adminconsent?client_id=$AppId"
+    
     $retryCount = 0
 
     while ($true) {
