@@ -9,9 +9,9 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
-    public class OrchestrationsHistoryConfiguration
+    public class OrchestrationHistoryConfiguration
     {
-        public const string SectionName = "OrchestrationsHistory";
+        public const string SectionName = "OrchestrationHistory";
 
         [Required]
         [MinLength(1)]

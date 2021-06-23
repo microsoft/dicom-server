@@ -15,26 +15,26 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
-    public class PurgeOrchestrationInstancesHistory
+    public class PurgeOrchestrationInstanceHistory
     {
-        private readonly OrchestrationsHistoryConfiguration _purgeConfig;
+        private readonly OrchestrationHistoryConfiguration _purgeConfig;
         private readonly Func<DateTime> _getUtcNow;
 
-        public PurgeOrchestrationInstancesHistory(IOptions<OrchestrationsHistoryConfiguration> cleanupOptions)
+        public PurgeOrchestrationInstanceHistory(IOptions<OrchestrationHistoryConfiguration> cleanupOptions)
             : this(cleanupOptions, () => DateTime.UtcNow)
         { }
 
-        internal PurgeOrchestrationInstancesHistory(IOptions<OrchestrationsHistoryConfiguration> cleanupOptions, Func<DateTime> getDateTimeUtcNow)
+        internal PurgeOrchestrationInstanceHistory(IOptions<OrchestrationHistoryConfiguration> cleanupOptions, Func<DateTime> getDateTimeUtcNow)
         {
             EnsureArg.IsNotNull(cleanupOptions?.Value, nameof(cleanupOptions));
             EnsureArg.IsNotNull(getDateTimeUtcNow, nameof(getDateTimeUtcNow));
-            _purgeConfig = cleanupOptions?.Value;
+            _purgeConfig = cleanupOptions.Value;
             _getUtcNow = getDateTimeUtcNow;
         }
 
-        [FunctionName(nameof(PurgeOrchestrationInstancesHistory))]
+        [FunctionName(nameof(PurgeOrchestrationInstanceHistory))]
         public async Task Run(
-            [TimerTrigger(OrchestrationsHistoryConfiguration.PurgeFrequencyVariable)] TimerInfo myTimer,
+            [TimerTrigger(OrchestrationHistoryConfiguration.PurgeFrequencyVariable)] TimerInfo myTimer,
             [DurableClient] IDurableOrchestrationClient client,
             ILogger log,
             CancellationToken hostCancellationToken)

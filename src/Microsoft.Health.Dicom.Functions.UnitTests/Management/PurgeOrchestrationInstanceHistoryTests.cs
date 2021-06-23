@@ -18,25 +18,25 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
 {
-    public class PurgeOrchestrationInstancesHistoryTests
+    public class PurgeOrchestrationInstanceHistoryTests
     {
-        private readonly OrchestrationsHistoryConfiguration _purgeConfig;
+        private readonly OrchestrationHistoryConfiguration _purgeConfig;
         private readonly TimerInfo _timer;
         private readonly ILogger _logger;
         private readonly DateTime _definedNow;
-        private readonly PurgeOrchestrationInstancesHistory _purgeOrchestrationInstancesHistory;
+        private readonly PurgeOrchestrationInstanceHistory _purgeOrchestrationInstancesHistory;
         private readonly IDurableOrchestrationClient _durableOrchestrationClientMock;
 
-        public PurgeOrchestrationInstancesHistoryTests()
+        public PurgeOrchestrationInstanceHistoryTests()
         {
-            _purgeConfig = new OrchestrationsHistoryConfiguration
+            _purgeConfig = new OrchestrationHistoryConfiguration
             {
                 RuntimeStatuses = new OrchestrationRuntimeStatus[] { OrchestrationRuntimeStatus.Completed }
             };
             _timer = Substitute.For<TimerInfo>(default, default, default);
             _logger = Substitute.For<ILogger>();
             _definedNow = DateTime.UtcNow;
-            _purgeOrchestrationInstancesHistory = new PurgeOrchestrationInstancesHistory(
+            _purgeOrchestrationInstancesHistory = new PurgeOrchestrationInstanceHistory(
                 Options.Create(_purgeConfig),
                 () => _definedNow);
             _durableOrchestrationClientMock = Substitute.For<IDurableOrchestrationClient>();

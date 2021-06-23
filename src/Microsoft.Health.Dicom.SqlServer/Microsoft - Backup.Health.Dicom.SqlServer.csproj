@@ -1,0 +1,86 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>SQL Server extensions and utilities used by Microsoft's DICOMweb APIs.</Description>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ensure.That" Version="10.1.0" />
+    <PackageReference Include="fo-dicom" Version="4.0.7" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Abstractions" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="$(HealthcareSharedPackageVersion)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Scrutor" Version="3.3.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="DicomSqlServerResource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DicomSqlServerResource.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="DicomSqlServerResource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>DicomSqlServerResource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Features\Schema\Model\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>1</MutableClassVersion>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\3.diff.sql" />
+    <EmbeddedResource Include="Features\Schema\Migrations\3.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <MutableClassVersion>Latest</MutableClassVersion>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\2.diff.sql" />
+    <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>2</MutableClassVersion>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
+    <ItemGroup>
+      <MutableSqlGeneratorInputs Include="@(EmbeddedResource)" Condition="'%(EmbeddedResource.InputToMutableSqlGenerator)' == 'true'" />
+      <ImmutableSqlGeneratorInputs Include="@(EmbeddedResource)" Condition="'%(EmbeddedResource.InputToImmutableSqlGenerator)' == 'true'" />
+
+      <!--We create this item group to that MSBuild can know when the GenerateFiles can be skipped.-->
+
+      <GenerateFilesInputs Include="@(MutableSqlGeneratorInputs);@(ImmutableSqlGeneratorInputs)" />
+      <Generated Include="Features\Schema\Model\ImmutableTypes.Generated.cs">
+        <Generator>ImmutableSqlModelGenerator</Generator>
+        <Namespace>Microsoft.Health.Dicom.SqlServer.Features.Schema.Model</Namespace>
+        <Args>@(ImmutableSqlGeneratorInputs->'"%(FullPath)"', ' ')</Args>
+      </Generated>
+      <Generated Include="Features\Schema\Model\V%(MutableSqlGeneratorInputs.MutableClassVersion).Generated.cs">
+        <Generator>MutableSqlModelGenerator</Generator>
+        <Namespace>Microsoft.Health.Dicom.SqlServer.Features.Schema.Model</Namespace>
+        <Args>@(MutableSqlGeneratorInputs->'"%(FullPath)"', ' ')</Args>
+      </Generated>
+    </ItemGroup>
+  </Target>
+
+</Project>
