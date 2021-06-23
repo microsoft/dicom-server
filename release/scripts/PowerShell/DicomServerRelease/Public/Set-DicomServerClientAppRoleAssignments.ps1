@@ -63,6 +63,9 @@ function Set-DicomServerClientAppRoleAssignments {
         }
     }
 
+    Write-Host "The following roles will be added: $rolesToAdd"
+    Write-Host "The following roles will be removed: $rolesToRemove"
+
     foreach ($role in $rolesToAdd) {
         # This is known to report failure in certain scenarios, but will actually apply the permissions
         try {
