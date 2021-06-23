@@ -106,7 +106,6 @@ namespace Microsoft.AspNetCore.Builder
                 c.UseApiBehavior = false;
             });
 
-            services.AddApiVersioning();
             services.AddVersionedApiExplorer(options =>
             {
                 options.GroupNameFormat = "'v'VVV";
