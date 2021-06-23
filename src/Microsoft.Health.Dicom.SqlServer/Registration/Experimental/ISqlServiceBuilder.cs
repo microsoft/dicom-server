@@ -4,19 +4,27 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.Health.SqlServer.Configs;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public interface ISqlServiceBuilder
     {
         IServiceCollection Services { get; }
+
+        SqlServerDataStoreConfiguration Configuration { get; }
     }
 
     internal sealed class SqlServiceBuilder : ISqlServiceBuilder
     {
         public IServiceCollection Services { get; }
 
-        public SqlServiceBuilder(IServiceCollection serviceCollection)
-            => Services = EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
+        public SqlServerDataStoreConfiguration Configuration { get; }
+
+        public SqlServiceBuilder(IServiceCollection serviceCollection, SqlServerDataStoreConfiguration config)
+        {
+            Services = EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
+            Configuration = EnsureArg.IsNotNull(config, nameof(config));
+        }
     }
 }

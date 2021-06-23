@@ -41,7 +41,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton(config)
                 .AddConnectionServices(config);
 
-            return new SqlServiceBuilder(services);
+            return new SqlServiceBuilder(services, config);
         }
 
         private static IServiceCollection AddConnectionServices(

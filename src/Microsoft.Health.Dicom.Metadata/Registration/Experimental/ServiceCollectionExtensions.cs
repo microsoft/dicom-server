@@ -53,7 +53,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton(client);
 
-            return new BlobServiceBuilder(services);
+            return new BlobServiceBuilder(services, config);
         }
     }
 }
