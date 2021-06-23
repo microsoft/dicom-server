@@ -42,6 +42,9 @@ function Set-DicomServerClientAppRoleAssignments {
     $aadClientServicePrincipal = Get-AzureAdServicePrincipal -Filter "appId eq '$AppId'"
     $ObjectId = $aadClientServicePrincipal.ObjectId
 
+    Write-Host "API app: $apiApplication"
+    Write-Host "Client app: $aadClientServicePrincipal"
+
     $existingRoleAssignments = Get-AzureADServiceAppRoleAssignment -ObjectId $apiApplication.ObjectId | Where-Object {$_.PrincipalId -eq $ObjectId} 
 
     $expectedRoles = New-Object System.Collections.ArrayList
