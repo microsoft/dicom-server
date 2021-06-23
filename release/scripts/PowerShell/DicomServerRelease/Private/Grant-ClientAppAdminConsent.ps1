@@ -42,7 +42,8 @@ function Grant-ClientAppAdminConsent {
         'x-ms-client-request-id' = [guid]::NewGuid()
     }
 
-    $url = "https://login.microsoftonline.com/resoluteopensource.onmicrosoft.com/adminconsent?client_id=$AppId"
+    $aadTenandId = (Get-AzureADCurrentSessionInfo).Tenant.Id.ToString()
+    $url = "https://login.microsoftonline.com/$aadTenandId/adminconsent?client_id=$AppId"
     
     $retryCount = 0
 
