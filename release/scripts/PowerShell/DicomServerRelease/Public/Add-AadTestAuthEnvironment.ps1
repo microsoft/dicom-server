@@ -137,7 +137,8 @@ function Add-AadTestAuthEnvironment {
             $secretSecureString = ConvertTo-SecureString $newPassword.Value -AsPlainText -Force
         }
 
-        Grant-ClientAppAdminConsent -AppId $aadClientApplication.AppId -TenantAdminCredential $TenantAdminCredential
+        # Workaround to fix bug#83049
+        #Grant-ClientAppAdminConsent -AppId $aadClientApplication.AppId -TenantAdminCredential $TenantAdminCredential
 
         $environmentClientApplications += @{
             id          = $clientApp.Id
