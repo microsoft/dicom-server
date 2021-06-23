@@ -5,8 +5,8 @@
 
 namespace Microsoft.Health.Dicom.Functions
 {
-    internal static class AzureFunctionsConfiguration
+    internal static class AzureFunctionsJobHost
     {
-        public const string RootSectionName = "AzureFunctionsJobHost";
+        public const string SectionName = nameof(AzureFunctionsJobHost);
     }
 }

@@ -20,12 +20,12 @@ namespace Microsoft.Health.Dicom.Functions
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
 
-            IConfiguration config = builder.GetContext().Configuration.GetSection(AzureFunctionsConfiguration.RootSectionName);
+            IConfiguration config = builder.GetContext().Configuration.GetSection(AzureFunctionsJobHost.SectionName);
 
             builder.Services
                 .AddOptions<IndexingConfiguration>()
                 .Configure<IConfiguration>((sectionObj, config) => config
-                    .GetSection(AzureFunctionsConfiguration.RootSectionName)
+                    .GetSection(AzureFunctionsJobHost.SectionName)
                     .GetSection(IndexingConfiguration.SectionName)
                     .Bind(sectionObj));
 
