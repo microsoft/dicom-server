@@ -43,7 +43,7 @@ function Grant-ClientAppAdminConsent {
     }
 
     $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/$AppId/Consent?onBehalfOfAll=true"
-
+    
     $retryCount = 0
 
     while ($true) {
