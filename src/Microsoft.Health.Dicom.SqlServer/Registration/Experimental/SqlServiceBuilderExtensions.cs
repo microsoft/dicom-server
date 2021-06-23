@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
+using Microsoft.Health.Dicom.SqlServer.Features.Common;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
@@ -134,6 +135,10 @@ namespace Microsoft.Extensions.DependencyInjection
         public static ISqlServiceBuilder AddForegroundSchemaVersionResolution(this ISqlServiceBuilder builder)
         {
             IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
+
+            services.Add<SqlDbConnectionFactory>()
+                .Singleton()
+                .AsImplementedInterfaces();
 
             services.Add<SqlSchemaVersionResolver>()
                 .Singleton()
