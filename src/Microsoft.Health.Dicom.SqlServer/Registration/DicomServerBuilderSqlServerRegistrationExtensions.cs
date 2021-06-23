@@ -54,17 +54,20 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.Add<BackgroundSchemaVersionResolver>()
                 .Singleton()
+                .AsSelf()
                 .AsImplementedInterfaces();
 
             services.Add<SqlIndexDataStoreV1>()
                 .Scoped()
+                .AsSelf()
                 .AsImplementedInterfaces();
-
             services.Add<SqlIndexDataStoreV2>()
                 .Scoped()
+                .AsSelf()
                 .AsImplementedInterfaces();
             services.Add<SqlIndexDataStoreV3>()
                 .Scoped()
+                .AsSelf()
                 .AsImplementedInterfaces();
             services.Add<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
                 .Scoped()
@@ -92,21 +95,21 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsImplementedInterfaces();
 
             services.Add<SqlExtendedQueryTagStoreV1>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlExtendedQueryTagStoreV2>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
             services.Add<SqlExtendedQueryTagStoreV3>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             return dicomServerBuilder;
         }
