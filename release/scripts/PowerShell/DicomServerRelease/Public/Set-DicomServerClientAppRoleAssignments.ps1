@@ -45,7 +45,7 @@ function Set-DicomServerClientAppRoleAssignments {
     Write-Host "API app: $apiApplication"
     Write-Host "Client app: $aadClientServicePrincipal"
 
-    $existingRoleAssignments = Get-AzureADServiceAppRoleAssignment -ObjectId $apiApplication.ObjectId | Where-Object {$_.PrincipalId -eq $ObjectId} 
+    $existingRoleAssignments = Get-AzureADServiceAppRoleAssignedTo -ObjectId $ObjectId | Where-Object {$_.ResourceId -eq $apiApplication.ObjectId} 
 
     $expectedRoles = New-Object System.Collections.ArrayList
     $rolesToAdd = New-Object System.Collections.ArrayList
@@ -76,7 +76,7 @@ function Set-DicomServerClientAppRoleAssignments {
         }
         catch {
             #The role may have been assigned. Check:
-            $roleAssigned = Get-AzureADServiceAppRoleAssignment -ObjectId $apiApplication.ObjectId | Where-Object {$_.PrincipalId -eq $ObjectId -and $_.Id -eq $role}
+            $roleAssigned = Get-AzureADServiceAppRoleAssignedTo -ObjectId $ObjectId | Where-Object {$_.ResourceId -eq $apiApplication.ObjectId -and $_.Id -eq $role}
             if (!$roleAssigned) {
                 throw "Failure adding app role assignment for service principal."
             }
