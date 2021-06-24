@@ -81,6 +81,8 @@ function Set-DicomServerClientAppRoleAssignments {
                 throw "Failure adding app role assignment for service principal."
             }
         }
+        Grant-ClientAppAdminConsent -ClientAppServicePrincipalObjectId $ObjectId -TenantAdminCredential $TenantAdminCredential -ApiAppServicePrincipalObjectId $apiApplication.ObjectId -RoleId $role
+
     }
 
     foreach ($role in $rolesToRemove) {

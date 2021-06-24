@@ -3,24 +3,36 @@ function Grant-ClientAppAdminConsent {
     .SYNOPSIS
     Grants admin consent to a client app, so that users of the app are 
     not required to consent to the app calling the Dicom apli app on their behalf.
-    .PARAMETER AppId
-    The client application app ID.
+    .PARAMETER ClientAppServicePrincipalObjectId
+    The client application service principal object ID.
     .PARAMETER TenantAdminCredential
     Credentials for a tenant admin user
+    .PARAMETER ApiAppServicePrincipalObjectId
+    Server Application service principal object ID
+    .PARAMETER RoleId
+    Role Id that needs to be consented
     #>
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$AppId,
+        [string]$ClientAppServicePrincipalObjectId,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
         [pscredential]$TenantAdminCredential
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ApiAppServicePrincipalObjectId
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNull()]
+        [pscredential]$RoleId
     )
 
     Set-StrictMode -Version Latest
 
-    Write-Host "Granting admin consent for app ID $AppId"
+    Write-Host "Granting admin consent for app: $ClientAppServicePrincipalObjectId, for role $RoleId"
 
     # There currently is no documented or supported way of programatically
     # granting admin consent. So for now we resort to a hack. 
@@ -42,13 +54,19 @@ function Grant-ClientAppAdminConsent {
         'x-ms-client-request-id' = [guid]::NewGuid()
     }
 
-    $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/$AppId/Consent?onBehalfOfAll=true"
+    $url = "https://graph.microsoft.com/v1.0/servicePrincipals/$ApiAppServicePrincipalObjectId/appRoleAssignedTo"
     
+    $consentbody = @{
+        principalId = $ClientAppServicePrincipalObjectId,
+        resourceId  = $ApiAppServicePrincipalObjectId,
+        appRoleId   = $RoleId
+    }
+
     $retryCount = 0
 
     while ($true) {
         try {
-            Invoke-RestMethod -Uri $url -Headers $header -Method POST | Out-Null
+            Invoke-RestMethod -Uri $url -Headers $header -Method POST -Body $consentbody | Out-Null
             return
         }
         catch {
