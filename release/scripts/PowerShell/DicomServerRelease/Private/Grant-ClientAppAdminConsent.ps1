@@ -3,19 +3,17 @@ function Grant-ClientAppAdminConsent {
     .SYNOPSIS
     Grants admin consent to a client app, so that users of the app are 
     not required to consent to the app calling the Dicom apli app on their behalf.
-    .PARAMETER ClientAppServicePrincipalObjectId
+    .PARAMETER AppId
     The client application service principal object ID.
     .PARAMETER TenantAdminCredential
     Credentials for a tenant admin user
-    .PARAMETER ApiAppServicePrincipalObjectId
+    .PARAMETER ApiAppId
     Server Application service principal object ID
-    .PARAMETER RoleId
-    Role Id that needs to be consented
     #>
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$ClientAppServicePrincipalObjectId,
+        [string]$AppId,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
@@ -23,21 +21,18 @@ function Grant-ClientAppAdminConsent {
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$ApiAppServicePrincipalObjectId,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNull()]
-        [string]$RoleId
+        [string]$ApiAppId
     )
-
+ 
     Set-StrictMode -Version Latest
 
-    Write-Host "Granting admin consent for app: $ClientAppServicePrincipalObjectId and role: $RoleId"
-
-    # There currently is no documented or supported way of programatically
-    # granting admin consent. So for now we resort to a hack. 
-    # We call an API that is used from the portal. An admin *user* is required for this, a service principal will not work.
-    # Also, the call can fail when the app has just been created, so we include a retry loop. 
+    Write-Host "Granting admin consent for app: $AppId"
+    
+    # Get App SP objectIds 
+    $apiAppServicePrincipal = Get-AzureAdServicePrincipal -Filter "appId eq '$ApiAppId'"
+    $appServicePrincipal = Get-AzureAdServicePrincipal -Filter "appId eq '$AppId'"
+    $appServicePrincipalObjectId = $appServicePrincipal.ObjectId
+    $apiAppServicePrincipalObjectId = $apiAppServicePrincipal.ObjectId
 
     $body = @{
         grant_type = "password"
@@ -54,12 +49,12 @@ function Grant-ClientAppAdminConsent {
         'x-ms-client-request-id' = [guid]::NewGuid()
     }
 
-    $url = "https://graph.microsoft.com/v1.0/servicePrincipals/$ApiAppServicePrincipalObjectId/appRoleAssignedTo"
+    $url = "https://graph.microsoft.com/v1.0/servicePrincipals/$appServicePrincipalObjectId/appRoleAssignedTo"
     
     $consentbody = @{
-        principalId = $ClientAppServicePrincipalObjectId
-        resourceId  = $ApiAppServicePrincipalObjectId
-        appRoleId   = $RoleId
+        principalId = $appServicePrincipalObjectId
+        resourceId  = $apiAppServicePrincipalObjectId
+        appRoleId   = $apiAppServicePrincipal.Oauth2Permissions[0].Id
     }
 
     $retryCount = 0

@@ -12,8 +12,6 @@ function Set-DicomServerClientAppRoleAssignments {
     The objectId of the API application that has roles that need to be assigned
     .PARAMETER AppRoles
     The collection of roles from the testauthenvironment.json for the client application
-    .PARAMETER TenantAdminCredential
-    The tenant admin credential
     #>
     param(
         [Parameter(Mandatory = $true )]
@@ -26,11 +24,7 @@ function Set-DicomServerClientAppRoleAssignments {
 
         [Parameter(Mandatory = $true )]
         [AllowEmptyCollection()]
-        [string[]]$AppRoles,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNull()]
-        [pscredential]$TenantAdminCredential
+        [string[]]$AppRoles
     )
 
     Set-StrictMode -Version Latest
@@ -87,10 +81,8 @@ function Set-DicomServerClientAppRoleAssignments {
                 throw "Failure adding app role assignment for service principal."
             }
         }
-        Write-Host "calling consent"
-        Grant-ClientAppAdminConsent -ClientAppServicePrincipalObjectId $ObjectId -TenantAdminCredential $TenantAdminCredential -ApiAppServicePrincipalObjectId $apiApplication.ObjectId -RoleId $role
     }
-    
+
     foreach ($role in $rolesToRemove) {
         Remove-AzureADServiceAppRoleAssignment -ObjectId $ObjectId -AppRoleAssignmentId ($existingRoleAssignments | Where-Object { $_.Id -eq $role }).ObjectId | Out-Null
     }
