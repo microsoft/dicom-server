@@ -4,11 +4,11 @@ function Grant-ClientAppAdminConsent {
     Grants admin consent to a client app, so that users of the app are 
     not required to consent to the app calling the Dicom apli app on their behalf.
     .PARAMETER AppId
-    The client application service principal object ID.
+    The client application ID.
     .PARAMETER TenantAdminCredential
     Credentials for a tenant admin user
     .PARAMETER ApiAppId
-    Server Application service principal object ID
+    Server Application service ID
     #>
     param(
         [Parameter(Mandatory = $true)]
