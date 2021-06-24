@@ -87,8 +87,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     new SqlIndexDataStoreV1(SqlConnectionWrapperFactory),
                     new SqlIndexDataStoreV2(SqlConnectionWrapperFactory),
-                    new SqlIndexDataStoreV3(SqlConnectionWrapperFactory),
-                    new SqlIndexDataStoreV4(SqlConnectionWrapperFactory)
+                    new SqlIndexDataStoreV3(SqlConnectionWrapperFactory)
                 });
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
@@ -99,8 +98,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     new SqlExtendedQueryTagStoreV1(),
                     new SqlExtendedQueryTagStoreV2(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV2>.Instance),
-                    new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance),
-                    new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance)
+                    new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance)
                 });
 
 

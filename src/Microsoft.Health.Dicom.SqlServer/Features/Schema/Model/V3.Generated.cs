@@ -407,13 +407,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.Byte> _dataType = new ParameterDefinition<System.Byte>("@dataType", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Nullable<System.Boolean>> _force = new ParameterDefinition<System.Nullable<System.Boolean>>("@force", global::System.Data.SqlDbType.Bit, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte dataType)
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte dataType, System.Nullable<System.Boolean> force)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.DeleteExtendedQueryTag";
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _dataType.AddParameter(command.Parameters, dataType);
+                _force.AddParameter(command.Parameters, force);
             }
         }
 
