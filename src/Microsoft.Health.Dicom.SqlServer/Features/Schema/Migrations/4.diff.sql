@@ -57,7 +57,7 @@ GO
 --     @force
 --         * A bit if 1 indicates the tag should be deleted regardless of status
 /***************************************************************************************/
-CREATE PROCEDURE dbo.DeleteExtendedQueryTag (
+ALTER PROCEDURE dbo.DeleteExtendedQueryTag (
     @tagPath VARCHAR(64),
     @dataType TINYINT,
     @force BIT = 0
