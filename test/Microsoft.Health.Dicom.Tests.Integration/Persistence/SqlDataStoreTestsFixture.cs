@@ -69,18 +69,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory);
 
-            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
+            SchemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
 
-            var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
+            SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
 
-            _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
+            _schemaInitializer = new SchemaInitializer(config, SchemaUpgradeRunner, SchemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
 
             SqlTransactionHandler = new SqlTransactionHandler();
 
             SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
 
             IndexDataStoreFactory = new SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>(
-                schemaInformation,
+                SchemaInformation,
                 new[]
                 {
                     new SqlIndexDataStoreV1(SqlConnectionWrapperFactory),
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 
             ExtendedQueryTagStoreFactory = new SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>(
-                schemaInformation,
+                SchemaInformation,
                 new[]
                 {
                     new SqlExtendedQueryTagStoreV1(),
@@ -114,6 +114,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         internal IStoreFactory<IIndexDataStore> IndexDataStoreFactory { get; }
 
+        public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
+
         public string TestConnectionString { get; }
 
         public IIndexDataStore IndexDataStore { get => IndexDataStoreFactory.GetInstance(); }
@@ -125,6 +127,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public IExtendedQueryTagStore ExtendedQueryTagStore { get => ExtendedQueryTagStoreFactory.GetInstance(); }
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
+
+        public SchemaInformation SchemaInformation { get; set; }
 
         public static string GenerateDatabaseName(string prefix = "DICOMINTEGRATIONTEST_")
         {

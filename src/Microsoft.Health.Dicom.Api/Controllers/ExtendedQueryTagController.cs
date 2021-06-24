@@ -25,6 +25,7 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [ApiVersion("1.0-prerelease")]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class ExtendedQueryTagController : Controller
     {
@@ -46,6 +47,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [BodyModelStateValidator]
         [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.Accepted)]
         [HttpPost]
+        [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
         [Route(KnownRoutes.ExtendedQueryTagRoute)]
         [AuditEventType(AuditEventSubType.AddExtendedQueryTag)]
         public async Task<IActionResult> PostAsync([FromBody] IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags)
@@ -61,6 +63,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.NoContent)]
         [HttpDelete]
+        [VersionedRoute(KnownRoutes.DeleteExtendedQueryTagRoute)]
         [Route(KnownRoutes.DeleteExtendedQueryTagRoute)]
         [AuditEventType(AuditEventSubType.RemoveExtendedQueryTag)]
         public async Task<IActionResult> DeleteAsync(string tagPath)
@@ -83,6 +86,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
         [Route(KnownRoutes.ExtendedQueryTagRoute)]
         [AuditEventType(AuditEventSubType.GetAllExtendedQueryTags)]
         public async Task<IActionResult> GetAllTagsAsync()
@@ -108,6 +112,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.GetExtendedQueryTagRoute)]
         [Route(KnownRoutes.GetExtendedQueryTagRoute)]
         [AuditEventType(AuditEventSubType.GetExtendedQueryTag)]
         public async Task<IActionResult> GetTagAsync(string tagPath)

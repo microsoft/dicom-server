@@ -8,13 +8,16 @@
     <Deterministic>true</Deterministic>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>2.1.25</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>2.1.40</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
+    <Hl7FhirPackageVersion>3.3.0</Hl7FhirPackageVersion>
     <LangVersion>Latest</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <SdkPackageVersion>5.0.0</SdkPackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
@@ -23,7 +26,7 @@
   <Choose>
     <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
       <PropertyGroup>
-        <SdkPackageVersion>3.1.15</SdkPackageVersion>
+        <SdkPackageVersion>3.1.16</SdkPackageVersion>
       </PropertyGroup>
     </When>
     <Otherwise>
@@ -37,6 +40,7 @@
     <When Condition="$(MSBuildProjectName.Contains('Test'))">
       <PropertyGroup>
         <IsPackable>false</IsPackable>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
       </PropertyGroup>
     </When>
     <Otherwise>

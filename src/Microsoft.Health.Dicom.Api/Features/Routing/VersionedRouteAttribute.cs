@@ -3,14 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.AspNetCore.Mvc;
+
 namespace Microsoft.Health.Dicom.Api.Features.Routing
 {
-    internal class KnownRouteNames
+    public sealed class VersionedRouteAttribute : RouteAttribute
     {
-        internal const string VersionedRetrieveStudy = nameof(VersionedRetrieveStudy);
-        internal const string RetrieveStudy = nameof(RetrieveStudy);
-
-        internal const string VersionedRetrieveInstance = nameof(VersionedRetrieveInstance);
-        internal const string RetrieveInstance = nameof(RetrieveInstance);
+        public VersionedRouteAttribute(string template)
+            : base("v{version:apiVersion}/" + template)
+        {
+        }
     }
 }
