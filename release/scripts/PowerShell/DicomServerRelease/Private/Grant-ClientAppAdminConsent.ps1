@@ -15,15 +15,15 @@ function Grant-ClientAppAdminConsent {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$ClientAppServicePrincipalObjectId
+        [string]$ClientAppServicePrincipalObjectId,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
-        [pscredential]$TenantAdminCredential
+        [pscredential]$TenantAdminCredential,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$ApiAppServicePrincipalObjectId
+        [string]$ApiAppServicePrincipalObjectId,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
