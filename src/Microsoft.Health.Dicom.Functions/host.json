@@ -13,5 +13,24 @@
       "batchSize": 1000,
       "parallelBatches": 10
     }
+  },
+  "BlobStore": {
+    "ConnectionString": null,
+    "RequestOptions": {
+      "ExponentialRetryBackoffDeltaInSeconds": 4,
+      "ExponentialRetryMaxAttempts": 6,
+      "ServerTimeoutInMinutes": 2,
+      "DownloadMaximumConcurrency": 5,
+      "UploadMaximumConcurrency": 5
+    }
+  },
+  "SqlServer": {
+    "ConnectionString": "server=(local);Initial Catalog=Dicom;Integrated Security=true",
+    "TransientFaultRetryPolicy": {
+      "InitialDelay": "00:00:00.100",
+      "RetryCount": 3,
+      "Factor": 2,
+      "FastFirst": true
+    }
   }
 }

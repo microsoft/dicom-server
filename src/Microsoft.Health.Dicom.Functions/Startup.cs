@@ -15,19 +15,28 @@ namespace Microsoft.Health.Dicom.Functions
 {
     public class Startup : FunctionsStartup
     {
-        private const string HostSectionName = "AzureFunctionsJobHost";
-
         public override void Configure(IFunctionsHostBuilder builder)
         {
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
 
+            IConfiguration config = builder.GetContext().Configuration.GetSection(AzureFunctionsJobHost.SectionName);
+
             builder.Services
                 .AddOptions<IndexingConfiguration>()
                 .Configure<IConfiguration>((sectionObj, config) => config
-                    .GetSection(HostSectionName)
+                    .GetSection(AzureFunctionsJobHost.SectionName)
                     .GetSection(IndexingConfiguration.SectionName)
                     .Bind(sectionObj));
+
+            builder.Services
+                .AddSqlServer(config)
+                .AddForegroundSchemaVersionResolution()
+                .AddExtendedQueryTagStores();
+
+            builder.Services
+                .AddAzureBlobServiceClient(config)
+                .AddMetadataStore();
 
             builder.Services
                 .AddMvcCore()
